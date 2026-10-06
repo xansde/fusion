@@ -18,7 +18,12 @@ import type { SeqStore } from "../seq-store.js";
 import type { OpBuffer } from "../op-buffer.js";
 import type { DocumentStore } from "../../documents/store.js";
 import { DocumentNotFoundError } from "../../documents/store.js";
-import { OwnershipLevel, resolveOwnership, isRolePrivileged } from "../../documents/ownership.js";
+import {
+  OwnershipLevel,
+  resolveOwnership,
+  isRolePrivileged,
+  isGamemasterStrict,
+} from "../../documents/ownership.js";
 import {
   redactCombatDocsForNonPrivileged,
   redactSceneDocsForNonPrivileged,
@@ -29,8 +34,10 @@ import {
 } from "../redaction.js";
 import type { ContactViewer } from "../redaction.js";
 import { broadcastToWorld } from "./doc-handlers.js";
+import { isPlayerReadableSettingKey } from "./settings-handlers.js";
 import type { SystemModule } from "@fusion/system-api";
 import { runActorDerivation } from "../derive-runner.js";
+import { resolveWorldVariantRules } from "../../documents/world-variant-rules.js";
 
 import { WorldResyncRequestPayloadSchema, WorldActiveScenePayloadSchema } from "@fusion/shared";
 import type {
@@ -163,6 +170,10 @@ function persistActiveSceneId(db: Db, sceneId: string | null): void {
  */
 function filterOpsForRole(ops: Envelope[], viewer: ContactViewer): Envelope[] {
   return ops.map((op) => {
+    // I5: Setting answers to the live allowlist, whatever the viewer's role.
+    const settingChecked = filterSettingOpForRole(op);
+    if (settingChecked !== op) return settingChecked;
+
     // M2-C: combat broadcasts may carry hidden combatants in their payload.
     // Strip them for non-GM delta replay (REQ-CBT-031).
     if (op.type === "combat:created" || op.type === "combat:updated") {
@@ -239,6 +250,67 @@ function filterOpsForRole(ops: Envelope[], viewer: ContactViewer): Envelope[] {
     // (possibly with an empty `documents`) so the replayed seq stays contiguous.
     return { ...op, payload: { ...payload, documents: stripped } };
   });
+}
+
+/**
+ * Replay of a buffered `Setting` op for a viewer who is NOT the GAMEMASTER.
+ *
+ * `broadcastToWorld` never hands a non-GAMEMASTER socket the whole Setting
+ * envelope: create/update arrive filtered to `PLAYER_READABLE_SETTING_KEYS`
+ * (`isPlayerReadableSettingKey`, the one predicate settings-handlers.ts reads
+ * through) and a delete arrives with empty `ids` — the removed document's key
+ * is not known to the buffer, so none of the ids can be vouched for
+ * (REQ-GAV-034, DEC-CFG-05). The buffer keeps the raw GM envelope, so the replay
+ * has to apply the same cut or reconnecting inside the window reads what the
+ * live path refused to send. The envelope itself is kept (possibly with an
+ * empty body) so the replayed seq stays contiguous.
+ *
+ * Returns the SAME `op` reference when it is not a Setting op or nothing had to
+ * go; never mutates the shared buffered envelope.
+ */
+function filterSettingOpForRole(op: Envelope): Envelope {
+  if (op.type !== "doc:create" && op.type !== "doc:update" && op.type !== "doc:delete") {
+    return op;
+  }
+  const payload = op.payload as Record<string, unknown> | null | undefined;
+  if (!payload || typeof payload !== "object") return op;
+  if (payload["documentType"] !== "Setting") return op;
+
+  if (op.type === "doc:delete") {
+    const ids = payload["ids"];
+    if (!Array.isArray(ids) || ids.length === 0) return op;
+    return { ...op, payload: { ...payload, ids: [] } };
+  }
+
+  const documents = payload["documents"];
+  if (!Array.isArray(documents)) return op;
+  const readable = (documents as Record<string, unknown>[]).filter((doc) => {
+    const key = doc["key"];
+    return typeof key === "string" && isPlayerReadableSettingKey(key);
+  });
+  if (readable.length === documents.length) return op;
+  return { ...op, payload: { ...payload, documents: readable } };
+}
+
+/**
+ * The delta a viewer is allowed to replay. GAMEMASTER gets the buffer as is.
+ * Everyone else goes through `filterOpsForRole` — except the ASSISTANT, who is
+ * privileged for Scene/Actor/Combat (it sees what the GM sees there) but NOT for
+ * Setting, which is GAMEMASTER-strict (REQ-CFG-070/071): it only gets the
+ * Setting cut, never the player-side Scene/Actor redaction.
+ */
+function deltaForRole(
+  deps: SyncHandlerDeps,
+  rawDelta: Envelope[],
+  userId: string,
+  role: number,
+): Envelope[] {
+  if (isGamemasterStrict(role)) return rawDelta;
+  if (isPrivileged(role)) return rawDelta.map(filterSettingOpForRole);
+  return filterOpsForRole(
+    rawDelta,
+    buildContactViewer(contactKnowledgeSourceFromStore(deps.store), userId, role),
+  );
 }
 
 /**
@@ -423,6 +495,7 @@ function buildSnapshot(deps: SyncHandlerDeps, userId: string, role: number): Wor
       // (or whatever it already had), while every other actor is unaffected.
       if (docType === "Actor" && deps.systemModule) {
         const systemModule = deps.systemModule;
+        const worldVariantRules = resolveWorldVariantRules(deps.store, systemModule);
         visible = visible.map((actor) => {
           try {
             const clone: Record<string, unknown> = { ...actor };
@@ -436,7 +509,7 @@ function buildSnapshot(deps: SyncHandlerDeps, userId: string, role: number): Wor
               sys && typeof sys === "object" && !Array.isArray(sys)
                 ? structuredClone(sys as Record<string, unknown>)
                 : {};
-            runActorDerivation(clone, systemModule);
+            runActorDerivation(clone, systemModule, worldVariantRules);
             return clone;
           } catch (err) {
             deps.logger?.warn(
@@ -449,9 +522,9 @@ function buildSnapshot(deps: SyncHandlerDeps, userId: string, role: number): Wor
       }
 
       // Spec 39 §5.9, AFTER derivation on purpose: a glimpsed contact must
-      // carry no system data at all (REQ-CTT-081), and deriving first then
-      // stripping is the only order that guarantees `system.derived` never
-      // slips back in behind the redaction. Ownership above is still the gate
+      // carry no system data (REQ-CTT-081) but its size category, and deriving
+      // first then stripping is the only order that guarantees `system.derived`
+      // never slips back in behind the redaction. Ownership above is still the gate
       // — this only ever removes more (REQ-CTT-074).
       // A snapshot REPLACES the mirror wholesale, so an absent contact is
       // already forgotten — `removedIds` is a delta concept and has no meaning
@@ -530,12 +603,7 @@ export function sendJoinSnapshot(
     const rawDelta = deps.opBuffer.opsAfter(lastSeq, deps.seqStore.peek());
     if (rawDelta !== null) {
       // Redact hidden tokens for non-privileged clients (delta-resync leak fix)
-      const delta = isPrivileged(role)
-        ? rawDelta
-        : filterOpsForRole(
-            rawDelta,
-            buildContactViewer(contactKnowledgeSourceFromStore(deps.store), userId, role),
-          );
+      const delta = deltaForRole(deps, rawDelta, userId, role);
       // Client can catch up with delta
       const deltaPayload: ResyncDeltaPayload = {
         fromSeq: lastSeq + 1,
@@ -600,12 +668,7 @@ export function buildResyncRequestHandler(deps: SyncHandlerDeps): HandlerFn {
     const rawDelta = deps.opBuffer.opsAfter(lastSeq, deps.seqStore.peek());
     if (rawDelta !== null) {
       // Redact hidden tokens for non-privileged clients (delta-resync leak fix)
-      const delta = isPrivileged(ctx.role)
-        ? rawDelta
-        : filterOpsForRole(
-            rawDelta,
-            buildContactViewer(contactKnowledgeSourceFromStore(deps.store), ctx.userId, ctx.role),
-          );
+      const delta = deltaForRole(deps, rawDelta, ctx.userId, ctx.role);
       const deltaPayload: ResyncDeltaPayload = {
         fromSeq: lastSeq + 1,
         toSeq: deps.seqStore.peek(),

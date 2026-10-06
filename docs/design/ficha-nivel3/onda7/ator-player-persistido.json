@@ -1,0 +1,1400 @@
+{
+  "_id": "M1Wz18YoGkaXZELZ",
+  "_stats": {
+    "createdTime": 1786931006693,
+    "modifiedTime": 1790054283546,
+    "version": 60,
+    "lastModifiedBy": "hLFfRgqkasgtY9Xs",
+    "createdBy": "bOBmIZZkHR4teDy7",
+    "coreVersion": "0.1.0",
+    "systemId": null,
+    "systemVersion": null,
+    "engineSchemaVersion": 1,
+    "systemSchemaVersion": null
+  },
+  "name": "Tobias",
+  "type": "character",
+  "sort": 0,
+  "ownership": {
+    "default": 0,
+    "hLFfRgqkasgtY9Xs": 3
+  },
+  "flags": {
+    "fusion": {
+      "playerId": "hLFfRgqkasgtY9Xs"
+    }
+  },
+  "system": {
+    "derived": {
+      "_equipmentCollected": true,
+      "dyingMax": 4,
+      "abilityMods": {
+        "str": 3,
+        "dex": 2,
+        "con": 2,
+        "int": 1,
+        "wis": 2,
+        "cha": 0
+      },
+      "abilityScores": {
+        "str": 16,
+        "dex": 14,
+        "con": 14,
+        "int": 12,
+        "wis": 14,
+        "cha": 10
+      },
+      "hp": {
+        "value": 44,
+        "max": 44,
+        "temp": 0,
+        "drainedHpReduction": 0
+      },
+      "ac": {
+        "slug": "ac",
+        "base": 19,
+        "modifiers": [],
+        "total": 19,
+        "dc": 29
+      },
+      "archetypeClassDCs": [],
+      "classDC": {
+        "total": 8,
+        "dc": 18,
+        "modifiers": []
+      },
+      "elementalBlasts": [],
+      "perception": {
+        "slug": "perception",
+        "base": 7,
+        "modifiers": [],
+        "total": 7,
+        "dc": 17,
+        "rank": 1
+      },
+      "saves": {
+        "fortitude": {
+          "slug": "fortitude",
+          "base": 9,
+          "modifiers": [],
+          "total": 9,
+          "dc": 19,
+          "rank": 2
+        },
+        "reflex": {
+          "slug": "reflex",
+          "base": 9,
+          "modifiers": [],
+          "total": 9,
+          "dc": 19,
+          "rank": 2
+        },
+        "will": {
+          "slug": "will",
+          "base": 9,
+          "modifiers": [],
+          "total": 9,
+          "dc": 19,
+          "rank": 2
+        }
+      },
+      "skills": {
+        "acrobatics": {
+          "slug": "acrobatics",
+          "base": 7,
+          "modifiers": [],
+          "total": 7,
+          "dc": 17,
+          "rank": 1
+        },
+        "arcana": {
+          "slug": "arcana",
+          "base": 6,
+          "modifiers": [],
+          "total": 6,
+          "dc": 16,
+          "rank": 1
+        },
+        "athletics": {
+          "slug": "athletics",
+          "base": 8,
+          "modifiers": [],
+          "total": 8,
+          "dc": 18,
+          "rank": 1
+        },
+        "crafting": {
+          "slug": "crafting",
+          "base": 6,
+          "modifiers": [],
+          "total": 6,
+          "dc": 16,
+          "rank": 1
+        },
+        "deception": {
+          "slug": "deception",
+          "base": 0,
+          "modifiers": [],
+          "total": 0,
+          "dc": 10,
+          "rank": 0
+        },
+        "diplomacy": {
+          "slug": "diplomacy",
+          "base": 5,
+          "modifiers": [],
+          "total": 5,
+          "dc": 15,
+          "rank": 1
+        },
+        "intimidation": {
+          "slug": "intimidation",
+          "base": 0,
+          "modifiers": [],
+          "total": 0,
+          "dc": 10,
+          "rank": 0
+        },
+        "medicine": {
+          "slug": "medicine",
+          "base": 2,
+          "modifiers": [],
+          "total": 2,
+          "dc": 12,
+          "rank": 0
+        },
+        "nature": {
+          "slug": "nature",
+          "base": 2,
+          "modifiers": [],
+          "total": 2,
+          "dc": 12,
+          "rank": 0
+        },
+        "occultism": {
+          "slug": "occultism",
+          "base": 1,
+          "modifiers": [],
+          "total": 1,
+          "dc": 11,
+          "rank": 0
+        },
+        "performance": {
+          "slug": "performance",
+          "base": 0,
+          "modifiers": [],
+          "total": 0,
+          "dc": 10,
+          "rank": 0
+        },
+        "religion": {
+          "slug": "religion",
+          "base": 2,
+          "modifiers": [],
+          "total": 2,
+          "dc": 12,
+          "rank": 0
+        },
+        "society": {
+          "slug": "society",
+          "base": 1,
+          "modifiers": [],
+          "total": 1,
+          "dc": 11,
+          "rank": 0
+        },
+        "stealth": {
+          "slug": "stealth",
+          "base": 2,
+          "modifiers": [],
+          "total": 2,
+          "dc": 12,
+          "rank": 0
+        },
+        "survival": {
+          "slug": "survival",
+          "base": 2,
+          "modifiers": [],
+          "total": 2,
+          "dc": 12,
+          "rank": 0
+        },
+        "thievery": {
+          "slug": "thievery",
+          "base": 2,
+          "modifiers": [],
+          "total": 2,
+          "dc": 12,
+          "rank": 0
+        },
+        "lore-academia": {
+          "slug": "lore-academia",
+          "base": 6,
+          "modifiers": [],
+          "total": 6,
+          "dc": 16,
+          "rank": 1
+        }
+      },
+      "speed": {
+        "value": 25,
+        "base": 25,
+        "modifiers": [],
+        "otherSpeeds": []
+      },
+      "spellcasting": {},
+      "spellcastingLevels": {},
+      "strikes": [
+        {
+          "label": "Punho",
+          "sourceId": "pf2e.synthetic.fist",
+          "isRanged": false,
+          "isAgile": true,
+          "attackBonus": 8,
+          "variants": [
+            {
+              "mapPenalty": 0,
+              "total": 8,
+              "formula": "1d20 + 8"
+            },
+            {
+              "mapPenalty": -4,
+              "total": 4,
+              "formula": "1d20 + 4"
+            },
+            {
+              "mapPenalty": -8,
+              "total": 0,
+              "formula": "1d20 + 0"
+            }
+          ],
+          "damageAbilityMod": 3,
+          "damageFormula": "1d6 +3 bludgeoning",
+          "critDamageFormula": "(1d6 +3) × 2 bludgeoning",
+          "damageRoll": "1d6+3",
+          "critDamageRoll": "(1d6+3)*2",
+          "damageType": "bludgeoning",
+          "traits": ["agile", "finesse", "nonlethal"]
+        }
+      ],
+      "proficiencyOrigin": {
+        "perception": {
+          "rank": 1,
+          "from": "YPxpk9JbMnKjbNLc"
+        },
+        "fortitude": {
+          "rank": 2,
+          "from": "YPxpk9JbMnKjbNLc"
+        },
+        "reflex": {
+          "rank": 2,
+          "from": "YPxpk9JbMnKjbNLc"
+        },
+        "will": {
+          "rank": 2,
+          "from": "YPxpk9JbMnKjbNLc"
+        },
+        "classDC": {
+          "rank": 1,
+          "from": "YPxpk9JbMnKjbNLc"
+        },
+        "weapons.unarmed": {
+          "rank": 1,
+          "from": "YPxpk9JbMnKjbNLc"
+        },
+        "weapons.simple": {
+          "rank": 1,
+          "from": "YPxpk9JbMnKjbNLc"
+        },
+        "weapons.martial": {
+          "rank": 0,
+          "from": "YPxpk9JbMnKjbNLc"
+        },
+        "weapons.advanced": {
+          "rank": 0,
+          "from": "YPxpk9JbMnKjbNLc"
+        },
+        "armor.unarmored": {
+          "rank": 2,
+          "from": "YPxpk9JbMnKjbNLc"
+        },
+        "armor.light": {
+          "rank": 0,
+          "from": "YPxpk9JbMnKjbNLc"
+        },
+        "armor.medium": {
+          "rank": 0,
+          "from": "YPxpk9JbMnKjbNLc"
+        },
+        "armor.heavy": {
+          "rank": 0,
+          "from": "YPxpk9JbMnKjbNLc"
+        }
+      },
+      "classLevels": {
+        "variantActive": false,
+        "characterLevel": 3,
+        "classLevels": {
+          "YPxpk9JbMnKjbNLc": 3
+        },
+        "firstClass": "YPxpk9JbMnKjbNLc",
+        "classNames": {
+          "YPxpk9JbMnKjbNLc": "Monk"
+        }
+      },
+      "classDCs": [
+        {
+          "classKey": "YPxpk9JbMnKjbNLc",
+          "label": "Monge",
+          "classLevel": 3,
+          "ability": "str",
+          "rank": 1,
+          "total": 8,
+          "dc": 18
+        }
+      ],
+      "focusPoints": {
+        "value": 0,
+        "max": 0
+      },
+      "languages": ["common", "dwarven", "elven"],
+      "languagesPendingCount": 0,
+      "languageOptions": [
+        "draconic",
+        "fey",
+        "gnomish",
+        "goblin",
+        "halfling",
+        "jotun",
+        "orcish",
+        "sakvroth"
+      ],
+      "_instinctStrikesCollected": true,
+      "bloodlineSpellDamage": [],
+      "hpByLevel": [
+        {
+          "level": 1,
+          "class": "YPxpk9JbMnKjbNLc",
+          "hp": 10,
+          "con": 2
+        },
+        {
+          "level": 2,
+          "class": "YPxpk9JbMnKjbNLc",
+          "hp": 10,
+          "con": 2
+        },
+        {
+          "level": 3,
+          "class": "YPxpk9JbMnKjbNLc",
+          "hp": 10,
+          "con": 2
+        }
+      ]
+    },
+    "build": {
+      "abilities": {
+        "ancestryBoosts": [],
+        "ancestryFlaws": ["free"],
+        "ancestryFree": ["str", "con", "dex"],
+        "backgroundBoosts": [],
+        "backgroundFree": ["int", "wis"],
+        "classBoost": ["str"],
+        "levelledBoosts": {
+          "1": ["str", "dex", "con", "wis"]
+        }
+      },
+      "choices": [
+        {
+          "level": 1,
+          "slot": "backgroundLore-0",
+          "type": "skillTraining",
+          "skill": "lore-academia",
+          "rank": 1
+        },
+        {
+          "level": 1,
+          "slot": "abilityBoosts-1",
+          "type": "abilityBoosts"
+        },
+        {
+          "level": 1,
+          "slot": "ancestryFeat-1",
+          "type": "ancestryFeat"
+        },
+        {
+          "level": 1,
+          "slot": "skillTraining-1-0",
+          "type": "skillTraining",
+          "skill": "diplomacy",
+          "rank": 1
+        },
+        {
+          "level": 1,
+          "slot": "skillTraining-1-1",
+          "type": "skillTraining",
+          "skill": "acrobatics",
+          "rank": 1
+        },
+        {
+          "level": 1,
+          "slot": "skillTraining-1-2",
+          "type": "skillTraining",
+          "skill": "arcana",
+          "rank": 1
+        },
+        {
+          "level": 1,
+          "slot": "skillTraining-1-3",
+          "type": "skillTraining",
+          "skill": "athletics",
+          "rank": 1
+        },
+        {
+          "level": 1,
+          "slot": "skillTraining-1-4",
+          "type": "skillTraining",
+          "skill": "crafting",
+          "rank": 1
+        },
+        {
+          "level": 1,
+          "slot": "language-1-0",
+          "type": "language",
+          "ref": "elven"
+        },
+        {
+          "level": 1,
+          "slot": "language-1-1",
+          "type": "language",
+          "ref": "dwarven"
+        }
+      ]
+    },
+    "attributes": {
+      "speed": {
+        "value": 25
+      }
+    },
+    "skills": {
+      "lore-academia": {
+        "rank": 0,
+        "lore": true,
+        "label": "Academia Lore"
+      }
+    },
+    "level": {
+      "value": 3
+    },
+    "details": {
+      "level": 3
+    }
+  },
+  "items": [
+    {
+      "name": "Monk",
+      "type": "class",
+      "img": "icons/placeholder/feat.svg",
+      "system": {
+        "systemVersion": "0.1.0",
+        "hp": 10,
+        "keyAbility": ["dex", "str"],
+        "proficiencies": {},
+        "perception": 1,
+        "savingThrows": {
+          "fortitude": 2,
+          "reflex": 2,
+          "will": 2
+        },
+        "defenses": {
+          "heavy": 0,
+          "light": 0,
+          "medium": 0,
+          "unarmored": 2
+        },
+        "attacks": {
+          "advanced": 0,
+          "martial": 0,
+          "simple": 1,
+          "unarmed": 1
+        },
+        "classDC": 1,
+        "impulse": 0,
+        "featLevels": {
+          "ancestry": [1, 5, 9, 13, 17],
+          "class": [1, 2, 4, 6, 8, 10, 12, 14, 16, 18, 20],
+          "general": [3, 7, 11, 15, 19],
+          "skill": [2, 4, 6, 8, 10, 12, 14, 16, 18, 20]
+        },
+        "skillIncreaseLevels": [3, 5, 7, 9, 11, 13, 15, 17, 19],
+        "abilityBoostLevels": [5, 10, 15, 20],
+        "trainedSkills": {
+          "value": [],
+          "additional": 4
+        },
+        "proficiencyUpgrades": [
+          {
+            "level": 5,
+            "stat": "perception",
+            "rank": 2
+          },
+          {
+            "level": 5,
+            "stat": "weapons.simple",
+            "rank": 2
+          },
+          {
+            "level": 5,
+            "stat": "weapons.unarmed",
+            "rank": 2
+          },
+          {
+            "level": 9,
+            "stat": "classDC",
+            "rank": 2
+          },
+          {
+            "level": 13,
+            "stat": "armor.unarmored",
+            "rank": 3
+          },
+          {
+            "level": 13,
+            "stat": "weapons.simple",
+            "rank": 3
+          },
+          {
+            "level": 13,
+            "stat": "weapons.unarmed",
+            "rank": 3
+          },
+          {
+            "level": 17,
+            "stat": "armor.unarmored",
+            "rank": 4
+          },
+          {
+            "level": 17,
+            "stat": "classDC",
+            "rank": 3
+          }
+        ],
+        "featuresByLevel": [
+          {
+            "level": 1,
+            "uuid": "WsjMAdbmegii8Kqf",
+            "name": "Flurry of Blows"
+          },
+          {
+            "level": 1,
+            "uuid": "yoqnc3lhyUICfRSB",
+            "name": "Powerful Fist"
+          },
+          {
+            "level": 3,
+            "uuid": "JYQS4l6mn6OKQFFj",
+            "name": "Mystic Strikes"
+          },
+          {
+            "level": 3,
+            "uuid": "ftNUb4vgqUL5RuyY",
+            "name": "Incredible Movement"
+          },
+          {
+            "level": 5,
+            "uuid": "86SI1amhg3KRI7Y5",
+            "name": "Expert Strikes"
+          },
+          {
+            "level": 5,
+            "uuid": "lq2hF5SquDtGyQjd",
+            "name": "Perception Expertise"
+          },
+          {
+            "level": 7,
+            "uuid": "J9FT6XRcaEhYUHnV",
+            "name": "Weapon Specialization"
+          },
+          {
+            "level": 7,
+            "uuid": "stRfmuEklLEcWZgK",
+            "name": "Path to Perfection"
+          },
+          {
+            "level": 9,
+            "uuid": "5Szj5aQ8oBJN70II",
+            "name": "Monk Expertise"
+          },
+          {
+            "level": 9,
+            "uuid": "YSe3taJoihbLxjDB",
+            "name": "Metal Strikes"
+          },
+          {
+            "level": 11,
+            "uuid": "xVdEfXKh6CrTVj1h",
+            "name": "Second Path to Perfection"
+          },
+          {
+            "level": 13,
+            "uuid": "CyMp4KYHW8veGR0x",
+            "name": "Graceful Mastery"
+          },
+          {
+            "level": 13,
+            "uuid": "TCHC4ZSPQ9MVikD1",
+            "name": "Master Strikes"
+          },
+          {
+            "level": 15,
+            "uuid": "08FZP49WC5QReus0",
+            "name": "Greater Weapon Specialization (Level 15)"
+          },
+          {
+            "level": 15,
+            "uuid": "vRc9KYm0mKU5tANe",
+            "name": "Third Path to Perfection"
+          },
+          {
+            "level": 17,
+            "uuid": "njYDyHDE3ogHH7th",
+            "name": "Graceful Legend"
+          },
+          {
+            "level": 17,
+            "uuid": "QgTrrxofFPfcHT2U",
+            "name": "Adamantine Strikes"
+          },
+          {
+            "level": 19,
+            "uuid": "B1Cjbu0DIhPx4r1u",
+            "name": "Perfected Form"
+          }
+        ],
+        "rules": [],
+        "publication": {
+          "license": "ORC",
+          "remaster": true,
+          "title": "Pathfinder Player Core 2"
+        },
+        "description": "<p><em>The strength of your fist flows from your mind and spirit. You seek perfection-honing your body into a flawless instrument and your mind into an orderly bastion of wisdom. You're a fierce combatant renowned for martial arts skills and combat stances that grant you unique fighting moves. While the challenge of mastering many fighting styles drives you to great heights, you also enjoy meditating on philosophical questions and discovering new ways to obtain peace and enlightenment.</em></p>\n<p><em>@UUID[Compendium.pf2e.journals.JournalEntry.kzxu2dI7tFxv6Ix6.JournalEntryPage.hGKd722Kn4ZxIOJs]{Monk}</em></p>",
+        "traits": {
+          "rarity": "common",
+          "value": []
+        }
+      },
+      "flags": {
+        "fusion": {
+          "conversion": "full",
+          "importerVersion": "0.1.0",
+          "sourceVersion": "v14-dev",
+          "sourceId": "YPxpk9JbMnKjbNLc",
+          "packName": "classes",
+          "unconvertedRules": [],
+          "assetSubstitutions": [
+            {
+              "field": "img",
+              "original": "monk.webp",
+              "placeholder": "icons/placeholder/feat.svg"
+            }
+          ],
+          "build": {
+            "level": 1,
+            "slot": "class"
+          }
+        }
+      },
+      "i18n": {
+        "ptBR": {
+          "name": "Monge",
+          "description": "<p><em>A força do seu punho flui de sua mente e espírito. Você busca a perfeição — aperfeiçoando seu corpo até torná-lo um instrumento impecável e sua mente até torná-la um bastião ordenado de sabedoria. Você é um combatente feroz, renomado por suas habilidades marciais e posturas de combate que concedem manobras de luta únicas. Embora o desafio de dominar muitos estilos de luta o impulsione a grandes alturas, você também gosta de meditar sobre questões filosóficas e descobrir novas formas de alcançar paz e iluminação.</em></p>\n<p><em>@UUID[Compendium.pf2e.journals.JournalEntry.kzxu2dI7tFxv6Ix6.JournalEntryPage.hGKd722Kn4ZxIOJs]{Monge}</em></p>"
+        }
+      },
+      "_id": "DNxN4wpP0yW05QTd"
+    },
+    {
+      "name": "Flurry of Blows",
+      "type": "classFeature",
+      "img": "icons/placeholder/feat.svg",
+      "system": {
+        "systemVersion": "0.1.0",
+        "level": 1,
+        "category": "classfeature",
+        "prerequisites": [],
+        "traits": {
+          "rarity": "common",
+          "value": ["flourish", "monk"]
+        },
+        "rules": [],
+        "publication": {
+          "license": "ORC",
+          "remaster": true,
+          "title": "Pathfinder Player Core 2"
+        },
+        "description": "<p>Make two unarmed Strikes. If both hit the same creature, combine their damage for the purpose of resistances and weaknesses. Apply your multiple attack penalty to the Strikes normally. As a flourish ability, you can use Flurry of Blows only once per turn.</p>",
+        "actionType": {
+          "value": "action"
+        },
+        "actions": {
+          "value": 1
+        }
+      },
+      "flags": {
+        "fusion": {
+          "conversion": "full",
+          "importerVersion": "0.1.0",
+          "sourceVersion": "v14-dev",
+          "sourceId": "NLHHHiAcdnZ5ohc2",
+          "packName": "class-features",
+          "unconvertedRules": [],
+          "assetSubstitutions": [
+            {
+              "field": "img",
+              "original": "unarmed-punch-fist-yellow-red.webp",
+              "placeholder": "icons/placeholder/feat.svg"
+            }
+          ],
+          "grantedBy": "YPxpk9JbMnKjbNLc",
+          "grantedSlot": "classFeature:1:flurry of blows"
+        }
+      },
+      "i18n": {
+        "ptBR": {
+          "name": "Sequência de Golpes",
+          "description": "<p>Faça dois Golpes desarmados. Se ambos acertarem a mesma criatura, combine seus danos para fins de resistências e vulnerabilidades. Aplique sua penalidade por ataque múltiplo aos Golpes normalmente. Por ser uma habilidade de floreio, você só pode usar Sequência de Golpes uma vez por turno.</p>"
+        }
+      },
+      "_id": "xp4TRFRQrIX1fmn5"
+    },
+    {
+      "name": "Powerful Fist",
+      "type": "classFeature",
+      "img": "icons/placeholder/feat.svg",
+      "system": {
+        "systemVersion": "0.1.0",
+        "level": 1,
+        "category": "classfeature",
+        "prerequisites": [],
+        "traits": {
+          "rarity": "common",
+          "value": ["monk"]
+        },
+        "rules": [
+          {
+            "kind": "set-property",
+            "subkind": "item-alteration",
+            "slug": null,
+            "label": null,
+            "selector": "damage-dice-faces",
+            "itemId": "pf2e.synthetic.fist",
+            "mode": "upgrade",
+            "predicate": null,
+            "priority": null,
+            "raw": {
+              "itemId": "xxxxxxFISTxxxxxx",
+              "key": "ItemAlteration",
+              "mode": "upgrade",
+              "property": "damage-dice-faces"
+            }
+          }
+        ],
+        "publication": {
+          "license": "ORC",
+          "remaster": true,
+          "title": "Pathfinder Player Core 2"
+        },
+        "description": "<p>Your fists are deadly weapons. The damage die for your fist increases to 1d6 instead of 1d4. You don't take the normal –2 circumstance penalty when making a lethal attack with your fist or any other unarmed attacks.</p>",
+        "actionType": {
+          "value": "passive"
+        },
+        "actions": {
+          "value": null
+        }
+      },
+      "flags": {
+        "fusion": {
+          "conversion": "partial",
+          "importerVersion": "0.1.0",
+          "sourceVersion": "v14-dev",
+          "sourceId": "SB8UJ8rZmvbcBweJ",
+          "packName": "class-features",
+          "unconvertedRules": [
+            {
+              "fist": true,
+              "img": "icons/placeholder/feat.svg",
+              "key": "Strike",
+              "_conversionState": "partial"
+            },
+            {
+              "itemId": "xxxxxxFISTxxxxxx",
+              "key": "ItemAlteration",
+              "mode": "upgrade",
+              "property": "damage-dice-faces",
+              "_conversionState": "partial"
+            }
+          ],
+          "assetSubstitutions": [
+            {
+              "field": "img",
+              "original": "powerful-fist.webp",
+              "placeholder": "icons/placeholder/feat.svg"
+            }
+          ],
+          "grantedBy": "YPxpk9JbMnKjbNLc",
+          "grantedSlot": "classFeature:1:powerful fist"
+        }
+      },
+      "i18n": {
+        "ptBR": {
+          "name": "Punho Poderoso",
+          "description": "<p>Seus punhos são armas letais. O dado de dano do seu punho aumenta para 1d6 em vez de 1d4. Você não sofre a penalidade de circunstância normal de –2 ao fazer um ataque letal com o punho ou qualquer outro ataque desarmado.</p>"
+        }
+      },
+      "_id": "7yhWCZmbv0Ozmpeq"
+    },
+    {
+      "name": "Human",
+      "type": "ancestry",
+      "img": "icons/placeholder/feat.svg",
+      "system": {
+        "systemVersion": "0.1.0",
+        "hp": 8,
+        "speed": 25,
+        "size": "med",
+        "boosts": ["free", "free", "free"],
+        "flaws": ["free"],
+        "languages": {
+          "value": ["common"]
+        },
+        "vision": "normal",
+        "traits": {
+          "rarity": "common",
+          "value": ["human", "humanoid"]
+        },
+        "rules": [],
+        "publication": {
+          "license": "ORC",
+          "remaster": true,
+          "title": "Pathfinder Player Core"
+        },
+        "description": "<p><em>As unpredictable and varied as any of Golarion's peoples, humans have exceptional drive and the capacity to endure and expand. Though many civilizations thrived before humanity rose to prominence, humans have built some of the greatest and the most terrible societies throughout the course of history, and today they are the most populous people in the realms around the Inner Sea.</em></p>\n<p><em>@UUID[Compendium.pf2e.journals.JournalEntry.45SK8rdbbxvEHfMn.JournalEntryPage.7pU8yM7yPMw92SY3]{Human}</em></p>",
+        "additionalLanguages": {
+          "count": 1,
+          "custom": "",
+          "value": []
+        },
+        "hands": 2,
+        "items": {},
+        "reach": 5
+      },
+      "flags": {
+        "fusion": {
+          "conversion": "full",
+          "importerVersion": "0.1.0",
+          "sourceVersion": "v14-dev",
+          "sourceId": "IiG7DgeLWYrSNXuX",
+          "packName": "ancestries",
+          "unconvertedRules": [],
+          "assetSubstitutions": [
+            {
+              "field": "img",
+              "original": "human.webp",
+              "placeholder": "icons/placeholder/feat.svg"
+            }
+          ]
+        }
+      },
+      "i18n": {
+        "ptBR": {
+          "name": "Humano",
+          "description": "<p><em>Tão imprevisíveis e variados quanto qualquer um dos povos de Golarion, os humanos têm um ímpeto excepcional e a capacidade de perdurar e se expandir. Embora muitas civilizações tenham prosperado antes da ascensão da humanidade, os humanos construíram algumas das maiores e mais terríveis sociedades ao longo da história, e hoje são o povo mais numeroso nos reinos ao redor do Mar Interior.</em></p>\n<p><em>@UUID[Compendium.pf2e.journals.JournalEntry.45SK8rdbbxvEHfMn.JournalEntryPage.7pU8yM7yPMw92SY3]{Humano}</em></p>"
+        }
+      },
+      "_id": "XhmyIRQJK5L2ndVL"
+    },
+    {
+      "name": "Skilled Human",
+      "type": "heritage",
+      "img": "icons/placeholder/feat.svg",
+      "system": {
+        "systemVersion": "0.1.0",
+        "rules": [
+          {
+            "kind": "set-property",
+            "slug": null,
+            "label": null,
+            "selector": "system.skills.{item|flags.system.rulesSelections.skill}.rank",
+            "value": "ternary(gte(@actor.level,5),2,1)",
+            "mode": "upgrade",
+            "predicate": null,
+            "priority": null,
+            "raw": {
+              "key": "ActiveEffectLike",
+              "mode": "upgrade",
+              "path": "system.skills.{item|flags.system.rulesSelections.skill}.rank",
+              "value": "ternary(gte(@actor.level,5),2,1)"
+            }
+          }
+        ],
+        "publication": {
+          "license": "ORC",
+          "remaster": true,
+          "title": "Pathfinder Player Core"
+        },
+        "description": "<p>Your ingenuity allows you to train in a wide variety of skills. You become trained in one skill of your choice. At 5th level, you become an expert in the chosen skill.</p>",
+        "traits": {
+          "rarity": "common",
+          "value": []
+        },
+        "ancestry": {
+          "name": "Human",
+          "slug": "human",
+          "uuid": "Compendium.pf2e.ancestries.Item.IiG7DgeLWYrSNXuX"
+        }
+      },
+      "flags": {
+        "fusion": {
+          "conversion": "partial",
+          "importerVersion": "0.1.0",
+          "sourceVersion": "v14-dev",
+          "sourceId": "zVf0Hlp5xG0Q7kmc",
+          "packName": "heritages",
+          "unconvertedRules": [
+            {
+              "choices": {
+                "config": "skills"
+              },
+              "flag": "skill",
+              "key": "ChoiceSet",
+              "prompt": "PF2E.SpecificRule.Prompt.Skill",
+              "_conversionState": "unsupported"
+            }
+          ],
+          "assetSubstitutions": [
+            {
+              "field": "img",
+              "original": "map-chart-tan.webp",
+              "placeholder": "icons/placeholder/feat.svg"
+            }
+          ]
+        }
+      },
+      "i18n": {
+        "ptBR": {
+          "name": "Humano Habilidoso",
+          "description": "<p>Sua engenhosidade permite que você se treine em uma grande variedade de perícias. Você se torna treinado em uma perícia à sua escolha. No 5º nível, você se torna perito na perícia escolhida.</p>"
+        }
+      },
+      "_id": "WsfAelM0QulUoDFT"
+    },
+    {
+      "name": "Scholar",
+      "type": "background",
+      "img": "icons/placeholder/feat.svg",
+      "system": {
+        "systemVersion": "0.1.0",
+        "boosts": ["free", "free"],
+        "skills": {},
+        "rules": [
+          {
+            "kind": "set-property",
+            "slug": null,
+            "label": null,
+            "selector": "system.skills.{item|flags.system.rulesSelections.skill}.rank",
+            "value": 1,
+            "mode": "upgrade",
+            "predicate": null,
+            "priority": null,
+            "raw": {
+              "key": "ActiveEffectLike",
+              "mode": "upgrade",
+              "path": "system.skills.{item|flags.system.rulesSelections.skill}.rank",
+              "value": 1
+            }
+          },
+          {
+            "kind": "grant-item",
+            "slug": null,
+            "label": null,
+            "uuid": "Compendium.pf2e.feats-srd.Item.Assurance",
+            "inMemoryOnly": false,
+            "predicate": null,
+            "alterations": [],
+            "priority": null,
+            "raw": {
+              "key": "GrantItem",
+              "preselectChoices": {
+                "assurance": "{item|flags.system.rulesSelections.skill}"
+              },
+              "uuid": "Compendium.pf2e.feats-srd.Item.Assurance"
+            }
+          }
+        ],
+        "publication": {
+          "license": "ORC",
+          "remaster": true,
+          "title": "Pathfinder Player Core"
+        },
+        "description": "<p>You have a knack for learning and sequestered yourself from the outside world to learn all you could. You read about so many wondrous places and things in your books, always dreaming about one day seeing the real things. Eventually, that curiosity led you to leave your studies and become an adventurer.</p>\n<p>Choose two attribute boosts. One must be to <strong>Intelligence</strong> or <strong>Wisdom</strong>, and one is a free attribute boost.</p>\n<p>You're trained in your choice of the Arcana, Nature, Occultism, or Religion skill, and gain the @UUID[Compendium.pf2e.feats-srd.Item.Assurance] skill feat in your chosen skill. You're also trained in the Academia Lore skill.</p>",
+        "items": {},
+        "trainedSkills": {
+          "lore": ["Academia Lore"],
+          "value": []
+        },
+        "traits": {
+          "rarity": "common",
+          "value": []
+        }
+      },
+      "flags": {
+        "fusion": {
+          "conversion": "partial",
+          "importerVersion": "0.1.0",
+          "sourceVersion": "v14-dev",
+          "sourceId": "v0WPfxN6G8XFfFZT",
+          "packName": "backgrounds",
+          "unconvertedRules": [
+            {
+              "choices": [
+                {
+                  "label": "PF2E.Skill.Arcana",
+                  "value": "arcana"
+                },
+                {
+                  "label": "PF2E.Skill.Nature",
+                  "value": "nature"
+                },
+                {
+                  "label": "PF2E.Skill.Occultism",
+                  "value": "occultism"
+                },
+                {
+                  "label": "PF2E.Skill.Religion",
+                  "value": "religion"
+                }
+              ],
+              "flag": "skill",
+              "key": "ChoiceSet",
+              "prompt": "PF2E.SpecificRule.Prompt.Skill",
+              "_conversionState": "unsupported"
+            }
+          ],
+          "assetSubstitutions": [
+            {
+              "field": "img",
+              "original": "background.svg",
+              "placeholder": "icons/placeholder/feat.svg"
+            }
+          ]
+        }
+      },
+      "i18n": {
+        "ptBR": {
+          "name": "Erudito",
+          "description": "<p>Você tem talento para aprender e se isolou do mundo exterior para aprender tudo o que podia. Você leu sobre tantos lugares e coisas maravilhosas em seus livros, sempre sonhando em um dia ver as coisas de verdade. Por fim, essa curiosidade o levou a abandonar seus estudos e se tornar aventureiro.</p>\n<p>Escolha dois aumentos de atributo. Um deve ser em <strong>Inteligência</strong> ou <strong>Sabedoria</strong>, e o outro é um aumento de atributo livre.</p>\n<p>Você é treinado na perícia Arcanismo, Natureza, Ocultismo ou Religião, à sua escolha, e ganha o talento de perícia @UUID[Compendium.pf2e.feats-srd.Item.Assurance] na perícia escolhida. Você também é treinado na perícia Conhecimento (Academia).</p>"
+        }
+      },
+      "_id": "djUhU4LBP7oPokpT"
+    },
+    {
+      "name": "Assurance",
+      "type": "feat",
+      "img": "icons/placeholder/feat.svg",
+      "system": {
+        "systemVersion": "0.1.0",
+        "level": 1,
+        "category": "skill",
+        "actionType": "passive",
+        "actions": null,
+        "prerequisites": [
+          {
+            "value": "trained in at least one skill"
+          }
+        ],
+        "traits": {
+          "rarity": "common",
+          "value": ["fortune", "general", "skill"]
+        },
+        "rules": [
+          {
+            "kind": "flat-modifier",
+            "subkind": "adjust-modifier",
+            "slug": null,
+            "label": null,
+            "selector": "{item|flags.system.rulesSelections.assurance}",
+            "mode": "add",
+            "predicate": [
+              "substitute:assurance",
+              {
+                "not": "bonus:type:proficiency"
+              }
+            ],
+            "priority": null,
+            "notes": "AdjustModifier — partial conversion; capping/floor not applied",
+            "raw": {
+              "key": "AdjustModifier",
+              "predicate": [
+                "substitute:assurance",
+                {
+                  "not": "bonus:type:proficiency"
+                }
+              ],
+              "selector": "{item|flags.system.rulesSelections.assurance}",
+              "suppress": true
+            }
+          }
+        ],
+        "publication": {
+          "license": "ORC",
+          "remaster": true,
+          "title": "Pathfinder Player Core"
+        },
+        "description": "<p>Even in the worst circumstances, you can perform basic tasks. Choose a skill you're trained in. You can forgo rolling a skill check for that skill to instead receive a result of 10 + your proficiency bonus (do not apply any other bonuses, penalties, or modifiers).</p>\n<hr />\n<p><strong>Special</strong> You can select this feat multiple times. Each time, choose a different skill and gain the benefits for that skill.</p>",
+        "maxTakable": null
+      },
+      "flags": {
+        "fusion": {
+          "conversion": "partial",
+          "importerVersion": "0.1.0",
+          "sourceVersion": "v14-dev",
+          "sourceId": "W6Gl9ePmItfDHji0",
+          "packName": "feats",
+          "unconvertedRules": [
+            {
+              "choices": {
+                "config": "skills",
+                "predicate": [
+                  {
+                    "gte": ["skill:{choice|value}:rank", 1]
+                  }
+                ]
+              },
+              "flag": "assurance",
+              "key": "ChoiceSet",
+              "prompt": "PF2E.SpecificRule.Prompt.Skill",
+              "_conversionState": "unsupported"
+            },
+            {
+              "key": "SubstituteRoll",
+              "label": "PF2E.SpecificRule.SubstituteRoll.Assurance",
+              "selector": "{item|flags.system.rulesSelections.assurance}",
+              "slug": "assurance",
+              "value": 10,
+              "_conversionState": "unsupported"
+            },
+            {
+              "key": "AdjustModifier",
+              "predicate": [
+                "substitute:assurance",
+                {
+                  "not": "bonus:type:proficiency"
+                }
+              ],
+              "selector": "{item|flags.system.rulesSelections.assurance}",
+              "suppress": true,
+              "_conversionState": "partial"
+            }
+          ],
+          "assetSubstitutions": [
+            {
+              "field": "img",
+              "original": "book-red-exclamation.webp",
+              "placeholder": "icons/placeholder/feat.svg"
+            }
+          ],
+          "grantedBy": "v0WPfxN6G8XFfFZT"
+        }
+      },
+      "i18n": {
+        "ptBR": {
+          "name": "Segurança",
+          "description": "<p>Mesmo nas piores circunstâncias, você pode realizar tarefas básicas. Escolha uma perícia na qual você é treinado. Você pode evitar fazer um teste de perícia para essa perícia para receber um resultado de 10 + seu bônus de proficiência (não aplique quaisquer outros bônus, penalidades ou modificadores).</p><hr /><p><strong>Especial</strong> Você pode selecionar este talento múltiplas vezes. Cada vez, escolha uma perícia diferente e obtenha os benefícios para essa perícia.</p>"
+        }
+      },
+      "_id": "DHJfcWtMwqLf9jyN"
+    },
+    {
+      "name": "Cooperative Nature",
+      "type": "feat",
+      "img": "icons/placeholder/feat.svg",
+      "system": {
+        "systemVersion": "0.1.0",
+        "level": 1,
+        "category": "ancestry",
+        "actionType": "passive",
+        "actions": null,
+        "prerequisites": [],
+        "traits": {
+          "rarity": "common",
+          "value": ["human"]
+        },
+        "rules": [
+          {
+            "kind": "flat-modifier",
+            "type": "circumstance",
+            "slug": null,
+            "label": null,
+            "selector": "check",
+            "value": 4,
+            "mode": "add",
+            "predicate": ["action:aid"],
+            "priority": null,
+            "raw": {
+              "key": "FlatModifier",
+              "predicate": ["action:aid"],
+              "selector": "check",
+              "type": "circumstance",
+              "value": 4
+            }
+          }
+        ],
+        "publication": {
+          "license": "ORC",
+          "remaster": true,
+          "title": "Pathfinder Player Core"
+        },
+        "description": "<p>The short human life span lends perspective and has taught you from a young age to set aside differences and work with others to achieve greatness. You gain a +4 circumstance bonus on checks to Aid.</p>"
+      },
+      "flags": {
+        "fusion": {
+          "conversion": "full",
+          "importerVersion": "0.1.0",
+          "sourceVersion": "v14-dev",
+          "sourceId": "lwLcUHQMOqfaNND4",
+          "packName": "feats",
+          "unconvertedRules": [],
+          "assetSubstitutions": [
+            {
+              "field": "img",
+              "original": "book-red-exclamation.webp",
+              "placeholder": "icons/placeholder/feat.svg"
+            }
+          ],
+          "build": {
+            "level": 1,
+            "slot": "ancestryFeat-1"
+          }
+        }
+      },
+      "i18n": {
+        "ptBR": {
+          "name": "Natureza Cooperativa",
+          "description": "<p>A vida humana relativamente curta traz perspectiva e lhe ensinou desde jovem a deixar de lado as diferenças e trabalhar com os outros para alcançar a grandeza. Você ganha um bônus de circunstância de +4 aos testes para Auxiliar.</p>"
+        }
+      },
+      "_id": "GUxQwgDVPCIrS9Db"
+    },
+    {
+      "name": "Mystic Strikes",
+      "type": "classFeature",
+      "img": "icons/placeholder/feat.svg",
+      "system": {
+        "systemVersion": "0.1.0",
+        "level": 3,
+        "category": "classfeature",
+        "prerequisites": [],
+        "traits": {
+          "rarity": "common",
+          "value": ["monk"]
+        },
+        "rules": [
+          {
+            "kind": "set-property",
+            "subkind": "item-alteration",
+            "slug": null,
+            "label": null,
+            "selector": "traits",
+            "value": "magical",
+            "mode": "add",
+            "predicate": ["item:category:unarmed"],
+            "priority": null,
+            "raw": {
+              "itemType": "weapon",
+              "key": "ItemAlteration",
+              "mode": "add",
+              "predicate": ["item:category:unarmed"],
+              "property": "traits",
+              "value": "magical"
+            }
+          },
+          {
+            "kind": "set-property",
+            "subkind": "item-alteration",
+            "slug": null,
+            "label": null,
+            "selector": "traits",
+            "value": "magical",
+            "mode": "add",
+            "predicate": ["item:trait:monk", "feat:monastic-weaponry"],
+            "priority": null,
+            "raw": {
+              "itemType": "weapon",
+              "key": "ItemAlteration",
+              "mode": "add",
+              "predicate": ["item:trait:monk", "feat:monastic-weaponry"],
+              "property": "traits",
+              "value": "magical"
+            }
+          }
+        ],
+        "publication": {
+          "license": "ORC",
+          "remaster": true,
+          "title": "Pathfinder Player Core 2"
+        },
+        "description": "<p>Focusing your will into your physical attacks imbues them with mystical energy. Your unarmed attacks become magical, allowing them to get past resistances to non-magical attacks. However, you still need an item such as @UUID[Compendium.pf2e.equipment-srd.Item.Handwraps of Mighty Blows]{Handwraps of Mighty Blows (+1)} to gain an item bonus to attack rolls or increase your attacks' weapon damage dice.</p>",
+        "actionType": {
+          "value": "passive"
+        },
+        "actions": {
+          "value": null
+        }
+      },
+      "flags": {
+        "fusion": {
+          "conversion": "partial",
+          "importerVersion": "0.1.0",
+          "sourceVersion": "v14-dev",
+          "sourceId": "D2AE8RfMlZ3D1FuV",
+          "packName": "class-features",
+          "unconvertedRules": [
+            {
+              "itemType": "weapon",
+              "key": "ItemAlteration",
+              "mode": "add",
+              "predicate": ["item:category:unarmed"],
+              "property": "traits",
+              "value": "magical",
+              "_conversionState": "partial"
+            },
+            {
+              "itemType": "weapon",
+              "key": "ItemAlteration",
+              "mode": "add",
+              "predicate": ["item:trait:monk", "feat:monastic-weaponry"],
+              "property": "traits",
+              "value": "magical",
+              "_conversionState": "partial"
+            }
+          ],
+          "assetSubstitutions": [
+            {
+              "field": "img",
+              "original": "flame-burning-embers-yellow.webp",
+              "placeholder": "icons/placeholder/feat.svg"
+            }
+          ],
+          "grantedBy": "YPxpk9JbMnKjbNLc",
+          "grantedSlot": "classFeature:3:mystic strikes"
+        }
+      },
+      "i18n": {
+        "ptBR": {
+          "name": "Golpes Místicos",
+          "description": "<p>Concentrar sua vontade em seus ataques físicos os imbui de energia mística. Seus ataques desarmados se tornam mágicos, permitindo que superem resistências a ataques não mágicos. No entanto, você ainda precisa de um item como @UUID[Compendium.pf2e.equipment-srd.Item.Handwraps of Mighty Blows]{Luvas de Golpes Poderosos (+1)} para ganhar um bônus de item em rolagens de ataque ou aumentar os dados de dano de arma dos seus ataques.</p>"
+        }
+      },
+      "_id": "Q4cttNBUWqNTsS7m"
+    }
+  ]
+}

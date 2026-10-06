@@ -1,0 +1,29 @@
+{
+  "_readme": {
+    "proposito": "Fixture de exemplo do comparador (T7.2), SEPARADA do molde do Alexandre (character-templates.json). Prova que o comparador funciona: preenchido a partir da REGRA DO LIVRO (Pathfinder Player Core Remaster), nunca da tabela do nosso próprio pack — o comparador não lê nenhum campo deste arquivo a partir de systems/pf2e/packs, só compara contra ele.",
+    "classe": "Fighter",
+    "chassi": "Ratfolk (ancestralidade) + Aeronaut (antecedente) — o mesmo par usado por padrão no classBuildHarness compartilhado (RATFOLK/AERONAUT), não o chassi Human/Erudito ainda proposto no molde do Alexandre (que segue sem números finais).",
+    "por_que_so_ranks_e_hp_de_classe": "Os campos abaixo são fatos de chassi INDEPENDENTES da distribuição final de atributos (ranks de proficiência TEML e a contribuição de HP da classe antes do modificador de Constituição) — por isso dá para afirmá-los com confiança direto do livro sem precisar prever que boosts de atributo o harness vai escolher automaticamente. HP/CA/salvaguardas TOTAIS (que dependem de atributo final) ficam para quando o T7.4 travar um chassi numérico concreto (hoje o molde ainda marca ancestry/atributos como 'proposta — editar')."
+  },
+  "class_hp_per_level": 10,
+  "levels": {
+    "1": {
+      "note": "Fighter nível 1 — Player Core Remaster: dois saves Expert de saída (marca registrada da classe), Expert em arma simples/marcial/desarmado, Treinado em arma avançada e em toda armadura.",
+      "proficiency_ranks": {
+        "perception": 2,
+        "saves": { "fortitude": 2, "reflex": 2, "will": 1 },
+        "weapons": { "unarmed": 2, "simple": 2, "martial": 2, "advanced": 1 },
+        "armor": { "unarmored": 1, "light": 1, "medium": 1, "heavy": 1 }
+      }
+    },
+    "3": {
+      "note": "Fighter nível 3 — feature 'Bravery' promove Vontade para Expert; nenhuma outra proficiência muda entre 1 e 3 (a próxima mudança de percepção/fortitude só em 7/9).",
+      "proficiency_ranks": {
+        "perception": 2,
+        "saves": { "fortitude": 2, "reflex": 2, "will": 2 },
+        "weapons": { "unarmed": 2, "simple": 2, "martial": 2, "advanced": 1 },
+        "armor": { "unarmored": 1, "light": 1, "medium": 1, "heavy": 1 }
+      }
+    }
+  }
+}

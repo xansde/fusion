@@ -54,6 +54,12 @@ importers:
       '@fusion/system-pf2e':
         specifier: workspace:*
         version: link:../../systems/pf2e
+      '@fusion/system-pf2e-sf2e':
+        specifier: workspace:*
+        version: link:../../systems/pf2e-sf2e
+      '@fusion/system-sf2e':
+        specifier: workspace:*
+        version: link:../../systems/sf2e
       '@sveltejs/vite-plugin-svelte':
         specifier: ^5.0.0
         version: 5.1.1(svelte@5.56.3(@typescript-eslint/types@8.61.0))(vite@6.4.3(@types/node@22.19.21))
@@ -75,6 +81,9 @@ importers:
       '@fusion/system-api':
         specifier: workspace:*
         version: link:../../../../packages/system-api
+      zod:
+        specifier: ^3.24.2
+        version: 3.25.76
     devDependencies:
       vitest:
         specifier: ^3.2.2
@@ -91,6 +100,31 @@ importers:
       '@fusion/system-api':
         specifier: workspace:*
         version: link:../../../../packages/system-api
+      zod:
+        specifier: ^3.24.2
+        version: 3.25.76
+    devDependencies:
+      vitest:
+        specifier: ^3.2.2
+        version: 3.2.6(@types/node@22.19.21)
+
+  external/fusion-systems-2e/systems/pf2e-sf2e:
+    dependencies:
+      '@fusion/engine-2e':
+        specifier: workspace:*
+        version: link:../engine-2e
+      '@fusion/shared':
+        specifier: workspace:*
+        version: link:../../../../packages/shared
+      '@fusion/system-api':
+        specifier: workspace:*
+        version: link:../../../../packages/system-api
+      '@fusion/system-pf2e':
+        specifier: workspace:*
+        version: link:../pf2e
+      '@fusion/system-sf2e':
+        specifier: workspace:*
+        version: link:../sf2e
       zod:
         specifier: ^3.24.2
         version: 3.25.76
@@ -123,7 +157,13 @@ importers:
 
   external/fusion-systems-2e/tools/importer-pf2e: {}
 
-  external/fusion-systems-2e/tools/translate-packs: {}
+  external/fusion-systems-2e/tools/translate-packs:
+    dependencies:
+      '@fusion/shared':
+        specifier: workspace:*
+        version: link:../../../../packages/shared
+
+  external/fusion-systems-2e/tools/vault-catalog: {}
 
   packages/client:
     dependencies:
@@ -206,6 +246,9 @@ importers:
       '@fusion/system-pf2e':
         specifier: workspace:*
         version: link:../../external/fusion-systems-2e/systems/pf2e
+      '@fusion/system-pf2e-sf2e':
+        specifier: workspace:*
+        version: link:../../external/fusion-systems-2e/systems/pf2e-sf2e
       '@fusion/system-sf2e':
         specifier: workspace:*
         version: link:../../external/fusion-systems-2e/systems/sf2e

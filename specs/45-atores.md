@@ -313,7 +313,7 @@ casar ator com presença, nem para reconhecer um ator já trazido de um pack.
 | Facetas de nascença       | `ownership` na criação                                                             |
 | ------------------------- | ---------------------------------------------------------------------------------- |
 | Contém `player`           | `{ default: none, <userId>: owner }` — o usuário com quem ele nasceu (DEC-NPC-02). |
-| Qualquer outra combinação | `{ default: none }`.                                                               |
+| Qualquer outra combinação | `{ default: none }` — salvo o sub-personagem, que copia o alvo (DEC-ATR-19).       |
 
 - **A regra de conflito é simples porque `player` é a única faceta que concede posse:** se o
   conjunto contém `player`, vale a linha de cima; nos demais casos, o ator nasce fechado.
@@ -428,6 +428,33 @@ continua sendo criatura.
 - **Consequência para a aba NPCs:** o familiar tem faceta `creature` e portanto **aparece** na
   aba (fecha Q-ATR-01 da v0.1 desta spec, emendando REQ-NPC-044 e CA-NPC-007) — inclusive o
   familiar que não pertence a personagem nenhum.
+
+### DEC-ATR-19 — Sub-personagem nasce com o ownership do alvo do vínculo
+
+_(2026-09-21, ficha-nivel3 T3.1. Emenda a DEC-ATR-12. Redação estreitada na revisão da
+Onda 3/T3.2, mesma data — ver REQ-ATR-064.)_ Um **sub-personagem** (o ator vinculado do
+glossário §3: subtype `familiar`, `companionKind` + `masterActorId` preenchidos) criado
+apontando para um ator existente nasce com uma **cópia** do mapa de `ownership` desse alvo,
+qualquer que seja o criador. Um ator de outro subtype que também usa `masterActorId` (o vínculo
+livre de DEC-ATR-16, ex. um NPC "pendurado" num recipiente) não é alcançado por esta decisão —
+nasce pela regra geral (DEC-ATR-12), sem cópia forçada.
+
+- **Criador sem papel privilegiado** (o jogador que cria o próprio familiar ou eidolon): a
+  cópia é **forçada**; o `ownership` do payload é descartado, para que o pedido não alargue o
+  acesso.
+- **Mestre/Assistente:** sem `ownership` no payload, vale a cópia; com `ownership` explícito,
+  vale o explícito — é o override que REQ-DOC-029 já prevê.
+- **Alvo inexistente:** vale a regra geral (DEC-ATR-12); o vínculo é soft reference
+  (REQ-ATR-081).
+
+- **Racional:** o jogador controla o companheiro porque tem ownership dele (DEC-ATR-18), e é
+  dono do companheiro porque é dono do personagem. Com a regra geral, o eidolon que o Mestre
+  cria para o Summoner do jogador nasceria fechado — o jogador não veria o próprio eidolon.
+- **Cópia no nascimento, não herança viva:** ownership segue sendo um campo do próprio
+  documento, lido pelos predicados de redação sem consultar outro documento (RNF-ATR-01;
+  `packages/server/src/net/redaction.ts`). Mudar a posse do dono depois **não** propaga; se
+  isso vier a ser preciso, é uma operação explícita, não uma leitura através do vínculo.
+- **Não é faceta:** a posse herdada não dá `player` ao companheiro (DEC-ATR-18).
 
 ## 5. Requisitos funcionais
 
@@ -549,12 +576,22 @@ continua sendo criatura.
 - **REQ-ATR-060** [MVP] Um ator com a faceta `player` DEVE nascer com `ownership.default = none` e
   `ownership.<userId> = owner`, onde `<userId>` é o usuário com quem ele foi criado — não o
   criador do documento (complementa REQ-DOC-029).
-- **REQ-ATR-061** [MVP] Um ator sem a faceta `player` DEVE nascer com `ownership.default = none`.
+- **REQ-ATR-061** [MVP] Um ator sem a faceta `player` DEVE nascer com `ownership.default = none`,
+  salvo o sub-personagem de REQ-ATR-064.
 - **REQ-ATR-062** [MVP] Conceder ownership de um ator a um jogador NÃO DEVE alterar as facetas
   dele: um NPC controlado por um jogador continua sendo criatura, e continua sujeito às regras de
   exibição de criatura (DEC-CBA-03).
 - **REQ-ATR-063** [MVP] Um ator PODE existir sem nenhum usuário como owner, inclusive um ator com
   a faceta `player` cujo usuário foi removido, e isso NÃO DEVE ser tratado como erro.
+- **REQ-ATR-064** [MVP] Um **sub-personagem** (subtype `familiar` com `companionKind` e
+  `masterActorId` preenchidos — REQ-PET-001/002) criado apontando para um ator existente DEVE
+  nascer com uma cópia do `ownership` do alvo; o servidor DEVE forçar essa cópia quando o criador
+  não tem papel privilegiado, e DEVE respeitar um `ownership` explícito enviado por Mestre ou
+  Assistente (DEC-ATR-19). _(Redação estreitada em 2026-09-21, revisão da Onda 3/T3.2: a v0.1
+  falava de "um ator" genérico, mas o `masterActorId` de DEC-ATR-16 é livre para QUALQUER
+  subtype — o código (`inheritMasterOwnershipOnCreate`, gated por `isCompanionDoc`) só copia
+  ownership para o sub-personagem. Um NPC que aponta `masterActorId` para outro ator (o exemplo
+  do "perigo com dono" de DEC-ATR-16) não herda ownership por este requisito.)_
 
 ### Ator e presença
 

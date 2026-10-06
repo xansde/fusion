@@ -344,7 +344,151 @@ desempate usa o `tiebreaker` numérico (modificador de Perception) do contrato d
 exploração permitem outra skill. O modelo de fórmula delegada da spec 10 acomoda
 isso sem alterar o núcleo de combate.
 
-### DEC-PF2-11 — Efeito aplicado é cópia embutida no ator, com origem e início
+### DEC-PF2-11 — Escolha de Sintonia de Aparição (Animista) vive na aba Magias, não no Plano
+
+**Decisão:** A coluna Plano não mostra NENHUM traço da Sintonia de Aparição do
+Animista (nem slot, nem resumo, nem atalho) — a escolha de quais aparições ficam
+sintonizadas, e qual delas é a primária, é feita de dentro do bloco "Magias de
+Aparição" da própria aba Magias (a entry espontânea que a classe cria). O modelo de
+dados continua o mesmo (`system.build.choices`, slot `apparition-1-<i>`); só o local
+de escolha na UI muda. A perícia (receptáculo/foco) da aparição PRIMÁRIA passa a
+seguir a escolha explícita do jogador — não mais sempre a do 1º slot — e o modelo
+suporta MAIS DE UMA primária de uma vez (`apparitionPrimary-<i>`, um choice por
+índice), ainda que a UI hoje só permita marcar uma: a prática Medium ganha uma
+segunda primária via Dual Invocation no nível 9 (fora do recorte 1-3 atual, mas o
+dado não pode assumir "exatamente uma"). Um ator já construído antes desta decisão,
+sem marcação explícita, usa a primeira aparição sintonizada como padrão — nada muda
+sozinho no personagem dele.
+
+**Racional:** Decisão do Alexandre (22/09/2026), ao ver a Sintonia de Aparição
+ocupando um slot no Plano sem nenhuma ligação visual com a lista de magias que ela
+alimenta — o jogador escolhe a aparição num lugar e só vê o efeito (repertório,
+Sabers, magia de foco) em outro. Colocar a escolha dentro do próprio bloco de magias
+que ela preenche torna a relação causa-efeito direta.
+
+**Alternativas rejeitadas:**
+
+- _Manter o slot no Plano e só espelhar um resumo na aba Magias_: duplica a UI de
+  escolha em dois lugares: o Plano continuaria "contando" a Sintonia de Aparição como
+  pendência, contrariando a decisão de que o Plano não mostra nada da aparição.
+- _Guardar só uma primária (sem lista ordenada)_: fecha a porta para a Dual Invocation
+  (nível 9, prática Medium) sem uma migração de dado futura — mais barato modelar como
+  lista desde já.
+
+### DEC-PF2-12 — Escolha livre de perícia (duplicata) some no picker de "Treinamento de Perícias", nunca vira slot próprio
+
+**Decisão:** Uma escolha livre de perícia (substituição de perícia duplicada entre
+antecedente/classe/talento, issue #164) NUNCA renderiza como slot/diálogo próprio no
+Plano. Ela é um MEMBRO a mais dentro do mesmo grupo "Treinamento de Perícias (x/N)"
+(mass picker Pathbuilder-style, R11 item 1) do mesmo nível: se já existe um grupo de
+treinamento de perícia naquele nível, N só aumenta; se não existe nenhum, nasce um
+grupo (no MESMO formato) só com os membros livres. A identidade persistida de cada
+membro nunca se mistura: um membro de classe grava um único choice
+`{type:"skillTraining", slot:"skillTraining-<nivel>-<i>"}`; um membro livre grava o
+par `{type:"freeSkillChoice", slot:"freeSkillChoice-<origem>-<i>"}` (marcador) +
+`{type:"skillTraining", slot:"freeSkillChoice-<origem>-<i>:skill:0"}` (efeito real de
+treino) — nunca um choice plano sob o id do membro de classe.
+
+**Racional:** Decisão do Alexandre (22/09/2026): o formato anterior (um
+`SkillChoiceDialog` de lista plana, um por colisão) multiplicava linhas no Plano para
+o mesmo nível — nas palavras dele, "em vez de aparecer mais vezes, poderia apenas
+aumentar o número de seleções restantes naquele nível; isso torna o layout muito mais
+prático, bonito e usável".
+
+**Alternativas rejeitadas:**
+
+- _Um novo tipo de slot/diálogo "grupo misto"_: duplicaria `SkillTrainingDialog.svelte`
+  para uma diferença puramente de PERSISTÊNCIA (marcador vs. choice plano) — o
+  componente já é 100% genérico sobre `groupSlotIds`, sem precisar saber a origem de
+  cada membro.
+- _Guardar o pick livre com o MESMO formato de choice de um membro de classe_: perderia
+  a distinção "esta perícia veio de uma colisão, não de um treino comum" que outras
+  partes do pipeline (cascata de remoção, contagem de perícias treinadas) já dependem
+  do tipo `freeSkillChoice`.
+
+### DEC-PF2-13 — O tamanho efetivo do personagem é derivado, em camadas, e vive em `system.derived.size`
+
+**Decisão:** O tamanho da criatura de um `character` é **derivado**, nunca digitado. O passo
+`<sistema>.character.derived.size` — uma só implementação em `systems/engine-2e`, registrada por
+PF2e e por SF2e — publica `system.derived.size`, uma categoria `tiny | sm | med | lg | huge | grg`,
+a partir dos itens embedded do personagem, em camadas, **nesta ordem**:
+
+1. **Ancestralidade** — o `system.size` do item de ancestralidade (o Minotauro é Grande; a
+   maioria é Média; Gnomo, Goblin, Halfling e outras são Pequenas).
+2. **Herança que troca o tamanho** — SUBSTITUI o da ancestralidade, para cima ou para baixo
+   (Minotauro Chifre-Pequeno: "em vez de Grande, seu tamanho é Médio"; Athamaru Esperançoso:
+   "em vez de Médio, seu tamanho é Grande"; Kholo Formiga: Pequeno; no SF2e, Barathu Estágio
+   Inicial, Barathu Fundido e Sand Roamer).
+3. **Escolha de criação** — o tamanho que o jogador escolhe ao criar o personagem (Autômato:
+   Médio ou Pequeno; Animal Despertado: Minúsculo, Pequeno, Médio ou Grande; Fleshwarp: Pequeno
+   ou Médio). SUBSTITUI o da ancestralidade e da herança.
+4. **Talento de "Ampliar constante"** — leva a Grande e **não faz nada** em criatura Grande ou
+   maior (Chassi Ampliado, Transformação da Estirpe, Força de Oito Legiões). É o efeito de
+   tamanho da magia Ampliar, tornado permanente pelo livro.
+
+Uma camada futura — o efeito com duração de Ampliar, Encolher ou de uma forma — entra **depois**
+da quarta, sem refazer as anteriores (core #291).
+
+As camadas 1 a 3 são a **criatura**; a 4ª (e a futura) são **efeitos** sobre ela. Um pré-requisito
+fala da criatura, não do efeito que um talento dela dá: o Chassi Ampliado exige "Médio ou
+Pequeno", e o Autômato que o tem é Grande. Por isso o passo publica também o tamanho **antes dos
+efeitos** (`system.derived.sizeBeforeEffects`, REQ-PF2-153a), e é contra ele que um requisito de
+talento é julgado (REQ-BC-036). Julgado contra o tamanho efetivo, o talento se marcaria sozinho.
+
+- **Interruptor não se aplica.** Efeito de tamanho que depende de liga/desliga, de ação ou de
+  forma que a ficha não tem NÃO é aplicado: Cerimônia do Crescimento (o próprio texto permite
+  dispensar e retomar o efeito por uma ação), Dedicação Werecreature (só na forma de homem-rato)
+  e Reorganizar Ossos (ação com tamanho escolhido). Ligar por padrão faria o personagem nascer
+  Grande sem o jogador ter pedido, e a ficha não tem o interruptor para desligar. Os três
+  permanentes do livro (Chassi Ampliado, Transformação da Estirpe, Força de Oito Legiões) SÃO
+  aplicados — o dado do vendor os traz atrás de um interruptor só por conveniência do Foundry.
+- **Escolha ainda não feita** vale o tamanho da ancestralidade e marca `system.derived.sizePending`.
+  Quem precisa de certeza — a marca de requisito de talento (REQ-BC-036) — não confia no tamanho
+  enquanto a marca existir. A pendência aparece para o jogador no construtor de escolhas, não
+  neste passo.
+- **Onde vive.** Em `system.derived`, o único subtree que o servidor recomputa a cada escrita
+  (REQ-DOC-034) e que o Actor carrega ao vivo (REQ-NET-096), sem nunca tocar o que o jogador
+  escreveu (DEC-PF2-03); o join deriva de novo na leitura, então nenhum personagem existente
+  precisa de migração — o tamanho aparece assim que ele é aberto. O token lê `derived.size`
+  primeiro e `system.traits.size` depois (REQ-TOK-012); `traits.size` segue sendo a fonte do NPC e
+  do personagem sem ancestralidade (entrada manual).
+- **Pacote de "Ampliar constante".** Decisão do Alexandre (29/09/2026): os efeitos de Ampliar
+  incluem Desajeitado 1, e por isso a Força de Oito Legiões o aplica igual ao Chassi Ampliado e à
+  Transformação da Estirpe — REQ-PF2-156. O tamanho desta decisão não depende disso.
+
+**Racional:** É a mesma disciplina de DEC-PF2-03 aplicada ao tamanho: o que a ficha monta é
+derivado da montagem, e o jogador não digita o que já está escrito no livro. Foi o que faltava
+para o token multi-célula (REQ-TOK-012, REQ-TOK-017, CA-TOK-002), pronto e testado, ter o que
+ler: nada escrevia o tamanho do ator, que ficava no padrão `med` para sempre, e um Minotauro
+ocupava uma casa só. Em camadas porque o livro escreve assim — a herança "no lugar de" e o
+Ampliar "leva a Grande, sem efeito em Grande ou maior" não são a mesma operação — e porque o
+efeito com duração de Ampliar (a camada futura, core #291) entra por cima sem refazer nada. Só
+os permanentes se aplicam porque a ficha só tem certeza do que não depende de um interruptor
+que ela não tem.
+
+**Alternativas rejeitadas:**
+
+- _Espelhar o tamanho em `system.traits.size`_: `traits.size` é campo autoral (DEC-PF2-03: o
+  `_source` nunca é mutado por derivado), e o servidor só recomputa e transmite ao vivo o
+  `derived` (REQ-DOC-034, REQ-NET-096). O espelho apareceria no join — que serve o clone derivado
+  inteiro — e sumiria nas atualizações ao vivo.
+- _Um campo de tamanho que o dono edita_: duas fontes de verdade que divergem no primeiro
+  personagem cuja herança muda, e o jogador teria de lembrar o que o livro já diz.
+- _Tamanho no token_: contraria DEC-TOK-03 — o tamanho é do ator, a peça só o consulta.
+- _Ligar por padrão os efeitos que dependem de interruptor_: ver "Interruptor não se aplica".
+- _Aplicar a escolha de criação por um default (Médio)_: esconderia a pendência; o requisito de
+  talento marcaria em falso um jogador que ainda vai escolher (DEC-BC-05).
+
+**Limite conhecido:** um requisito que só o **efeito** satisfaz (um talento que pedisse "Grande" a um
+Yaksha Médio que ficou Grande pela Força de Oito Legiões) seria marcado, porque o requisito é julgado
+contra o tamanho antes dos efeitos. Nenhum talento dos packs pede Grande ou maior; a saída, se um
+aparecer, é dar por atendido o requisito que qualquer dos dois tamanhos satisfaz (DEC-BC-05).
+
+**Fora desta decisão:** mudar o tamanho durante o jogo (REQ-PF2-157, decisão do Alexandre em
+29/09/2026: por ora o Mestre resolve na narração; core #291); alcance, espaço, manobra por
+tamanho, carga e o corredor de 5 pés (REQ-PF2-122 [V2], satélite #323).
+
+### DEC-PF2-14 — Efeito aplicado é cópia embutida no ator, com origem e início
 
 > **Emenda de 2026-09-16** (plano do Alquimista, ALQ-F2-01; decisão de desenho DF-06 do
 > plano). Decisão nova: não substitui nenhuma anterior. Estende aos itens de efeito a
@@ -379,7 +523,7 @@ removível e estável entre reimportações; `origin` e `startedAt` respondem so
 o efeito começou e por conta de quem — exatamente o que a expiração precisa saber
 (REQ-PF2-217..220).
 
-### DEC-PF2-12 — Strike de item consumível sai do inventário, sem equipar
+### DEC-PF2-15 — Strike de item consumível sai do inventário, sem equipar
 
 > **Emenda de 2026-09-16** (plano do Alquimista, ALQ-F2-01; decisão de desenho DF-09 do
 > plano). Decisão nova. Não contraria DEC-PF2-06 (strikes derivados de itens equipados):
@@ -891,7 +1035,7 @@ abilityMod(damage) + Σ damageModifiers`, com `abilityMod(damage)` = STR (melee)
 
 ### Efeito aplicado: cópia embutida, duração e expiração
 
-> **Emenda de 2026-09-16** (plano do Alquimista, ALQ-F2-01; DEC-PF2-11 e as decisões de
+> **Emenda de 2026-09-16** (plano do Alquimista, ALQ-F2-01; DEC-PF2-14 e as decisões de
 > desenho DF-06, DF-07 e DF-08 do plano, mais a decisão D-05 do Alexandre). Fixa o contrato
 > `EffectItem` que as fases seguintes do plano (fabricação, mutágenos, aflições, aditivos,
 > reações) consomem. O op que grava, o hook que dispara e a permissão são do core
@@ -942,7 +1086,7 @@ resolveExpirations(
 ```
 
 - **REQ-PF2-217** [MVP] Aplicar um efeito DEVE criar no ator uma **cópia embutida** do
-  documento de efeito (DEC-PF2-11), com `flags.fusion.sourceId` do documento de origem,
+  documento de efeito (DEC-PF2-14), com `flags.fusion.sourceId` do documento de origem,
   `system.fusion.origin` (ator de origem e, quando o efeito vem de um item, `itemSourceId`,
   `itemLevel` e `infused`) e `system.fusion.startedAt` (`combatId` e `round` do momento da
   aplicação, ou `null` fora de combate). O efeito NÃO DEVE referenciar o pack em tempo de
@@ -995,7 +1139,7 @@ resolveExpirations(
 - **REQ-PF2-222** [MVP] Item **físico temporário** (fabricação rápida, munição improvisada,
   qualquer item com prazo) DEVE usar o mesmo `system.fusion.expiry` no próprio item e DEVE
   ser **removido do inventário** ao expirar — sem segundo mecanismo e sem item morto com
-  quantidade zerada. O strike derivado dele (DEC-PF2-12) DEVE sumir junto. Efeito que esse
+  quantidade zerada. O strike derivado dele (DEC-PF2-15) DEVE sumir junto. Efeito que esse
   item já aplicou em alguém NÃO DEVE ser removido junto: o efeito tem a própria expiração
   (REQ-PF2-219). Qual ancoragem cada fabricação usa é da fase de fabricação do plano do
   Alquimista (decisão D-06 do Alexandre), não deste requisito. **Critério verificável:** item
@@ -1014,7 +1158,7 @@ resolveExpirations(
 
 ### Uso, consumo e strike de item alquímico
 
-> **Emenda de 2026-09-16** (plano do Alquimista, ALQ-F2-01; DEC-PF2-12 e as decisões de
+> **Emenda de 2026-09-16** (plano do Alquimista, ALQ-F2-01; DEC-PF2-15 e as decisões de
 > desenho DF-09 e DF-10 do plano). O op `item:consume`, a permissão e a atomicidade são do
 > core (`ver 15-api-de-sistemas.md`, REQ-SYS-143 e REQ-SYS-144); aqui fica o **plano de
 > consumo** do PF2e, registrado como `ConsumeItemDefinition`.
@@ -1055,12 +1199,12 @@ resolveExpirations(
   o card entregue ao jogador segue a redação de `ver 09-chat-e-mensagens.md`, REQ-CHT-053.
 
 - **REQ-PF2-226** [MVP] Item consumível de arremesso — a **bomba alquímica** no MVP — DEVE
-  gerar um strike derivado direto do inventário, sem equipar (DEC-PF2-12): um strike por
+  gerar um strike derivado direto do inventário, sem equipar (DEC-PF2-15): um strike por
   documento de item com a trait `bomb`, listado junto com os strikes de arma. O que
   identifica o item arremessável é a trait `bomb`, não o `type` do documento: o pack
   canônico emite sempre `type: "consumable"` (nunca `weapon`), mas um item cadastrado à
   mão como `type: "weapon"` com a mesma trait DEVE gerar o mesmo strike — o schema tolera
-  as duas formas (DEC-PF2-12). `quantityLeft`
+  as duas formas (DEC-PF2-15). `quantityLeft`
   zero DEVE fazer o strike sumir da lista. A rolagem DEVE acontecer por `item:consume` com
   `mode: "strike"` e `mapIndex`, numa única operação que gasta o item e rola o ataque: gastar
   sem rolar, ou rolar sem gastar, NÃO DEVE ser possível pelo cliente. Sacar o item (Interact)
@@ -1079,7 +1223,7 @@ resolveExpirations(
   sobreviver no documento fonte — `consumable` ou `weapon` — mesmo sem schema de dano
   tipado para `consumable` hoje; quem projeta esses campos na forma `WeaponSystem` que
   `deriveStrikeFromWeapon` (`systems/pf2e/src/actions/strikes.ts`) espera é a
-  implementação da ALQ-F2-13 (onda 4, DEC-PF2-12), não esta spec. Esta fase
+  implementação da ALQ-F2-13 (onda 4, DEC-PF2-15), não esta spec. Esta fase
   **deriva e exibe** `splash` e `persistent`; a conta do respingo e a condição de dano
   persistente são da fase de dano do plano do Alquimista (REQ-PF2-061). **Critério
   verificável:** um Frasco de Ácido (`type: "consumable"`, trait `bomb`) em um alquimista
@@ -1127,6 +1271,54 @@ resolveExpirations(
   documentos: é edição de manifesto. A reabertura de um pack `gm` para os jogadores
   por configuração de mundo (REQ-CPD-075 [V2], `ver 37-configuracoes.md`) NÃO DEVE
   alterar o manifesto publicado.
+
+### Tamanho da criatura
+
+> Fundamentada em DEC-PF2-13. O token só **lê** o resultado — a conversão em casas é do
+> sistema (REQ-SYS-009) e o footprint muda sozinho quando o tamanho muda (REQ-TOK-012,
+> REQ-TOK-017). O SF2e usa o mesmo passo (REQ-SF2-017a).
+
+- **REQ-PF2-150** [MVP] O sistema DEVE derivar o tamanho efetivo de todo `character` que tem um
+  item de ancestralidade e publicá-lo em `system.derived.size`, como uma categoria (`tiny`,
+  `sm`, `med`, `lg`, `huge` ou `grg`). Sem item de ancestralidade a chave NÃO DEVE existir, e o
+  tamanho segue sendo o `system.traits.size` de entrada manual. A chave DEVE sumir do
+  `derived` persistido quando o item que a originou é removido.
+- **REQ-PF2-151** [MVP] As camadas DEVEM compor na ordem de DEC-PF2-13 — ancestralidade,
+  herança, escolha de criação, talento de "Ampliar constante". A herança e a escolha
+  SUBSTITUEM; o talento leva a Grande e NÃO DEVE ter efeito em criatura Grande ou maior. Trocar
+  a herança ou remover o talento DEVE mudar o tamanho na derivação seguinte, sem migração de
+  dado e sem ação do jogador.
+- **REQ-PF2-152** [MVP] Efeito de tamanho que depende de interruptor, de ação ou de forma que a
+  ficha não oferece NÃO DEVE ser aplicado. Todo documento dos packs que traga uma regra de
+  tamanho DEVE estar classificado num inventário — aplicado, escolha de criação ou pendente,
+  este com o motivo — e um documento novo sem classificação DEVE reprovar o teste.
+- **REQ-PF2-153** [MVP] Enquanto o jogador não fez a escolha de tamanho da ancestralidade,
+  `system.derived.size` DEVE ser o tamanho da própria ancestralidade e `system.derived.sizePending`
+  DEVE valer `true`; feita a escolha, a chave DEVE sumir. Um consumidor que precisa de certeza
+  (REQ-BC-036) NÃO DEVE confiar no tamanho enquanto `sizePending` existir.
+- **REQ-PF2-153a** [MVP] Quando um efeito de tamanho (a 4ª camada de DEC-PF2-13) muda o tamanho, o
+  passo DEVE publicar também `system.derived.sizeBeforeEffects`: o tamanho depois das camadas 1 a 3.
+  A chave NÃO DEVE existir quando nenhum efeito mudou o tamanho, e DEVE sumir junto com `size`. Um
+  requisito de tamanho de talento (REQ-BC-036) DEVE ser julgado contra `sizeBeforeEffects` — e, sem
+  ela, contra `size` —, nunca contra o tamanho que o próprio talento dá. A etiqueta do card de
+  Ancestralidade (REQ-PF2-155) segue mostrando o tamanho efetivo.
+- **REQ-PF2-154** [MVP] O tamanho derivado NÃO DEVE ser gravado no `_source` nem espelhado em
+  `system.traits.size`. Quem desenha o token DEVE ler `system.derived.size` primeiro e
+  `system.traits.size` depois, e um personagem existente DEVE aparecer com o tamanho certo ao ser
+  aberto, sem migração (REQ-DOC-034, DEC-PF2-03). A categoria de tamanho é um token curto — letras,
+  dígitos, `_` e `-`, até 24 caracteres (REQ-SYS-009) —, e o leitor de `system` é um só, do
+  servidor e do cliente.
+- **REQ-PF2-155** [MVP] A etiqueta de tamanho do card de Ancestralidade do Plano DEVE mostrar o
+  tamanho efetivo (com herança, escolha e talento), e não o da ancestralidade. Nenhum campo novo
+  entra na ficha.
+- **REQ-PF2-156** [MVP] O talento que dá "os efeitos de Ampliar" de forma permanente DEVE aplicar
+  também Desajeitado 1, e isso vale para a Força de Oito Legiões (decisão do Alexandre em
+  29/09/2026: "a parte negativa as pessoas nunca lembram", por isso é automático). O tamanho de
+  REQ-PF2-151 NÃO depende deste requisito. Implementação: satélite #337.
+- **REQ-PF2-157** [V2] Ampliar, Encolher e uma forma DEVEM poder mudar o tamanho efetivo por um
+  efeito com duração, como camada depois do talento de "Ampliar constante" (DEC-PF2-13), visível
+  ao Mestre e ao afetado como anotação no canto — o padrão de estado temporizado. Por ora o
+  Mestre resolve na narração (decisão do Alexandre em 29/09/2026; core #291).
 
 ---
 
@@ -1192,7 +1384,7 @@ plano (`ver 45-atores.md`, DEC-ATR-10).
 | `armor`              | ✅         | Equipamento | `category`, `group`, `acBonus`, `dexCap`, `checkPenalty`, `speedPenalty`, `strength`, `runes{potency,resilient,property[]}`                                                                                                                                                                                                                           |
 | `shield`             | ✅         | Equipamento | `acBonus`, `hardness`, `hp`, `brokenThreshold`                                                                                                                                                                                                                                                                                                        |
 | `equipment`          | ✅         | Equipamento | `bulk`, `price`, `usage`, `traits`                                                                                                                                                                                                                                                                                                                    |
-| `consumable`         | ✅         | Equipamento | `category` (scroll/wand/potion/ammo/bomb…), `charges`, `autoDestroy`, `spell?`, `fusion.effectRefs[]` (REQ-PF2-224, REQ-PF2-225); bomba alquímica (trait `bomb`) carrega também o payload de arma (`damage`, `splashDamage`, `bonus`, `range`, `runes`, `baseItem`, `expend`) que a projeção do strike consome (DEC-PF2-12, REQ-PF2-226, REQ-PF2-227) |
+| `consumable`         | ✅         | Equipamento | `category` (scroll/wand/potion/ammo/bomb…), `charges`, `autoDestroy`, `spell?`, `fusion.effectRefs[]` (REQ-PF2-224, REQ-PF2-225); bomba alquímica (trait `bomb`) carrega também o payload de arma (`damage`, `splashDamage`, `bonus`, `range`, `runes`, `baseItem`, `expend`) que a projeção do strike consome (DEC-PF2-15, REQ-PF2-226, REQ-PF2-227) |
 | `treasure`           | ✅         | Equipamento | `value` (gp/sp/cp)                                                                                                                                                                                                                                                                                                                                    |
 | `container`          | ✅         | Equipamento | `capacity`, `bulkReduction`                                                                                                                                                                                                                                                                                                                           |
 | `condition`          | ✅         | Estado      | `slug`, `value?`, `modifiers[]`, `overrides[]`                                                                                                                                                                                                                                                                                                        |
@@ -1475,6 +1667,13 @@ interface EffectSystem {
     pack de bestiário declara `"gm"` e os packs de regras jogáveis declaram `"all"`,
     sem que nenhum documento tenha sido alterado para isso (REQ-PF2-140..145,
     REQ-CPD-072).
+13. **Tamanho da criatura** — Um personagem Minotauro ocupa 2×2 casas no mapa; com a herança
+    Chifre-Pequeno, 1×1. Um Autômato que escolheu Pequeno e chegou ao Chassi Ampliado passa a
+    Grande, e um Yaksha com a Força de Oito Legiões também. Trocar a herança muda a peça na
+    hora, sem nenhuma escrita no token e sem migração do personagem. Um personagem Grande que
+    pega um talento de "Ampliar constante" continua Grande, e o Chassi Ampliado não é marcado por
+    um requisito de tamanho ("Médio ou Pequeno") que o próprio efeito desfaz (REQ-PF2-150..154,
+    REQ-PF2-153a, REQ-TOK-012, CA-TOK-002).
 
 ---
 
@@ -1484,25 +1683,25 @@ interface EffectSystem {
 > parcial (automação + input manual) · **M** = manual/assistido (sem automação,
 > ferramenta de apoio). Baseado na pesquisa 13 §16.
 
-| Mecânica                                        | MVP       | Notas                                              |
-| ----------------------------------------------- | --------- | -------------------------------------------------- |
-| Modificador de ability (`floor((score−10)/2)`)  | A         | REQ-PF2-010                                        |
-| Proficiência TEML (rank\*2+nível)               | A         | REQ-PF2-011                                        |
-| Skills/Perception/Saves/Class DC derivados      | A         | REQ-PF2-012..016                                   |
-| AC (com dex cap, runa, broken)                  | A         | REQ-PF2-020                                        |
-| HP máximo (char e NPC)                          | A         | REQ-PF2-021                                        |
-| Degree of success (±10, nat20/nat1)             | A         | REQ-PF2-040                                        |
-| MAP acumulado por turno                         | A         | REQ-PF2-031, 035                                   |
-| Strike attack + damage (melee/ranged)           | A         | contexto de flanking/cobertura é M                 |
-| Crítico: dobra de dano; deadly; fatal           | A         | crit specialization é A(V2)                        |
-| Basic saving throw (dano por grau)              | A         | REQ-PF2-041                                        |
-| Condições numeradas (efeito mecânico)           | A         | conjunto priorizado, REQ-PF2-051                   |
-| Decremento de `frightened` por turno            | A         | REQ-PF2-092                                        |
-| `slowed`/`stunned` na contagem de ações         | A         | REQ-PF2-092                                        |
-| Persistent damage (aplicação + flat check)      | A/P       | dano automático; flat check rolável                |
-| IWR no apply damage                             | A         | REQ-PF2-060                                        |
-| Dying/Recovery/Wounded/Doomed                   | A         | REQ-PF2-070..074                                   |
-| Hero Points (reroll, heroic recovery)           | A         | REQ-PF2-044                                        |
+| Mecânica                                        | MVP       | Notas                                            |
+| ----------------------------------------------- | --------- | ------------------------------------------------ |
+| Modificador de ability (`floor((score−10)/2)`)  | A         | REQ-PF2-010                                      |
+| Proficiência TEML (rank\*2+nível)               | A         | REQ-PF2-011                                      |
+| Skills/Perception/Saves/Class DC derivados      | A         | REQ-PF2-012..016                                 |
+| AC (com dex cap, runa, broken)                  | A         | REQ-PF2-020                                      |
+| HP máximo (char e NPC)                          | A         | REQ-PF2-021                                      |
+| Degree of success (±10, nat20/nat1)             | A         | REQ-PF2-040                                      |
+| MAP acumulado por turno                         | A         | REQ-PF2-031, 035                                 |
+| Strike attack + damage (melee/ranged)           | A         | contexto de flanking/cobertura é M               |
+| Crítico: dobra de dano; deadly; fatal           | A         | crit specialization é A(V2)                      |
+| Basic saving throw (dano por grau)              | A         | REQ-PF2-041                                      |
+| Condições numeradas (efeito mecânico)           | A         | conjunto priorizado, REQ-PF2-051                 |
+| Decremento de `frightened` por turno            | A         | REQ-PF2-092                                      |
+| `slowed`/`stunned` na contagem de ações         | A         | REQ-PF2-092                                      |
+| Persistent damage (aplicação + flat check)      | A/P       | dano automático; flat check rolável              |
+| IWR no apply damage                             | A         | REQ-PF2-060                                      |
+| Dying/Recovery/Wounded/Doomed                   | A         | REQ-PF2-070..074                                 |
+| Hero Points (reroll, heroic recovery)           | A         | REQ-PF2-044                                      |
 | Dano massivo (dobro do PV máximo num golpe)     | A         | REQ-PF2-212a                                       |
 | Consumo de item (carga, quantidade, destruição) | A         | REQ-PF2-224                                        |
 | Efeito e cura no uso de consumível              | A         | REQ-PF2-225                                        |
@@ -1510,25 +1709,28 @@ interface EffectSystem {
 | Strike de bomba (sem equipar, gasta ao rolar)   | A         | REQ-PF2-226, REQ-PF2-227                           |
 | Respingo e persistente da bomba                 | P         | campos derivados; conta na fase de dano            |
 | Passagem de tempo fora de combate               | M         | sem relógio de mundo, REQ-PF2-223                  |
-| Spell slot tracking (prepared/spontaneous)      | A         | REQ-PF2-081                                        |
-| Cantrip ilimitado + heighten automático         | A         | REQ-PF2-082                                        |
-| Focus points + refocus                          | A         | REQ-PF2-083                                        |
-| Heightening manual (rank superior)              | A(V2)     | parcial no MVP, REQ-PF2-085                        |
-| Counteract/Counterspell                         | A(V2)     | REQ-PF2-086                                        |
-| Bulk/encumbrance                                | A         | REQ-PF2-120                                        |
-| Runas fundamentais (potency/striking/resilient) | A         | REQ-PF2-130                                        |
-| Runas de propriedade (flaming etc.)             | A(V2)     | REQ-PF2-131                                        |
-| Iniciativa por skill                            | A         | REQ-PF2-090                                        |
-| Recall Knowledge (secret check + DC)            | P         | rola e apresenta; GM escolhe info, REQ-PF2-101     |
-| Inline enrichers (@Check/@Damage/@Template)     | A         | REQ-PF2-102                                        |
-| Condições de detecção (efeito de visão)         | P/M       | flat check A; posição/visão parcial, REQ-PF2-052   |
-| Motor de rule-elements-like completo            | A(V2)     | GrantItem/ChoiceSet/Aura/BattleForm, DEC-PF2-04    |
-| Character builder (ABC + ChoiceSet)             | M / A(V2) | montagem manual ou import no MVP                   |
+| Spell slot tracking (prepared/spontaneous)      | A         | REQ-PF2-081                                      |
+| Cantrip ilimitado + heighten automático         | A         | REQ-PF2-082                                      |
+| Focus points + refocus                          | A         | REQ-PF2-083                                      |
+| Heightening manual (rank superior)              | A(V2)     | parcial no MVP, REQ-PF2-085                      |
+| Counteract/Counterspell                         | A(V2)     | REQ-PF2-086                                      |
+| Bulk/encumbrance                                | A         | REQ-PF2-120                                      |
+| Runas fundamentais (potency/striking/resilient) | A         | REQ-PF2-130                                      |
+| Runas de propriedade (flaming etc.)             | A(V2)     | REQ-PF2-131                                      |
+| Iniciativa por skill                            | A         | REQ-PF2-090                                      |
+| Recall Knowledge (secret check + DC)            | P         | rola e apresenta; GM escolhe info, REQ-PF2-101   |
+| Inline enrichers (@Check/@Damage/@Template)     | A         | REQ-PF2-102                                      |
+| Condições de detecção (efeito de visão)         | P/M       | flat check A; posição/visão parcial, REQ-PF2-052 |
+| Motor de rule-elements-like completo            | A(V2)     | GrantItem/ChoiceSet/Aura/BattleForm, DEC-PF2-04  |
+| Character builder (ABC + ChoiceSet)             | M / A(V2) | montagem manual ou import no MVP                 |
 | Craft (atividade)                               | A         | rolagem no servidor + custo por porta, REQ-FAB-039 |
 | Exploration/Downtime (demais)                   | M / A(V2) | REQ-PF2-103                                        |
-| Range increments / cover                        | M         | A(V2); cobertura depende do mapa                   |
-| Flanking (posição exata)                        | M         | requer grid/julgamento do GM                       |
-| Party/Kingmaker                                 | A(V2)     | fora do MVP                                        |
+| Tamanho efetivo do personagem (ABC + talento)   | A         | REQ-PF2-150..155, DEC-PF2-13                     |
+| Tamanho que muda em jogo (Ampliar/Encolher)     | A(V2)     | REQ-PF2-157; hoje o Mestre narra                 |
+| Efeito do tamanho (alcance, manobra, carga)     | M         | fora do "montar a ficha"; REQ-PF2-122            |
+| Range increments / cover                        | M         | A(V2); cobertura depende do mapa                 |
+| Flanking (posição exata)                        | M         | requer grid/julgamento do GM                     |
+| Party/Kingmaker                                 | A(V2)     | fora do MVP                                      |
 
 ### Fontes de dados
 

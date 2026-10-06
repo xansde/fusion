@@ -504,17 +504,23 @@ describe("Setting document writes require GAMEMASTER strictly (REQ-CFG-070, REQ-
   // over the real "query" channel these three handlers register on
   // (`net/socket-manager.ts`), not a direct unit call, so the ASSERTION is
   // about the wire payload a player's socket actually gets back.
+  //
+  // Issue #266 narrows `settings:declarations` ONLY: a non-GAMEMASTER role no
+  // longer gets refused outright — it gets `ok: true` filtered down to
+  // `PLAYER_READABLE_SETTING_KEYS` (settings-handlers.ts). `settings:impact`
+  // and `settings:permissions` are untouched by that issue and stay fully
+  // GAMEMASTER-strict, refusal included.
   // -------------------------------------------------------------------------
 
   describe("settings:declarations / settings:impact / settings:permissions are GAMEMASTER-strict (REQ-GAV-034, DEC-CFG-05)", () => {
-    it("settings:declarations refuses PLAYER and ASSISTANT, admits GAMEMASTER", async () => {
+    it("settings:declarations admits PLAYER and ASSISTANT too (issue #266) — narrowed to the player-readable allowlist, never PERMISSION_DENIED; this world's `stub` system declares nothing on that allowlist, so both get an empty list, same as GAMEMASTER would for a system with no matching key", async () => {
       const playerAck = await sendQuery(player, "settings:declarations", {});
-      expect(playerAck["ok"]).toBe(false);
-      expect(playerAck["code"]).toBe("PERMISSION_DENIED");
+      expect(playerAck["ok"]).toBe(true);
+      expect((playerAck["result"] as { settings: unknown[] }).settings).toEqual([]);
 
       const assistantAck = await sendQuery(assistant, "settings:declarations", {});
-      expect(assistantAck["ok"]).toBe(false);
-      expect(assistantAck["code"]).toBe("PERMISSION_DENIED");
+      expect(assistantAck["ok"]).toBe(true);
+      expect((assistantAck["result"] as { settings: unknown[] }).settings).toEqual([]);
 
       const gmAck = await sendQuery(gm, "settings:declarations", {});
       expect(gmAck["ok"]).toBe(true);
@@ -600,6 +606,83 @@ describe("Setting document writes require GAMEMASTER strictly (REQ-CFG-070, REQ-
       const assistantEnvelope = await assistantOpP;
       const assistantPayload = assistantEnvelope["payload"] as { documents: unknown[] };
       expect(assistantPayload.documents).toEqual([]);
+    });
+
+    // Achado 1 (revisão adversarial 26/09 do #277): a key ON
+    // PLAYER_READABLE_SETTING_KEYS (issue #266's read-side allowlist) must
+    // now reach the player's own socket at broadcast time too — before this
+    // fix, the player's ficha kept the STALE variant-rule value until a
+    // manual reload, even though a fresh `settings:declarations` read
+    // already returned the new one.
+    it("a key on PLAYER_READABLE_SETTING_KEYS reaches the player's socket filtered-in, while an off-allowlist key in the same batch stays filtered-out", async () => {
+      // Matches on THIS test's own batch (by its distinctive allowlisted key,
+      // never seen in any other test in this file) — a bare
+      // type/documentType predicate would also match a PRECEDING test's
+      // player-envelope, whose delivery to `player` nobody there awaited
+      // (those tests only await `gm`/`assistant`) and which can still be
+      // in flight when this test's listener attaches, racing this test's
+      // own envelope.
+      const isThisBatch = (env: Record<string, unknown>): boolean => {
+        if (env["type"] !== "doc:create") return false;
+        const payload = env["payload"] as
+          | { documentType?: string; documents?: Array<{ key?: string }> }
+          | undefined;
+        if (payload?.documentType !== "Setting") return false;
+        return (payload.documents ?? []).some((d) => d.key === "pf2e:variantRules.classLevels");
+      };
+
+      const playerOpP = waitForOp(player, isThisBatch);
+      const gmOpP = waitForOp(gm, isThisBatch);
+
+      const createAck = await sendOp(gm, "doc:create", {
+        documentType: "Setting",
+        data: [
+          { key: "pf2e:variantRules.classLevels", value: true },
+          { key: "world:test:broadcastLeakAllowlisted", value: 1 },
+        ],
+      });
+      expect(createAck["ok"]).toBe(true);
+
+      const [playerEnvelope, gmEnvelope] = await Promise.all([playerOpP, gmOpP]);
+
+      const playerPayload = playerEnvelope["payload"] as { documents: Array<{ key: string }> };
+      expect(playerPayload.documents.map((d) => d.key)).toEqual(["pf2e:variantRules.classLevels"]);
+
+      const gmPayload = gmEnvelope["payload"] as { documents: Array<{ key: string }> };
+      expect(gmPayload.documents.map((d) => d.key)).toEqual([
+        "pf2e:variantRules.classLevels",
+        "world:test:broadcastLeakAllowlisted",
+      ]);
+    });
+
+    // House rules of A Queda (2026-10-05): the four variant keys are
+    // player-readable too (the ficha applies them), live-broadcast included.
+    it.each([
+      "bonusGeneralFeatLevel1",
+      "freeOccultismOrReligion",
+      "ancestryFeatsInGeneralSlots",
+      "ancestryFeatLevelMinus2",
+    ])("house-rule key variantRules.%s reaches the player's socket filtered-in", async (name) => {
+      const wireKey = `pf2e:variantRules.${name}`;
+      const isThisBatch = (env: Record<string, unknown>): boolean => {
+        if (env["type"] !== "doc:create") return false;
+        const payload = env["payload"] as
+          | { documentType?: string; documents?: Array<{ key?: string }> }
+          | undefined;
+        if (payload?.documentType !== "Setting") return false;
+        return (payload.documents ?? []).some((d) => d.key === wireKey);
+      };
+      const playerOpP = waitForOp(player, isThisBatch);
+      const createAck = await sendOp(gm, "doc:create", {
+        documentType: "Setting",
+        data: [
+          { key: wireKey, value: true },
+          { key: "world:test:houseRuleLeak", value: 1 },
+        ],
+      });
+      expect(createAck["ok"]).toBe(true);
+      const playerPayload = (await playerOpP)["payload"] as { documents: Array<{ key: string }> };
+      expect(playerPayload.documents.map((d) => d.key)).toEqual([wireKey]);
     });
   });
 });

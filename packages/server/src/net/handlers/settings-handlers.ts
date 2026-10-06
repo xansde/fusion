@@ -59,12 +59,75 @@ function requireGamemasterStrict(ctx: HandlerContext): Ack<never> | null {
   return ackError("PERMISSION_DENIED", "Only the Gamemaster can read this configuration data");
 }
 
+/**
+ * Issue #266: a subset of world-scope settings drives derivations the
+ * character sheet itself needs to explain to the PLAYER who owns it — e.g.
+ * "multiclasse por nível" (spec 30, REQ-MCL-001/004) and "Arquétipo livre" —
+ * so a non-GAMEMASTER role must be able to read exactly these keys, and
+ * nothing else `settings:declarations` would otherwise hand out.
+ *
+ * This is a narrow READ exception, not a reopening of the Mundo section:
+ * write access to any Setting document remains GAMEMASTER-strict
+ * (`doc-handlers.ts`'s guard, REQ-CFG-070/071), and every OTHER
+ * `settings:declarations` row — plus `settings:impact` and
+ * `settings:permissions` in full — stay behind `requireGamemasterStrict`
+ * above, unchanged (REQ-GAV-034, DEC-CFG-05).
+ *
+ * Keys are the SYSTEM-LOCAL key (`def.key`, without the `<systemId>:`
+ * namespace): the same declaration reaches the wire as
+ * `pf2e:variantRules.classLevels` in a pure pf2e world and as
+ * `pf2e-sf2e:variantRules.classLevels` in the combined system (which
+ * re-registers pf2e's settings under its own id) — the world the issue was
+ * reproduced in. Matching the full wire key would silently miss the latter.
+ */
+const PLAYER_READABLE_SETTING_KEYS: ReadonlySet<string> = new Set([
+  "variantRules.classLevels",
+  "variantRules.freeArchetype",
+  // HJ-09 (#434, D4): the skills every character of the campaign receives
+  // trained. The player's Plano shows the origin "Campanha" and the skill
+  // picker marks them as already trained, so the player's client must read it
+  // (write stays GAMEMASTER-strict, like every Setting).
+  "campaign.trainedSkills",
+  // House rules of A Queda (2026-10-05): the player's ficha (feat pickers,
+  // Plano) applies them too, so the client must read them.
+  "variantRules.bonusGeneralFeatLevel1",
+  "variantRules.freeOccultismOrReligion",
+  "variantRules.ancestryFeatsInGeneralSlots",
+  "variantRules.ancestryFeatLevelMinus2",
+]);
+
+/**
+ * Achado 1 (revisão adversarial 26/09 do #277): `broadcastToWorld`'s
+ * `Setting` branch (doc-handlers.ts) needs the SAME allowlist this handler
+ * reads through, so a GM flipping a variant rule mid-session reaches an
+ * already-connected player's socket instead of leaving it frozen on the
+ * value from page load. Exported here — the single source of truth for
+ * "which Setting keys a non-GAMEMASTER role may see" — so the two doors
+ * (read query, live broadcast) can never drift on the set of keys, same
+ * discipline as `isGamemasterStrict`/`redaction.ts` elsewhere in this repo.
+ *
+ * `wireKey` is the full `${systemId}:${localKey}` form stored on a Setting
+ * document's `key` field (see `indexStoredSettings` above) — only the part
+ * after the FIRST `:` is checked against the allowlist, matching this
+ * file's own `PLAYER_READABLE_SETTING_KEYS.has(def.key)` check (system-local
+ * key, never the namespaced wire key).
+ */
+export function isPlayerReadableSettingKey(wireKey: string): boolean {
+  const colonIndex = wireKey.indexOf(":");
+  const localKey = colonIndex === -1 ? wireKey : wireKey.slice(colonIndex + 1);
+  return PLAYER_READABLE_SETTING_KEYS.has(localKey);
+}
+
 // ---------------------------------------------------------------------------
 // Schema → render-kind classification
 // ---------------------------------------------------------------------------
 
-/** The three shapes REQ-CFG-030 names. Anything else does not render (yet). */
-export type SettingRenderKind = "boolean" | "enum" | "number" | "unsupported";
+/**
+ * The shapes REQ-CFG-030 names (plus `enumList`, HJ-09: a list drawn from a
+ * closed set — rendered as a multiple selection). Anything else does not
+ * render (yet).
+ */
+export type SettingRenderKind = "boolean" | "enum" | "enumList" | "number" | "unsupported";
 
 /** Unwrap the optional/default/nullable wrappers a declaration may carry. */
 function unwrapSchema(schema: ZodTypeAny): ZodTypeAny {
@@ -99,6 +162,14 @@ export function classifySettingSchema(schema: ZodTypeAny): {
     const options: string[] = [...(inner.options as string[])];
     return { kind: "enum", options };
   }
+  // HJ-09 (#434): `z.array(z.enum([...]))` — a list picked from a closed set.
+  // A list of free strings has no option set to draw, so it stays unsupported.
+  if (inner instanceof z.ZodArray) {
+    const element = unwrapSchema(inner.element as ZodTypeAny);
+    if (element instanceof z.ZodEnum) {
+      return { kind: "enumList", options: [...(element.options as string[])] };
+    }
+  }
   return { kind: "unsupported" };
 }
 
@@ -112,10 +183,12 @@ export interface WorldSettingDeclaration {
   /** Namespaced by the declaring system (REQ-CFG-071), e.g. `"pf2e:freeArchetype"`. */
   key: string;
   kind: Exclude<SettingRenderKind, "unsupported">;
-  /** Present only when `kind === "enum"`. */
+  /** Present only when `kind === "enum"` or `"enumList"`. */
   options?: string[];
   label: string;
   hint?: string;
+  /** Display text per option (`kind` `enum`/`enumList`), keyed by the option value (HJ-09). */
+  optionLabels?: Record<string, string>;
   requiresReload?: boolean;
   /**
    * REQ-CFG-082: when true, the tab must ask "how many actors are affected"
@@ -150,6 +223,7 @@ export interface ErasedSettingDefinitionLike {
   // `exactOptionalPropertyTypes: true`: matches `ErasedSettingDefinition`'s own
   // shape (registries.ts) so the real SystemModule assigns here structurally.
   hint?: string | undefined;
+  optionLabels?: Readonly<Record<string, string>> | undefined;
   requiresReload?: boolean | undefined;
   requiresConfirmOnDisable?: boolean | undefined;
   /** REQ-CFG-082: server-only, never serialized — see `buildSettingsImpactHandler`. */
@@ -204,17 +278,24 @@ function indexStoredSettings(
  * tab hiding the Mundo section from non-privileged seats at the index
  * (REQ-CFG-005) is ergonomics on top of this, never a substitute for it.
  *
+ * Issue #266 narrows that gate, not removes it: a non-GAMEMASTER role never
+ * gets refused outright anymore — instead every row is filtered down to
+ * `PLAYER_READABLE_SETTING_KEYS` before it reaches the response. A GM still
+ * sees every declared row; anyone else sees only the handful the ficha needs
+ * to explain a world-level variant rule, and an empty list when none of the
+ * declared settings are on that allowlist (e.g. the `stub` system, or any
+ * world setting outside the allowlist) — same shape as "no system resolved".
+ *
  * A world whose system registered nothing (or that has no system at all)
  * answers with an empty list, never an error — same degrade-open shape as
- * `system:conditions` — but only once the requester has cleared the gate.
+ * `system:conditions`.
  */
 export function buildSettingsDeclarationsHandler(
   systemModule?: SettingsRegistrySource,
   store?: SettingsStoreSource,
 ): HandlerFn<SettingsDeclarationsPayload, SettingsDeclarationsResult> {
   return (_payload, ctx) => {
-    const denied = requireGamemasterStrict(ctx);
-    if (denied) return denied;
+    const privileged = isGamemasterStrict(ctx.role);
     if (!systemModule) {
       return { ok: true, result: { systemId: null, settings: [] } };
     }
@@ -229,6 +310,7 @@ export function buildSettingsDeclarationsHandler(
       if (classification.kind === "unsupported") continue;
 
       const key = `${systemModule.manifest.id}:${def.key}`;
+      if (!privileged && !PLAYER_READABLE_SETTING_KEYS.has(def.key)) continue;
       const stored = storedByKey.get(key);
       const entry: WorldSettingDeclaration = {
         id: stored?.id ?? null,
@@ -239,6 +321,9 @@ export function buildSettingsDeclarationsHandler(
       };
       if (classification.options !== undefined) entry.options = classification.options;
       if (def.hint !== undefined) entry.hint = def.hint;
+      if (def.optionLabels !== undefined && classification.options !== undefined) {
+        entry.optionLabels = { ...def.optionLabels };
+      }
       if (def.requiresReload !== undefined) entry.requiresReload = def.requiresReload;
       if (def.requiresConfirmOnDisable !== undefined) {
         entry.requiresConfirmOnDisable = def.requiresConfirmOnDisable;

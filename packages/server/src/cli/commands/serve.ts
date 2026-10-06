@@ -130,6 +130,18 @@ export async function runServe(args: ServeArgs): Promise<void> {
     logger.warn({ err }, "Could not load @fusion/system-sf2e — sf2e system not available");
   }
 
+  try {
+    // Mundo misto (DEC-SYS-06-bis, spec 15) — composite system, no packs of
+    // its own; serves the real pf2e+sf2e packs side by side (boot.ts).
+    const { pf2eSf2eSystem } = await import("@fusion/system-pf2e-sf2e");
+    registry.register(pf2eSf2eSystem);
+  } catch (err) {
+    logger.warn(
+      { err },
+      "Could not load @fusion/system-pf2e-sf2e — pf2e-sf2e system not available",
+    );
+  }
+
   logger.info({ systems: registry.list() }, "Systems registered");
 
   // Phase 2.6 — world manager (validates system IDs on world creation)

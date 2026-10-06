@@ -55,6 +55,12 @@ export const EnvelopeTypeSchema = z.union([
   // the token, and the client cannot import a game system — same "the
   // declaration travels over the wire" reasoning as system:conditions above.
   z.literal("system:footprint"),
+  // I1 (revisão adversarial 3): the active system's skill/currency/spell-
+  // tradition vocabulary — same "the client cannot import a game system,
+  // the declaration travels over the wire" reasoning as system:conditions/
+  // system:footprint above, for the ficha's per-system config
+  // (systemSheetConfig.ts) instead of a hand-copied table.
+  z.literal("system:vocabulary"),
   // Spec 37 §5.4 (REQ-CFG-030/031, RNF-CFG-02): the Configurações tab's Mundo
   // section renders purely from what the active system declared with escopo
   // `world` — same "the client cannot import a game system" reasoning as

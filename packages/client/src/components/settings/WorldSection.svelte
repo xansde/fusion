@@ -13,7 +13,8 @@
    * (RNF-CFG-02).
    *
    * Writes go through the generic `doc:create`/`doc:update` of `Setting`
-   * (`buildSettingWriteOp`, REQ-CFG-071) — never a bespoke setting-write op.
+   * (`buildSettingWriteOp`, REQ-CFG-071) — never a bespoke setting-write op —
+   * and are serialized per key by `createSettingWriter` (HJ-RH, M2).
    * No optimistic update: the control only reflects a NEW value once the ack
    * confirms it (`applyWorldSettingWrite`), never before. On a refusal
    * (REQ-CFG-073/042) `commit` does two things `worldSettingsRegistry` alone
@@ -52,9 +53,10 @@
     worldSettingsRegistry,
   } from "../../lib/settings/worldSettingsRegistry.svelte.js";
   import {
-    buildSettingWriteOp,
     controlForRow,
+    createSettingWriter,
     resolveBooleanWrite,
+    toggleListOption,
     type WorldSettingRow,
   } from "../../lib/settings/worldSettingsSection.js";
   import { querySettingDisableImpact } from "../../lib/settings/worldSettingsImpact.js";
@@ -83,6 +85,11 @@
     const control = controlForRow(row);
     if (control.kind === "boolean") {
       (target as HTMLInputElement).checked = control.checked;
+    } else if (control.kind === "enumList") {
+      // `target` is the one checkbox the user flipped: put it back to whether
+      // the row still lists its option.
+      const input = target as HTMLInputElement;
+      input.checked = control.selected.includes(input.value);
     } else if (control.kind === "number") {
       (target as HTMLInputElement).value = String(control.value);
     } else {
@@ -90,23 +97,29 @@
     }
   }
 
+  // HJ-RH (M2): every write to a key goes through one queue, so a second tick
+  // before the first ack builds on the first's accepted value, and the first
+  // write of a key is the only `doc:create`.
+  const writer = createSettingWriter({
+    send: (op) => sendOp<{ documents?: Array<{ _id: string }> }>(socket, op),
+    getRow: (key) => worldSettingsRegistry.rows.find((r) => r.key === key),
+    apply: applyWorldSettingWrite,
+  });
+
   async function commit(
     row: WorldSettingRow,
-    nextValue: unknown,
+    nextFor: (current: WorldSettingRow) => unknown,
     target: HTMLInputElement | HTMLSelectElement,
   ): Promise<void> {
-    const op = buildSettingWriteOp(row, nextValue);
-    try {
-      const result = await sendOp<{ documents?: Array<{ _id: string }> }>(socket, op);
-      const id = row.id ?? result.documents?.[0]?._id;
-      if (id !== undefined) applyWorldSettingWrite(row.key, id, nextValue);
+    const outcome = await writer.write(row.key, nextFor);
+    if (outcome.ok) {
       state.clearError(row.key);
-    } catch (err) {
-      // REQ-CFG-073: a refusal reverts the control to the value the server
-      // last actually accepted, and shows why.
-      state.setError(row.key, errorMessage(err));
-      revertControl(row, target);
+      return;
     }
+    // REQ-CFG-073: a refusal reverts the control to the value the server
+    // last actually accepted, and shows why.
+    state.setError(row.key, errorMessage(outcome.error));
+    revertControl(worldSettingsRegistry.rows.find((r) => r.key === row.key) ?? row, target);
   }
 
   /**
@@ -124,7 +137,7 @@
       formatConfirmMessage: (count) => t("FUSION.Settings.World.ConfirmDisable", { count }),
     });
     if (shouldCommit) {
-      await commit(row, nextValue, target);
+      await commit(row, () => nextValue, target);
     } else {
       // Cancelled: nothing was ever applied, but the browser already
       // flipped the checkbox natively before this handler ran.
@@ -171,13 +184,49 @@
               value={control.value}
               onchange={(event) => {
                 const target = event.currentTarget as HTMLSelectElement;
-                void commit(row, target.value, target);
+                const value = target.value;
+                void commit(row, () => value, target);
               }}
             >
               {#each control.options as option (option)}
                 <option value={option}>{option}</option>
               {/each}
             </select>
+          {:else if control.kind === "enumList"}
+            <!-- HJ-09: a list drawn from a closed set, one checkbox per option.
+                 Every tick writes the WHOLE list (declared order) — see
+                 `toggleListOption`. -->
+            <div class="world-section__checklist" role="group" aria-label={row.label}>
+              {#each control.options as option (option.value)}
+                <label class="world-section__check">
+                  <input
+                    type="checkbox"
+                    value={option.value}
+                    checked={control.selected.includes(option.value)}
+                    onchange={(event) => {
+                      const target = event.currentTarget as HTMLInputElement;
+                      // Computed when this write's turn comes (HJ-RH, M2), from the
+                      // list the previous write left — not from this render's.
+                      const on = target.checked;
+                      void commit(
+                        row,
+                        (current: WorldSettingRow) => {
+                          const now = controlForRow(current);
+                          return toggleListOption(
+                            current,
+                            now.kind === "enumList" ? now.selected : [],
+                            option.value,
+                            on,
+                          );
+                        },
+                        target,
+                      );
+                    }}
+                  />
+                  <span>{option.label}</span>
+                </label>
+              {/each}
+            </div>
           {:else if control.kind === "number"}
             <input
               class="world-section__number"
@@ -185,7 +234,8 @@
               value={control.value}
               onchange={(event) => {
                 const target = event.currentTarget as HTMLInputElement;
-                void commit(row, Number(target.value), target);
+                const value = Number(target.value);
+                void commit(row, () => value, target);
               }}
             />
           {/if}
@@ -258,5 +308,26 @@
 
   .world-section__number {
     width: 5rem;
+  }
+
+  .world-section__checklist {
+    display: grid;
+    flex-shrink: 0;
+    gap: 0.15rem 0.75rem;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    max-width: 22rem;
+  }
+
+  .world-section__check {
+    align-items: center;
+    color: var(--fusion-text);
+    display: flex;
+    font-size: 0.75rem;
+    gap: 0.35rem;
+  }
+
+  .world-section__row:has(.world-section__checklist) {
+    align-items: flex-start;
+    flex-direction: column;
   }
 </style>

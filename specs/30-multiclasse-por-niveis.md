@@ -237,6 +237,70 @@ arquétipo livre, aberta num mundo sem a regra, tem talentos que aquele mundo n�
 concederia. O aviso disso é trabalho de quem implementar importação de ator
 (`ver 16-compendiums-e-importacao.md`), não desta variante.
 
+### DEC-MCL-10 — Talento de classe de nível par é do dono do nível, não de "qualquer classe que o personagem tenha" (decisão do Alexandre, 26/09/2026)
+
+> **Emenda REQ-MCL-040**: a cláusula original "gastável em qualquer classe que ele
+> tenha" é removida. O resto do requisito (cadência em todo nível par de personagem,
+> requisito de nível do feat conferido contra o nível daquela classe) continua valendo.
+
+**Decisão:** o class feat de um nível de personagem — inclusive nível **par** —
+pertence exclusivamente à classe escolhida **naquele nível** (`classOwnerAt`, a mesma
+classe que o slot `classLevel-<nível>` registra), e não a qualquer classe que o
+personagem tenha acumulado em níveis anteriores. Um talento de uma classe que o
+personagem tem, mas que não é a dona daquele nível específico, é `WrongClass` — não
+existe "banco de talentos" compartilhado entre as classes de uma multiclasse.
+
+**Exemplo (o mesmo da revisão que levantou a divergência):** Invocador nos níveis 1–2,
+Feiticeiro no nível 3. O slot de talento de classe do nível 2 pertence ao Invocador; um
+talento do Feiticeiro não cabe nele, mesmo o personagem já tendo (ou vindo a ter) as
+duas classes na ficha.
+
+**Racional:** picker (`pickerConfigFor`, via `classOwnerAt`) e ficha já implementavam
+esse comportamento antes de qualquer conserto — a divergência era só textual, entre o
+que a spec dizia e o que picker/validador faziam desde antes desta rodada. Formalizar o
+comportamento existente evita reabrir a mesma pergunta a cada nova revisão.
+
+**O que esta decisão aceita perder:** a leitura original de REQ-MCL-040 permitia gastar
+o talento de nível par de QUALQUER classe do personagem — uma flexibilidade que nunca
+chegou a ser implementada e que ninguém pediu de volta nesta revisão.
+
+**Contexto:** achado I3 da revisão adversarial do PR `fix/ficha-feedback-22-09`
+(satélite #161 / core #257, 25–26/09/2026) — `.fusion-build/classes-pendentes/
+revisao-257-161.md`. Levada ao Alexandre como decisão pendente; confirmada em
+26/09/2026.
+
+### DEC-MCL-11 — PV usa a maior classe entre as TOMADAS, retroativo, sem soma por nível (decisão do Alexandre, 26/09/2026)
+
+> **Emenda REQ-MCL-033**: a fórmula original — cada nível paga o PV da classe que o
+> recebeu (`Σ hpDaClasseQueRecebeuOnível_n`) — é substituída por uma casa: todo nível
+> paga o **maior** PV de classe entre as classes que o personagem TOMOU até o nível
+> atual, e isso é **retroativo**.
+
+**Decisão:** `hpMax = hpAncestralidade + nível × (max_{c ∈ classesTomadas} hpDaClasse_c +
+conMod) + bônus`. "Classes tomadas" são as que receberam ao menos um nível de
+personagem já alcançado (`levels.assignments`, REQ-MCL-033 original) — não qualquer
+item `type:'class'` embutido na ficha (uma classe planejada para um nível futuro, ou a
+classe secundária de um ator com a variante desligada, não conta ainda). Um Mago
+nível 1 (PV 8) que depois assume Barbaro nos níveis 2–3 (PV 12) passa a pagar 12+conMod
+nos **três** níveis, inclusive o Mago já lançado — é o ponto da casa, não uma
+regressão. Uma classe tomada depois com PV **menor** que a já presente não abaixa o
+máximo (é um `max`, não a última escrita).
+
+**Racional:** casa de mesa do Alexandre — simplifica a conta na hora de jogar (um
+único valor de "PV por nível" em vez de rastrear qual nível veio de qual classe) e
+evita que uma dip tardia numa classe frágil "congele" o PV dos níveis anteriores.
+
+**O que esta decisão aceita perder:** a leitura por nível de REQ-MCL-033 original
+(cada nível carrega o PV da sua própria classe) deixa de valer; `hpByLevel`
+(REQ-MCL-082) reporta o PV efetivo aplicado a cada nível, não o dado da classe que o
+recebeu — a UI que viesse a consumir esse campo precisa ler `hp`, não inferir a classe
+pelo `hp`.
+
+**Contexto:** achado da revisão adversarial de `fix/classlevels-world-variant2` (core
+#273) / `fix/hp-max-class-retroactive-dec-mcl-11` (satélite #278), 26/09/2026 —
+`.fusion-build/classes-pendentes/revisao-273-278.md`. Decidida com o Alexandre no
+mesmo dia.
+
 ---
 
 ## 5. Modelo de dados
@@ -358,9 +422,12 @@ interface DerivedClassLevels {
   ser **derivada da progressão da classe**, nunca de lista escrita à mão. Feat
   concedido por dentro de uma feature de identidade acompanha a feature e não é
   afetado pelo REQ-MCL-031.
-- **REQ-MCL-033** [MC] O HP máximo DEVE ser
-  `hpAncestralidade + Σ_{n=1..nível} (hpDaClasseQueRecebeuOnível_n + conMod) + bônus`.
-  O HP de ancestralidade entra uma vez, no nível 1.
+- **REQ-MCL-033** [MC] (reescrito por DEC-MCL-11, 26/09/2026) O HP máximo DEVE ser
+  `hpAncestralidade + nível × (max_{c ∈ classesTomadas} hpDaClasse_c + conMod) + bônus`,
+  onde "classes tomadas" são as que receberam ao menos um nível de personagem já
+  alcançado — **retroativo**: subir de PV máximo entre as classes tomadas eleva o
+  custo de TODOS os níveis já na ficha, não só os daqui pra frente. O HP de
+  ancestralidade entra uma vez, no nível 1.
 - **REQ-MCL-034** [MC] As perícias **automáticas** de uma classe nova DEVEM ser
   sempre concedidas (são identidade).
 - **REQ-MCL-035** [MC] O orçamento de perícias **livres** DEVE seguir
@@ -372,8 +439,11 @@ interface DerivedClassLevels {
 ### 6.5 Feats e cadência
 
 - **REQ-MCL-040** [MC] O personagem DEVE receber um class feat a cada nível
-  **par de personagem**, gastável em qualquer classe que ele tenha; o requisito de
-  nível do feat DEVE ser conferido contra o nível **daquela classe**.
+  **par de personagem**; o talento DEVE pertencer à classe que **é a dona daquele
+  nível** (`classOwnerAt` — a mesma classe do slot `classLevel-<nível>`), nunca a
+  qualquer outra classe que o personagem também tenha; o requisito de nível do feat
+  DEVE ser conferido contra o nível **daquela classe** (DEC-MCL-10, 2026-09-26 —
+  substitui a leitura anterior "gastável em qualquer classe que ele tenha").
 - **REQ-MCL-041** [MC] Feat de arquétipo (trait `archetype`) DEVE ser conferido
   contra o nível de **personagem**, mesmo quando pago com um slot de class feat.
 - **REQ-MCL-042** [MC] A cadência básica do personagem (ancestry feat, general
@@ -500,18 +570,18 @@ interface DerivedClassLevels {
 Levantado contra o código real (`docs/research/16-…` §4.2). Nenhum item é
 reescrita; são quatro trocas de conceito propagadas.
 
-| Alvo                                            | Arquivo                                         | Mudança                                                                 |
-| ----------------------------------------------- | ----------------------------------------------- | ----------------------------------------------------------------------- |
-| `findClassItem(doc)` → `findClassItems(doc)`    | `systems/pf2e/src/derivations/build.ts`         | devolve lista; call sites passam a iterar                               |
-| `stepCharApplyClass`                            | `build.ts`                                      | acumula por `max` (REQ-MCL-021) em vez de escrever direto               |
-| `stepCharBuildHp`                               | `build.ts`                                      | soma por nível (REQ-MCL-033) em vez de multiplicar                      |
-| `stepCharBuildSkills`                           | `build.ts`                                      | orçamento por `delta` (REQ-MCL-035)                                     |
-| `proficiencyBonus(rank, level)`                 | `systems/engine-2e`                             | passa a receber `LevelContext` (DEC-MCL-03)                             |
-| `spellSlotsForLevel`                            | `build.ts` / `planVM.ts`                        | indexa por nível de classe; expõe rank efetivo                          |
-| `isFeatEligible`                                | `packages/client/src/lib/sheets/pf2e/planVM.ts` | avalia com o par de níveis (REQ-MCL-044)                                |
-| `derivePlan`                                    | `planVM.ts`                                     | slot "Nível de classe" por nível (REQ-MCL-081)                          |
-| `CharacterBuildSchema`                          | `systems/pf2e/src/schemas/actor-character.ts`   | perde `freeArchetype`; nada de `variantRules` (REQ-MCL-001, DEC-MCL-09) |
-| `ARCHETYPE_KEY_ABILITY` / class DC de arquétipo | `systems/pf2e/src/derivations/archetypes.ts`    | vira caso particular de "class DC por classe" (REQ-MCL-022)             |
+| Alvo                                            | Arquivo                                         | Mudança                                                                          |
+| ----------------------------------------------- | ----------------------------------------------- | -------------------------------------------------------------------------------- |
+| `findClassItem(doc)` → `findClassItems(doc)`    | `systems/pf2e/src/derivations/build.ts`         | devolve lista; call sites passam a iterar                                        |
+| `stepCharApplyClass`                            | `build.ts`                                      | acumula por `max` (REQ-MCL-021) em vez de escrever direto                        |
+| `stepCharBuildHp`                               | `build.ts`                                      | multiplica pelo max(PV) das classes tomadas (REQ-MCL-033/DEC-MCL-11), retroativo |
+| `stepCharBuildSkills`                           | `build.ts`                                      | orçamento por `delta` (REQ-MCL-035)                                              |
+| `proficiencyBonus(rank, level)`                 | `systems/engine-2e`                             | passa a receber `LevelContext` (DEC-MCL-03)                                      |
+| `spellSlotsForLevel`                            | `build.ts` / `planVM.ts`                        | indexa por nível de classe; expõe rank efetivo                                   |
+| `isFeatEligible`                                | `packages/client/src/lib/sheets/pf2e/planVM.ts` | avalia com o par de níveis (REQ-MCL-044)                                         |
+| `derivePlan`                                    | `planVM.ts`                                     | slot "Nível de classe" por nível (REQ-MCL-081)                                   |
+| `CharacterBuildSchema`                          | `systems/pf2e/src/schemas/actor-character.ts`   | perde `freeArchetype`; nada de `variantRules` (REQ-MCL-001, DEC-MCL-09)          |
+| `ARCHETYPE_KEY_ABILITY` / class DC de arquétipo | `systems/pf2e/src/derivations/archetypes.ts`    | vira caso particular de "class DC por classe" (REQ-MCL-022)                      |
 
 ---
 

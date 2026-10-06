@@ -312,6 +312,48 @@ Toda escrita das seções Mundo, Permissões, Usuários e Mods exige `role === G
   > o contador nunca reaproveita número de peça removida (REQ-TOK-065) — comportamento
   > do motor, não desta aba.
 
+- **REQ-CFG-037** [MVP] A seção DEVE renderizar uma setting cujo schema é uma **lista tirada de um
+  conjunto fechado** (`array` de `enum`) como seleção múltipla — uma caixa por opção, texto de cada
+  opção vindo da declaração do sistema (`optionLabels`, com a própria opção como reserva). Cada
+  marcação grava a lista inteira, na ordem declarada das opções (REQ-CFG-030/031: nenhum
+  conhecimento de sistema na aba).
+- **REQ-CFG-038** [MVP] **Perícias treinadas pela campanha** (HJ-09, decisão D4 do Alexandre,
+  02/10/2026): o sistema ativo PODE declarar a setting de mundo `campaign.trainedSkills` (lista de
+  slugs de perícia). É configuração do mundo, não regra do sistema: cada campanha escolhe as
+  perícias que todo personagem recebe treinadas. Regras:
+  1. só o GAMEMASTER escreve (REQ-CFG-070); o jogador LÊ a lista (chave na allowlist de leitura do
+     jogador), porque o Plano mostra a origem "Campanha" e o seletor de perícias a marca como
+     já treinada;
+  2. o servidor entrega a lista à derivação como `system.build.campaignSkills`, **sempre vinda do
+     mundo**: um valor que o próprio documento do ator traga nessa chave é descartado (senão o
+     dono do ator se concederia perícias). Sem `Setting` gravada, a chave fica ausente;
+  3. o treino vale como piso (nunca rebaixa um rank maior) e é aplicado **fora do orçamento** de
+     perícias da classe;
+  4. mudar a lista re-deriva todos os personagens e propaga o resultado (REQ-CFG-035), sem
+     recarga; personagens existentes passam a ter, ou a perder, o treino na hora.
+
+- **REQ-CFG-039** [MVP] **Regras da casa da campanha A Queda** (decisão do Alexandre, 05/10/2026):
+  o sistema ativo PODE declarar quatro settings de mundo booleanas, todas em
+  `variantRules.<chave>`, que relaxam as regras de talentos do personagem — desligadas = regra
+  oficial (RAW):
+  1. `bonusGeneralFeatLevel1`: existe um espaço extra de talento geral no nível 1;
+  2. `freeOccultismOrReligion`: o personagem recebe treinado em Ocultismo ou Religião, à escolha;
+  3. `ancestryFeatsInGeneralSlots`: os espaços de talento geral (nível > 1) também aceitam
+     talentos de ancestralidade;
+  4. `ancestryFeatLevelMinus2`: um talento de ancestralidade de nível N cabe num espaço de nível
+     max(1, N-2).
+  Regras de plumbing no núcleo (espelham HJ-09/REQ-CFG-038):
+  - só o GAMEMASTER escreve (REQ-CFG-070); o jogador LÊ as quatro chaves (allowlist de leitura do
+    jogador, inclusive no broadcast ao vivo), porque a ficha aplica as regras;
+  - o servidor entrega os valores à derivação como `system.build.variantRules.<chave>`,
+    **sempre vindos do mundo**: não existe campo legado por ator, então um valor que o documento
+    do ator traga é descartado quando o mundo não tem `Setting` (um jogador não forja a regra);
+    `true`/`false` do mundo valem como estão;
+  - a validação de legalidade da ficha no servidor (escrita de `doc:create`/`doc:update` e de itens
+    embutidos) recebe os mesmos três flags de espaço/nível (1, 3 e 4), tanto para o documento
+    mesclado quanto para o anterior;
+  - mudar qualquer das quatro re-deriva todos os personagens e propaga o resultado (REQ-CFG-035).
+
 ### 5.5 Permissões
 
 - **REQ-CFG-040** [MVP] A seção DEVE listar as permissões configuráveis de REQ-USR-008,

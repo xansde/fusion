@@ -16,6 +16,9 @@ import { describe, expect, it, vi } from "vitest";
 import {
   buildSettingWriteOp,
   controlForRow,
+  createSettingWriter,
+  type SettingWriteOp,
+  toggleListOption,
   needsDisableConfirm,
   resolveBooleanWrite,
   type WorldSettingRow,
@@ -292,5 +295,194 @@ describe("resolveBooleanWrite — REQ-CFG-082: gate a boolean row's write on con
     expect(formatConfirmMessage).toHaveBeenCalledWith(0);
     expect(confirmDisable).toHaveBeenCalledWith("count=0");
     expect(shouldCommit).toBe(true);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// HJ-09 (#434): a list drawn from a closed set — "perícias treinadas pela
+// campanha". Same genericity bar: the tab knows nothing about skills.
+// ---------------------------------------------------------------------------
+
+const NEW_LIST: WorldSettingRow = {
+  id: "setting-list-1",
+  key: "fake-system:favouriteColours",
+  kind: "enumList",
+  options: ["red", "green", "blue"],
+  optionLabels: { red: "Vermelho", blue: "Azul" },
+  label: "Cores",
+  value: ["blue", "red", "not-an-option"],
+};
+
+describe("controlForRow — REQ-CFG-037: enumList row (HJ-09)", () => {
+  it("draws every declared option, labelled by optionLabels (falling back to the value), in declared order", () => {
+    expect(controlForRow(NEW_LIST)).toEqual({
+      kind: "enumList",
+      selected: ["red", "blue"],
+      options: [
+        { value: "red", label: "Vermelho" },
+        { value: "green", label: "green" },
+        { value: "blue", label: "Azul" },
+      ],
+    });
+  });
+
+  it("a non-array value draws nothing selected, never throws", () => {
+    expect(controlForRow({ ...NEW_LIST, value: "red" })).toMatchObject({ selected: [] });
+    expect(controlForRow({ ...NEW_LIST, value: undefined })).toMatchObject({ selected: [] });
+  });
+});
+
+describe("toggleListOption — enumList writes keep the declared order", () => {
+  it("ticking adds the option at its declared position, not at the end", () => {
+    expect(toggleListOption(NEW_LIST, ["blue"], "red", true)).toEqual(["red", "blue"]);
+  });
+
+  it("unticking removes only that option", () => {
+    expect(toggleListOption(NEW_LIST, ["red", "blue"], "red", false)).toEqual(["blue"]);
+  });
+
+  it("the write is the generic Setting op carrying the whole list", () => {
+    expect(buildSettingWriteOp(NEW_LIST, ["green"])).toEqual({
+      type: "doc:update",
+      payload: {
+        documentType: "Setting",
+        updates: [{ _id: "setting-list-1", diff: { value: ["green"] } }],
+      },
+    });
+  });
+});
+
+// ---------------------------------------------------------------------------
+// HJ-RH (revisão adversarial, achado M2): writes to one key are serialized.
+//
+// Source of the scenario: plano "Huo Jinwu jogável" HJ-09 / D4 — the GM ticks
+// two skills of `pf2e:campaign.trainedSkills` (an enumList) in quick
+// succession, before the first ack. Expected stored value is the declared-order
+// list with BOTH skills, written through a single `doc:create`.
+// ---------------------------------------------------------------------------
+
+interface Deferred {
+  readonly op: SettingWriteOp;
+  resolve: (result: { documents?: Array<{ _id: string }> }) => void;
+  reject: (err: unknown) => void;
+}
+
+function harness(initial: WorldSettingRow) {
+  const rows = new Map<string, WorldSettingRow>([[initial.key, initial]]);
+  const sent: Deferred[] = [];
+  const writer = createSettingWriter({
+    getRow: (key) => rows.get(key),
+    send: (op) =>
+      new Promise((resolve, reject) => {
+        sent.push({ op, resolve, reject });
+      }),
+    apply: (key, id, value) => {
+      const row = rows.get(key);
+      if (row) rows.set(key, { ...row, id, value });
+    },
+  });
+  return { rows, sent, writer };
+}
+
+/** Let queued microtasks (the writer's await chain) run. */
+const flush = (): Promise<void> => new Promise((r) => setTimeout(r, 0));
+
+const SKILLS: WorldSettingRow = {
+  id: null,
+  key: "fake-system:campaign.trainedSkills",
+  kind: "enumList",
+  options: ["arcana", "nature", "occultism"],
+  label: "Perícias da campanha",
+  value: [],
+};
+
+describe("createSettingWriter — HJ-RH M2: dois cliques antes do ack não se perdem", () => {
+  it("occultism then arcana before the first ack writes both, through ONE doc:create", async () => {
+    const { rows, sent, writer } = harness(SKILLS);
+    const toggle = (option: string) =>
+      writer.write(SKILLS.key, (row) => {
+        const current = controlForRow(row);
+        return toggleListOption(
+          row,
+          current.kind === "enumList" ? current.selected : [],
+          option,
+          true,
+        );
+      });
+
+    const first = toggle("occultism");
+    const second = toggle("arcana"); // clicked before the first ack
+    await flush();
+
+    // Only the first op is on the wire; the second waits for its ack.
+    expect(sent).toHaveLength(1);
+    expect(sent[0]?.op).toEqual({
+      type: "doc:create",
+      payload: { documentType: "Setting", data: [{ key: SKILLS.key, value: ["occultism"] }] },
+    });
+
+    sent[0]?.resolve({ documents: [{ _id: "setting-new-1" }] });
+    await flush();
+
+    // The second write now sees the accepted id and value: update, whole list.
+    expect(sent).toHaveLength(2);
+    expect(sent[1]?.op).toEqual({
+      type: "doc:update",
+      payload: {
+        documentType: "Setting",
+        updates: [{ _id: "setting-new-1", diff: { value: ["arcana", "occultism"] } }],
+      },
+    });
+    sent[1]?.resolve({});
+    await expect(first).resolves.toEqual({ ok: true });
+    await expect(second).resolves.toEqual({ ok: true });
+
+    expect(rows.get(SKILLS.key)).toMatchObject({
+      id: "setting-new-1",
+      value: ["arcana", "occultism"],
+    });
+    expect(sent.filter((d) => d.op.type === "doc:create")).toHaveLength(1);
+  });
+
+  it("a refused first write does not block the second, which builds on the accepted value", async () => {
+    const { rows, sent, writer } = harness({ ...SKILLS, id: "s1", value: ["nature"] });
+    const add = (option: string) =>
+      writer.write(SKILLS.key, (row) => toggleListOption(row, row.value as string[], option, true));
+
+    const first = add("occultism");
+    const second = add("arcana");
+    await flush();
+    sent[0]?.reject(new Error("forbidden"));
+    await flush();
+
+    await expect(first).resolves.toMatchObject({ ok: false });
+    expect(sent).toHaveLength(2);
+    expect(sent[1]?.op.payload).toMatchObject({
+      updates: [{ _id: "s1", diff: { value: ["arcana", "nature"] } }],
+    });
+    sent[1]?.resolve({});
+    await expect(second).resolves.toEqual({ ok: true });
+    expect(rows.get(SKILLS.key)?.value).toEqual(["arcana", "nature"]);
+  });
+
+  it("writes to different keys are not serialized against each other", async () => {
+    const sent: Deferred[] = [];
+    const other: WorldSettingRow = { ...NEW_NUMBER, key: "fake-system:other" };
+    const rows = new Map<string, WorldSettingRow>([
+      [SKILLS.key, SKILLS],
+      [other.key, other],
+    ]);
+    const writer = createSettingWriter({
+      getRow: (key) => rows.get(key),
+      send: (op) =>
+        new Promise((resolve, reject) => {
+          sent.push({ op, resolve, reject });
+        }),
+      apply: () => undefined,
+    });
+    void writer.write(SKILLS.key, () => ["arcana"]);
+    void writer.write(other.key, () => 7);
+    await flush();
+    expect(sent).toHaveLength(2);
   });
 });

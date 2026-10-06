@@ -18,6 +18,11 @@ export default defineWorkspace([
   "external/fusion-systems-2e/systems/engine-2e/vitest.config.ts",
   "external/fusion-systems-2e/systems/pf2e/vitest.config.ts",
   "external/fusion-systems-2e/systems/sf2e/vitest.config.ts",
+  // Mundo misto PF2e+SF2e (spec 15, DEC-SYS-06-bis): the composite system
+  // that discovers/serves both source systems' packs side by side under a
+  // single active systemId. No packs/ of its own — its suite covers
+  // composition (sourceSystemIds, vocabulary union), not content.
+  "external/fusion-systems-2e/systems/pf2e-sf2e/vitest.config.ts",
   "external/fusion-systems-2e/sheets/pf2e/vitest.config.ts",
   "packages/server/vitest.config.ts",
   "packages/client/vitest.config.ts",

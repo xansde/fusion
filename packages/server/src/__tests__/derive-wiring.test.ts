@@ -633,6 +633,63 @@ describe("Derivation pipeline wired on the real doc:create/doc:update handler pa
     // signal that deepMerge consumes as deleteKey.
     expect(countNulls(derived)).toBe(0);
   });
+
+  // -------------------------------------------------------------------------
+  // C1 (ficha-nivel3 O2 fix round, findings B1/A4): stepCharFocusClamp used
+  // to write `system.resources.focusPoints`, an authored field — but this
+  // server path only ever persists/broadcasts `system.derived` (see
+  // documents/derive.ts). The bug was invisible to systems/pf2e's own unit
+  // tests because they called deriveSteps directly on an in-memory doc and
+  // read the same object back; it only showed up once a real doc:create hit
+  // this handler path and the persisted/broadcast copy came back 0/0. This
+  // regression-guards against exactly that gap: a fresh actor with a
+  // Bard-shaped focus-granting spellcastingEntry item, created through the
+  // real socket handler, exercised via a SEPARATE actor (not the shared
+  // `actorId` the rest of this describe block mutates in sequence).
+  // -------------------------------------------------------------------------
+
+  it("a focus-granting spellcastingEntry (isFocusPool:true) populates system.derived.focusPoints.max on the real doc:create path", async () => {
+    const createAck = await sendOp(gm, "doc:create", {
+      documentType: "Actor",
+      data: [makeFighterCharacterData("Wiring Focus Bard")],
+    });
+    expect(createAck["ok"]).toBe(true);
+    const focusActorId = (createAck["result"] as { documents: Array<Record<string, unknown>> })
+      .documents[0]!["_id"] as string;
+    expect(focusActorId).toBeTruthy();
+
+    const itemAck = await sendOp(gm, "doc:create", {
+      documentType: "Item",
+      parent: { type: "Actor", id: focusActorId },
+      data: [
+        {
+          name: "Composition Spells",
+          type: "spellcastingEntry",
+          system: {
+            prepared: { value: "innate" },
+            tradition: { value: "occult" },
+            ability: { value: "cha" },
+            proficiency: { value: 1 },
+            slots: {},
+            isFocusPool: true,
+            focusPoolSize: 1,
+          },
+        },
+      ],
+    });
+    expect(itemAck["ok"]).toBe(true);
+    const parentDoc = (itemAck["result"] as { parent: Record<string, unknown> }).parent;
+    const derived = (parentDoc["system"] as Record<string, unknown>)["derived"] as Record<
+      string,
+      unknown
+    >;
+    const focusPoints = derived["focusPoints"] as { value: number; max: number } | undefined;
+    // The regression this guards against: before C1, `max` stayed 0 here
+    // even though the entry existed, because the derivation's output never
+    // reached `system.derived`.
+    expect(focusPoints?.max).toBe(1);
+    expect(focusPoints?.value).toBe(0);
+  });
 });
 
 /** Count null leaves in a JSON-ish value (nulls must never survive the merge). */

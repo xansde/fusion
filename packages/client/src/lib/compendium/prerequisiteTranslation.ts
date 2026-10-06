@@ -206,6 +206,10 @@ const CURATED_PREREQUISITE_PT: Readonly<Record<string, string>> = Object.freeze(
   "curriculum spells": "magias de currículo",
   "assurance in that skill": "Garantia na mesma perícia",
   "medium size": "tamanho Médio",
+  // Core #288 (spec 31, DEC-BC-05): the sheet marks a feat whose only requirement is a size, so the mark
+  // has to read in pt-BR too. Scurry! (Tiny size) and Enlarged Chassis (Medium or Small size).
+  "tiny size": "tamanho Minúsculo",
+  "medium or small size": "tamanho Médio ou Pequeno",
   "mature animal companion": "companheiro animal maduro",
   "courageous anthem": "hino corajoso",
   "touch of the void": "toque do vazio",

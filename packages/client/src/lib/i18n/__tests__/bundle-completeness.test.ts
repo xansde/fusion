@@ -318,6 +318,35 @@ describe("No raw HTML entities in bundle values", () => {
 });
 
 // ---------------------------------------------------------------------------
+// 11 — Pets tab "Kind" badge keys coverage (I1, ficha-nivel3 onda 3 review)
+//
+// PetCard.svelte renders `t(`FUSION.Sheet.Pets.Kind.${familiar.companionKind}`)`
+// for every linked companion. "eidolon" (T3.2, DEC-PET-04) shipped with no
+// bundle entry in either locale, so the Summoner's eidolon showed the raw
+// i18n key on its card instead of a translated badge.
+// ---------------------------------------------------------------------------
+
+describe("Pets Kind badge keys coverage", () => {
+  const kindKeys = [
+    "FUSION.Sheet.Pets.Kind.familiar",
+    "FUSION.Sheet.Pets.Kind.pet",
+    "FUSION.Sheet.Pets.Kind.animalCompanion",
+    "FUSION.Sheet.Pets.Kind.mount",
+    "FUSION.Sheet.Pets.Kind.eidolon",
+  ];
+
+  it("all Pets Kind keys exist in pt-BR", () => {
+    const missing = kindKeys.filter((k) => !(k in ptBRBundle));
+    expect(missing, `Missing Pets Kind keys in pt-BR: ${missing.join(", ")}`).toHaveLength(0);
+  });
+
+  it("all Pets Kind keys exist in en", () => {
+    const missing = kindKeys.filter((k) => !(k in enBundle));
+    expect(missing, `Missing Pets Kind keys in en: ${missing.join(", ")}`).toHaveLength(0);
+  });
+});
+
+// ---------------------------------------------------------------------------
 // 9 — Connection and role keys coverage
 // ---------------------------------------------------------------------------
 

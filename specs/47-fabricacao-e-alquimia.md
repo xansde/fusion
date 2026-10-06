@@ -5,7 +5,7 @@
 - **Nível:** Recorte (ver DEC-FAB-01)
 - **Baseada em:**
   - `15-api-de-sistemas.md` — a superfície pela qual o sistema declara o que sabe fazer: hooks de turno aguardados e mecânica de ator (REQ-SYS-138..142), plano de consumo de item e hook pós-consumo (REQ-SYS-143, REQ-SYS-144), e os pontos novos que esta spec obriga (REQ-SYS-145..148).
-  - `17-sistema-pf2e.md` — a regra do PF2e remaster: derivação sem persistir (DEC-PF2-03), efeito como cópia embutida com expiração ancorada (DEC-PF2-11, REQ-PF2-217..223), plano de consumo e strike de item alquímico (DEC-PF2-12, REQ-PF2-224..228), DCs por nível e raridade (REQ-PF2-042), proficiência de categoria de ataque (REQ-PF2-207).
+  - `17-sistema-pf2e.md` — a regra do PF2e remaster: derivação sem persistir (DEC-PF2-03), efeito como cópia embutida com expiração ancorada (DEC-PF2-14, REQ-PF2-217..223), plano de consumo e strike de item alquímico (DEC-PF2-15, REQ-PF2-224..228), DCs por nível e raridade (REQ-PF2-042), proficiência de categoria de ataque (REQ-PF2-207).
   - `10-combate-e-iniciativa.md` — os eventos de turno e de fim de combate que ancoram a expiração do que é fabricado (REQ-CBT-027, REQ-CBT-006).
   - `09-chat-e-mensagens.md` — o card declarativo que relata o que foi preparado, fabricado ou gasto, e a visibilidade dele (REQ-CHT-024, REQ-CHT-004).
   - `11-ui-framework-e-fichas.md` — o registro e a abertura das sheets onde vivem o contador, o livro e o diálogo de Craft (REQ-UIF-018, REQ-UIF-019).
@@ -17,7 +17,7 @@
 > de fórmulas e o que distingue um item infundido de um item comprado. Ela atravessa `15`,
 > `17`, `10`, `09`, `11`, `16`, `05` e `21`, e **não redefine requisito nenhum dessas áreas:
 > cita**. As decisões que ela NÃO PODE contrariar, e não contraria: DEC-PF2-03 (dado derivado
-> nunca é persistido), DEC-PF2-11 (efeito aplicado é cópia embutida), DEC-PF2-12 (strike de
+> nunca é persistido), DEC-PF2-14 (efeito aplicado é cópia embutida), DEC-PF2-15 (strike de
 > consumível sem equipar), DEC-SYS-12 (aplicar dano e condição é op do core) e REQ-PF2-223
 > (fora de combate não corre relógio). Os pontos de extensão novos que ela exige da `15` estão
 > em §12 — nenhuma spec fica contrariada em silêncio.
@@ -310,7 +310,7 @@ de um kit que ninguém marcou. A mesma postura já vale para munição na `17` (
 
 - **REQ-FAB-016** [MVP] Enquanto o recurso de frascos versáteis tiver valor maior que zero, o
   ator DEVE ter um **strike derivado do recurso** — sem item no inventário e sem equipar
-  (DEC-PF2-12) — cujo `source` é `{ kind: "resource", resourceSlug, level }` e cujos campos são
+  (DEC-PF2-15) — cujo `source` é `{ kind: "resource", resourceSlug, level }` e cujos campos são
   os de REQ-PF2-227. Valor zero DEVE fazer o strike **sumir** da lista.
   **Critério verificável:** com 3 frascos, a lista de ataques mostra "Frasco versátil (nível N)";
   com 0, não mostra; nenhum item novo aparece no inventário em nenhum dos dois casos.
@@ -376,7 +376,7 @@ de um kit que ninguém marcou. A mesma postura já vale para munição na `17` (
   ao que era — em particular, uma Alquimia Rápida com 0 frascos não cria item nem debita, e uma
   fórmula que não está no livro não cria item mesmo estando dentro do teto de nível.
 - **REQ-FAB-026** [MVP] O item criado DEVE ser **cópia do documento do pack** (mesma disciplina
-  de DEC-PF2-11) com: `traits` acrescido de `infused`; o carimbo `system.fusion.infused` com o
+  de DEC-PF2-14) com: `traits` acrescido de `infused`; o carimbo `system.fusion.infused` com o
   `actorId` e a `classDc` do fabricante no momento; e `system.fusion.expiry` devolvido por
   `ability.expiry(actor, ctx)`. O **cliente NÃO DEVE enviar `expiry`**, e o servidor DEVE ignorar
   o campo se ele vier. Regerar o pack depois NÃO DEVE alterar item já fabricado.

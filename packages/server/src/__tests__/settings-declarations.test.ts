@@ -15,6 +15,7 @@ import { describe, expect, it } from "vitest";
 import { z } from "zod";
 
 import { pf2eSystem } from "@fusion/system-pf2e";
+import { pf2eSf2eSystem } from "@fusion/system-pf2e-sf2e";
 
 import {
   buildSettingsDeclarationsHandler,
@@ -90,8 +91,19 @@ describe("classifySettingSchema — REQ-CFG-030's three shapes", () => {
     expect(classifySettingSchema(z.number().optional())).toEqual({ kind: "number" });
   });
 
-  it("a schema outside the three declared shapes is unsupported, not a crash", () => {
+  it("a schema outside the declared shapes is unsupported, not a crash", () => {
     expect(classifySettingSchema(z.string()).kind).toBe("unsupported");
+    // A list of free strings has no option set to draw — still unsupported.
+    expect(classifySettingSchema(z.array(z.string())).kind).toBe("unsupported");
+  });
+
+  // HJ-09 (#434): a list drawn from a closed set (the campaign's trained
+  // skills) classifies as an enum list, carrying the same options an enum does.
+  it("an array of enum values classifies as an enum list, carrying its options", () => {
+    expect(classifySettingSchema(z.array(z.enum(["arcana", "occultism"])).default([]))).toEqual({
+      kind: "enumList",
+      options: ["arcana", "occultism"],
+    });
   });
 });
 
@@ -238,6 +250,11 @@ describe("a world with no system answers with an empty list, never an error", ()
 // Who gets it — REQ-GAV-034/DEC-CFG-05: the Mundo section is "só GAMEMASTER"
 // on the read too, not just the write; the trilho hiding the section from a
 // player is ergonomics (REQ-CFG-005), never the boundary the server trusts.
+//
+// Issue #266 narrows this from an outright refusal to a per-key allowlist:
+// a non-GAMEMASTER role now gets `ok: true`, filtered down to
+// `PLAYER_READABLE_SETTING_KEYS` — never PERMISSION_DENIED, and never the
+// full table either.
 // ---------------------------------------------------------------------------
 
 describe("settings:declarations — GAMEMASTER-strict gate (REQ-GAV-034, DEC-CFG-05)", () => {
@@ -245,18 +262,95 @@ describe("settings:declarations — GAMEMASTER-strict gate (REQ-GAV-034, DEC-CFG
     { key: "shared", scope: "world", schema: z.boolean(), default: true, label: "Compartilhada" },
   ]);
 
-  it("a PLAYER is refused with PERMISSION_DENIED, never handed the settings table", () => {
+  it("a PLAYER is admitted (never PERMISSION_DENIED) but sees an empty list — no allowlisted key here", () => {
     const ack = buildSettingsDeclarationsHandler(FAKE, undefined)({}, ctx(UserRole.PLAYER));
-    expect(ack).toMatchObject({ ok: false, code: "PERMISSION_DENIED" });
+    expect(ack).toMatchObject({ ok: true, result: { systemId: "fake-system", settings: [] } });
   });
 
-  it("ASSISTANT (role 3) is refused too — DEC-CFG-05 says GAMEMASTER, not the generic privileged threshold", () => {
+  it("ASSISTANT (role 3) gets the same narrow, filtered result as PLAYER — not the generic privileged threshold", () => {
     const ack = buildSettingsDeclarationsHandler(FAKE, undefined)({}, ctx(UserRole.ASSISTANT));
-    expect(ack).toMatchObject({ ok: false, code: "PERMISSION_DENIED" });
+    expect(ack).toMatchObject({ ok: true, result: { systemId: "fake-system", settings: [] } });
   });
 
-  it("the GAMEMASTER is admitted and receives the declarations", () => {
+  it("the GAMEMASTER is admitted and receives every declaration, unfiltered", () => {
     expect(ask(FAKE, undefined, UserRole.GAMEMASTER).settings).toHaveLength(1);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// Issue #266 — PLAYER_READABLE_SETTING_KEYS: the narrow read exception a
+// PLAYER needs so the ficha can show whether "multiclasse por nível" /
+// "Arquétipo livre" are active, without opening the rest of the Mundo
+// section. A key outside this allowlist stays invisible to a non-GM role,
+// even when it sits right next to an allowlisted one in the same system.
+// ---------------------------------------------------------------------------
+
+describe("settings:declarations — PLAYER_READABLE_SETTING_KEYS allowlist (issue #266)", () => {
+  const PF2E_LIKE = fakeSystemWith("pf2e", [
+    {
+      key: "variantRules.classLevels",
+      scope: "world",
+      schema: z.boolean(),
+      default: false,
+      label: "Multiclasse por nível",
+    },
+    {
+      key: "variantRules.freeArchetype",
+      scope: "world",
+      schema: z.boolean(),
+      default: false,
+      label: "Arquétipo livre",
+    },
+    {
+      key: "someOtherSensitiveWorldSetting",
+      scope: "world",
+      schema: z.boolean(),
+      default: false,
+      label: "Outra configuração sensível",
+    },
+  ]);
+
+  it("a PLAYER reads pf2e:variantRules.classLevels — the exact regression from issue #266", () => {
+    const ack = buildSettingsDeclarationsHandler(PF2E_LIKE, undefined)({}, ctx(UserRole.PLAYER));
+    expect(ack.ok).toBe(true);
+    if (!ack.ok) throw new Error("unreachable");
+    const byKey = new Map(ack.result.settings.map((s) => [s.key, s]));
+    expect(byKey.get("pf2e:variantRules.classLevels")).toMatchObject({
+      kind: "boolean",
+      value: false,
+    });
+  });
+
+  it("a PLAYER also reads pf2e:variantRules.freeArchetype", () => {
+    const entry = ask(PF2E_LIKE, undefined, UserRole.PLAYER).settings.find(
+      (s) => s.key === "pf2e:variantRules.freeArchetype",
+    );
+    expect(entry).toMatchObject({ kind: "boolean", value: false });
+  });
+
+  it("a PLAYER does NOT read a sibling world setting outside the allowlist — negative permission test", () => {
+    const settings = ask(PF2E_LIKE, undefined, UserRole.PLAYER).settings;
+    expect(settings.some((s) => s.key === "pf2e:someOtherSensitiveWorldSetting")).toBe(false);
+    // Only the two allowlisted keys reach the player, nothing else leaks.
+    expect(settings.map((s) => s.key).sort()).toEqual([
+      "pf2e:variantRules.classLevels",
+      "pf2e:variantRules.freeArchetype",
+    ]);
+  });
+
+  it("the GAMEMASTER still sees all three, including the non-allowlisted one", () => {
+    const settings = ask(PF2E_LIKE, undefined, UserRole.GAMEMASTER).settings;
+    expect(settings).toHaveLength(3);
+  });
+
+  it("a stored GM-written value for an allowlisted key is visible to the PLAYER too (REQ-CFG-071)", () => {
+    const store = fakeStore([
+      { _id: "setting-cl", key: "pf2e:variantRules.classLevels", value: true },
+    ]);
+    const entry = ask(PF2E_LIKE, store, UserRole.PLAYER).settings.find(
+      (s) => s.key === "pf2e:variantRules.classLevels",
+    );
+    expect(entry).toMatchObject({ id: "setting-cl", value: true });
   });
 });
 
@@ -301,5 +395,115 @@ describe("the real pf2e system's variant-rule settings reach the wire (REQ-CFG-0
       (s) => s.key === "pf2e:variantRules.freeArchetype",
     );
     expect(entry).toMatchObject({ id: "setting-fa", value: true });
+  });
+
+  it("issue #266: a PLAYER (not just the GAMEMASTER) reads both real pf2e variant-rule settings", () => {
+    const settings = ask(pf2eSystem, undefined, UserRole.PLAYER).settings;
+    // This pin also carries HJ-09's campaign.trainedSkills and the four
+    // house-rule variants of A Queda (2026-10-05) — all player-readable.
+    expect(settings.map((s) => s.key).sort()).toEqual([
+      "pf2e:campaign.trainedSkills",
+      "pf2e:variantRules.ancestryFeatLevelMinus2",
+      "pf2e:variantRules.ancestryFeatsInGeneralSlots",
+      "pf2e:variantRules.bonusGeneralFeatLevel1",
+      "pf2e:variantRules.classLevels",
+      "pf2e:variantRules.freeArchetype",
+      "pf2e:variantRules.freeOccultismOrReligion",
+    ]);
+  });
+
+  it("issue #266: in the combined pf2e-sf2e system (the world the issue reproduced in), a PLAYER reads the same two keys under that system's namespace", () => {
+    const store = fakeStore([
+      { _id: "setting-cl2", key: "pf2e-sf2e:variantRules.classLevels", value: true },
+    ]);
+    const settings = ask(pf2eSf2eSystem, store, UserRole.PLAYER).settings;
+    const keys = settings.map((s) => s.key);
+    expect(keys).toEqual(
+      expect.arrayContaining([
+        "pf2e-sf2e:variantRules.classLevels",
+        "pf2e-sf2e:variantRules.freeArchetype",
+      ]),
+    );
+    // Nothing off the allowlist leaks: the variant rules plus (from the pin
+    // that carries HJ-09) the campaign's trained skills, and only those.
+    expect(
+      keys.every((k) =>
+        /^pf2e-sf2e:(variantRules\.(classLevels|freeArchetype|bonusGeneralFeatLevel1|freeOccultismOrReligion|ancestryFeatsInGeneralSlots|ancestryFeatLevelMinus2)|campaign\.trainedSkills)$/.test(k),
+      ),
+    ).toBe(true);
+    expect(settings.find((s) => s.key === "pf2e-sf2e:variantRules.classLevels")).toMatchObject({
+      id: "setting-cl2",
+      value: true,
+    });
+  });
+
+  it("issue #266: a PLAYER sees the world's real classLevels value, not just the default", () => {
+    const store = fakeStore([
+      { _id: "setting-cl", key: "pf2e:variantRules.classLevels", value: true },
+    ]);
+    const entry = ask(pf2eSystem, store, UserRole.PLAYER).settings.find(
+      (s) => s.key === "pf2e:variantRules.classLevels",
+    );
+    expect(entry).toMatchObject({ id: "setting-cl", value: true });
+  });
+});
+
+// ---------------------------------------------------------------------------
+// HJ-09 (#434, D4) — "perícias treinadas pela campanha": a world setting that
+// is a LIST drawn from a closed set. The Mundo section must draw it, a PLAYER
+// must read it (the Plano shows the origin "Campanha" and the sheet marks the
+// skill as already trained), and nobody but the GM writes it (that part is
+// proven over the wire in campaign-trained-skills.test.ts).
+// ---------------------------------------------------------------------------
+
+describe("settings:declarations — campaign.trainedSkills (HJ-09)", () => {
+  const CAMPAIGN = fakeSystemWith("fake-system", [
+    {
+      key: "campaign.trainedSkills",
+      scope: "world",
+      schema: z.array(z.enum(["arcana", "occultism", "stealth"])),
+      default: [],
+      label: "Perícias treinadas pela campanha",
+      hint: "Todo personagem recebe estas perícias treinadas.",
+      optionLabels: { arcana: "Arcanismo", occultism: "Ocultismo", stealth: "Furtividade" },
+    },
+    {
+      key: "someOtherSensitiveWorldSetting",
+      scope: "world",
+      schema: z.boolean(),
+      default: false,
+      label: "Outra configuração sensível",
+    },
+  ]);
+
+  it("the GM gets an enum-list row carrying the options and the declared default", () => {
+    const entry = ask(CAMPAIGN).settings.find(
+      (s) => s.key === "fake-system:campaign.trainedSkills",
+    );
+    expect(entry).toEqual({
+      id: null,
+      key: "fake-system:campaign.trainedSkills",
+      kind: "enumList",
+      options: ["arcana", "occultism", "stealth"],
+      optionLabels: { arcana: "Arcanismo", occultism: "Ocultismo", stealth: "Furtividade" },
+      label: "Perícias treinadas pela campanha",
+      hint: "Todo personagem recebe estas perícias treinadas.",
+      value: [],
+    });
+  });
+
+  it("the stored list wins over the default", () => {
+    const store = fakeStore([
+      { _id: "s1", key: "fake-system:campaign.trainedSkills", value: ["occultism"] },
+    ]);
+    const entry = ask(CAMPAIGN, store).settings.find(
+      (s) => s.key === "fake-system:campaign.trainedSkills",
+    );
+    expect(entry).toMatchObject({ id: "s1", value: ["occultism"] });
+  });
+
+  it("a PLAYER reads the campaign skills and nothing else beside them", () => {
+    const settings = ask(CAMPAIGN, undefined, UserRole.PLAYER).settings;
+    expect(settings.map((s) => s.key)).toEqual(["fake-system:campaign.trainedSkills"]);
   });
 });
