@@ -89,6 +89,7 @@ import {
   buildMarkClearHandler,
   createTokenMarkSource,
 } from "../combat/mark-handler.js";
+import { buildMountHandler, buildDismountHandler } from "../combat/mount-handler.js";
 import { MapCounter, registerMapCounterReset } from "../combat/map-counter.js";
 import {
   buildResyncRequestHandler,
@@ -577,6 +578,10 @@ export class SocketManager {
     const markDeps = { store, seqStore, opBuffer, ns, targetingStore };
     registry.register("mark:set", buildMarkSetHandler(markDeps));
     registry.register("mark:clear", buildMarkClearHandler(markDeps));
+    // BHR-F5-02 (REQ-BHR-174..176): MountState on the two tokens, decided on the server.
+    const mountDeps = { store, seqStore, opBuffer, ns };
+    registry.register("mount:mount", buildMountHandler(mountDeps));
+    registry.register("mount:dismount", buildDismountHandler(mountDeps));
     // REQ-CBT-055: clear a targeter's targets when their combatant's turn ends.
     registerTargetingCleanup(targetDeps, eventBus);
 

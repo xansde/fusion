@@ -112,6 +112,10 @@ export const EnvelopeTypeSchema = z.union([
   // marking actor — not doc:update (permission is "own actor + own target").
   z.literal("mark:set"),
   z.literal("mark:clear"),
+  // Spec 52 REQ-PET-123, REQ-BHR-174..176 (BHR-F5-02): mount / dismount a creature,
+  // MountState written on both tokens after the server checks adjacency, size and link.
+  z.literal("mount:mount"),
+  z.literal("mount:dismount"),
   // Spec 52 REQ-BHR-102..105 (BHR-F4-08, DEC-BHR-09): a pack effect copied onto
   // other actors, with the permission-by-link rule decided on the server.
   z.literal("effect:apply"),

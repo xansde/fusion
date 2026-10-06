@@ -187,3 +187,17 @@ export {
   stripTokenMarksOnCreate,
 } from "./token-mark.js";
 export type { TokenMark, MarkSetPayload, MarkClearPayload } from "./token-mark.js";
+
+// ---------------------------------------------------------------------------
+// MountState (BHR-F5-02) — who rides whom, on the two tokens
+// ---------------------------------------------------------------------------
+
+export {
+  MOUNT_FLAG_NAMESPACE,
+  MOUNT_FLAG_KEY,
+  MountMountPayloadSchema,
+  MountDismountPayloadSchema,
+  readMountState,
+  isMounted,
+} from "./mount-state.js";
+export type { MountState, MountMountPayload, MountDismountPayload } from "./mount-state.js";
