@@ -217,7 +217,49 @@ function readMountedEffectDoc(deps: MountHandlerDeps): Rec | null {
 /** What `persistAndBroadcast` does to the rider's embedded items together with the scene write. */
 interface RiderEffectChange {
   actorId: string;
+  /** The rider token: an UNLINKED one (spec 41) carries the effect in its own `actorDelta.items` (I-5). */
+  tokenId: string;
   mode: "add" | "remove";
+}
+
+const isUnlinked = (token: Rec | undefined): boolean => token?.["actorLink"] === false;
+
+/**
+ * The token with `items` as its synthetic actor's items (`actorDelta.items` REPLACES the base items,
+ * DEC-DOC-08). `current` are the items the token reads now: its delta's, or else the base actor's.
+ */
+function deltaItemsOf(token: Rec, baseItems: Rec[]): Rec[] {
+  const delta = isRec(token["actorDelta"]) ? token["actorDelta"] : null;
+  return Array.isArray(delta?.["items"]) ? (delta["items"] as Rec[]) : baseItems;
+}
+
+function withDeltaItems(token: Rec, items: Rec[]): Rec {
+  const delta = isRec(token["actorDelta"]) ? token["actorDelta"] : {};
+  return { ...token, actorDelta: { ...delta, items } };
+}
+
+/**
+ * The rider's items after the change: without any "Montado", plus a fresh one on `add`.
+ * `null` when nothing changes.
+ */
+function nextRiderItems(
+  deps: MountHandlerDeps,
+  effectDoc: Rec | null,
+  current: Rec[],
+  change: RiderEffectChange,
+): Rec[] | null {
+  const kept = current.filter((item) => !isMountedEffect(item));
+  let items = kept;
+  if (change.mode === "add" && effectDoc !== null) {
+    const payload = {
+      sourceActorId: change.actorId,
+      targetActorIds: [change.actorId],
+      effect: { ...MOUNTED_EFFECT_REF },
+    } as EffectApplyPayload;
+    const startedAt = startedAtFor(deps.store, change.actorId);
+    items = [...kept, buildEmbeddedEffect(effectDoc, payload, startedAt, undefined).item];
+  }
+  return items.length === current.length && kept.length === current.length ? null : items;
 }
 
 function persistAndBroadcast(
@@ -227,26 +269,35 @@ function persistAndBroadcast(
   ctx: HandlerContext,
   riderEffect?: RiderEffectChange,
 ): Ack<{ documentType: "Scene"; documents: Rec[] }> {
-  // The effect is read BEFORE any write: a missing pack must not leave half a mount behind.
+  // The effect is read BEFORE any write. Without the pack the pair is still written, only without the -2
+  // (the effect is data of the pack; a missing pack degrades the penalty, never the mount itself).
   const effectDoc = riderEffect?.mode === "add" ? readMountedEffectDoc(deps) : null;
   let actorDocs: Rec[] = [];
+  let tokensToWrite = nextTokens;
+  const riderToken =
+    riderEffect === undefined
+      ? undefined
+      : nextTokens.find((t) => t["_id"] === riderEffect.tokenId);
+  // An unlinked token is its own synthetic actor: the effect goes into ITS delta, never the shared base (I-5).
+  const unlinked = isUnlinked(riderToken);
+  if (riderEffect !== undefined && riderToken !== undefined && unlinked) {
+    const base = deps.store.get("actors", riderEffect.actorId);
+    const baseItems = Array.isArray(base["items"]) ? (base["items"] as Rec[]) : [];
+    const current = deltaItemsOf(riderToken, baseItems);
+    const items = nextRiderItems(deps, effectDoc, current, riderEffect);
+    if (items !== null && (items.length > 0 || isRec(riderToken["actorDelta"]))) {
+      tokensToWrite = nextTokens.map((t) =>
+        t["_id"] === riderEffect.tokenId ? withDeltaItems(t, items) : t,
+      );
+    }
+  }
   deps.store.transaction((txn) => {
-    txn.update("scenes", located.sceneId, { tokens: nextTokens }, { userId: ctx.userId });
-    if (riderEffect === undefined) return;
+    txn.update("scenes", located.sceneId, { tokens: tokensToWrite }, { userId: ctx.userId });
+    if (riderEffect === undefined || unlinked) return;
     const fresh = deps.store.get("actors", riderEffect.actorId);
     const current = Array.isArray(fresh["items"]) ? (fresh["items"] as Rec[]) : [];
-    const kept = current.filter((item) => !isMountedEffect(item));
-    let items = kept;
-    if (riderEffect.mode === "add" && effectDoc !== null) {
-      const payload = {
-        sourceActorId: riderEffect.actorId,
-        targetActorIds: [riderEffect.actorId],
-        effect: { ...MOUNTED_EFFECT_REF },
-      } as EffectApplyPayload;
-      const startedAt = startedAtFor(deps.store, riderEffect.actorId);
-      items = [...kept, buildEmbeddedEffect(effectDoc, payload, startedAt, undefined).item];
-    }
-    if (items.length === current.length && kept.length === current.length) return;
+    const items = nextRiderItems(deps, effectDoc, current, riderEffect);
+    if (items === null) return;
     const doc = txn.update("actors", riderEffect.actorId, { items }, { userId: ctx.userId });
     if (doc !== null) actorDocs = [doc];
   });
@@ -284,10 +335,26 @@ export function releaseDismountedRider(
   userId: string,
 ): void {
   let actorDocs: Rec[] = [];
+  let sceneChanged = false;
   const scene = deps.store.getRaw("scenes", sceneId);
   const tokens = Array.isArray(scene["tokens"]) ? (scene["tokens"] as Rec[]) : [];
-  const actorId = tokens.find((t) => t["_id"] === riderTokenId)?.["actorId"];
-  if (
+  const riderToken = tokens.find((t) => t["_id"] === riderTokenId);
+  const actorId = riderToken?.["actorId"];
+  if (riderToken !== undefined && isUnlinked(riderToken)) {
+    // An unlinked rider carries the effect in its own delta (I-5): the shared base actor was never touched.
+    const delta = isRec(riderToken["actorDelta"]) ? riderToken["actorDelta"] : null;
+    const items = Array.isArray(delta?.["items"]) ? (delta["items"] as Rec[]) : [];
+    const kept = items.filter((item) => !isMountedEffect(item));
+    if (kept.length !== items.length) {
+      deps.store.update(
+        "scenes",
+        sceneId,
+        { tokens: tokens.map((t) => (t === riderToken ? withDeltaItems(t, kept) : t)) },
+        { userId },
+      );
+      sceneChanged = true;
+    }
+  } else if (
     typeof actorId === "string" &&
     actorId !== "" &&
     readActorOrNull(deps.store, actorId) !== null
@@ -300,6 +367,16 @@ export function releaseDismountedRider(
       const doc = txn.update("actors", actorId, { items: kept }, { userId });
       if (doc !== null) actorDocs = [doc];
     });
+  }
+  if (sceneChanged) {
+    const envelope: Envelope = {
+      type: "doc:update",
+      seq: deps.seqStore.next(),
+      ts: Date.now(),
+      payload: { documentType: "Scene", documents: [deps.store.get("scenes", sceneId)] },
+    };
+    deps.opBuffer.push(envelope);
+    broadcastToWorld(deps.ns, envelope, "Scene");
   }
   if (actorDocs.length > 0) {
     const envelope: Envelope = {
@@ -378,6 +455,7 @@ export function buildMountHandler(deps: MountHandlerDeps): HandlerFn {
     );
     return persistAndBroadcast(deps, located, nextTokens, ctx, {
       actorId: rider.actorId,
+      tokenId: riderTokenId,
       mode: "add",
     });
   };
@@ -452,6 +530,7 @@ export function buildDismountHandler(deps: MountHandlerDeps): HandlerFn {
     });
     return persistAndBroadcast(deps, located, nextTokens, ctx, {
       actorId: rider.actorId,
+      tokenId: riderTokenId,
       mode: "remove",
     });
   };

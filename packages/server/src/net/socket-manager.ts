@@ -99,11 +99,6 @@ import {
   releaseDismountedRider,
 } from "../combat/mount-handler.js";
 
-interface RiderDismountedInfo {
-  sceneId: string;
-  riderTokenId: string;
-  userId: string;
-}
 import { buildCompanionSetActiveHandler } from "../combat/companion-active-handler.js";
 import { MapCounter, registerMapCounterReset } from "../combat/map-counter.js";
 import {
@@ -153,6 +148,12 @@ import {
 // --------------------------------------------------------------------------
 // Types
 // --------------------------------------------------------------------------
+
+interface RiderDismountedInfo {
+  sceneId: string;
+  riderTokenId: string;
+  userId: string;
+}
 
 export interface WorldNamespaceOptions {
   /** The open world slug (used as namespace id). */

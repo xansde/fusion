@@ -355,6 +355,84 @@ describe("the Mounted effect follows Mount / Dismount (BHR-F5-04)", () => {
     expect(mountedEffects(LESHY_ACTOR)).toHaveLength(1);
   });
 
+  // I-5 (REQ-BHR-177: -2 only for whoever is mounted): an UNLINKED token is a synthetic actor of its own
+  // (spec 41, DEC-DOC-08): the effect goes into ITS `actorDelta.items`, never into the shared base actor.
+  describe("unlinked rider tokens keep the Montado effect on their own delta (I-5)", () => {
+    const LESHY_2 = "leshyToken000002";
+    const unlinkBoth = (): void => {
+      const raw = ctx.store.getRaw("scenes", SCENE_ID)["tokens"] as Record<string, unknown>[];
+      const tokens = raw.map((t) => (t["_id"] === LESHY ? { ...t, actorLink: false } : t));
+      tokens.push({
+        _id: LESHY_2,
+        name: "Leshy 2",
+        actorId: LESHY_ACTOR,
+        actorLink: false,
+        hidden: false,
+        ...at(7, 5),
+      });
+      ctx.store.update("scenes", SCENE_ID, { tokens });
+    };
+    const tokenOf = (id: string): Record<string, unknown> =>
+      (ctx.store.getRaw("scenes", SCENE_ID)["tokens"] as Record<string, unknown>[]).find(
+        (t) => t["_id"] === id,
+      ) as Record<string, unknown>;
+    const deltaItems = (id: string): Record<string, unknown>[] => {
+      const delta = tokenOf(id)["actorDelta"] as { items?: Record<string, unknown>[] } | null;
+      return delta?.items ?? [];
+    };
+    const isMounted = (item: Record<string, unknown>): boolean => {
+      const fusion = (item["system"] as Record<string, unknown>)["fusion"] as
+        | Record<string, unknown>
+        | undefined;
+      return (
+        (fusion?.["origin"] as Record<string, unknown> | undefined)?.["itemSourceId"] ===
+        MOUNTED_EFFECT_REF.docId
+      );
+    };
+
+    it("mounting writes the effect on the rider TOKEN delta; the base actor and the sibling token stay clean", async () => {
+      unlinkBoth();
+      const ack = await sendOp(p1, "mount:mount", { riderTokenId: LESHY, mountTokenId: ANTELOPE });
+      expect(ack["ok"], JSON.stringify(ack)).toBe(true);
+
+      expect(mountedEffects(LESHY_ACTOR)).toHaveLength(0);
+      const items = deltaItems(LESHY);
+      expect(items.filter(isMounted)).toHaveLength(1);
+      // The delta REPLACES the base items (DEC-DOC-08): the rider's other effect travels with it.
+      expect(items.map((i) => i["name"])).toContain("Outro efeito");
+      expect(tokenOf(LESHY_2)["actorDelta"] ?? null).toBeNull();
+    });
+
+    it("dismounting removes it from the token delta only", async () => {
+      unlinkBoth();
+      await sendOp(p1, "mount:mount", { riderTokenId: LESHY, mountTokenId: ANTELOPE });
+      expect(deltaItems(LESHY).filter(isMounted)).toHaveLength(1);
+      const ack = await sendOp(p1, "mount:dismount", { riderTokenId: LESHY, to: at(6, 4) });
+      expect(ack["ok"], JSON.stringify(ack)).toBe(true);
+      expect(deltaItems(LESHY).filter(isMounted)).toHaveLength(0);
+      expect(mountedEffects(LESHY_ACTOR)).toHaveLength(0);
+    });
+
+    it("the GM moving the unlinked rider off the mount also clears the delta", async () => {
+      unlinkBoth();
+      const gm = await connect(ctx.port, ctx.worldId, ctx.gmToken);
+      try {
+        await sendOp(p1, "mount:mount", { riderTokenId: LESHY, mountTokenId: ANTELOPE });
+        expect(deltaItems(LESHY).filter(isMounted)).toHaveLength(1);
+        const ack = await sendOp(gm, "token:move", {
+          sceneId: SCENE_ID,
+          tokenId: LESHY,
+          ...at(2, 2),
+        });
+        expect(ack["ok"], JSON.stringify(ack)).toBe(true);
+        expect(deltaItems(LESHY).filter(isMounted)).toHaveLength(0);
+        expect(mountedEffects(LESHY_ACTOR)).toHaveLength(0);
+      } finally {
+        gm.disconnect();
+      }
+    });
+  });
+
   describe("the GM moving the mounted rider takes him off the mount (BHR-F5-03 x F5-04 x F5-05)", () => {
     const moveVia: Array<[string, (gm: ClientSocket) => Promise<Record<string, unknown>>]> = [
       [
