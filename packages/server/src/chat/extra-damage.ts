@@ -12,7 +12,8 @@
  *   2. the gate — `withinReachOf: "companion"` is measured with `PositionQuery.distanceBetween` between the
  *      token of the companion and the token of the target, in the scene the target stands in;
  *   3. the critical hit — the dice are doubled only when the rule says so (`doubleOnCrit` !== false). The Apoio
- *      of the bear is damage the BEAR deals, so it is NOT doubled (Player Core).
+ *      of the bear is a separate damage ("the creature takes 1d8"), not dice of the Strike, so it is NOT doubled
+ *      on a critical hit (Player Core).
  *
  * `settleExtraDamage` is pure (scenes and actors in, parts out) so the rule is testable without a socket.
  * Persistent parts (the antelope's bleed) are not dice of the formula: they leave as a note, never rolled here.

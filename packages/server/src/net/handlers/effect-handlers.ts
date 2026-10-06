@@ -264,16 +264,15 @@ function isReferencedByOrigin(
 }
 
 /**
- * The reasons the Support of a companion is blocked (REQ-PET-121, REQ-BHR-178), when `ref` is the Support
- * effect of the type of a companion tied to the source (the source itself, or a companion of the source).
- * Same predicate the sheets use (`companionSupportBlockReasons`), so the button and the server agree.
+ * The animal companions tied to the source (the source itself, or a companion of the source) whose type's Support is
+ * `ref`.
  */
-function supportBlockedReasons(
+function supportingCompanions(
   deps: EffectApplyHandlerDeps,
   sourceActorId: string,
   source: Doc,
   ref: EffectApplyPayload["effect"],
-): string[] {
+): Doc[] {
   const companions: Doc[] = [];
   if (asRecord(source["system"])["companionKind"] === "animalCompanion") companions.push(source);
   for (const actor of deps.store.getAll("actors")) {
@@ -285,17 +284,50 @@ function supportBlockedReasons(
       companions.push(actor);
     }
   }
+  return companions.filter((companion) => {
+    const slug = asRecord(asRecord(companion["system"])["companion"])["typeSlug"];
+    if (typeof slug !== "string" || slug === "") return false;
+    const support = companionTypeSupportRef(deps, slug);
+    return support !== null && support.packId === ref.packId && support.docId === ref.docId;
+  });
+}
+
+/**
+ * Why a companion's Support cannot be given now: for the effect of the type of a companion tied to the source. Same
+ * predicate the sheets use (`companionSupportBlockReasons`), so the button and the server agree.
+ */
+function supportBlockedReasons(
+  deps: EffectApplyHandlerDeps,
+  sourceActorId: string,
+  source: Doc,
+  ref: EffectApplyPayload["effect"],
+): string[] {
   const scenes = deps.store.getAll("scenes") as Doc[];
   const combats = deps.store.getAll("combats") as Doc[];
   const reasons: string[] = [];
-  for (const companion of companions) {
-    const slug = asRecord(asRecord(companion["system"])["companion"])["typeSlug"];
-    if (typeof slug !== "string" || slug === "") continue;
-    const support = companionTypeSupportRef(deps, slug);
-    if (support === null || support.packId !== ref.packId || support.docId !== ref.docId) continue;
+  for (const companion of supportingCompanions(deps, sourceActorId, source, ref)) {
     reasons.push(...companionSupportBlockReasons({ scenes, combats, companion }));
   }
   return reasons;
+}
+
+/**
+ * The companion that gives this Support, recorded on the effect's origin so the roll measures THAT companion
+ * (reach, dice) even if another becomes the active one before the Strike (wave 9 review M-3). The active one wins
+ * when several match; `undefined` when the effect is not a companion's Support.
+ */
+function supportGiverId(
+  deps: EffectApplyHandlerDeps,
+  sourceActorId: string,
+  source: Doc,
+  ref: EffectApplyPayload["effect"],
+): string | undefined {
+  const matching = supportingCompanions(deps, sourceActorId, source, ref);
+  const active =
+    matching.find((c) => asRecord(asRecord(c["system"])["companion"])["active"] !== false) ??
+    matching[0];
+  const id = active?.["_id"];
+  return typeof id === "string" ? id : undefined;
 }
 
 /**
@@ -428,6 +460,7 @@ export function buildEmbeddedEffect(
   payload: EffectApplyPayload,
   startedAt: { combatId: string | null; round: number | null },
   expiry: FusionExpiry | undefined,
+  companionActorId?: string,
 ): { id: string; item: Doc } {
   const system = asRecord(effect["system"]);
   const fusion = asRecord(system["fusion"]);
@@ -448,6 +481,8 @@ export function buildEmbeddedEffect(
           origin: {
             actorId: payload.sourceActorId,
             ...(typeof sourceId === "string" ? { itemSourceId: sourceId } : {}),
+            // The companion that gave a Support (M-3): the roll measures it, not whoever is active later.
+            ...(companionActorId !== undefined ? { companionActorId } : {}),
           },
           startedAt,
           // Built on the server from the pack's `expiryTemplate` (review I-1).
@@ -496,6 +531,7 @@ function applyEffect(
     const expiry = buildExpiry(effect, payload, privileged);
 
     const startedAt = startedAtFor(deps.store, payload.sourceActorId);
+    const giverId = supportGiverId(deps, payload.sourceActorId, source, payload.effect);
     const applied: { actorId: string; itemId: string }[] = [];
     const updated = deps.store.transaction((txn) => {
       const docs: Doc[] = [];
@@ -503,7 +539,7 @@ function applyEffect(
         // Re-read inside the transaction: the write must extend the CURRENT items.
         const fresh = deps.store.get("actors", targetId);
         const current = Array.isArray(fresh["items"]) ? (fresh["items"] as Doc[]) : [];
-        const { id, item } = buildEmbeddedEffect(effect, payload, startedAt, expiry);
+        const { id, item } = buildEmbeddedEffect(effect, payload, startedAt, expiry, giverId);
         const doc = txn.update("actors", targetId, { items: [...current, item] });
         if (doc !== null) docs.push(doc);
         applied.push({ actorId: targetId, itemId: id });
