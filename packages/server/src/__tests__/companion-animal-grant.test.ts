@@ -462,6 +462,32 @@ describe("Animal companion creation permission (BHR-F4-04)", () => {
     });
   });
 
+  // DEC-BHR-10 / DC-07 (fix onda 5): one ACTIVE companion per master. The server decides, never the client
+  // (the payload below forges `active: true` on both).
+  it("only one animal companion is active: the first is born active, the next one inactive, the first stays active", async () => {
+    const master = await createMaster(
+      character(ctx.ownerUserId, "TwoGrants", 2, [
+        featItem("Animal Companion (Ranger)", "ac1"),
+        featItem("Beastmaster Dedication", "bd1"),
+      ]),
+    );
+    const activeOf = (doc: Record<string, unknown>): unknown =>
+      ((doc["system"] as Record<string, unknown>)["companion"] as Record<string, unknown>)["active"];
+    const first = await createAs(ownerSocket, [
+      companionPayload(master, "animalCompanion", "Urso", "slot-1"),
+    ]);
+    expect(first["ok"]).toBe(true);
+    expect(activeOf(firstDoc(first))).toBe(true);
+    const second = await createAs(ownerSocket, [
+      companionPayload(master, "animalCompanion", "Antilope", "slot-2"),
+    ]);
+    expect(second["ok"]).toBe(true);
+    expect(activeOf(firstDoc(second))).toBe(false);
+    const store = new DocumentStore({ db: ctx.fusionDb.raw, coreVersion: "0.1.0" });
+    expect(activeOf(store.get("actors", firstDoc(first)["_id"] as string))).toBe(true);
+    expect(activeOf(store.get("actors", firstDoc(second)["_id"] as string))).toBe(false);
+  });
+
   it("the GM skips the grant and the cap", async () => {
     for (const name of ["G1", "G2", "G3"]) {
       const ack = await createAs(gm, [companionPayload(gmCapId, "animalCompanion", name)]);

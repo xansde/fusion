@@ -75,8 +75,10 @@ construído dependendo da resposta.
 
 - **Q (dono × penalidade)**: o dono pode remover qualquer efeito do próprio ator, inclusive uma penalidade aplicada
   pelo Mestre ou por um inimigo? **Hoje pode.** Nada foi construído dependendo da resposta.
-- **P-1 (BHR-F4-04)**: o companheiro criado pelo **Mestre** conta no teto do jogador? **Hoje conta** (se o Mestre
-  criar o urso, o Bhrotto só cria mais um).
-- **P-2 (BHR-F4-04/F4-10)**: ao criar o 2º companheiro, quem fica **ativo**? **Hoje os dois nascem ativos.**
-- **P-3 (BHR-F1-08)**: Tratar Ferimentos com CD escolhível (treinado 15; especialista pode 20; mestre 30; lendário
-  40): qual CD vem marcada por padrão? **Hoje a 15** (a mais baixa, a mais segura).
+- **P-1 (BHR-F4-04)**: o companheiro criado pelo **Mestre** conta no teto do jogador? **Aberta; decisão
+  provisória mantida: conta** (se o Mestre criar o urso, o Bhrotto só cria mais um).
+- ~~**P-2 (BHR-F4-04/F4-10)**: ao criar o 2º companheiro, quem fica **ativo**?~~ **Resolvida**: um só companheiro
+  ativo. O primeiro criado nasce ativo; o novo nasce **inativo** e o ativo anterior continua. Quem decide é o
+  servidor (o `active` do cliente é ignorado). Trocar o ativo é ação explícita do dono (BHR-F4-10).
+- ~~**P-3 (BHR-F1-08)**: Tratar Ferimentos, qual CD vem marcada por padrão?~~ **Resolvida**: a CD padrão é **15**
+  (treinado), confirmada; as maiores (especialista 20, mestre 30, lendário 40) continuam escolhíveis.
