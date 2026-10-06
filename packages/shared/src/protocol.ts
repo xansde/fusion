@@ -640,6 +640,7 @@ export const ExpiryOnSchema = z.enum([
   "combat-end",
   "daily-prep",
   "never",
+  "after-roll",
 ]);
 
 export type ExpiryOn = z.infer<typeof ExpiryOnSchema>;
@@ -649,6 +650,8 @@ export const FusionExpirySchema = z
     on: ExpiryOnSchema,
     ownerActorId: z.string().min(1),
     remainingRounds: z.number().int().nonnegative().optional(),
+    // `after-roll` only (BHR-F2-06, DC-05): the roll that spends the effect.
+    rollPredicate: z.array(z.string().min(1)).max(16).optional(),
   })
   .strict();
 
