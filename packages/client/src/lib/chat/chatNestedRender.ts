@@ -85,7 +85,9 @@ function extraDamageLines(msg: ChatMessage): string[] {
   const lines: string[] = [];
   for (const part of raw as unknown[]) {
     const summary =
-      typeof part === "object" && part !== null ? (part as Record<string, unknown>)["summary"] : null;
+      typeof part === "object" && part !== null
+        ? (part as Record<string, unknown>)["summary"]
+        : null;
     if (typeof summary === "string" && summary !== "") lines.push(summary);
   }
   return lines;

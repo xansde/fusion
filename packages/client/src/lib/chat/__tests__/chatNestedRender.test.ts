@@ -329,6 +329,9 @@ describe("classifyNestedChildren: the parts the server added to a damage roll (B
     const damage = child("dmg", "Bhrotto", rollData(), {
       fusion: { parentMessageId: "p1", extraDamage: [{ dice: "1d8" }, 7, null, { summary: "" }] },
     });
-    expect(classifyNestedChildren([damage]).rolls[0] && "extras" in classifyNestedChildren([damage]).rolls[0]!).toBe(false);
+    expect(
+      classifyNestedChildren([damage]).rolls[0] &&
+        "extras" in classifyNestedChildren([damage]).rolls[0]!,
+    ).toBe(false);
   });
 });
