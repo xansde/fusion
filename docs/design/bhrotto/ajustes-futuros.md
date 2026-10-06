@@ -73,3 +73,5 @@ o que toca e de onde veio. O comportamento de hoje continua até alguém pegar o
 - **`masterActor` (M-12)**: é re-derivado a cada rolagem do companheiro, mesmo sem Presa (custo, não erro).
 - **Agarrado/contido (M-6)**: a expiração "até o fim do seu próximo turno" fica só no texto, sem expiração no motor.
 - **Carteira (F7-03)**: o "Ajustar carteira" do Mestre não tem campo "motivo" nem registro do ajuste (quem, quando, motivo), que o protótipo T6 mostra.
+- **Alcance de golpe (F5-06)**: o Fusion não checa alcance de golpe em lugar nenhum; `isWithinStrikeReach`/`strikeDistance` (alcance a partir de qualquer célula da montaria) estão prontos e testados, sem consumidor — ligar depende de decisão de UI/fluxo do Alexandre (bloquear ou só avisar golpe fora de alcance).
+- **Exceções de elegibilidade (F7-04)**: P1 T1 sem card "Exceções de elegibilidade", sem motivo da exceção e sem "Pedir liberação ao Mestre"; o `system.access` do Noble Bloom foi curado à mão (o importer o apagaria se regenerar o feats-core).
