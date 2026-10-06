@@ -531,25 +531,65 @@
       "resumo": "Roteiro tutorial-e2e do L3 (local na skill), prints em .fusion-build/bhrotto/L3/; achou D1–D11; D1–D8 corrigidos na feat/bhrotto (dono do companheiro, botão Apoio real + companion:command por turno no servidor, resync do cliente + envelope vazio de chat no servidor, ordem do chat, alvo/tipo de dano pt-BR, efeitos pt-BR); D9/D10/D11 em ajustes-futuros.",
       "core_sha": "38d4016e",
       "sat_sha": "42c9250"
+    },
+    "BHR-F7-05": {
+      "status": "integrada",
+      "tentativas": 1,
+      "onda": 12,
+      "modelo": "sonnet/medium",
+      "resumo": "Roteiro tutorial-e2e do L4 (local na skill), 36 prints em .fusion-build/bhrotto/L4/, P3 T1/T6; 1a execução achou D1-D6 (jogador não aplicava Caído pelo próprio card, botão sem estado, Liberar exceção abria o picker, herança em inglês); corrigidos na feat/bhrotto; re-execução 29 linhas, 0 divergências.",
+      "core_sha": "5a10c0c5",
+      "sat_sha": "1bc7936"
     }
   },
   "rodadas": [
     {
       "onda": 1,
-      "tarefas": ["BHR-F0-01", "BHR-F0-02", "BHR-F1-01", "BHR-F1-02", "BHR-F1-03", "BHR-F1-06"],
-      "integradas": ["BHR-F0-01", "BHR-F0-02", "BHR-F1-01", "BHR-F1-02", "BHR-F1-03", "BHR-F1-06"],
+      "tarefas": [
+        "BHR-F0-01",
+        "BHR-F0-02",
+        "BHR-F1-01",
+        "BHR-F1-02",
+        "BHR-F1-03",
+        "BHR-F1-06"
+      ],
+      "integradas": [
+        "BHR-F0-01",
+        "BHR-F0-02",
+        "BHR-F1-01",
+        "BHR-F1-02",
+        "BHR-F1-03",
+        "BHR-F1-06"
+      ],
       "gate": true,
       "revisao": {
         "achados": 0,
-        "abertos": ["I-3 print real do Alcance Prênsil (F1-09)", "6 menores (revisao.md)"]
+        "abertos": [
+          "I-3 print real do Alcance Prênsil (F1-09)",
+          "6 menores (revisao.md)"
+        ]
       },
       "core_sha": "f41b9794",
       "sat_sha": "73df51d"
     },
     {
       "onda": 2,
-      "tarefas": ["BHR-F0-03", "BHR-F1-04", "BHR-F1-05", "BHR-F1-07", "BHR-F2-01", "BHR-F2-03"],
-      "integradas": ["BHR-F0-03", "BHR-F1-04", "BHR-F1-05", "BHR-F1-07", "BHR-F2-01", "BHR-F2-03"],
+      "tarefas": [
+        "BHR-F0-03",
+        "BHR-F1-04",
+        "BHR-F1-05",
+        "BHR-F1-07",
+        "BHR-F2-01",
+        "BHR-F2-03"
+      ],
+      "integradas": [
+        "BHR-F0-03",
+        "BHR-F1-04",
+        "BHR-F1-05",
+        "BHR-F1-07",
+        "BHR-F2-01",
+        "BHR-F2-03"
+      ],
       "gate": true,
       "revisao": {
         "achados": 23,
@@ -566,8 +606,22 @@
     },
     {
       "onda": 3,
-      "tarefas": ["BHR-F2-02", "BHR-F2-05", "BHR-F2-07", "BHR-F2-08", "BHR-F3-01", "BHR-F3-04"],
-      "integradas": ["BHR-F2-02", "BHR-F2-05", "BHR-F2-07", "BHR-F2-08", "BHR-F3-01", "BHR-F3-04"],
+      "tarefas": [
+        "BHR-F2-02",
+        "BHR-F2-05",
+        "BHR-F2-07",
+        "BHR-F2-08",
+        "BHR-F3-01",
+        "BHR-F3-04"
+      ],
+      "integradas": [
+        "BHR-F2-02",
+        "BHR-F2-05",
+        "BHR-F2-07",
+        "BHR-F2-08",
+        "BHR-F3-01",
+        "BHR-F3-04"
+      ],
       "gate": true,
       "revisao": {
         "achados": 52,
@@ -584,8 +638,22 @@
     },
     {
       "onda": 4,
-      "tarefas": ["BHR-F1-08", "BHR-F2-04", "BHR-F2-06", "BHR-F3-02", "BHR-F3-06", "BHR-F4-04"],
-      "integradas": ["BHR-F1-08", "BHR-F2-04", "BHR-F2-06", "BHR-F3-02", "BHR-F3-06", "BHR-F4-04"],
+      "tarefas": [
+        "BHR-F1-08",
+        "BHR-F2-04",
+        "BHR-F2-06",
+        "BHR-F3-02",
+        "BHR-F3-06",
+        "BHR-F4-04"
+      ],
+      "integradas": [
+        "BHR-F1-08",
+        "BHR-F2-04",
+        "BHR-F2-06",
+        "BHR-F3-02",
+        "BHR-F3-06",
+        "BHR-F4-04"
+      ],
       "gate": true,
       "revisao": {
         "achados": 64,
@@ -600,20 +668,50 @@
     },
     {
       "onda": 5,
-      "tarefas": ["BHR-F1-09", "BHR-F2-10", "BHR-F3-03", "BHR-F3-07", "BHR-F3-08", "BHR-F4-01"],
-      "integradas": ["BHR-F1-09", "BHR-F2-10", "BHR-F3-03", "BHR-F3-07", "BHR-F3-08", "BHR-F4-01"],
+      "tarefas": [
+        "BHR-F1-09",
+        "BHR-F2-10",
+        "BHR-F3-03",
+        "BHR-F3-07",
+        "BHR-F3-08",
+        "BHR-F4-01"
+      ],
+      "integradas": [
+        "BHR-F1-09",
+        "BHR-F2-10",
+        "BHR-F3-03",
+        "BHR-F3-07",
+        "BHR-F3-08",
+        "BHR-F4-01"
+      ],
       "gate": true,
       "revisao": {
         "achados": 46,
-        "abertos": ["M-2..M-15 (ver onda-5/revisao.md)"]
+        "abertos": [
+          "M-2..M-15 (ver onda-5/revisao.md)"
+        ]
       },
       "core_sha": "bb1c5a9a",
       "sat_sha": "2650056"
     },
     {
       "onda": 6,
-      "tarefas": ["BHR-F3-05", "BHR-F3-10", "BHR-F4-02", "BHR-F4-08", "BHR-F5-01", "BHR-F6-01"],
-      "integradas": ["BHR-F3-05", "BHR-F3-10", "BHR-F4-02", "BHR-F4-08", "BHR-F5-01", "BHR-F6-01"],
+      "tarefas": [
+        "BHR-F3-05",
+        "BHR-F3-10",
+        "BHR-F4-02",
+        "BHR-F4-08",
+        "BHR-F5-01",
+        "BHR-F6-01"
+      ],
+      "integradas": [
+        "BHR-F3-05",
+        "BHR-F3-10",
+        "BHR-F4-02",
+        "BHR-F4-08",
+        "BHR-F5-01",
+        "BHR-F6-01"
+      ],
       "gate": true,
       "revisao": {
         "achados": 40,
@@ -624,8 +722,22 @@
     },
     {
       "onda": 7,
-      "tarefas": ["BHR-F3-09", "BHR-F4-03", "BHR-F4-05", "BHR-F4-06", "BHR-F5-02", "BHR-F6-02"],
-      "integradas": ["BHR-F3-09", "BHR-F4-03", "BHR-F4-05", "BHR-F4-06", "BHR-F5-02", "BHR-F6-02"],
+      "tarefas": [
+        "BHR-F3-09",
+        "BHR-F4-03",
+        "BHR-F4-05",
+        "BHR-F4-06",
+        "BHR-F5-02",
+        "BHR-F6-02"
+      ],
+      "integradas": [
+        "BHR-F3-09",
+        "BHR-F4-03",
+        "BHR-F4-05",
+        "BHR-F4-06",
+        "BHR-F5-02",
+        "BHR-F6-02"
+      ],
       "gate": true,
       "revisao": {
         "achados": 39,
@@ -641,8 +753,22 @@
     },
     {
       "onda": 8,
-      "tarefas": ["BHR-F3-11", "BHR-F4-07", "BHR-F4-10", "BHR-F5-03", "BHR-F5-04", "BHR-F5-05"],
-      "integradas": ["BHR-F3-11", "BHR-F4-07", "BHR-F4-10", "BHR-F5-03", "BHR-F5-04", "BHR-F5-05"],
+      "tarefas": [
+        "BHR-F3-11",
+        "BHR-F4-07",
+        "BHR-F4-10",
+        "BHR-F5-03",
+        "BHR-F5-04",
+        "BHR-F5-05"
+      ],
+      "integradas": [
+        "BHR-F3-11",
+        "BHR-F4-07",
+        "BHR-F4-10",
+        "BHR-F5-03",
+        "BHR-F5-04",
+        "BHR-F5-05"
+      ],
       "gate": true,
       "revisao": {
         "achados": 46,
@@ -657,8 +783,20 @@
     },
     {
       "onda": 9,
-      "tarefas": ["BHR-F4-09", "BHR-F4-11", "BHR-F6-03", "BHR-F7-01", "BHR-F7-02"],
-      "integradas": ["BHR-F4-09", "BHR-F4-11", "BHR-F6-03", "BHR-F7-01", "BHR-F7-02"],
+      "tarefas": [
+        "BHR-F4-09",
+        "BHR-F4-11",
+        "BHR-F6-03",
+        "BHR-F7-01",
+        "BHR-F7-02"
+      ],
+      "integradas": [
+        "BHR-F4-09",
+        "BHR-F4-11",
+        "BHR-F6-03",
+        "BHR-F7-01",
+        "BHR-F7-02"
+      ],
       "gate": true,
       "revisao": {
         "achados": 39,
@@ -675,8 +813,18 @@
     },
     {
       "onda": 10,
-      "tarefas": ["BHR-F5-06", "BHR-F6-04", "BHR-F7-03", "BHR-F7-04"],
-      "integradas": ["BHR-F5-06", "BHR-F6-04", "BHR-F7-03", "BHR-F7-04"],
+      "tarefas": [
+        "BHR-F5-06",
+        "BHR-F6-04",
+        "BHR-F7-03",
+        "BHR-F7-04"
+      ],
+      "integradas": [
+        "BHR-F5-06",
+        "BHR-F6-04",
+        "BHR-F7-03",
+        "BHR-F7-04"
+      ],
       "gate": true,
       "revisao": {
         "achados": 40,
@@ -694,8 +842,14 @@
     },
     {
       "onda": 11,
-      "tarefas": ["BHR-F2-09", "BHR-F5-07"],
-      "integradas": ["BHR-F2-09", "BHR-F5-07"],
+      "tarefas": [
+        "BHR-F2-09",
+        "BHR-F5-07"
+      ],
+      "integradas": [
+        "BHR-F2-09",
+        "BHR-F5-07"
+      ],
       "gate": true,
       "revisao": {
         "achados": 100,
@@ -711,6 +865,30 @@
       },
       "core_sha": "38d4016e",
       "sat_sha": "42c9250"
+    },
+    {
+      "onda": 12,
+      "tarefas": [
+        "BHR-F7-05"
+      ],
+      "integradas": [
+        "BHR-F7-05"
+      ],
+      "gate": true,
+      "revisao": {
+        "achados": 59,
+        "abertos": [
+          "M2 servidor não confere slug/grau (lacuna antiga)",
+          "M3 teste do D1 com fixture sintética",
+          "M4 vermelho do D3 não comprovado no histórico",
+          "M7 botão dentro de botão no PlanSlot",
+          "M8 suplemento do tradutor no planVM",
+          "ícone de condição no token",
+          "D6 cosméticos"
+        ]
+      },
+      "core_sha": "5a10c0c5",
+      "sat_sha": "1bc7936"
     }
   ],
   "lotes": {
