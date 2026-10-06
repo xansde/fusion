@@ -101,8 +101,8 @@ async function buildCtx(): Promise<Ctx> {
   });
   actor(MASTER, "Bhrotto", "character", { default: 2, [p1.id]: 3 });
   actor(OTHER_MASTER, "Outro", "character", { default: 2, [p2.id]: 3 });
-  actor(BEAR, "Urso", "familiar", { default: 2, [p1.id]: 3 }, companion(true));
-  actor(ANTELOPE, "Antilope", "familiar", { default: 2, [p1.id]: 3 }, companion(false));
+  actor(BEAR, "Urso", "familiar", { default: 0, [p1.id]: 3 }, companion(true));
+  actor(ANTELOPE, "Antilope", "familiar", { default: 0, [p1.id]: 3 }, companion(false));
   actor(PLAIN, "Familiar", "familiar", { default: 2, [p1.id]: 3 }, { companionKind: "familiar" });
 
   const token = (id: string, actorId: string, i: number, j: number, extra: Rec = {}): Rec => ({
@@ -176,6 +176,23 @@ function connect(port: number, worldId: string, token: string): Promise<ClientSo
   });
 }
 
+/** Connects and resolves with the join sync envelope (resync:full) the server sends first. */
+function connectWithSync(
+  port: number,
+  worldId: string,
+  token: string,
+): Promise<{ socket: ClientSocket; sync: Rec }> {
+  return new Promise((resolve, reject) => {
+    const socket = ioClient(`http://127.0.0.1:${String(port)}/world/${worldId}`, {
+      auth: { token, protocolVersion: PROTOCOL_VERSION },
+      transports: ["websocket"],
+    });
+    socket.once("op", (env: Rec) => resolve({ socket, sync: env }));
+    socket.once("connect_error", reject);
+    setTimeout(() => reject(new Error("connect timeout")), 5000);
+  });
+}
+
 function sendOp(socket: ClientSocket, type: string, payload: unknown) {
   return new Promise<Rec>((resolve, reject) => {
     socket.emit(
@@ -237,7 +254,7 @@ describe("companion:setActive (BHR-F4-10)", () => {
   const set = (id: string) => ({ companionActorId: id });
 
   it("the owner swaps the active one: exactly one is active, in the store and for every client", async () => {
-    const heard = nextUpdate(p2, "Actor");
+    const heard = nextUpdate(p1, "Actor");
     const ack = await sendOp(p1, "companion:setActive", set(ANTELOPE));
     expect(ack["ok"], JSON.stringify(ack)).toBe(true);
     expect(activeOf(ANTELOPE)).toBe(true);
@@ -245,6 +262,109 @@ describe("companion:setActive (BHR-F4-10)", () => {
     const docs = await heard;
     const ids = docs.map((d) => d["_id"]).sort();
     expect(ids).toEqual([ANTELOPE, BEAR].sort());
+  });
+
+  // The owner must SEE the inactive companion (its sheet stays readable, DC-07): at join and after a swap.
+  it("the owner (not privileged) gets the INACTIVE companion in the join snapshot, flag included", async () => {
+    const { socket, sync } = await connectWithSync(ctx.port, ctx.worldId, ctx.p1Token);
+    try {
+      expect(sync["type"]).toBe("resync:full");
+      const snapshot = (sync["payload"] as Rec)["snapshot"] as Rec;
+      const actors = ((snapshot["documents"] as Record<string, Rec[]>)["Actor"] ?? []) as Rec[];
+      const ante = actors.find((a) => a["_id"] === ANTELOPE);
+      expect(ante, "the inactive companion is in the owner snapshot").toBeDefined();
+      expect(((ante?.["system"] as Rec)["companion"] as Rec)["active"]).toBe(false);
+      expect(actors.some((a) => a["_id"] === BEAR)).toBe(true);
+    } finally {
+      socket.disconnect();
+    }
+  });
+
+  it("after the swap the owner hears BOTH companions with their new flags (the GM swaps)", async () => {
+    const heard = nextUpdate(p1, "Actor");
+    const ack = await sendOp(gm, "companion:setActive", set(ANTELOPE));
+    expect(ack["ok"], JSON.stringify(ack)).toBe(true);
+    const docs = await heard;
+    const flag = (id: string): unknown => {
+      const d = docs.find((x) => x["_id"] === id);
+      return ((d?.["system"] as Rec | undefined)?.["companion"] as Rec | undefined)?.["active"];
+    };
+    expect(flag(ANTELOPE)).toBe(true);
+    expect(flag(BEAR)).toBe(false);
+  });
+
+  it("a player with no ownership of the companions does not get them pushed as owner data", async () => {
+    // Guard against the fixture hiding a bug: p2 owns nothing of this master. What p2 is owed is the
+    // world's own read rule; this only pins that the swap does not hand p2 a write path.
+    const ack = await sendOp(p2, "companion:setActive", set(ANTELOPE));
+    expect(ack).toMatchObject({ ok: false, code: "PERMISSION_DENIED" });
+  });
+
+  // "Exactly one active, always" (DC-07): the GM's doc:update that turns one on turns the other off in the
+  // SAME write and the same broadcast.
+  it("a GM doc:update that switches a companion on switches the other of that master off, in one broadcast", async () => {
+    const heard = nextUpdate(p1, "Actor");
+    const ack = await sendOp(gm, "doc:update", {
+      documentType: "Actor",
+      updates: [
+        {
+          _id: ANTELOPE,
+          diff: { "system.companion.active": true },
+          expectedVersion: (ctx.store.get("actors", ANTELOPE)["_stats"] as { version: number })
+            .version,
+        },
+      ],
+    });
+    expect(ack["ok"], JSON.stringify(ack)).toBe(true);
+    expect(activeOf(ANTELOPE)).toBe(true);
+    expect(activeOf(BEAR)).toBe(false);
+    const docs = await heard;
+    expect(docs.map((d) => d["_id"]).sort()).toEqual([ANTELOPE, BEAR].sort());
+  });
+
+  it("the GM doc:update does not touch a companion of ANOTHER master, nor when it switches one OFF", async () => {
+    ctx.store.create(
+      "actors",
+      {
+        _id: "foreignComp00002",
+        name: "Alheio",
+        type: "familiar",
+        ownership: { default: 2 },
+        system: {
+          companionKind: "animalCompanion",
+          masterActorId: OTHER_MASTER,
+          companion: { typeSlug: "x", active: true },
+        },
+      },
+      { userId: "system" },
+    );
+    const off = await sendOp(gm, "doc:update", {
+      documentType: "Actor",
+      updates: [
+        {
+          _id: BEAR,
+          diff: { "system.companion.active": false },
+          expectedVersion: (ctx.store.get("actors", BEAR)["_stats"] as { version: number }).version,
+        },
+      ],
+    });
+    expect(off["ok"], JSON.stringify(off)).toBe(true);
+    expect(activeOf(BEAR)).toBe(false);
+    expect(activeOf(ANTELOPE)).toBe(false);
+    expect(activeOf("foreignComp00002")).toBe(true);
+    const on = await sendOp(gm, "doc:update", {
+      documentType: "Actor",
+      updates: [
+        {
+          _id: ANTELOPE,
+          diff: { "system.companion.active": true },
+          expectedVersion: (ctx.store.get("actors", ANTELOPE)["_stats"] as { version: number })
+            .version,
+        },
+      ],
+    });
+    expect(on["ok"], JSON.stringify(on)).toBe(true);
+    expect(activeOf("foreignComp00002")).toBe(true);
   });
 
   it("swapping back and forth keeps exactly one active", async () => {
