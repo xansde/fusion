@@ -88,6 +88,15 @@ function isActive(actor: Rec): boolean {
   return !(isRec(companion) && companion["active"] === false);
 }
 
+/**
+ * The owner of an ACTIVE animal companion, or undefined (not an animal companion, no owner, or the inactive one).
+ * The one predicate behind "who is the active companion of X" — the Prey inheritance (BHR-F4-11) reads it too.
+ */
+export function activeCompanionMasterId(actor: Record<string, unknown>): string | undefined {
+  const master = masterOf(actor);
+  return master !== undefined && isActive(actor) ? master : undefined;
+}
+
 /** A started, not ended combat on the scene. */
 function hasRunningCombat(store: DocumentStore, sceneId: string): boolean {
   return store

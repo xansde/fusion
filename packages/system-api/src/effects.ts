@@ -587,6 +587,11 @@ export interface RollResolutionInput {
   readonly target: RollResolutionParty | null;
   /** The attacker, when the roller defends. `null` = no attacker known. Same rule as `target`. */
   readonly origin: RollResolutionParty | null;
+  /**
+   * The re-derived owner of the roller, only when the roller is that owner's ACTIVE companion (BHR-F4-11, DC-08).
+   * Absent or `null` = the roller has no owner to share with (not a companion, the inactive one, an orphan).
+   */
+  readonly masterActor?: Record<string, unknown> | null;
 }
 
 /** The system's verdict on a roll's context, before the server rolls the dice. */
