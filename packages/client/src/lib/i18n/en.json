@@ -1126,6 +1126,7 @@
   "FUSION.Chat.AbilityCard.Strike.failure": "Miss",
   "FUSION.Chat.AbilityCard.Strike.criticalFailure": "Critical miss",
   "FUSION.Chat.AbilityCard.Apply": "Apply",
+  "FUSION.Chat.AbilityCard.Release": "Release",
   "FUSION.Chat.AbilityCard.ApplyHalf": "½",
   "FUSION.Chat.AbilityCard.ApplyDouble": "×2",
   "FUSION.Chat.AbilityCard.ApplyHeal": "Heal",
