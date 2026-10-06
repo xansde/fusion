@@ -148,14 +148,14 @@ describe("Apoio do antílope: persistent bleed only while mounted (REQ-BHR-182, 
     mounted: MountCase,
     hit: "success" | "criticalSuccess" | null = "success",
     extra: ResolvedExtraDamage[] = [bleed()],
-    rollerActorId: string | undefined = OWNER_ACTOR,
+    rollerActorId: string | null = OWNER_ACTOR,
   ) {
     return settleExtraDamage({
       extra,
       target,
       hit,
       world: { scenes: [scene(mounted)], getActor },
-      ...(rollerActorId !== undefined ? { rollerActorId } : {}),
+      ...(rollerActorId !== null ? { rollerActorId } : {}),
     });
   }
 
@@ -187,7 +187,7 @@ describe("Apoio do antílope: persistent bleed only while mounted (REQ-BHR-182, 
   });
 
   it("a roll with no roller named cannot prove the mount: the gate does not open", () => {
-    expect(settle("yes", "success", [bleed()], undefined).applied).toEqual([]);
+    expect(settle("yes", "success", [bleed()], null).applied).toEqual([]);
   });
 
   it("a Strike that misses gets no bleed even when mounted", () => {
@@ -215,6 +215,6 @@ describe("Apoio do antílope: persistent bleed only while mounted (REQ-BHR-182, 
       doubleOnCrit: false,
       gate: { withinReachOf: "companion", companionActorId: ANTELOPE_ACTOR, reachFeet: 5 },
     };
-    expect(settle("no", "success", [bear], undefined).formulaSuffix).toBe(" + 1d8");
+    expect(settle("no", "success", [bear], null).formulaSuffix).toBe(" + 1d8");
   });
 });
