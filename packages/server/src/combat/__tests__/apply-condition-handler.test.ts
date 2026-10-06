@@ -24,7 +24,7 @@
  * docs/design/alquimista/tasks.md §2.4, task ALQ-F1-09.
  */
 
-import { describe, it, expect, beforeEach, afterEach } from "vitest";
+import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
 import { mkdirSync, rmSync } from "node:fs";
 import { join } from "node:path";
 import { tmpdir } from "node:os";
@@ -154,6 +154,7 @@ interface Harness {
   store: DocumentStore;
   targetingStore: TargetingStore;
   targetDeps: TargetHandlerDeps;
+  ns: Namespace;
   service: ActorMechanicsService;
   handler: ReturnType<typeof buildApplyConditionHandler>;
 }
@@ -182,7 +183,7 @@ function buildHarness(withMechanics = true): Harness {
   });
   const handler = buildApplyConditionHandler({ service });
 
-  return { dataDir, fusionDb, store, targetingStore, targetDeps, service, handler };
+  return { dataDir, fusionDb, store, targetingStore, targetDeps, ns, service, handler };
 }
 
 function teardown(h: Harness): void {
@@ -197,7 +198,7 @@ function playerCtx(userId: string): HandlerContext {
 
 function createSceneWithTokens(
   h: Harness,
-  tokens: Array<{ _id: string; name: string; actorId: string }>,
+  tokens: Array<{ _id: string; name: string; actorId: string; hidden?: boolean }>,
 ): string {
   const scene = h.store.create("scenes", { name: "Unit Scene", tokens }, { userId: GM_CTX.userId });
   return scene["_id"] as string;
@@ -427,6 +428,7 @@ describe("actor:applyCondition — ActorMechanicsService (ALQ-F1-09, REQ-SYS-142
       function setupCard(
         childAuthor: string,
         childSpeakerActor?: string,
+        hidden = false,
       ): {
         ogre: string;
         cardId: string;
@@ -434,11 +436,15 @@ describe("actor:applyCondition — ActorMechanicsService (ALQ-F1-09, REQ-SYS-142
         const pc = createActor(h, "PC do jogador", "player-p");
         const ogre = createActor(h, "Ogro");
         const sceneId = createSceneWithTokens(h, [
-          { _id: "tok-ogre", name: "Ogro", actorId: ogre },
+          { _id: "tok-ogre", name: "Ogro", actorId: ogre, hidden },
         ]);
         const card = h.store.create(
           "chat_messages",
-          { author: "player-p", timestamp: Date.now(), speaker: { actorId: pc } },
+          {
+            author: "player-p",
+            timestamp: Date.now(),
+            speaker: { actorId: pc, userId: "player-p" },
+          },
           { userId: "player-p" },
         );
         const cardId = card["_id"] as string;
@@ -447,7 +453,7 @@ describe("actor:applyCondition — ActorMechanicsService (ALQ-F1-09, REQ-SYS-142
           {
             author: childAuthor,
             timestamp: Date.now(),
-            speaker: { actorId: childSpeakerActor ?? pc },
+            speaker: { actorId: childSpeakerActor ?? pc, userId: childAuthor },
             flags: {
               fusion: {
                 parentMessageId: cardId,
@@ -490,6 +496,140 @@ describe("actor:applyCondition — ActorMechanicsService (ALQ-F1-09, REQ-SYS-142
         expect(ack.ok).toBe(false);
         if (!ack.ok) expect(ack.code).toBe("FORBIDDEN");
         expect(hasCondition(h, ogre, "prone")).toBe(false);
+      });
+
+      // BHR-F7-05 revisão M1: a foto aninhada só vale se o AUTOR da rolagem também for o do card. O Mestre que rola
+      // "dano" no card do jogador fala como o PC, mas a mira dele não é a do jogador.
+      it("rolagem aninhada do Mestre falando como o PC NÃO vale como foto -> FORBIDDEN", async () => {
+        const { ogre, cardId } = setupCard("gm-user");
+        const ack = await h.handler(
+          {
+            targetTokenIds: ["tok-ogre"],
+            slug: "prone",
+            mode: "add",
+            source: { messageId: cardId },
+          },
+          playerCtx("player-p"),
+        );
+        expect(ack.ok).toBe(false);
+        if (!ack.ok) expect(ack.code).toBe("FORBIDDEN");
+        expect(hasCondition(h, ogre, "prone")).toBe(false);
+      });
+
+      // BHR-F7-05 revisão I2: a busca da rolagem aninhada é uma consulta direcionada, nunca a tabela inteira.
+      it("não lê o chat inteiro para achar as rolagens aninhadas", async () => {
+        const { cardId } = setupCard("player-p");
+        const getAll = vi.spyOn(h.store, "getAll");
+        const ack = await h.handler(
+          {
+            targetTokenIds: ["tok-ogre"],
+            slug: "prone",
+            mode: "add",
+            source: { messageId: cardId },
+          },
+          playerCtx("player-p"),
+        );
+        expect(ack.ok, JSON.stringify(ack)).toBe(true);
+        expect(getAll.mock.calls.filter(([t]) => t === "chat_messages")).toHaveLength(0);
+      });
+
+      // BHR-F7-05 revisão I1/N1: o servidor grava no card de origem quais alvos já receberam a condição e propaga
+      // a atualização da mensagem; o botão de qualquer visão lê isso.
+      describe("registro no card de origem (appliedConditions)", () => {
+        function addSocket(
+          userId: string,
+          role: number,
+        ): { emitted: Array<Record<string, unknown>> } {
+          const emitted: Array<Record<string, unknown>> = [];
+          (h.ns.sockets as unknown as Map<string, unknown>).set(userId, {
+            data: { userId, role },
+            emit: (_event: string, envelope: Record<string, unknown>) => emitted.push(envelope),
+          });
+          return { emitted };
+        }
+        const applied = (msg: Record<string, unknown>): unknown =>
+          (
+            (msg["flags"] as Record<string, Record<string, unknown>> | undefined)?.["fusion"] as
+              | Record<string, unknown>
+              | undefined
+          )?.["appliedConditions"];
+
+        it("grava o token aplicado em appliedConditions e persiste", async () => {
+          const { cardId } = setupCard("player-p");
+          const ack = await h.handler(
+            {
+              targetTokenIds: ["tok-ogre"],
+              slug: "prone",
+              mode: "add",
+              source: { messageId: cardId },
+            },
+            playerCtx("player-p"),
+          );
+          expect(ack.ok, JSON.stringify(ack)).toBe(true);
+          expect(applied(h.store.get("chat_messages", cardId))).toEqual({
+            "add:prone": ["tok-ogre"],
+          });
+        });
+
+        it("o Mestre aplicando também grava, e reaplicar não duplica", async () => {
+          const { cardId } = setupCard("player-p");
+          const payload = {
+            targetTokenIds: ["tok-ogre"],
+            slug: "prone",
+            mode: "add" as const,
+            source: { messageId: cardId },
+          };
+          await h.handler(payload, GM_CTX);
+          await h.handler(payload, GM_CTX);
+          expect(applied(h.store.get("chat_messages", cardId))).toEqual({
+            "add:prone": ["tok-ogre"],
+          });
+        });
+
+        it("sem source.messageId nada é gravado em nenhuma mensagem", async () => {
+          const { cardId } = setupCard("player-p");
+          await h.handler({ targetTokenIds: ["tok-ogre"], slug: "prone", mode: "add" }, GM_CTX);
+          expect(applied(h.store.get("chat_messages", cardId))).toBeUndefined();
+        });
+
+        it("recusa não grava nada", async () => {
+          const { cardId } = setupCard("gm-user");
+          await h.handler(
+            {
+              targetTokenIds: ["tok-ogre"],
+              slug: "prone",
+              mode: "add",
+              source: { messageId: cardId },
+            },
+            playerCtx("player-p"),
+          );
+          expect(applied(h.store.get("chat_messages", cardId))).toBeUndefined();
+        });
+
+        it("propaga doc:update do card aos sockets; token oculto só chega ao Mestre", async () => {
+          const { cardId } = setupCard("player-p", undefined, true);
+          const gm = addSocket("gm-user", UserRole.GAMEMASTER);
+          const player = addSocket("player-p", UserRole.PLAYER);
+          const ack = await h.handler(
+            {
+              targetTokenIds: ["tok-ogre"],
+              slug: "prone",
+              mode: "add",
+              source: { messageId: cardId },
+            },
+            GM_CTX,
+          );
+          expect(ack.ok, JSON.stringify(ack)).toBe(true);
+          const docOf = (e: Array<Record<string, unknown>>): Record<string, unknown> => {
+            const env = e.find((x) => x["type"] === "doc:update");
+            const docs = (env?.["payload"] as { documents: Array<Record<string, unknown>> })
+              .documents;
+            return docs[0]!;
+          };
+          expect(docOf(gm.emitted)["_id"]).toBe(cardId);
+          expect(applied(docOf(gm.emitted))).toEqual({ "add:prone": ["tok-ogre"] });
+          expect(applied(docOf(player.emitted))).toEqual({ "add:prone": [] });
+        });
       });
     });
 
