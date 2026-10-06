@@ -28,14 +28,14 @@ function setup(opts: {
 }) {
   const controls = new Container();
   const docs: Record<string, unknown[]> = {
-    actors: [
+    Actor: [
       {
         _id: "actor-bhrotto",
         name: "Bhrotto",
         flags: { fusion: { tokenMarks: opts.marks ?? [mark("tok-ogre")] } },
       },
     ],
-    scenes: [
+    Scene: [
       { _id: "scene-1", tokens: opts.tokens ?? [{ _id: "tok-ogre", actorId: "actor-ogre" }] },
     ],
   };
@@ -72,7 +72,7 @@ describe("CombatCanvasController — Prey seal", () => {
   it("removes the seal when the mark leaves (mark:clear rewrites the actor)", () => {
     const { ctrl, seals, docs } = setup({ isGm: false });
     ctrl.tick(16);
-    (docs["actors"]![0] as { flags: unknown }).flags = { fusion: { tokenMarks: [] } };
+    (docs["Actor"]![0] as { flags: unknown }).flags = { fusion: { tokenMarks: [] } };
     ctrl.tick(16);
     expect(seals()).toEqual([]);
   });
