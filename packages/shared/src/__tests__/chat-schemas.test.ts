@@ -215,8 +215,35 @@ describe("CheckContextSchema (r17.1 save context)", () => {
 
   it("rejects an unknown kind", () => {
     expect(() =>
-      CheckContextSchema.parse({ kind: "attack", dcValue: 19, saveType: "reflex" }),
+      CheckContextSchema.parse({ kind: "skill", dcValue: 19, saveType: "reflex" }),
     ).toThrow();
+  });
+
+  it("accepts an attack context (BHR-F3-03) with no AC field", () => {
+    const ctx = CheckContextSchema.parse({
+      kind: "attack",
+      targetTokenId: "tok1",
+      mapIndex: 2,
+      agile: true,
+    });
+    expect(ctx).toEqual({ kind: "attack", targetTokenId: "tok1", mapIndex: 2, agile: true });
+  });
+
+  it("drops an AC a client tries to smuggle into the attack context", () => {
+    const ctx = CheckContextSchema.parse({
+      kind: "attack",
+      targetTokenId: "tok1",
+      mapIndex: 0,
+      ac: 1,
+    });
+    expect(ctx).not.toHaveProperty("ac");
+  });
+
+  it("rejects an attack context with a MAP index outside 0..2 or no target", () => {
+    expect(() =>
+      CheckContextSchema.parse({ kind: "attack", targetTokenId: "tok1", mapIndex: 3 }),
+    ).toThrow();
+    expect(() => CheckContextSchema.parse({ kind: "attack", mapIndex: 0 })).toThrow();
   });
 
   it("rejects a missing dcValue", () => {

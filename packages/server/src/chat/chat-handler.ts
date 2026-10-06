@@ -56,6 +56,8 @@ import type {
   AbilityCard,
   SaveCheckContext,
   ChatTargetRef,
+  AttackCheckContext,
+  CheckContext,
   RollTarget,
 } from "@fusion/shared";
 
@@ -522,9 +524,11 @@ export function buildChatSendHandler(deps: ChatHandlerDeps): HandlerFn {
       // ONE source of target per roll (B1): the `payload.target` the server
       // resolves is the target of the conditional modifiers, of the degree and
       // of the MAP. A save check grades against its own DC, so it has none.
+      const checkContext = payload.flags?.checkContext;
+      const aimedRef = attackTargetRef(payload.target, checkContext);
       const rollTarget =
-        payload.target !== undefined && payload.flags?.checkContext?.kind !== "save"
-          ? resolveRollTarget(deps.db, payload.target, ctx)
+        aimedRef !== null && checkContext?.kind !== "save"
+          ? resolveRollTarget(deps.db, aimedRef, ctx)
           : null;
       const resolution = prepareRollResolution(
         deps,
@@ -556,7 +560,6 @@ export function buildChatSendHandler(deps: ChatHandlerDeps): HandlerFn {
       // When the client attached a validated save checkContext, grade the roll
       // AUTHORITATIVELY here (never on the client). The DC came from the card's
       // coherence-checked spellcasting DC; the total was rolled by the server.
-      const checkContext = payload.flags?.checkContext;
       let gradedSave: SaveCheckContext | null = null;
       if (checkContext?.kind === "save") {
         const degree = computeSaveDegree(rollResult, checkContext);
@@ -576,11 +579,13 @@ export function buildChatSendHandler(deps: ChatHandlerDeps): HandlerFn {
       // of a save is the caster's, not the target's AC.
       const targetPortrait = gradedSave === null ? (rollTarget?.portrait ?? null) : null;
       let messageTargets: RollTarget[] | undefined;
+      let gradedAttack: AttackCheckContext | null = null;
       if (targetPortrait !== null && targetPortrait.ac !== undefined) {
         const degree = computeAttackDegree(rollResult, targetPortrait.ac);
         if (degree !== null) {
           rollResult = { ...rollResult, degreeOfSuccess: degree, target: targetPortrait };
           messageTargets = [targetPortrait];
+          if (checkContext?.kind === "attack") gradedAttack = checkContext;
           deps.mapCounter?.noteAttackFromSpeaker(
             deps.store,
             {
@@ -617,6 +622,24 @@ export function buildChatSendHandler(deps: ChatHandlerDeps): HandlerFn {
           [SPELLCAST_FLAG_NAMESPACE]: {
             ...msg.flags[SPELLCAST_FLAG_NAMESPACE],
             [CHECK_CONTEXT_FLAG_KEY]: gradedSave,
+          },
+        };
+      }
+
+      // The strike's own context (BHR-F3-03), stored only when the server really
+      // graded the roll — so the card never offers a damage button for a degree
+      // that does not exist. The target token and the AC are not repeated here:
+      // the message already carries the portrait, and the AC stays out of it.
+      if (gradedAttack !== null) {
+        msg.flags = {
+          ...msg.flags,
+          [SPELLCAST_FLAG_NAMESPACE]: {
+            ...msg.flags[SPELLCAST_FLAG_NAMESPACE],
+            [CHECK_CONTEXT_FLAG_KEY]: {
+              kind: "attack",
+              mapIndex: gradedAttack.mapIndex,
+              ...(gradedAttack.agile !== undefined ? { agile: gradedAttack.agile } : {}),
+            },
           },
         };
       }
@@ -1812,6 +1835,23 @@ function resolveRollTarget(
   }
 
   return { portrait: { name, ac }, entry: { tokenId, actorId, sceneId } };
+}
+
+/**
+ * The ONE target ref of a roll (BHR-F3-03): `payload.target` names it, and an
+ * attack `checkContext` names it too. Naming different tokens is an incoherent
+ * request (a payload naming only an actor cannot be tied to the context's
+ * token), so there is no target and no degree (REQ-ACH-071); with only the
+ * context, its `targetTokenId` resolves.
+ */
+function attackTargetRef(
+  target: ChatTargetRef | undefined,
+  checkContext: CheckContext | undefined,
+): ChatTargetRef | null {
+  if (checkContext?.kind !== "attack") return target ?? null;
+  if (target === undefined) return { tokenId: checkContext.targetTokenId };
+  if (target.tokenId !== checkContext.targetTokenId) return null;
+  return target;
 }
 
 /**
