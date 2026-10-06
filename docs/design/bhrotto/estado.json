@@ -324,25 +324,110 @@
       "resumo": "SkillCheckContext 4º membro do CheckContextSchema; CD lida no servidor (.dc → 10+total → 10+autorado, I-3); defesa fixada pela manobra (MANEUVER_DEFENSE, I-4).",
       "core_sha": "596ad1a58e50d5d442e0edf4c9505db2bf35e200",
       "sat_sha": "fad65ad997bf8be69ac5decd78bd8a31fcfed75f"
+    },
+    "BHR-F3-09": {
+      "status": "integrada",
+      "tentativas": 1,
+      "onda": 7,
+      "modelo": "sonnet/medium",
+      "resumo": "Caçar Presa com Caçador de Monstros traz o Rememorar (rolagem cega) no mesmo card; CD por nível do GM Core + raridade (against: level) no servidor; crítico aplica +1 contra a presa pelo servidor, 1x por mensagem; não conta no MAP.",
+      "core_sha": "cacb761a",
+      "sat_sha": "ea157db"
+    },
+    "BHR-F4-03": {
+      "status": "integrada",
+      "tentativas": 1,
+      "onda": 7,
+      "modelo": "sonnet/medium",
+      "resumo": "Servidor grava system.master.level no companheiro (criação, troca de tipo, update do dono) e re-deriva no mesmo broadcast; dono troca typeSlug/size com validação (D-B09); guarda de flags.fusion.mount contra forja.",
+      "core_sha": "cacb761a",
+      "sat_sha": "ea157db"
+    },
+    "BHR-F4-05": {
+      "status": "integrada",
+      "tentativas": 1,
+      "onda": 7,
+      "modelo": "sonnet/high",
+      "resumo": "Sub-slots 'Escolher companheiro' no Plano, picker de tipo com prévia de Maduro sem nível de classe, mesmo tipo 2x, antílope Médio/Grande, Trocar tipo; órfão volta ao sub-slot vazio.",
+      "core_sha": "cacb761a",
+      "sat_sha": "ea157db"
+    },
+    "BHR-F4-06": {
+      "status": "integrada",
+      "tentativas": 1,
+      "onda": 7,
+      "modelo": "sonnet/high",
+      "resumo": "Ficha própria do companheiro (CompanionSheet) com PV editável, derivados só leitura com breakdown, golpes com MAP próprio do companheiro, perícias roláveis.",
+      "core_sha": "cacb761a",
+      "sat_sha": "ea157db"
+    },
+    "BHR-F5-02": {
+      "status": "integrada",
+      "tentativas": 1,
+      "onda": 7,
+      "modelo": "sonnet/high",
+      "resumo": "mount:mount/mount:dismount no servidor com MountState nos dois tokens; tamanho, adjacência e vínculo validados; desmonte para casa livre; recusa mostrada ao jogador.",
+      "core_sha": "cacb761a",
+      "sat_sha": "ea157db"
+    },
+    "BHR-F6-02": {
+      "status": "integrada",
+      "tentativas": 1,
+      "onda": 7,
+      "modelo": "sonnet/medium",
+      "resumo": "Card oferece 'Aplicar <condição>' por clique humano; servidor restringe o jogador à targetSnapshot quando há source.messageId. Botão sem emissor até a F6-03.",
+      "core_sha": "cacb761a",
+      "sat_sha": "ea157db"
     }
   },
   "rodadas": [
     {
       "onda": 1,
-      "tarefas": ["BHR-F0-01", "BHR-F0-02", "BHR-F1-01", "BHR-F1-02", "BHR-F1-03", "BHR-F1-06"],
-      "integradas": ["BHR-F0-01", "BHR-F0-02", "BHR-F1-01", "BHR-F1-02", "BHR-F1-03", "BHR-F1-06"],
+      "tarefas": [
+        "BHR-F0-01",
+        "BHR-F0-02",
+        "BHR-F1-01",
+        "BHR-F1-02",
+        "BHR-F1-03",
+        "BHR-F1-06"
+      ],
+      "integradas": [
+        "BHR-F0-01",
+        "BHR-F0-02",
+        "BHR-F1-01",
+        "BHR-F1-02",
+        "BHR-F1-03",
+        "BHR-F1-06"
+      ],
       "gate": true,
       "revisao": {
         "achados": 0,
-        "abertos": ["I-3 print real do Alcance Prênsil (F1-09)", "6 menores (revisao.md)"]
+        "abertos": [
+          "I-3 print real do Alcance Prênsil (F1-09)",
+          "6 menores (revisao.md)"
+        ]
       },
       "core_sha": "f41b9794",
       "sat_sha": "73df51d"
     },
     {
       "onda": 2,
-      "tarefas": ["BHR-F0-03", "BHR-F1-04", "BHR-F1-05", "BHR-F1-07", "BHR-F2-01", "BHR-F2-03"],
-      "integradas": ["BHR-F0-03", "BHR-F1-04", "BHR-F1-05", "BHR-F1-07", "BHR-F2-01", "BHR-F2-03"],
+      "tarefas": [
+        "BHR-F0-03",
+        "BHR-F1-04",
+        "BHR-F1-05",
+        "BHR-F1-07",
+        "BHR-F2-01",
+        "BHR-F2-03"
+      ],
+      "integradas": [
+        "BHR-F0-03",
+        "BHR-F1-04",
+        "BHR-F1-05",
+        "BHR-F1-07",
+        "BHR-F2-01",
+        "BHR-F2-03"
+      ],
       "gate": true,
       "revisao": {
         "achados": 23,
@@ -359,8 +444,22 @@
     },
     {
       "onda": 3,
-      "tarefas": ["BHR-F2-02", "BHR-F2-05", "BHR-F2-07", "BHR-F2-08", "BHR-F3-01", "BHR-F3-04"],
-      "integradas": ["BHR-F2-02", "BHR-F2-05", "BHR-F2-07", "BHR-F2-08", "BHR-F3-01", "BHR-F3-04"],
+      "tarefas": [
+        "BHR-F2-02",
+        "BHR-F2-05",
+        "BHR-F2-07",
+        "BHR-F2-08",
+        "BHR-F3-01",
+        "BHR-F3-04"
+      ],
+      "integradas": [
+        "BHR-F2-02",
+        "BHR-F2-05",
+        "BHR-F2-07",
+        "BHR-F2-08",
+        "BHR-F3-01",
+        "BHR-F3-04"
+      ],
       "gate": true,
       "revisao": {
         "achados": 52,
@@ -377,8 +476,22 @@
     },
     {
       "onda": 4,
-      "tarefas": ["BHR-F1-08", "BHR-F2-04", "BHR-F2-06", "BHR-F3-02", "BHR-F3-06", "BHR-F4-04"],
-      "integradas": ["BHR-F1-08", "BHR-F2-04", "BHR-F2-06", "BHR-F3-02", "BHR-F3-06", "BHR-F4-04"],
+      "tarefas": [
+        "BHR-F1-08",
+        "BHR-F2-04",
+        "BHR-F2-06",
+        "BHR-F3-02",
+        "BHR-F3-06",
+        "BHR-F4-04"
+      ],
+      "integradas": [
+        "BHR-F1-08",
+        "BHR-F2-04",
+        "BHR-F2-06",
+        "BHR-F3-02",
+        "BHR-F3-06",
+        "BHR-F4-04"
+      ],
       "gate": true,
       "revisao": {
         "achados": 64,
@@ -393,20 +506,50 @@
     },
     {
       "onda": 5,
-      "tarefas": ["BHR-F1-09", "BHR-F2-10", "BHR-F3-03", "BHR-F3-07", "BHR-F3-08", "BHR-F4-01"],
-      "integradas": ["BHR-F1-09", "BHR-F2-10", "BHR-F3-03", "BHR-F3-07", "BHR-F3-08", "BHR-F4-01"],
+      "tarefas": [
+        "BHR-F1-09",
+        "BHR-F2-10",
+        "BHR-F3-03",
+        "BHR-F3-07",
+        "BHR-F3-08",
+        "BHR-F4-01"
+      ],
+      "integradas": [
+        "BHR-F1-09",
+        "BHR-F2-10",
+        "BHR-F3-03",
+        "BHR-F3-07",
+        "BHR-F3-08",
+        "BHR-F4-01"
+      ],
       "gate": true,
       "revisao": {
         "achados": 46,
-        "abertos": ["M-2..M-15 (ver onda-5/revisao.md)"]
+        "abertos": [
+          "M-2..M-15 (ver onda-5/revisao.md)"
+        ]
       },
       "core_sha": "bb1c5a9a",
       "sat_sha": "2650056"
     },
     {
       "onda": 6,
-      "tarefas": ["BHR-F3-05", "BHR-F3-10", "BHR-F4-02", "BHR-F4-08", "BHR-F5-01", "BHR-F6-01"],
-      "integradas": ["BHR-F3-05", "BHR-F3-10", "BHR-F4-02", "BHR-F4-08", "BHR-F5-01", "BHR-F6-01"],
+      "tarefas": [
+        "BHR-F3-05",
+        "BHR-F3-10",
+        "BHR-F4-02",
+        "BHR-F4-08",
+        "BHR-F5-01",
+        "BHR-F6-01"
+      ],
+      "integradas": [
+        "BHR-F3-05",
+        "BHR-F3-10",
+        "BHR-F4-02",
+        "BHR-F4-08",
+        "BHR-F5-01",
+        "BHR-F6-01"
+      ],
       "gate": true,
       "revisao": {
         "achados": 40,
@@ -414,6 +557,37 @@
       },
       "core_sha": "596ad1a58e50d5d442e0edf4c9505db2bf35e200",
       "sat_sha": "fad65ad997bf8be69ac5decd78bd8a31fcfed75f"
+    },
+    {
+      "onda": 7,
+      "tarefas": [
+        "BHR-F3-09",
+        "BHR-F4-03",
+        "BHR-F4-05",
+        "BHR-F4-06",
+        "BHR-F5-02",
+        "BHR-F6-02"
+      ],
+      "integradas": [
+        "BHR-F3-09",
+        "BHR-F4-03",
+        "BHR-F4-05",
+        "BHR-F4-06",
+        "BHR-F5-02",
+        "BHR-F6-02"
+      ],
+      "gate": true,
+      "revisao": {
+        "achados": 39,
+        "abertos": [
+          "I-5: actor:applyCondition sem source.messageId segue pela seleção viva (contrato REQ-SYS-142 da ALQ-F1-09)",
+          "I-1: hook não confere que o pai é hunt-prey; 1x/dia não imposto (DC-04)",
+          "I-6: grantSlotId do órfão no servidor fica o antigo",
+          "menores restantes em onda-7/revisao.md"
+        ]
+      },
+      "core_sha": "cacb761a",
+      "sat_sha": "ea157db"
     }
   ],
   "lotes": {
