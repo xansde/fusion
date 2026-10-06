@@ -395,6 +395,28 @@ function touchesCompanionLink(expanded: Record<string, unknown>): boolean {
   return "grantSlotId" in companion || "active" in companion;
 }
 
+/**
+ * Does this expanded `doc:update` diff write an INPUT of the animal companion's derivation: the master
+ * cache (`system.master.*`) or the companion's `stage`, `track`, `typeSlug` or `size`? Its whole statblock is a
+ * function of those (master level + stage + track + type + size), so letting the owner write them is letting
+ * the owner pick the statblock (onda-6 review I-9, REQ-PET-106). Stage, track and type belong to the Plan
+ * (BHR-F4-05) and the server; the master level is written by the server from the owner actor (BHR-F4-03).
+ * A `system` / `system.companion` set to a non-object counts: it would replace them whole.
+ */
+function touchesCompanionDerivationInputs(expanded: Record<string, unknown>): boolean {
+  if (!("system" in expanded)) return false;
+  const system = expanded["system"];
+  if (typeof system !== "object" || system === null || Array.isArray(system)) return true;
+  const sys = system as Record<string, unknown>;
+  if ("master" in sys) return true;
+  if (!("companion" in sys)) return false;
+  const companion = sys["companion"];
+  if (typeof companion !== "object" || companion === null || Array.isArray(companion)) return true;
+  return (
+    "stage" in companion || "track" in companion || "typeSlug" in companion || "size" in companion
+  );
+}
+
 function rejectUnwritableField(
   documentType: string,
   expandedDiff: Record<string, unknown>,
@@ -470,6 +492,23 @@ function rejectUnwritableField(
     return ackError(
       "PERMISSION_DENIED",
       "system.companionKind, system.masterActorId, system.companion.grantSlotId and system.companion.active are not writable through doc:update by a player",
+    );
+  }
+
+  // The inputs of an ANIMAL companion's derivation (onda-6 review I-9). Scoped to `animalCompanion`: the
+  // familiar and the eidolon legitimately mirror their master through a client-written `system.master` cache
+  // (petsVM), and have no stage/track.
+  if (
+    documentType === "Actor" &&
+    !isPrivileged(role) &&
+    existing?.["type"] === "familiar" &&
+    (existing["system"] as { companionKind?: unknown } | undefined)?.companionKind ===
+      "animalCompanion" &&
+    touchesCompanionDerivationInputs(expandedDiff)
+  ) {
+    return ackError(
+      "PERMISSION_DENIED",
+      "system.master and system.companion.{stage,track,typeSlug,size} are not writable through doc:update by a player",
     );
   }
 

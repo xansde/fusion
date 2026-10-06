@@ -451,6 +451,53 @@ describe("Animal companion creation permission (BHR-F4-04)", () => {
       }
     });
 
+    it("I-9: the owner cannot write the inputs of the animal companion's derivation (master cache, stage, track, type, size)", async () => {
+      // The statblock is a function of master level + stage + track + type + size
+      // (Player Core). The owner choosing any of them chooses the statblock.
+      const attempts: Record<string, unknown>[] = [
+        { "system.master.level": 20 },
+        { system: { master: { level: 20 } } },
+        { "system.master": { level: 20, ac: 60 } },
+        { "system.companion.stage": "specialized" },
+        { system: { companion: { stage: "specialized" } } },
+        { "system.companion.track": "specialized" },
+        { "system.companion.typeSlug": "antelope" },
+        { "system.companion.size": "lg" },
+      ];
+      for (const diff of attempts) {
+        const ack = await update(ownerSocket, diff);
+        expect(ack["ok"], JSON.stringify(diff)).toBe(false);
+        expect(ack["code"], JSON.stringify(diff)).toBe("PERMISSION_DENIED");
+      }
+    });
+
+    it("I-9: the Mestre may write them, and a plain familiar keeps mirroring its master's cache", async () => {
+      const gmAck = await update(gm, { "system.companion.stage": "young" });
+      expect(gmAck["ok"], JSON.stringify(gmAck)).toBe(true);
+
+      // A familiar (not an animal companion) has no stage/track: its sheet legitimately snapshots
+      // the master's stats into `system.master`, so that write must stay open to the owner.
+      const master = await createMaster(
+        character(ctx.ownerUserId, "FamiliarMaster", 1, [FAMILIAR_FEAT]),
+      );
+      const created = await createAs(ownerSocket, [companionPayload(master, "familiar", "Rato2")]);
+      expect(created["ok"], JSON.stringify(created)).toBe(true);
+      const familiarId = firstDoc(created)["_id"] as string;
+      const store = new DocumentStore({ db: ctx.fusionDb.raw, coreVersion: "0.1.0" });
+      const ack = await sendOp(ownerSocket, "doc:update", {
+        documentType: "Actor",
+        updates: [
+          {
+            _id: familiarId,
+            diff: { "system.master.level": 3 },
+            expectedVersion: (store.get("actors", familiarId)["_stats"] as { version: number })
+              .version,
+          },
+        ],
+      });
+      expect(ack["ok"], JSON.stringify(ack)).toBe(true);
+    });
+
     it("the owner still edits unrelated fields of the companion", async () => {
       const ack = await update(ownerSocket, { name: "Urso Renomeado" });
       expect(ack["ok"], JSON.stringify(ack)).toBe(true);
