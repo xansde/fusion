@@ -93,7 +93,13 @@ import {
   TokenDocumentSchema,
 } from "@fusion/shared";
 import type { DocUpdatePayload, Ack, Ownership, Envelope, ErrorCode } from "@fusion/shared";
-import { createDocumentId, touchesKnowledgeFlag, KNOWLEDGE_FLAG_PATH } from "@fusion/shared";
+import {
+  createDocumentId,
+  touchesKnowledgeFlag,
+  touchesTokenMarksFlag,
+  stripTokenMarksOnCreate,
+  KNOWLEDGE_FLAG_PATH,
+} from "@fusion/shared";
 import { touchesAttitudeFlag, ATTITUDE_FLAG_PATH } from "@fusion/shared";
 import {
   sweepCharactersFromKnowledge,
@@ -417,6 +423,17 @@ function rejectUnwritableField(
     return ackError(
       "VALIDATION_FAILED",
       `${KNOWLEDGE_FLAG_PATH} is not writable through doc:update — use the actor:setKnowledge operation`,
+    );
+  }
+
+  // `Actor.flags.fusion.tokenMarks` (BHR-F3-06, REQ-BHR-087/088): the Prey is
+  // checked on `mark:set` (own actor, own live target, exclusive forced) — and
+  // this path authorizes on `ownership` only, so an owner could write the array
+  // whole and skip every one of those rules. Only a privileged writer may.
+  if (documentType === "Actor" && !isPrivileged(role) && touchesTokenMarksFlag(expandedDiff)) {
+    return ackError(
+      "PERMISSION_DENIED",
+      "flags.fusion.tokenMarks is not writable through doc:update — use mark:set / mark:clear",
     );
   }
 
@@ -1059,6 +1076,8 @@ export function buildDocCreateHandler(deps: DocHandlerDeps): HandlerFn {
           // (a hazard, CA-NPC-010) — otherwise the create path would author a
           // field `doc:update` refuses.
           item = sanitizeAttitudeOnCreate(item, isPrivileged(ctx.role));
+          // BHR-F3-06: marks are authored by mark:set only (doc:update refuses them too).
+          item = stripTokenMarksOnCreate(item, isPrivileged(ctx.role));
           // O6/T6.2: a create payload IS the full document (no `existing` to
           // merge onto), so it can be validated as-is — same gate the update
           // path applies to the merged document.

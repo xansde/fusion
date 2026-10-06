@@ -86,3 +86,38 @@ export function readTokenMarks(actor: unknown): TokenMark[] {
   }
   return marks;
 }
+
+/**
+ * True when an expanded Actor patch could write or erase `flags.fusion.tokenMarks`:
+ * the key itself, the whole `fusion` namespace (an object holding it, or `null`
+ * wiping it) or `flags` set to a non-object. The server refuses this for
+ * non-privileged writers on `doc:update` — `mark:set`/`mark:clear` are the door.
+ */
+export function touchesTokenMarksFlag(expanded: unknown): boolean {
+  if (typeof expanded !== "object" || expanded === null || !("flags" in expanded)) return false;
+  const flags = (expanded as Record<string, unknown>)["flags"];
+  if (typeof flags !== "object" || flags === null) return true;
+  if (!(TOKEN_MARKS_FLAG_NAMESPACE in flags)) return false;
+  const ns = (flags as Record<string, unknown>)[TOKEN_MARKS_FLAG_NAMESPACE];
+  if (typeof ns !== "object" || ns === null) return true;
+  return TOKEN_MARKS_FLAG_KEY in ns;
+}
+
+/**
+ * Create-time twin of the `doc:update` guard: a non-privileged creator loses any
+ * `flags.fusion.tokenMarks` the payload carries (the player-companion path would
+ * otherwise author marks `mark:set` refuses). Same reference when nothing to drop.
+ */
+export function stripTokenMarksOnCreate<T extends Record<string, unknown>>(
+  doc: T,
+  privileged: boolean,
+): T {
+  if (privileged) return doc;
+  const flags = doc["flags"];
+  if (typeof flags !== "object" || flags === null) return doc;
+  const ns = (flags as Record<string, unknown>)[TOKEN_MARKS_FLAG_NAMESPACE];
+  if (typeof ns !== "object" || ns === null || !(TOKEN_MARKS_FLAG_KEY in ns)) return doc;
+  const { [TOKEN_MARKS_FLAG_KEY]: dropped, ...rest } = ns as Record<string, unknown>;
+  void dropped;
+  return { ...doc, flags: { ...flags, [TOKEN_MARKS_FLAG_NAMESPACE]: rest } };
+}

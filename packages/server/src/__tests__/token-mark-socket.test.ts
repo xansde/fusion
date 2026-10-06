@@ -307,4 +307,49 @@ describe("TokenMark over the socket (BHR-F3-06)", () => {
     expect(markedTokens(await gmSeen)).toEqual([]);
     expect(markedTokens(ctx.store.get("actors", RANGER_ID))).toEqual([]);
   });
+  describe("doc:update does not forge marks (REQ-BHR-087/088)", () => {
+    const forged = [
+      {
+        slug: "hunted-prey",
+        targetTokenId: AMBUSH_TOKEN,
+        targetActorId: AMBUSH_ACTOR_ID,
+        sceneId: "x",
+        createdAt: 1,
+        exclusive: false,
+      },
+    ];
+    const update = (socket: ClientSocket, diff: Record<string, unknown>) => {
+      const stats = ctx.store.get("actors", RANGER_ID)["_stats"] as { version: number };
+      return sendOp(socket, "doc:update", {
+        documentType: "Actor",
+        updates: [{ _id: RANGER_ID, diff, expectedVersion: stats.version }],
+      });
+    };
+
+    it("the owner cannot write tokenMarks by dot path, by object or by wiping flags.fusion", async () => {
+      await sendOp(gm, "mark:set", huntPrey(OGRE_TOKEN));
+      const attempts: Record<string, unknown>[] = [
+        { "flags.fusion.tokenMarks": forged },
+        { flags: { fusion: { tokenMarks: forged } } },
+        { "flags.fusion": { tokenMarks: forged } },
+        { "flags.fusion": null },
+      ];
+      for (const diff of attempts) {
+        const ack = await update(p1, diff);
+        expect(ack["ok"], JSON.stringify(diff)).toBe(false);
+        expect(ack["code"]).toBe("PERMISSION_DENIED");
+        expect(markedTokens(ctx.store.get("actors", RANGER_ID))).toEqual([OGRE_TOKEN]);
+      }
+    });
+
+    it("an unrelated flag of the same actor still goes through for the owner", async () => {
+      const ack = await update(p1, { "flags.fusion.note": "ok" });
+      expect(ack["ok"], JSON.stringify(ack)).toBe(true);
+    });
+
+    it("the Mestre may still write tokenMarks through doc:update", async () => {
+      const ack = await update(gm, { "flags.fusion.tokenMarks": [] });
+      expect(ack["ok"], JSON.stringify(ack)).toBe(true);
+    });
+  });
 });

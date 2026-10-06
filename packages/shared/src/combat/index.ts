@@ -183,5 +183,7 @@ export {
   MarkSetPayloadSchema,
   MarkClearPayloadSchema,
   readTokenMarks,
+  touchesTokenMarksFlag,
+  stripTokenMarksOnCreate,
 } from "./token-mark.js";
 export type { TokenMark, MarkSetPayload, MarkClearPayload } from "./token-mark.js";
