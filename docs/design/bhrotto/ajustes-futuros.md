@@ -74,4 +74,9 @@ o que toca e de onde veio. O comportamento de hoje continua até alguém pegar o
 - **Agarrado/contido (M-6)**: a expiração "até o fim do seu próximo turno" fica só no texto, sem expiração no motor.
 - **Carteira (F7-03)**: o "Ajustar carteira" do Mestre não tem campo "motivo" nem registro do ajuste (quem, quando, motivo), que o protótipo T6 mostra.
 - **Alcance de golpe (F5-06)**: o Fusion não checa alcance de golpe em lugar nenhum; `isWithinStrikeReach`/`strikeDistance` (alcance a partir de qualquer célula da montaria) estão prontos e testados, sem consumidor — ligar depende de decisão de UI/fluxo do Alexandre (bloquear ou só avisar golpe fora de alcance).
-- **Exceções de elegibilidade (F7-04)**: P1 T1 sem card "Exceções de elegibilidade", sem motivo da exceção e sem "Pedir liberação ao Mestre"; o `system.access` do Noble Bloom foi curado à mão (o importer o apagaria se regenerar o feats-core).
+- **Exceções de elegibilidade (F7-04)**: P1 T1 sem card "Exceções de elegibilidade", sem motivo da exceção e sem "Pedir liberação ao Mestre"; o `system.access` do Noble Bloom foi curado à mão (o importer o apagaria se regenerar o feats-core). O mecanismo de curadoria (`rule-fixes.mjs`, `prerequisiteFixes`) só cobre regras e texto de pré-requisito, não um campo de `system`; por ora um teste de pack (`curated-access-field.test.mjs`) trava o campo.
+
+## Menores abertos (revisão da onda 10)
+
+- **Gate do Apoio lido da cópia embutida (M-10)**: o `requiresMounted` (e o dado) do Apoio é lido da cópia do efeito no ator, que o dono pode editar; ler pela origem (`origin.itemSourceId` -> pack) se o Alexandre quiser anti-cheat.
+- **Limite de tamanho da manobra sem orador (M-1)**: o servidor só julga o limite quando o payload nomeia `speakerActorId` (e, nesse caso, exige OWNER dele, só nas manobras); sem orador o tamanho de quem rola é desconhecido e a regra não opina. Fechar isso depende da tarefa "Chat não confere a posse do ator que fala".
