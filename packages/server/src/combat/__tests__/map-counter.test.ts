@@ -77,6 +77,7 @@ async function buildHarness(): Promise<Harness> {
   const ns = fakeNs();
   const eventBus = new CombatEventBus();
   const counter = new MapCounter();
+  counter.setStore(store);
   registerMapCounterReset(counter, eventBus);
   const rollService = new RollService({ db: fusionDb.raw });
 
@@ -243,9 +244,16 @@ describe("MapCounter (BHR-F3-04)", () => {
     expect(h.counter.getAttackCount(h.combatId, h.pc)).toBe(0);
   });
 
-  it("mapGroupOf is the identity and is the extension point: a shared group shares the count", () => {
+  it("mapGroupOf is the identity without a mount and one shared key for a mounted pair (BHR-F5-05)", () => {
     expect(h.counter.mapGroupOf("x")).toBe("x");
-    h.counter.setMapGroupResolver((id) => (id === h.pc || id === h.other ? "mounted" : id));
+    // Mount link on the scene tokens (flags.fusion.mount, BHR-F5-02): the hero rides the other's token.
+    const scene = h.store.getAll("scenes")[0] as Record<string, unknown>;
+    const tokens = [
+      { _id: "tok-pc", flags: { fusion: { mount: { mountTokenId: "tok-other" } } } },
+      { _id: "tok-other", flags: { fusion: { mount: { riderTokenId: "tok-pc" } } } },
+    ];
+    h.store.update("scenes", String(scene["_id"]), { tokens }, { userId: GM_CTX.userId });
+    expect(h.counter.mapGroupOf(h.pc, h.combatId)).toBe(h.counter.mapGroupOf(h.other, h.combatId));
     h.counter.noteAttack(h.combatId, h.pc);
     expect(h.counter.getAttackCount(h.combatId, h.other)).toBe(1);
   });
