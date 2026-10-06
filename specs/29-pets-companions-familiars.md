@@ -808,7 +808,8 @@ DEC-BHR-03, DEC-BHR-04, DEC-BHR-07, DEC-BHR-10, DEC-BHR-11, DEC-BHR-12). Número
 - **REQ-PET-118** [MVP] O Apoio DEVE aplicar no dono, via `effect:apply` (spec 52), o efeito de apoio
   do tipo com `expiry { on: "turn-start", ownerActorId: dono }`.
 - **REQ-PET-119** [MVP] Com o Apoio do urso ativo, golpe do dono que **acerta** criatura ao alcance do
-  urso DEVE ganhar +1d8 cortante (2d8 em Ágil ou Selvagem); erro NÃO DEVE somar.
+  urso DEVE ganhar +1d8 cortante (2d8 em Ágil ou Selvagem); erro NÃO DEVE somar. O dano extra é dano do
+  urso: o acerto crítico NÃO o dobra. O Apoio dura até o início do próximo turno do dono (não do urso).
 - **REQ-PET-120** [MVP] Entre os companheiros animais de um dono, exatamente um DEVE estar ativo
   (`system.companion.active`); Chamar Companheiro DEVE trocar qual é, e com um só companheiro a ação
   DEVE ficar desabilitada.

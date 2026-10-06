@@ -49,6 +49,7 @@ import type {
   ResolvedRollNote,
 } from "@fusion/shared";
 import type {
+  ResolvedExtraDamage,
   RollResolutionParty,
   RollTargetSnapshotEntry,
   SystemModule,
@@ -121,6 +122,11 @@ export interface PreparedRollResolution {
    * `after-roll` predicate over `target:*` judges the very target the roll was graded against.
    */
   targetOptions: readonly string[];
+  /**
+   * Extra damage dice the roller's effects earn (BHR-F4-09). NOT folded into `total`: the server gates them
+   * (the Strike hit, the companion's reach) in `settleExtraDamage` before they join the formula.
+   */
+  extraDamage: readonly ResolvedExtraDamage[];
 }
 
 // ---------------------------------------------------------------------------
@@ -155,7 +161,9 @@ export function prepareRollResolution(
   };
 
   const resolver = systemModule.rollResolver;
-  if (!resolver) return { rollContext, modifiers: [], total: 0, notes: [], targetOptions: [] };
+  if (!resolver) {
+    return { rollContext, modifiers: [], total: 0, notes: [], targetOptions: [], extraDamage: [] };
+  }
 
   // The resolver is system code: a throw must not take the roll down with it.
   // The roll then goes out as it did before this task — the client's formula,
@@ -174,7 +182,13 @@ export function prepareRollResolution(
             snapshot[0],
           )
         : null;
-    resolution = resolver.resolve({ actor: derived, rollContext, target, origin: null });
+    resolution = resolver.resolve({
+      actor: derived,
+      rollContext,
+      target,
+      origin: null,
+      companions: companionsOf(store, rollContext.actorId),
+    });
     targetOptions = target?.options ?? [];
   } catch (err) {
     deps.logger?.error(
@@ -189,6 +203,7 @@ export function prepareRollResolution(
     total: Number.isFinite(resolution.total) ? Math.trunc(resolution.total) : 0,
     notes: resolution.notes,
     targetOptions,
+    extraDamage: resolution.extraDamage ?? [],
   };
 }
 
@@ -287,6 +302,20 @@ function readActor(store: DocumentStore, actorId: string): Record<string, unknow
   } catch {
     return null;
   }
+}
+
+/** The animal companions whose master is `masterActorId` (`system.masterActorId`), active or not. */
+function companionsOf(store: DocumentStore, masterActorId: string): Record<string, unknown>[] {
+  const found: Record<string, unknown>[] = [];
+  for (const actor of store.getAll("actors")) {
+    const system = actor["system"];
+    if (typeof system !== "object" || system === null) continue;
+    const sys = system as Record<string, unknown>;
+    if (sys["companionKind"] === "animalCompanion" && sys["masterActorId"] === masterActorId) {
+      found.push(actor);
+    }
+  }
+  return found;
 }
 
 function mayRollFor(

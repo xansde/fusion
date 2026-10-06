@@ -40,6 +40,11 @@ export interface NestedRollLine {
   degree: DegreeKey | null;
   /** "crit" | "fumble" | "" — d20 single-die coloring (attack rolls). */
   totalClass: "crit" | "fumble" | "";
+  /**
+   * Extra damage parts the server added to this roll from the roller's own effects (the Apoio of a companion,
+   * BHR-F4-09), as the lines the card shows: `Apoio do urso: +1d8 de dano cortante`. Absent when none.
+   */
+  extras?: string[];
 }
 
 /** A target's saving throw rendered as one line in the "Salvaguardas" section. */
@@ -69,6 +74,21 @@ export interface NestedChildren {
 /** The primary roll of a message (index 0), or undefined for a non-roll. */
 function primaryRoll(msg: ChatMessage): RollResultData | undefined {
   return msg.rolls?.[0];
+}
+
+/** The `summary` lines of `flags.fusion.extraDamage` (the server's own record of the parts it added). */
+function extraDamageLines(msg: ChatMessage): string[] {
+  const raw = (msg.flags as Record<string, Record<string, unknown>> | undefined)?.["fusion"]?.[
+    "extraDamage"
+  ];
+  if (!Array.isArray(raw)) return [];
+  const lines: string[] = [];
+  for (const part of raw as unknown[]) {
+    const summary =
+      typeof part === "object" && part !== null ? (part as Record<string, unknown>)["summary"] : null;
+    if (typeof summary === "string" && summary !== "") lines.push(summary);
+  }
+  return lines;
 }
 
 /** Read the graded degree string off a child's primary roll, or null. */
@@ -133,6 +153,7 @@ export function classifyNestedChildren(children: readonly ChatMessage[]): Nested
     } else {
       // Attack / damage roll line.
       const formatted = formatRoll(roll);
+      const extras = extraDamageLines(child);
       rolls.push({
         messageId: child._id,
         formula: roll.formula,
@@ -141,6 +162,7 @@ export function classifyNestedChildren(children: readonly ChatMessage[]): Nested
         flavor: roll.flavor ?? null,
         degree: toDegreeKey(degreeRaw ?? undefined),
         totalClass: getRollTotalClass(formatted),
+        ...(extras.length > 0 ? { extras } : {}),
       });
     }
   }

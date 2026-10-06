@@ -305,3 +305,30 @@ describe("REQ-ACH-023 — each target's save line shows the dice of the test", (
     });
   });
 });
+
+describe("classifyNestedChildren: the parts the server added to a damage roll (BHR-F4-09)", () => {
+  const SUMMARY = "Apoio do urso: +1d8 de dano cortante";
+
+  it("shows the server's own summary of the extra damage on the damage line", () => {
+    const damage = child("dmg", "Bhrotto", rollData({ formula: "1d6+4 + 1d8", total: 12 }), {
+      fusion: {
+        parentMessageId: "p1",
+        extraDamage: [{ slug: "support-bear", dice: "1d8", summary: SUMMARY }],
+      },
+    });
+    const { rolls } = classifyNestedChildren([damage]);
+    expect(rolls[0]?.extras).toEqual([SUMMARY]);
+  });
+
+  it("a roll the server added nothing to carries no extras at all", () => {
+    const { rolls } = classifyNestedChildren([child("dmg", "Bhrotto", rollData())]);
+    expect(rolls[0] && "extras" in rolls[0]).toBe(false);
+  });
+
+  it("ignores a malformed extraDamage flag instead of printing it", () => {
+    const damage = child("dmg", "Bhrotto", rollData(), {
+      fusion: { parentMessageId: "p1", extraDamage: [{ dice: "1d8" }, 7, null, { summary: "" }] },
+    });
+    expect(classifyNestedChildren([damage]).rolls[0] && "extras" in classifyNestedChildren([damage]).rolls[0]!).toBe(false);
+  });
+});
