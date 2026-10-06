@@ -15,9 +15,9 @@ porque ainda não foram prometidos para nenhum marco.
 
 | Situação | Requisitos | Fatia |
 | --- | ---: | ---: |
-| Citados por algum teste | 781 | 35% |
-| Citados só por código de produção | 320 | 14% |
-| Sem nenhuma citação | 1152 | 51% |
+| Citados por algum teste | 789 | 35% |
+| Citados só por código de produção | 326 | 14% |
+| Sem nenhuma citação | 1138 | 51% |
 | **Total [MVP]** | **2253** | |
 
 ## Por spec
@@ -34,7 +34,7 @@ porque ainda não foram prometidos para nenhum marco.
 | [07](07-visao-iluminacao-fog.md) | 56 | 8 | 22 | 26 | 14% |
 | [08](08-motor-de-rolagens.md) | 49 | 14 | 12 | 23 | 29% |
 | [09](09-chat-e-mensagens.md) | 55 | 15 | 10 | 30 | 27% |
-| [10](10-combate-e-iniciativa.md) | 54 | 21 | 28 | 5 | 39% |
+| [10](10-combate-e-iniciativa.md) | 54 | 21 | 29 | 4 | 39% |
 | [11](11-ui-framework-e-fichas.md) | 62 | 10 | 16 | 36 | 16% |
 | [12](12-journal-tabelas-cartas.md) | 34 | 0 | 0 | 34 | 0% |
 | [13](13-audio-e-playlists.md) | 49 | 0 | 3 | 46 | 0% |
@@ -69,4 +69,4 @@ porque ainda não foram prometidos para nenhum marco.
 | [44](44-aba-cenas.md) | 58 | 51 | 1 | 6 | 88% |
 | [45](45-atores.md) | 50 | 2 | 0 | 48 | 4% |
 | [47](47-fabricacao-e-alquimia.md) | 40 | 0 | 0 | 40 | 0% |
-| [52](52-cacador-companheiro-e-montaria.md) | 115 | 8 | 1 | 106 | 7% |
+| [52](52-cacador-companheiro-e-montaria.md) | 115 | 16 | 6 | 93 | 14% |

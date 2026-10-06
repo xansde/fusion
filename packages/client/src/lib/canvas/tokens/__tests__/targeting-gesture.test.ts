@@ -1,5 +1,5 @@
 /**
- * targeting-gesture.test.ts — BHR-F3-01 / GUE-F1-01 (D-G01, REQ-GUE-040..042).
+ * targeting-gesture.test.ts — BHR-F3-01 / GUE-F1-01 (D-G01, REQ-BHR-081).
  *
  * The aim gesture lives on the canvas: right-click on a token toggles the
  * user's aim (`combat:target`), Esc clears only the user's own aim, and the

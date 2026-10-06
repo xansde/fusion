@@ -546,7 +546,7 @@ export class TokenInteractionManager {
     // Pointer down on the container — check if we hit a token sprite
     tokenContainer.on("pointerdown", (e: FederatedPointerEvent) => {
       if (this._destroyed) return;
-      // Right button (BHR-F3-01 / GUE-F1-01, D-G01, REQ-GUE-040..042): toggle
+      // Right button (BHR-F3-01 / GUE-F1-01, D-G01, REQ-BHR-081): toggle
       // the user's aim on the token under the cursor. It never selects and
       // never starts a drag; the browser menu is already suppressed by
       // FusionCanvas (`contextmenu` preventDefault) and no token context menu

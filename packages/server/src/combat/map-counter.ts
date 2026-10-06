@@ -1,6 +1,6 @@
 /**
  * MapCounter — who counts the multiple attack penalty (BHR-F3-04 / GUE-F1-04,
- * D-G03, REQ-CBT-063..065, REQ-CBT-069).
+ * D-G03, REQ-CBT-069).
  *
  * The server keeps, per combat, how many attacks each MAP group already made
  * in the current turn. The penalty itself is NOT computed here: it is
