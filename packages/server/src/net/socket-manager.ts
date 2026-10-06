@@ -80,6 +80,7 @@ import {
 } from "../combat/turn-hook-runner.js";
 import { TargetingStore } from "../combat/targeting-store.js";
 import { buildCombatTargetHandler, registerTargetingCleanup } from "../combat/target-handler.js";
+import { MapCounter, registerMapCounterReset } from "../combat/map-counter.js";
 import {
   buildResyncRequestHandler,
   buildActiveSceneHandler,
@@ -221,6 +222,7 @@ export class SocketManager {
    * neither is reachable from a closure nobody holds.
    */
   private readonly writeMetrics = new Map<string, WriteMetricsCollector>();
+  private readonly mapCounters = new Map<string, MapCounter>();
 
   constructor(options: SocketManagerOptions) {
     this.logger = options.logger;
@@ -288,6 +290,9 @@ export class SocketManager {
     // Constructed here (not next to the combat handlers below) so chat:send
     // (ALQ-F1-05 / REQ-CBT-056) can also read it for the targetSnapshot photo.
     const targetingStore = new TargetingStore();
+    // BHR-F3-04: server-side multiple attack penalty counter (chat:send notes, turnStart zeroes).
+    const mapCounter = new MapCounter();
+    this.mapCounters.set(worldId, mapCounter);
     const registry = new HandlerRegistry();
 
     // Spec 39 §5.9 (REQ-CTT-083): bind this namespace to the Actor table its
@@ -410,7 +415,7 @@ export class SocketManager {
     // store/targetingStore (ALQ-F1-05 / REQ-CBT-056): chat:send reads the
     // author's live target selection to freeze `flags.fusion.targetSnapshot`
     // on every roll message.
-    const chatDeps = { db, ns, seqStore, worldId, store, targetingStore };
+    const chatDeps = { db, ns, seqStore, worldId, store, targetingStore, mapCounter };
     registry.register("chat:send", buildChatSendHandler(chatDeps));
     registry.register("chat:history", buildChatHistoryHandler(chatDeps));
     // REQ-CHT-050 / REQ-ACH-012: search is open to every role; the handler
@@ -452,6 +457,7 @@ export class SocketManager {
       );
     }
     const eventBus = new CombatEventBus();
+    registerMapCounterReset(mapCounter, eventBus);
     // ALQ-F1-08: the real `actor:applyDamage` service — validates, rereads
     // amount/targets from the persisted roll, calls the active system's
     // ActorMechanics and publishes the redacted `actor:damageApplied`
@@ -803,7 +809,13 @@ export class SocketManager {
         metrics.stop();
         this.writeMetrics.delete(worldId);
       }
+      this.mapCounters.delete(worldId);
     }
+  }
+
+  /** BHR-F3-04: the world's MAP counter (read by the sheet channel and by tests). */
+  mapCounterFor(worldId: string): MapCounter | undefined {
+    return this.mapCounters.get(worldId);
   }
 
   /**
