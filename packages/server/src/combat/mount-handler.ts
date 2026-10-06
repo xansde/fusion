@@ -179,11 +179,14 @@ function isCompanionOf(mount: Rec, riderActorId: string): boolean {
 /** The token with `flags.fusion.mount` replaced by `state` (undefined = removed); other flags kept. */
 function withMountFlag(token: Rec, state: Rec | undefined): Rec {
   const flags: Rec = isRec(token["flags"]) ? { ...token["flags"] } : {};
-  const ns: Rec = isRec(flags[MOUNT_FLAG_NAMESPACE])
-    ? { ...(flags[MOUNT_FLAG_NAMESPACE] as Rec) }
-    : {};
-  if (state === undefined) delete ns[MOUNT_FLAG_KEY];
-  else ns[MOUNT_FLAG_KEY] = state;
+  const current = flags[MOUNT_FLAG_NAMESPACE];
+  const ns: Rec = isRec(current) ? { ...current } : {};
+  if (state === undefined) {
+    const { [MOUNT_FLAG_KEY]: _removed, ...rest } = ns;
+    flags[MOUNT_FLAG_NAMESPACE] = rest;
+    return { ...token, flags };
+  }
+  ns[MOUNT_FLAG_KEY] = state;
   flags[MOUNT_FLAG_NAMESPACE] = ns;
   return { ...token, flags };
 }

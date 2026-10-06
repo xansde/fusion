@@ -605,7 +605,10 @@ function resolveConditionTargets(
           ack: forbiddenCondition(ownerCheck.ok ? "forbidden" : ownerCheck.message),
         };
       }
-      const frozen = new Set(readTargetSnapshot(message!).map((t) => t.tokenId));
+      if (message === undefined) {
+        return { ok: false, ack: forbiddenCondition("forbidden") };
+      }
+      const frozen = new Set(readTargetSnapshot(message).map((t) => t.tokenId));
       const outside = payload.targetTokenIds.filter((id) => !frozen.has(id));
       if (outside.length > 0) {
         return {
