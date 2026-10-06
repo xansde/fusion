@@ -326,6 +326,34 @@ interface ExecutableActionRow {
 >
 > Consumidores (BHR-F2-06, F3-09, F3-10) seguem este texto, não o §2.8 do plano de origem.
 
+### 2.9 `SkillCheckContext`, `AttackCheckContext` e a contagem do MAP (BHR-F3-03, BHR-F3-04, BHR-F6-01)
+
+> **Emenda (revisão da onda 6, I-3, I-4, I-5, I-7, M-7).** Valem sobre o §2.6 da GUE:
+>
+> ```ts
+> // packages/shared/src/chat/types.ts
+> SkillCheckContext   = { kind: "skill", targetTokenId: string /* max 120 */, against: SkillCheckDefense, maneuver?: string }
+> SkillCheckDefense   = "fortitude" | "reflex" | "will" | "ac" | "perception"   // + "level" (F3-09, abaixo)
+> AttackCheckContext  = { kind: "attack", targetTokenId?: string, mapIndex: 0 | 1 | 2, agile?: boolean }
+> // mensagem gravada: { kind: "attack", mapIndex, agile?, attackNumber? } / { kind: "skill", against, maneuver?, attackNumber? }
+> // combate (CombatDocument): attackCount: { combatantId, round, count } | null
+> ```
+>
+> - **`max(120)` em `targetTokenId`** é do Bhrotto; a GUE §2.6 não o tem. Fica.
+> - **CD lida no servidor, nesta ordem** (I-3): `derived.<x>.dc`, depois `10 + derived.<x>.total`, depois `10 + valor autorado`. NPC e
+>   companheiro animal publicam só `total`, e o `total` já conta condições e efeitos (amedrontado baixa a CD).
+> - **Defesa fixa por manobra** (I-4): com `maneuver`, o servidor impõe a defesa da ação (Derrubar e Desarmar: Reflexos; Agarrar, Empurrar e
+>   Reposicionar: Fortitude; Fintar: Percepção; Desmoralizar: Vontade) e recusa divergência ou manobra desconhecida com `VALIDATION_FAILED`. A
+>   tabela é `MANEUVER_DEFENSE` em `engine-2e/src/maneuvers.ts`; a `ManeuverDef` da GUE-F5-03 a absorve no mesmo arquivo, sem mudar os nomes.
+> - **`against: "level"` (I-5, a implementar na BHR-F3-09):** o Rememorar Conhecimento sobre uma criatura não usa Percepção nem Vontade. Na regra
+>   remaster (GM Core, CDs por nível), a CD é a **CD por nível da criatura**, ajustada pela raridade (incomum +2, raro +5, único +10). O servidor lê
+>   nível e raridade do alvo e aplica a tabela. Enquanto a F3-09 não entra, o enum não tem o valor e o Rememorar fica só com o total, sem grau.
+> - **MAP contado pelo servidor** (D-G03, I-7): todo golpe declarado como `kind: "attack"` conta, com ou sem alvo (`targetTokenId` é opcional; sem
+>   ele nada é graduado). Manobra graduada também conta; Rememorar Conhecimento não. A mensagem grava `attackNumber`; o combate publica
+>   `attackCount` do combatente ativo, válido só para `combatantId = activeCombatantId` e `round` corrente, mascarado quando o ativo é oculto.
+>   O cliente lê esse número; recarregar a ficha no meio do turno mantém o MAP. **Aberto (pergunta de produto):** forçar um golpe para fora da
+>   contagem (`countsForMap: false`) não existe; na regra todo ataque conta.
+
 ## 3. Regras de colisão
 
 - Tarefas na mesma onda têm **arquivos disjuntos** (campo Onde) ou vão para a **mesma faixa** e rodam em série nela.
@@ -781,7 +809,7 @@ interface ExecutableActionRow {
 
 - **Repo**: satélite
 - **Onde**: `executableRows.ts` (`hunt-prey` com variante Caçador de Monstros); `abilityCardVM.ts`; efeito "Caçador de Monstros" (BHR-F1-05)
-- **Entrega**: Com o talento, Caçar Presa inclui no **mesmo card** um Rememorar Conhecimento sobre a presa (perícia escolhida pelo jogador; rolagem no servidor). Em sucesso crítico, o card aplica o efeito "+1 circunstância no próximo ataque contra a presa" (`after-roll`, BHR-F2-06; predicado `target:mark:hunted-prey`). "1×/dia por criatura" fica exibido, não imposto (DC-04).
+- **Entrega**: Com o talento, Caçar Presa inclui no **mesmo card** um Rememorar Conhecimento sobre a presa (perícia escolhida pelo jogador; rolagem no servidor). **A CD é a CD por nível da criatura, ajustada pela raridade** (regra remaster, GM Core), não Percepção nem Vontade: a F3-09 estende `SkillCheckDefense` com `against: "level"` e o servidor lê nível e raridade do alvo (§2.9, revisão da onda 6 I-5). Em sucesso crítico, o card aplica o efeito "+1 circunstância no próximo ataque contra a presa" (`after-roll`, BHR-F2-06; predicado `target:mark:hunted-prey`). "1×/dia por criatura" fica exibido, não imposto (DC-04).
 - **Depende de**: BHR-F3-08, BHR-F2-06, BHR-F2-05, BHR-F6-01
 - **Paralelo com**: BHR-F4-03, BHR-F4-05, BHR-F4-06
 - **Modelo / esforço**: sonnet / medium.
@@ -853,7 +881,7 @@ interface ExecutableActionRow {
 
 - **Repo**: core
 - **Onde**: `packages/server/src/net/handlers/doc-handlers.ts` (após o update do ator; padrão de `rederiveActorsForChangedVariantRules`, `:1155`); `packages/server/src/documents/derive.ts`
-- **Entrega**: Atualizar um ator que é `masterActorId` de companheiros re-deriva cada companheiro ligado no servidor e inclui os que mudaram no mesmo broadcast. Fecha a Q-PET-02 (`specs/29:472`). Sem recálculo no cliente.
+- **Entrega**: Atualizar um ator que é `masterActorId` de companheiros re-deriva cada companheiro ligado no servidor e inclui os que mudaram no mesmo broadcast. Fecha a Q-PET-02 (`specs/29:472`). Sem recálculo no cliente. **O servidor grava `system.master.level` a partir do ator dono** (dependência da BHR-F4-02, revisão da onda 6 I-9): o jogador não escreve `system.master.*` num companheiro animal, e sem esse cache a derivação grava `derived.companion.error` em vez de assumir o nível 1.
 - **Depende de**: BHR-F4-02
 - **Paralelo com**: BHR-F3-09, BHR-F4-05, BHR-F4-06
 - **Modelo / esforço**: sonnet / medium.
@@ -1081,7 +1109,7 @@ interface ExecutableActionRow {
 
 - **Repo**: core
 - **Onde**: `packages/shared/src/chat/types.ts:389-398` (`SkillCheckContext`, 4º membro de `CheckContextSchema`); `packages/server/src/chat/chat-handler.ts:451-507,1458` (`readActorDefense`)
-- **Entrega**: Ficha da GUE-F5-05: `{ kind: "skill", targetTokenId, against, maneuver? }`; CD lida no servidor de `system.derived.saves.<n>.dc`/`perception.dc`; sem alvo resolvível, sem grau. Usada pelas manobras e pelo Rememorar Conhecimento contra a presa.
+- **Entrega**: Ficha da GUE-F5-05: `{ kind: "skill", targetTokenId, against, maneuver? }`; CD lida no servidor de `system.derived.saves.<n>.dc`/`perception.dc`; sem alvo resolvível, sem grau. Usada pelas manobras e pelo Rememorar Conhecimento contra a presa. Emenda da onda 6 (§2.9): CD por `.dc`, depois `10 + total`, depois `10 + autorado`; defesa fixa por manobra; o Rememorar usa `against: "level"` (BHR-F3-09).
 - **Depende de**: BHR-F3-03
 - **Paralelo com**: BHR-F3-05, BHR-F3-10, BHR-F4-02
 - **Modelo / esforço**: sonnet / high.
