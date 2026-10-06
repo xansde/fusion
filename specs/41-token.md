@@ -618,9 +618,13 @@ sendo do ator, e esta spec não define nenhuma "ficha de token".
   ícone de status da peça (DEC-TOK-19, DEC-TOK-22).
 - **REQ-TOK-116** [MVP] O estado montado DEVE ser gravado nas duas peças em `flags.fusion.mount`
   (`MountState`, spec 52 §7.6) — namespace do próprio núcleo, não o de um sistema —, escrito só pelas
-  ops `mount:mount` e `mount:dismount`.
+  ops `mount:mount` e `mount:dismount`, pelo servidor ao mover o par (`movedTurn`, REQ-TOK-117a) e pelo
+  desmonte do Mestre (REQ-TOK-118).
 - **REQ-TOK-117** [MVP] Mover a montaria DEVE mover o cavaleiro montado no **mesmo write**; o servidor
   DEVE recusar a usuário não privilegiado o movimento do cavaleiro montado.
+- **REQ-TOK-117a** [MVP] Ao mover o par durante um combate em andamento, o servidor DEVE carimbar a peça
+  da montaria com `movedTurn { combatId, round, turn }` no mesmo write; o carimbo é lido pela regra do
+  Apoio (spec 52, REQ-BHR-178 e REQ-BHR-183) e limpo com o resto da flag.
 - **REQ-TOK-118** [MVP] Papel privilegiado PODE mover o cavaleiro montado, e esse movimento DEVE
   desmontá-lo, limpando `flags.fusion.mount` das duas peças no mesmo write.
 

@@ -490,6 +490,9 @@
           <span class="nested-roll__total nested-roll__total--{line.totalClass || 'normal'}">
             {line.total}
           </span>
+          {#each line.extras ?? [] as extra (extra)}
+            <span class="nested-roll__extra">{extra}</span>
+          {/each}
         </div>
       {/each}
 
@@ -952,28 +955,39 @@
 
   .nested-roll {
     display: flex;
+    flex-wrap: wrap;
     align-items: baseline;
     justify-content: space-between;
-    gap: 0.5rem;
+    gap: 0.15rem 0.5rem;
     font-size: 0.78rem;
   }
 
+  /* The label owns its row and wraps: clipped, it hid the calculation and left the line unreadable (L2 round 2, D7). */
   .nested-roll__label {
     color: var(--fusion-text-muted);
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
+    flex: 1 1 100%;
+    min-width: 0;
+    overflow-wrap: anywhere;
   }
 
-  /* REQ-ACH-022: the dice of the child roll, right beside its label. */
+  /* BHR-F4-09: the part an effect of the roller added (the Apoio of the companion), quiet, on its own row. */
+  .nested-roll__extra {
+    flex: 1 1 100%;
+    min-width: 0;
+    font-size: 0.72rem;
+    font-style: italic;
+    color: var(--fusion-accent);
+    overflow-wrap: anywhere;
+  }
+
+  /* REQ-ACH-022: the dice of the child roll, on the row below its label, never clipped. */
   .nested-roll__breakdown {
     font-family: var(--fusion-font-mono);
     font-size: 0.72rem;
     color: var(--fusion-text-subtle);
-    flex: 1;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
+    flex: 1 1 0;
+    min-width: 0;
+    overflow-wrap: anywhere;
   }
 
   .nested-roll__badge {

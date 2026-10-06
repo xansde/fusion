@@ -207,16 +207,33 @@ export function attachCombatSync(socket: Socket): () => void {
         previous: CombatTurnSnapshot;
       };
       combatStore.lastTurnChange = payload;
-    } else if (envelope.type === "token:targeted") {
-      // REQ-CBT-053/054: a user marked/cleared a token as a target.
-      const payload = envelope.payload as {
-        tokenId: string;
-        targeted: boolean;
-        userId: string;
-      };
-      const changed = applyTargeted(_targeting, payload.tokenId, payload.targeted, payload.userId);
-      if (changed) targetingStore.version += 1;
     }
+  };
+
+  socket.on("op", onOp);
+  return () => {
+    socket.off("op", onOp);
+  };
+}
+
+/**
+ * Attach the live-targeting listener (`token:targeted`, REQ-CBT-053/054).
+ *
+ * Session scope, NOT table-screen scope: the server replays the live selection to a socket in the same tick it accepts
+ * the connection (REQ-CBT-056 — the selection outlives a browser reload), and the table screen mounts only after the
+ * canvas has initialised, so a listener attached there hears nothing of the replay. The session attaches this the moment
+ * the socket is created. Returns a cleanup function.
+ */
+export function attachTargetingSync(socket: Socket): () => void {
+  const onOp = (envelope: { type: string; payload: unknown }) => {
+    if (envelope.type !== "token:targeted") return;
+    const payload = envelope.payload as {
+      tokenId: string;
+      targeted: boolean;
+      userId: string;
+    };
+    const changed = applyTargeted(_targeting, payload.tokenId, payload.targeted, payload.userId);
+    if (changed) targetingStore.version += 1;
   };
 
   socket.on("op", onOp);

@@ -184,6 +184,33 @@ describe("chat:send abilityCard flag (r20-X1)", () => {
     expect(card!["dcValue"]).toBeUndefined();
   });
 
+  it("BHR-F4-07: keeps the Command an Animal action card the owner posts speaking as their own actor", () => {
+    const { handler } = makeHarness();
+    const msg = send(handler, {
+      kind: "action",
+      casterActorId: CASTER_ID,
+      name: "Comandar um Animal",
+      actionCost: "◆◆",
+      targetName: "Urso jovem",
+    });
+    expect(msg).not.toBeNull();
+    const card = readCard(msg);
+    expect(card?.["kind"]).toBe("action");
+    expect(card?.["targetName"]).toBe("Urso jovem");
+    expect(card?.["damageFormula"]).toBeUndefined();
+  });
+
+  it("BHR-F4-07: the same card forged as another actor is cleared", () => {
+    const { handler } = makeHarness();
+    const msg = send(handler, {
+      kind: "action",
+      casterActorId: "someoneelse00001",
+      name: "Comandar um Animal",
+      targetName: "Urso jovem",
+    });
+    expect(readCard(msg)).toBeUndefined();
+  });
+
   it("rejects a forged card whose caster != speaker (clears the flag)", () => {
     const { handler } = makeHarness();
     const msg = send(handler, {

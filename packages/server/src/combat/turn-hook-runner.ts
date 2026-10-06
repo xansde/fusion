@@ -43,6 +43,7 @@
  */
 
 import type { Namespace } from "socket.io";
+import { createDocumentId } from "@fusion/shared";
 import type { Logger } from "pino";
 import type { Database as Db } from "better-sqlite3";
 import type {
@@ -58,6 +59,7 @@ import type {
 } from "@fusion/shared";
 import type { SystemModule, TurnHookContext } from "@fusion/system-api";
 import type { DocumentStore } from "../documents/store.js";
+import { recomputeDerivedIfNeeded } from "../documents/derive.js";
 import type { SeqStore } from "../net/seq-store.js";
 import type { OpBuffer } from "../net/op-buffer.js";
 import { broadcastToWorld } from "../net/handlers/doc-handlers.js";
@@ -171,6 +173,13 @@ export interface DocumentWriteTurnHookContextDeps {
   seqStore: SeqStore;
   opBuffer: OpBuffer;
   worldId: string;
+  /**
+   * When present, an embedded write re-derives the actor (`system.derived`) before it is broadcast, like every other
+   * path that changes an actor's items. Without it the stored `derived` stays as it was (L2 round 2, D2: the sheet
+   * kept showing the strike without the Monster Hunter's +1 the roll would add).
+   */
+  systemModule?: SystemModule;
+  logger?: Logger;
 }
 
 /**
@@ -182,12 +191,22 @@ export interface DocumentWriteTurnHookContextDeps {
  *
  * Spread this AFTER `createStubTurnHookContextServices()` at the call site
  * (packages/server/src/net/socket-manager.ts) so it overrides only these two
- * keys and leaves `roll`/`updateActor`/`createEmbedded` on the stub.
+ * keys and leaves `roll`/`updateActor` on the stub.
  */
 export function createDocumentWriteTurnHookContextServices(
   deps: DocumentWriteTurnHookContextDeps,
-): Pick<TurnHookContextServices, "deleteEmbedded" | "chat" | "listActors"> {
+): Pick<TurnHookContextServices, "createEmbedded" | "deleteEmbedded" | "chat" | "listActors"> {
   const tokenSource = tokenLookupSourceFromStore(deps.store);
+  const rederive = (actor: Record<string, unknown>): Record<string, unknown> =>
+    recomputeDerivedIfNeeded(
+      {
+        store: deps.store,
+        ...(deps.systemModule ? { systemModule: deps.systemModule } : {}),
+        ...(deps.logger ? { logger: deps.logger } : {}),
+      },
+      "Actor",
+      actor,
+    );
 
   return {
     // BHR-F0-03: read-only world snapshot, so a hook can sweep effects that
@@ -203,6 +222,43 @@ export function createDocumentWriteTurnHookContextServices(
     // `roll`/`applyDamage`/`applyCondition` services alongside them genuinely
     // need to be), so each explicitly returns a resolved Promise rather than
     // using `async` with no `await` (`@typescript-eslint/require-await`).
+    // I-1 (wave 7 review): a hook may embed an item (the Monster Hunter effect on a critical Recall
+    // Knowledge). Every `_id` is minted here — whatever the hook sent is ignored, like `doc:create`.
+    createEmbedded(actorId, items) {
+      if (items.length === 0) return Promise.resolve();
+      const actor = deps.store.get("actors", actorId);
+      const existing = Array.isArray(actor["items"])
+        ? (actor["items"] as Record<string, unknown>[])
+        : [];
+      const usedIds = new Set(existing.map((item) => item["_id"]));
+      const created = items.map((item) => {
+        let id = createDocumentId();
+        while (usedIds.has(id)) id = createDocumentId();
+        usedIds.add(id);
+        return { ...item, _id: id };
+      });
+
+      let updated = deps.store.update(
+        "actors",
+        actorId,
+        { items: [...existing, ...created] },
+        { userId: null },
+      );
+      if (!updated) return Promise.resolve();
+      updated = rederive(updated);
+
+      const seq = deps.seqStore.next();
+      const envelope: Envelope = {
+        type: "doc:update",
+        seq,
+        ts: Date.now(),
+        payload: { documentType: "Actor", documents: [updated] },
+      };
+      deps.opBuffer.push(envelope);
+      broadcastToWorld(deps.ns, envelope, "Actor");
+      return Promise.resolve();
+    },
+
     deleteEmbedded(actorId, itemIds) {
       const actor = deps.store.get("actors", actorId);
       const existing = Array.isArray(actor["items"])
@@ -216,8 +272,9 @@ export function createDocumentWriteTurnHookContextServices(
       // Nothing actually removed — do not burn a seq or wake every client.
       if (kept.length === existing.length) return Promise.resolve();
 
-      const updated = deps.store.update("actors", actorId, { items: kept }, { userId: null });
+      let updated = deps.store.update("actors", actorId, { items: kept }, { userId: null });
       if (!updated) return Promise.resolve();
+      updated = rederive(updated);
 
       const seq = deps.seqStore.next();
       const envelope: Envelope = {

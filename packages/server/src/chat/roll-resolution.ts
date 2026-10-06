@@ -49,6 +49,7 @@ import type {
   ResolvedRollNote,
 } from "@fusion/shared";
 import type {
+  ResolvedExtraDamage,
   RollResolutionParty,
   RollTargetSnapshotEntry,
   SystemModule,
@@ -61,6 +62,7 @@ import type { Ownership, UserRole } from "../documents/ownership.js";
 import { runActorDerivation } from "../net/derive-runner.js";
 import { resolveWorldVariantRules } from "../documents/world-variant-rules.js";
 import { createStubTurnHookContextServices } from "../combat/turn-hook-runner.js";
+import { activeCompanionMasterId } from "../combat/companion-active-handler.js";
 
 // ---------------------------------------------------------------------------
 // Injectable sources
@@ -121,6 +123,11 @@ export interface PreparedRollResolution {
    * `after-roll` predicate over `target:*` judges the very target the roll was graded against.
    */
   targetOptions: readonly string[];
+  /**
+   * Extra damage dice the roller's effects earn (BHR-F4-09). NOT folded into `total`: the server gates them
+   * (the Strike hit, the companion's reach) in `settleExtraDamage` before they join the formula.
+   */
+  extraDamage: readonly ResolvedExtraDamage[];
 }
 
 // ---------------------------------------------------------------------------
@@ -155,7 +162,9 @@ export function prepareRollResolution(
   };
 
   const resolver = systemModule.rollResolver;
-  if (!resolver) return { rollContext, modifiers: [], total: 0, notes: [], targetOptions: [] };
+  if (!resolver) {
+    return { rollContext, modifiers: [], total: 0, notes: [], targetOptions: [], extraDamage: [] };
+  }
 
   // The resolver is system code: a throw must not take the roll down with it.
   // The roll then goes out as it did before this task — the client's formula,
@@ -174,7 +183,17 @@ export function prepareRollResolution(
             snapshot[0],
           )
         : null;
-    resolution = resolver.resolve({ actor: derived, rollContext, target, origin: null });
+    // An ACTIVE animal companion rolls with its owner at hand (DC-08): the system decides what is shared.
+    const masterId = activeCompanionMasterId(actor);
+    const master = masterId === undefined ? null : readActor(store, masterId);
+    resolution = resolver.resolve({
+      actor: derived,
+      rollContext,
+      target,
+      origin: null,
+      companions: companionsOf(store, rollContext.actorId),
+      masterActor: master === null ? null : rederive(master, store, systemModule),
+    });
     targetOptions = target?.options ?? [];
   } catch (err) {
     deps.logger?.error(
@@ -189,21 +208,26 @@ export function prepareRollResolution(
     total: Number.isFinite(resolution.total) ? Math.trunc(resolution.total) : 0,
     notes: resolution.notes,
     targetOptions,
+    extraDamage: resolution.extraDamage ?? [],
   };
 }
 
 /**
  * The formula the server rolls: the client's, with the server-settled
  * conditional total appended before the flavor (`1d20+5 # Golpe` → `1d20+5 + 2`,
- * flavor `Golpe`). Unchanged when there is nothing to add.
+ * flavor `Golpe`). Unchanged when there is nothing to add. On a critical hit of a
+ * Strike's damage the total is doubled (`(1d6+4)*2 + 4`).
  */
 export function conditionalRollFormula(
   commandFormula: string,
   prepared: PreparedRollResolution | null,
+  options: { criticalHit?: boolean } = {},
 ): { formula: string; flavor?: string } {
   if (prepared === null || prepared.total === 0) return { formula: commandFormula };
   const { formula, flavor } = extractFlavor(commandFormula);
-  const total = prepared.total;
+  // PF2e remaster: on a critical hit ALL the damage of the Strike doubles, the conditional modifiers included
+  // (`options.criticalHit`: the server proved the attack under the same card was a critical hit).
+  const total = options.criticalHit === true ? prepared.total * 2 : prepared.total;
   const appended = total > 0 ? `${formula} + ${String(total)}` : `${formula} - ${String(-total)}`;
   return flavor !== undefined ? { formula: appended, flavor } : { formula: appended };
 }
@@ -287,6 +311,20 @@ function readActor(store: DocumentStore, actorId: string): Record<string, unknow
   } catch {
     return null;
   }
+}
+
+/** The animal companions whose master is `masterActorId` (`system.masterActorId`), active or not. */
+function companionsOf(store: DocumentStore, masterActorId: string): Record<string, unknown>[] {
+  const found: Record<string, unknown>[] = [];
+  for (const actor of store.getAll("actors")) {
+    const system = actor["system"];
+    if (typeof system !== "object" || system === null) continue;
+    const sys = system as Record<string, unknown>;
+    if (sys["companionKind"] === "animalCompanion" && sys["masterActorId"] === masterActorId) {
+      found.push(actor);
+    }
+  }
+  return found;
 }
 
 function mayRollFor(

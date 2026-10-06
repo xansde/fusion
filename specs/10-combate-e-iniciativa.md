@@ -401,7 +401,7 @@ aperta "Aplicar" e o dano vai para todos os alvos daquela ação. A foto é o qu
 
 **REQ-CBT-070** [MVP] Enquanto cavaleiro e montaria estiverem montados (`MountState`, spec 52), os dois DEVEM compartilhar a mesma contagem de MAP (`mapGroupOf`): golpe do cavaleiro seguido de golpe da montaria DEVE dar índice 1 ao da montaria, e o `turnStart` DEVE zerar o grupo.
 
-**REQ-CBT-071** [MVP] Desmontar DEVE separar as contagens: o que já foi contado no turno fica com cada um, e os ataques seguintes contam em separado.
+**REQ-CBT-071** [MVP] Desmontar DEVE separar as contagens sem reduzir o MAP dentro do turno: cavaleiro e montaria ficam cada um com a contagem que o grupo tinha naquele momento, e os ataques seguintes somam em separado a partir daí.
 
 ---
 

@@ -126,6 +126,17 @@ export class DocumentMirror {
     this._applyOp(op);
   }
 
+  /**
+   * Declare that every op up to `seq` is accounted for. A resync delta carries only the ops this viewer may see, so
+   * the seq it spans has holes (a GM-only chat line, a hidden roll); the delta's replayer calls this before each op and
+   * at the end so the strict contiguity check does not discard what the server just sent. Never moves backwards, and
+   * does nothing during boot (the snapshot sets the seq).
+   */
+  advanceSeqTo(seq: number): void {
+    if (this._booting || seq <= this._seq) return;
+    this._seq = seq;
+  }
+
   // --------------------------------------------------------------------------
   // Public — query API
   // --------------------------------------------------------------------------

@@ -15,7 +15,7 @@
  *   - Targeting is ephemeral (TargetingStore, in-memory) — never persisted.
  */
 
-import type { Namespace } from "socket.io";
+import type { Namespace, Socket } from "socket.io";
 import type { HandlerFn, HandlerContext } from "../net/handler-registry.js";
 import type { SeqStore } from "../net/seq-store.js";
 import type { DocumentStore } from "../documents/store.js";
@@ -74,6 +74,33 @@ function broadcastTargeted(
     payload: { tokenId, targeted, userId },
   };
   ns.emit("op", envelope);
+}
+
+// ---------------------------------------------------------------------------
+// Replay to a (re)connecting socket
+// ---------------------------------------------------------------------------
+
+/**
+ * Tell ONE socket which targets are alive right now (L2 defect D5). The selection is server state that outlives a
+ * browser reload; a client that comes back knows none of it, so its reticles are gone and the buttons that need an
+ * aimed target stay disabled while the server still counts the target. Same `token:targeted` envelope the live
+ * broadcast uses, so the client needs no new path. It carries no `seq`: a replay is not a new canonical op, and the
+ * world mirror ignores an op without one (a seq could land past the mirror's own, before its snapshot, as a gap).
+ */
+export function replayTargetingTo(
+  socket: Pick<Socket, "emit">,
+  targetingStore: TargetingStore,
+): void {
+  for (const [userId, tokenIds] of targetingStore.entries()) {
+    for (const tokenId of tokenIds) {
+      const envelope: Envelope = {
+        type: "token:targeted",
+        ts: Date.now(),
+        payload: { tokenId, targeted: true, userId },
+      };
+      socket.emit("op", envelope);
+    }
+  }
 }
 
 // ---------------------------------------------------------------------------

@@ -375,7 +375,7 @@ _(Emenda obrigada por `specs/41-token.md` §12, 2026-08-17.)_
 
 **REQ-CHT-063** [MVP] O card de Comandar um companheiro animal DEVE ser registro sem rolagem: "`<dono>` comanda `<companheiro>`: 2 ações".
 
-**REQ-CHT-064** [MVP] Com efeito de Apoio ativo no atacante, o card de dano do golpe que cumpre a condição do Apoio contra criatura ao alcance do companheiro (medido no servidor) DEVE incluir o dano extra do Apoio; alvo fora do alcance, ou golpe que não cumpre a condição, NÃO DEVE incluir.
+**REQ-CHT-064** [MVP] Com efeito de Apoio ativo no atacante, o card de dano do golpe que cumpre a condição do Apoio contra criatura ao alcance do companheiro (medido no servidor) DEVE incluir o dano extra do Apoio, anotado no card; alvo fora do alcance, golpe que errou, ou golpe que não cumpre a condição, NÃO DEVE incluir. O acerto crítico NÃO dobra o dano extra do urso.
 
 ### Busca para todos e leitura de contexto
 

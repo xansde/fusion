@@ -24,8 +24,7 @@ import type {
   Envelope,
   WorldSnapshotPayload,
   WorldActiveScenePayload,
-  ResyncDeltaPayload,
-  ResyncFullPayload,
+  ResyncRequestAck,
   WorldResyncRequestPayload,
 } from "@fusion/shared";
 import { createDocumentId } from "@fusion/shared";
@@ -114,12 +113,8 @@ export function attachWorldSync(socket: Socket): () => void {
         ops?: Envelope[];
       };
       if (Array.isArray(payload.ops)) {
-        for (const op of payload.ops) {
-          // Use _applyIncomingOp so that world:activeScene ops inside a delta
-          // are handled correctly (FIX-3: they were previously forwarded only
-          // to feedOp, silently dropping the active-scene side-effect).
-          _applyIncomingOp(op);
-        }
+        // _applyIncomingOp keeps world:activeScene ops inside a delta handled (FIX-3).
+        _applyDelta(payload.ops, payload.toSeq);
       }
       return;
     }
@@ -133,7 +128,7 @@ export function attachWorldSync(socket: Socket): () => void {
   // socket.io reuses the same Socket instance on reconnect;
   // the "connect" event re-fires on the same object after reconnection.
   const onConnect = () => {
-    _sendResyncRequest(socket);
+    _sendResyncRequest(socket, true);
   };
 
   // ---- Handler: gap detection → trigger resync (REQ-NET-063) ----
@@ -160,7 +155,17 @@ export function attachWorldSync(socket: Socket): () => void {
 // Resync request
 // ---------------------------------------------------------------------------
 
-function _sendResyncRequest(socket: Socket): void {
+/** How long a resync request may stay unanswered before a new hole is allowed to ask again. */
+const RESYNC_IN_FLIGHT_MS = 10_000;
+
+/** Sockets with a `resync:request` waiting for its ack (value = when it was sent). One request at a time per socket. */
+const _resyncInFlight = new WeakMap<Socket, number>();
+
+function _sendResyncRequest(socket: Socket, force = false): void {
+  const sentAt = _resyncInFlight.get(socket);
+  if (!force && sentAt !== undefined && Date.now() - sentAt < RESYNC_IN_FLIGHT_MS) return;
+  _resyncInFlight.set(socket, Date.now());
+
   const lastSeq = worldMirror.seq >= 0 ? worldMirror.seq : undefined;
 
   const payload: WorldResyncRequestPayload = {
@@ -175,36 +180,35 @@ function _sendResyncRequest(socket: Socket): void {
     payload,
   };
 
-  socket.emit(
-    "op",
-    envelope,
-    (ack: { ok: boolean; result?: ResyncDeltaPayload | ResyncFullPayload }) => {
-      if (!ack.ok) {
-        console.warn("[worldSync] resync:request failed", ack);
-        return;
-      }
+  socket.emit("op", envelope, (ack: ResyncRequestAck) => {
+    _resyncInFlight.delete(socket);
+    if (!ack.ok) {
+      console.warn("[worldSync] resync:request failed", ack);
+      return;
+    }
 
-      const result = ack.result;
-      if (!result) return;
+    // The server answers `{ type: "delta" | "full", payload }` (the shared `ResyncAckResult`).
+    const { result } = ack;
+    if (result.type === "delta") {
+      // Replay each op through the unified handler so that world:activeScene ops inside a delta are not silently
+      // dropped (FIX-3).
+      _applyDelta(result.payload.ops as Envelope[], result.payload.toSeq);
+    } else if (result.payload.snapshot) {
+      _applySnapshot(result.payload.snapshot);
+    }
+  });
+}
 
-      // Discriminate between delta and full
-      if ("ops" in result) {
-        // ResyncDeltaPayload — replay each op through the unified handler so
-        // that world:activeScene ops inside a delta are not silently dropped
-        // (FIX-3).
-        const delta = result;
-        for (const op of delta.ops as Envelope[]) {
-          _applyIncomingOp(op);
-        }
-      } else if ("snapshot" in result) {
-        // ResyncFullPayload
-        const full = result;
-        if (full.snapshot) {
-          _applySnapshot(full.snapshot);
-        }
-      }
-    },
-  );
+/**
+ * Replay a resync delta. It lists only the ops this viewer may see, so the seq has holes the mirror must cross: each op
+ * is applied as the next one, and the delta's `toSeq` closes the range.
+ */
+function _applyDelta(ops: Envelope[], toSeq: number | undefined): void {
+  for (const op of ops) {
+    if (typeof op.seq === "number") worldMirror.advanceSeqTo(op.seq - 1);
+    _applyIncomingOp(op);
+  }
+  if (typeof toSeq === "number") worldMirror.advanceSeqTo(toSeq);
 }
 
 function _applySnapshot(snapshot: WorldSnapshotPayload): void {

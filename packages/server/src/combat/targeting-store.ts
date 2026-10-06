@@ -72,6 +72,11 @@ export class TargetingStore {
     return cleared;
   }
 
+  /** Every live selection as `[userId, tokenIds]` pairs (a copy: callers may not mutate the store through it). */
+  entries(): Array<[string, string[]]> {
+    return [...this.byUser.entries()].map(([userId, set]) => [userId, [...set]]);
+  }
+
   /** Evict all targeting state for a disconnected user. */
   evictUser(userId: string): void {
     this.byUser.delete(userId);

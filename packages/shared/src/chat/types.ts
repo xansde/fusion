@@ -400,8 +400,12 @@ export type SaveCheckContext = z.infer<typeof SaveCheckContextSchema>;
  */
 export const AttackCheckContextSchema = z.object({
   kind: z.literal("attack"),
-  /** Token aimed at; the AC comes from the database, NEVER from the payload. */
-  targetTokenId: z.string().min(1).max(120),
+  /**
+   * Token aimed at; the AC comes from the database, NEVER from the payload.
+   * Absent for a strike thrown without a target: the server still counts it for
+   * the MAP (every attack counts, onda-6 review I-7) but grades nothing.
+   */
+  targetTokenId: z.string().min(1).max(120).optional(),
   /** MAP index applied to this strike — audit only, it does not enter the math. */
   mapIndex: z.union([z.literal(0), z.literal(1), z.literal(2)]),
   /** Agile weapon: the MAP penalty is -4/-8 instead of -5/-10. */
@@ -411,13 +415,52 @@ export const AttackCheckContextSchema = z.object({
 export type AttackCheckContext = z.infer<typeof AttackCheckContextSchema>;
 
 /**
+ * The defence of the target a skill check is rolled against (BHR-F6-01).
+ * `level` (BHR-F3-09): Recall Knowledge about a creature, graded against the
+ * creature-level DC adjusted by rarity, which the server reads from the target.
+ */
+export const SkillCheckDefenseSchema = z.enum([
+  "fortitude",
+  "reflex",
+  "will",
+  "ac",
+  "perception",
+  "level",
+]);
+
+export type SkillCheckDefense = z.infer<typeof SkillCheckDefenseSchema>;
+
+/**
+ * Context of a skill check rolled against ANOTHER creature's DC — Athletics
+ * maneuvers, Recall Knowledge against the quarry (BHR-F6-01, importing
+ * GUE-F5-05; REQ-BHR-201). Like {@link AttackCheckContextSchema} it carries no
+ * number: the server reads the DC of the `against` defence from the target's
+ * database row (`system.derived.saves.<n>.dc` / `perception.dc` / the AC) and
+ * ignores any DC the client sent. `maneuver` names an Athletics maneuver
+ * (`grapple`, `shove`, `trip`...): a maneuver is an attack-trait action, so it
+ * counts for the MAP; a plain check (Recall Knowledge) leaves it out.
+ */
+export const SkillCheckContextSchema = z.object({
+  kind: z.literal("skill"),
+  /** Token aimed at; the DC comes from the database, NEVER from the payload. */
+  targetTokenId: z.string().min(1).max(120),
+  /** Which defence of the target the roll is graded against. */
+  against: SkillCheckDefenseSchema,
+  /** Athletics maneuver this check carries, when it is one. */
+  maneuver: z.string().min(1).max(40).optional(),
+});
+
+export type SkillCheckContext = z.infer<typeof SkillCheckContextSchema>;
+
+/**
  * Discriminated union of check contexts a `chat:send` may carry (r17.1):
- * `save` (graded against a DC) and `attack` (BHR-F3-03, graded against the
- * target's AC). `kind` keeps the shape open for skill checks.
+ * `save` (graded against a DC), `attack` (BHR-F3-03, graded against the
+ * target's AC) and `skill` (BHR-F6-01, graded against a defence of the target).
  */
 export const CheckContextSchema = z.discriminatedUnion("kind", [
   SaveCheckContextSchema,
   AttackCheckContextSchema,
+  SkillCheckContextSchema,
 ]);
 
 export type CheckContext = z.infer<typeof CheckContextSchema>;

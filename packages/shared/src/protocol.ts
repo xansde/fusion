@@ -112,6 +112,17 @@ export const EnvelopeTypeSchema = z.union([
   // marking actor — not doc:update (permission is "own actor + own target").
   z.literal("mark:set"),
   z.literal("mark:clear"),
+  // Spec 52 REQ-PET-123, REQ-BHR-174..176 (BHR-F5-02): mount / dismount a creature,
+  // MountState written on both tokens after the server checks adjacency, size and link.
+  z.literal("mount:mount"),
+  z.literal("mount:dismount"),
+  // Spec 52 REQ-PET-120..121 (BHR-F4-10, DC-07): swap the ACTIVE animal companion of a master.
+  z.literal("companion:setActive"),
+  // L3 I4 (BHR-F5-07): the owner commands an animal companion; the server records it on the combat.
+  z.literal("companion:command"),
+  // Spec 52 REQ-BHR-102..105 (BHR-F4-08, DEC-BHR-09): a pack effect copied onto
+  // other actors, with the permission-by-link rule decided on the server.
+  z.literal("effect:apply"),
   // Spec 42 — removing a folder without removing anything it held (REQ-NPC-022).
   // Not doc:delete: that path drops the row and stops, leaving every actor of the
   // folder pointing at an id that is gone and every subfolder orphaned.
@@ -500,6 +511,23 @@ export const ResyncFullPayloadSchema = z.object({
 export type ResyncFullPayload = z.infer<typeof ResyncFullPayloadSchema>;
 
 /**
+ * What the ack of a `resync:request` carries in `result`: the server answers with a delta or a full snapshot, tagged
+ * by `type`. ONE schema for both ends: the server handler returns it and the client unwraps it, so a change of shape
+ * breaks the build (and the contract test) instead of silently freezing every player's mirror.
+ */
+export const ResyncAckResultSchema = z.discriminatedUnion("type", [
+  z.object({ type: z.literal("delta"), payload: ResyncDeltaPayloadSchema }),
+  z.object({ type: z.literal("full"), payload: ResyncFullPayloadSchema }),
+]);
+
+export type ResyncAckResult = z.infer<typeof ResyncAckResultSchema>;
+
+/** The whole ack of a `resync:request`: success carries {@link ResyncAckResult}; failure only a code and message. */
+export type ResyncRequestAck =
+  | { ok: true; seq: number; result: ResyncAckResult }
+  | { ok: false; code?: string; message?: string };
+
+/**
  * world:activeScene — broadcast when the GM activates a different scene.
  * REQ-NET-005 (rooms), spec 06 §scene activation.
  *
@@ -857,6 +885,38 @@ export interface ItemConsumeResult {
 }
 
 export type ItemConsumeAck = Ack<ItemConsumeResult>;
+
+// ---------------------------------------------------------------------------
+// effect:apply — client → server. Spec 52 §7.3 (REQ-BHR-102..105), DC-06,
+// task BHR-F4-08. The client only NAMES the effect (`packId` + `docId`); the
+// server reads it from the pack, so no effect content ever travels on the wire.
+// ---------------------------------------------------------------------------
+
+export const EffectApplyPayloadSchema = z
+  .object({
+    sourceActorId: z.string().min(1),
+    targetActorIds: z.array(z.string().min(1)).min(1).max(32),
+    effect: z.object({ packId: z.string().min(1), docId: z.string().min(1) }).strict(),
+    /**
+     * Who ticks the clock (`ownerActorId`). The rest of the expiry (`on`,
+     * `remainingRounds`, `rollPredicate`) is built on the SERVER from the pack
+     * effect's `expiryTemplate`; only the Mestre/assistant may override it
+     * (onda-6 review I-1).
+     */
+    expiry: FusionExpirySchema.partial({ on: true }).optional(),
+    /** The roll message whose `targetSnapshot` names the targets (DF-03). */
+    messageId: z.string().min(1).optional(),
+  })
+  .strict();
+
+export type EffectApplyPayload = z.infer<typeof EffectApplyPayloadSchema>;
+
+export interface EffectApplyResult {
+  /** One embedded effect item per target, in `targetActorIds` order. */
+  readonly applied: { readonly actorId: string; readonly itemId: string }[];
+}
+
+export type EffectApplyAck = Ack<EffectApplyResult>;
 
 // ---------------------------------------------------------------------------
 // Target-selection assertion — REQ-CBT-056, plan §2.3. TYPE ONLY: the plan

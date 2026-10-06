@@ -57,6 +57,8 @@ import type {
   SaveCheckContext,
   ChatTargetRef,
   AttackCheckContext,
+  SkillCheckContext,
+  SkillCheckDefense,
   CheckContext,
   RollTarget,
 } from "@fusion/shared";
@@ -96,6 +98,14 @@ import {
 } from "./roll-resolution.js";
 import type { TokenMarkSource } from "./roll-resolution.js";
 import type { MapCounter } from "../combat/map-counter.js";
+import { maneuverDefense } from "@fusion/engine-2e";
+import { maneuverSizeRefusal } from "./maneuver-size.js";
+import {
+  NO_EXTRA_DAMAGE,
+  proveStrikeAttackDegree,
+  settleChatRollExtraDamage,
+  withExtraDice,
+} from "./extra-damage.js";
 
 // ---------------------------------------------------------------------------
 // Types
@@ -391,15 +401,16 @@ export function broadcastChatMessage(
     // read paths (history/search/context/ack) ended up shipping the total.
     const payload = buildPayloadForSocket(socket, msg, authorId, tokenSource);
 
-    if (payload === null) continue;
-
+    // A socket that may not see the message still gets the envelope, EMPTY: the seq was
+    // burned for everyone, and the client mirror treats a jump as a gap and resyncs
+    // (redaction.ts documents the rule: never swallow an envelope).
     const envelope: Envelope = {
       type: event,
       seq,
       ts: Date.now(),
       payload: {
         documentType: CHAT_DOCUMENT_TYPE,
-        documents: [payload],
+        documents: payload === null ? [] : [payload],
       },
     };
 
@@ -525,22 +536,107 @@ export function buildChatSendHandler(deps: ChatHandlerDeps): HandlerFn {
       // resolves is the target of the conditional modifiers, of the degree and
       // of the MAP. A save check grades against its own DC, so it has none.
       const checkContext = payload.flags?.checkContext;
+      // A maneuver's defence is fixed by the action (Trip/Disarm: Reflex,
+      // Grapple/Shove/Reposition: Fortitude, Feint: Perception, Demoralize: Will),
+      // so the client cannot grade it against the weakest defence (review I-4).
+      if (checkContext?.kind === "skill" && checkContext.maneuver !== undefined) {
+        const fixed = maneuverDefense(checkContext.maneuver);
+        if (fixed === undefined) {
+          return {
+            ok: false,
+            code: "VALIDATION_FAILED" as const,
+            message: `Unknown maneuver "${checkContext.maneuver}"`,
+          };
+        }
+        if (fixed !== checkContext.against) {
+          return {
+            ok: false,
+            code: "VALIDATION_FAILED" as const,
+            message: `Maneuver "${checkContext.maneuver}" is rolled against ${fixed}, not ${checkContext.against}`,
+          };
+        }
+        // The size limit of the maneuver (review M-1): judged with the sizes the database holds, for the actor the
+        // user speaks as. No speaker named = the roller's size is unknown and the rule does not opine.
+        if (payload.speakerActorId !== undefined) {
+          if (!mayRollAsActor(deps.db, payload.speakerActorId, ctx)) {
+            return {
+              ok: false,
+              code: "VALIDATION_FAILED" as const,
+              message: "The speaker actor is not yours",
+            };
+          }
+          const tooLarge = maneuverSizeRefusal(deps.db, {
+            maneuver: checkContext.maneuver,
+            rollerActorId: payload.speakerActorId,
+            targetTokenId: checkContext.targetTokenId,
+          });
+          if (tooLarge !== null) {
+            return { ok: false, code: "VALIDATION_FAILED" as const, message: tooLarge };
+          }
+        }
+      }
       const aimedRef = attackTargetRef(payload.target, checkContext);
       const rollTarget =
         aimedRef !== null && checkContext?.kind !== "save"
-          ? resolveRollTarget(deps.db, aimedRef, ctx)
+          ? resolveRollTarget(
+              deps.db,
+              aimedRef,
+              ctx,
+              checkContext?.kind === "skill" ? checkContext.against : "ac",
+            )
           : null;
-      const resolution = prepareRollResolution(
+      const prepared = prepareRollResolution(
         deps,
         payload.flags?.fusion?.rollContext,
         ctx,
         rollTarget === null ? [] : [rollTarget.entry],
       );
+      // What the server graded for the attack under the card this Strike damage nests under (null = no proof, or not a
+      // Strike's damage): it doubles the conditional modifiers on a critical hit, settles the extra dice and picks the
+      // notes that apply to one degree (the damage roll has no degree of its own).
+      const parentMessageId = resolveParentMessageId(deps.db, payload.flags?.parentMessageId);
+      const strikeAttackDegree =
+        prepared !== null
+          ? proveStrikeAttackDegree({
+              db: deps.db,
+              userId: ctx.userId,
+              actorId: prepared.rollContext.actorId,
+              selectors: prepared.rollContext.selectors,
+              snapshot: targetSnapshot,
+              parentMessageId,
+            })
+          : null;
+      // Extra damage dice of the roller's own effects (the Apoio of an animal companion, BHR-F4-09): the
+      // system names them, the server settles them — the Strike hit, the companion's reach — and they join
+      // the formula it rolls, so the card's total already counts them. Their notes ride with the roll's.
+      const extraDamage =
+        prepared !== null && prepared.extraDamage.length > 0 && deps.store !== undefined
+          ? settleChatRollExtraDamage({
+              db: deps.db,
+              store: deps.store,
+              userId: ctx.userId,
+              actorId: prepared.rollContext.actorId,
+              selectors: prepared.rollContext.selectors,
+              extra: prepared.extraDamage,
+              snapshot: targetSnapshot,
+              parentMessageId,
+              attackDegree: strikeAttackDegree,
+            })
+          : NO_EXTRA_DAMAGE;
+      const resolution =
+        prepared !== null && extraDamage.notes.length > 0
+          ? { ...prepared, notes: [...prepared.notes, ...extraDamage.notes] }
+          : prepared;
 
       let rollResult: RollResultData;
       try {
         rollResult = rollService.roll({
-          ...conditionalRollFormula(command.formula, resolution),
+          ...withExtraDice(
+            conditionalRollFormula(command.formula, resolution, {
+              criticalHit: strikeAttackDegree === "criticalSuccess",
+            }),
+            extraDamage.formulaSuffix,
+          ),
           mode: effectiveMode,
           worldId: deps.worldId,
           userId: ctx.userId,
@@ -577,15 +673,40 @@ export function buildChatSendHandler(deps: ChatHandlerDeps): HandlerFn {
       // roll — so "has a target" and "has a degree" never disagree.
       // A roll already graded by a save checkContext keeps that grading: the DC
       // of a save is the caster's, not the target's AC.
-      const targetPortrait = gradedSave === null ? (rollTarget?.portrait ?? null) : null;
+      // A skill check (BHR-F6-01) is graded the same way against the DC of the
+      // defence it names; only an Athletics maneuver (an attack-trait action)
+      // feeds the MAP, a plain check such as Recall Knowledge does not.
+      // A sheet skill roll aimed at a creature (review I-8) names its target only so
+      // the server settles that target's conditional bonuses (the prey's Outwit): with
+      // no check context it is not an attack, so it is neither graded against the AC
+      // nor counted for the MAP.
+      const isAimedSkillCheck =
+        checkContext === undefined &&
+        payload.flags?.fusion?.rollContext?.selectors.includes("skill-check") === true;
+      const gradedTarget = gradedSave === null && !isAimedSkillCheck ? rollTarget : null;
       let messageTargets: RollTarget[] | undefined;
       let gradedAttack: AttackCheckContext | null = null;
-      if (targetPortrait !== null && targetPortrait.ac !== undefined) {
-        const degree = computeAttackDegree(rollResult, targetPortrait.ac);
+      let gradedSkill: SkillCheckContext | null = null;
+      let countsForMap = false;
+      if (gradedTarget !== null) {
+        const degree = computeAttackDegree(rollResult, gradedTarget.defense);
         if (degree !== null) {
+          const targetPortrait = gradedTarget.portrait;
           rollResult = { ...rollResult, degreeOfSuccess: degree, target: targetPortrait };
           messageTargets = [targetPortrait];
           if (checkContext?.kind === "attack") gradedAttack = checkContext;
+          if (checkContext?.kind === "skill") gradedSkill = checkContext;
+          if (gradedSkill === null || gradedSkill.maneuver !== undefined) countsForMap = true;
+        }
+      }
+      // Every attack counts for the MAP, aimed or not (PF2e: the Attack trait is
+      // what counts, onda-6 review I-7). A Strike the client declared as an
+      // attack counts even without a resolvable target; the context-less roll and
+      // the skill check keep counting only when the server graded them.
+      if (checkContext?.kind === "attack") countsForMap = true;
+      let attackNumber: number | null = null;
+      if (countsForMap) {
+        attackNumber =
           deps.mapCounter?.noteAttackFromSpeaker(
             deps.store,
             {
@@ -595,8 +716,7 @@ export function buildChatSendHandler(deps: ChatHandlerDeps): HandlerFn {
               tokenId: payload.speakerTokenId,
             },
             { countsForMap: true },
-          );
-        }
+          ) ?? null;
       }
 
       const msg = buildRollMessage(
@@ -639,6 +759,27 @@ export function buildChatSendHandler(deps: ChatHandlerDeps): HandlerFn {
               kind: "attack",
               mapIndex: gradedAttack.mapIndex,
               ...(gradedAttack.agile !== undefined ? { agile: gradedAttack.agile } : {}),
+              // The server's own count of this attack in the turn (D-G03).
+              ...(attackNumber !== null ? { attackNumber } : {}),
+            },
+          },
+        };
+      }
+
+      // The skill check's own context (BHR-F6-01): only the defence and the
+      // maneuver the card needs; neither the target token nor any DC is repeated.
+      if (gradedSkill !== null) {
+        msg.flags = {
+          ...msg.flags,
+          [SPELLCAST_FLAG_NAMESPACE]: {
+            ...msg.flags[SPELLCAST_FLAG_NAMESPACE],
+            [CHECK_CONTEXT_FLAG_KEY]: {
+              kind: "skill",
+              against: gradedSkill.against,
+              ...(gradedSkill.maneuver !== undefined ? { maneuver: gradedSkill.maneuver } : {}),
+              ...(gradedSkill.maneuver !== undefined && attackNumber !== null
+                ? { attackNumber }
+                : {}),
             },
           },
         };
@@ -650,7 +791,21 @@ export function buildChatSendHandler(deps: ChatHandlerDeps): HandlerFn {
       attachParentFlag(msg, resolveParentMessageId(deps.db, payload.flags?.parentMessageId));
       attachTargetSnapshot(msg, deps, ctx.userId, targetSnapshot);
       if (resolution !== null) {
-        finalizeRollResolution(msg, resolution, rollResult.degreeOfSuccess ?? null);
+        // A Strike's damage roll has no degree: its notes follow the attack the server graded under the same card.
+        finalizeRollResolution(
+          msg,
+          resolution,
+          strikeAttackDegree ?? rollResult.degreeOfSuccess ?? null,
+        );
+      }
+      if (extraDamage.applied.length > 0) {
+        msg.flags = {
+          ...msg.flags,
+          [PARENT_FLAG_NAMESPACE]: {
+            ...msg.flags[PARENT_FLAG_NAMESPACE],
+            extraDamage: extraDamage.applied.map((part) => ({ ...part })),
+          },
+        };
       }
 
       persistChatMessage(deps.db, msg);
@@ -1659,14 +1814,54 @@ export function computeSaveDegree(roll: RollResultData, ctx: SaveCheckContext): 
 // ---------------------------------------------------------------------------
 
 /**
- * Read the AC the server itself derived for an actor: `system.derived.ac.total`
- * when the derivation pipeline has run, falling back to the authored
- * `system.attributes.ac.value` (a bestiary NPC straight out of a pack, before
- * any derivation). Returns null when the actor is unknown or carries no AC — and
- * then no target portrait is written at all, because a degree of success without
- * a DC is a guess presented as a rule (DEC-ACH-09).
+ * GM Core "DCs by Level", level 0..25 (PF2e remaster). Recall Knowledge about a
+ * creature is graded against the DC of the creature's level (BHR-F3-09).
  */
-function readActorAc(db: Db, actorId: string): number | null {
+const DC_BY_LEVEL: readonly number[] = [
+  14, 15, 16, 18, 19, 20, 22, 23, 24, 26, 27, 28, 30, 31, 32, 34, 35, 36, 38, 39, 40, 42, 44, 46,
+  48, 50,
+];
+
+/** Rarity adjustment of a Recall Knowledge DC: uncommon +2, rare +5, unique +10. */
+const RARITY_DC_ADJUST: Readonly<Record<string, number>> = { uncommon: 2, rare: 5, unique: 10 };
+
+/**
+ * The creature-level DC of an actor's `system` (BHR-F3-09): the level from
+ * `details.level.value` (or `details.level`), adjusted by `traits.rarity`
+ * (a string or `{ value }`; missing means common). Null when the level is not a
+ * table level — no DC is invented.
+ */
+function readCreatureLevelDc(system: Record<string, unknown> | undefined): number | null {
+  const details = system?.["details"] as { level?: unknown } | undefined;
+  const rawLevel = details?.level;
+  const level =
+    typeof rawLevel === "number" ? rawLevel : (rawLevel as { value?: unknown } | undefined)?.value;
+  if (typeof level !== "number" || !Number.isInteger(level)) return null;
+  const base = level === -1 ? 13 : DC_BY_LEVEL[level]; // GM Core: level -1 is DC 13
+  if (base === undefined) return null;
+  const traits = system?.["traits"] as { rarity?: unknown } | undefined;
+  const rawRarity = traits?.rarity;
+  const rarity =
+    typeof rawRarity === "string"
+      ? rawRarity
+      : (rawRarity as { value?: unknown } | undefined)?.value;
+  return base + (typeof rarity === "string" ? (RARITY_DC_ADJUST[rarity] ?? 0) : 0);
+}
+
+/**
+ * Read one defence the server itself derived for an actor, as the number a roll
+ * is graded against. `ac`: `system.derived.ac.total`, falling back to the
+ * authored `system.attributes.ac.value` (a bestiary NPC straight out of a pack,
+ * before any derivation). A save or perception: `system.derived.saves.<n>.dc` /
+ * `system.derived.perception.dc`, falling back to `10 + ` the authored
+ * `system.saves.<n>.value` / `system.perception.mod`; between the two, a derived
+ * `total` alone gives `10 + total` (NPC and companion blocks publish no `dc`).
+ * Returns null when the
+ * actor is unknown or carries no such defence — and then no target portrait is
+ * written at all, because a degree of success without a DC is a guess presented
+ * as a rule (DEC-ACH-09).
+ */
+function readActorDefense(db: Db, actorId: string, against: SkillCheckDefense): number | null {
   try {
     const row = db.prepare(`SELECT data FROM actors WHERE id = ?`).get(actorId) as
       | { data: string }
@@ -1674,16 +1869,44 @@ function readActorAc(db: Db, actorId: string): number | null {
     if (!row) return null;
     const doc = JSON.parse(row.data) as Record<string, unknown>;
     const system = doc["system"] as Record<string, unknown> | undefined;
-
     const derived = system?.["derived"] as Record<string, unknown> | undefined;
-    const derivedAc = derived?.["ac"] as { total?: unknown } | undefined;
-    if (typeof derivedAc?.total === "number") return derivedAc.total;
 
-    const attributes = system?.["attributes"] as Record<string, unknown> | undefined;
-    const authoredAc = attributes?.["ac"] as { value?: unknown } | undefined;
-    if (typeof authoredAc?.value === "number") return authoredAc.value;
+    if (against === "level") return readCreatureLevelDc(system);
 
-    return null;
+    if (against === "ac") {
+      const derivedAc = derived?.["ac"] as { total?: unknown } | undefined;
+      if (typeof derivedAc?.total === "number") return derivedAc.total;
+
+      const attributes = system?.["attributes"] as Record<string, unknown> | undefined;
+      const authoredAc = attributes?.["ac"] as { value?: unknown } | undefined;
+      if (typeof authoredAc?.value === "number") return authoredAc.value;
+      return null;
+    }
+
+    // A save / Perception DC is 10 + the creature's CURRENT modifier. Order:
+    // the derived `.dc` (when a system publishes one), then `10 + derived.total`
+    // (NPCs and animal companions publish only `total`, and it already counts
+    // conditions and effects), then `10 + authored` (a bestiary NPC never derived).
+    const derivedStat =
+      against === "perception"
+        ? (derived?.["perception"] as { dc?: unknown; total?: unknown } | undefined)
+        : (derived?.["saves"] as Record<string, { dc?: unknown; total?: unknown }> | undefined)?.[
+            against
+          ];
+    if (typeof derivedStat?.dc === "number") return derivedStat.dc;
+    if (typeof derivedStat?.total === "number") return 10 + derivedStat.total;
+
+    if (against === "perception") {
+      // Real packs keep perception at the top level; some docs nest it.
+      const attributes = system?.["attributes"] as Record<string, unknown> | undefined;
+      const authored = (system?.["perception"] ?? attributes?.["perception"]) as
+        | { mod?: unknown }
+        | undefined;
+      return typeof authored?.mod === "number" ? 10 + authored.mod : null;
+    }
+    const authoredSaves = system?.["saves"] as Record<string, { value?: unknown }> | undefined;
+    const authoredValue = authoredSaves?.[against]?.value;
+    return typeof authoredValue === "number" ? 10 + authoredValue : null;
   } catch {
     return null;
   }
@@ -1754,6 +1977,21 @@ function findTokenById(
   return null;
 }
 
+/** May this user roll AS the actor? A privileged role always may; others must own it. */
+function mayRollAsActor(db: Db, actorId: string, ctx: HandlerContext): boolean {
+  if (isRolePrivileged(ctx.role)) return true;
+  try {
+    const row = db.prepare(`SELECT data FROM actors WHERE id = ?`).get(actorId) as
+      | { data: string }
+      | undefined;
+    if (!row) return false;
+    const doc = JSON.parse(row.data) as { ownership?: Ownership };
+    return testOwnership(doc.ownership ?? {}, ctx.userId, ctx.role, OwnershipLevel.OWNER);
+  } catch {
+    return false;
+  }
+}
+
 /**
  * Whether this requester may name an actor DIRECTLY (a target reference with no
  * token). With a token the visibility comes from the canvas — he is looking at
@@ -1795,6 +2033,9 @@ function mayNameActorDirectly(db: Db, actorId: string, ctx: HandlerContext): boo
  * outcome as a dangling reference (REQ-ACH-092). The name of what the Mestre
  * hid is not published by the chat.
  *
+ * `against` names the defence that grades the roll (BHR-F6-01): the AC for a
+ * strike, a save or perception DC for a skill check against a creature.
+ *
  * The roll's ONE target (BHR-F2-05, DF-17): the portrait that grades the roll
  * and feeds the MAP, plus the token/actor ids the conditional modifiers are
  * resolved against. Both come from the same resolution of `payload.target`, so
@@ -1805,7 +2046,8 @@ function resolveRollTarget(
   db: Db,
   ref: ChatTargetRef,
   ctx: HandlerContext,
-): { portrait: RollTarget; entry: ResolvedTarget } | null {
+  against: SkillCheckDefense = "ac",
+): { portrait: RollTarget; entry: ResolvedTarget; defense: number } | null {
   const privileged = isRolePrivileged(ctx.role);
   let name = "";
   let actorId: string | null = ref.actorId ?? null;
@@ -1825,8 +2067,8 @@ function resolveRollTarget(
 
   if (actorId === null) return null;
 
-  const ac = readActorAc(db, actorId);
-  if (ac === null) return null;
+  const defense = readActorDefense(db, actorId, against);
+  if (defense === null) return null;
 
   if (name.length === 0) {
     const actorName = readActorName(db, actorId);
@@ -1834,7 +2076,10 @@ function resolveRollTarget(
     name = actorName;
   }
 
-  return { portrait: { name, ac }, entry: { tokenId, actorId, sceneId } };
+  // The portrait carries the AC only when the AC is what graded the roll: a
+  // Fortitude DC written as `ac` would be shown to the Mestre as the target's AC.
+  const portrait: RollTarget = against === "ac" ? { name, ac: defense } : { name };
+  return { portrait, entry: { tokenId, actorId, sceneId }, defense };
 }
 
 /**
@@ -1848,7 +2093,9 @@ function attackTargetRef(
   target: ChatTargetRef | undefined,
   checkContext: CheckContext | undefined,
 ): ChatTargetRef | null {
-  if (checkContext?.kind !== "attack") return target ?? null;
+  if (checkContext?.kind !== "attack" && checkContext?.kind !== "skill") return target ?? null;
+  // A Strike thrown without a target names nobody: nothing to resolve or grade.
+  if (checkContext.targetTokenId === undefined) return target ?? null;
   if (target === undefined) return { tokenId: checkContext.targetTokenId };
   if (target.tokenId !== checkContext.targetTokenId) return null;
   return target;

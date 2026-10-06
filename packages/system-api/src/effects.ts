@@ -587,6 +587,53 @@ export interface RollResolutionInput {
   readonly target: RollResolutionParty | null;
   /** The attacker, when the roller defends. `null` = no attacker known. Same rule as `target`. */
   readonly origin: RollResolutionParty | null;
+  /**
+   * The animal companions of the roller (`system.companionKind = "animalCompanion"`, `system.masterActorId`
+   * = the roller), as the server stored them, active or not (BHR-F4-09). The system picks the one a rule
+   * speaks of; the server never decides which. Absent/empty = the roller has none.
+   */
+  readonly companions?: readonly Record<string, unknown>[];
+  /**
+   * The re-derived owner of the roller, only when the roller is that owner's ACTIVE companion (BHR-F4-11, DC-08).
+   * Absent or `null` = the roller has no owner to share with (not a companion, the inactive one, an orphan).
+   */
+  readonly masterActor?: Record<string, unknown> | null;
+}
+
+/**
+ * A gate on an extra damage part that only the SERVER can settle, because it measures the scene
+ * (BHR-F4-09, spec 52 emenda "Alcance e montaria do Apoio"). `withinReachOf: "companion"`: the roll's target
+ * must be within `reachFeet` of the token of `companionActorId` (edge to edge, `PositionQuery.distanceBetween`).
+ */
+export interface ExtraDamageGate {
+  readonly withinReachOf: "companion";
+  readonly companionActorId: string;
+  readonly reachFeet: number;
+  /**
+   * The roller must be mounted on that companion (REQ-PET-125, REQ-BHR-182): the roller's token and the
+   * companion's token confirm each other in the mount flag. Absent = the part does not ask for the mount.
+   */
+  readonly requiresMounted?: boolean;
+}
+
+/**
+ * Extra damage dice a roll earns from the actor's own effects (the Apoio of an animal companion). The system
+ * names them; the server decides whether they count (the gate, and that the Strike really hit) and appends
+ * them to the damage formula it rolls. `doubleOnCrit: false` = the dice are NOT doubled by a critical hit
+ * (the damage is dealt by someone else, as the bear's); absent/true = doubled on a critical hit.
+ */
+export interface ResolvedExtraDamage {
+  readonly slug: string;
+  readonly label: string;
+  readonly sourceItemId?: string;
+  readonly count: number;
+  /** `d8`. */
+  readonly die: string;
+  readonly damageType: string;
+  /** `persistent`, `precision`... absent = plain damage. */
+  readonly category?: string;
+  readonly doubleOnCrit: boolean;
+  readonly gate?: ExtraDamageGate;
 }
 
 /** The system's verdict on a roll's context, before the server rolls the dice. */
@@ -597,6 +644,8 @@ export interface RollResolution {
   readonly total: number;
   /** Every note whose selector and predicate match; the server filters by `outcome` once it grades. */
   readonly notes: readonly ResolvedRollNote[];
+  /** Extra damage dice the actor's effects add to a Strike's damage roll (BHR-F4-09); the server gates them. */
+  readonly extraDamage?: readonly ResolvedExtraDamage[];
 }
 
 /**

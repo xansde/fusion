@@ -32,6 +32,7 @@
  */
 
 import type { SupportedLocale } from "../i18n/i18n.js";
+import { displayName } from "../docs/displayName.js";
 import {
   TRAIT_NAMES_PT,
   DAMAGE_TYPE_NAMES_PT,
@@ -79,7 +80,17 @@ export function pickLocalizedName(
   const enName = str(source?.["name"]) ?? "";
   if (locale !== "pt-BR") return enName;
   const ptName = str(readI18nBag(source)?.ptBR?.name);
-  return ptName ?? enName;
+  if (ptName !== null) return ptName;
+  // The label an import SNAPSHOTS (`flags.fusion.i18n["pt-BR"]`, written by `CompendiumService.importToActor`/
+  // `importToWorld`) is the other place a translated name lives; `displayName` is its one reader.
+  const snapshot = displayName({ flags: asFlags(source?.["flags"]) }, locale);
+  return snapshot !== "" ? snapshot : enName;
+}
+
+function asFlags(value: unknown): Record<string, unknown> | null {
+  return value !== null && typeof value === "object" && !Array.isArray(value)
+    ? (value as Record<string, unknown>)
+    : null;
 }
 
 /**

@@ -27,6 +27,7 @@ import type { Socket } from "socket.io-client";
 import { attachWorldSync } from "./docs/worldSync.js";
 import { attachSceneListSync } from "./scenes/scenesState.svelte.js";
 import { attachContactsKnowledgeBadge } from "./contacts/knowledgeBadge.js";
+import { attachTargetingSync } from "./combat/combatStore.svelte.js";
 import { classifyWorldFetchError } from "./worldFetchErrorClassifier.js";
 import { clearAssetGrantCache } from "./assets/assetGrants.svelte.js";
 
@@ -213,6 +214,8 @@ let _detachWorldSync: (() => void) | null = null;
 let _detachSceneSync: (() => void) | null = null;
 /** Active Contatos state-dot tracking cleanup (REQ-CTT-003). */
 let _detachContactsBadge: (() => void) | null = null;
+/** Live targeting listener (REQ-CBT-056); must exist as soon as the socket does — see `attachTargetingSync`. */
+let _detachTargetingSync: (() => void) | null = null;
 
 /**
  * Lowest role the server treats as privileged (`isRolePrivileged`, spec 05). Mirrored
@@ -231,6 +234,10 @@ function _connectSocket(worldId: string): void {
   if (socket) {
     _detachWorldSync?.();
     _detachWorldSync = attachWorldSync(socket);
+    // The server replays the live aim to a reconnecting seat the instant it connects; the table screen mounts too
+    // late to hear it, so this listener is born with the socket (L2 round 2, D5).
+    _detachTargetingSync?.();
+    _detachTargetingSync = attachTargetingSync(socket);
     // Attach scene list mirror subscription
     _detachSceneSync?.();
     _detachSceneSync = attachSceneListSync();
@@ -253,4 +260,6 @@ function _disconnectSync(): void {
   _detachSceneSync = null;
   _detachContactsBadge?.();
   _detachContactsBadge = null;
+  _detachTargetingSync?.();
+  _detachTargetingSync = null;
 }

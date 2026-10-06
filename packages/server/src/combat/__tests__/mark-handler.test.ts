@@ -315,3 +315,94 @@ describe("TokenMark — mark:set / mark:clear (BHR-F3-06)", () => {
     expect(source.marksOn(q("nobody", "tok-ogre"))).toEqual([]);
   });
 });
+
+describe("TokenMark — o companheiro ativo herda a Presa do dono (BHR-F4-11, REQ-PET-122, DC-08)", () => {
+  let h: Harness;
+  let ranger: string;
+  let stranger: string;
+  let ogre: string;
+
+  beforeEach(() => {
+    h = buildHarness();
+    ranger = createActor(h, "Ranger", "player-p");
+    stranger = createActor(h, "Alheio", "player-q");
+    ogre = createActor(h, "Ogro");
+    createScene(h, [{ _id: "tok-ogre", name: "Ogro", actorId: ogre }]);
+  });
+
+  afterEach(() => {
+    h.fusionDb.close();
+    rmSync(h.dataDir, { recursive: true, force: true });
+  });
+
+  const companionOf = (master: string, name: string, companion?: Record<string, unknown>) =>
+    h.store.create(
+      "actors",
+      {
+        name,
+        type: "familiar",
+        system: {
+          companionKind: "animalCompanion",
+          masterActorId: master,
+          ...(companion === undefined ? {} : { companion }),
+        },
+      },
+      { userId: GM_CTX.userId },
+    )["_id"] as string;
+
+  const q = (rollerActorId: string) => ({
+    rollerActorId,
+    targetTokenId: "tok-ogre",
+    targetActorId: null,
+  });
+
+  async function markBoth(): Promise<void> {
+    const set = buildMarkSetHandler(h.markDeps);
+    await set(
+      { sourceActorId: ranger, mark: { slug: "hunted-prey", targetTokenId: "tok-ogre" } },
+      GM_CTX,
+    );
+    await set(
+      { sourceActorId: ranger, mark: { slug: "monster-hunter", targetTokenId: "tok-ogre" } },
+      GM_CTX,
+    );
+  }
+
+  it("o companheiro ativo (sem o campo, ou active: true) rola contra a presa do dono", async () => {
+    await markBoth();
+    const legacy = companionOf(ranger, "Urso");
+    const explicit = companionOf(ranger, "Lobo", { active: true });
+    const source = createTokenMarkSource(h.store);
+    // Only the Prey and its Outwit travel: Monster Hunter is the Ranger's own mark.
+    expect(source.marksOn(q(legacy))).toEqual(["hunted-prey"]);
+    expect(source.marksOn(q(explicit))).toEqual(["hunted-prey"]);
+    // The owner still has both.
+    expect([...source.marksOn(q(ranger))].sort()).toEqual(["hunted-prey", "monster-hunter"]);
+  });
+
+  it("o companheiro inativo não herda", async () => {
+    await markBoth();
+    const inactive = companionOf(ranger, "Lobo", { active: false });
+    expect(createTokenMarkSource(h.store).marksOn(q(inactive))).toEqual([]);
+  });
+
+  it("o companheiro de outro dono não herda", async () => {
+    await markBoth();
+    const theirs = companionOf(stranger, "Cervo", { active: true });
+    expect(createTokenMarkSource(h.store).marksOn(q(theirs))).toEqual([]);
+  });
+
+  it("só o companheiro animal herda: familiar comum ou ator solto não", async () => {
+    await markBoth();
+    const familiar = h.store.create(
+      "actors",
+      {
+        name: "Gato",
+        type: "familiar",
+        system: { companionKind: "familiar", masterActorId: ranger },
+      },
+      { userId: GM_CTX.userId },
+    )["_id"] as string;
+    expect(createTokenMarkSource(h.store).marksOn(q(familiar))).toEqual([]);
+  });
+});

@@ -44,6 +44,7 @@ import type {
   Envelope,
   WorldSnapshotPayload,
   WorldActiveScenePayload,
+  ResyncAckResult,
   ResyncDeltaPayload,
   ResyncFullPayload,
   Ownership,
@@ -674,11 +675,8 @@ export function buildResyncRequestHandler(deps: SyncHandlerDeps): HandlerFn {
         toSeq: deps.seqStore.peek(),
         ops: delta,
       };
-      return {
-        ok: true as const,
-        seq: deps.seqStore.peek(),
-        result: { type: "delta", payload: deltaPayload },
-      };
+      const result: ResyncAckResult = { type: "delta", payload: deltaPayload };
+      return { ok: true as const, seq: deps.seqStore.peek(), result };
     }
 
     // Full resync needed
@@ -687,11 +685,8 @@ export function buildResyncRequestHandler(deps: SyncHandlerDeps): HandlerFn {
       reason: "seq_out_of_buffer",
       snapshot,
     };
-    return {
-      ok: true as const,
-      seq: deps.seqStore.peek(),
-      result: { type: "full", payload: fullPayload },
-    };
+    const result: ResyncAckResult = { type: "full", payload: fullPayload };
+    return { ok: true as const, seq: deps.seqStore.peek(), result };
   };
 }
 

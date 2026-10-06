@@ -65,6 +65,7 @@ import {
   buildCombatSetHiddenHandler,
   buildCombatReorderHandler,
   buildCombatEndHandler,
+  buildAttackCountPublisher,
 } from "../combat/combat-handlers.js";
 import { InitiativeFormulaRegistry } from "../combat/initiative-registry.js";
 import { registerSystemFormulas } from "../combat/system-formula-adapter.js";
@@ -72,6 +73,7 @@ import { CombatEventBus } from "../combat/combat-event-bus.js";
 import { createActorMechanicsService } from "../combat/actor-mechanics-service.js";
 import { buildApplyDamageHandler } from "../combat/apply-damage-handler.js";
 import { buildApplyConditionHandler } from "../combat/apply-condition-handler.js";
+import { buildEffectApplyHandler } from "./handlers/effect-handlers.js";
 import { buildItemConsumeHandler } from "./handlers/item-handlers.js";
 import {
   createTurnHookRunner,
@@ -81,12 +83,24 @@ import {
 import type { TurnHookContextServices } from "../combat/turn-hook-runner.js";
 import type { TokenMarkSource } from "../chat/roll-resolution.js";
 import { TargetingStore } from "../combat/targeting-store.js";
-import { buildCombatTargetHandler, registerTargetingCleanup } from "../combat/target-handler.js";
+import {
+  buildCombatTargetHandler,
+  registerTargetingCleanup,
+  replayTargetingTo,
+} from "../combat/target-handler.js";
 import {
   buildMarkSetHandler,
   buildMarkClearHandler,
   createTokenMarkSource,
 } from "../combat/mark-handler.js";
+import {
+  buildMountHandler,
+  buildDismountHandler,
+  releaseDismountedRider,
+} from "../combat/mount-handler.js";
+
+import { buildCompanionCommandHandler } from "../combat/companion-command-handler.js";
+import { buildCompanionSetActiveHandler } from "../combat/companion-active-handler.js";
 import { MapCounter, registerMapCounterReset } from "../combat/map-counter.js";
 import {
   buildResyncRequestHandler,
@@ -135,6 +149,12 @@ import {
 // --------------------------------------------------------------------------
 // Types
 // --------------------------------------------------------------------------
+
+interface RiderDismountedInfo {
+  sceneId: string;
+  riderTokenId: string;
+  userId: string;
+}
 
 export interface WorldNamespaceOptions {
   /** The open world slug (used as namespace id). */
@@ -360,6 +380,11 @@ export class SocketManager {
       // (ALQ-F1-05).
       getRecentChat: (userId: string, role: number) =>
         getRecentChatForUser(db, userId, role, undefined, store),
+      // BHR-F5-03 x F5-04 x F5-05: the GM moving a mounted rider takes him off the mount; the dismount
+      // side effects (Montado effect, group MAP) live with the mount handler, wired once for both paths.
+      onRiderDismounted: ({ sceneId, riderTokenId, userId }: RiderDismountedInfo): void => {
+        releaseDismountedRider(mountDeps, sceneId, riderTokenId, userId);
+      },
     };
 
     // Register built-in system handlers
@@ -464,7 +489,13 @@ export class SocketManager {
     registry.register("chat:invalidate", buildChatInvalidateHandler(chatDeps));
 
     // Register M2-A vision handlers (walls, lights, door state, move collision)
-    const visionDeps = { store, seqStore, opBuffer, ns };
+    const visionDeps = {
+      store,
+      seqStore,
+      opBuffer,
+      ns,
+      onRiderDismounted: syncDeps.onRiderDismounted,
+    };
     registry.register("wall:create", buildWallCreateHandler(visionDeps));
     registry.register("wall:update", buildWallUpdateHandler(visionDeps));
     registry.register("wall:delete", buildWallDeleteHandler(visionDeps));
@@ -526,6 +557,8 @@ export class SocketManager {
         seqStore,
         opBuffer,
         worldId,
+        ...(systemModule ? { systemModule } : {}),
+        logger: this.logger,
       }),
       applyDamage: (p) => actorMechanicsService.applyDamage(p, "system"),
       applyCondition: (p) => actorMechanicsService.applyCondition(p, "system"),
@@ -550,8 +583,13 @@ export class SocketManager {
       logger: this.logger,
       ...(systemModule !== undefined ? { systemModule } : {}),
     };
+    // BHR onda-6 I-7: the counter publishes its count on the combat document.
+    mapCounter.setStore(store); // BHR-F5-05: a mounted rider and its mount share one MAP counter
+    mapCounter.setPublisher(buildAttackCountPublisher(combatDeps));
     // Handler names match the EnvelopeTypeSchema literals in packages/shared/src/protocol.ts
     registry.register("combat:create", buildCombatCreateHandler(combatDeps));
+    // L3 I4: Command an Animal is recorded on the combat by the server (valid for the owner's turn).
+    registry.register("companion:command", buildCompanionCommandHandler(combatDeps));
     registry.register("combat:beginCombat", buildCombatStartHandler(combatDeps));
     registry.register("combat:addCombatant", buildCombatAddCombatantHandler(combatDeps));
     registry.register("combat:removeCombatant", buildCombatRemoveCombatantHandler(combatDeps));
@@ -573,6 +611,22 @@ export class SocketManager {
     const markDeps = { store, seqStore, opBuffer, ns, targetingStore };
     registry.register("mark:set", buildMarkSetHandler(markDeps));
     registry.register("mark:clear", buildMarkClearHandler(markDeps));
+    // BHR-F5-02 (REQ-BHR-174..176): MountState on the two tokens, decided on the server.
+    const mountDeps = {
+      store,
+      seqStore,
+      opBuffer,
+      ns,
+      onMountChanged: (sceneId: string) => {
+        mapCounter.republishScene(sceneId);
+      },
+      ...(compendiumService ? { compendium: compendiumService } : {}),
+      ...(systemModule ? { systemModule } : {}),
+    };
+    registry.register("mount:mount", buildMountHandler(mountDeps));
+    registry.register("mount:dismount", buildDismountHandler(mountDeps));
+    // BHR-F4-10 (REQ-PET-120..121, DC-07): swap the active animal companion, decided on the server.
+    registry.register("companion:setActive", buildCompanionSetActiveHandler(mountDeps));
     // REQ-CBT-055: clear a targeter's targets when their combatant's turn ends.
     registerTargetingCleanup(targetDeps, eventBus);
 
@@ -654,6 +708,19 @@ export class SocketManager {
         compendium: compSvc,
         actorMechanicsService,
         logger: this.logger,
+      }),
+    );
+
+    // BHR-F4-08 (REQ-BHR-102..105): a pack effect onto other actors, permission by link.
+    registry.register(
+      "effect:apply",
+      buildEffectApplyHandler({
+        store,
+        ns,
+        seqStore,
+        opBuffer,
+        compendium: compSvc,
+        ...(systemModule ? { systemModule } : {}),
       }),
     );
 
@@ -782,6 +849,8 @@ export class SocketManager {
       const auth = socket.handshake.auth as Record<string, unknown>;
       const lastSeq = typeof auth["lastSeq"] === "number" ? auth["lastSeq"] : undefined;
       sendJoinSnapshot(socket, syncDeps, data.userId, data.role, lastSeq);
+      // L2 defect D5: the live targeting outlives a reload; this socket starts empty, so it is told what is alive.
+      replayTargetingTo(socket, targetingStore);
 
       // Register low-level event handlers
       this._registerSocketHandlers(socket, data, registry, seqStore, ns, {

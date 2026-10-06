@@ -55,6 +55,7 @@ import type { SystemModule } from "@fusion/system-api";
 import type { InitiativeFormulaRegistry } from "./initiative-registry.js";
 import type { CombatEventBus } from "./combat-event-bus.js";
 import type { TurnHookRunner } from "./turn-hook-runner.js";
+import type { AttackCountPublisher } from "./map-counter.js";
 import { buildInitiativeRollBroadcaster, type InitiativeRollChatEntry } from "./combat-chat.js";
 import { runActorDerivation } from "../net/derive-runner.js";
 import { resolveWorldVariantRules } from "../documents/world-variant-rules.js";
@@ -78,6 +79,7 @@ import {
   nextTurnIndex,
   previousTurnIndex,
   createDocumentId,
+  resolveEffectiveActor,
 } from "@fusion/shared";
 import type {
   CombatDocument,
@@ -232,9 +234,14 @@ export function broadcastCombatUpdate(
     const needsCombatantStrip =
       typeof diff["combatants"] !== "undefined" && Array.isArray(diff["combatants"]);
     const needsActiveMask = activeIsHidden && typeof diff["activeCombatantId"] !== "undefined";
+    // The attack count names the active combatant: a hidden one stays hidden.
+    const needsCountMask = activeIsHidden && typeof diff["attackCount"] !== "undefined";
+    const needsCommandMask = activeIsHidden && typeof diff["commandMark"] !== "undefined";
 
-    if (needsCombatantStrip || needsActiveMask) {
+    if (needsCombatantStrip || needsActiveMask || needsCountMask || needsCommandMask) {
       const newDiff: Record<string, unknown> = { ...diff };
+      if (needsCountMask) delete newDiff["attackCount"];
+      if (needsCommandMask) delete newDiff["commandMark"];
       if (needsCombatantStrip) {
         newDiff["combatants"] = (diff["combatants"] as Record<string, unknown>[]).filter(
           (c) => c["hidden"] !== true,
@@ -260,6 +267,30 @@ export function broadcastCombatUpdate(
       socket.emit("op", playerEnvelope);
     }
   }
+}
+
+/**
+ * The publisher `MapCounter` calls after a counted attack: stores the count on
+ * the combat (`attackCount`) and broadcasts it like any other combat change, so
+ * a sheet opened or reloaded mid-turn reads the same number the server counts
+ * (onda-6 review I-7). A failed write only logs: the count itself is already
+ * kept by the counter and the attack is never undone.
+ */
+export function buildAttackCountPublisher(deps: CombatHandlerDeps): AttackCountPublisher {
+  return ({ combatId, combatantId, round, count, byActor }) => {
+    try {
+      const attackCount = {
+        combatantId,
+        round,
+        count,
+        ...(byActor !== undefined ? { byActor } : {}),
+      };
+      const updated = persistCombat(deps, combatId, { attackCount });
+      broadcastUpdate(deps, updated, { attackCount });
+    } catch (err) {
+      deps.logger?.warn({ err, combatId }, "[combat] could not publish the attack count");
+    }
+  };
 }
 
 /**
@@ -359,7 +390,7 @@ function buildEnvelope(type: string, payload: unknown, seq: number): Envelope {
  * Persist the Combat document update to the store.
  * Applies the diff on top of the existing document, validates it, and saves.
  */
-function persistCombat(
+export function persistCombat(
   deps: CombatHandlerDeps,
   combatId: string,
   diff: Partial<CombatDocument>,
@@ -518,7 +549,7 @@ function buildSnapshot(combat: CombatDocument): CombatTurnSnapshot {
 // Broadcast + buffer a combat update with optional turnChange
 // ---------------------------------------------------------------------------
 
-function broadcastUpdate(
+export function broadcastUpdate(
   deps: CombatHandlerDeps,
   updatedCombat: CombatDocument,
   diff: Partial<CombatDocument>,
@@ -847,10 +878,11 @@ export function buildCombatAddCombatantHandler(deps: CombatHandlerDeps): Handler
     }
 
     // Resolve token details (name, img, actorId) from the scene's token
-    let name = "Unknown";
+    let name: string | null = null;
     let img: string | null = null;
     let resolvedActorId: string | null = actorId ?? null;
     let hasPlayerOwner = false;
+    let sceneToken: Record<string, unknown> | undefined;
 
     // Try to look up the token in the scene for better defaults
     try {
@@ -859,7 +891,8 @@ export function buildCombatAddCombatantHandler(deps: CombatHandlerDeps): Handler
       if (Array.isArray(tokens)) {
         const token = (tokens as Record<string, unknown>[]).find((t) => t["_id"] === tokenId);
         if (token) {
-          name = typeof token["name"] === "string" ? token["name"] : "Unknown";
+          sceneToken = token;
+          name = typeof token["name"] === "string" ? token["name"] : null;
           img = typeof token["img"] === "string" ? token["img"] : null;
           if (resolvedActorId === null && typeof token["actorId"] === "string") {
             resolvedActorId = token["actorId"];
@@ -869,6 +902,35 @@ export function buildCombatAddCombatantHandler(deps: CombatHandlerDeps): Handler
     } catch {
       // Scene not found or token missing — use defaults; not fatal
     }
+
+    // A token's own name/art are nullable and inherit from its effective actor (spec 41, REQ-TOK-060/RNF-TOK-01):
+    // the combat panel lists such a token by the actor's name, so the combatant carries it too (L2 defect D6).
+    if ((name === null || img === null) && resolvedActorId) {
+      try {
+        const baseActor = deps.store.get("actors", resolvedActorId);
+        const delta = sceneToken?.["actorDelta"];
+        const effective = resolveEffectiveActor(
+          {
+            actorLink: sceneToken?.["actorLink"] !== false,
+            actorDelta:
+              typeof delta === "object" && delta !== null && !Array.isArray(delta)
+                ? (delta as { name?: string; img?: string })
+                : null,
+          },
+          {
+            name: typeof baseActor["name"] === "string" ? baseActor["name"] : "",
+            img: typeof baseActor["img"] === "string" ? baseActor["img"] : null,
+            system: {},
+          },
+        );
+        if (name === null && effective.name !== "") name = effective.name;
+        if (img === null && typeof effective.img === "string" && effective.img !== "")
+          img = effective.img;
+      } catch {
+        // Actor not found — keep what the token gave; not fatal
+      }
+    }
+    const combatantName = name ?? "Unknown";
 
     // Check if the actor has a player owner. "Has a player owner" is true
     // when EITHER `ownership.default` itself resolves to OWNER (every player
@@ -901,7 +963,7 @@ export function buildCombatAddCombatantHandler(deps: CombatHandlerDeps): Handler
       _id: createDocumentId(),
       tokenId,
       actorId: resolvedActorId,
-      name,
+      name: combatantName,
       img,
       initiative: initiative ?? null,
       initiativeStatistic: null,

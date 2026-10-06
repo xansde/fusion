@@ -279,6 +279,16 @@ deriveAnimalCompanion(input: { type: CompanionType; stage: CompanionStage; maste
 // companheiro ligado ao cavaleiro ou o Mestre faz. Mover a montaria move o cavaleiro no mesmo
 // write; mover o cavaleiro montado (não privilegiado) é recusado (só Montar desmonta).
 // mapGroupOf(combatantId): cavaleiro e montaria compartilham o MapCounter enquanto montados.
+// Na peça da MONTARIA, o servidor também carimba, ao mover o par durante um combate em andamento:
+//   movedTurn?: { combatId: string; round: number; turn: number }   // turn = turnIndex do combate
+// "Este turno" = movedTurn.combatId igual, com o round e o turnIndex ATUAIS desse combate (não encerrado),
+// seja quem for o combatente ativo: o companheiro age no turno do dono e não precisa ser combatente.
+// O carimbo é escrito pelo servidor no mesmo write do movimento (mount-follow) e limpo com o resto da flag.
+// Texto/predicado de "Apoio bloqueado": `companionSupportBlockReasons` em @fusion/shared (servidor E ficha).
+// op: "companion:setActive" { companionActorId } — troca o companheiro ativo do dono (BHR-F4-10): só
+// GM/assistente ou OWNER do dono; recusa (CONFLICT) montado ou com combate em andamento na cena (exploração).
+// Desmontar não reduz o MAP no turno: cada membro fica com a contagem que o grupo tinha (REQ-CBT-071).
+// Efeito "Montado": em token vinculado vai ao ator; em token NÃO vinculado, a `actorDelta.items` do token.
 ```
 
 ### 2.6 `ExecutableActionRow` (BHR-F2-08, recorte da GUE-F5-01)
@@ -287,7 +297,7 @@ deriveAnimalCompanion(input: { type: CompanionType; stage: CompanionStage; maste
 // sheets/pf2e/src/lib/sheets/pf2e/actions/executableRows.ts
 interface ExecutableActionRow {
   slug: string; // "hunt-prey", "command-an-animal", "support", "mount", "trip", ...
-  requires?: ("target" | "mounted" | "not-mounted" | "companion")[];
+  requires?: ("target" | "mounted" | "not-mounted" | "companion" | "inactive-companion")[];
   roll?: {
     kind: "skill" | "attack";
     skill?: SkillSlug;
@@ -296,6 +306,14 @@ interface ExecutableActionRow {
   onUse: { selfEffect?: EffectRef; mark?: TokenMark["slug"]; card: string; op?: string };
 }
 // registro dirigido por slug; a linha sem registro continua navegável (D-G08).
+// "inactive-companion": há outro companheiro animal (inativo) para chamar (Chamar Companheiro).
+// ActionContext (o que a aba entrega ao gate) ganhou:
+//   inactiveCompanions?: { actorId; name }[]   // quem Chamar Companheiro pode trazer
+//   supportBlock?: string | null                // motivo do Apoio desligado (`supportBlockReasons`)
+//   inEncounter?: boolean                       // combate na cena do companheiro: Chamar Companheiro desabilita
+// ExecutableUse ganhou `companionOp` (a op companion:setActive montada pelo clique).
+// `supportBlockReasons({ companionActive?, mountBlock? })` (actions/supportGate.ts) lista os motivos; o predicado
+// vive em @fusion/shared (`companionSupportBlockReasons`) e o servidor aplica o MESMO no `effect:apply` do Apoio.
 ```
 
 ### 2.7 `ManeuverSizeLimit`, `WeaponRunes`, `GmOnlyActorFields`
@@ -325,6 +343,46 @@ interface ExecutableActionRow {
 >   condicional de `target:`.
 >
 > Consumidores (BHR-F2-06, F3-09, F3-10) seguem este texto, não o §2.8 do plano de origem.
+
+### 2.9 `SkillCheckContext`, `AttackCheckContext` e a contagem do MAP (BHR-F3-03, BHR-F3-04, BHR-F6-01)
+
+> **Emenda (revisão da onda 6, I-3, I-4, I-5, I-7, M-7).** Valem sobre o §2.6 da GUE:
+>
+> ```ts
+> // packages/shared/src/chat/types.ts
+> SkillCheckContext   = { kind: "skill", targetTokenId: string /* max 120 */, against: SkillCheckDefense, maneuver?: string }
+> SkillCheckDefense   = "fortitude" | "reflex" | "will" | "ac" | "perception"   // + "level" (F3-09, abaixo)
+> AttackCheckContext  = { kind: "attack", targetTokenId?: string, mapIndex: 0 | 1 | 2, agile?: boolean }
+> // mensagem gravada: { kind: "attack", mapIndex, agile?, attackNumber? } / { kind: "skill", against, maneuver?, attackNumber? }
+> // combate (CombatDocument): attackCount: { combatantId, round, count } | null
+> ```
+>
+> - **`max(120)` em `targetTokenId`** é do Bhrotto; a GUE §2.6 não o tem. Fica.
+> - **CD lida no servidor, nesta ordem** (I-3): `derived.<x>.dc`, depois `10 + derived.<x>.total`, depois `10 + valor autorado`. NPC e
+>   companheiro animal publicam só `total`, e o `total` já conta condições e efeitos (amedrontado baixa a CD).
+> - **Defesa fixa por manobra** (I-4): com `maneuver`, o servidor impõe a defesa da ação (Derrubar e Desarmar: Reflexos; Agarrar, Empurrar e
+>   Reposicionar: Fortitude; Fintar: Percepção; Desmoralizar: Vontade) e recusa divergência ou manobra desconhecida com `VALIDATION_FAILED`. A
+>   tabela é `MANEUVER_DEFENSE` em `engine-2e/src/maneuvers.ts`; a `ManeuverDef` da GUE-F5-03 a absorve no mesmo arquivo, sem mudar os nomes.
+> - **`against: "level"` (I-5, a implementar na BHR-F3-09):** o Rememorar Conhecimento sobre uma criatura não usa Percepção nem Vontade. Na regra
+>   remaster (GM Core, CDs por nível), a CD é a **CD por nível da criatura**, ajustada pela raridade (incomum +2, raro +5, único +10). O servidor lê
+>   nível e raridade do alvo e aplica a tabela. Enquanto a F3-09 não entra, o enum não tem o valor e o Rememorar fica só com o total, sem grau.
+> - **MAP contado pelo servidor** (D-G03, I-7): todo golpe declarado como `kind: "attack"` conta, com ou sem alvo (`targetTokenId` é opcional; sem
+>   ele nada é graduado). Manobra graduada também conta; Rememorar Conhecimento não. A mensagem grava `attackNumber`; o combate publica
+>   `attackCount` do combatente ativo, válido só para `combatantId = activeCombatantId` e `round` corrente, mascarado quando o ativo é oculto.
+>   O cliente lê esse número; recarregar a ficha no meio do turno mantém o MAP. **Aberto (pergunta de produto):** forçar um golpe para fora da
+>   contagem (`countsForMap: false`) não existe; na regra todo ataque conta.
+
+### 2.10 Emenda da revisão da onda 9 (I-3)
+
+> **Emenda.** O `ManeuverDef` da BHR-F6-03 (`systems/engine-2e/src/maneuvers.ts`) segue o §2.6 do Guerreiro e acrescenta, **sem quebrá-lo**:
+>
+> - **Chaves de grau** do `outcome`: `critSuccess` / `success` / `failure` / `critFailure`, como no contrato. `maneuverOutcome(slug, degree)` aceita
+>   tanto essas chaves quanto o grau que o servidor grava (`criticalSuccess`...).
+> - **Campos aditivos** de `ManeuverDef`: `attack` (traço ataque: o MAP vale e a ação conta), e, em cada `ManeuverOutcome`, `note` (texto do card) e, na
+>   condição, `on` (`"target"` padrão ou `"self"`). Um tipo novo, `{ kind: "release", slugs }`, oferece soltar o alvo (falha do Agarrar).
+> - **§2.8, `RollResolution`/`RollResolutionInput`** ganham `extraDamage` (dados extras que o servidor judia: Apoio, `ResolvedExtraDamage`),
+>   `companions` (os companheiros animais do ator) e `masterActor` (o dono, só para um companheiro ativo). Todos opcionais.
+> - **Origem do Apoio:** o servidor grava `system.fusion.origin.companionActorId` no efeito de Apoio; alcance e dados saem desse companheiro.
 
 ## 3. Regras de colisão
 
@@ -781,7 +839,7 @@ interface ExecutableActionRow {
 
 - **Repo**: satélite
 - **Onde**: `executableRows.ts` (`hunt-prey` com variante Caçador de Monstros); `abilityCardVM.ts`; efeito "Caçador de Monstros" (BHR-F1-05)
-- **Entrega**: Com o talento, Caçar Presa inclui no **mesmo card** um Rememorar Conhecimento sobre a presa (perícia escolhida pelo jogador; rolagem no servidor). Em sucesso crítico, o card aplica o efeito "+1 circunstância no próximo ataque contra a presa" (`after-roll`, BHR-F2-06; predicado `target:mark:hunted-prey`). "1×/dia por criatura" fica exibido, não imposto (DC-04).
+- **Entrega**: Com o talento, Caçar Presa inclui no **mesmo card** um Rememorar Conhecimento sobre a presa (perícia escolhida pelo jogador; rolagem no servidor). **A CD é a CD por nível da criatura, ajustada pela raridade** (regra remaster, GM Core), não Percepção nem Vontade: a F3-09 estende `SkillCheckDefense` com `against: "level"` e o servidor lê nível e raridade do alvo (§2.9, revisão da onda 6 I-5). Em sucesso crítico, o card aplica o efeito "+1 circunstância no próximo ataque contra a presa" (`after-roll`, BHR-F2-06; predicado `target:mark:hunted-prey`). "1×/dia por criatura" fica exibido, não imposto (DC-04).
 - **Depende de**: BHR-F3-08, BHR-F2-06, BHR-F2-05, BHR-F6-01
 - **Paralelo com**: BHR-F4-03, BHR-F4-05, BHR-F4-06
 - **Modelo / esforço**: sonnet / medium.
@@ -853,7 +911,7 @@ interface ExecutableActionRow {
 
 - **Repo**: core
 - **Onde**: `packages/server/src/net/handlers/doc-handlers.ts` (após o update do ator; padrão de `rederiveActorsForChangedVariantRules`, `:1155`); `packages/server/src/documents/derive.ts`
-- **Entrega**: Atualizar um ator que é `masterActorId` de companheiros re-deriva cada companheiro ligado no servidor e inclui os que mudaram no mesmo broadcast. Fecha a Q-PET-02 (`specs/29:472`). Sem recálculo no cliente.
+- **Entrega**: Atualizar um ator que é `masterActorId` de companheiros re-deriva cada companheiro ligado no servidor e inclui os que mudaram no mesmo broadcast. Fecha a Q-PET-02 (`specs/29:472`). Sem recálculo no cliente. **O servidor grava `system.master.level` a partir do ator dono** (dependência da BHR-F4-02, revisão da onda 6 I-9): o jogador não escreve `system.master.*` num companheiro animal, e sem esse cache a derivação grava `derived.companion.error` em vez de assumir o nível 1.
 - **Depende de**: BHR-F4-02
 - **Paralelo com**: BHR-F3-09, BHR-F4-05, BHR-F4-06
 - **Modelo / esforço**: sonnet / medium.
@@ -909,7 +967,7 @@ interface ExecutableActionRow {
 
 - **Repo**: satélite
 - **Onde**: `executableRows.ts` (registro `command-an-animal`); ficha do companheiro (BHR-F4-06); card em `abilityCardVM.ts`
-- **Entrega**: Na ficha do companheiro, "Comandar" posta o card "Bhrotto comanda o urso: 2 ações" sem teste de Natureza (regra do companheiro); montaria comum segue com teste (fora do Bhrotto). Sem contador de ações (D-15): o card é registro, não orçamento.
+- **Entrega**: Na ficha do companheiro, "Comandar" posta o card "Bhrotto comanda o urso: 2 ações" sem teste de Natureza (regra do companheiro); montaria comum segue com teste (fora do Bhrotto). Comandar custa 1 ação (◆); as 2 ações do texto são as que o companheiro ganha. Sem contador de ações (D-15): o card é registro, não orçamento.
 - **Depende de**: BHR-F4-06, BHR-F2-08
 - **Paralelo com**: BHR-F3-11, BHR-F4-10, BHR-F5-03
 - **Modelo / esforço**: sonnet / low.
@@ -951,7 +1009,7 @@ interface ExecutableActionRow {
 
 - **Repo**: satélite
 - **Onde**: `executableRows.ts` (registro `call-companion`, ação de exploração); `characterSheetVM.ts` (vínculos na ficha do Bhrotto); `system.companion.active`
-- **Entrega**: Chamar Companheiro (concedido pela Dedicação) aparece na aba Ações e troca qual companheiro está **ativo**: o ativo é o único que age, apoia e herda a Presa; o inativo continua com ficha legível e sem token em cena (o Mestre coloca o token do novo ativo, ou o servidor o troca no lugar do anterior se ele estiver em cena). Os vínculos na ficha do Bhrotto mostram qual está ativo.
+- **Entrega**: Chamar Companheiro (concedido pela Dedicação) aparece na aba Ações e troca qual companheiro está **ativo**: o ativo é o único que age, apoia e herda a Presa; o inativo continua com ficha legível e sem token em cena (o Mestre coloca o token do novo ativo, ou o servidor o troca no lugar do anterior se ele estiver em cena). Os vínculos na ficha do Bhrotto mostram qual está ativo. É atividade de exploração: o servidor recusa (CONFLICT, com o motivo) com combate em andamento na cena do ativo e a aba mostra a linha desabilitada com o motivo; a ficha do companheiro também mostra o motivo do Apoio bloqueado (inativo, montaria que andou).
 - **Depende de**: BHR-F4-05, BHR-F4-06
 - **Paralelo com**: BHR-F3-11, BHR-F4-07, BHR-F5-03
 - **Modelo / esforço**: sonnet / medium.
@@ -1037,11 +1095,11 @@ interface ExecutableActionRow {
 
 - **Repo**: core
 - **Onde**: `packages/server/src/combat/map-counter.ts` (`mapGroupOf`, BHR-F3-04)
-- **Entrega**: Enquanto montados, cavaleiro e montaria compartilham o contador: golpe do Bhrotto e depois golpe do antílope = −5 no do antílope. Desmontar separa os contadores (o já contado no turno fica com cada um).
+- **Entrega**: Enquanto montados, cavaleiro e montaria compartilham o contador: golpe do Bhrotto e depois golpe do antílope = −5 no do antílope. Desmontar separa os contadores, mas o MAP nunca diminui no turno (RAW, decidido em 2026-10-06): cada um fica com a contagem que o grupo tinha naquele momento e os ataques novos somam separados.
 - **Depende de**: BHR-F5-02, BHR-F3-04
 - **Paralelo com**: BHR-F3-11, BHR-F4-07, BHR-F4-10
 - **Modelo / esforço**: sonnet / medium.
-- **Teste (TDD)**: montado, ataque do cavaleiro e depois da montaria → índices 0 e 1; desmontado → 0 e 0; `turnStart` zera o grupo.
+- **Teste (TDD)**: montado, ataque do cavaleiro e depois da montaria → índices 0 e 1; desmontado desde o início → 0 e 0; desmontar no meio do turno → cada um com a contagem do grupo naquele momento (nunca menos), ataques novos somam separados; `turnStart` zera o grupo.
 - **Prova visual (print)**: botão de golpe do antílope já com −5 depois do golpe do Bhrotto.
 - **Spec/REQ**: `REQ-CBT-070..071`, `REQ-BHR-180`
 - **Tamanho**: P
@@ -1081,7 +1139,7 @@ interface ExecutableActionRow {
 
 - **Repo**: core
 - **Onde**: `packages/shared/src/chat/types.ts:389-398` (`SkillCheckContext`, 4º membro de `CheckContextSchema`); `packages/server/src/chat/chat-handler.ts:451-507,1458` (`readActorDefense`)
-- **Entrega**: Ficha da GUE-F5-05: `{ kind: "skill", targetTokenId, against, maneuver? }`; CD lida no servidor de `system.derived.saves.<n>.dc`/`perception.dc`; sem alvo resolvível, sem grau. Usada pelas manobras e pelo Rememorar Conhecimento contra a presa.
+- **Entrega**: Ficha da GUE-F5-05: `{ kind: "skill", targetTokenId, against, maneuver? }`; CD lida no servidor de `system.derived.saves.<n>.dc`/`perception.dc`; sem alvo resolvível, sem grau. Usada pelas manobras e pelo Rememorar Conhecimento contra a presa. Emenda da onda 6 (§2.9): CD por `.dc`, depois `10 + total`, depois `10 + autorado`; defesa fixa por manobra; o Rememorar usa `against: "level"` (BHR-F3-09).
 - **Depende de**: BHR-F3-03
 - **Paralelo com**: BHR-F3-05, BHR-F3-10, BHR-F4-02
 - **Modelo / esforço**: sonnet / high.

@@ -205,8 +205,8 @@ export class CombatCanvasController {
    */
   private _reconcilePrey(): void {
     const marks = collectPreyMarks({
-      actors: this._mirror.getByType<PreyActorLike>("actors"),
-      scenes: this._mirror.getByType<PreySceneLike>("scenes"),
+      actors: this._mirror.getByType<PreyActorLike>("Actor"),
+      scenes: this._mirror.getByType<PreySceneLike>("Scene"),
       viewerIsPrivileged: this._isGm,
       viewerUserId: this._userId,
     });

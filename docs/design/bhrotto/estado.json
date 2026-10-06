@@ -270,6 +270,267 @@
       "resumo": "deriveAnimalCompanion puro com breakdown; track obrigatório no Especializado (I-2); CA treinada em todos os estágios confirmada",
       "core_sha": "bb1c5a9a",
       "sat_sha": "2650056"
+    },
+    "BHR-F3-05": {
+      "status": "integrada",
+      "tentativas": 1,
+      "onda": 6,
+      "modelo": "sonnet/medium",
+      "resumo": "Botão de golpe com MAP corrente (+9/+4/-1; ágil +9/+5/+1) e seletor recolhido 'Forçar MAP'; MAP agora contado e publicado pelo servidor (attackCount), revisão I-6/I-7.",
+      "core_sha": "596ad1a58e50d5d442e0edf4c9505db2bf35e200",
+      "sat_sha": "fad65ad997bf8be69ac5decd78bd8a31fcfed75f"
+    },
+    "BHR-F3-10": {
+      "status": "integrada",
+      "tentativas": 1,
+      "onda": 6,
+      "modelo": "sonnet/high",
+      "resumo": "Linha 'Contra a presa' e '+1 contra a presa (Astúcia)' na CA só com marca, sem nome do alvo; bônus de presa no total do golpe e na perícia (rolagem leva alvo, I-8).",
+      "core_sha": "596ad1a58e50d5d442e0edf4c9505db2bf35e200",
+      "sat_sha": "fad65ad997bf8be69ac5decd78bd8a31fcfed75f"
+    },
+    "BHR-F4-02": {
+      "status": "integrada",
+      "tentativas": 1,
+      "onda": 6,
+      "modelo": "sonnet/high",
+      "resumo": "Familiar animalCompanion derivado por deriveAnimalCompanion a partir do nível do dono; campos derivados somente leitura (doc:update recusa master/companion, I-9); paridade pf2e-sf2e.",
+      "core_sha": "596ad1a58e50d5d442e0edf4c9505db2bf35e200",
+      "sat_sha": "fad65ad997bf8be69ac5decd78bd8a31fcfed75f"
+    },
+    "BHR-F4-08": {
+      "status": "integrada",
+      "tentativas": 1,
+      "onda": 6,
+      "modelo": "sonnet/high",
+      "resumo": "Op effect:apply com permissão DC-06 no servidor; expiry do expiryTemplate do pack (I-1); efeito tem de ser referenciado pela origem e respeita pack oculto (I-2); bloqueio de retype para familiar.",
+      "core_sha": "596ad1a58e50d5d442e0edf4c9505db2bf35e200",
+      "sat_sha": "fad65ad997bf8be69ac5decd78bd8a31fcfed75f"
+    },
+    "BHR-F5-01": {
+      "status": "integrada",
+      "tentativas": 1,
+      "onda": 6,
+      "modelo": "sonnet/medium",
+      "resumo": "position.ts: sizeSideCells, sizeRank, tokenCells, distanceBetween (borda a borda, diagonal 5/10), areAdjacent; só grade quadrada.",
+      "core_sha": "596ad1a58e50d5d442e0edf4c9505db2bf35e200",
+      "sat_sha": "fad65ad997bf8be69ac5decd78bd8a31fcfed75f"
+    },
+    "BHR-F6-01": {
+      "status": "integrada",
+      "tentativas": 1,
+      "onda": 6,
+      "modelo": "sonnet/high",
+      "resumo": "SkillCheckContext 4º membro do CheckContextSchema; CD lida no servidor (.dc → 10+total → 10+autorado, I-3); defesa fixada pela manobra (MANEUVER_DEFENSE, I-4).",
+      "core_sha": "596ad1a58e50d5d442e0edf4c9505db2bf35e200",
+      "sat_sha": "fad65ad997bf8be69ac5decd78bd8a31fcfed75f"
+    },
+    "BHR-F3-09": {
+      "status": "integrada",
+      "tentativas": 1,
+      "onda": 7,
+      "modelo": "sonnet/medium",
+      "resumo": "Caçar Presa com Caçador de Monstros traz o Rememorar (rolagem cega) no mesmo card; CD por nível do GM Core + raridade (against: level) no servidor; crítico aplica +1 contra a presa pelo servidor, 1x por mensagem; não conta no MAP.",
+      "core_sha": "cacb761a",
+      "sat_sha": "ea157db"
+    },
+    "BHR-F4-03": {
+      "status": "integrada",
+      "tentativas": 1,
+      "onda": 7,
+      "modelo": "sonnet/medium",
+      "resumo": "Servidor grava system.master.level no companheiro (criação, troca de tipo, update do dono) e re-deriva no mesmo broadcast; dono troca typeSlug/size com validação (D-B09); guarda de flags.fusion.mount contra forja.",
+      "core_sha": "cacb761a",
+      "sat_sha": "ea157db"
+    },
+    "BHR-F4-05": {
+      "status": "integrada",
+      "tentativas": 1,
+      "onda": 7,
+      "modelo": "sonnet/high",
+      "resumo": "Sub-slots 'Escolher companheiro' no Plano, picker de tipo com prévia de Maduro sem nível de classe, mesmo tipo 2x, antílope Médio/Grande, Trocar tipo; órfão volta ao sub-slot vazio.",
+      "core_sha": "cacb761a",
+      "sat_sha": "ea157db"
+    },
+    "BHR-F4-06": {
+      "status": "integrada",
+      "tentativas": 1,
+      "onda": 7,
+      "modelo": "sonnet/high",
+      "resumo": "Ficha própria do companheiro (CompanionSheet) com PV editável, derivados só leitura com breakdown, golpes com MAP próprio do companheiro, perícias roláveis.",
+      "core_sha": "cacb761a",
+      "sat_sha": "ea157db"
+    },
+    "BHR-F5-02": {
+      "status": "integrada",
+      "tentativas": 1,
+      "onda": 7,
+      "modelo": "sonnet/high",
+      "resumo": "mount:mount/mount:dismount no servidor com MountState nos dois tokens; tamanho, adjacência e vínculo validados; desmonte para casa livre; recusa mostrada ao jogador.",
+      "core_sha": "cacb761a",
+      "sat_sha": "ea157db"
+    },
+    "BHR-F6-02": {
+      "status": "integrada",
+      "tentativas": 1,
+      "onda": 7,
+      "modelo": "sonnet/medium",
+      "resumo": "Card oferece 'Aplicar <condição>' por clique humano; servidor restringe o jogador à targetSnapshot quando há source.messageId. Botão sem emissor até a F6-03.",
+      "core_sha": "cacb761a",
+      "sat_sha": "ea157db"
+    },
+    "BHR-F3-11": {
+      "status": "integrada",
+      "tentativas": 1,
+      "onda": 8,
+      "modelo": "sonnet/medium",
+      "resumo": "Roteiro tutorial-e2e do L2 (local na skill, não versionado, como o do L1): 3 execuções; achou 7 defeitos + 4 novos, todos corrigidos em 2 rodadas na feat/bhrotto; execução final 35/35, 33 prints, inclui reprint dos 2 defeitos do L1.",
+      "core_sha": "3d73526c",
+      "sat_sha": "4d6d37f"
+    },
+    "BHR-F4-07": {
+      "status": "integrada",
+      "tentativas": 1,
+      "onda": 8,
+      "modelo": "sonnet/low",
+      "resumo": "Comandar um Animal: companheiro posta card sem rolagem (custo ◆, companheiro ganha 2 ações); NPC não companheiro pede Natureza contra Vontade; ligado na ActionsTab e na ficha do companheiro.",
+      "core_sha": "3d73526c",
+      "sat_sha": "4d6d37f"
+    },
+    "BHR-F4-10": {
+      "status": "integrada",
+      "tentativas": 1,
+      "onda": 8,
+      "modelo": "sonnet/medium",
+      "resumo": "Chamar Companheiro: op companion:setActive no servidor, exatamente um ativo (também no doc:update do Mestre), troca o token no lugar, recusa se montado ou em combate (exploração); Apoio do inativo bloqueado com motivo.",
+      "core_sha": "3d73526c",
+      "sat_sha": "4d6d37f"
+    },
+    "BHR-F5-03": {
+      "status": "integrada",
+      "tentativas": 1,
+      "onda": 8,
+      "modelo": "sonnet/high",
+      "resumo": "Mover a montaria move o cavaleiro no mesmo write (doc:update e token:move); cavaleiro montado recusado para jogador; Mestre move e desmonta (remove efeito Montado e republica MAP); movedTurn {combatId, round, turnIndex}; empilhamento no canvas.",
+      "core_sha": "3d73526c",
+      "sat_sha": "4d6d37f"
+    },
+    "BHR-F5-04": {
+      "status": "integrada",
+      "tentativas": 1,
+      "onda": 8,
+      "modelo": "sonnet/medium",
+      "resumo": "Efeito Montado (−2 circ. Reflexos) aplicado/removido pelo servidor em mount/dismount (token não vinculado: actorDelta); faixa compacta Montado/Reflexos −2; Apoio da montaria sem mount bloqueado depois de mover, na VM e no servidor (predicado compartilhado).",
+      "core_sha": "3d73526c",
+      "sat_sha": "4d6d37f"
+    },
+    "BHR-F5-05": {
+      "status": "integrada",
+      "tentativas": 1,
+      "onda": 8,
+      "modelo": "sonnet/medium",
+      "resumo": "MAP compartilhado cavaleiro×montaria via vínculo de mount; desmontar deixa cada um com a contagem do grupo (MAP não diminui no turno, RAW); turnStart zera; payload republicado em mount/dismount.",
+      "core_sha": "3d73526c",
+      "sat_sha": "4d6d37f"
+    },
+    "BHR-F4-09": {
+      "status": "integrada",
+      "tentativas": 1,
+      "onda": 9,
+      "modelo": "sonnet/high",
+      "resumo": "Apoio do urso: efeito no dono até o turnStart dele; servidor anexa +1d8 cortante (2d8 ágil/selvagem/especializado) ao golpe que acerta alvo ao alcance do companheiro gravado na origem; não dobra no crítico (RAW: dano separado).",
+      "core_sha": "e934e1bb",
+      "sat_sha": "57772ed"
+    },
+    "BHR-F4-11": {
+      "status": "integrada",
+      "tentativas": 1,
+      "onda": 9,
+      "modelo": "sonnet/medium",
+      "resumo": "Companheiro ativo herda só Caçar Presa e Astúcia do dono (predicado único por origem do efeito, servidor e ficha); inativo/outro dono/Caçador de Monstros não herdam.",
+      "core_sha": "e934e1bb",
+      "sat_sha": "57772ed"
+    },
+    "BHR-F6-03": {
+      "status": "integrada",
+      "tentativas": 1,
+      "onda": 9,
+      "modelo": "sonnet/medium",
+      "resumo": "Agarrar, Empurrar e Derrubar na aba Ações: ManeuverDef/ManeuverOutcome no engine-2e (chaves do contrato §2.6, emenda §2.10), Atletismo contra a defesa fixa no servidor, MAP conta e penaliza, oferta por grau por clique.",
+      "core_sha": "e934e1bb",
+      "sat_sha": "57772ed"
+    },
+    "BHR-F7-01": {
+      "status": "integrada",
+      "tentativas": 1,
+      "onda": 9,
+      "modelo": "sonnet/medium",
+      "resumo": "Editor de runas em qualquer arma (potência, runa de ataque, Espaço N de propriedade em texto livre), prévia derivada com tipo de dano, sem bloqueio; grava system.runes pelo doc:update do dono.",
+      "core_sha": "e934e1bb",
+      "sat_sha": "57772ed"
+    },
+    "BHR-F7-02": {
+      "status": "integrada",
+      "tentativas": 1,
+      "onda": 9,
+      "modelo": "sonnet/medium",
+      "resumo": "system.build.gmExceptions só Mestre no servidor (update e create); carteira continua do dono.",
+      "core_sha": "e934e1bb",
+      "sat_sha": "57772ed"
+    },
+    "BHR-F5-06": {
+      "status": "integrada",
+      "tentativas": 1,
+      "onda": 10,
+      "modelo": "sonnet/medium",
+      "resumo": "Apoio do antílope: +1d6 sangramento persistente no dono, só montado (requiresMounted), alcance medido do token da montaria; isWithinStrikeReach/strikeDistance (alcance de qualquer célula da montaria) prontos e testados, sem consumidor — o Fusion não checa alcance de golpe (pergunta de UI ao Alexandre em ajustes-futuros).",
+      "core_sha": "386ae740",
+      "sat_sha": "b6dcf76"
+    },
+    "BHR-F6-04": {
+      "status": "integrada",
+      "tentativas": 1,
+      "onda": 10,
+      "modelo": "sonnet/medium",
+      "resumo": "ManeuverSizeLimit: Agarrar/Empurrar/Derrubar até +1 tamanho; Lutador de Titãs +2 (+3 lendário); linha desabilitada com motivo; handler fusion-maneuver-size-limit; regra curada via rule-fixes.mjs; servidor recusa alvo grande demais.",
+      "core_sha": "386ae740",
+      "sat_sha": "b6dcf76"
+    },
+    "BHR-F7-03": {
+      "status": "integrada",
+      "tentativas": 1,
+      "onda": 10,
+      "modelo": "sonnet/low",
+      "resumo": "Mestre ganha 'Ajustar carteira' (botão + modal, por moeda, total em po ao vivo, validação); jogador segue editando a própria; servidor provado (caracterização).",
+      "core_sha": "386ae740",
+      "sat_sha": "b6dcf76"
+    },
+    "BHR-F7-04": {
+      "status": "integrada",
+      "tentativas": 1,
+      "onda": 10,
+      "modelo": "sonnet/medium",
+      "resumo": "Acesso do Noble Bloom (herança crisântemo) via system.access; exceção do Mestre em system.build.gmExceptions; selo 'liberado pelo Mestre' no generalFeat-3; jogador não grava (servidor).",
+      "core_sha": "386ae740",
+      "sat_sha": "b6dcf76"
+    },
+    "BHR-F2-09": {
+      "status": "integrada",
+      "tentativas": 1,
+      "onda": 11,
+      "modelo": "sonnet/medium",
+      "resumo": "Gate bhrotto-rules dirigido por dado: system.rules[] de 13 documentos reais, cada forma exige leitor de produção, produtor de target:mark:* e action:* e consumidor de roll option; Buscar/Rastrear viraram linhas roláveis (action:seek cega / action:track) para o +2 da Presa valer; grant-item confere pack e materializeGrants real; negativos B7–B10; KNOWN_INERT (teto 2: ignore-range-penalty, grants-hunt-prey).",
+      "core_sha": "38d4016e",
+      "sat_sha": "42c9250"
+    },
+    "BHR-F5-07": {
+      "status": "integrada",
+      "tentativas": 1,
+      "onda": 11,
+      "modelo": "sonnet/medium",
+      "resumo": "Roteiro tutorial-e2e do L3 (local na skill), prints em .fusion-build/bhrotto/L3/; achou D1–D11; D1–D8 corrigidos na feat/bhrotto (dono do companheiro, botão Apoio real + companion:command por turno no servidor, resync do cliente + envelope vazio de chat no servidor, ordem do chat, alvo/tipo de dano pt-BR, efeitos pt-BR); D9/D10/D11 em ajustes-futuros.",
+      "core_sha": "38d4016e",
+      "sat_sha": "42c9250"
     }
   },
   "rodadas": [
@@ -348,6 +609,108 @@
       },
       "core_sha": "bb1c5a9a",
       "sat_sha": "2650056"
+    },
+    {
+      "onda": 6,
+      "tarefas": ["BHR-F3-05", "BHR-F3-10", "BHR-F4-02", "BHR-F4-08", "BHR-F5-01", "BHR-F6-01"],
+      "integradas": ["BHR-F3-05", "BHR-F3-10", "BHR-F4-02", "BHR-F4-08", "BHR-F5-01", "BHR-F6-01"],
+      "gate": true,
+      "revisao": {
+        "achados": 40,
+        "abertos": "M-1..M-14; countsForMap:false (pergunta de produto); MapCounter em memória após reinício; companheiro sem master.level até a F4-03"
+      },
+      "core_sha": "596ad1a58e50d5d442e0edf4c9505db2bf35e200",
+      "sat_sha": "fad65ad997bf8be69ac5decd78bd8a31fcfed75f"
+    },
+    {
+      "onda": 7,
+      "tarefas": ["BHR-F3-09", "BHR-F4-03", "BHR-F4-05", "BHR-F4-06", "BHR-F5-02", "BHR-F6-02"],
+      "integradas": ["BHR-F3-09", "BHR-F4-03", "BHR-F4-05", "BHR-F4-06", "BHR-F5-02", "BHR-F6-02"],
+      "gate": true,
+      "revisao": {
+        "achados": 39,
+        "abertos": [
+          "I-5: actor:applyCondition sem source.messageId segue pela seleção viva (contrato REQ-SYS-142 da ALQ-F1-09)",
+          "I-1: hook não confere que o pai é hunt-prey; 1x/dia não imposto (DC-04)",
+          "I-6: grantSlotId do órfão no servidor fica o antigo",
+          "menores restantes em onda-7/revisao.md"
+        ]
+      },
+      "core_sha": "cacb761a",
+      "sat_sha": "ea157db"
+    },
+    {
+      "onda": 8,
+      "tarefas": ["BHR-F3-11", "BHR-F4-07", "BHR-F4-10", "BHR-F5-03", "BHR-F5-04", "BHR-F5-05"],
+      "integradas": ["BHR-F3-11", "BHR-F4-07", "BHR-F4-10", "BHR-F5-03", "BHR-F5-04", "BHR-F5-05"],
+      "gate": true,
+      "revisao": {
+        "achados": 46,
+        "abertos": [
+          "I-6 ActionsTab não monta em teste (satélite sem DOM); testes leem fonte — ajustes-futuros.md",
+          "I-8 chat não confere posse do ator que fala (pré-existente) — ajustes-futuros.md",
+          "demais menores em ajustes-futuros.md"
+        ]
+      },
+      "core_sha": "3d73526c",
+      "sat_sha": "4d6d37f"
+    },
+    {
+      "onda": 9,
+      "tarefas": ["BHR-F4-09", "BHR-F4-11", "BHR-F6-03", "BHR-F7-01", "BHR-F7-02"],
+      "integradas": ["BHR-F4-09", "BHR-F4-11", "BHR-F6-03", "BHR-F7-01", "BHR-F7-02"],
+      "gate": true,
+      "revisao": {
+        "achados": 39,
+        "abertos": [
+          "I-4 lanes sem TDD comprovado no histórico (correção comprovou)",
+          "M-2 replay soma o Apoio",
+          "M-8 resto (deadly/fatal na prévia, runas além das vagas)",
+          "M-12 custo do masterActor",
+          "expiração de agarrado/contido"
+        ]
+      },
+      "core_sha": "e934e1bb",
+      "sat_sha": "57772ed"
+    },
+    {
+      "onda": 10,
+      "tarefas": ["BHR-F5-06", "BHR-F6-04", "BHR-F7-03", "BHR-F7-04"],
+      "integradas": ["BHR-F5-06", "BHR-F6-04", "BHR-F7-03", "BHR-F7-04"],
+      "gate": true,
+      "revisao": {
+        "achados": 40,
+        "abertos": [
+          "M-10 gate do Apoio lido da cópia embutida (ajustes-futuros)",
+          "system.access do Noble Bloom fora do mecanismo de curadoria (travado por teste)",
+          "issue #349 citada no rule-fix do Titan Wrestler é a do Natural Medicine",
+          "M-2 da onda 9 (replay soma o Apoio) segue",
+          "alcance da montaria sem consumidor (pergunta ao Alexandre)",
+          "P1 T1 da F7-04 parcial"
+        ]
+      },
+      "core_sha": "386ae740",
+      "sat_sha": "b6dcf76"
+    },
+    {
+      "onda": 11,
+      "tarefas": ["BHR-F2-09", "BHR-F5-07"],
+      "integradas": ["BHR-F2-09", "BHR-F5-07"],
+      "gate": true,
+      "revisao": {
+        "achados": 100,
+        "abertos": [
+          "D9 dano persistente não é aplicado (só anotação)",
+          "D10 cosméticos de tela",
+          "D11 Plano em inglês na visão do Mestre (tradutor sem retry, hipótese)",
+          "corte/cortante não unificado no glossário",
+          "envelope vazio revela que houve mensagem",
+          "menores F2-09 M-2/3/5/6/7/8 e L3 M2/3/5/7/8 em ajustes-futuros",
+          "KNOWN_INERT: ignore-range-penalty (Fusion não aplica penalidade de distância)"
+        ]
+      },
+      "core_sha": "38d4016e",
+      "sat_sha": "42c9250"
     }
   ],
   "lotes": {
@@ -355,6 +718,16 @@
       "fechado": true,
       "core_sha": "bb1c5a9a",
       "sat_sha": "2650056"
+    },
+    "L2": {
+      "fechado": true,
+      "core_sha": "38d4016e",
+      "sat_sha": "42c9250"
+    },
+    "L3": {
+      "fechado": true,
+      "core_sha": "38d4016e",
+      "sat_sha": "42c9250"
     }
   }
 }
