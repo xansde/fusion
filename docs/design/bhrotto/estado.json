@@ -108,25 +108,110 @@
       "resumo": "ItemAlteration completo no importer; Alcance Prênsil convertido",
       "core_sha": "6c9a3883",
       "sat_sha": "6a6dd0b"
+    },
+    "BHR-F2-02": {
+      "status": "integrada",
+      "tentativas": 1,
+      "onda": 3,
+      "modelo": "sonnet/high",
+      "resumo": "Predicado com contexto de alvo: rollPredicate.ts (evaluateRollPredicate, buildRollOptions com prefixos target:/origin:, resolveConditionalModifiers); modificador com target:/origin: fica fora do número base.",
+      "core_sha": "8b5b8c96",
+      "sat_sha": "1398c9b0"
+    },
+    "BHR-F2-05": {
+      "status": "integrada",
+      "tentativas": 1,
+      "onda": 3,
+      "modelo": "opus/high",
+      "resumo": "Servidor re-deriva o ator, resolve condicionais e notas contra o alvo resolvido da rolagem (fonte única com grau e MAP), aceita do cliente só action:*, grava flags.fusion.rollNotes e emite onRollResolved; FusionRollContext + registerRollResolver (emenda §2.8); TokenMarkSource como ponto de extensão para a F3-06.",
+      "core_sha": "8b5b8c96",
+      "sat_sha": "1398c9b0"
+    },
+    "BHR-F2-07": {
+      "status": "integrada",
+      "tentativas": 1,
+      "onda": 3,
+      "modelo": "sonnet/medium",
+      "resumo": "Seção Efeitos ativos na ficha (origem, duração por expiry.on, remover para dono e Mestre); anotação do canto só como dado (cornerNotesFor) porque o slot de HUD da ALQ-F6-01 não existe.",
+      "core_sha": "8b5b8c96",
+      "sat_sha": "1398c9b0"
+    },
+    "BHR-F2-08": {
+      "status": "integrada",
+      "tentativas": 1,
+      "onda": 3,
+      "modelo": "sonnet/high",
+      "resumo": "Registro ExecutableActionRow (§2.6) com requisito e motivo na aba Ações, rolagem com rollContext, Chamar Companheiro na lista; marca hunted-prey e mount ainda SCAFFOLDING (sem TokenMark/MountState).",
+      "core_sha": "8b5b8c96",
+      "sat_sha": "1398c9b0"
+    },
+    "BHR-F3-01": {
+      "status": "integrada",
+      "tentativas": 1,
+      "onda": 3,
+      "modelo": "sonnet/high",
+      "resumo": "Clique direito alterna a mira, Esc limpa a própria mira (fora de diálogo/campo editável), gesto provisório do Alquimista removido.",
+      "core_sha": "8b5b8c96",
+      "sat_sha": "1398c9b0"
+    },
+    "BHR-F3-04": {
+      "status": "integrada",
+      "tentativas": 1,
+      "onda": 3,
+      "modelo": "sonnet/medium",
+      "resumo": "MapCounter no servidor (noteAttack/getAttackCount, reset em turnStart, calculateMapPenalty, mapGroupOf identidade); chamada única no chat-handler; countsForMap fixo em true até a F3-03.",
+      "core_sha": "8b5b8c96",
+      "sat_sha": "1398c9b0"
     }
   },
   "rodadas": [
     {
       "onda": 1,
-      "tarefas": ["BHR-F0-01", "BHR-F0-02", "BHR-F1-01", "BHR-F1-02", "BHR-F1-03", "BHR-F1-06"],
-      "integradas": ["BHR-F0-01", "BHR-F0-02", "BHR-F1-01", "BHR-F1-02", "BHR-F1-03", "BHR-F1-06"],
+      "tarefas": [
+        "BHR-F0-01",
+        "BHR-F0-02",
+        "BHR-F1-01",
+        "BHR-F1-02",
+        "BHR-F1-03",
+        "BHR-F1-06"
+      ],
+      "integradas": [
+        "BHR-F0-01",
+        "BHR-F0-02",
+        "BHR-F1-01",
+        "BHR-F1-02",
+        "BHR-F1-03",
+        "BHR-F1-06"
+      ],
       "gate": true,
       "revisao": {
         "achados": 0,
-        "abertos": ["I-3 print real do Alcance Prênsil (F1-09)", "6 menores (revisao.md)"]
+        "abertos": [
+          "I-3 print real do Alcance Prênsil (F1-09)",
+          "6 menores (revisao.md)"
+        ]
       },
       "core_sha": "f41b9794",
       "sat_sha": "73df51d"
     },
     {
       "onda": 2,
-      "tarefas": ["BHR-F0-03", "BHR-F1-04", "BHR-F1-05", "BHR-F1-07", "BHR-F2-01", "BHR-F2-03"],
-      "integradas": ["BHR-F0-03", "BHR-F1-04", "BHR-F1-05", "BHR-F1-07", "BHR-F2-01", "BHR-F2-03"],
+      "tarefas": [
+        "BHR-F0-03",
+        "BHR-F1-04",
+        "BHR-F1-05",
+        "BHR-F1-07",
+        "BHR-F2-01",
+        "BHR-F2-03"
+      ],
+      "integradas": [
+        "BHR-F0-03",
+        "BHR-F1-04",
+        "BHR-F1-05",
+        "BHR-F1-07",
+        "BHR-F2-01",
+        "BHR-F2-03"
+      ],
       "gate": true,
       "revisao": {
         "achados": 23,
@@ -140,6 +225,38 @@
       },
       "core_sha": "6c9a3883",
       "sat_sha": "6a6dd0b"
+    },
+    {
+      "onda": 3,
+      "tarefas": [
+        "BHR-F2-02",
+        "BHR-F2-05",
+        "BHR-F2-07",
+        "BHR-F2-08",
+        "BHR-F3-01",
+        "BHR-F3-04"
+      ],
+      "integradas": [
+        "BHR-F2-02",
+        "BHR-F2-05",
+        "BHR-F2-07",
+        "BHR-F2-08",
+        "BHR-F3-01",
+        "BHR-F3-04"
+      ],
+      "gate": true,
+      "revisao": {
+        "achados": 52,
+        "abertos": [
+          "I1 em attack-roll: DerivedStrike sem breakdown, condicionais de ataque empilham só entre si",
+          "I7 +1 CA da Astúcia contra a presa fica com a BHR-F3-10",
+          "onRollResolved.targets ainda usa targetSnapshot e não o payload.target",
+          "menores (revisao.md)",
+          "produto: permissão de remover efeito alheio; Presa expira na preparação diária"
+        ]
+      },
+      "core_sha": "8b5b8c96",
+      "sat_sha": "1398c9b0"
     }
   ],
   "lotes": {}
