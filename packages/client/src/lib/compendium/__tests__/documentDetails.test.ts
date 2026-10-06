@@ -1296,7 +1296,7 @@ describe("trait/rarity display names (r15-A1)", () => {
     expect(traitDisplayName("some-new-trait", "pt-BR")).toBe("some new trait");
   });
 
-  it("covers all 275 glossary traits with a non-empty accented value", () => {
+  it("covers all 276 glossary traits with a non-empty accented value", () => {
     // 177 (r15) + 13 sincronizados na r20 (ancestrias planares, overflow,
     // potion, talisman...) + 27 sincronizados na r24 (rage e outros 26 traits
     // — ancestrias elf/human/ghoran, class, oath, consecration entre eles —
@@ -1318,7 +1318,7 @@ describe("trait/rarity display names (r15-A1)", () => {
     // 1 no bump para v0.3.16 (grapple — a Pinça do Armamento de Autômato,
     // satélite #361; o mesmo bump reescreveu os rótulos de amphibious e
     // awakened-animal, sem mudar a contagem).
-    // + 20 do merge da base do Alquimista em alfa (BHR-F0-02: ALQ-F0-02 e onda
+    // + 21 do merge da base do Alquimista em alfa (BHR-F0-02: legacy, ALQ-F0-02 e onda
     // 2 do Alquimista — additive1, adjustment, bomb, as traits de entrega de
     // veneno contact/ingested/injury, mutagen, elixir, splash, infused,
     // virulent e as demais de alchemical-items-core).
@@ -1327,7 +1327,7 @@ describe("trait/rarity display names (r15-A1)", () => {
     // propósito: trait novo no glossário exige regenerar via
     // tools/translate-packs/gen-client-maps.mjs e revisar.
     const keys = Object.keys(TRAIT_NAMES_PT);
-    expect(keys.length).toBe(275);
+    expect(keys.length).toBe(276);
     for (const slug of keys) {
       const pt = traitDisplayName(slug, "pt-BR");
       expect(pt.length).toBeGreaterThan(0);
