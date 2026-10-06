@@ -477,25 +477,92 @@
       "resumo": "system.build.gmExceptions só Mestre no servidor (update e create); carteira continua do dono.",
       "core_sha": "e934e1bb",
       "sat_sha": "57772ed"
+    },
+    "BHR-F5-06": {
+      "status": "integrada",
+      "tentativas": 1,
+      "onda": 10,
+      "modelo": "sonnet/medium",
+      "resumo": "Apoio do antílope: +1d6 sangramento persistente no dono, só montado (requiresMounted), alcance medido do token da montaria; isWithinStrikeReach/strikeDistance (alcance de qualquer célula da montaria) prontos e testados, sem consumidor — o Fusion não checa alcance de golpe (pergunta de UI ao Alexandre em ajustes-futuros).",
+      "core_sha": "386ae740",
+      "sat_sha": "b6dcf76"
+    },
+    "BHR-F6-04": {
+      "status": "integrada",
+      "tentativas": 1,
+      "onda": 10,
+      "modelo": "sonnet/medium",
+      "resumo": "ManeuverSizeLimit: Agarrar/Empurrar/Derrubar até +1 tamanho; Lutador de Titãs +2 (+3 lendário); linha desabilitada com motivo; handler fusion-maneuver-size-limit; regra curada via rule-fixes.mjs; servidor recusa alvo grande demais.",
+      "core_sha": "386ae740",
+      "sat_sha": "b6dcf76"
+    },
+    "BHR-F7-03": {
+      "status": "integrada",
+      "tentativas": 1,
+      "onda": 10,
+      "modelo": "sonnet/low",
+      "resumo": "Mestre ganha 'Ajustar carteira' (botão + modal, por moeda, total em po ao vivo, validação); jogador segue editando a própria; servidor provado (caracterização).",
+      "core_sha": "386ae740",
+      "sat_sha": "b6dcf76"
+    },
+    "BHR-F7-04": {
+      "status": "integrada",
+      "tentativas": 1,
+      "onda": 10,
+      "modelo": "sonnet/medium",
+      "resumo": "Acesso do Noble Bloom (herança crisântemo) via system.access; exceção do Mestre em system.build.gmExceptions; selo 'liberado pelo Mestre' no generalFeat-3; jogador não grava (servidor).",
+      "core_sha": "386ae740",
+      "sat_sha": "b6dcf76"
     }
   },
   "rodadas": [
     {
       "onda": 1,
-      "tarefas": ["BHR-F0-01", "BHR-F0-02", "BHR-F1-01", "BHR-F1-02", "BHR-F1-03", "BHR-F1-06"],
-      "integradas": ["BHR-F0-01", "BHR-F0-02", "BHR-F1-01", "BHR-F1-02", "BHR-F1-03", "BHR-F1-06"],
+      "tarefas": [
+        "BHR-F0-01",
+        "BHR-F0-02",
+        "BHR-F1-01",
+        "BHR-F1-02",
+        "BHR-F1-03",
+        "BHR-F1-06"
+      ],
+      "integradas": [
+        "BHR-F0-01",
+        "BHR-F0-02",
+        "BHR-F1-01",
+        "BHR-F1-02",
+        "BHR-F1-03",
+        "BHR-F1-06"
+      ],
       "gate": true,
       "revisao": {
         "achados": 0,
-        "abertos": ["I-3 print real do Alcance Prênsil (F1-09)", "6 menores (revisao.md)"]
+        "abertos": [
+          "I-3 print real do Alcance Prênsil (F1-09)",
+          "6 menores (revisao.md)"
+        ]
       },
       "core_sha": "f41b9794",
       "sat_sha": "73df51d"
     },
     {
       "onda": 2,
-      "tarefas": ["BHR-F0-03", "BHR-F1-04", "BHR-F1-05", "BHR-F1-07", "BHR-F2-01", "BHR-F2-03"],
-      "integradas": ["BHR-F0-03", "BHR-F1-04", "BHR-F1-05", "BHR-F1-07", "BHR-F2-01", "BHR-F2-03"],
+      "tarefas": [
+        "BHR-F0-03",
+        "BHR-F1-04",
+        "BHR-F1-05",
+        "BHR-F1-07",
+        "BHR-F2-01",
+        "BHR-F2-03"
+      ],
+      "integradas": [
+        "BHR-F0-03",
+        "BHR-F1-04",
+        "BHR-F1-05",
+        "BHR-F1-07",
+        "BHR-F2-01",
+        "BHR-F2-03"
+      ],
       "gate": true,
       "revisao": {
         "achados": 23,
@@ -512,8 +579,22 @@
     },
     {
       "onda": 3,
-      "tarefas": ["BHR-F2-02", "BHR-F2-05", "BHR-F2-07", "BHR-F2-08", "BHR-F3-01", "BHR-F3-04"],
-      "integradas": ["BHR-F2-02", "BHR-F2-05", "BHR-F2-07", "BHR-F2-08", "BHR-F3-01", "BHR-F3-04"],
+      "tarefas": [
+        "BHR-F2-02",
+        "BHR-F2-05",
+        "BHR-F2-07",
+        "BHR-F2-08",
+        "BHR-F3-01",
+        "BHR-F3-04"
+      ],
+      "integradas": [
+        "BHR-F2-02",
+        "BHR-F2-05",
+        "BHR-F2-07",
+        "BHR-F2-08",
+        "BHR-F3-01",
+        "BHR-F3-04"
+      ],
       "gate": true,
       "revisao": {
         "achados": 52,
@@ -530,8 +611,22 @@
     },
     {
       "onda": 4,
-      "tarefas": ["BHR-F1-08", "BHR-F2-04", "BHR-F2-06", "BHR-F3-02", "BHR-F3-06", "BHR-F4-04"],
-      "integradas": ["BHR-F1-08", "BHR-F2-04", "BHR-F2-06", "BHR-F3-02", "BHR-F3-06", "BHR-F4-04"],
+      "tarefas": [
+        "BHR-F1-08",
+        "BHR-F2-04",
+        "BHR-F2-06",
+        "BHR-F3-02",
+        "BHR-F3-06",
+        "BHR-F4-04"
+      ],
+      "integradas": [
+        "BHR-F1-08",
+        "BHR-F2-04",
+        "BHR-F2-06",
+        "BHR-F3-02",
+        "BHR-F3-06",
+        "BHR-F4-04"
+      ],
       "gate": true,
       "revisao": {
         "achados": 64,
@@ -546,20 +641,50 @@
     },
     {
       "onda": 5,
-      "tarefas": ["BHR-F1-09", "BHR-F2-10", "BHR-F3-03", "BHR-F3-07", "BHR-F3-08", "BHR-F4-01"],
-      "integradas": ["BHR-F1-09", "BHR-F2-10", "BHR-F3-03", "BHR-F3-07", "BHR-F3-08", "BHR-F4-01"],
+      "tarefas": [
+        "BHR-F1-09",
+        "BHR-F2-10",
+        "BHR-F3-03",
+        "BHR-F3-07",
+        "BHR-F3-08",
+        "BHR-F4-01"
+      ],
+      "integradas": [
+        "BHR-F1-09",
+        "BHR-F2-10",
+        "BHR-F3-03",
+        "BHR-F3-07",
+        "BHR-F3-08",
+        "BHR-F4-01"
+      ],
       "gate": true,
       "revisao": {
         "achados": 46,
-        "abertos": ["M-2..M-15 (ver onda-5/revisao.md)"]
+        "abertos": [
+          "M-2..M-15 (ver onda-5/revisao.md)"
+        ]
       },
       "core_sha": "bb1c5a9a",
       "sat_sha": "2650056"
     },
     {
       "onda": 6,
-      "tarefas": ["BHR-F3-05", "BHR-F3-10", "BHR-F4-02", "BHR-F4-08", "BHR-F5-01", "BHR-F6-01"],
-      "integradas": ["BHR-F3-05", "BHR-F3-10", "BHR-F4-02", "BHR-F4-08", "BHR-F5-01", "BHR-F6-01"],
+      "tarefas": [
+        "BHR-F3-05",
+        "BHR-F3-10",
+        "BHR-F4-02",
+        "BHR-F4-08",
+        "BHR-F5-01",
+        "BHR-F6-01"
+      ],
+      "integradas": [
+        "BHR-F3-05",
+        "BHR-F3-10",
+        "BHR-F4-02",
+        "BHR-F4-08",
+        "BHR-F5-01",
+        "BHR-F6-01"
+      ],
       "gate": true,
       "revisao": {
         "achados": 40,
@@ -570,8 +695,22 @@
     },
     {
       "onda": 7,
-      "tarefas": ["BHR-F3-09", "BHR-F4-03", "BHR-F4-05", "BHR-F4-06", "BHR-F5-02", "BHR-F6-02"],
-      "integradas": ["BHR-F3-09", "BHR-F4-03", "BHR-F4-05", "BHR-F4-06", "BHR-F5-02", "BHR-F6-02"],
+      "tarefas": [
+        "BHR-F3-09",
+        "BHR-F4-03",
+        "BHR-F4-05",
+        "BHR-F4-06",
+        "BHR-F5-02",
+        "BHR-F6-02"
+      ],
+      "integradas": [
+        "BHR-F3-09",
+        "BHR-F4-03",
+        "BHR-F4-05",
+        "BHR-F4-06",
+        "BHR-F5-02",
+        "BHR-F6-02"
+      ],
       "gate": true,
       "revisao": {
         "achados": 39,
@@ -587,8 +726,22 @@
     },
     {
       "onda": 8,
-      "tarefas": ["BHR-F3-11", "BHR-F4-07", "BHR-F4-10", "BHR-F5-03", "BHR-F5-04", "BHR-F5-05"],
-      "integradas": ["BHR-F3-11", "BHR-F4-07", "BHR-F4-10", "BHR-F5-03", "BHR-F5-04", "BHR-F5-05"],
+      "tarefas": [
+        "BHR-F3-11",
+        "BHR-F4-07",
+        "BHR-F4-10",
+        "BHR-F5-03",
+        "BHR-F5-04",
+        "BHR-F5-05"
+      ],
+      "integradas": [
+        "BHR-F3-11",
+        "BHR-F4-07",
+        "BHR-F4-10",
+        "BHR-F5-03",
+        "BHR-F5-04",
+        "BHR-F5-05"
+      ],
       "gate": true,
       "revisao": {
         "achados": 46,
@@ -603,8 +756,20 @@
     },
     {
       "onda": 9,
-      "tarefas": ["BHR-F4-09", "BHR-F4-11", "BHR-F6-03", "BHR-F7-01", "BHR-F7-02"],
-      "integradas": ["BHR-F4-09", "BHR-F4-11", "BHR-F6-03", "BHR-F7-01", "BHR-F7-02"],
+      "tarefas": [
+        "BHR-F4-09",
+        "BHR-F4-11",
+        "BHR-F6-03",
+        "BHR-F7-01",
+        "BHR-F7-02"
+      ],
+      "integradas": [
+        "BHR-F4-09",
+        "BHR-F4-11",
+        "BHR-F6-03",
+        "BHR-F7-01",
+        "BHR-F7-02"
+      ],
       "gate": true,
       "revisao": {
         "achados": 39,
@@ -618,6 +783,35 @@
       },
       "core_sha": "e934e1bb",
       "sat_sha": "57772ed"
+    },
+    {
+      "onda": 10,
+      "tarefas": [
+        "BHR-F5-06",
+        "BHR-F6-04",
+        "BHR-F7-03",
+        "BHR-F7-04"
+      ],
+      "integradas": [
+        "BHR-F5-06",
+        "BHR-F6-04",
+        "BHR-F7-03",
+        "BHR-F7-04"
+      ],
+      "gate": true,
+      "revisao": {
+        "achados": 40,
+        "abertos": [
+          "M-10 gate do Apoio lido da cópia embutida (ajustes-futuros)",
+          "system.access do Noble Bloom fora do mecanismo de curadoria (travado por teste)",
+          "issue #349 citada no rule-fix do Titan Wrestler é a do Natural Medicine",
+          "M-2 da onda 9 (replay soma o Apoio) segue",
+          "alcance da montaria sem consumidor (pergunta ao Alexandre)",
+          "P1 T1 da F7-04 parcial"
+        ]
+      },
+      "core_sha": "386ae740",
+      "sat_sha": "b6dcf76"
     }
   ],
   "lotes": {
