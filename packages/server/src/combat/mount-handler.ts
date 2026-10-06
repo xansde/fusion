@@ -103,13 +103,19 @@ interface Located {
   tokens: Rec[];
 }
 
+/**
+ * Locate the scene holding `tokenId`. The tokens come from `getRaw` (no legacy-token read
+ * filter): both handlers replace `Scene.tokens` in full, so rebuilding from the filtered `get()`
+ * would erase every legacy token from the row (REQ-TOK-002). The broadcast re-reads through `get()`.
+ */
 function findScene(store: DocumentStore, tokenId: string): Located | null {
-  for (const scene of store.getAll("scenes")) {
+  for (const listed of store.getAll("scenes")) {
+    const sceneId = listed["_id"];
+    if (typeof sceneId !== "string") continue;
+    const scene = store.getRaw("scenes", sceneId);
     const tokens = scene["tokens"];
     if (!Array.isArray(tokens)) continue;
     if (!(tokens as Rec[]).some((t) => t["_id"] === tokenId)) continue;
-    const sceneId = scene["_id"];
-    if (typeof sceneId !== "string") continue;
     return { scene, sceneId, tokens: tokens as Rec[] };
   }
   return null;

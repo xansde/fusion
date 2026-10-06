@@ -289,6 +289,27 @@ describe("MountState over the socket (BHR-F5-02)", () => {
     expect(readMountState(seen)).toEqual({ mountTokenId: ANTELOPE });
   });
 
+  it("REQ-TOK-002: mounting and dismounting keep a legacy token (no actorId) in the scene row", async () => {
+    const raw = ctx.store.getRaw("scenes", SCENE_ID);
+    const legacy = { _id: "legacyToken00001", name: "Fantasma", x: 0, y: 0 };
+    ctx.store.update("scenes", SCENE_ID, {
+      tokens: [...(raw["tokens"] as Record<string, unknown>[]), legacy],
+    });
+    const rawIds = (): unknown[] =>
+      (ctx.store.getRaw("scenes", SCENE_ID)["tokens"] as Record<string, unknown>[]).map(
+        (t) => t["_id"],
+      );
+    expect(rawIds()).toContain("legacyToken00001");
+
+    const mounted = await sendOp(p1, "mount:mount", mount(LESHY, ANTELOPE));
+    expect(mounted["ok"], JSON.stringify(mounted)).toBe(true);
+    expect(rawIds()).toContain("legacyToken00001");
+
+    const dismounted = await sendOp(p1, "mount:dismount", { riderTokenId: LESHY, to: at(6, 4) });
+    expect(dismounted["ok"], JSON.stringify(dismounted)).toBe(true);
+    expect(rawIds()).toContain("legacyToken00001");
+  });
+
   it("refuses the same-size Small bear with the size as the reason", async () => {
     const ack = await sendOp(p1, "mount:mount", mount(LESHY, BEAR));
     expect(ack).toMatchObject({ ok: false, code: "VALIDATION_FAILED" });
