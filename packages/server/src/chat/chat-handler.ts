@@ -99,6 +99,7 @@ import {
 import type { TokenMarkSource } from "./roll-resolution.js";
 import type { MapCounter } from "../combat/map-counter.js";
 import { maneuverDefense } from "@fusion/engine-2e";
+import { NO_EXTRA_DAMAGE, settleChatRollExtraDamage, withExtraDice } from "./extra-damage.js";
 
 // ---------------------------------------------------------------------------
 // Types
@@ -558,17 +559,40 @@ export function buildChatSendHandler(deps: ChatHandlerDeps): HandlerFn {
               checkContext?.kind === "skill" ? checkContext.against : "ac",
             )
           : null;
-      const resolution = prepareRollResolution(
+      const prepared = prepareRollResolution(
         deps,
         payload.flags?.fusion?.rollContext,
         ctx,
         rollTarget === null ? [] : [rollTarget.entry],
       );
+      // Extra damage dice of the roller's own effects (the Apoio of an animal companion, BHR-F4-09): the
+      // system names them, the server settles them — the Strike hit, the companion's reach — and they join
+      // the formula it rolls, so the card's total already counts them. Their notes ride with the roll's.
+      const extraDamage =
+        prepared !== null && prepared.extraDamage.length > 0 && deps.store !== undefined
+          ? settleChatRollExtraDamage({
+              db: deps.db,
+              store: deps.store,
+              userId: ctx.userId,
+              actorId: prepared.rollContext.actorId,
+              selectors: prepared.rollContext.selectors,
+              extra: prepared.extraDamage,
+              snapshot: targetSnapshot,
+              parentMessageId: resolveParentMessageId(deps.db, payload.flags?.parentMessageId),
+            })
+          : NO_EXTRA_DAMAGE;
+      const resolution =
+        prepared !== null && extraDamage.notes.length > 0
+          ? { ...prepared, notes: [...prepared.notes, ...extraDamage.notes] }
+          : prepared;
 
       let rollResult: RollResultData;
       try {
         rollResult = rollService.roll({
-          ...conditionalRollFormula(command.formula, resolution),
+          ...withExtraDice(
+            conditionalRollFormula(command.formula, resolution),
+            extraDamage.formulaSuffix,
+          ),
           mode: effectiveMode,
           worldId: deps.worldId,
           userId: ctx.userId,
@@ -724,6 +748,15 @@ export function buildChatSendHandler(deps: ChatHandlerDeps): HandlerFn {
       attachTargetSnapshot(msg, deps, ctx.userId, targetSnapshot);
       if (resolution !== null) {
         finalizeRollResolution(msg, resolution, rollResult.degreeOfSuccess ?? null);
+      }
+      if (extraDamage.applied.length > 0) {
+        msg.flags = {
+          ...msg.flags,
+          [PARENT_FLAG_NAMESPACE]: {
+            ...msg.flags[PARENT_FLAG_NAMESPACE],
+            extraDamage: extraDamage.applied.map((part) => ({ ...part })),
+          },
+        };
       }
 
       persistChatMessage(deps.db, msg);

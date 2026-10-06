@@ -490,6 +490,9 @@
           <span class="nested-roll__total nested-roll__total--{line.totalClass || 'normal'}">
             {line.total}
           </span>
+          {#each line.extras ?? [] as extra (extra)}
+            <span class="nested-roll__extra">{extra}</span>
+          {/each}
         </div>
       {/each}
 
@@ -964,6 +967,16 @@
     color: var(--fusion-text-muted);
     flex: 1 1 100%;
     min-width: 0;
+    overflow-wrap: anywhere;
+  }
+
+  /* BHR-F4-09: the part an effect of the roller added (the Apoio of the companion), quiet, on its own row. */
+  .nested-roll__extra {
+    flex: 1 1 100%;
+    min-width: 0;
+    font-size: 0.72rem;
+    font-style: italic;
+    color: var(--fusion-accent);
     overflow-wrap: anywhere;
   }
 
