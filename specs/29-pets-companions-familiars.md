@@ -160,7 +160,7 @@ o documento vivo do dono:
 | ------------------------------------------- | ----------------------------------------------------------------------- |
 | `familiar`, `pet`                           | talento ou regra que concede familiar (r17-P1)                          |
 | `eidolon`                                   | o item de **classe** Summoner, identificado por `flags.fusion.sourceId` |
-| `animalCompanion`, `mount` e qualquer outro | nenhum detector ainda: só Mestre/Assistente cria                        |
+| `animalCompanion`, `mount` e qualquer outro | nenhum detector ainda: só Mestre/Assistente cria (emendado abaixo)      |
 
 - **Um por grupo, não um por dono:** familiar e pet são a mesma máquina (§1.3) e ocupam uma
   vaga só; o eidolon é outra vaga. Um Summoner que tomou o talento Familiar tem os dois.
@@ -630,7 +630,10 @@ pf2e.md` DEC-PF2-04) suporte um effect cujo alvo é um Actor vinculado, não
   com o avanço por estágio usado pela derivação (REQ-PET-005, REQ-PET-101).
   _(Emenda obrigada pela spec 52, DEC-BHR-01, 2026-10-05: era [V2]; o vendor
   não traz dados de tipo — `docs/design/bhrotto/dados/companheiros.md` —, o
-  que responde a Q-PET-03 pela curadoria.)_
+  que responde a Q-PET-03 pela curadoria. Os exemplos de tipo da redação
+  anterior saíram: o MVP traz urso e antílope, REQ-PET-099; o avanço é por
+  estágio — jovem, maduro, ágil/selvagem, especializado —, e "incrível" é o
+  nome do talento que leva ao especializado.)_
 - **REQ-PET-041** [V2] O importer DEVE converter os feats de arquétipo
   relacionados a companion/familiar mais usados (Beastmaster dedication +
   Call Companion; Familiar Master dedication) quando o pipeline de
@@ -647,6 +650,8 @@ pf2e.md` DEC-PF2-04) suporte um effect cujo alvo é um Actor vinculado, não
   _(Emenda obrigada pela spec 52, DEC-BHR-04, 2026-10-05.)_
 - **REQ-PET-051** [MVP] A aba Pets DEVE listar todos os companions
   vinculados como cards com nome, `companionKind`, HP atual/máx e AC.
+  _(Emenda da spec 52, DEC-BHR-04, 2026-10-05: companheiro `animalCompanion`
+  não entra na lista — ele aparece como vínculo na ficha do dono, REQ-PET-114.)_
 - **REQ-PET-052** [MVP] Cada card DEVE expandir para uma mini-ficha
   (strikes, saves, perícias, sentidos, `selectedAbilities`) reaproveitando o
   componente de statblock já usado na NPC sheet (REQ-PF2-111), sem

@@ -821,6 +821,13 @@ interface ExecutableActionRow {
 Registradas aqui para que nenhuma spec fique contrariada em silêncio (`CONVENCOES.md` §2). Nenhum id
 é renumerado.
 
+**Faixas reservadas e não usadas.** A ficha BHR-F0-01 reservou faixas maiores do que esta versão
+escreveu, para que nenhuma outra frente as ocupe: `REQ-BHR-` 001 a 250 (blocos por fase; o bloco F4,
+121 a 170, fica vazio de propósito — o companheiro é da `29`), `REQ-PF2-` 284 a 298, `REQ-CNV-` 108,
+`REQ-TOK-` 119 e `REQ-SYS-` 165. Ficam reservadas para esta frente e só nascem por emenda desta spec.
+As citações de ids de planos ainda não escritos (Guerreiro, Alquimista) nas fichas do plano são
+referências declaradas, não ids desta spec.
+
 | Spec        | O que muda                                                                                                                                                                                                                                                                                           |
 | ----------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `README.md` | Linha `REQ-BHR-` no registro de prefixos; a 52 entra no índice; 47–51 entram nos números reservados.                                                                                                                                                                                                 |

@@ -483,7 +483,8 @@ sendo do ator, e esta spec não define nenhuma "ficha de token".
 - **REQ-TOK-031** [MVP] Duplicar e excluir um token DEVEM exigir papel privilegiado, com a mesma
   régua de REQ-TOK-030.
 - **REQ-TOK-032** [MVP] Mover um token DEVE exigir OWNER (3) sobre o ator efetivo, ou papel
-  privilegiado (REQ-USR-013).
+  privilegiado (REQ-USR-013). _(Emenda da spec 52, 2026-10-05: OWNER deixa de bastar para o
+  cavaleiro montado, que só se move com a montaria ou por papel privilegiado, REQ-TOK-117.)_
 - **REQ-TOK-033** [MVP] A avaliação de permissão DEVE ser feita no servidor em todos os casos; a
   interface PODE antecipar o resultado, mas NÃO DEVE ser a única guarda.
 - **REQ-TOK-034** [MVP] Não DEVE existir, em spec nem em código, um predicado de "controle de

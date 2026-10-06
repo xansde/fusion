@@ -532,7 +532,7 @@ sabe representar, em vez de entregar as quatro superfícies pela metade.
 
 ### Presa e combate montado _(emenda da spec 52, 2026-10-05)_
 
-- **REQ-CNV-105** [MVP] Token alvo de uma marca `TokenMark` (`52-cacador-companheiro-e-montaria.md` §7.1) DEVE ganhar um selo próprio, distinto da retícula de alvo (REQ-CNV-039), desenhado só para quem recebe a marca pela redação do servidor e removido quando a marca sai.
+- **REQ-CNV-105** [MVP] Token alvo de uma marca `TokenMark` (`52-cacador-companheiro-e-montaria.md` §7.1) DEVE ganhar um selo próprio, distinto da retícula de alvo (REQ-CNV-039), visto pelo dono da marca, pelos donos do companheiro dele e pelo Mestre — os demais só se a redação do servidor entregar a marca (REQ-BHR-089) — e removido quando a marca sai.
 - **REQ-CNV-106** [MVP] Montados (`MountState`, spec 52), o token do cavaleiro DEVE ser desenhado empilhado no canto do token da montaria e acompanhar o movimento dela; desmontados, cada um volta a ser desenhado e movido em separado.
 - **REQ-CNV-107** [MVP] O arraste e as teclas de movimento NÃO DEVEM iniciar sobre o token de um cavaleiro montado para usuário não privilegiado (REQ-TOK-117).
 
