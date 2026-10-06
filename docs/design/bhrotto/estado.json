@@ -162,25 +162,110 @@
       "resumo": "MapCounter no servidor (noteAttack/getAttackCount, reset em turnStart, calculateMapPenalty, mapGroupOf identidade); chamada única no chat-handler; countsForMap fixo em true até a F3-03.",
       "core_sha": "8b5b8c96",
       "sat_sha": "1398c9b0"
+    },
+    "BHR-F1-08": {
+      "status": "integrada",
+      "tentativas": 1,
+      "onda": 4,
+      "modelo": "sonnet/medium",
+      "resumo": "fusion-skill-substitution no pf2eRuleElementRegistry; Tratar Ferimentos com Medicina ou Natureza, CD escolhivel ate o rank (padrao 15); interruptor fresh-ingredients (+2) aplicado pelo servidor; regra da Natural Medicine como curadoria do importer",
+      "core_sha": "dcfb70d90550247982a6cb3eafb509998b431e04",
+      "sat_sha": "4d1441363cedfd971358576ce9950fe2c52242eb"
+    },
+    "BHR-F2-04": {
+      "status": "integrada",
+      "tentativas": 1,
+      "onda": 4,
+      "modelo": "sonnet/high",
+      "resumo": "handler item-alteration (traits, damage-dice-faces) com predicado; interruptor grasping-reach: Mangual de Guerra ganha reach e cai de 2d10+4 para 2d8+4",
+      "core_sha": "dcfb70d90550247982a6cb3eafb509998b431e04",
+      "sat_sha": "4d1441363cedfd971358576ce9950fe2c52242eb"
+    },
+    "BHR-F2-06": {
+      "status": "integrada",
+      "tentativas": 1,
+      "onda": 4,
+      "modelo": "sonnet/medium",
+      "resumo": "FusionExpiry after-roll + rollPredicate nos quatro lugares; gasto pela rolagem de quem carrega o efeito; targetOptions com marcas no RollResolvedEvent",
+      "core_sha": "dcfb70d90550247982a6cb3eafb509998b431e04",
+      "sat_sha": "4d1441363cedfd971358576ce9950fe2c52242eb"
+    },
+    "BHR-F3-02": {
+      "status": "integrada",
+      "tentativas": 1,
+      "onda": 4,
+      "modelo": "sonnet/medium",
+      "resumo": "strikeCard/rollStrike enviam payload.target + rollContext de ataque; sem alvo payload identico",
+      "core_sha": "dcfb70d90550247982a6cb3eafb509998b431e04",
+      "sat_sha": "4d1441363cedfd971358576ce9950fe2c52242eb"
+    },
+    "BHR-F3-06": {
+      "status": "integrada",
+      "tentativas": 1,
+      "onda": 4,
+      "modelo": "sonnet/high",
+      "resumo": "TokenMark: mark:set/mark:clear com permissao no servidor, exclusive para hunted-prey, persistencia em flags.fusion.tokenMarks, redacao de token oculto, getMarksOn no TokenMarkSource; guard contra forjar tokenMarks por doc:update/doc:create",
+      "core_sha": "dcfb70d90550247982a6cb3eafb509998b431e04",
+      "sat_sha": "4d1441363cedfd971358576ce9950fe2c52242eb"
+    },
+    "BHR-F4-04": {
+      "status": "integrada",
+      "tentativas": 1,
+      "onda": 4,
+      "modelo": "sonnet/high",
+      "resumo": "companionGrantAllows animalCompanion por Animal Companion/Beastmaster Dedication; teto = numero de concessoes no servidor; grantSlotId unico; guard de campos do companheiro",
+      "core_sha": "dcfb70d90550247982a6cb3eafb509998b431e04",
+      "sat_sha": "4d1441363cedfd971358576ce9950fe2c52242eb"
     }
   },
   "rodadas": [
     {
       "onda": 1,
-      "tarefas": ["BHR-F0-01", "BHR-F0-02", "BHR-F1-01", "BHR-F1-02", "BHR-F1-03", "BHR-F1-06"],
-      "integradas": ["BHR-F0-01", "BHR-F0-02", "BHR-F1-01", "BHR-F1-02", "BHR-F1-03", "BHR-F1-06"],
+      "tarefas": [
+        "BHR-F0-01",
+        "BHR-F0-02",
+        "BHR-F1-01",
+        "BHR-F1-02",
+        "BHR-F1-03",
+        "BHR-F1-06"
+      ],
+      "integradas": [
+        "BHR-F0-01",
+        "BHR-F0-02",
+        "BHR-F1-01",
+        "BHR-F1-02",
+        "BHR-F1-03",
+        "BHR-F1-06"
+      ],
       "gate": true,
       "revisao": {
         "achados": 0,
-        "abertos": ["I-3 print real do Alcance Prênsil (F1-09)", "6 menores (revisao.md)"]
+        "abertos": [
+          "I-3 print real do Alcance Prênsil (F1-09)",
+          "6 menores (revisao.md)"
+        ]
       },
       "core_sha": "f41b9794",
       "sat_sha": "73df51d"
     },
     {
       "onda": 2,
-      "tarefas": ["BHR-F0-03", "BHR-F1-04", "BHR-F1-05", "BHR-F1-07", "BHR-F2-01", "BHR-F2-03"],
-      "integradas": ["BHR-F0-03", "BHR-F1-04", "BHR-F1-05", "BHR-F1-07", "BHR-F2-01", "BHR-F2-03"],
+      "tarefas": [
+        "BHR-F0-03",
+        "BHR-F1-04",
+        "BHR-F1-05",
+        "BHR-F1-07",
+        "BHR-F2-01",
+        "BHR-F2-03"
+      ],
+      "integradas": [
+        "BHR-F0-03",
+        "BHR-F1-04",
+        "BHR-F1-05",
+        "BHR-F1-07",
+        "BHR-F2-01",
+        "BHR-F2-03"
+      ],
       "gate": true,
       "revisao": {
         "achados": 23,
@@ -197,8 +282,22 @@
     },
     {
       "onda": 3,
-      "tarefas": ["BHR-F2-02", "BHR-F2-05", "BHR-F2-07", "BHR-F2-08", "BHR-F3-01", "BHR-F3-04"],
-      "integradas": ["BHR-F2-02", "BHR-F2-05", "BHR-F2-07", "BHR-F2-08", "BHR-F3-01", "BHR-F3-04"],
+      "tarefas": [
+        "BHR-F2-02",
+        "BHR-F2-05",
+        "BHR-F2-07",
+        "BHR-F2-08",
+        "BHR-F3-01",
+        "BHR-F3-04"
+      ],
+      "integradas": [
+        "BHR-F2-02",
+        "BHR-F2-05",
+        "BHR-F2-07",
+        "BHR-F2-08",
+        "BHR-F3-01",
+        "BHR-F3-04"
+      ],
       "gate": true,
       "revisao": {
         "achados": 52,
@@ -212,6 +311,36 @@
       },
       "core_sha": "8b5b8c96",
       "sat_sha": "1398c9b0"
+    },
+    {
+      "onda": 4,
+      "tarefas": [
+        "BHR-F1-08",
+        "BHR-F2-04",
+        "BHR-F2-06",
+        "BHR-F3-02",
+        "BHR-F3-06",
+        "BHR-F4-04"
+      ],
+      "integradas": [
+        "BHR-F1-08",
+        "BHR-F2-04",
+        "BHR-F2-06",
+        "BHR-F3-02",
+        "BHR-F3-06",
+        "BHR-F4-04"
+      ],
+      "gate": true,
+      "revisao": {
+        "achados": 64,
+        "abertos": [
+          "M-1..M-13 menores (revisao.md)",
+          "applyDotPathDiff sem filtro de __proto__ (pre-existente, tarefa de seguranca a parte)",
+          "P-1/P-2/P-3 e Q de remocao de efeito: perguntas ao Alexandre em decisoes.md"
+        ]
+      },
+      "core_sha": "dcfb70d90550247982a6cb3eafb509998b431e04",
+      "sat_sha": "4d1441363cedfd971358576ce9950fe2c52242eb"
     }
   ],
   "lotes": {}
