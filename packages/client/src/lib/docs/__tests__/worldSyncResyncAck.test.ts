@@ -9,7 +9,8 @@
  */
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import type { Socket } from "socket.io-client";
-import type { Envelope } from "@fusion/shared";
+import { ResyncAckResultSchema } from "@fusion/shared";
+import type { Envelope, ResyncAckResult, ResyncRequestAck } from "@fusion/shared";
 
 vi.mock("../activeScene.svelte.js", () => ({
   activeSceneState: { id: null, scene: null },
@@ -61,14 +62,21 @@ async function setup() {
   return { worldMirror, socket };
 }
 
-/** The ack of the resync request the gap fired, answered the way the server answers. */
-function answer(socket: ReturnType<typeof mockSocket>, result: unknown): void {
+/**
+ * The ack of the resync request the gap fired. The answer is typed and parsed with the schema the SERVER handler's
+ * output is checked against (`resync-ack-contract.test.ts`), so this test cannot invent a shape the server never sends.
+ */
+function answer(socket: ReturnType<typeof mockSocket>, result: ResyncAckResult): void {
   const last = [...socket.emits]
     .reverse()
     .find(([, env]) => (env as { type?: string }).type === "resync:request");
   expect(last).toBeDefined();
-  last?.[2]?.({ ok: true, seq: 99, result });
+  const ack: ResyncRequestAck = { ok: true, seq: 99, result: ResyncAckResultSchema.parse(result) };
+  last?.[2]?.(ack);
 }
+
+const resyncRequests = (socket: ReturnType<typeof mockSocket>) =>
+  socket.emits.filter(([, env]) => (env as { type?: string }).type === "resync:request");
 
 describe("resync answer", () => {
   beforeEach(() => vi.clearAllMocks());
@@ -114,5 +122,26 @@ describe("resync answer", () => {
     socket.receive("op", op("doc:update", { documentType: "Combat", documents: [] }, 12));
     answer(socket, { type: "delta", payload: { fromSeq: 11, toSeq: 12, ops: [] } });
     expect(worldMirror.seq).toBe(12);
+  });
+
+  it("a second hole while the request is in flight does not fire a parallel request", async () => {
+    const { socket } = await setup();
+    socket.receive("op", started(12)); // first hole: asks
+    socket.receive(
+      "op",
+      op("combat:updated", { combatId: "cbt1", diff: { round: 2 }, seq: 14 }, 14),
+    );
+    expect(resyncRequests(socket)).toHaveLength(1);
+  });
+
+  it("once the answer arrives, a new hole can ask again", async () => {
+    const { socket } = await setup();
+    socket.receive("op", started(12));
+    answer(socket, { type: "delta", payload: { fromSeq: 11, toSeq: 12, ops: [started(12)] } });
+    socket.receive(
+      "op",
+      op("combat:updated", { combatId: "cbt1", diff: { round: 3 }, seq: 20 }, 20),
+    );
+    expect(resyncRequests(socket)).toHaveLength(2);
   });
 });
