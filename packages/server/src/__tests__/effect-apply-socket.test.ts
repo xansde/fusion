@@ -52,6 +52,10 @@ const PACK_ID = "test.effects";
 const PLAIN_EFFECT = "effectPlain00001";
 const ALLOW_EFFECT = "effectAllow00001";
 const NOT_AN_EFFECT = "notAnEffect00001";
+const UNREFERENCED_EFFECT = "effectUnref0001";
+const BEAR_TYPE = "companionType001";
+const HIDDEN_PACK_ID = "test.hidden-effects";
+const HIDDEN_EFFECT = "effectHidden0001";
 
 interface Ctx {
   dataDir: string;
@@ -67,46 +71,88 @@ interface Ctx {
   p2Token: string;
 }
 
-function buildFixtureCompendium(): { compendium: CompendiumService; packRoot: string } {
-  const packRoot = join(
-    tmpdir(),
-    `fusion-effect-apply-pack-${String(Date.now())}-${Math.random().toString(36).slice(2)}`,
-  );
-  const packDir = join(packRoot, "effects");
+function writePack(
+  packDir: string,
+  id: string,
+  audience: "all" | "gm",
+  documents: unknown[],
+): void {
   mkdirSync(packDir, { recursive: true });
   writeFileSync(
     join(packDir, "pack.json"),
     JSON.stringify({
-      id: PACK_ID,
-      label: "Effects (test)",
+      id,
+      label: `${id} (test)`,
       documentType: "Item",
       systemId: "test",
-      indexFields: [],
+      indexFields: ["system.slug"],
       license: { license: "custom", attribution: "test fixture", reservedNotice: "" },
-      audience: "all",
+      audience,
       source: { repo: null, version: null, importerVersion: "test" },
-      documentCount: 3,
+      documentCount: documents.length,
       generatedAt: new Date(0).toISOString(),
       schemaVersion: 1,
     }),
     "utf8",
   );
-  writeFileSync(
-    join(packDir, "documents.json"),
-    JSON.stringify([
-      { _id: PLAIN_EFFECT, name: "Plain", type: "effect", system: { fusion: {} } },
-      {
-        _id: ALLOW_EFFECT,
-        name: "Allowed on target",
-        type: "effect",
-        system: { fusion: { allowOnTarget: true } },
-      },
-      { _id: NOT_AN_EFFECT, name: "A sword", type: "weapon", system: {} },
-    ]),
-    "utf8",
+  writeFileSync(join(packDir, "documents.json"), JSON.stringify(documents), "utf8");
+}
+
+const sourceFlags = (sourceId: string) => ({ fusion: { sourceId } });
+
+function buildFixtureCompendium(): { compendium: CompendiumService; packRoot: string } {
+  const packRoot = join(
+    tmpdir(),
+    `fusion-effect-apply-pack-${String(Date.now())}-${Math.random().toString(36).slice(2)}`,
   );
+  writePack(join(packRoot, "effects"), PACK_ID, "all", [
+    {
+      _id: PLAIN_EFFECT,
+      name: "Plain",
+      type: "effect",
+      flags: sourceFlags("plain-src"),
+      // The pack's own duration: what the server stamps, whatever the client sends.
+      system: { fusion: { expiryTemplate: { on: "turn-start" } } },
+    },
+    {
+      _id: ALLOW_EFFECT,
+      name: "Allowed on target",
+      type: "effect",
+      flags: sourceFlags("allow-src"),
+      system: { fusion: { allowOnTarget: true } },
+    },
+    { _id: NOT_AN_EFFECT, name: "A sword", type: "weapon", system: {} },
+    {
+      _id: UNREFERENCED_EFFECT,
+      name: "Nobody references me",
+      type: "effect",
+      flags: sourceFlags("unref-src"),
+      system: { fusion: {} },
+    },
+    {
+      // A companion type whose Support is the plain effect (spec section 2.4).
+      _id: BEAR_TYPE,
+      name: "Bear",
+      type: "companionType",
+      system: {
+        slug: "bear",
+        support: { effectRef: { packId: PACK_ID, docId: PLAIN_EFFECT } },
+      },
+    },
+  ]);
+  // A pack the Mestre hides from players (REQ-CPD-071).
+  writePack(join(packRoot, "hidden"), HIDDEN_PACK_ID, "gm", [
+    {
+      _id: HIDDEN_EFFECT,
+      name: "Secret",
+      type: "effect",
+      flags: sourceFlags("hidden-src"),
+      system: { fusion: {} },
+    },
+  ]);
   const compendium = new CompendiumService();
-  compendium.registerPackDir(packDir);
+  compendium.registerPackDir(join(packRoot, "effects"));
+  compendium.registerPackDir(join(packRoot, "hidden"));
   return { compendium, packRoot };
 }
 
@@ -150,7 +196,21 @@ async function buildCtx(opts: { composite?: boolean } = {}): Promise<Ctx> {
   // p1 owns the hunter and its bear; p2 owns the ally; everyone observes everyone.
   store.create(
     "actors",
-    { _id: HUNTER_ID, name: "Hunter", type: "character", ownership: { default: 2, [p1.id]: 3 } },
+    {
+      _id: HUNTER_ID,
+      name: "Hunter",
+      type: "character",
+      ownership: { default: 2, [p1.id]: 3 },
+      // The talents that reference effects (`system.fusion.effectRefs` are source ids).
+      items: [
+        {
+          _id: "hunterTalent0001",
+          name: "Talent",
+          type: "feat",
+          system: { fusion: { effectRefs: ["allow-src", "hidden-src"] } },
+        },
+      ],
+    },
     author,
   );
   store.create(
@@ -160,7 +220,11 @@ async function buildCtx(opts: { composite?: boolean } = {}): Promise<Ctx> {
       name: "Bear",
       type: "familiar",
       ownership: { default: 2, [p1.id]: 3 },
-      system: { companionKind: "animalCompanion", masterActorId: HUNTER_ID },
+      system: {
+        companionKind: "animalCompanion",
+        masterActorId: HUNTER_ID,
+        companion: { typeSlug: "bear" },
+      },
     },
     author,
   );
@@ -305,7 +369,10 @@ function sendOp(socket: ClientSocket, type: string, payload: unknown) {
 
 const itemsOf = (store: DocumentStore, actorId: string): Record<string, unknown>[] => {
   const items = store.get("actors", actorId)["items"];
-  return Array.isArray(items) ? (items as Record<string, unknown>[]) : [];
+  // Only the embedded effects: the hunter also carries a talent (the effectRefs origin).
+  return Array.isArray(items)
+    ? (items as Record<string, unknown>[]).filter((i) => i["type"] === "effect")
+    : [];
 };
 
 const fusionOf = (item: Record<string, unknown>): Record<string, unknown> =>
@@ -501,18 +568,101 @@ describe("effect:apply over the socket (BHR-F4-08)", () => {
 
   it("refuses a pack document that is not an effect, and a missing one", async () => {
     const notEffect = await sendOp(
-      p1,
+      gm,
       "effect:apply",
       apply({ effect: { packId: PACK_ID, docId: NOT_AN_EFFECT } }),
     );
     expect(notEffect).toMatchObject({ ok: false, code: "VALIDATION_FAILED" });
     const missing = await sendOp(
-      p1,
+      gm,
       "effect:apply",
       apply({ effect: { packId: PACK_ID, docId: "doesNotExist0001" } }),
     );
     expect(missing).toMatchObject({ ok: false, code: "NOT_FOUND" });
     expect(itemsOf(ctx.store, HUNTER_ID)).toHaveLength(0);
+  });
+
+  it("I-1: the expiry comes from the pack's expiryTemplate; the player only picks ownerActorId", async () => {
+    // Rule (D-B10): Apoio ends at the start of the owner's next turn. A player
+    // asking for `never` must not make it permanent.
+    const ack = await sendOp(
+      p1,
+      "effect:apply",
+      apply({ expiry: { on: "never", remainingRounds: 99, ownerActorId: HUNTER_ID } }),
+    );
+    expect(ack["ok"], JSON.stringify(ack)).toBe(true);
+    const item = itemsOf(ctx.store, HUNTER_ID).find((i) => i["type"] === "effect");
+    expect(fusionOf(item as Record<string, unknown>)["expiry"]).toEqual({
+      on: "turn-start",
+      ownerActorId: HUNTER_ID,
+    });
+  });
+
+  it("I-1: without a client expiry the template is still stamped, clocked on the source", async () => {
+    const ack = await sendOp(p1, "effect:apply", apply());
+    expect(ack["ok"], JSON.stringify(ack)).toBe(true);
+    const item = itemsOf(ctx.store, HUNTER_ID).find((i) => i["type"] === "effect");
+    expect(fusionOf(item as Record<string, unknown>)["expiry"]).toEqual({
+      on: "turn-start",
+      ownerActorId: BEAR_ID,
+    });
+  });
+
+  it("I-1: the Mestre may override the whole expiry", async () => {
+    const ack = await sendOp(
+      gm,
+      "effect:apply",
+      apply({ expiry: { on: "turn-end", remainingRounds: 3, ownerActorId: HUNTER_ID } }),
+    );
+    expect(ack["ok"], JSON.stringify(ack)).toBe(true);
+    const item = itemsOf(ctx.store, HUNTER_ID).find((i) => i["type"] === "effect");
+    expect(fusionOf(item as Record<string, unknown>)["expiry"]).toEqual({
+      on: "turn-end",
+      remainingRounds: 3,
+      ownerActorId: HUNTER_ID,
+    });
+  });
+
+  it("I-2: a player cannot apply an effect the origin does not reference", async () => {
+    const denied = await sendOp(
+      p1,
+      "effect:apply",
+      apply({ effect: { packId: PACK_ID, docId: UNREFERENCED_EFFECT } }),
+    );
+    expect(denied).toMatchObject({ ok: false, code: "PERMISSION_DENIED" });
+    expect(itemsOf(ctx.store, HUNTER_ID).filter((i) => i["type"] === "effect")).toHaveLength(0);
+  });
+
+  it("I-2: an effect of a pack hidden from players is PERMISSION_DENIED even when an item references it; the Mestre may", async () => {
+    const hidden = { packId: HIDDEN_PACK_ID, docId: HIDDEN_EFFECT };
+    const denied = await sendOp(
+      p1,
+      "effect:apply",
+      apply({ sourceActorId: HUNTER_ID, targetActorIds: [HUNTER_ID], effect: hidden }),
+    );
+    expect(denied).toMatchObject({ ok: false, code: "PERMISSION_DENIED" });
+    const ok = await sendOp(
+      gm,
+      "effect:apply",
+      apply({ sourceActorId: HUNTER_ID, targetActorIds: [HUNTER_ID], effect: hidden }),
+    );
+    expect(ok["ok"], JSON.stringify(ok)).toBe(true);
+  });
+
+  it("I-2: the owner's item effectRefs and the companion type's Support both count as references", async () => {
+    // hunter's talent references ALLOW_EFFECT; the bear's type references PLAIN_EFFECT
+    const viaTalent = await sendOp(
+      p1,
+      "effect:apply",
+      apply({
+        sourceActorId: HUNTER_ID,
+        targetActorIds: [HUNTER_ID],
+        effect: { packId: PACK_ID, docId: ALLOW_EFFECT },
+      }),
+    );
+    expect(viaTalent["ok"], JSON.stringify(viaTalent)).toBe(true);
+    const viaType = await sendOp(p1, "effect:apply", apply());
+    expect(viaType["ok"], JSON.stringify(viaType)).toBe(true);
   });
 
   it("rejects a missing target actor with NOT_FOUND and a prototype-polluting payload with VALIDATION_FAILED", async () => {

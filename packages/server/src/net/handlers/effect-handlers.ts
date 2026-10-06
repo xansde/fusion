@@ -10,8 +10,10 @@
  * so nothing a player sends can shape what is written to another actor.
  *
  * Permission (all of it here, on the server — a hidden button is no protection):
- *   - GM/assistant (`isRolePrivileged`): any source, any target.
- *   - Player: must own `sourceActorId` (OWNER) AND every target must be
+ *   - GM/assistant (`isRolePrivileged`): any source, any target, any effect.
+ *   - Player: must own `sourceActorId` (OWNER); the effect must be REFERENCED by
+ *     the source (an embedded item's `effectRefs`, or the Support of a companion
+ *     type) and visible to the player's role (onda-6 review I-2); AND every target must be
  *       (a) the source itself, or
  *       (b) tied to the source by a companion link, in either direction
  *           (`areCompanionLinked`, owner <-> companion), or
@@ -22,6 +24,8 @@
  *     Anything else is `PERMISSION_DENIED`. A player may also only hand the
  *     effect's expiry clock (`expiry.ownerActorId`) to the source or a target;
  *     otherwise the effect could be made to tick on an unrelated actor's turn.
+ *     The rest of the expiry is the pack's `expiryTemplate`, never the client's
+ *     (review I-1).
  *
  * Atomicity: every check runs before the first write, and all targets are
  * written inside ONE `DocumentStore.transaction()` — a forbidden or missing
@@ -36,11 +40,18 @@
 import type { Namespace } from "socket.io";
 import {
   EffectApplyPayloadSchema,
+  FusionExpirySchema,
   OwnershipLevel,
   buildPackDocUuid,
   createDocumentId,
 } from "@fusion/shared";
-import type { EffectApplyAck, EffectApplyPayload, Envelope, ErrorCode } from "@fusion/shared";
+import type {
+  EffectApplyAck,
+  EffectApplyPayload,
+  Envelope,
+  ErrorCode,
+  FusionExpiry,
+} from "@fusion/shared";
 import type { HandlerContext, HandlerFn } from "../handler-registry.js";
 import type { SeqStore } from "../seq-store.js";
 import type { OpBuffer } from "../op-buffer.js";
@@ -163,22 +174,155 @@ function targetInCitedSnapshot(
   });
 }
 
-/** Resolve the pack effect — server-side, never trusting client content. */
-function resolveEffect(deps: EffectApplyHandlerDeps, ref: EffectApplyPayload["effect"]): Doc {
-  // The audience gate decides what a client may BROWSE (REQ-CPD-071); it has no
-  // say over an effect an already-authorized apply names — same discipline as
-  // `item:consume`'s effect resolution (I4 fix).
-  const doc = deps.compendium.getDocument(
-    UserRole.GAMEMASTER,
-    buildPackDocUuid(ref.packId, "Item", ref.docId),
-  );
-  if (doc === null) {
-    throw new EffectApplyError("NOT_FOUND", `Effect not found: ${ref.packId}/${ref.docId}`);
-  }
+function readEffectDoc(
+  deps: EffectApplyHandlerDeps,
+  role: number,
+  ref: EffectApplyPayload["effect"],
+): Doc | null {
+  return deps.compendium.getDocument(role, buildPackDocUuid(ref.packId, "Item", ref.docId));
+}
+
+function assertIsEffect(doc: Doc): Doc {
   if (doc["type"] !== "effect") {
     throw new EffectApplyError("VALIDATION_FAILED", "effect:apply only applies Effect documents");
   }
   return doc;
+}
+
+/** Source ids (`system.fusion.effectRefs`) of the effects the actor's own items point at. */
+function embeddedItemEffectRefs(actor: Doc): Set<string> {
+  const refs = new Set<string>();
+  const items = actor["items"];
+  if (!Array.isArray(items)) return refs;
+  for (const item of items as unknown[]) {
+    const list = asRecord(asRecord(asRecord(item)["system"])["fusion"])["effectRefs"];
+    if (!Array.isArray(list)) continue;
+    for (const ref of list as unknown[]) if (typeof ref === "string") refs.add(ref);
+  }
+  return refs;
+}
+
+/**
+ * The Support effect of an animal companion type (`system.support.effectRef`,
+ * plan section 2.4), looked up by the slug the companion carries in
+ * `system.companion.typeSlug`. Read as the server itself: the viewer's pack
+ * audience is applied later, to the EFFECT, not to this lookup.
+ */
+function companionTypeSupportRef(
+  deps: EffectApplyHandlerDeps,
+  typeSlug: string,
+): { packId: string; docId: string } | null {
+  for (const pack of deps.compendium.listPacks(UserRole.GAMEMASTER, { documentType: "Item" })) {
+    const index = deps.compendium.getPackIndex(UserRole.GAMEMASTER, pack.id);
+    const entry = index?.entries.find(
+      (e) => e.type === "companionType" && e.index["system.slug"] === typeSlug,
+    );
+    if (entry === undefined) continue;
+    const type = deps.compendium.getDocument(UserRole.GAMEMASTER, entry.uuid);
+    const ref = asRecord(asRecord(asRecord(type)["system"])["support"])["effectRef"];
+    const { packId, docId } = asRecord(ref);
+    if (typeof packId === "string" && typeof docId === "string") return { packId, docId };
+  }
+  return null;
+}
+
+/**
+ * Is `effect` (named `ref`, already read from the pack) referenced by the ORIGIN?
+ * Two sources count (onda-6 review I-2, DC-06 "an effect of the actor itself"):
+ *   - an embedded item of the source whose `effectRefs` lists the effect's source id;
+ *   - the Support effect of the companion type of the source, or of a companion
+ *     whose `masterActorId` is the source.
+ */
+function isReferencedByOrigin(
+  deps: EffectApplyHandlerDeps,
+  sourceActorId: string,
+  source: Doc,
+  ref: EffectApplyPayload["effect"],
+  effect: Doc,
+): boolean {
+  const effectSourceId = asRecord(asRecord(effect["flags"])["fusion"])["sourceId"];
+  if (typeof effectSourceId === "string" && embeddedItemEffectRefs(source).has(effectSourceId)) {
+    return true;
+  }
+  const slugs = new Set<string>();
+  const slugOf = (actor: Doc): void => {
+    const slug = asRecord(asRecord(actor["system"])["companion"])["typeSlug"];
+    if (typeof slug === "string" && slug !== "") slugs.add(slug);
+  };
+  slugOf(source);
+  for (const actor of deps.store.getAll("actors")) {
+    if (asRecord(actor["system"])["masterActorId"] === sourceActorId) slugOf(actor);
+  }
+  for (const slug of slugs) {
+    const support = companionTypeSupportRef(deps, slug);
+    if (support !== null && support.packId === ref.packId && support.docId === ref.docId) {
+      return true;
+    }
+  }
+  return false;
+}
+
+/**
+ * Resolve the pack effect — server-side, never trusting client content.
+ *
+ * Mestre/assistant name any effect. A player may only name an effect the
+ * source actor REFERENCES (see `isReferencedByOrigin`), and it is then read with
+ * the PLAYER's pack audience: a pack hidden from the role answers
+ * `PERMISSION_DENIED`, the same as an unreferenced or unknown effect, so the
+ * ack teaches nothing about hidden packs (REQ-CPD-071, REQ-SEC-020).
+ */
+function resolveEffect(
+  deps: EffectApplyHandlerDeps,
+  ctx: HandlerContext,
+  privileged: boolean,
+  payload: EffectApplyPayload,
+  source: Doc,
+): Doc {
+  const ref = payload.effect;
+  if (privileged) {
+    const doc = readEffectDoc(deps, UserRole.GAMEMASTER, ref);
+    if (doc === null) {
+      throw new EffectApplyError("NOT_FOUND", `Effect not found: ${ref.packId}/${ref.docId}`);
+    }
+    return assertIsEffect(doc);
+  }
+  const asServer = readEffectDoc(deps, UserRole.GAMEMASTER, ref);
+  if (
+    asServer === null ||
+    !isReferencedByOrigin(deps, payload.sourceActorId, source, ref, asServer)
+  ) {
+    throw denied("effect:apply: the source actor does not reference that effect");
+  }
+  const visible = readEffectDoc(deps, ctx.role, ref);
+  if (visible === null) throw denied("effect:apply: that effect is not available to your role");
+  return assertIsEffect(visible);
+}
+
+/**
+ * The expiry stamped on the embedded effect. The shape comes from the pack's own
+ * `system.fusion.expiryTemplate`; the client contributes only `ownerActorId`
+ * (validated in `authorizePlayer`), defaulting to the source. The Mestre/assistant
+ * may send a whole `expiry` (`on` present) to override the template.
+ */
+function buildExpiry(
+  effect: Doc,
+  payload: EffectApplyPayload,
+  privileged: boolean,
+): FusionExpiry | undefined {
+  const requested = payload.expiry;
+  if (privileged && requested?.on !== undefined) {
+    const full = FusionExpirySchema.safeParse(requested);
+    if (full.success) return full.data;
+  }
+  const template = asRecord(asRecord(effect["system"])["fusion"])["expiryTemplate"];
+  if (template === null || typeof template !== "object" || Array.isArray(template)) {
+    return undefined;
+  }
+  const built = FusionExpirySchema.safeParse({
+    ...(template as Doc),
+    ownerActorId: requested?.ownerActorId ?? payload.sourceActorId,
+  });
+  return built.success ? built.data : undefined;
 }
 
 function authorizePlayer(
@@ -247,6 +391,7 @@ function buildEmbeddedEffect(
   effect: Doc,
   payload: EffectApplyPayload,
   startedAt: { combatId: string | null; round: number | null },
+  expiry: FusionExpiry | undefined,
 ): { id: string; item: Doc } {
   const system = asRecord(effect["system"]);
   const fusion = asRecord(system["fusion"]);
@@ -269,9 +414,8 @@ function buildEmbeddedEffect(
             ...(typeof sourceId === "string" ? { itemSourceId: sourceId } : {}),
           },
           startedAt,
-          // Only present when the op declared one; absent means the effect's own
-          // pack template (if any) stays as copied.
-          ...(payload.expiry !== undefined ? { expiry: payload.expiry } : {}),
+          // Built on the server from the pack's `expiryTemplate` (review I-1).
+          ...(expiry !== undefined ? { expiry } : {}),
         },
       },
     },
@@ -309,8 +453,9 @@ function applyEffect(
     for (const targetId of payload.targetActorIds) {
       if (!targets.has(targetId)) targets.set(targetId, readActor(deps.store, targetId));
     }
-    const effect = resolveEffect(deps, payload.effect);
+    const effect = resolveEffect(deps, ctx, privileged, payload, source);
     if (!privileged) authorizePlayer(deps, ctx, payload, source, targets, effect);
+    const expiry = buildExpiry(effect, payload, privileged);
 
     const startedAt = startedAtFor(deps.store, payload.sourceActorId);
     const applied: { actorId: string; itemId: string }[] = [];
@@ -320,7 +465,7 @@ function applyEffect(
         // Re-read inside the transaction: the write must extend the CURRENT items.
         const fresh = deps.store.get("actors", targetId);
         const current = Array.isArray(fresh["items"]) ? (fresh["items"] as Doc[]) : [];
-        const { id, item } = buildEmbeddedEffect(effect, payload, startedAt);
+        const { id, item } = buildEmbeddedEffect(effect, payload, startedAt, expiry);
         const doc = txn.update("actors", targetId, { items: [...current, item] });
         if (doc !== null) docs.push(doc);
         applied.push({ actorId: targetId, itemId: id });

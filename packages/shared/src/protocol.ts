@@ -872,8 +872,13 @@ export const EffectApplyPayloadSchema = z
     sourceActorId: z.string().min(1),
     targetActorIds: z.array(z.string().min(1)).min(1).max(32),
     effect: z.object({ packId: z.string().min(1), docId: z.string().min(1) }).strict(),
-    /** e.g. Apoio → `{ on: "turn-start", ownerActorId: <the owner> }`. */
-    expiry: FusionExpirySchema.optional(),
+    /**
+     * Who ticks the clock (`ownerActorId`). The rest of the expiry (`on`,
+     * `remainingRounds`, `rollPredicate`) is built on the SERVER from the pack
+     * effect's `expiryTemplate`; only the Mestre/assistant may override it
+     * (onda-6 review I-1).
+     */
+    expiry: FusionExpirySchema.partial({ on: true }).optional(),
     /** The roll message whose `targetSnapshot` names the targets (DF-03). */
     messageId: z.string().min(1).optional(),
   })
