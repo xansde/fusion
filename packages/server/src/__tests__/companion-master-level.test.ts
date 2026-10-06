@@ -28,6 +28,8 @@ import { loadOrCreateSecret } from "../auth/crypto.js";
 import { PROTOCOL_VERSION } from "@fusion/shared";
 import { pf2eSystem } from "@fusion/system-pf2e";
 import { reserveFreePort } from "./helpers/ports.js";
+import { UserRole } from "../documents/ownership.js";
+import { PERMISSIONS_SETTING_KEY } from "../documents/world-permissions.js";
 
 // ---------------------------------------------------------------------------
 // Test infrastructure (mirrors embedded-item-actor.test.ts)
@@ -552,6 +554,85 @@ describe("Owner change re-derives the animal companion on the server (BHR-F4-03)
     it("another flag of the token is still the player's to write", async () => {
       const ack = await updateToken(ownerSocket, { "flags.fusion.note": "ok" });
       expect(ack["ok"], JSON.stringify(ack)).toBe(true);
+    });
+
+    describe("a scene the player owns, with TOKEN_CREATE lowered (create and whole-scene paths, wave 7 review)", () => {
+      let ownedSceneId = "";
+      let ownedTokenId = "";
+      const mountFlag = { fusion: { mount: { riderTokenId: "x" } } };
+
+      const rawTokens = (): Array<Record<string, unknown>> => {
+        const row = ctx.fusionDb.raw
+          .prepare("SELECT data FROM scenes WHERE id = ?")
+          .get(ownedSceneId) as { data: string };
+        return (JSON.parse(row.data) as { tokens: Array<Record<string, unknown>> }).tokens;
+      };
+
+      beforeAll(async () => {
+        const lowered = await sendOp(gm, "doc:create", {
+          documentType: "Setting",
+          data: [{ key: PERMISSIONS_SETTING_KEY, value: { TOKEN_CREATE: UserRole.PLAYER } }],
+        });
+        expect(lowered["ok"], JSON.stringify(lowered)).toBe(true);
+        const sceneAck = await sendOp(gm, "doc:create", {
+          documentType: "Scene",
+          data: [{ name: "Owned Scene", ownership: { default: 3 } }],
+        });
+        ownedSceneId = docsOf(sceneAck)[0]!["_id"] as string;
+        const onAir = await sendOp(gm, "world:activeScene", { sceneId: ownedSceneId });
+        expect(onAir["ok"], JSON.stringify(onAir)).toBe(true);
+        const tokenAck = await sendOp(gm, "doc:create", {
+          documentType: "Token",
+          data: [{ name: "Rider2", actorId: masterId, x: 0, y: 0 }],
+          parent: { type: "Scene", id: ownedSceneId },
+        });
+        expect(tokenAck["ok"], JSON.stringify(tokenAck)).toBe(true);
+        ownedTokenId = rawTokens()[0]!["_id"] as string;
+      });
+
+      it("a player cannot create a token that already carries flags.fusion.mount", async () => {
+        const ack = await sendOp(ownerSocket, "doc:create", {
+          documentType: "Token",
+          data: [{ name: "Forged", actorId: masterId, x: 100, y: 0, flags: mountFlag }],
+          parent: { type: "Scene", id: ownedSceneId },
+        });
+        expect(ack["ok"], JSON.stringify(ack)).toBe(false);
+        expect(ack["code"]).toBe("PERMISSION_DENIED");
+        expect(String(ack["message"])).toMatch(/flags\.fusion\.mount/);
+        expect(rawTokens()).toHaveLength(1);
+      });
+
+      it("a player can still create an ordinary token there", async () => {
+        const ack = await sendOp(ownerSocket, "doc:create", {
+          documentType: "Token",
+          data: [{ name: "Plain", actorId: masterId, x: 200, y: 0 }],
+          parent: { type: "Scene", id: ownedSceneId },
+        });
+        expect(ack["ok"], JSON.stringify(ack)).toBe(true);
+      });
+
+      // Editing a Scene is the GM's (REQ-CEN-070: a non-privileged caller gets NOT_FOUND whatever the diff), so
+      // the whole-scene path is closed to a player already; this keeps it closed for this flag.
+      it("a player cannot write it through the whole Scene either, whatever the spelling", async () => {
+        const token = rawTokens().find((t) => t["_id"] === ownedTokenId);
+        expect(token).toBeDefined();
+        const tried: Array<Record<string, unknown>> = [
+          { "tokens.0.flags.fusion.mount": { riderTokenId: "x" } },
+          { [`tokens.${ownedTokenId}.flags.fusion.mount`]: { riderTokenId: "x" } },
+          { tokens: [{ ...token, flags: mountFlag }] },
+          { tokens: { [ownedTokenId]: { flags: mountFlag } } },
+          { "tokens.0": { ...token, flags: mountFlag } },
+          { "tokens.0.flags": mountFlag },
+        ];
+        for (const diff of tried) {
+          const ack = await sendOp(ownerSocket, "doc:update", {
+            documentType: "Scene",
+            updates: [{ _id: ownedSceneId, diff }],
+          });
+          expect(ack["ok"], JSON.stringify(diff)).toBe(false);
+        }
+        expect(JSON.stringify(rawTokens())).not.toContain("riderTokenId");
+      });
     });
   });
 });

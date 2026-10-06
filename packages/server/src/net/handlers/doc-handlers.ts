@@ -2255,6 +2255,14 @@ function handleEmbeddedCreate(
       if (contractError) {
         return ackError(contractError.code, contractError.message);
       }
+      // `flags.fusion.mount` (MountState, spec 52 §2.5) is written by the mount handler only: a token a
+      // player creates cannot be born already mounted (wave 7 review). The GM may.
+      if (!isPrivileged(ctx.role) && readTokenMountFlag(raw) !== undefined) {
+        return ackError(
+          "PERMISSION_DENIED",
+          "flags.fusion.mount is not writable through doc:create by a player",
+        );
+      }
       // §7.2 overridable rows whose "inherit when absent" default is more
       // than a Zod literal: `actorLink` by the base actor's subtype
       // (REQ-DOC-061/REQ-TOK-023) and `bar1`/`bar2` by the active system's
