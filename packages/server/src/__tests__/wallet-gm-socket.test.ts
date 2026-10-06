@@ -187,8 +187,10 @@ describe("wallet adjust permissions on doc:update (BHR-F7-03)", () => {
     });
   };
   const gold = (actorId: string): unknown => {
-    const sys = ctx.store.get("actors", actorId)["system"] as Record<string, any> | undefined;
-    return sys?.["currency"]?.["gp"];
+    const sys = ctx.store.get("actors", actorId)["system"] as
+      | { currency?: { gp?: unknown } }
+      | undefined;
+    return sys?.currency?.gp;
   };
 
   it("the Mestre sets 15 gp to 2 gp on an actor owned by a player", async () => {

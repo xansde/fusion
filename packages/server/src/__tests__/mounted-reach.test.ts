@@ -48,19 +48,17 @@ describe("reach measured from the mount (REQ-BHR-181)", () => {
   });
 
   it("a rider on a Large mount reaches a target 10 feet from the mount with Grasping Reach (10 feet), not without it", () => {
-    expect(
-      isWithinStrikeReach({ attacker: rider, target: foe, grid, reachFeet: 10, mount }),
-    ).toBe(true);
+    expect(isWithinStrikeReach({ attacker: rider, target: foe, grid, reachFeet: 10, mount })).toBe(
+      true,
+    );
     // 5 feet of ordinary reach: even from the mount's edge the target is out.
-    expect(
-      isWithinStrikeReach({ attacker: rider, target: foe, grid, reachFeet: 5, mount }),
-    ).toBe(false);
+    expect(isWithinStrikeReach({ attacker: rider, target: foe, grid, reachFeet: 5, mount })).toBe(
+      false,
+    );
   });
 
   it("the same rider on foot (no mount) does not reach a target 15 feet away with 10 feet of reach", () => {
-    expect(isWithinStrikeReach({ attacker: rider, target: foe, grid, reachFeet: 10 })).toBe(
-      false,
-    );
+    expect(isWithinStrikeReach({ attacker: rider, target: foe, grid, reachFeet: 10 })).toBe(false);
   });
 
   it("a Large mount adjacent to the target lets the rider strike with ordinary 5-foot reach", () => {
@@ -260,7 +258,12 @@ describe("Apoio do antílope: persistent bleed only while mounted (REQ-BHR-182, 
   it("with a second token of the same antelope actor, the reach is measured from the token the rider is on", () => {
     const sceneDoc = scene("yes") as { tokens: Rec[] };
     // A decoy token of the same actor stands next to the foe, earlier in the list; the rider is on the other one.
-    sceneDoc.tokens.unshift({ _id: "decoyToken00001", actorId: ANTELOPE_ACTOR, x: 3 * SQUARE, y: 0 });
+    sceneDoc.tokens.unshift({
+      _id: "decoyToken00001",
+      actorId: ANTELOPE_ACTOR,
+      x: 3 * SQUARE,
+      y: 0,
+    });
     // Move the mounted pair far away from the foe (rider and antelope together).
     for (const t of sceneDoc.tokens) {
       if (t["_id"] === MOUNT_TOKEN || t["_id"] === RIDER_TOKEN) t["x"] = -6 * SQUARE;

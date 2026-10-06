@@ -181,9 +181,7 @@ export function isWithinStrikeReach(input: {
   reachFeet: number;
   mount?: PositionedToken | null;
 }): boolean {
-  return (
-    strikeDistance(input.attacker, input.target, input.grid, input.mount) <= input.reachFeet
-  );
+  return strikeDistance(input.attacker, input.target, input.grid, input.mount) <= input.reachFeet;
 }
 
 /**
