@@ -79,6 +79,7 @@ import {
   nextTurnIndex,
   previousTurnIndex,
   createDocumentId,
+  resolveEffectiveActor,
 } from "@fusion/shared";
 import type {
   CombatDocument,
@@ -875,10 +876,11 @@ export function buildCombatAddCombatantHandler(deps: CombatHandlerDeps): Handler
     }
 
     // Resolve token details (name, img, actorId) from the scene's token
-    let name = "Unknown";
+    let name: string | null = null;
     let img: string | null = null;
     let resolvedActorId: string | null = actorId ?? null;
     let hasPlayerOwner = false;
+    let sceneToken: Record<string, unknown> | undefined;
 
     // Try to look up the token in the scene for better defaults
     try {
@@ -887,7 +889,8 @@ export function buildCombatAddCombatantHandler(deps: CombatHandlerDeps): Handler
       if (Array.isArray(tokens)) {
         const token = (tokens as Record<string, unknown>[]).find((t) => t["_id"] === tokenId);
         if (token) {
-          name = typeof token["name"] === "string" ? token["name"] : "Unknown";
+          sceneToken = token;
+          name = typeof token["name"] === "string" ? token["name"] : null;
           img = typeof token["img"] === "string" ? token["img"] : null;
           if (resolvedActorId === null && typeof token["actorId"] === "string") {
             resolvedActorId = token["actorId"];
@@ -897,6 +900,35 @@ export function buildCombatAddCombatantHandler(deps: CombatHandlerDeps): Handler
     } catch {
       // Scene not found or token missing — use defaults; not fatal
     }
+
+    // A token's own name/art are nullable and inherit from its effective actor (spec 41, REQ-TOK-060/RNF-TOK-01):
+    // the combat panel lists such a token by the actor's name, so the combatant carries it too (L2 defect D6).
+    if ((name === null || img === null) && resolvedActorId) {
+      try {
+        const baseActor = deps.store.get("actors", resolvedActorId);
+        const delta = sceneToken?.["actorDelta"];
+        const effective = resolveEffectiveActor(
+          {
+            actorLink: sceneToken?.["actorLink"] !== false,
+            actorDelta:
+              typeof delta === "object" && delta !== null && !Array.isArray(delta)
+                ? (delta as { name?: string; img?: string })
+                : null,
+          },
+          {
+            name: typeof baseActor["name"] === "string" ? baseActor["name"] : "",
+            img: typeof baseActor["img"] === "string" ? baseActor["img"] : null,
+            system: {},
+          },
+        );
+        if (name === null && effective.name !== "") name = effective.name;
+        if (img === null && typeof effective.img === "string" && effective.img !== "")
+          img = effective.img;
+      } catch {
+        // Actor not found — keep what the token gave; not fatal
+      }
+    }
+    const combatantName = name ?? "Unknown";
 
     // Check if the actor has a player owner. "Has a player owner" is true
     // when EITHER `ownership.default` itself resolves to OWNER (every player
@@ -929,7 +961,7 @@ export function buildCombatAddCombatantHandler(deps: CombatHandlerDeps): Handler
       _id: createDocumentId(),
       tokenId,
       actorId: resolvedActorId,
-      name,
+      name: combatantName,
       img,
       initiative: initiative ?? null,
       initiativeStatistic: null,

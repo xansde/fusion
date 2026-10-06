@@ -948,5 +948,67 @@ describe("Ownership unification — ownership.default recognition", () => {
   });
 });
 
+// ---------------------------------------------------------------------------
+// Combatant name from the token (L2 defect D6). A token's own `name`/`img` are nullable and inherit from the
+// effective actor (spec 41, REQ-TOK-060/RNF-TOK-01); the combat panel already lists such a token by the actor's
+// name, so the combatant it creates must carry that name, not "Unknown".
+// ---------------------------------------------------------------------------
+
+describe("addCombatant — name and art of a token that inherits from its actor", () => {
+  let h: Harness;
+  beforeEach(() => {
+    h = buildHarness();
+  });
+  afterEach(() => {
+    teardown(h);
+  });
+
+  function sceneWithToken(token: Record<string, unknown>): string {
+    const scene = h.store.create(
+      "scenes",
+      { name: "Unit Scene", width: 1000, height: 1000, tokens: [token] },
+      { userId: GM_CTX.userId },
+    );
+    return scene["_id"] as string;
+  }
+
+  async function addAndRead(
+    sceneId: string,
+    tokenId: string,
+    actorId: string,
+  ): Promise<CombatantDocument> {
+    const combat = combatFromAck(
+      await run(buildCombatCreateHandler(h.combatDeps), { sceneId }, GM_CTX),
+    );
+    const ack = await run(
+      buildCombatAddCombatantHandler(h.combatDeps),
+      { combatId: combat._id, tokenId, actorId },
+      GM_CTX,
+    );
+    if (!ack.ok) throw new Error("expected ok");
+    return ack.result["combatant"] as unknown as CombatantDocument;
+  }
+
+  it("uses the actor's name and art when the token's own are null", async () => {
+    const actor = h.store.create(
+      "actors",
+      { name: "Bhrotto", img: "actors/bhrotto.webp", type: "character", ownership: { default: 0 } },
+      { userId: GM_CTX.userId },
+    );
+    const actorId = actor["_id"] as string;
+    const sceneId = sceneWithToken({ _id: "tok-inherit", actorId, name: null, img: null });
+    const combatant = await addAndRead(sceneId, "tok-inherit", actorId);
+    expect(combatant.name).toBe("Bhrotto");
+    expect(combatant.img).toBe("actors/bhrotto.webp");
+  });
+
+  it("keeps the token's own name when it has one", async () => {
+    const actorId = createActor(h, "Real Name");
+    const sceneId = sceneWithToken({ _id: "tok-own", actorId, name: "Ogro da Clareira" });
+    const combatant = await addAndRead(sceneId, "tok-own", actorId);
+    expect(combatant.name).toBe("Ogro da Clareira");
+  });
+});
+
 // Silence unused import lint for createDocumentId (kept for potential fixtures).
 void createDocumentId;
