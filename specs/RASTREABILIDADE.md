@@ -15,9 +15,9 @@ porque ainda não foram prometidos para nenhum marco.
 
 | Situação | Requisitos | Fatia |
 | --- | ---: | ---: |
-| Citados por algum teste | 804 | 36% |
+| Citados por algum teste | 812 | 36% |
 | Citados só por código de produção | 332 | 15% |
-| Sem nenhuma citação | 1117 | 50% |
+| Sem nenhuma citação | 1109 | 49% |
 | **Total [MVP]** | **2253** | |
 
 ## Por spec
@@ -39,7 +39,7 @@ porque ainda não foram prometidos para nenhum marco.
 | [12](12-journal-tabelas-cartas.md) | 34 | 0 | 0 | 34 | 0% |
 | [13](13-audio-e-playlists.md) | 49 | 0 | 3 | 46 | 0% |
 | [14](14-macros-e-automacao.md) | 34 | 0 | 0 | 34 | 0% |
-| [15](15-api-de-sistemas.md) | 81 | 27 | 31 | 23 | 33% |
+| [15](15-api-de-sistemas.md) | 81 | 28 | 31 | 22 | 35% |
 | [16](16-compendiums-e-importacao.md) | 57 | 19 | 16 | 22 | 33% |
 | [17](17-sistema-pf2e.md) | 109 | 67 | 16 | 26 | 61% |
 | [18](18-sistema-sf2e.md) | 46 | 22 | 8 | 16 | 48% |
@@ -53,7 +53,7 @@ porque ainda não foram prometidos para nenhum marco.
 | [26](26-licencas-e-legal.md) | 23 | 3 | 0 | 20 | 13% |
 | [27](27-roadmap-e-milestones.md) | 11 | 0 | 0 | 11 | 0% |
 | [28](28-hub-do-jogador.md) | 50 | 0 | 0 | 50 | 0% |
-| [29](29-pets-companions-familiars.md) | 55 | 14 | 9 | 32 | 25% |
+| [29](29-pets-companions-familiars.md) | 55 | 18 | 9 | 28 | 33% |
 | [31](31-base-canonica-de-conteudo.md) | 1 | 1 | 0 | 0 | 100% |
 | [32](32-minimapa-tatico.md) | 14 | 0 | 0 | 14 | 0% |
 | [34](34-mapa-de-regiao.md) | 27 | 0 | 0 | 27 | 0% |
@@ -69,4 +69,4 @@ porque ainda não foram prometidos para nenhum marco.
 | [44](44-aba-cenas.md) | 58 | 51 | 1 | 6 | 88% |
 | [45](45-atores.md) | 50 | 2 | 0 | 48 | 4% |
 | [47](47-fabricacao-e-alquimia.md) | 40 | 0 | 0 | 40 | 0% |
-| [52](52-cacador-companheiro-e-montaria.md) | 115 | 26 | 9 | 80 | 23% |
+| [52](52-cacador-companheiro-e-montaria.md) | 115 | 29 | 9 | 77 | 25% |
