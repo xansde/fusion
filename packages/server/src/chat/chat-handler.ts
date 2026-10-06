@@ -93,6 +93,7 @@ import {
   runRollResolvedHooks,
 } from "./roll-resolution.js";
 import type { TokenMarkSource } from "./roll-resolution.js";
+import type { MapCounter } from "../combat/map-counter.js";
 
 // ---------------------------------------------------------------------------
 // Types
@@ -127,6 +128,8 @@ export interface ChatHandlerDeps {
   /** The `TurnHookContext` handed to `onRollResolved` listeners; a stub when absent. */
   rollHookContext?: () => TurnHookContext;
   logger?: Pick<Logger, "error">;
+  /** BHR-F3-04: counts the multiple attack penalty when an attack is graded. */
+  mapCounter?: MapCounter;
 }
 
 // ---------------------------------------------------------------------------
@@ -573,6 +576,16 @@ export function buildChatSendHandler(deps: ChatHandlerDeps): HandlerFn {
         if (degree !== null) {
           rollResult = { ...rollResult, degreeOfSuccess: degree, target: targetPortrait };
           messageTargets = [targetPortrait];
+          deps.mapCounter?.noteAttackFromSpeaker(
+            deps.store,
+            {
+              userId: ctx.userId,
+              role: ctx.role,
+              actorId: payload.speakerActorId,
+              tokenId: payload.speakerTokenId,
+            },
+            { countsForMap: true },
+          );
         }
       }
 
