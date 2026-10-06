@@ -384,11 +384,35 @@ export const SaveCheckContextSchema = z.object({
 export type SaveCheckContext = z.infer<typeof SaveCheckContextSchema>;
 
 /**
- * Discriminated union of check contexts a `chat:send` may carry (r17.1). Only
- * `save` exists today; `kind` keeps the shape open for attack/skill checks
- * without a breaking change.
+ * Context of a strike / attack roll (BHR-F3-03, importing GUE-F1-03 and
+ * D-G02; REQ-BHR-083). It says WHY the roll is an attack, so the server grades
+ * it against the AC it reads from the database (REQ-ACH-070) and the card knows
+ * which damage button fits the degree. It carries no AC: a number a client sent
+ * would never be used. `payload.target` stays the path that resolves the
+ * target; when it is absent `targetTokenId` resolves it, and when both are
+ * present and differ the roll is not graded (REQ-ACH-071).
  */
-export const CheckContextSchema = z.discriminatedUnion("kind", [SaveCheckContextSchema]);
+export const AttackCheckContextSchema = z.object({
+  kind: z.literal("attack"),
+  /** Token aimed at; the AC comes from the database, NEVER from the payload. */
+  targetTokenId: z.string().min(1).max(120),
+  /** MAP index applied to this strike — audit only, it does not enter the math. */
+  mapIndex: z.union([z.literal(0), z.literal(1), z.literal(2)]),
+  /** Agile weapon: the MAP penalty is -4/-8 instead of -5/-10. */
+  agile: z.boolean().optional(),
+});
+
+export type AttackCheckContext = z.infer<typeof AttackCheckContextSchema>;
+
+/**
+ * Discriminated union of check contexts a `chat:send` may carry (r17.1):
+ * `save` (graded against a DC) and `attack` (BHR-F3-03, graded against the
+ * target's AC). `kind` keeps the shape open for skill checks.
+ */
+export const CheckContextSchema = z.discriminatedUnion("kind", [
+  SaveCheckContextSchema,
+  AttackCheckContextSchema,
+]);
 
 export type CheckContext = z.infer<typeof CheckContextSchema>;
 
