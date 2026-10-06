@@ -597,6 +597,33 @@ function readGrantSlotId(doc: Record<string, unknown>): string | null {
   return typeof raw === "string" && raw.length > 0 ? raw : null;
 }
 
+/**
+ * DEC-BHR-10 / DC-07: a master has ONE active animal companion, and the server decides which — never
+ * the client. The first companion created is born active; any later one is born inactive and the
+ * companion that was already active stays active (switching is the owner's explicit action,
+ * BHR-F4-10). Applies to every creator (player and GM) of a companion carrying a
+ * `system.companion` link; runs per item, so a batch sees the items persisted before it.
+ */
+function decideCompanionActiveOnCreate(
+  store: DocumentStore,
+  item: Record<string, unknown>,
+): Record<string, unknown> {
+  if (!isCompanionDoc(item) || readCompanionKind(item) !== "animalCompanion") return item;
+  const sys = item["system"] as Record<string, unknown>;
+  const link = sys["companion"];
+  if (!link || typeof link !== "object" || Array.isArray(link)) return item;
+  const masterId = readMasterActorId(item);
+  if (!masterId) return item;
+  const hasActive = companionsOfGroup(store, masterId, "animalCompanion").some((c) => {
+    const l = (c["system"] as Record<string, unknown>)["companion"];
+    return !!l && typeof l === "object" && (l as Record<string, unknown>)["active"] === true;
+  });
+  return {
+    ...item,
+    system: { ...sys, companion: { ...(link as Record<string, unknown>), active: !hasActive } },
+  };
+}
+
 /** Companions of one master+group already accepted earlier in the SAME create batch. */
 interface BatchCompanions {
   count: number;
@@ -1187,6 +1214,7 @@ export function buildDocCreateHandler(deps: DocHandlerDeps): HandlerFn {
         } else if (documentType === "Actor") {
           item = inheritMasterOwnershipOnCreate(deps.store, item);
         }
+        if (documentType === "Actor") item = decideCompanionActiveOnCreate(deps.store, item);
         let doc = deps.store.create(table as never, item, authorCtx);
         // WIRING-DERIVE: populate system.derived for newly created Actors.
         doc = recomputeDerivedIfNeeded(deps, documentType, doc, authorCtx);
