@@ -226,6 +226,7 @@
   "FUSION.Sheet.Wallet.AdjustApply": "Apply",
   "FUSION.Sheet.Wallet.AdjustCancel": "Cancel",
   "FUSION.Sheet.Wallet.AdjustHint": "No automatic wealth by level: the GM sets the values.",
+  "FUSION.Sheet.Wallet.AdjustInvalid": "A coin must be a whole number, zero or more. Fix it to apply.",
   "FUSION.Sheet.Wallet.Coin.pp": "Platinum",
   "FUSION.Sheet.Wallet.Coin.gp": "Gold",
   "FUSION.Sheet.Wallet.Coin.sp": "Silver",
