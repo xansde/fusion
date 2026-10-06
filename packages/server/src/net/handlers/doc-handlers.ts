@@ -459,6 +459,33 @@ function companionTypeChoiceViolation(
   return null;
 }
 
+/**
+ * What a PLAYER may put in the `system.companion` link of a NEW animal companion (wave 7 review I-2): an
+ * existing `typeSlug`, a `size` that type allows (null/absent = the type's default), the initial `stage`
+ * ("young", or absent) and no `track`. Returns the refusal message, or null when the link is acceptable.
+ */
+function companionCreateViolation(companion: Record<string, unknown>): string | null {
+  const system = companion["system"];
+  const link =
+    typeof system === "object" && system !== null && !Array.isArray(system)
+      ? (system as Record<string, unknown>)["companion"]
+      : undefined;
+  if (typeof link !== "object" || link === null || Array.isArray(link)) {
+    return "An animal companion needs a system.companion link";
+  }
+  const fields = link as Record<string, unknown>;
+  if (typeof fields["typeSlug"] !== "string") return "An animal companion needs a typeSlug";
+  const typeViolation = companionTypeChoiceViolation({ system: { companion: link } }, {});
+  if (typeViolation) return typeViolation;
+  if (fields["stage"] !== undefined && fields["stage"] !== "young") {
+    return "A new animal companion starts Young: the stage is set by the server";
+  }
+  if (fields["track"] !== undefined && fields["track"] !== null) {
+    return "A new animal companion has no track: the track is set by the server";
+  }
+  return null;
+}
+
 function rejectUnwritableField(
   documentType: string,
   expandedDiff: Record<string, unknown>,
@@ -812,6 +839,15 @@ function authorizePlayerCompanionCreate(
       code: "VALIDATION_FAILED",
       message: `Master already has the allowed number of companions of kind "${kind}"`,
     };
+  }
+
+  // (f) The statblock of an animal companion is a function of type + size + stage + track + master level
+  // (REQ-PET-106): a player picks only a type the system knows and a size that type allows. The stage is
+  // the server's — a new companion is Young and has no track — so anything else is refused, not trusted
+  // (the update path already refuses the same fields: onda-6 I-9, D-B09).
+  if (kind === "animalCompanion") {
+    const violation = companionCreateViolation(companion);
+    if (violation) return { ok: false, code: "VALIDATION_FAILED", message: violation };
   }
 
   // (e) An animal companion is born from one Plan slot (REQ-PET-111).

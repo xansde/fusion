@@ -253,6 +253,7 @@ describe("Animal companion creation permission (BHR-F4-04)", () => {
   let matureOnlyId = ""; // upgrade feat only
   let slotCheckId = ""; // 2 grants, slot checks
   let gmCapId = ""; // 1 grant, GM bypass
+  let typeCheckId = ""; // 1 grant, type/size/stage/track checks of the create
 
   async function createAs(socket: ClientSocket, data: Record<string, unknown>[]): Promise<Ack> {
     return sendOp(socket, "doc:create", { documentType: "Actor", data });
@@ -294,6 +295,7 @@ describe("Animal companion creation permission (BHR-F4-04)", () => {
       character(ctx.ownerUserId, "Slots", 2, [animal("ac1"), dedication("bd1")]),
     );
     gmCapId = await createMaster(character(ctx.ownerUserId, "GmCap", 1, [animal("ac1")]));
+    typeCheckId = await createMaster(character(ctx.ownerUserId, "TypeCheck", 1, [animal("ac1")]));
   }, 30000);
 
   afterAll(async () => {
@@ -318,6 +320,57 @@ describe("Animal companion creation permission (BHR-F4-04)", () => {
     ]);
     expect(second["ok"]).toBe(false);
     expect(second["code"]).toBe("VALIDATION_FAILED");
+  });
+
+  describe("I-2: the player's create is judged on type, size, stage and track by the server", () => {
+    const withLink = (link: Record<string, unknown>): Record<string, unknown> => ({
+      name: "Urso",
+      type: "familiar",
+      system: {
+        companionKind: "animalCompanion",
+        masterActorId: typeCheckId,
+        companion: { typeSlug: "bear", stage: "young", grantSlotId: "slot-animal", ...link },
+      },
+    });
+
+    it("refuses a forged Specialized stage, with or without a track", async () => {
+      for (const link of [{ stage: "specialized", track: "savage" }, { stage: "specialized" }]) {
+        const ack = await createAs(ownerSocket, [withLink(link)]);
+        expect(ack["ok"], JSON.stringify(link)).toBe(false);
+        expect(ack["code"]).toBe("VALIDATION_FAILED");
+      }
+    });
+
+    it("refuses a track on a young companion", async () => {
+      const ack = await createAs(ownerSocket, [withLink({ track: "nimble" })]);
+      expect(ack["ok"]).toBe(false);
+    });
+
+    it("refuses a size the type does not allow (a Large bear) and a type that does not exist", async () => {
+      expect((await createAs(ownerSocket, [withLink({ size: "lg" })]))["ok"]).toBe(false);
+      expect((await createAs(ownerSocket, [withLink({ typeSlug: "dragon-of-doom" })]))["ok"]).toBe(
+        false,
+      );
+    });
+
+    it("accepts the legitimate create (young, an existing type, its own size) and the Mestre stays free", async () => {
+      const ok = await createAs(ownerSocket, [withLink({ size: "sm" })]);
+      expect(ok["ok"], JSON.stringify(ok)).toBe(true);
+      const link = (firstDoc(ok)["system"] as { companion: Record<string, unknown> }).companion;
+      expect(link["stage"]).toBe("young");
+
+      const gmAck = await createAs(gm, [
+        {
+          ...withLink({ stage: "specialized", track: "savage", size: "lg" }),
+          system: {
+            companionKind: "animalCompanion",
+            masterActorId: typeCheckId,
+            companion: { typeSlug: "bear", stage: "specialized", track: "savage" },
+          },
+        },
+      ]);
+      expect(gmAck["ok"], JSON.stringify(gmAck)).toBe(true);
+    });
   });
 
   it("level 2 (Animal Companion + Dedication): two are created, the third is refused", async () => {
