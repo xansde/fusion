@@ -609,6 +609,11 @@ export interface ExtraDamageGate {
   readonly withinReachOf: "companion";
   readonly companionActorId: string;
   readonly reachFeet: number;
+  /**
+   * The roller must be mounted on that companion (REQ-PET-125, REQ-BHR-182): the roller's token and the
+   * companion's token confirm each other in the mount flag. Absent = the part does not ask for the mount.
+   */
+  readonly requiresMounted?: boolean;
 }
 
 /**
