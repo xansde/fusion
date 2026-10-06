@@ -50,6 +50,12 @@
  *     "protecting" a position the way this module's redaction does.
  *   - The result of a blind roll must never reach a non-privileged socket — not
  *     in `rolls[]`, not in the message text (REQ-ROL-032, REQ-ACH-092).
+ *   - A ChatMessage's `flags.fusion.targetSnapshot` (ALQ-F1-05, REQ-CBT-056)
+ *     answers to the SAME hidden-token cut as the Scene's own `tokens[]`
+ *     (B1 fix): {@link redactChatTargetSnapshotForNonPrivileged} drops any
+ *     entry whose token is hidden from the viewer, on every chat emission
+ *     path — broadcast, history, search, context, the join snapshot, and
+ *     every ack that echoes the message back to its author.
  *
  * There are three emission paths that carry document bodies to clients, and all
  * three MUST funnel non-GM documents through this module:
@@ -99,7 +105,13 @@ import {
   ATTITUDE_FLAG_NAMESPACE,
   ATTITUDE_FLAG_KEY,
 } from "@fusion/shared";
-import type { ChatMessage, Ownership, RollTarget } from "@fusion/shared";
+import type {
+  ActorDamageAppliedPayload,
+  ChatMessage,
+  DamageAppliedTarget,
+  Ownership,
+  RollTarget,
+} from "@fusion/shared";
 import { OwnershipLevel, isRolePrivileged, resolveOwnership } from "../documents/ownership.js";
 import {
   PLAYER_CHARACTER_SUBTYPES,
@@ -287,6 +299,31 @@ function docHasTargetAc(doc: unknown): boolean {
 }
 
 /**
+ * The hidden+`seenBy` predicate for ONE token (REQ-TOK-050/051/052, spec
+ * 41-token.md, DEC-TOK-08): true when this token must NOT reach `userId`.
+ *
+ * Pulled out of {@link stripHiddenTokens} so a SECOND emission path — the
+ * chat `targetSnapshot` redaction below — can share the exact same rule
+ * instead of writing a second strip/predicate (the module's own standing
+ * invariant: "Hidden tokens must NEVER reach a non-GM socket — by ANY
+ * emission path").
+ *
+ * `userId` is optional so a caller with no per-user identity available (a
+ * defensive/test-only path) still gets the historical, more conservative
+ * behaviour: EVERY hidden token is treated as hidden from it, `seenBy` or
+ * not.
+ */
+function tokenIsHiddenFromViewer(
+  token: Record<string, unknown>,
+  userId: string | undefined,
+): boolean {
+  if (token["hidden"] !== true) return false;
+  if (userId === undefined) return true;
+  const seenBy = token["seenBy"];
+  return !(Array.isArray(seenBy) && (seenBy as unknown[]).includes(userId));
+}
+
+/**
  * Strip hidden tokens from a single Scene document for non-GM players.
  *
  * Returns a shallow copy of the scene with the `tokens` array filtered to
@@ -315,16 +352,337 @@ export function stripHiddenTokens(
   const rawTokens = scene["tokens"];
   if (!Array.isArray(rawTokens)) return scene;
 
-  const filtered = (rawTokens as Record<string, unknown>[]).filter((token) => {
-    if (token["hidden"] !== true) return true;
-    if (userId === undefined) return false;
-    const seenBy = token["seenBy"];
-    return Array.isArray(seenBy) && (seenBy as unknown[]).includes(userId);
-  });
+  const filtered = (rawTokens as Record<string, unknown>[]).filter(
+    (token) => !tokenIsHiddenFromViewer(token, userId),
+  );
 
   // Only allocate a new object when something was actually removed.
   if (filtered.length === rawTokens.length) return scene;
   return { ...scene, tokens: filtered };
+}
+
+// ---------------------------------------------------------------------------
+// Chat target-snapshot redaction (B1 fix — ALQ-F1-05, REQ-CBT-056)
+// ---------------------------------------------------------------------------
+//
+// `flags.fusion.targetSnapshot` (chat-handler.ts::attachTargetSnapshot) froze
+// the author's live target selection onto the message so a later
+// ApplyDamage/ApplyCondition can read WHO the roll was aimed at (D-02). That
+// snapshot carries a `tokenId`/`actorId` pair straight from the Scene's own
+// tokens[] — the exact data {@link stripHiddenTokens} exists to keep off a
+// non-GM socket — but it travelled on `flags`, a part of ChatMessage none of
+// the three chat redaction funnels below ever looked at. Fixed here, once,
+// so broadcast, `chat:history`, `chat:search`, `chat:context`, the join
+// snapshot and every chat ack share the SAME cut, per this module's own
+// discipline of never letting an emission path drift out of parity.
+
+/**
+ * One entry of `flags.fusion.targetSnapshot`. Kept structural here —
+ * mirroring {@link ContactViewer}/{@link ContactKnowledgeSource} above —
+ * rather than importing `combat/target-selection.ts`'s `ResolvedTarget`, so
+ * this module's only coupling to the chat feature is "here is an id, look it
+ * up", never a dependency on the combat feature's own types.
+ */
+export interface TargetSnapshotEntry {
+  tokenId: string;
+  actorId: string | null;
+  sceneId: string;
+}
+
+/**
+ * Where the target-snapshot redaction resolves a `tokenId` back to its token
+ * document, so {@link tokenIsHiddenFromViewer} can be asked about it. An
+ * interface — like {@link ContactKnowledgeSource} — so the redaction stays
+ * testable without a live `DocumentStore`.
+ */
+export interface TokenLookupSource {
+  findToken(tokenId: string): Record<string, unknown> | undefined;
+}
+
+/**
+ * The canonical source: scan every Scene's embedded `tokens[]` (DEC-PER-02 —
+ * there is no dedicated token table). This is the SAME scan
+ * `combat/target-selection.ts::locateToken` runs to resolve a snapshot
+ * entry's `actorId`/`sceneId` in the first place; this module reimplements
+ * it (rather than importing that function) purely to stay free of a
+ * dependency on the combat feature, and because the two scans read a
+ * different field off the token they find (`actorId`/`sceneId` there,
+ * `hidden`/`seenBy` here).
+ */
+export function tokenLookupSourceFromStore(store: DocumentStore): TokenLookupSource {
+  return {
+    findToken(tokenId: string): Record<string, unknown> | undefined {
+      for (const scene of store.getAll("scenes")) {
+        const tokens = scene["tokens"];
+        if (!Array.isArray(tokens)) continue;
+        for (const token of tokens as Record<string, unknown>[]) {
+          if (token["_id"] === tokenId) return token;
+        }
+      }
+      return undefined;
+    },
+  };
+}
+
+/**
+ * The `targetSnapshot` a NON-PRIVILEGED viewer may receive (B1 fix).
+ *
+ * Every entry whose token is hidden from this viewer — the exact hidden +
+ * `seenBy` rule {@link stripHiddenTokens} applies to a Scene's own
+ * `tokens[]` — is dropped. An entry whose token cannot be resolved at all
+ * (deleted since the roll, a foreign id, or no lookup source available) is
+ * ALSO dropped: fail closed, matching this module's stated invariant that a
+ * hidden token must never reach a non-GM socket "by ANY emission path" — an
+ * entry this module cannot prove safe is treated as unsafe, never the
+ * reverse.
+ *
+ * Re-resolves the token's CURRENT state on every call rather than trusting
+ * anything cached at roll time — exactly like every other cut in this
+ * module (a token hidden today was not necessarily hidden when the message
+ * was sent, and vice versa; the funnel always answers with the present).
+ *
+ * Returns the SAME array reference when nothing needed dropping, so callers
+ * can cheaply detect "unchanged" like every other cut in this file.
+ */
+function redactTargetSnapshotEntries(
+  snapshot: readonly TargetSnapshotEntry[],
+  userId: string | undefined,
+  source: TokenLookupSource | undefined,
+): TargetSnapshotEntry[] {
+  const kept = snapshot.filter((entry) => {
+    const token = source?.findToken(entry.tokenId);
+    if (!token) return false;
+    return !tokenIsHiddenFromViewer(token, userId);
+  });
+  return kept.length === snapshot.length ? (snapshot as TargetSnapshotEntry[]) : kept;
+}
+
+/** Namespace/key `flags.fusion.targetSnapshot` is stored under (chat-handler.ts). */
+const CHAT_FUSION_FLAG_NAMESPACE = "fusion";
+const CHAT_TARGET_SNAPSHOT_FLAG_KEY = "targetSnapshot";
+
+/**
+ * The ChatMessage a NON-PRIVILEGED viewer may receive, with
+ * `flags.fusion.targetSnapshot` redacted (B1 fix, REQ-CBT-056).
+ *
+ * Composes with {@link redactChatTargetsForNonPrivileged} /
+ * {@link redactBlindRollForNonPrivileged}: together they are everything this
+ * module owns for a non-privileged chat payload. `source` is optional so a
+ * caller with no `DocumentStore` handle (a chat-only harness that never
+ * exercises targeting) degrades to the fail-closed behaviour above — a
+ * present-but-unresolvable snapshot is dropped whole, never forwarded as-is.
+ *
+ * Returns the SAME message reference when there is nothing to strip, so
+ * callers can cheaply detect "unchanged".
+ */
+export function redactChatTargetSnapshotForNonPrivileged(
+  msg: ChatMessage,
+  userId: string | undefined,
+  source: TokenLookupSource | undefined,
+): ChatMessage {
+  const flags = msg.flags as Record<string, Record<string, unknown>> | undefined;
+  const fusionFlags = flags?.[CHAT_FUSION_FLAG_NAMESPACE];
+  const snapshot = fusionFlags?.[CHAT_TARGET_SNAPSHOT_FLAG_KEY];
+  if (!Array.isArray(snapshot) || snapshot.length === 0) return msg;
+
+  const redacted = redactTargetSnapshotEntries(snapshot as TargetSnapshotEntry[], userId, source);
+  if (redacted === snapshot) return msg;
+
+  return {
+    ...msg,
+    flags: {
+      ...flags,
+      [CHAT_FUSION_FLAG_NAMESPACE]: { ...fusionFlags, [CHAT_TARGET_SNAPSHOT_FLAG_KEY]: redacted },
+    },
+  };
+}
+
+// ---------------------------------------------------------------------------
+// actor:damageApplied redaction (ALQ-F1-08 — REQ-CHT-053, D-04)
+//
+// `flags.fusion.damageApplied` (ActorDamageAppliedPayload, @fusion/shared)
+// carries the `actor:applyDamage` summary card. REQ-CHT-053: a non-privileged
+// viewer's line MUST contain only the damage caused (`byType`/`total`) —
+// NEVER `hpBefore`/`hpAfter`/`tempHpAfter`/`deathCondition`, "nem no payload,
+// nem no histórico, nem no snapshot de entrada" (not in the ack, not in
+// history/search/context, not in the live broadcast). The owner of the
+// affected actor is NOT an exception (REQ-CHT-053's own text: "o resumo não é
+// o lugar dela" — they see their hp on the SHEET, never in this card) — the
+// cut is by ROLE ALONE, unlike {@link stripActorHp} (OWNER-or-privileged).
+// ---------------------------------------------------------------------------
+
+/**
+ * The `DamageAppliedTarget` line a NON-PRIVILEGED viewer may receive: the
+ * four privileged-only fields removed, `byType`/`total` untouched.
+ *
+ * Returns the SAME reference when there is nothing to strip, matching every
+ * other cut in this module.
+ */
+export function redactDamageAppliedTargetForNonPrivileged(
+  target: DamageAppliedTarget,
+): DamageAppliedTarget {
+  if (
+    target.hpBefore === undefined &&
+    target.hpAfter === undefined &&
+    target.tempHpAfter === undefined &&
+    target.deathCondition === undefined
+  ) {
+    return target;
+  }
+  const {
+    hpBefore: _hpBefore,
+    hpAfter: _hpAfter,
+    tempHpAfter: _tempHpAfter,
+    deathCondition: _deathCondition,
+    ...rest
+  } = target;
+  return rest;
+}
+
+/**
+ * The `ActorDamageAppliedPayload` a NON-PRIVILEGED viewer may receive —
+ * {@link redactDamageAppliedTargetForNonPrivileged} applied to every target
+ * line. Used for the `actor:applyDamage` ack (REQ-SYS-142: "o ack devolvido a
+ * usuário sem papel privilegiado DEVE seguir a mesma redação do resumo") —
+ * the CALLER's own ack, never a bystander's, so it does NOT drop hidden-token
+ * targets the way {@link redactChatDamageAppliedForNonPrivileged} does for
+ * the broadcast/history copy: that cut needs a per-VIEWER identity and a
+ * token lookup this function is never given (actor-mechanics-service.ts has
+ * neither readily at the ack call site, and the caller already knows which
+ * tokens it named).
+ *
+ * Returns the SAME reference when nothing needed stripping.
+ */
+export function redactDamageAppliedPayloadForNonPrivileged(
+  payload: ActorDamageAppliedPayload,
+): ActorDamageAppliedPayload {
+  const targets = payload.targets.map(redactDamageAppliedTargetForNonPrivileged);
+  const changed = targets.some((t, i) => t !== payload.targets[i]);
+  return changed ? { ...payload, targets } : payload;
+}
+
+/**
+ * Render one target's line of the `actor:damageApplied` summary (REQ-CHT-053:
+ * "uma linha por alvo"). Reads only `name`/`total`/`byType` — never the
+ * privileged-only hp/death fields — so it renders identically for the
+ * privileged and the redacted rendering alike; the actual role cut is which
+ * TARGETS reach this function at all (see
+ * {@link redactChatDamageAppliedForNonPrivileged}), not what this renders.
+ */
+export function formatDamageAppliedLine(target: DamageAppliedTarget): string {
+  return `${target.name} sofreu ${String(target.total)} de dano (${target.byType.map((b) => `${String(b.amount)} ${b.type}`).join(" + ")})`;
+}
+
+/**
+ * The full `content` fallback line for an `actor:damageApplied` summary —
+ * one {@link formatDamageAppliedLine} per target, newline-joined. Shared by
+ * `actor-mechanics-service.ts` (building the FULL content at persist time)
+ * and {@link redactChatDamageAppliedForNonPrivileged} (rebuilding it from the
+ * REDACTED target list below) so the two can never drift into two different
+ * renderings of "a line per target".
+ */
+export function formatDamageAppliedContent(payload: ActorDamageAppliedPayload): string {
+  return payload.targets.map(formatDamageAppliedLine).join("\n");
+}
+
+/** Namespace/key `flags.fusion.damageApplied` is stored under (actor-mechanics-service.ts). */
+const CHAT_DAMAGE_APPLIED_FLAG_KEY = "damageApplied";
+
+/**
+ * Whether `target`'s token must not reach `userId` at all (I1 fix, onda-4
+ * adversarial review) — the `actor:damageApplied` counterpart of
+ * {@link redactTargetSnapshotEntries}'s hidden-token cut, with ONE
+ * deliberate difference: an UNRESOLVABLE token here means "keep", not "drop".
+ *
+ * `targetSnapshot` entries always name a token that was, by construction,
+ * live on a scene at roll time (`combat/target-selection.ts::locateToken`),
+ * so failing to resolve one is anomalous and the fail-closed default (drop)
+ * is correct. A `damageApplied` target's `tokenId` has a DIFFERENT, NORMAL
+ * case producing an id that will never resolve: `selfActorId` on an actor
+ * with no token placed anywhere falls back to the actor's own id
+ * (`actor-mechanics-service.ts`: `target.tokenId ?? target.actorId`) — that
+ * is not a hidden token, it is no token, and treating it as "hidden" would
+ * silently drop every self-heal/self-damage summary line a bystander is
+ * otherwise fully entitled to see. Only a token this function can POSITIVELY
+ * CONFIRM is hidden gets cut.
+ */
+function damageAppliedTargetIsHiddenFromViewer(
+  target: DamageAppliedTarget,
+  userId: string | undefined,
+  source: TokenLookupSource | undefined,
+): boolean {
+  const token = source?.findToken(target.tokenId);
+  if (!token) return false;
+  return tokenIsHiddenFromViewer(token, userId);
+}
+
+/**
+ * The ChatMessage a NON-PRIVILEGED viewer may receive, with
+ * `flags.fusion.damageApplied` redacted (REQ-CHT-053) — the
+ * `actor:damageApplied` counterpart of
+ * {@link redactChatTargetSnapshotForNonPrivileged}, sharing the same
+ * `flags.fusion` namespace and the same "every emission path funnels through
+ * here" discipline (chat-handler.ts wires this into the live broadcast, the
+ * chat:send ack, and history/search/context/join-snapshot's single shared
+ * `redactForViewer`).
+ *
+ * I1 fix (onda-4 adversarial review): a target whose token IS hidden from
+ * THIS viewer (`userId`, `seenBy`-aware, {@link damageAppliedTargetIsHiddenFromViewer})
+ * is dropped from `targets[]` ENTIRELY — not just its hp fields — because
+ * the line also carries the target's name/tokenId/actorId, exactly the
+ * identity `net/redaction.ts`'s own stated invariant says must never reach a
+ * non-GM socket by any emission path. When dropping a target changes the
+ * set, `content` — the plain-text fallback line every viewer's card renders
+ * from — is REBUILT from the same redacted target list
+ * ({@link formatDamageAppliedContent}): unlike every other field this
+ * summary carries, `content` is NOT role-invariant once a hidden token is in
+ * play, so it cannot be left pointing at a name the payload no longer names.
+ *
+ * `source` is optional so a caller with no `DocumentStore`-backed
+ * `TokenLookupSource` (a chat-only harness) degrades to "nothing looks
+ * hidden" (see {@link damageAppliedTargetIsHiddenFromViewer}) rather than
+ * dropping every target — the opposite failure mode from
+ * {@link redactChatTargetSnapshotForNonPrivileged}, and deliberately so (see
+ * that function's own doc comment on the asymmetry).
+ *
+ * Returns the SAME message reference when there is nothing to strip.
+ */
+export function redactChatDamageAppliedForNonPrivileged(
+  msg: ChatMessage,
+  userId: string | undefined,
+  source: TokenLookupSource | undefined,
+): ChatMessage {
+  const flags = msg.flags as Record<string, Record<string, unknown>> | undefined;
+  const fusionFlags = flags?.[CHAT_FUSION_FLAG_NAMESPACE];
+  const damageApplied = fusionFlags?.[CHAT_DAMAGE_APPLIED_FLAG_KEY];
+  if (!damageApplied || typeof damageApplied !== "object") return msg;
+
+  const payload = damageApplied as ActorDamageAppliedPayload;
+  const visibleTargets = payload.targets.filter(
+    (t) => !damageAppliedTargetIsHiddenFromViewer(t, userId, source),
+  );
+  const targetsChanged = visibleTargets.length !== payload.targets.length;
+
+  const redactedTargets = visibleTargets.map(redactDamageAppliedTargetForNonPrivileged);
+  const fieldsChanged = redactedTargets.some((t, i) => t !== visibleTargets[i]);
+
+  if (!targetsChanged && !fieldsChanged) return msg;
+
+  const redactedPayload: ActorDamageAppliedPayload = { ...payload, targets: redactedTargets };
+
+  return {
+    ...msg,
+    // Only rebuilt when a target actually dropped — the hp-only redaction
+    // (fieldsChanged alone) never removes a name from `content`.
+    ...(targetsChanged ? { content: formatDamageAppliedContent(redactedPayload) } : {}),
+    flags: {
+      ...flags,
+      [CHAT_FUSION_FLAG_NAMESPACE]: {
+        ...fusionFlags,
+        [CHAT_DAMAGE_APPLIED_FLAG_KEY]: redactedPayload,
+      },
+    },
+  };
 }
 
 // ---------------------------------------------------------------------------

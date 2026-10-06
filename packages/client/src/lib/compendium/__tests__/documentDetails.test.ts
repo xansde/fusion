@@ -19,6 +19,7 @@ import {
   buildSpellFields,
   buildFeatFields,
   buildClassFeatureFields,
+  buildEffectFields,
   buildMechanicalFields,
   buildDetailsHeader,
   DocumentDetailsCache,
@@ -519,6 +520,69 @@ describe("action-glyph inline icon conversion (r16-G2)", () => {
   });
 });
 
+// ---------------------------------------------------------------------------
+// I3 (onda-3 adversarial review): `withBreaks` only emitted a separator for
+// br/hr/p/li/div — an inline tag (strong/em/b/i, and the action-glyph span)
+// or a table tag (table/tr/td/th) disappeared with NOTHING in its place,
+// gluing whatever text sat on either side of it. Fixtures below are VERBATIM
+// excerpts from the committed packs (cited per doc), not invented HTML.
+// ---------------------------------------------------------------------------
+
+describe("sanitizeDescriptionToText — tags inline e de tabela não colam palavras (I3, onda-3 review)", () => {
+  it("alchemical-items-core, 'Crackling Bubble Gum': </strong> colado no <span> do glifo não gruda mais a palavra no ícone", () => {
+    // Verbatim from the pack: no whitespace at all between </strong> and the
+    // action-glyph <span> in the source HTML.
+    const html = '<p><strong>Activate</strong><span class="action-glyph">1</span> (manipulate)</p>';
+    const blocks = sanitizeDescriptionToText(html);
+
+    // Hand-derived: <strong>/</strong>/<span>/</span> each become ONE space,
+    // consecutive spaces collapse to one, and the block is trimmed — so the
+    // action glyph reads as its own word, never glued to "Activate".
+    expect(blocks).toEqual(["Activate ◆ (manipulate)"]);
+    expect(blocks[0]).not.toContain("Activate◆");
+  });
+
+  it("spells-core, 'Demon Form': </strong><span> sem espaço nenhum (Ranged) fica igual ao caso que já tinha espaço (Melee)", () => {
+    // Verbatim excerpt: the vendor source has a literal space between Melee's
+    // </strong> and its glyph <span>, and NONE between Ranged's — both must
+    // read identically after the fix (a single space), proving the collapse
+    // handles pre-existing whitespace and the fully-glued case the same way.
+    const html =
+      '<ul><li><strong>Melee</strong> <span class="action-glyph">1</span> claw (agile, magic, unholy), <strong>Damage</strong> 2d6+12 slashing;</li>' +
+      '<li><strong>Ranged</strong><span class="action-glyph">1</span> hurled debris (range increment 20 feet, unholy)</li></ul>';
+    const blocks = sanitizeDescriptionToText(html);
+    const text = blocks.join(" ");
+
+    expect(text).toContain("Melee ◆ claw");
+    expect(text).toContain("Ranged ◆ hurled debris");
+    expect(text).not.toContain("Ranged◆");
+    expect(text).not.toContain("Activate◆");
+    expect(text).not.toMatch(/ {2,}/); // no double spaces left over from the collapse
+  });
+
+  it("actions-core, 'Earn Income' Table 4-2 (truncated to 2 rows): células de tabela não colam dígitos", () => {
+    // Verbatim excerpt of the real table (rows truncated for test size; cell
+    // text is byte-for-byte from the pack).
+    const html =
+      '<table class="pf2e remaster"><thead><tr><th>Task Level</th><th>Failure</th><th>Trained</th>' +
+      "<th>Expert</th><th>Master</th><th>Legendary</th></tr></thead><tbody>" +
+      "<tr><td>0</td><td>1 cp</td><td>5 cp</td><td>5 cp</td><td>5 cp</td><td>5 cp</td></tr>" +
+      "<tr><td>1</td><td>2 cp</td><td>2 sp</td><td>2 sp</td><td>2 sp</td><td>2 sp</td></tr>" +
+      "</tbody></table>";
+    const blocks = sanitizeDescriptionToText(html);
+
+    // Hand-derived: <table> opening and every </tr> (plus </table>) are
+    // paragraph breaks; every <td>/<th> (open AND close) becomes a space, so
+    // each row is its own block with cells space-separated — never the
+    // "015 cp5 cp5 cp..." digit-glued mess the bug produced.
+    expect(blocks).toEqual([
+      "Task Level Failure Trained Expert Master Legendary",
+      "0 1 cp 5 cp 5 cp 5 cp 5 cp",
+      "1 2 cp 2 sp 2 sp 2 sp 2 sp",
+    ]);
+  });
+});
+
 describe("buildSpellFields (EN, default locale)", () => {
   it("extracts cast time, range, target, and requirements", () => {
     const fields = buildSpellFields({
@@ -808,6 +872,156 @@ describe("buildClassFeatureFields", () => {
   });
 });
 
+// ALQ-F2-18: system.duration is a structured { value, unit, sustained,
+// expiry } (EffectItemSystem, Alquimista plan §2.5) — never the free-text
+// string a spell's duration uses — so these fixtures mirror the real shapes
+// found in equipment-effects-core (`external/fusion-systems-2e/systems/pf2e/
+// packs/equipment-effects-core/documents.json`), not an invented shape:
+//   - "Effect: Elixir of Life"                    -> minute, value 10
+//   - "Aura: Demon's Knot"                        -> round, value 1
+//   - "Effect: Magnetic Bola (Speed Penalty)"     -> encounter, value -1 (sentinel)
+//   - "Effect: Aeon Stone Resonance (Black Disc)" -> unlimited, value -1 (sentinel)
+//   - "Effect: Ablative Armor Plating (Greater)"  -> hour, value 1
+//   - "Effect: Aeon Stone (Pink Rhomboid)"        -> day, value 1
+describe("buildEffectFields (EN, default locale)", () => {
+  it("renders a countable minute duration", () => {
+    const fields = buildEffectFields({
+      duration: { value: 10, unit: "minute", sustained: false, expiry: "turn-start" },
+    });
+    expect(noKey(fields)).toEqual([{ label: "Duration", value: "10 minutes" }]);
+  });
+
+  it("renders a countable round duration, singular", () => {
+    const fields = buildEffectFields({
+      duration: { value: 1, unit: "round", sustained: false, expiry: "turn-start" },
+    });
+    expect(noKey(fields)).toEqual([{ label: "Duration", value: "1 round" }]);
+  });
+
+  it("renders the semantic 'encounter' duration without its -1 sentinel value", () => {
+    const fields = buildEffectFields({
+      duration: { value: -1, unit: "encounter", sustained: false, expiry: null },
+    });
+    expect(noKey(fields)).toEqual([{ label: "Duration", value: "until the encounter ends" }]);
+  });
+
+  it("renders the semantic 'unlimited' duration without its -1 sentinel value", () => {
+    const fields = buildEffectFields({
+      duration: { value: -1, unit: "unlimited", sustained: false, expiry: null },
+    });
+    expect(noKey(fields)).toEqual([{ label: "Duration", value: "unlimited" }]);
+  });
+
+  it("pluralizes countable units for value > 1 (never hardcodes the singular)", () => {
+    const fields = buildEffectFields({
+      duration: { value: 2, unit: "round", sustained: false, expiry: "turn-start" },
+    });
+    expect(noKey(fields)).toEqual([{ label: "Duration", value: "2 rounds" }]);
+  });
+
+  it("renders the hour and day units too (same countable branch, real pack data)", () => {
+    expect(
+      noKey(
+        buildEffectFields({
+          duration: { value: 1, unit: "hour", sustained: false, expiry: "turn-start" },
+        }),
+      ),
+    ).toEqual([{ label: "Duration", value: "1 hour" }]);
+    expect(
+      noKey(
+        buildEffectFields({
+          duration: { value: 1, unit: "day", sustained: false, expiry: "turn-start" },
+        }),
+      ),
+    ).toEqual([{ label: "Duration", value: "1 day" }]);
+  });
+
+  it("appends a sustained suffix when duration.sustained is true", () => {
+    const fields = buildEffectFields({
+      duration: { value: 1, unit: "minute", sustained: true, expiry: "turn-start" },
+    });
+    expect(noKey(fields)).toEqual([{ label: "Duration", value: "1 minute (sustained)" }]);
+  });
+
+  it("omits the duration field when system.duration is missing or not an object", () => {
+    expect(buildEffectFields({})).toEqual([]);
+    expect(buildEffectFields({ duration: "1 minute" })).toEqual([]);
+  });
+});
+
+describe("buildEffectFields (pt-BR)", () => {
+  // The four shapes ALQ-F2-18 asks for, asserted against the PF2e remaster
+  // table-language text a GM/player reads at the table — never the raw
+  // vendor/importer label ("Unit minute") the picker used to fall back to.
+  it("renders '10 minutos' for the Elixir of Life shape (minute, value 10)", () => {
+    const fields = buildEffectFields(
+      { duration: { value: 10, unit: "minute", sustained: false, expiry: "turn-start" } },
+      "pt-BR",
+    );
+    expect(fields).toEqual([
+      { labelKey: "FUSION.Sheet.Details.Field.Duration", label: "Duração", value: "10 minutos" },
+    ]);
+  });
+
+  it("renders '1 rodada' for the Demon's Knot shape (round, value 1)", () => {
+    const fields = buildEffectFields(
+      { duration: { value: 1, unit: "round", sustained: false, expiry: "turn-start" } },
+      "pt-BR",
+    );
+    expect(fields).toEqual([
+      { labelKey: "FUSION.Sheet.Details.Field.Duration", label: "Duração", value: "1 rodada" },
+    ]);
+  });
+
+  it("renders 'enquanto durar o encontro' for the encounter shape", () => {
+    const fields = buildEffectFields(
+      { duration: { value: -1, unit: "encounter", sustained: false, expiry: null } },
+      "pt-BR",
+    );
+    expect(fields).toEqual([
+      {
+        labelKey: "FUSION.Sheet.Details.Field.Duration",
+        label: "Duração",
+        value: "enquanto durar o encontro",
+      },
+    ]);
+  });
+
+  it("renders 'ilimitado' for the unlimited shape", () => {
+    const fields = buildEffectFields(
+      { duration: { value: -1, unit: "unlimited", sustained: false, expiry: null } },
+      "pt-BR",
+    );
+    expect(fields).toEqual([
+      { labelKey: "FUSION.Sheet.Details.Field.Duration", label: "Duração", value: "ilimitado" },
+    ]);
+  });
+
+  it("pluralizes countable units in pt-BR (2 rodadas, not 2 rodada)", () => {
+    const fields = buildEffectFields(
+      { duration: { value: 2, unit: "round", sustained: false, expiry: "turn-start" } },
+      "pt-BR",
+    );
+    expect(fields).toEqual([
+      { labelKey: "FUSION.Sheet.Details.Field.Duration", label: "Duração", value: "2 rodadas" },
+    ]);
+  });
+
+  it("appends '(sustentada)' when duration.sustained is true", () => {
+    const fields = buildEffectFields(
+      { duration: { value: 1, unit: "minute", sustained: true, expiry: "turn-start" } },
+      "pt-BR",
+    );
+    expect(fields).toEqual([
+      {
+        labelKey: "FUSION.Sheet.Details.Field.Duration",
+        label: "Duração",
+        value: "1 minuto (sustentada)",
+      },
+    ]);
+  });
+});
+
 describe("buildMechanicalFields (dispatch)", () => {
   it("dispatches to buildSpellFields for type 'spell'", () => {
     const fields = buildMechanicalFields({ type: "spell", system: { range: "touch" } });
@@ -832,6 +1046,17 @@ describe("buildMechanicalFields (dispatch)", () => {
   it("dispatches to buildClassFeatureFields for type 'classFeature'", () => {
     const fields = buildMechanicalFields({ type: "classFeature", system: { level: 3 } });
     expect(noKey(fields)).toEqual([{ label: "Level", value: "3" }]);
+  });
+
+  // ALQ-F2-18: before this task, "effect" fell through to the `default: []`
+  // branch below — a document with `duration: {unit:'minute', value:10}`
+  // opened with no duration field at all.
+  it("dispatches to buildEffectFields for type 'effect'", () => {
+    const fields = buildMechanicalFields({
+      type: "effect",
+      system: { duration: { value: 10, unit: "minute", sustained: false, expiry: "turn-start" } },
+    });
+    expect(noKey(fields)).toEqual([{ label: "Duration", value: "10 minutes" }]);
   });
 
   it("threads contextLevel through to buildClassFeatureFields for type 'classFeature' (issue #58)", () => {
@@ -1071,7 +1296,7 @@ describe("trait/rarity display names (r15-A1)", () => {
     expect(traitDisplayName("some-new-trait", "pt-BR")).toBe("some new trait");
   });
 
-  it("covers all 255 glossary traits with a non-empty accented value", () => {
+  it("covers all 286 glossary traits with a non-empty accented value", () => {
     // 177 (r15) + 13 sincronizados na r20 (ancestrias planares, overflow,
     // potion, talisman...) + 27 sincronizados na r24 (rage e outros 26 traits
     // — ancestrias elf/human/ghoran, class, oath, consecration entre eles —
@@ -1093,12 +1318,16 @@ describe("trait/rarity display names (r15-A1)", () => {
     // 1 no bump para v0.3.16 (grapple — a Pinça do Armamento de Autômato,
     // satélite #361; o mesmo bump reescreveu os rótulos de amphibious e
     // awakened-animal, sem mudar a contagem).
+    // + 21 do merge da base do Alquimista em alfa (BHR-F0-02: legacy, ALQ-F0-02 e onda
+    // 2 do Alquimista — additive1, adjustment, bomb, as traits de entrega de
+    // veneno contact/ingested/injury, mutagen, elixir, splash, infused,
+    // virulent e as demais de alchemical-items-core).
     // Ver traitNames.sync.test.ts para
     // o gate vivo que evita essa deriva daqui em diante. Count exato de
     // propósito: trait novo no glossário exige regenerar via
     // tools/translate-packs/gen-client-maps.mjs e revisar.
     const keys = Object.keys(TRAIT_NAMES_PT);
-    expect(keys.length).toBe(255);
+    expect(keys.length).toBe(286);
     for (const slug of keys) {
       const pt = traitDisplayName(slug, "pt-BR");
       expect(pt.length).toBeGreaterThan(0);
@@ -1108,7 +1337,12 @@ describe("trait/rarity display names (r15-A1)", () => {
   it("has no ASCII-folded leftovers where an accent is required (spot checks)", () => {
     // These specific slugs were unaccented in the raw glossary and must be fixed.
     expect(TRAIT_NAMES_PT["acid"]).toBe("ácido");
+    expect(TRAIT_NAMES_PT["apparition"]).toBe("aparição");
     expect(TRAIT_NAMES_PT["consumable"]).toBe("consumível");
+    expect(TRAIT_NAMES_PT["evolution"]).toBe("evolução");
+    expect(TRAIT_NAMES_PT["ikon"]).toBe("ícone");
+    expect(TRAIT_NAMES_PT["mindshift"]).toBe("mudança-de-mente");
+    expect(TRAIT_NAMES_PT["modification"]).toBe("modificação");
     expect(TRAIT_NAMES_PT["skill"]).toBe("perícia");
     expect(TRAIT_NAMES_PT["water"]).toBe("água");
   });

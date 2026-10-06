@@ -153,6 +153,13 @@
   // chatCardExtensionRegistry, which the active system populated at boot
   // (systems/pf2e's registerPf2eSheets()). A world with no matching
   // extension (or no system at all) simply falls through to plain text.
+  //
+  // ALQ-F1-10: the mounted extension component also receives `children` —
+  // the SAME nested-roll array `nested.rolls`/`nested.saves` are classified
+  // from below — so a card whose "apply damage" buttons must ride a
+  // SPECIFIC fired roll (not local per-clicker state) can derive that from
+  // the real broadcast children every viewer receives, GM included, instead
+  // of only the one viewer who happened to click the roll button.
   const cardExtension = $derived(resolveChatCardExtension(message));
 
   // Formatted rolls for the roll type
@@ -449,6 +456,7 @@
       {socket}
       {isGm}
       {userId}
+      {children}
     />
   {:else}
     <!-- text / whisper / system (no card) -->

@@ -8,17 +8,17 @@ Isso mede *reivindicação de cobertura*, não correção: um teste que nomeia o
 requisito afirma cobri-lo, e essa afirmação é auditável. Requisito sem citação
 nenhuma não afirma nada — é a spec pedindo algo que ninguém foi conferir.
 
-Escopo: os **1999 requisitos [MVP]** definidos nas 45 specs. Os [V2] ficam de fora
+Escopo: os **2082 requisitos [MVP]** definidos nas 46 specs. Os [V2] ficam de fora
 porque ainda não foram prometidos para nenhum marco.
 
 ## Total
 
 | Situação | Requisitos | Fatia |
 | --- | ---: | ---: |
-| Citados por algum teste | 738 | 37% |
-| Citados só por código de produção | 314 | 16% |
-| Sem nenhuma citação | 947 | 47% |
-| **Total [MVP]** | **1999** | |
+| Citados por algum teste | 771 | 37% |
+| Citados só por código de produção | 317 | 15% |
+| Sem nenhuma citação | 994 | 48% |
+| **Total [MVP]** | **2082** | |
 
 ## Por spec
 
@@ -32,16 +32,16 @@ porque ainda não foram prometidos para nenhum marco.
 | [05](05-usuarios-e-permissoes.md) | 43 | 18 | 12 | 13 | 42% |
 | [06](06-canvas-e-renderizacao.md) | 86 | 14 | 28 | 44 | 16% |
 | [07](07-visao-iluminacao-fog.md) | 56 | 8 | 22 | 26 | 14% |
-| [08](08-motor-de-rolagens.md) | 49 | 14 | 11 | 24 | 29% |
-| [09](09-chat-e-mensagens.md) | 49 | 13 | 10 | 26 | 27% |
-| [10](10-combate-e-iniciativa.md) | 45 | 16 | 28 | 1 | 36% |
+| [08](08-motor-de-rolagens.md) | 49 | 14 | 12 | 23 | 29% |
+| [09](09-chat-e-mensagens.md) | 51 | 15 | 10 | 26 | 29% |
+| [10](10-combate-e-iniciativa.md) | 50 | 21 | 28 | 1 | 42% |
 | [11](11-ui-framework-e-fichas.md) | 62 | 10 | 16 | 36 | 16% |
 | [12](12-journal-tabelas-cartas.md) | 34 | 0 | 0 | 34 | 0% |
 | [13](13-audio-e-playlists.md) | 49 | 0 | 3 | 46 | 0% |
 | [14](14-macros-e-automacao.md) | 34 | 0 | 0 | 34 | 0% |
-| [15](15-api-de-sistemas.md) | 65 | 19 | 29 | 17 | 29% |
+| [15](15-api-de-sistemas.md) | 77 | 27 | 31 | 19 | 35% |
 | [16](16-compendiums-e-importacao.md) | 57 | 19 | 16 | 22 | 33% |
-| [17](17-sistema-pf2e.md) | 80 | 49 | 15 | 16 | 61% |
+| [17](17-sistema-pf2e.md) | 104 | 66 | 16 | 22 | 63% |
 | [18](18-sistema-sf2e.md) | 46 | 22 | 8 | 16 | 48% |
 | [19](19-sistema-etmos.md) | 46 | 0 | 2 | 44 | 0% |
 | [20](20-assets-e-midia.md) | 50 | 5 | 13 | 32 | 10% |
@@ -63,8 +63,9 @@ porque ainda não foram prometidos para nenhum marco.
 | [38](38-aba-chat.md) | 56 | 55 | 0 | 1 | 98% |
 | [39](39-contatos.md) | 67 | 67 | 0 | 0 | 100% |
 | [40](40-aba-combate.md) | 59 | 52 | 2 | 5 | 88% |
-| [41](41-token.md) | 66 | 46 | 6 | 14 | 70% |
+| [41](41-token.md) | 66 | 47 | 5 | 14 | 71% |
 | [42](42-aba-npcs.md) | 59 | 56 | 1 | 2 | 95% |
 | [43](43-aba-compendio.md) | 61 | 59 | 1 | 1 | 97% |
 | [44](44-aba-cenas.md) | 58 | 51 | 1 | 6 | 88% |
 | [45](45-atores.md) | 50 | 2 | 0 | 48 | 4% |
+| [47](47-fabricacao-e-alquimia.md) | 40 | 0 | 0 | 40 | 0% |

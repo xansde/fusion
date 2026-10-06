@@ -54,6 +54,7 @@ import type { Database as Db } from "better-sqlite3";
 import type { SystemModule } from "@fusion/system-api";
 import type { InitiativeFormulaRegistry } from "./initiative-registry.js";
 import type { CombatEventBus } from "./combat-event-bus.js";
+import type { TurnHookRunner } from "./turn-hook-runner.js";
 import { buildInitiativeRollBroadcaster, type InitiativeRollChatEntry } from "./combat-chat.js";
 import { runActorDerivation } from "../net/derive-runner.js";
 import { resolveWorldVariantRules } from "../documents/world-variant-rules.js";
@@ -114,6 +115,18 @@ export interface CombatHandlerDeps {
    * back to whatever `system.derived` already contains (possibly nothing).
    */
   systemModule?: SystemModule;
+  /**
+   * Awaited system turn-hook runner (DEC-CBT-09, ALQ-F1-04): executes
+   * `systemModule.combat.turnHooks` in series around combat:beginCombat,
+   * combat:nextTurn and combat:endCombat, after persisting each transition
+   * and before its broadcast (REQ-CBT-057/058), except combatEnd which runs
+   * before persisting/archiving (REQ-CBT-060). Optional — undefined (e.g. no
+   * system package loaded) skips this new sequence entirely; the legacy
+   * `CombatEventBus` fire-and-forget emissions below (emitTurnEnd/
+   * emitTurnStart/emitRoundStart/emitRoundEnd) are unaffected either way and
+   * keep notifying their own listeners at their existing call sites.
+   */
+  turnHookRunner?: TurnHookRunner;
   logger?: Logger;
 }
 
@@ -390,6 +403,89 @@ function withActiveCombatantId(
   };
 }
 
+// ---------------------------------------------------------------------------
+// REQ-CBT-059 — mark a combatant defeated on flags.dead (I4, onda-4 review)
+// ---------------------------------------------------------------------------
+
+/**
+ * Minimal deps for {@link markCombatantDefeatedForActor} — deliberately NOT
+ * `CombatHandlerDeps` (which requires `formulaRegistry`/`eventBus`/`db`/
+ * `worldId`, none of which this one write needs): its only caller,
+ * `ActorMechanicsService.applyDamage`, has `store`/`seqStore`/`opBuffer`/`ns`
+ * to offer and nothing else, and fabricating an initiative registry/event bus
+ * just to satisfy a wider type would be manufacturing coupling this write
+ * does not have.
+ */
+export interface DefeatedMarkerDeps {
+  store: DocumentStore;
+  seqStore: SeqStore;
+  opBuffer: OpBuffer;
+  ns: Namespace;
+}
+
+/**
+ * REQ-CBT-059: when `actor:applyDamage` (REQ-SYS-142 step 4) resolves
+ * `flags.dead` for an actor that is a combatant of the ACTIVE (non-ended)
+ * encounter of `sceneId`, mark that combatant `defeated: true` — the same
+ * effect and broadcast as `combat:setDefeated` (REQ-CBT-024), in the SAME op.
+ *
+ * `ActorMechanicsService` calls this synchronously and unconditionally when a
+ * mechanic returns `flags.dead` — there is no role/ownership gate here,
+ * unlike `buildCombatToggleDefeatedHandler`: the caller already authorized
+ * the damage that produced `flags.dead` (only a REGISTERED system mechanic
+ * ever sets that flag — never the client, see actor-mechanics-service.ts),
+ * so this is an automatic consequence of an already-authorized write, not a
+ * fresh privileged action that needs its own re-gate.
+ *
+ * No-op — returns null, burns no seq, broadcasts nothing — when no active
+ * combat has this actor as a combatant (the common case: most damage happens
+ * outside any encounter), or the combatant is already `defeated`.
+ */
+export function markCombatantDefeatedForActor(
+  deps: DefeatedMarkerDeps,
+  actorId: string,
+  sceneId: string | null,
+): { combatId: string; combatantId: string } | null {
+  const combats = deps.store.getAll("combats");
+  const combat = combats.find((c) => {
+    if (c["ended"] === true) return false;
+    if (sceneId !== null && c["sceneId"] !== sceneId) return false;
+    const combatants = c["combatants"];
+    return (
+      Array.isArray(combatants) &&
+      (combatants as Record<string, unknown>[]).some((cbt) => cbt["actorId"] === actorId)
+    );
+  });
+  if (!combat) return null;
+
+  const combatants = combat["combatants"] as Record<string, unknown>[];
+  const combatantIdx = combatants.findIndex((c) => c["actorId"] === actorId);
+  const current = combatants[combatantIdx];
+  if (!current || current["defeated"] === true) return null;
+
+  const updatedCombatants = [...combatants];
+  updatedCombatants[combatantIdx] = { ...current, defeated: true };
+  const diff = withActiveCombatantId(combat as unknown as CombatDocument, {
+    combatants: updatedCombatants as unknown as CombatantDocument[],
+  });
+
+  const updated = deps.store.update("combats", combat["_id"] as string, diff, { userId: null });
+  if (!updated) return null;
+
+  const seq = deps.seqStore.next();
+  const envelope: Envelope = {
+    type: "combat:updated",
+    seq,
+    ts: Date.now(),
+    payload: { combatId: updated["_id"], diff: diff as Record<string, unknown>, seq },
+  };
+  deps.opBuffer.push(envelope);
+  broadcastCombatUpdate(deps.ns, envelope, updated);
+  broadcastCombatVersionUpdate(deps, updated);
+
+  return { combatId: updated["_id"] as string, combatantId: current["_id"] as string };
+}
+
 /**
  * Load a combat document from the store. Throws if not found.
  */
@@ -542,6 +638,36 @@ function emitRoundStart(deps: CombatHandlerDeps, combat: CombatDocument, round: 
 }
 
 // ---------------------------------------------------------------------------
+// Awaited system turn-hook helpers (DEC-CBT-09, ALQ-F1-04)
+//
+// REQ-SYS-140: onTurnStart/onTurnEnd must receive "seu actorId (ou null) e o
+// ator" — best-effort lookup, mirroring the existing pattern in
+// combat:rollInitiative (a missing/unreadable Actor resolves to null rather
+// than failing the turn transition).
+// ---------------------------------------------------------------------------
+
+function loadActorOrNull(
+  deps: CombatHandlerDeps,
+  actorId: string | null,
+): Record<string, unknown> | null {
+  if (!actorId) return null;
+  try {
+    return deps.store.get("actors", actorId);
+  } catch {
+    return null;
+  }
+}
+
+/** Deduped actorIds of every combatant that has one (REQ-CBT-060/REQ-SYS-140). */
+function collectCombatantActorIds(combat: CombatDocument): string[] {
+  const ids = new Set<string>();
+  for (const combatant of combat.combatants) {
+    if (combatant.actorId) ids.add(combatant.actorId);
+  }
+  return [...ids];
+}
+
+// ---------------------------------------------------------------------------
 // combat:create — GM creates a new encounter
 // REQ-CBT-001, DEC-CBT-06
 // ---------------------------------------------------------------------------
@@ -622,7 +748,7 @@ export function buildCombatCreateHandler(deps: CombatHandlerDeps): HandlerFn {
 // ---------------------------------------------------------------------------
 
 export function buildCombatStartHandler(deps: CombatHandlerDeps): HandlerFn {
-  return (rawPayload, ctx: HandlerContext) => {
+  return async (rawPayload, ctx: HandlerContext) => {
     if (!isRolePrivileged(ctx.role)) {
       return ackError("PERMISSION_DENIED", "Only GM/Assistant can start combat");
     }
@@ -661,12 +787,29 @@ export function buildCombatStartHandler(deps: CombatHandlerDeps): HandlerFn {
     }
 
     const prev = buildSnapshot(combat);
+    const firstCombatant = activeCombatant(updatedCombat.combatants, 0, true);
+
+    // DEC-CBT-09 / REQ-CBT-057: "ao iniciar o encontro, DEVE executar
+    // roundStart e depois turnStart do primeiro combatente" — awaited, in
+    // series, after persisting (above) and before the broadcast (below),
+    // per REQ-CBT-058.
+    if (deps.turnHookRunner) {
+      await deps.turnHookRunner.runRoundStart(updatedCombat, updatedCombat.round);
+      if (firstCombatant) {
+        await deps.turnHookRunner.runTurnStart(
+          updatedCombat,
+          firstCombatant,
+          loadActorOrNull(deps, firstCombatant.actorId),
+        );
+      }
+    }
+
     const seq = broadcastUpdate(deps, updatedCombat, diff, prev);
 
-    // Emit lifecycle events: combatStart, then turnStart for the first combatant
+    // Emit legacy lifecycle events: combatStart, then turnStart for the first
+    // combatant. Fire-and-forget CombatEventBus, unchanged (DEC-CBT-09: "os
+    // ouvintes internos do CombatEventBus seguem notificados como hoje").
     deps.eventBus.emitLifecycle({ type: "combatStart", combat: updatedCombat });
-
-    const firstCombatant = activeCombatant(updatedCombat.combatants, 0, true);
     if (firstCombatant) {
       emitTurnStart(deps, updatedCombat, firstCombatant, prev);
     }
@@ -1173,7 +1316,7 @@ export function buildCombatResetInitiativeHandler(deps: CombatHandlerDeps): Hand
 // ---------------------------------------------------------------------------
 
 export function buildCombatNextHandler(deps: CombatHandlerDeps): HandlerFn {
-  return (rawPayload, ctx: HandlerContext) => {
+  return async (rawPayload, ctx: HandlerContext) => {
     const parsed = CombatNextPayloadSchema.safeParse(rawPayload);
     if (!parsed.success) {
       return ackError("VALIDATION_FAILED", parsed.error.message);
@@ -1254,6 +1397,38 @@ export function buildCombatNextHandler(deps: CombatHandlerDeps): HandlerFn {
     const newCombatant = activeCombatant(updatedCombat.combatants, next.turnIndex, true);
     if (newCombatant) {
       emitTurnStart(deps, updatedCombat, newCombatant, prev);
+    }
+
+    // DEC-CBT-09 / REQ-CBT-057/058: awaited system hooks, in series, AFTER
+    // persisting this transition (above) and BEFORE the broadcast (below) —
+    // turnEnd(atual) → roundEnd/roundStart (only when the round wraps) →
+    // turnStart(próximo). The ack returned below only resolves once the last
+    // callback has settled (REQ-CBT-058). This is separate from — and
+    // unaffected by — the fire-and-forget CombatEventBus emits above, which
+    // keep their existing pre-persist timing for the core's own listeners
+    // (DEC-CBT-09). combat:previousTurn intentionally does NOT run this
+    // sequence (spec 10 open question 8: rewinding a turn is a GM
+    // correction; re-running turnStart would repeat persistent damage or a
+    // recovery check already applied).
+    if (deps.turnHookRunner) {
+      if (prevCombatant) {
+        await deps.turnHookRunner.runTurnEnd(
+          updatedCombat,
+          prevCombatant,
+          loadActorOrNull(deps, prevCombatant.actorId),
+        );
+      }
+      if (roundChanged) {
+        await deps.turnHookRunner.runRoundEnd(updatedCombat, combat.round);
+        await deps.turnHookRunner.runRoundStart(updatedCombat, next.round);
+      }
+      if (newCombatant) {
+        await deps.turnHookRunner.runTurnStart(
+          updatedCombat,
+          newCombatant,
+          loadActorOrNull(deps, newCombatant.actorId),
+        );
+      }
     }
 
     const seq = broadcastUpdate(deps, updatedCombat, diff, prev);
@@ -1566,7 +1741,7 @@ export function buildCombatReorderHandler(deps: CombatHandlerDeps): HandlerFn {
 // ---------------------------------------------------------------------------
 
 export function buildCombatEndHandler(deps: CombatHandlerDeps): HandlerFn {
-  return (rawPayload, ctx: HandlerContext) => {
+  return async (rawPayload, ctx: HandlerContext) => {
     if (!isRolePrivileged(ctx.role)) {
       return ackError("PERMISSION_DENIED", "Only GM/Assistant can end combat");
     }
@@ -1596,8 +1771,18 @@ export function buildCombatEndHandler(deps: CombatHandlerDeps): HandlerFn {
       }
     }
 
-    // REQ-CBT-006: emit combatEnd BEFORE persisting ended=true
+    // REQ-CBT-006: emit combatEnd BEFORE persisting ended=true (legacy
+    // CombatEventBus, unchanged — fire-and-forget, for the core's own listeners).
     deps.eventBus.emitLifecycle({ type: "combatEnd", combat });
+
+    // DEC-CBT-09 / REQ-CBT-060: awaited combatEnd system hooks, with the
+    // deduped actorIds of every combatant that has one — BEFORE persisting
+    // ended=true / archiving the document. This is the one deliberate
+    // exception to REQ-CBT-058's "after persist" timing, which governs
+    // beginCombat/nextTurn only.
+    if (deps.turnHookRunner) {
+      await deps.turnHookRunner.runCombatEnd(combat, collectCombatantActorIds(combat));
+    }
 
     const diff: Partial<CombatDocument> = { ended: true };
 

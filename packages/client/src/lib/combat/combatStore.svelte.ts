@@ -21,7 +21,15 @@ import { sortCombatants } from "@fusion/shared";
 import { worldMirror } from "../docs/worldSync.js";
 import { activeSceneState } from "../docs/activeScene.svelte.js";
 import { sendOp, OpError } from "../docs/sendOp.js";
-import { createTargetingState, applyTargeted, type TargetingState } from "./targeting.js";
+import {
+  createTargetingState,
+  applyTargeted,
+  myTargets,
+  diffMyTargets,
+  type TargetingState,
+  type TargetIdentity,
+  type MyTarget,
+} from "./targeting.js";
 import { resolveActiveCombat, extractConflictingCombatId } from "./combatTracker.js";
 
 // ---------------------------------------------------------------------------
@@ -69,6 +77,66 @@ export const targetingStore: { version: number } = $state({ version: 0 });
 /** Read the (mutable) targeting state. Treat as read-only outside this module. */
 export function getTargetingState(): TargetingState {
   return _targeting;
+}
+
+// ---------------------------------------------------------------------------
+// My targets — getMyTargets/setMyTargets, exposed to sheets (ALQ-F1-05, REQ-CBT-056)
+// ---------------------------------------------------------------------------
+
+/**
+ * Who is looking, for the purpose of filtering `_targeting` down to "MY live
+ * targets". Handed in by the table shell (mirrors `combatBadge.svelte.ts`'s
+ * own `viewer` — session/local-user id is the caller's fact, not something
+ * this module imports, so `lib/session`'s socket construction never enters
+ * this module's graph).
+ */
+const targetViewer: { userId: string | null } = $state({ userId: null });
+
+/** Tell this module whose seat it is. Called by the table shell; idempotent. */
+export function setTargetingViewer(userId: string | null): void {
+  targetViewer.userId = userId;
+}
+
+/**
+ * Resolve a tokenId's identity from the active scene's tokens + (when the
+ * token has no own name) the effective actor's name — same fallback order as
+ * the canvas' own `TokenSprite._displayName` (`doc.name ?? actor?.name ?? ""`),
+ * without importing any PIXI/canvas code into this store.
+ */
+function _resolveMyTargetIdentity(tokenId: string): TargetIdentity | null {
+  const token = activeSceneState.scene?.tokens.find((t) => t._id === tokenId);
+  if (!token) return null;
+  const actor = worldMirror.getDoc<{ name?: string }>("Actor", token.actorId);
+  return { actorId: token.actorId, name: token.name ?? actor?.name ?? "" };
+}
+
+/**
+ * The local user's OWN live-targeted tokens, reactive (REQ-CBT-056). A token
+ * targeted only by ANOTHER user never appears here — see `myTargets()`
+ * (targeting.ts) for the scoping rule itself, unit-tested there.
+ */
+export function getMyTargets(): ReadonlyArray<MyTarget> {
+  // `_targeting`'s Map is plain-mutated; `targetingStore.version` is the
+  // Svelte-visible signal bumped on every change (see docstring above).
+  void targetingStore.version;
+  return myTargets(_targeting, targetViewer.userId ?? "", _resolveMyTargetIdentity);
+}
+
+/**
+ * Batch-adjust the local user's live target selection to exactly `tokenIds`
+ * (REQ-CBT-056) — used by the area preview to sync the highlighted set in one
+ * call. Diffs against the CURRENT live selection (`diffMyTargets`) and emits
+ * one `combat:target` per token that actually needs to change.
+ *
+ * Sequential, not `Promise.all`: `combatActions.target` shares
+ * `combatStore`'s single `busy` guard (`_runOp`), so firing every op at once
+ * would make every call after the first see `busy === true` and no-op silently.
+ */
+export async function setMyTargets(socket: Socket, tokenIds: readonly string[]): Promise<void> {
+  const ops = diffMyTargets(_targeting, targetViewer.userId ?? "", tokenIds);
+  for (const op of ops) {
+    await combatActions.target(socket, op.tokenId, op.targeted);
+  }
 }
 
 // ---------------------------------------------------------------------------

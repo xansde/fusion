@@ -428,7 +428,9 @@ describe("the real pf2e system's variant-rule settings reach the wire (REQ-CFG-0
     // that carries HJ-09) the campaign's trained skills, and only those.
     expect(
       keys.every((k) =>
-        /^pf2e-sf2e:(variantRules\.(classLevels|freeArchetype|bonusGeneralFeatLevel1|freeOccultismOrReligion|ancestryFeatsInGeneralSlots|ancestryFeatLevelMinus2)|campaign\.trainedSkills)$/.test(k),
+        /^pf2e-sf2e:(variantRules\.(classLevels|freeArchetype|bonusGeneralFeatLevel1|freeOccultismOrReligion|ancestryFeatsInGeneralSlots|ancestryFeatLevelMinus2)|campaign\.trainedSkills)$/.test(
+          k,
+        ),
       ),
     ).toBe(true);
     expect(settings.find((s) => s.key === "pf2e-sf2e:variantRules.classLevels")).toMatchObject({
