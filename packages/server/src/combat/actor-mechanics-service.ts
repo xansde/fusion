@@ -586,20 +586,51 @@ function resolveConditionTargets(
         ack: forbiddenCondition("resolving targets requires an authenticated caller"),
       };
     }
-    const assertion = assertTargetsSelected(
-      store,
-      targetingStore,
-      caller.userId,
-      caller.role,
-      payload.targetTokenIds,
-    );
-    if (!assertion.ok) {
-      return {
-        ok: false,
-        ack: forbiddenCondition(
-          `target(s) not in your live selection: ${assertion.missing.join(", ")}`,
-        ),
-      };
+    // BHR-F6-02 (REQ-BHR-202): a card button names its roll message in
+    // `source.messageId`. Then the player's targets are bounded by THAT
+    // message's frozen targetSnapshot (D-02), not by the live selection, and
+    // the caller must own the message's speaker (same rule as ApplyDamage).
+    const sourceMessageId = payload.source?.messageId;
+    if (sourceMessageId !== undefined) {
+      let message: Record<string, unknown> | undefined;
+      try {
+        message = store.get("chat_messages", sourceMessageId);
+      } catch (err) {
+        if (!(err instanceof DocumentNotFoundError)) throw err;
+      }
+      const ownerCheck = requireOwnerOfMessageSpeaker(store, message, caller);
+      if (ownerCheck) {
+        return {
+          ok: false,
+          ack: forbiddenCondition(ownerCheck.ok ? "forbidden" : ownerCheck.message),
+        };
+      }
+      const frozen = new Set(readTargetSnapshot(message!).map((t) => t.tokenId));
+      const outside = payload.targetTokenIds.filter((id) => !frozen.has(id));
+      if (outside.length > 0) {
+        return {
+          ok: false,
+          ack: forbiddenCondition(
+            `target(s) not in the source message's target snapshot: ${outside.join(", ")}`,
+          ),
+        };
+      }
+    } else {
+      const assertion = assertTargetsSelected(
+        store,
+        targetingStore,
+        caller.userId,
+        caller.role,
+        payload.targetTokenIds,
+      );
+      if (!assertion.ok) {
+        return {
+          ok: false,
+          ack: forbiddenCondition(
+            `target(s) not in your live selection: ${assertion.missing.join(", ")}`,
+          ),
+        };
+      }
     }
   }
 
