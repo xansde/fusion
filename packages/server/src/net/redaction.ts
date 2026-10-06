@@ -488,6 +488,7 @@ function redactTargetSnapshotEntries(
 /** Namespace/key `flags.fusion.targetSnapshot` is stored under (chat-handler.ts). */
 const CHAT_FUSION_FLAG_NAMESPACE = "fusion";
 const CHAT_TARGET_SNAPSHOT_FLAG_KEY = "targetSnapshot";
+const CHAT_APPLIED_CONDITIONS_FLAG_KEY = "appliedConditions";
 
 /**
  * The ChatMessage a NON-PRIVILEGED viewer may receive, with
@@ -510,18 +511,42 @@ export function redactChatTargetSnapshotForNonPrivileged(
 ): ChatMessage {
   const flags = msg.flags as Record<string, Record<string, unknown>> | undefined;
   const fusionFlags = flags?.[CHAT_FUSION_FLAG_NAMESPACE];
-  const snapshot = fusionFlags?.[CHAT_TARGET_SNAPSHOT_FLAG_KEY];
-  if (!Array.isArray(snapshot) || snapshot.length === 0) return msg;
+  if (!fusionFlags) return msg;
 
-  const redacted = redactTargetSnapshotEntries(snapshot as TargetSnapshotEntry[], userId, source);
-  if (redacted === snapshot) return msg;
+  const patch: Record<string, unknown> = {};
 
+  const snapshot = fusionFlags[CHAT_TARGET_SNAPSHOT_FLAG_KEY];
+  if (Array.isArray(snapshot) && snapshot.length > 0) {
+    const redacted = redactTargetSnapshotEntries(snapshot as TargetSnapshotEntry[], userId, source);
+    if (redacted !== snapshot) patch[CHAT_TARGET_SNAPSHOT_FLAG_KEY] = redacted;
+  }
+
+  // BHR-F7-05 review (I1): `flags.fusion.appliedConditions` names tokens by id, so the same hidden-token cut applies
+  // (an unresolvable token is dropped too). The key itself stays, empty, so the shape does not leak the cut.
+  const applied = fusionFlags[CHAT_APPLIED_CONDITIONS_FLAG_KEY];
+  if (applied && typeof applied === "object" && !Array.isArray(applied)) {
+    let changed = false;
+    const keptByKey: Record<string, unknown> = {};
+    for (const [key, ids] of Object.entries(applied as Record<string, unknown>)) {
+      if (!Array.isArray(ids)) {
+        keptByKey[key] = ids;
+        continue;
+      }
+      const kept = ids.filter((id) => {
+        if (typeof id !== "string") return false;
+        const token = source?.findToken(id);
+        return token !== undefined && !tokenIsHiddenFromViewer(token, userId);
+      });
+      if (kept.length !== ids.length) changed = true;
+      keptByKey[key] = kept;
+    }
+    if (changed) patch[CHAT_APPLIED_CONDITIONS_FLAG_KEY] = keptByKey;
+  }
+
+  if (Object.keys(patch).length === 0) return msg;
   return {
     ...msg,
-    flags: {
-      ...flags,
-      [CHAT_FUSION_FLAG_NAMESPACE]: { ...fusionFlags, [CHAT_TARGET_SNAPSHOT_FLAG_KEY]: redacted },
-    },
+    flags: { ...flags, [CHAT_FUSION_FLAG_NAMESPACE]: { ...fusionFlags, ...patch } },
   };
 }
 

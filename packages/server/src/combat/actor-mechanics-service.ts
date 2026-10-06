@@ -117,6 +117,7 @@ import type { Database as Db } from "better-sqlite3";
 import {
   ActorApplyDamagePayloadSchema,
   ActorApplyConditionPayloadSchema,
+  CHAT_UPDATE_BROADCAST_EVENT,
   createDocumentId,
 } from "@fusion/shared";
 import type {
@@ -126,6 +127,7 @@ import type {
   ActorDamageAppliedPayload,
   ApplyDamageAck,
   ApplyConditionAck,
+  ChatMessage,
   ChatSpeaker,
   DamageAppliedTarget,
   DamageAppliedTypeBreakdown,
@@ -162,6 +164,7 @@ import {
   buildBaseMessage,
   persistChatMessage,
   broadcastChatMessage,
+  rewriteChatMessage,
 } from "../chat/chat-handler.js";
 import { createStubTurnHookContextServices } from "./turn-hook-runner.js";
 import { markCombatantDefeatedForActor } from "./combat-handlers.js";
@@ -240,29 +243,51 @@ function readRollDegree(msg: Record<string, unknown>, rollIndex: number): string
   return typeof degree === "string" ? degree : undefined;
 }
 
+/** `speaker.userId` of a chat message: the user who actually sent it (the message's author). */
+function readSpeakerUserId(msg: Record<string, unknown>): string | undefined {
+  const speaker = msg["speaker"];
+  if (!speaker || typeof speaker !== "object") return undefined;
+  const userId = (speaker as Record<string, unknown>)["userId"];
+  return typeof userId === "string" ? userId : undefined;
+}
+
 /**
  * The roll messages nested under a card (`flags.fusion.parentMessageId`) that
- * the card's own speaker rolled. A maneuver card (Trip/Shove/Grapple) is an
- * announcement with no snapshot of its own: the graded skill check nested under
- * it froze the targets. A nested roll of a DIFFERENT speaker never counts, so a
- * player cannot borrow someone else's frozen targets by nesting under their card.
+ * the card's own speaker AND author rolled. A maneuver card (Trip/Shove/Grapple)
+ * is an announcement with no snapshot of its own: the graded skill check nested
+ * under it froze the targets. A nested roll of a DIFFERENT speaker actor or a
+ * different author never counts: a player cannot borrow someone else's frozen
+ * targets by nesting under their card, and a roll the GM fired speaking as the
+ * PC froze the GM's targets, not the player's.
+ *
+ * One targeted query (same `json_extract` pattern as `extra-damage.ts`), never a
+ * scan and parse of the whole chat log on every click.
  */
 function nestedRollsOfSameSpeaker(
-  store: DocumentStore,
+  db: Db,
   card: Record<string, unknown>,
 ): Record<string, unknown>[] {
   const cardId = card["_id"];
-  const speaker = readSpeakerActorId(card);
-  if (typeof cardId !== "string" || speaker === undefined) return [];
-  return store.getAll("chat_messages").filter((m) => {
-    const fusion = (m["flags"] as Record<string, unknown> | undefined)?.["fusion"];
-    return (
-      typeof fusion === "object" &&
-      fusion !== null &&
-      (fusion as Record<string, unknown>)["parentMessageId"] === cardId &&
-      readSpeakerActorId(m) === speaker
-    );
-  });
+  const actorId = readSpeakerActorId(card);
+  const userId = readSpeakerUserId(card);
+  if (typeof cardId !== "string" || actorId === undefined || userId === undefined) return [];
+  const rows = db
+    .prepare(
+      `SELECT data FROM chat_messages
+       WHERE json_extract(data, '$.flags.fusion.parentMessageId') = ?`,
+    )
+    .all(cardId) as { data: string }[];
+  const nested: Record<string, unknown>[] = [];
+  for (const row of rows) {
+    let msg: Record<string, unknown>;
+    try {
+      msg = JSON.parse(row.data) as Record<string, unknown>;
+    } catch {
+      continue;
+    }
+    if (readSpeakerActorId(msg) === actorId && readSpeakerUserId(msg) === userId) nested.push(msg);
+  }
+  return nested;
 }
 
 function readTargetSnapshot(msg: Record<string, unknown>): TargetSnapshotEntry[] {
@@ -550,6 +575,7 @@ type ConditionTargetResolution =
  */
 function resolveConditionTargets(
   store: DocumentStore,
+  db: Db,
   targetingStore: TargetingStore,
   payload: ActorApplyConditionPayload,
   privileged: boolean,
@@ -634,7 +660,7 @@ function resolveConditionTargets(
         return { ok: false, ack: forbiddenCondition("forbidden") };
       }
       const frozen = new Set(
-        [message, ...nestedRollsOfSameSpeaker(store, message)].flatMap((m) =>
+        [message, ...nestedRollsOfSameSpeaker(db, message)].flatMap((m) =>
           readTargetSnapshot(m).map((t) => t.tokenId),
         ),
       );
@@ -1272,6 +1298,7 @@ function computeApplyCondition(
 
   const targetResolution = resolveConditionTargets(
     deps.store,
+    deps.db,
     deps.targetingStore,
     payload,
     privileged,
@@ -1280,6 +1307,7 @@ function computeApplyCondition(
   if (!targetResolution.ok) return targetResolution.ack;
 
   const results: ActorConditionAppliedResult[] = [];
+  const appliedTokenIds: string[] = [];
   for (const target of targetResolution.targets) {
     let actorBefore: Record<string, unknown>;
     try {
@@ -1292,6 +1320,7 @@ function computeApplyCondition(
     const opts: ApplyConditionOptions = { now: resolveNow(deps.store, target.sceneId) };
     const patch = mechanics.applyCondition(actorBefore, payload, opts);
     applyMechanicsPatch(deps.store, target.actorId, actorBefore, patch);
+    if (target.tokenId !== null) appliedTokenIds.push(target.tokenId);
 
     // Echo the REQUEST's own slug/mode/value back per target, rather than
     // reverse-engineering a "final value" out of the patch: the patch's
@@ -1314,7 +1343,67 @@ function computeApplyCondition(
     return { ok: false, code: "NOT_FOUND", message: "no target actor could be resolved" };
   }
 
+  recordAppliedCondition(deps, payload, appliedTokenIds);
+
   return { ok: true, result: { targets: results } };
+}
+
+/** `flags.fusion` key under which the server records, on the card a button came from, what that card applied. */
+export const APPLIED_CONDITIONS_FLAG_KEY = "appliedConditions";
+
+/**
+ * BHR-F7-05 review (I1/N1): when an offered-condition button (`source.messageId`) lands, the SERVER writes on that
+ * card which tokens already received it, under `"<mode>:<slug>"`, and propagates the message update like any other
+ * (`doc:update`, the same path as an invalidation). The button reads this, for the GM and for a player whose
+ * mirror does not carry the target actor, so the "applied" state survives a reload and a re-run on the other side.
+ * Bookkeeping only: the condition is already applied, so a failure here is logged and never turns the ack into an error.
+ */
+function recordAppliedCondition(
+  deps: ActorMechanicsServiceDeps,
+  payload: ActorApplyConditionPayload,
+  tokenIds: readonly string[],
+): void {
+  const messageId = payload.source?.messageId;
+  if (messageId === undefined || tokenIds.length === 0) return;
+  try {
+    let stored: ChatMessage;
+    try {
+      stored = deps.store.get("chat_messages", messageId) as unknown as ChatMessage;
+    } catch (err) {
+      if (err instanceof DocumentNotFoundError) return;
+      throw err;
+    }
+    const flags = (stored as { flags?: Record<string, Record<string, unknown>> }).flags ?? {};
+    const fusion = flags["fusion"] ?? {};
+    const prior = (fusion[APPLIED_CONDITIONS_FLAG_KEY] ?? {}) as Record<string, unknown>;
+    const key = `${payload.mode}:${payload.slug}`;
+    const current = Array.isArray(prior[key])
+      ? (prior[key] as unknown[]).filter((v): v is string => typeof v === "string")
+      : [];
+    const merged = [...new Set([...current, ...tokenIds])];
+    if (merged.length === current.length) return;
+
+    const now = Date.now();
+    const updated: ChatMessage = {
+      ...stored,
+      flags: {
+        ...flags,
+        fusion: { ...fusion, [APPLIED_CONDITIONS_FLAG_KEY]: { ...prior, [key]: merged } },
+      },
+      _stats: { ...stored._stats, modifiedTime: now, version: stored._stats.version + 1 },
+    };
+    rewriteChatMessage(deps.db, updated);
+    broadcastChatMessage(
+      deps.ns,
+      deps.seqStore,
+      updated,
+      updated.speaker.userId,
+      CHAT_UPDATE_BROADCAST_EVENT,
+      tokenLookupSourceFromStore(deps.store),
+    );
+  } catch (err) {
+    deps.logger?.warn({ err, messageId }, "could not record the applied condition on its card");
+  }
 }
 
 /**
