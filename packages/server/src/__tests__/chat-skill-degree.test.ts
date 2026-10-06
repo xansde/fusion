@@ -561,6 +561,36 @@ describe("BHR-F6-01 — grau da perícia contra a CD lida do banco", () => {
     });
   });
 
+  it("I-8: uma pericia mirada (alvo + rollContext skill-check, sem checkContext) nao vira ataque: sem grau pela CA e sem MAP", () => {
+    // The sheet aims a skill roll so the server can apply the target's conditional
+    // bonuses (the prey). A Climb/Intimidation check is not a Strike: nothing is
+    // graded against the Armor Class and nothing counts for the multiple attack penalty.
+    const calls: unknown[] = [];
+    const { handler } = makeHandler(10, spyCounter(calls));
+    const ack = handler(
+      {
+        content: "/r 1d20+9 # Intimidacao",
+        worldId: WORLD_ID,
+        rollMode: "public",
+        target: { tokenId: TOKEN_ID, actorId: ACTOR_ID },
+        flags: {
+          fusion: {
+            rollContext: {
+              actorId: ACTOR_ID,
+              selectors: ["skill-check", "intimidation"],
+              options: [],
+            },
+          },
+        },
+      },
+      GM_CTX,
+    ) as StrikeAck;
+    expect(ack.ok, JSON.stringify(ack)).toBe(true);
+    expect(degreeOf(ack)).toBeUndefined();
+    expect(ack.result!.message.rolls?.[0]?.target).toBeUndefined();
+    expect(calls).toHaveLength(0);
+  });
+
   it("o contexto de ataque continua graduando pela CA (sem regressao)", () => {
     const ack = check({
       natural: 10,

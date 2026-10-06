@@ -608,7 +608,14 @@ export function buildChatSendHandler(deps: ChatHandlerDeps): HandlerFn {
       // A skill check (BHR-F6-01) is graded the same way against the DC of the
       // defence it names; only an Athletics maneuver (an attack-trait action)
       // feeds the MAP, a plain check such as Recall Knowledge does not.
-      const gradedTarget = gradedSave === null ? rollTarget : null;
+      // A sheet skill roll aimed at a creature (review I-8) names its target only so
+      // the server settles that target's conditional bonuses (the prey's Outwit): with
+      // no check context it is not an attack, so it is neither graded against the AC
+      // nor counted for the MAP.
+      const isAimedSkillCheck =
+        checkContext === undefined &&
+        payload.flags?.fusion?.rollContext?.selectors.includes("skill-check") === true;
+      const gradedTarget = gradedSave === null && !isAimedSkillCheck ? rollTarget : null;
       let messageTargets: RollTarget[] | undefined;
       let gradedAttack: AttackCheckContext | null = null;
       let gradedSkill: SkillCheckContext | null = null;
