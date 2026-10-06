@@ -358,6 +358,7 @@ interface ExecutableActionRow {
 - **Repo**: core + satélite
 - **Onde**: `systems/engine-2e/src/expiry.ts`, `systems/pf2e/src/hooks/effect-expiry.ts` (satélite, vindos da ALQ-F2-09); `packages/server/src/combat/turn-hook-runner.ts` (core, ALQ-F1-04); `docs/design/bhrotto/tasks.md` (correção das fichas que citam o que o merge mudou)
 - **Entrega**: Duas coisas, nesta ordem. (1) **Conferência**: lê o que a DC-01 entregou de verdade — assinatura de `TurnHookContext`, `getMyTargets/setMyTargets`, `actor:applyCondition`, `resolveExpirations`, `RuleElementHandler` — e corrige as fichas deste plano onde o código diverge do que os planos ALQ descreviam (dependencias-importadas §5.3: "o código final deve ser relido antes de depender dele"). (2) **O caso que nenhum plano testou**: efeito aplicado pelo ator X no ator Y com `FusionExpiry.ownerActorId = Y` (o Apoio do companheiro, aplicado pelo urso, expira no início do turno do **dono**). Garante que `resolveExpirations` olha `ownerActorId`, não o ator de origem do item, e que o efeito sai de todos os atores.
+- **Conferido na onda 2 (o que o código entrega de verdade)**: `resolveExpirations(actor, event)` já decidia por `expiry.ownerActorId` (engine-2e, sem estado; lê `system.duration` e `system.fusion.startedAt{combatId,round}`; `remainingRounds` é só informativo). A lacuna era no hook: `pf2e.effectExpiry` só recebia o ator da vez e portanto nunca alcançava um efeito que mora em outro ator. Corrigido: `TurnHookContext` ganhou `listActors(): Record<string, unknown>[]` (leitura do mundo, `packages/system-api/src/combat.ts`; real em `createDocumentWriteTurnHookContextServices`, `throw TurnHookContextStubError` no stub) e o hook varre todos os atores a cada `turn-start`/`turn-end`. `onCombatEnd` segue no-op. Risco latente: `actor-mechanics-service.ts` monta o contexto do `onDamageApplied` só com o stub, então `listActors` lança ali até alguém ligar o serviço real. Pendente para a BHR-F4-08: a op que aplica grava o `ownerActorId` (REQ-BHR-010); `actor:applyCondition` já aceita `expiry` (FusionExpirySchema) do chamador e o `consume.ts` grava `daily-prep` com o consumidor como dono.
 - **Depende de**: BHR-F0-02, ALQ-F2-09, ALQ-F1-04
 - **Paralelo com**: BHR-F1-04, BHR-F1-05, BHR-F1-07
 - **Modelo / esforço**: sonnet / high.
@@ -570,7 +571,7 @@ interface ExecutableActionRow {
 ### BHR-F2-06 — Expiração `after-roll` (G3, DC-05)
 
 - **Repo**: satélite
-- **Onde**: `systems/pf2e/src/schemas/item-effect.ts` (`FusionExpiry.on`), `systems/engine-2e/src/expiry.ts` (`resolveExpirations`), `systems/pf2e/src/hooks/effect-expiry.ts` (ouvinte de `onRollResolved`)
+- **Onde**: `FusionExpiry` está declarado em **quatro** lugares que precisam andar juntos (conferido na BHR-F0-03): o tipo `ExpiryOn`/`FusionExpiry` em `systems/engine-2e/src/expiry.ts`, o zod `.strict()` `ExpiryOnSchema`/`FusionExpirySchema` em `packages/shared/src/protocol.ts` (é o que o `actor:applyCondition` valida; sem ele o `after-roll` é recusado no servidor) e os zods de `systems/pf2e/src/schemas/item-effect.ts` e `systems/pf2e/src/schema-primitives.ts` (`FusionExpirySchema`, usado pelo gerenciador de condições). `ExpiryEvent` (engine-2e) ganha a variante `after-roll`; `resolveExpirations(actor, event)` (`systems/engine-2e/src/expiry.ts`) segue sem estado. Ouvinte de `onRollResolved` em `systems/pf2e/src/hooks/effect-expiry.ts`
 - **Entrega**: `FusionExpiry` ganha `"after-roll"` + `rollPredicate` (§2.2). O mesmo `resolveExpirations` (DF-08) é chamado pelo ouvinte de `onRollResolved`: o efeito sai depois da primeira rolagem que casa com o predicado. É o `removeAfterRoll` do Caçador de Monstros.
 - **Depende de**: BHR-F2-05, BHR-F0-03
 - **Paralelo com**: BHR-F1-08, BHR-F2-04, BHR-F3-02
@@ -647,7 +648,7 @@ interface ExecutableActionRow {
 - **Depende de**: BHR-F0-01, BHR-F0-02, ALQ-F1-05
 - **Paralelo com**: BHR-F2-02, BHR-F2-05, BHR-F2-07
 - **Modelo / esforço**: sonnet / high — gestor de interação onde clique e arraste disputam.
-- **Teste (TDD)**: `targeting-gesture.test.ts` como na GUE-F1-01 (clique direito emite `combat:target` e o segundo desfaz; esquerdo continua selecionando/arrastando; `Esc` limpa só a própria mira; `getMyTargets()` devolve o token); `CombatQueue` (REQ-CBA-076) verde.
+- **Teste (TDD)**: `targeting-gesture.test.ts` como na GUE-F1-01 (clique direito emite `combat:target` e o segundo desfaz; esquerdo continua selecionando/arrastando; `Esc` limpa só a própria mira; `getMyTargets()` devolve `{ tokenId, actorId, name }[]` do próprio usuário; `setMyTargets(socket, tokenIds)` é assíncrono e recebe o socket como 1º argumento — `packages/client/src/lib/combat/combatStore.svelte.ts`); `CombatQueue` (REQ-CBA-076) verde.
 - **Prova visual (print)**: token inimigo mirado visto pelo jogador e pelo Mestre (tela T4).
 - **Spec/REQ**: `REQ-BHR-081` (referencia `REQ-GUE-040..042`, `REQ-CNV-100..102`)
 - **Tamanho**: M
@@ -896,7 +897,7 @@ interface ExecutableActionRow {
 ### BHR-F4-08 — `effect:apply`: efeito em outro ator com permissão por vínculo (G4, DC-06)
 
 - **Repo**: core
-- **Onde**: `packages/shared/src/protocol.ts` (op e schema zod, §2.3); novo `packages/server/src/net/handlers/effect-handlers.ts` (registro em `socket-manager.ts`); `packages/server/src/documents/ownership.ts` (vínculo companheiro↔dono); usa `ctx.createEmbedded` do mecanismo de ator da ALQ-F1-06/08
+- **Onde**: `packages/shared/src/protocol.ts` (op e schema zod, §2.3); novo `packages/server/src/net/handlers/effect-handlers.ts` (registro em `socket-manager.ts`); `packages/server/src/documents/ownership.ts` (vínculo companheiro↔dono); o `createEmbedded` do `TurnHookContext` **é stub em produção** (rejeita com `TurnHookContextStubError`; só `applyDamage`, `applyCondition`, `chat`, `deleteEmbedded` e, desde a BHR-F0-03, `listActors` são reais — `packages/server/src/combat/turn-hook-runner.ts`), então o handler grava o item embutido pelo mesmo caminho de `deleteEmbedded` (`store.update` + `OpBuffer` + `broadcastToWorld`) ou implementa o `createEmbedded` real nessa tarefa
 - **Entrega**: Op `effect:apply` que copia um efeito do pack para os atores-alvo como item embutido com origem, início e `expiry` (DF-06), com a regra de permissão da DC-06 checada no servidor. Usada pelo Apoio (companheiro → dono) e pela Presa compartilhada.
 - **Depende de**: BHR-F0-03
 - **Paralelo com**: BHR-F3-05, BHR-F3-10, BHR-F4-02

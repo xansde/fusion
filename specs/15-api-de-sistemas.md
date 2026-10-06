@@ -694,6 +694,7 @@ interface TurnHookContext {
   updateActor(actorId: string, diff: Record<string, unknown>): Promise<void>;
   createEmbedded(actorId: string, items: Record<string, unknown>[]): Promise<void>;
   deleteEmbedded(actorId: string, itemIds: string[]): Promise<void>;
+  listActors(): Record<string, unknown>[]; // leitura do mundo (BHR-F0-03, REQ-BHR-005..007)
   worldTime: { round: number; turn: number };
 }
 

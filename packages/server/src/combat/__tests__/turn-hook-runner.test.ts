@@ -293,6 +293,7 @@ describe("createStubTurnHookContextServices", () => {
     await expect(services.deleteEmbedded("a1", [])).rejects.toBeInstanceOf(
       TurnHookContextStubError,
     );
+    expect(() => services.listActors()).toThrow(TurnHookContextStubError);
   });
 });
 
@@ -679,6 +680,24 @@ describe("createDocumentWriteTurnHookContextServices (B4 fix)", () => {
     const before = h.combatDeps.seqStore.peek();
     await services(h).deleteEmbedded(actorId, ["doesNotExist"]);
     expect(h.combatDeps.seqStore.peek()).toBe(before);
+  });
+
+  it("listActors returns every persisted actor, fresh at call time (BHR-F0-03)", () => {
+    h = buildHarness();
+    const first = createActor(h, "Dono");
+    const svc = services(h);
+    expect(svc.listActors().map((a) => a["_id"])).toEqual([first]);
+
+    const second = createActor(h, "Companheiro");
+    h.store.update("actors", second, {
+      items: [{ _id: "effectItem000009", type: "effect", name: "Apoio" }],
+    });
+    const listed = svc.listActors();
+    expect(listed.map((a) => a["_id"]).sort()).toEqual([first, second].sort());
+    const withItems = listed.find((a) => a["_id"] === second)!;
+    expect((withItems["items"] as { _id: string }[]).map((i) => i._id)).toEqual([
+      "effectItem000009",
+    ]);
   });
 
   it("chat persists a system ChatMessage", async () => {
