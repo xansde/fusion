@@ -249,10 +249,21 @@ describe("MapCounter (BHR-F3-04)", () => {
     // Mount link on the scene tokens (flags.fusion.mount, BHR-F5-02): the hero rides the other's token.
     const scene = h.store.getAll("scenes")[0] as Record<string, unknown>;
     const tokens = [
-      { _id: "tok-pc", flags: { fusion: { mount: { mountTokenId: "tok-other" } } } },
-      { _id: "tok-other", flags: { fusion: { mount: { riderTokenId: "tok-pc" } } } },
+      {
+        _id: "tok-pc",
+        actorId: "pcActorAAAAAAAA1",
+        flags: { fusion: { mount: { mountTokenId: "tok-other" } } },
+      },
+      {
+        _id: "tok-other",
+        actorId: "otherActorAAAAA1",
+        flags: { fusion: { mount: { riderTokenId: "tok-pc" } } },
+      },
     ];
-    h.store.update("scenes", String(scene["_id"]), { tokens }, { userId: GM_CTX.userId });
+    // Raw row write: the scene schema is not under test here, only the link the counter reads.
+    h.fusionDb.raw
+      .prepare("UPDATE scenes SET data = ? WHERE id = ?")
+      .run(JSON.stringify({ ...scene, tokens }), String(scene["_id"]));
     expect(h.counter.mapGroupOf(h.pc, h.combatId)).toBe(h.counter.mapGroupOf(h.other, h.combatId));
     h.counter.noteAttack(h.combatId, h.pc);
     expect(h.counter.getAttackCount(h.combatId, h.other)).toBe(1);

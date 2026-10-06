@@ -9,8 +9,11 @@
  * - `noteAttack` increments the group's counter (unless `countsForMap: false`,
  *   the Reactive Strike case).
  * - `onLifecycle("turnStart")` zeroes the counter of the combatant starting.
- * - `mapGroupOf(combatantId)` is the extension point BHR-F5-05 fills in: while
- *   mounted, rider and mount share one counter. Today it is the identity.
+ * - `mapGroupOf(combatantId)` (BHR-F5-05, D-B03): while mounted
+ *   (`flags.fusion.mount` on the two scene tokens), rider and mount share ONE counter; otherwise
+ *   it is the identity. Every attack is stored under the attacker's OWN key and a group's count is
+ *   the sum of its members' keys, so a dismount separates the counters on the very next read and
+ *   what each already attacked in the turn stays with it (and mounting mid-turn joins them).
  * - `noteAttackFromSpeaker` is what chat-handler calls: it resolves the
  *   speaker to a combatant of the live combat and ignores anyone who is not
  *   acting (an attack out of turn changes nobody's count).
@@ -28,6 +31,8 @@ import type { DocumentStore } from "../documents/store.js";
 import { isRolePrivileged, testOwnership, OwnershipLevel } from "../documents/ownership.js";
 import type { Ownership } from "../documents/ownership.js";
 import type { CombatEventBus } from "./combat-event-bus.js";
+import { createMountGrouping } from "./mount-map-group.js";
+import type { MountGrouping, MountPeers } from "./mount-map-group.js";
 
 export interface NoteAttackOptions {
   /** false for an attack that is outside the count (Reactive Strike). Default true. */
@@ -41,8 +46,6 @@ export interface AttackSpeaker {
   actorId?: string | undefined;
   tokenId?: string | undefined;
 }
-
-export type MapGroupResolver = (combatantId: string) => string;
 
 /**
  * Called after a counted attack so the count reaches the clients (D-G03, onda-6
@@ -63,9 +66,13 @@ export type AttackCountPublisher = (mark: {
 const MINION_SEPARATOR = "|actor:";
 
 export class MapCounter {
-  /** combatId → map group → attacks already made this turn. */
+  /**
+   * combatId → attacker key → attacks already made this turn. The key is a combatant id, or
+   * `<active combatant id>|actor:<actor id>` for a companion that is not a combatant itself.
+   */
   private readonly counts = new Map<string, Map<string, number>>();
-  private resolver: MapGroupResolver = (combatantId) => combatantId;
+  private grouping: MountGrouping | null = null;
+  private store: DocumentStore | null = null;
   private publisher: AttackCountPublisher | null = null;
 
   /** Where counted attacks are announced to the clients (wired by SocketManager). */
@@ -73,19 +80,65 @@ export class MapCounter {
     this.publisher = publisher;
   }
 
-  /** Which counter a combatant feeds. Identity until BHR-F5-05 (mount). */
-  mapGroupOf(combatantId: string): string {
-    return this.resolver(combatantId);
+  /** Where the mount link (`flags.fusion.mount`) is read from (wired by SocketManager). */
+  setStore(store: DocumentStore | null): void {
+    this.store = store;
+    this.grouping = store ? createMountGrouping(store) : null;
   }
 
-  /** Extension point for BHR-F5-05: replaces the identity grouping. */
-  setMapGroupResolver(resolver: MapGroupResolver): void {
-    this.resolver = resolver;
+  /**
+   * The mount state of a scene changed: re-publish the mark of every live combat of that scene that
+   * already has counted attacks, so the sheets stop showing the group count of a pair that just
+   * split (or the separate counts of a pair that just joined).
+   */
+  republishScene(sceneId: string): void {
+    if (!this.store || !this.publisher) return;
+    let combats: Record<string, unknown>[];
+    try {
+      combats = this.store.getAll("combats");
+    } catch {
+      return;
+    }
+    for (const combat of combats) {
+      if (combat["sceneId"] !== sceneId || combat["started"] !== true || combat["ended"] === true) {
+        continue;
+      }
+      const active = combat["activeCombatantId"];
+      const combatId = String(combat["_id"]);
+      if (typeof active !== "string" || !this.counts.get(combatId)?.size) continue;
+      const round = combat["round"];
+      this.publisher({
+        combatId,
+        combatantId: active,
+        round: typeof round === "number" ? round : 0,
+        ...this.markFor(combatId, active),
+      });
+    }
+  }
+
+  /** Which counter a combatant feeds: one key per mounted pair, the combatant itself otherwise. */
+  mapGroupOf(combatantId: string, combatId?: string): string {
+    return this.peersOf(combatantId, combatId)?.groupKey ?? combatantId;
+  }
+
+  private peersOf(combatantId: string, combatId?: string): MountPeers | null {
+    return this.grouping?.peersOf(combatantId, combatId) ?? null;
   }
 
   /** Attacks already counted for the combatant's group in the current turn. */
   getAttackCount(combatId: string, combatantId: string): number {
-    return this.counts.get(combatId)?.get(this.mapGroupOf(combatantId)) ?? 0;
+    const byKey = this.counts.get(combatId);
+    if (!byKey) return 0;
+    const peers = this.peersOf(combatantId, combatId);
+    if (!peers) return byKey.get(combatantId) ?? 0;
+    let total = 0;
+    for (const id of peers.combatantIds) {
+      total += byKey.get(id) ?? 0;
+      for (const actorId of peers.actorIds) {
+        total += byKey.get(`${id}${MINION_SEPARATOR}${actorId}`) ?? 0;
+      }
+    }
+    return total;
   }
 
   /** MAP the NEXT attack of this combatant takes (0, -5, -10; agile 0, -4, -8). */
@@ -93,42 +146,61 @@ export class MapCounter {
     return calculateMapPenalty(this.getAttackCount(combatId, combatantId) + 1, agile);
   }
 
-  /** Counts one attack; returns the count after the call. */
+  /** Counts one attack; returns the count of the combatant's group after the call. */
   noteAttack(combatId: string, combatantId: string, opts: NoteAttackOptions = {}): number {
-    const current = this.getAttackCount(combatId, combatantId);
-    if (opts.countsForMap === false) return current;
-    let byGroup = this.counts.get(combatId);
-    if (!byGroup) {
-      byGroup = new Map();
-      this.counts.set(combatId, byGroup);
+    if (opts.countsForMap !== false) this.bump(combatId, combatantId);
+    return this.getAttackCount(combatId, combatantId);
+  }
+
+  private bump(combatId: string, key: string): void {
+    let byKey = this.counts.get(combatId);
+    if (!byKey) {
+      byKey = new Map();
+      this.counts.set(combatId, byKey);
     }
-    byGroup.set(this.mapGroupOf(combatantId), current + 1);
-    return current + 1;
+    byKey.set(key, (byKey.get(key) ?? 0) + 1);
   }
 
-  /** Attacks a companion already made during the turn of the combatant whose group is `groupId`. */
-  getMinionAttackCount(combatId: string, groupId: string, actorId: string): number {
-    return this.counts.get(combatId)?.get(`${groupId}${MINION_SEPARATOR}${actorId}`) ?? 0;
+  /**
+   * Attacks a companion made during the turn of `activeCombatantId`. While mounted, the rider and
+   * the mount have no counter of their own: they read the shared group count.
+   */
+  getMinionAttackCount(combatId: string, activeCombatantId: string, actorId: string): number {
+    const peers = this.peersOf(activeCombatantId, combatId);
+    if (peers?.actorIds.includes(actorId)) return this.getAttackCount(combatId, activeCombatantId);
+    return this.counts.get(combatId)?.get(`${activeCombatantId}${MINION_SEPARATOR}${actorId}`) ?? 0;
   }
 
-  /** The count of every companion that attacked during the turn of `groupId`, by actor id. */
-  private minionCounts(combatId: string, groupId: string): Record<string, number> {
-    const out: Record<string, number> = {};
-    const prefix = `${groupId}${MINION_SEPARATOR}`;
-    for (const [key, count] of this.counts.get(combatId) ?? []) {
-      if (key.startsWith(prefix)) out[key.slice(prefix.length)] = count;
+  /**
+   * What the clients read on the combat (`attackCount`): the count of the ACTIVE combatant's group
+   * and, by actor, the count of each companion acting on its turn. A mounted pair shows ONE number
+   * on both sheets (REQ-BHR-180): the partner actor reads the group count through `byActor`.
+   */
+  private markFor(
+    combatId: string,
+    activeId: string,
+  ): { count: number; byActor?: Record<string, number> } {
+    const count = this.getAttackCount(combatId, activeId);
+    const byActor: Record<string, number> = {};
+    const prefix = `${activeId}${MINION_SEPARATOR}`;
+    for (const [key, n] of this.counts.get(combatId) ?? []) {
+      if (key.startsWith(prefix)) byActor[key.slice(prefix.length)] = n;
     }
-    return out;
+    const peers = this.peersOf(activeId, combatId);
+    // The active combatant's own actor reads `count`; the partner's reads the group count.
+    if (peers?.partnerActorId !== undefined) byActor[peers.partnerActorId] = count;
+    return { count, ...(Object.keys(byActor).length > 0 ? { byActor } : {}) };
   }
 
-  /** Zeroes the group of a combatant and its companions (turnStart). */
+  /** Zeroes the group of a combatant (rider and mount) and its companions (turnStart). */
   resetCombatant(combatId: string, combatantId: string): void {
-    const byGroup = this.counts.get(combatId);
-    if (!byGroup) return;
-    const group = this.mapGroupOf(combatantId);
-    byGroup.delete(group);
-    for (const key of [...byGroup.keys()]) {
-      if (key.startsWith(`${group}${MINION_SEPARATOR}`)) byGroup.delete(key);
+    const byKey = this.counts.get(combatId);
+    if (!byKey) return;
+    const ids = this.peersOf(combatantId, combatId)?.combatantIds ?? [combatantId];
+    for (const key of [...byKey.keys()]) {
+      if (ids.some((id) => key === id || key.startsWith(`${id}${MINION_SEPARATOR}`))) {
+        byKey.delete(key);
+      }
     }
   }
 
@@ -166,22 +238,21 @@ export class MapCounter {
       if (
         me &&
         typeof me["_id"] === "string" &&
-        this.mapGroupOf(me["_id"]) === this.mapGroupOf(active)
+        this.mapGroupOf(me["_id"], String(combat["_id"])) ===
+          this.mapGroupOf(active, String(combat["_id"]))
       ) {
         if (!isRolePrivileged(speaker.role) && !ownsCombatant(store, speaker, me)) return null;
         const combatId = String(combat["_id"]);
         const count = this.noteAttack(combatId, me["_id"], opts);
         if (opts.countsForMap !== false) {
           const round = combat["round"];
-          const byActor = this.minionCounts(combatId, this.mapGroupOf(active));
           this.publisher?.({
             combatId,
             // The mark names the ACTIVE combatant, which the client matches against
             // `activeCombatantId` (a mounted rider shares the mount's group).
             combatantId: active,
             round: typeof round === "number" ? round : 0,
-            count,
-            ...(Object.keys(byActor).length > 0 ? { byActor } : {}),
+            ...this.markFor(combatId, active),
           });
         }
         return count;
@@ -225,25 +296,16 @@ export class MapCounter {
     if (!isRolePrivileged(speaker.role) && !ownsActor(store, speaker, actorId)) return undefined;
 
     const combatId = String(combat["_id"]);
-    const group = this.mapGroupOf(activeId);
-    const key = `${group}${MINION_SEPARATOR}${actorId}`;
-    let byGroup = this.counts.get(combatId);
-    if (!byGroup) {
-      byGroup = new Map();
-      this.counts.set(combatId, byGroup);
-    }
-    const current = byGroup.get(key) ?? 0;
-    if (opts.countsForMap === false) return current;
-    byGroup.set(key, current + 1);
+    if (opts.countsForMap === false) return this.getMinionAttackCount(combatId, activeId, actorId);
+    this.bump(combatId, `${activeId}${MINION_SEPARATOR}${actorId}`);
     const round = combat["round"];
     this.publisher?.({
       combatId,
       combatantId: activeId,
       round: typeof round === "number" ? round : 0,
-      count: this.getAttackCount(combatId, activeId),
-      byActor: this.minionCounts(combatId, group),
+      ...this.markFor(combatId, activeId),
     });
-    return current + 1;
+    return this.getMinionAttackCount(combatId, activeId, actorId);
   }
 }
 

@@ -24,7 +24,7 @@
  * Broadcast: a `doc:update` of the Scene through `broadcastToWorld` (same seq, OpBuffer replay
  * and hidden-token funnel as an ordinary embedded Token update). The token gets no badge
  * (Q-BHR-01): the state shows on the sheet strip only. The MAP group shared by the pair
- * (`mapGroupOf`) is BHR-F5-05; moving the rider along with the mount is BHR-F5-03.
+ * (`mapGroupOf`, BHR-F5-05) reads this flag in `combat/mount-map-group.ts`; moving the rider along with the mount is BHR-F5-03.
  */
 
 import type { Namespace } from "socket.io";
@@ -60,6 +60,8 @@ export interface MountHandlerDeps {
   seqStore: SeqStore;
   opBuffer: OpBuffer;
   ns: Namespace;
+  /** Called after the mount state of a scene changed (the MAP mark published on the combat is refreshed). */
+  onMountChanged?: (sceneId: string) => void;
 }
 
 type Rec = Record<string, unknown>;
@@ -211,6 +213,7 @@ function persistAndBroadcast(
   const envelope: Envelope = { type: "doc:update", seq, ts: Date.now(), payload };
   deps.opBuffer.push(envelope);
   broadcastToWorld(deps.ns, envelope, "Scene");
+  deps.onMountChanged?.(located.sceneId);
   return { ok: true, seq, result: payload };
 }
 

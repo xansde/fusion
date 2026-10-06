@@ -237,9 +237,9 @@ describe("BHR-F5-05 — MAP compartilhado entre cavaleiro e montaria", { timeout
     });
 
   const published = (combatId: string): unknown => {
-    const row = ctx.fusionDb.raw
-      .prepare(`SELECT data FROM combats WHERE id = ?`)
-      .get(combatId) as { data: string };
+    const row = ctx.fusionDb.raw.prepare(`SELECT data FROM combats WHERE id = ?`).get(combatId) as {
+      data: string;
+    };
     return (JSON.parse(row.data) as Record<string, unknown>)["attackCount"];
   };
 
@@ -335,6 +335,23 @@ describe("BHR-F5-05 — MAP compartilhado entre cavaleiro e montaria", { timeout
       combatantId: heroId,
       round: 1,
       count: 2,
+      byActor: { [ANTELOPE]: 1 },
+    });
+  });
+
+  it("ao desmontar o payload publicado volta a refletir os contadores separados", async () => {
+    const { combatId, heroId } = await startCombat({ mounted: true });
+    expect((await strikeBy({ speakerTokenId: "tokHero" })).ok).toBe(true);
+    expect((await strikeBy({ speakerActorId: ANTELOPE })).ok).toBe(true);
+    expect(published(combatId)).toMatchObject({ count: 2, byActor: { [ANTELOPE]: 2 } });
+
+    writeScene(ctx.fusionDb, sceneDoc(false)); // what mount:dismount leaves on the scene
+    counter.republishScene(SCENE); // what the mount handler calls right after writing it
+    // One Strike each: both sheets read -5 for their next attack, not the group's -10.
+    expect(published(combatId)).toEqual({
+      combatantId: heroId,
+      round: 1,
+      count: 1,
       byActor: { [ANTELOPE]: 1 },
     });
   });

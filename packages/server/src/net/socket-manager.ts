@@ -554,6 +554,7 @@ export class SocketManager {
       ...(systemModule !== undefined ? { systemModule } : {}),
     };
     // BHR onda-6 I-7: the counter publishes its count on the combat document.
+    mapCounter.setStore(store); // BHR-F5-05: a mounted rider and its mount share one MAP counter
     mapCounter.setPublisher(buildAttackCountPublisher(combatDeps));
     // Handler names match the EnvelopeTypeSchema literals in packages/shared/src/protocol.ts
     registry.register("combat:create", buildCombatCreateHandler(combatDeps));
@@ -579,7 +580,15 @@ export class SocketManager {
     registry.register("mark:set", buildMarkSetHandler(markDeps));
     registry.register("mark:clear", buildMarkClearHandler(markDeps));
     // BHR-F5-02 (REQ-BHR-174..176): MountState on the two tokens, decided on the server.
-    const mountDeps = { store, seqStore, opBuffer, ns };
+    const mountDeps = {
+      store,
+      seqStore,
+      opBuffer,
+      ns,
+      onMountChanged: (sceneId: string) => {
+        mapCounter.republishScene(sceneId);
+      },
+    };
     registry.register("mount:mount", buildMountHandler(mountDeps));
     registry.register("mount:dismount", buildDismountHandler(mountDeps));
     // REQ-CBT-055: clear a targeter's targets when their combatant's turn ends.
