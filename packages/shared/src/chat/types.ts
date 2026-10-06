@@ -268,8 +268,10 @@ export type SpellCastCard = z.infer<typeof SpellCastCardSchema>;
  *     save + damage) OR an attack impulse (Elemental Blast → attack + damage).
  *     DC comes from the caster's derived class DC.
  *   - `strike`  — a weapon strike (r20-X1): attack + damage (+ crit). No DC.
+ *   - `action`  — a sheet action that rolls nothing itself (BHR-F3-08, Hunt Prey): the card
+ *     names the target and carries the effect the click applied (REQ-CHT-061). No DC.
  */
-export const AbilityKindSchema = z.enum(["spell", "impulse", "strike"]);
+export const AbilityKindSchema = z.enum(["spell", "impulse", "strike", "action"]);
 export type AbilityKind = z.infer<typeof AbilityKindSchema>;
 
 /**
@@ -328,6 +330,10 @@ export const AbilityCardSchema = z.object({
   damageType: z.string().max(40).optional(),
   /** Traits (display only). */
   traits: z.array(z.string().max(40)).max(30).optional(),
+  /** Name of the creature the action was used on (display only; `action` cards, BHR-F3-08). */
+  targetName: z.string().max(200).optional(),
+  /** The effect the action applied, shown INSIDE the card, never as a second message (REQ-CHT-061). */
+  embeddedEffect: z.object({ name: z.string().min(1).max(200) }).optional(),
 });
 
 export type AbilityCard = z.infer<typeof AbilityCardSchema>;

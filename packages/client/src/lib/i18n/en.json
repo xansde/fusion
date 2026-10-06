@@ -1129,6 +1129,8 @@
   "FUSION.Chat.AbilityCard.Title.spell": "Spell cast",
   "FUSION.Chat.AbilityCard.Title.impulse": "Impulse used",
   "FUSION.Chat.AbilityCard.Title.strike": "Attack",
+  "FUSION.Chat.AbilityCard.Title.action": "Action used",
+  "FUSION.Chat.AbilityCard.EmbeddedEffect": "Effect applied: {name}",
   "FUSION.Chat.AbilityCard.DamageFlavor": "{{name}} — Damage",
   "FUSION.Chat.RollMode.GroupLabel": "Who sees the roll",
   "FUSION.Chat.RollMode.Public.Label": "Public",
