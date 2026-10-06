@@ -64,3 +64,11 @@ o que toca e de onde veio. O comportamento de hoje continua até alguém pegar o
   clique (`useExecutable`) não tem prova executável. Sair disso pede extrair o despacho para uma função pura ou
   adotar um ambiente de DOM.
 - **Processo**: `doc-handlers.ts` (arquivo-gargalo da §3) foi tocado por duas lanes na mesma onda; o merge saiu limpo.
+
+## Menores abertos (revisão da onda 9)
+
+- **Apoio repetido (M-2)**: um replay de "Rolar dano" (ou "Dano" e "Crítico" no mesmo card) soma o 1d8 do Apoio de novo.
+- **Prévia do crítico das runas (M-8)**: a prévia não ajusta `deadly`/`fatal` no crítico.
+- **Runas além dos espaços (M-8)**: runas de propriedade gravadas acima dos espaços, depois de baixar a potência, ficam invisíveis no editor.
+- **`masterActor` (M-12)**: é re-derivado a cada rolagem do companheiro, mesmo sem Presa (custo, não erro).
+- **Agarrado/contido (M-6)**: a expiração "até o fim do seu próximo turno" fica só no texto, sem expiração no motor.

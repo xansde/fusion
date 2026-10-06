@@ -372,6 +372,18 @@ interface ExecutableActionRow {
 >   O cliente lê esse número; recarregar a ficha no meio do turno mantém o MAP. **Aberto (pergunta de produto):** forçar um golpe para fora da
 >   contagem (`countsForMap: false`) não existe; na regra todo ataque conta.
 
+### 2.10 Emenda da revisão da onda 9 (I-3)
+
+> **Emenda.** O `ManeuverDef` da BHR-F6-03 (`systems/engine-2e/src/maneuvers.ts`) segue o §2.6 do Guerreiro e acrescenta, **sem quebrá-lo**:
+>
+> - **Chaves de grau** do `outcome`: `critSuccess` / `success` / `failure` / `critFailure`, como no contrato. `maneuverOutcome(slug, degree)` aceita
+>   tanto essas chaves quanto o grau que o servidor grava (`criticalSuccess`...).
+> - **Campos aditivos** de `ManeuverDef`: `attack` (traço ataque: o MAP vale e a ação conta), e, em cada `ManeuverOutcome`, `note` (texto do card) e, na
+>   condição, `on` (`"target"` padrão ou `"self"`). Um tipo novo, `{ kind: "release", slugs }`, oferece soltar o alvo (falha do Agarrar).
+> - **§2.8, `RollResolution`/`RollResolutionInput`** ganham `extraDamage` (dados extras que o servidor judia: Apoio, `ResolvedExtraDamage`),
+>   `companions` (os companheiros animais do ator) e `masterActor` (o dono, só para um companheiro ativo). Todos opcionais.
+> - **Origem do Apoio:** o servidor grava `system.fusion.origin.companionActorId` no efeito de Apoio; alcance e dados saem desse companheiro.
+
 ## 3. Regras de colisão
 
 - Tarefas na mesma onda têm **arquivos disjuntos** (campo Onde) ou vão para a **mesma faixa** e rodam em série nela.
