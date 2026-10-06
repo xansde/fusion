@@ -1719,7 +1719,7 @@ export class CompendiumService {
  * decision, issue #43, is untouched by this helper — it only copies, never
  * keeps a live view of the overlay).
  */
-function snapshotPtBRLabel(doc: Record<string, unknown>): void {
+export function snapshotPtBRLabel(doc: Record<string, unknown>): void {
   const overlay = doc["i18n"];
   if (typeof overlay !== "object" || overlay === null) return;
   const ptBR = (overlay as Record<string, unknown>)["ptBR"];

@@ -67,7 +67,7 @@ import {
   resolveOwnership,
 } from "../../documents/ownership.js";
 import type { Ownership } from "../../documents/ownership.js";
-import type { CompendiumService } from "../../compendium/service.js";
+import { snapshotPtBRLabel, type CompendiumService } from "../../compendium/service.js";
 
 export interface EffectApplyHandlerDeps {
   store: DocumentStore;
@@ -466,31 +466,34 @@ export function buildEmbeddedEffect(
   const fusion = asRecord(system["fusion"]);
   const sourceId = asRecord(asRecord(effect["flags"])["fusion"])["sourceId"];
   const id = createDocumentId();
-  return {
-    id,
-    item: {
-      _id: id,
-      name: effect["name"],
-      type: "effect",
-      img: effect["img"],
-      system: {
-        ...system,
-        fusion: {
-          ...fusion,
-          // Server-stamped (DF-06): who applied it, and when.
-          origin: {
-            actorId: payload.sourceActorId,
-            ...(typeof sourceId === "string" ? { itemSourceId: sourceId } : {}),
-            // The companion that gave a Support (M-3): the roll measures it, not whoever is active later.
-            ...(companionActorId !== undefined ? { companionActorId } : {}),
-          },
-          startedAt,
-          // Built on the server from the pack's `expiryTemplate` (review I-1).
-          ...(expiry !== undefined ? { expiry } : {}),
+  const item: Doc = {
+    _id: id,
+    name: effect["name"],
+    type: "effect",
+    img: effect["img"],
+    system: {
+      ...system,
+      fusion: {
+        ...fusion,
+        // Server-stamped (DF-06): who applied it, and when.
+        origin: {
+          actorId: payload.sourceActorId,
+          ...(typeof sourceId === "string" ? { itemSourceId: sourceId } : {}),
+          // The companion that gave a Support (M-3): the roll measures it, not whoever is active later.
+          ...(companionActorId !== undefined ? { companionActorId } : {}),
         },
+        startedAt,
+        // Built on the server from the pack's `expiryTemplate` (review I-1).
+        ...(expiry !== undefined ? { expiry } : {}),
       },
     },
   };
+  // The embedded copy has no link back to the pack overlay, so the pt-BR label is snapshotted here, exactly like
+  // `importToActor` does (REQ-CMP-055): the effect arrives as `getDocument` returned it, with `i18n.ptBR`.
+  item["i18n"] = effect["i18n"];
+  snapshotPtBRLabel(item);
+  delete item["i18n"];
+  return { id, item };
 }
 
 function applyEffect(
