@@ -550,6 +550,25 @@ targets })` **uma vez** por rolagem resolvida.
 - **REQ-BHR-178** [MVP] Montado, a única ação de movimento do cavaleiro DEVE ser Montar; a montaria
   companheira carregando cavaleiro DEVE usar só a Velocidade terrestre e NÃO DEVE mover e Apoiar no
   mesmo turno — salvo se o tipo tem `mount`, que ignora as duas restrições.
+- **REQ-BHR-183** [MVP] "Mesmo turno" da REQ-BHR-178 DEVE ser o combate que o carimbo `movedTurn` nomeia
+  (§7.6), no `round` e no `turnIndex` atuais dele, seja quem for o combatente ativo: o companheiro animal
+  age no turno do dono e NÃO DEVE precisar ser combatente para o bloqueio valer.
+- **REQ-BHR-184** [MVP] O servidor DEVE recusar (`CONFLICT`, com o motivo) o `effect:apply` do Apoio de um
+  companheiro bloqueado — inativo (REQ-PET-121) ou montaria que andou (REQ-BHR-178) —, para o jogador e
+  para o Mestre; a ficha do dono e a do companheiro DEVEM mostrar o mesmo motivo, calculado pelo mesmo
+  predicado (`companionSupportBlockReasons`, `@fusion/shared`).
+- **REQ-BHR-185** [MVP] Chamar Companheiro é atividade de exploração: o servidor DEVE recusar
+  `companion:setActive` (`CONFLICT`, com o motivo) com combate iniciado e não encerrado numa cena que
+  contém o token do companheiro ativo, e a aba Ações DEVE mostrar a linha desabilitada com o motivo.
+- **REQ-BHR-186** [MVP] Comandar um Animal custa 1 ação (◆) para o dono; as 2 ações do card
+  ("`<dono>` comanda `<companheiro>`: 2 ações") são as que o companheiro ganha, e o custo mostrado no card e
+  no botão DEVE ser ◆.
+- **REQ-BHR-187** [MVP] Em token **não vinculado**, o efeito "Montado" DEVE ser gravado na
+  `actorDelta.items` do token (DEC-DOC-08) e retirado de lá ao desmontar; o ator-base compartilhado NÃO
+  DEVE receber o −2 (REQ-BHR-177).
+- **REQ-BHR-188** [MVP] Ao desmontar no meio do turno, cavaleiro e montaria DEVEM ficar cada um com a
+  contagem de MAP que o grupo tinha naquele momento (o MAP não diminui dentro do turno); os ataques
+  seguintes somam separados (REQ-CBT-071).
 - **REQ-BHR-179** [MVP] "Montado" e "Reflexos −2" DEVEM aparecer como itens da faixa compacta de
   estados (DEC-BHR-16) na ficha do cavaleiro; o token NÃO ganha selo desses estados (DEC-TOK-19
   mantida; Q-BHR-01 fechada pelo Alexandre em 2026-10-05).
@@ -739,6 +758,10 @@ interruptores ligados) e devolve itens `{ nome, texto, expandido }`, um expandid
 // Scene.tokens[].flags.fusion.mount = { riderTokenId?: string; mountTokenId?: string }
 // ops: "mount:mount" { riderTokenId, mountTokenId } · "mount:dismount" { riderTokenId, to: {x,y} }
 // mapGroupOf(combatantId): cavaleiro e montaria compartilham o MapCounter enquanto montados.
+// Na peça da montaria o servidor também carimba, ao mover o par durante um combate em andamento:
+//   movedTurn?: { combatId: string; round: number; turn: number }   // turn = turnIndex do combate
+// Escrito pelo servidor no mesmo write do movimento e limpo com o resto da flag (REQ-TOK-116, REQ-BHR-183).
+// op: "companion:setActive" { companionActorId } — troca o companheiro ativo (REQ-PET-120, REQ-BHR-185).
 ```
 
 ### 7.7 `ExecutableActionRow` (BHR-F2-08, recorte da GUE-F5-01)
@@ -747,7 +770,7 @@ interruptores ligados) e devolve itens `{ nome, texto, expandido }`, um expandid
 // sheets/pf2e/src/lib/sheets/pf2e/actions/executableRows.ts
 interface ExecutableActionRow {
   slug: string; // "hunt-prey", "command-an-animal", "support", "mount", "trip", ...
-  requires?: ("target" | "mounted" | "not-mounted" | "companion")[];
+  requires?: ("target" | "mounted" | "not-mounted" | "companion" | "inactive-companion")[];
   roll?: {
     kind: "skill" | "attack";
     skill?: SkillSlug;
@@ -756,6 +779,9 @@ interface ExecutableActionRow {
   onUse: { selfEffect?: EffectRef; mark?: TokenMark["slug"]; card: string; op?: string };
 }
 // registro dirigido por slug; a linha sem registro continua navegável (D-G08).
+// "inactive-companion": há outro companheiro animal (inativo) para chamar. O contexto da aba ganhou
+// `inactiveCompanions`, `supportBlock` (motivos de `supportBlockReasons`) e `inEncounter` (REQ-BHR-185); o uso
+// ganhou `companionOp`.
 ```
 
 ### 7.8 `ManeuverSizeLimit` e `WeaponRunes`
@@ -846,8 +872,8 @@ referências declaradas, não ids desta spec.
 | `README.md` | Linha `REQ-BHR-` no registro de prefixos; a 52 entra no índice; 47–51 entram nos números reservados.                                                                                                                                                                                                 |
 | `29`        | REQ-PET-005, REQ-PET-040, REQ-PET-053 e REQ-PET-090 passam de [V2] a [MVP], com redação ajustada; REQ-PET-050, REQ-PET-092 e REQ-PET-093 ganham a regra do companheiro animal; DEC-PET-03 ganha detector de concessão para `animalCompanion`; Q-PET-02 fechada (DEC-BHR-02); novos REQ-PET-098..125. |
 | `17`        | REQ-PF2-021 ganha o override de PV de ancestralidade (REQ-PF2-279); novos REQ-PF2-279..283.                                                                                                                                                                                                          |
-| `10`        | REQ-CBT-055 inalterada (a Presa não é mira, DEC-BHR-05); novos REQ-CBT-068..071.                                                                                                                                                                                                                     |
+| `10`        | REQ-CBT-055 inalterada (a Presa não é mira, DEC-BHR-05); novos REQ-CBT-068..071; REQ-CBT-071 diz que o MAP não diminui no turno ao desmontar (REQ-BHR-188).                                                                                                                                          |
 | `06`        | Novos REQ-CNV-105..107 (selo da Presa, pilha de tokens montados, arraste do cavaleiro).                                                                                                                                                                                                              |
-| `41`        | REQ-TOK-042 ganha a exceção do cavaleiro montado (REQ-TOK-117); novos REQ-TOK-115..118.                                                                                                                                                                                                              |
+| `41`        | REQ-TOK-042 ganha a exceção do cavaleiro montado (REQ-TOK-117); novos REQ-TOK-115..118 e REQ-TOK-117a; REQ-TOK-116 ganha o carimbo `movedTurn` e o desmonte do Mestre.                                                                                                                               |
 | `09`        | Novos REQ-CHT-061..064 (cards de Caçar Presa, Caçador de Monstros, Comandar, Apoio).                                                                                                                                                                                                                 |
 | `15`        | Novos REQ-SYS-161..164 (handlers e expiração `after-roll`, `effect:apply`).                                                                                                                                                                                                                          |

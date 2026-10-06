@@ -803,7 +803,8 @@ DEC-BHR-03, DEC-BHR-04, DEC-BHR-07, DEC-BHR-10, DEC-BHR-11, DEC-BHR-12). Número
   MAP do companheiro (`AttackCheckContext`, spec 52), e as perícias DEVEM ser roláveis; o jogador que
   possui o dono tem posse do companheiro.
 - **REQ-PET-117** [MVP] Comandar um companheiro animal DEVE postar o card "`<dono>` comanda
-  `<companheiro>`: 2 ações" sem teste de Natureza; o card é registro, não orçamento de ações.
+  `<companheiro>`: 2 ações" sem teste de Natureza; o card é registro, não orçamento de ações. Comandar
+  custa 1 ação (◆) ao dono; as 2 ações são as que o companheiro ganha (spec 52, REQ-BHR-186).
 - **REQ-PET-118** [MVP] O Apoio DEVE aplicar no dono, via `effect:apply` (spec 52), o efeito de apoio
   do tipo com `expiry { on: "turn-start", ownerActorId: dono }`.
 - **REQ-PET-119** [MVP] Com o Apoio do urso ativo, golpe do dono que **acerta** criatura ao alcance do

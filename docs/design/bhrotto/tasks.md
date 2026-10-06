@@ -279,6 +279,16 @@ deriveAnimalCompanion(input: { type: CompanionType; stage: CompanionStage; maste
 // companheiro ligado ao cavaleiro ou o Mestre faz. Mover a montaria move o cavaleiro no mesmo
 // write; mover o cavaleiro montado (não privilegiado) é recusado (só Montar desmonta).
 // mapGroupOf(combatantId): cavaleiro e montaria compartilham o MapCounter enquanto montados.
+// Na peça da MONTARIA, o servidor também carimba, ao mover o par durante um combate em andamento:
+//   movedTurn?: { combatId: string; round: number; turn: number }   // turn = turnIndex do combate
+// "Este turno" = movedTurn.combatId igual, com o round e o turnIndex ATUAIS desse combate (não encerrado),
+// seja quem for o combatente ativo: o companheiro age no turno do dono e não precisa ser combatente.
+// O carimbo é escrito pelo servidor no mesmo write do movimento (mount-follow) e limpo com o resto da flag.
+// Texto/predicado de "Apoio bloqueado": `companionSupportBlockReasons` em @fusion/shared (servidor E ficha).
+// op: "companion:setActive" { companionActorId } — troca o companheiro ativo do dono (BHR-F4-10): só
+// GM/assistente ou OWNER do dono; recusa (CONFLICT) montado ou com combate em andamento na cena (exploração).
+// Desmontar não reduz o MAP no turno: cada membro fica com a contagem que o grupo tinha (REQ-CBT-071).
+// Efeito "Montado": em token vinculado vai ao ator; em token NÃO vinculado, a `actorDelta.items` do token.
 ```
 
 ### 2.6 `ExecutableActionRow` (BHR-F2-08, recorte da GUE-F5-01)
@@ -287,7 +297,7 @@ deriveAnimalCompanion(input: { type: CompanionType; stage: CompanionStage; maste
 // sheets/pf2e/src/lib/sheets/pf2e/actions/executableRows.ts
 interface ExecutableActionRow {
   slug: string; // "hunt-prey", "command-an-animal", "support", "mount", "trip", ...
-  requires?: ("target" | "mounted" | "not-mounted" | "companion")[];
+  requires?: ("target" | "mounted" | "not-mounted" | "companion" | "inactive-companion")[];
   roll?: {
     kind: "skill" | "attack";
     skill?: SkillSlug;
@@ -296,6 +306,14 @@ interface ExecutableActionRow {
   onUse: { selfEffect?: EffectRef; mark?: TokenMark["slug"]; card: string; op?: string };
 }
 // registro dirigido por slug; a linha sem registro continua navegável (D-G08).
+// "inactive-companion": há outro companheiro animal (inativo) para chamar (Chamar Companheiro).
+// ActionContext (o que a aba entrega ao gate) ganhou:
+//   inactiveCompanions?: { actorId; name }[]   // quem Chamar Companheiro pode trazer
+//   supportBlock?: string | null                // motivo do Apoio desligado (`supportBlockReasons`)
+//   inEncounter?: boolean                       // combate na cena do companheiro: Chamar Companheiro desabilita
+// ExecutableUse ganhou `companionOp` (a op companion:setActive montada pelo clique).
+// `supportBlockReasons({ companionActive?, mountBlock? })` (actions/supportGate.ts) lista os motivos; o predicado
+// vive em @fusion/shared (`companionSupportBlockReasons`) e o servidor aplica o MESMO no `effect:apply` do Apoio.
 ```
 
 ### 2.7 `ManeuverSizeLimit`, `WeaponRunes`, `GmOnlyActorFields`
@@ -937,7 +955,7 @@ interface ExecutableActionRow {
 
 - **Repo**: satélite
 - **Onde**: `executableRows.ts` (registro `command-an-animal`); ficha do companheiro (BHR-F4-06); card em `abilityCardVM.ts`
-- **Entrega**: Na ficha do companheiro, "Comandar" posta o card "Bhrotto comanda o urso: 2 ações" sem teste de Natureza (regra do companheiro); montaria comum segue com teste (fora do Bhrotto). Sem contador de ações (D-15): o card é registro, não orçamento.
+- **Entrega**: Na ficha do companheiro, "Comandar" posta o card "Bhrotto comanda o urso: 2 ações" sem teste de Natureza (regra do companheiro); montaria comum segue com teste (fora do Bhrotto). Comandar custa 1 ação (◆); as 2 ações do texto são as que o companheiro ganha. Sem contador de ações (D-15): o card é registro, não orçamento.
 - **Depende de**: BHR-F4-06, BHR-F2-08
 - **Paralelo com**: BHR-F3-11, BHR-F4-10, BHR-F5-03
 - **Modelo / esforço**: sonnet / low.
@@ -979,7 +997,7 @@ interface ExecutableActionRow {
 
 - **Repo**: satélite
 - **Onde**: `executableRows.ts` (registro `call-companion`, ação de exploração); `characterSheetVM.ts` (vínculos na ficha do Bhrotto); `system.companion.active`
-- **Entrega**: Chamar Companheiro (concedido pela Dedicação) aparece na aba Ações e troca qual companheiro está **ativo**: o ativo é o único que age, apoia e herda a Presa; o inativo continua com ficha legível e sem token em cena (o Mestre coloca o token do novo ativo, ou o servidor o troca no lugar do anterior se ele estiver em cena). Os vínculos na ficha do Bhrotto mostram qual está ativo.
+- **Entrega**: Chamar Companheiro (concedido pela Dedicação) aparece na aba Ações e troca qual companheiro está **ativo**: o ativo é o único que age, apoia e herda a Presa; o inativo continua com ficha legível e sem token em cena (o Mestre coloca o token do novo ativo, ou o servidor o troca no lugar do anterior se ele estiver em cena). Os vínculos na ficha do Bhrotto mostram qual está ativo. É atividade de exploração: o servidor recusa (CONFLICT, com o motivo) com combate em andamento na cena do ativo e a aba mostra a linha desabilitada com o motivo; a ficha do companheiro também mostra o motivo do Apoio bloqueado (inativo, montaria que andou).
 - **Depende de**: BHR-F4-05, BHR-F4-06
 - **Paralelo com**: BHR-F3-11, BHR-F4-07, BHR-F5-03
 - **Modelo / esforço**: sonnet / medium.
@@ -1065,11 +1083,11 @@ interface ExecutableActionRow {
 
 - **Repo**: core
 - **Onde**: `packages/server/src/combat/map-counter.ts` (`mapGroupOf`, BHR-F3-04)
-- **Entrega**: Enquanto montados, cavaleiro e montaria compartilham o contador: golpe do Bhrotto e depois golpe do antílope = −5 no do antílope. Desmontar separa os contadores (o já contado no turno fica com cada um).
+- **Entrega**: Enquanto montados, cavaleiro e montaria compartilham o contador: golpe do Bhrotto e depois golpe do antílope = −5 no do antílope. Desmontar separa os contadores, mas o MAP nunca diminui no turno (RAW, decidido em 2026-10-06): cada um fica com a contagem que o grupo tinha naquele momento e os ataques novos somam separados.
 - **Depende de**: BHR-F5-02, BHR-F3-04
 - **Paralelo com**: BHR-F3-11, BHR-F4-07, BHR-F4-10
 - **Modelo / esforço**: sonnet / medium.
-- **Teste (TDD)**: montado, ataque do cavaleiro e depois da montaria → índices 0 e 1; desmontado → 0 e 0; `turnStart` zera o grupo.
+- **Teste (TDD)**: montado, ataque do cavaleiro e depois da montaria → índices 0 e 1; desmontado desde o início → 0 e 0; desmontar no meio do turno → cada um com a contagem do grupo naquele momento (nunca menos), ataques novos somam separados; `turnStart` zera o grupo.
 - **Prova visual (print)**: botão de golpe do antílope já com −5 depois do golpe do Bhrotto.
 - **Spec/REQ**: `REQ-CBT-070..071`, `REQ-BHR-180`
 - **Tamanho**: P
