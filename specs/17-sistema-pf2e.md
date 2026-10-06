@@ -896,13 +896,16 @@ abilityMod(damage) + Σ damageModifiers`, com `abilityMod(damage)` = STR (melee)
   categoria extra na importação. **Critério verificável:** Alquimista nível 1 com Int +4 e
   Des +2, treinado em bombas alquímicas e na CD de classe: CD de classe = 10 + 4 + (2 + 1) =
   17; ataque com Acid Flask = 2 + (2 + 1) = +5, antes de bônus de item.
-- **REQ-PF2-208** [MVP] O picker de talentos DEVE mostrar **desabilitado, com o motivo**, o
-  talento cujo pré-requisito reconhecível falha. Reconhecedores obrigatórios: (a) talento ou
+- **REQ-PF2-208** [MVP] O picker de talentos DEVE mostrar **marcado com aviso (o motivo)**,
+  e **selecionável**, o talento cujo pré-requisito reconhecível falha — nunca desabilitado nem
+  escondido (DEC-BC-05, REQ-BC-032; emenda de 2026-10-05, decisão do Alexandre ao unir o
+  Alquimista a alfa: antes a linha era desabilitada). Reconhecedores obrigatórios: (a) talento ou
   dedicação possuído, identificado por `flags.fusion.sourceId` e nunca pelo nome; (b)
   atributo mínimo (ex.: "Inteligência +2"). Pré-requisito em texto livre não reconhecido
   NÃO DEVE bloquear: o talento fica elegível e exibe o aviso. **Critério verificável:**
-  Guerreiro com Int +0 não pode escolher Alchemist Dedication e com Int +2 pode; Basic
-  Concoction é inelegível sem a dedicação.
+  Guerreiro com Int +0 vê Alchemist Dedication marcada com "Exige Inteligência +2" e ainda
+  pode escolhê-la; com Int +2 não há marca; Basic Concoction aparece marcada, com o motivo,
+  sem a dedicação.
 
 ### Aplicar dano, condições e automação de turno
 
