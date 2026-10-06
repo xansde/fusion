@@ -99,6 +99,7 @@ import {
 import type { TokenMarkSource } from "./roll-resolution.js";
 import type { MapCounter } from "../combat/map-counter.js";
 import { maneuverDefense } from "@fusion/engine-2e";
+import { maneuverSizeRefusal } from "./maneuver-size.js";
 import {
   NO_EXTRA_DAMAGE,
   proveStrikeAttackDegree,
@@ -552,6 +553,25 @@ export function buildChatSendHandler(deps: ChatHandlerDeps): HandlerFn {
             code: "VALIDATION_FAILED" as const,
             message: `Maneuver "${checkContext.maneuver}" is rolled against ${fixed}, not ${checkContext.against}`,
           };
+        }
+        // The size limit of the maneuver (review M-1): judged with the sizes the database holds, for the actor the
+        // user speaks as. No speaker named = the roller's size is unknown and the rule does not opine.
+        if (payload.speakerActorId !== undefined && checkContext.targetTokenId !== undefined) {
+          if (!mayRollAsActor(deps.db, payload.speakerActorId, ctx)) {
+            return {
+              ok: false,
+              code: "VALIDATION_FAILED" as const,
+              message: "The speaker actor is not yours",
+            };
+          }
+          const tooLarge = maneuverSizeRefusal(deps.db, {
+            maneuver: checkContext.maneuver,
+            rollerActorId: payload.speakerActorId,
+            targetTokenId: checkContext.targetTokenId,
+          });
+          if (tooLarge !== null) {
+            return { ok: false, code: "VALIDATION_FAILED" as const, message: tooLarge };
+          }
         }
       }
       const aimedRef = attackTargetRef(payload.target, checkContext);
@@ -1954,6 +1974,21 @@ function findTokenById(
     }
   }
   return null;
+}
+
+/** May this user roll AS the actor? A privileged role always may; others must own it. */
+function mayRollAsActor(db: Db, actorId: string, ctx: HandlerContext): boolean {
+  if (isRolePrivileged(ctx.role)) return true;
+  try {
+    const row = db.prepare(`SELECT data FROM actors WHERE id = ?`).get(actorId) as
+      | { data: string }
+      | undefined;
+    if (!row) return false;
+    const doc = JSON.parse(row.data) as { ownership?: Ownership };
+    return testOwnership(doc.ownership ?? {}, ctx.userId, ctx.role, OwnershipLevel.OWNER);
+  } catch {
+    return false;
+  }
 }
 
 /**
