@@ -89,7 +89,17 @@ import {
   buildMarkClearHandler,
   createTokenMarkSource,
 } from "../combat/mark-handler.js";
-import { buildMountHandler, buildDismountHandler } from "../combat/mount-handler.js";
+import {
+  buildMountHandler,
+  buildDismountHandler,
+  releaseDismountedRider,
+} from "../combat/mount-handler.js";
+
+interface RiderDismountedInfo {
+  sceneId: string;
+  riderTokenId: string;
+  userId: string;
+}
 import { buildCompanionSetActiveHandler } from "../combat/companion-active-handler.js";
 import { MapCounter, registerMapCounterReset } from "../combat/map-counter.js";
 import {
@@ -364,6 +374,11 @@ export class SocketManager {
       // (ALQ-F1-05).
       getRecentChat: (userId: string, role: number) =>
         getRecentChatForUser(db, userId, role, undefined, store),
+      // BHR-F5-03 x F5-04 x F5-05: the GM moving a mounted rider takes him off the mount; the dismount
+      // side effects (Montado effect, group MAP) live with the mount handler, wired once for both paths.
+      onRiderDismounted: ({ sceneId, riderTokenId, userId }: RiderDismountedInfo): void => {
+        releaseDismountedRider(mountDeps, sceneId, riderTokenId, userId);
+      },
     };
 
     // Register built-in system handlers
@@ -468,7 +483,13 @@ export class SocketManager {
     registry.register("chat:invalidate", buildChatInvalidateHandler(chatDeps));
 
     // Register M2-A vision handlers (walls, lights, door state, move collision)
-    const visionDeps = { store, seqStore, opBuffer, ns };
+    const visionDeps = {
+      store,
+      seqStore,
+      opBuffer,
+      ns,
+      onRiderDismounted: syncDeps.onRiderDismounted,
+    };
     registry.register("wall:create", buildWallCreateHandler(visionDeps));
     registry.register("wall:update", buildWallUpdateHandler(visionDeps));
     registry.register("wall:delete", buildWallDeleteHandler(visionDeps));

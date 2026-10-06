@@ -76,8 +76,14 @@ function runningCombatStamp(
   return { combatId: combat["_id"], round: num(combat["round"]), turn: num(combat["turnIndex"]) };
 }
 
+/** A rider that stepped off its mount through the movement itself (the GM moved him, or a stale flag healed). */
+export interface MountMovementDismount {
+  riderTokenId: string;
+  mountTokenId: string;
+}
+
 export type MountMoveResult =
-  | { ok: true; tokens: Rec[] }
+  | { ok: true; tokens: Rec[]; dismounted?: MountMovementDismount }
   | { ok: false; code: "PERMISSION_DENIED"; message: string };
 
 /**
@@ -114,7 +120,11 @@ export function applyMountMovement(
     // again and the flag heals; nobody is dragged and nobody is refused for a ghost.
     if (!confirmed) {
       next[index] = withMountFlag(patched, undefined);
-      return { ok: true, tokens: next };
+      return {
+        ok: true,
+        tokens: next,
+        dismounted: { riderTokenId: String(tokenId), mountTokenId: state.mountTokenId },
+      };
     }
     if (!privileged) {
       return {
@@ -125,7 +135,11 @@ export function applyMountMovement(
     }
     next[index] = withMountFlag(patched, undefined);
     next[mountIdx] = withMountFlag(mount, undefined);
-    return { ok: true, tokens: next };
+    return {
+      ok: true,
+      tokens: next,
+      dismounted: { riderTokenId: String(tokenId), mountTokenId: state.mountTokenId },
+    };
   }
 
   // A MOUNT with a rider moves: the rider goes along, same write.

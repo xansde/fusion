@@ -998,17 +998,34 @@ function deactivateSiblingsOfActivatedCompanion(
   authorCtx: { userId: string },
 ): void {
   const sys = expandedDiff["system"];
-  const link = typeof sys === "object" && sys !== null ? (sys as Record<string, unknown>)["companion"] : null;
-  if (typeof link !== "object" || link === null || (link as Record<string, unknown>)["active"] !== true) return;
+  const link =
+    typeof sys === "object" && sys !== null ? (sys as Record<string, unknown>)["companion"] : null;
+  if (
+    typeof link !== "object" ||
+    link === null ||
+    (link as Record<string, unknown>)["active"] !== true
+  )
+    return;
   if (readCompanionKind(written) !== "animalCompanion") return;
   const masterId = readMasterActorId(written);
   if (masterId === null) return;
   for (const other of deps.store.getAll("actors", { type: COMPANION_ACTOR_TYPE })) {
     if (other["_id"] === written["_id"]) continue;
-    if (readCompanionKind(other) !== "animalCompanion" || readMasterActorId(other) !== masterId) continue;
+    if (readCompanionKind(other) !== "animalCompanion" || readMasterActorId(other) !== masterId)
+      continue;
     const otherLink = (other["system"] as Record<string, unknown> | undefined)?.["companion"];
-    if (typeof otherLink === "object" && otherLink !== null && (otherLink as Record<string, unknown>)["active"] === false) continue;
-    const off = deps.store.update("actors", String(other["_id"]), { system: { companion: { active: false } } }, authorCtx);
+    if (
+      typeof otherLink === "object" &&
+      otherLink !== null &&
+      (otherLink as Record<string, unknown>)["active"] === false
+    )
+      continue;
+    const off = deps.store.update(
+      "actors",
+      String(other["_id"]),
+      { system: { companion: { active: false } } },
+      authorCtx,
+    );
     if (off === null) continue;
     const at = updated.findIndex((d) => d["_id"] === other["_id"]);
     if (at >= 0) updated[at] = off;
@@ -1155,6 +1172,11 @@ export interface DocHandlerDeps {
    * being silently swallowed — see recomputeDerivedIfNeeded.
    */
   logger?: Logger;
+  /**
+   * A rider stepped off its mount because the GM moved it (BHR-F5-03): the Montado effect leaves the
+   * rider and the group's MAP is republished — what `mount:dismount` does besides clearing the flag.
+   */
+  onRiderDismounted?: (info: { sceneId: string; riderTokenId: string; userId: string }) => void;
 }
 
 // ---------------------------------------------------------------------------
@@ -2442,6 +2464,7 @@ function handleEmbeddedUpdate(
   }
 
   const allUpdatedParents: Record<string, unknown>[] = [];
+  const dismountedRiders: Array<{ sceneId: string; riderTokenId: string }> = [];
 
   for (const [parentId, parentUpdates] of byParent) {
     // RAW (REQ-TOK-002) — see handleEmbeddedCreate's comment: `collection`
@@ -2640,6 +2663,9 @@ function handleEmbeddedUpdate(
         );
         if (!moved.ok) return ackError(moved.code, moved.message);
         collection.splice(0, collection.length, ...moved.tokens);
+        if (moved.dismounted) {
+          dismountedRiders.push({ sceneId: parentId, riderTokenId: moved.dismounted.riderTokenId });
+        }
         continue;
       }
 
@@ -2695,6 +2721,10 @@ function handleEmbeddedUpdate(
 
   // resolvedParentType is "Scene" for token ops — hidden-token filtering applied.
   broadcastToWorld(deps.ns, envelope, resolvedParentType);
+
+  for (const rider of dismountedRiders) {
+    deps.onRiderDismounted?.({ ...rider, userId: ctx.userId });
+  }
 
   return {
     ok: true as const,

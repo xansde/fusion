@@ -271,6 +271,49 @@ function persistAndBroadcast(
   return { ok: true, seq, result: payload };
 }
 
+/**
+ * A rider stepped off its mount through a plain movement (the GM moved the rider, BHR-F5-03): that path
+ * never goes through `mount:dismount`, so what the dismount does besides clearing the flag is done here
+ * � the "Montado" effect leaves the rider (BHR-F5-04) and the MAP the pair shared is republished
+ * (BHR-F5-05). The scene write was already persisted and broadcast by the caller.
+ */
+export function releaseDismountedRider(
+  deps: MountHandlerDeps,
+  sceneId: string,
+  riderTokenId: string,
+  userId: string,
+): void {
+  let actorDocs: Rec[] = [];
+  const scene = deps.store.getRaw("scenes", sceneId);
+  const tokens = Array.isArray(scene["tokens"]) ? (scene["tokens"] as Rec[]) : [];
+  const actorId = tokens.find((t) => t["_id"] === riderTokenId)?.["actorId"];
+  if (
+    typeof actorId === "string" &&
+    actorId !== "" &&
+    readActorOrNull(deps.store, actorId) !== null
+  ) {
+    deps.store.transaction((txn) => {
+      const fresh = deps.store.get("actors", actorId);
+      const current = Array.isArray(fresh["items"]) ? (fresh["items"] as Rec[]) : [];
+      const kept = current.filter((item) => !isMountedEffect(item));
+      if (kept.length === current.length) return;
+      const doc = txn.update("actors", actorId, { items: kept }, { userId });
+      if (doc !== null) actorDocs = [doc];
+    });
+  }
+  if (actorDocs.length > 0) {
+    const envelope: Envelope = {
+      type: "doc:update",
+      seq: deps.seqStore.next(),
+      ts: Date.now(),
+      payload: { documentType: "Actor", documents: actorDocs },
+    };
+    deps.opBuffer.push(envelope);
+    broadcastToWorld(deps.ns, envelope, "Actor");
+  }
+  deps.onMountChanged?.(sceneId);
+}
+
 export function buildMountHandler(deps: MountHandlerDeps): HandlerFn {
   return (rawPayload, ctx) => {
     const parsed = MountMountPayloadSchema.safeParse(rawPayload);

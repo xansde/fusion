@@ -68,6 +68,8 @@ export interface VisionHandlerDeps {
   seqStore: SeqStore;
   opBuffer: OpBuffer;
   ns: Namespace;
+  /** The GM moved a mounted rider off its mount (BHR-F5-03): see `DocHandlerDeps.onRiderDismounted`. */
+  onRiderDismounted?: (info: { sceneId: string; riderTokenId: string; userId: string }) => void;
 }
 
 // ---------------------------------------------------------------------------
@@ -609,6 +611,14 @@ export function buildTokenMoveHandler(deps: VisionHandlerDeps): HandlerFn {
     // It used to be a bare `ns.emit`, which handed every player the document of
     // whatever scene the GM happened to be arranging.
     broadcastToWorld(deps.ns, envelope, "Scene");
+
+    if (moved.dismounted) {
+      deps.onRiderDismounted?.({
+        sceneId,
+        riderTokenId: moved.dismounted.riderTokenId,
+        userId: ctx.userId,
+      });
+    }
 
     return ackOk({ sceneId, tokenId, x, y }, seq);
   };

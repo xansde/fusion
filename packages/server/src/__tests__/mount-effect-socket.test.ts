@@ -8,7 +8,7 @@
  * mount leaves no effect behind. The effect content is read from the pack on the server.
  */
 
-import { describe, it, expect, beforeEach, afterEach } from "vitest";
+import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
 import { mkdirSync, rmSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { tmpdir } from "node:os";
@@ -52,6 +52,7 @@ interface Ctx {
   worldId: string;
   p1Token: string;
   p2Token: string;
+  gmToken: string;
 }
 
 function buildCompendium(): { compendium: CompendiumService; packRoot: string } {
@@ -105,7 +106,7 @@ async function buildCtx(): Promise<Ctx> {
   const fusionDb = openDatabase({ path: dbPath, skipIntegrityCheck: true });
   applyMigrations(fusionDb.raw, dbPath);
   const authService = new AuthService(fusionDb.raw, secret, worldId);
-  const { user: gm } = await authService.bootstrapGm();
+  const { user: gm, password: gmPw } = await authService.bootstrapGm();
   const { user: p1 } = await authService.createUser({
     name: "Player1",
     role: Role.PLAYER,
@@ -116,6 +117,7 @@ async function buildCtx(): Promise<Ctx> {
     role: Role.PLAYER,
     password: "player2-pass",
   });
+  const gmLogin = await authService.login({ userId: gm.id, password: gmPw, ip: "127.0.0.1" });
   const p1Login = await authService.login({
     userId: p1.id,
     password: "player1-pass",
@@ -219,6 +221,7 @@ async function buildCtx(): Promise<Ctx> {
     worldId,
     p1Token: p1Login.accessToken,
     p2Token: p2Login.accessToken,
+    gmToken: gmLogin.accessToken,
   };
 }
 
@@ -251,7 +254,11 @@ function sendOp(socket: ClientSocket, type: string, payload: unknown) {
 }
 
 /** The next Actor `doc:update` of `actorId` this socket receives. */
-function nextActorUpdate(socket: ClientSocket, actorId: string): Promise<Record<string, unknown>> {
+function nextActorUpdate(
+  socket: ClientSocket,
+  actorId: string,
+  accept: (doc: Record<string, unknown>) => boolean = () => true,
+): Promise<Record<string, unknown>> {
   return new Promise((resolve, reject) => {
     const handler = (envelope: Record<string, unknown>): void => {
       if (envelope["type"] !== "doc:update") return;
@@ -260,7 +267,7 @@ function nextActorUpdate(socket: ClientSocket, actorId: string): Promise<Record<
       const doc = (payload.documents ?? []).find(
         (d) => (d as Record<string, unknown>)["_id"] === actorId,
       );
-      if (!doc) return;
+      if (!doc || !accept(doc as Record<string, unknown>)) return;
       socket.off("op", handler);
       resolve(doc as Record<string, unknown>);
     };
@@ -346,5 +353,57 @@ describe("the Mounted effect follows Mount / Dismount (BHR-F5-04)", () => {
     await sendOp(p1, "mount:dismount", { riderTokenId: LESHY, to: at(6, 4) });
     await sendOp(p1, "mount:mount", { riderTokenId: LESHY, mountTokenId: ANTELOPE });
     expect(mountedEffects(LESHY_ACTOR)).toHaveLength(1);
+  });
+
+  describe("the GM moving the mounted rider takes him off the mount (BHR-F5-03 x F5-04 x F5-05)", () => {
+    const moveVia: Array<[string, (gm: ClientSocket) => Promise<Record<string, unknown>>]> = [
+      [
+        "doc:update",
+        (gm) =>
+          sendOp(gm, "doc:update", {
+            documentType: "Token",
+            updates: [{ _id: LESHY, diff: at(2, 2), embedded: { type: "Token", id: SCENE_ID } }],
+          }),
+      ],
+      [
+        "token:move",
+        (gm) => sendOp(gm, "token:move", { sceneId: SCENE_ID, tokenId: LESHY, ...at(2, 2) }),
+      ],
+    ];
+
+    it.each(moveVia)(
+      "through %s: the Montado effect leaves the rider and the group MAP is republished",
+      async (_n, move) => {
+        const gm = await connect(ctx.port, ctx.worldId, ctx.gmToken);
+        try {
+          await sendOp(p1, "mount:mount", { riderTokenId: LESHY, mountTokenId: ANTELOPE });
+          expect(mountedEffects(LESHY_ACTOR)).toHaveLength(1);
+
+          const counter = ctx.socketManager.mapCounterFor(ctx.worldId);
+          if (counter === undefined) throw new Error("no MAP counter for the world");
+          const republish = vi.spyOn(counter, "republishScene");
+          // A late mount broadcast may still be in flight: wait for the one WITHOUT the effect.
+          const heard = nextActorUpdate(
+            p2,
+            LESHY_ACTOR,
+            (d) => (d["items"] as unknown[]).length === 1,
+          );
+
+          const ack = await move(gm);
+          expect(ack["ok"], JSON.stringify(ack)).toBe(true);
+
+          expect(mountedEffects(LESHY_ACTOR)).toHaveLength(0);
+          const names = (
+            (ctx.store.get("actors", LESHY_ACTOR)["items"] ?? []) as { name: string }[]
+          ).map((i) => i.name);
+          expect(names).toEqual(["Outro efeito"]);
+          expect(republish).toHaveBeenCalledWith(SCENE_ID);
+          const doc = await heard;
+          expect((doc["items"] as unknown[]).length).toBe(1);
+        } finally {
+          gm.disconnect();
+        }
+      },
+    );
   });
 });
