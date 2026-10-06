@@ -115,6 +115,12 @@ export interface PreparedRollResolution {
   /** Stacked sum of `modifiers` — appended to the client's formula. */
   total: number;
   notes: readonly ResolvedRollNote[];
+  /**
+   * The options of the roll's single target, as the SERVER resolved them for the resolver
+   * (`mark:<slug>`, `condition:<slug>`): the same list, handed to `onRollResolved` so an
+   * `after-roll` predicate over `target:*` judges the very target the roll was graded against.
+   */
+  targetOptions: readonly string[];
 }
 
 // ---------------------------------------------------------------------------
@@ -149,13 +155,14 @@ export function prepareRollResolution(
   };
 
   const resolver = systemModule.rollResolver;
-  if (!resolver) return { rollContext, modifiers: [], total: 0, notes: [] };
+  if (!resolver) return { rollContext, modifiers: [], total: 0, notes: [], targetOptions: [] };
 
   // The resolver is system code: a throw must not take the roll down with it.
   // The roll then goes out as it did before this task — the client's formula,
   // no context, no hook (an `after-roll` effect must not be consumed by a roll
   // whose bonus was never counted).
   let resolution: ReturnType<typeof resolver.resolve>;
+  let targetOptions: readonly string[] = [];
   try {
     const derived = rederive(actor, store, systemModule);
     const target =
@@ -168,6 +175,7 @@ export function prepareRollResolution(
           )
         : null;
     resolution = resolver.resolve({ actor: derived, rollContext, target, origin: null });
+    targetOptions = target?.options ?? [];
   } catch (err) {
     deps.logger?.error(
       { err, systemId: systemModule.manifest.id, actorId: rollContext.actorId },
@@ -180,6 +188,7 @@ export function prepareRollResolution(
     modifiers: resolution.modifiers,
     total: Number.isFinite(resolution.total) ? Math.trunc(resolution.total) : 0,
     notes: resolution.notes,
+    targetOptions,
   };
 }
 
@@ -241,6 +250,7 @@ export async function runRollResolvedHooks(
     rollContext: FusionRollContext;
     degree: string | null;
     targets: readonly RollTargetSnapshotEntry[];
+    targetOptions?: readonly string[];
   },
   hookContext: (() => TurnHookContext) | undefined,
   logger?: Pick<Logger, "error">,

@@ -660,6 +660,7 @@ export function buildChatSendHandler(deps: ChatHandlerDeps): HandlerFn {
           rollContext: resolution.rollContext,
           degree: rollResult.degreeOfSuccess ?? null,
           targets: targetSnapshot,
+          targetOptions: resolution.targetOptions,
         },
         deps.rollHookContext,
         deps.logger,

@@ -600,6 +600,23 @@ describe("BHR-F2-05 — rolagem resolvida no servidor (RollNotes + onRollResolve
     expect(hookCalls).toHaveLength(1);
   });
 
+  it("I-5: o evento onRollResolved leva as opções de alvo que o servidor resolveu (marca da presa), e só elas", async () => {
+    await targetPrey();
+
+    const unmarked = nextChatMessage(gmSocket);
+    await sendOp(playerSocket, "chat:send", attackPayload(ctx.worldId));
+    await unmarked;
+    expect(hookCalls).toHaveLength(1);
+    expect(hookCalls[0]?.targetOptions ?? []).not.toContain("mark:hunted-prey");
+
+    marks.preyMarked = true;
+    const marked = nextChatMessage(gmSocket);
+    await sendOp(playerSocket, "chat:send", attackPayload(ctx.worldId));
+    await marked;
+    expect(hookCalls).toHaveLength(2);
+    expect(hookCalls[1]?.targetOptions).toContain("mark:hunted-prey");
+  });
+
   it("resolvedor do sistema que lança não derruba a rolagem: sai sem contexto e sem ouvinte", async () => {
     marks.preyMarked = true;
     await targetPrey();

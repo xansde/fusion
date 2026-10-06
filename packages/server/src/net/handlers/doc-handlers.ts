@@ -376,6 +376,23 @@ const EMBEDDED_COLLECTION_BY_PARENT: Record<string, string> = Object.fromEntries
  * them here as well would only trade one rejection for another, so the guard
  * stays narrow: it names the shape that would otherwise succeed.
  */
+/**
+ * Does this expanded `doc:update` diff write the companion's link to its master
+ * (`system.companionKind`, `system.masterActorId`, `system.companion.grantSlotId`)?
+ * A `system` (or `system.companion`) set to a non-object counts: it would replace them whole.
+ */
+function touchesCompanionLink(expanded: Record<string, unknown>): boolean {
+  if (!("system" in expanded)) return false;
+  const system = expanded["system"];
+  if (typeof system !== "object" || system === null || Array.isArray(system)) return true;
+  const sys = system as Record<string, unknown>;
+  if ("companionKind" in sys || "masterActorId" in sys) return true;
+  if (!("companion" in sys)) return false;
+  const companion = sys["companion"];
+  if (typeof companion !== "object" || companion === null || Array.isArray(companion)) return true;
+  return "grantSlotId" in companion;
+}
+
 function rejectUnwritableField(
   documentType: string,
   expandedDiff: Record<string, unknown>,
@@ -435,6 +452,22 @@ function rejectUnwritableField(
     return ackError(
       "PERMISSION_DENIED",
       "flags.fusion.tokenMarks is not writable through doc:update — use mark:set / mark:clear",
+    );
+  }
+
+  // The companion's link to its master (BHR-F4-04, REQ-PET-110/111, DC-07): the kind, the master and the
+  // grant slot are fixed when the companion is CREATED (where the cap, the mount refusal and the slot
+  // uniqueness are checked) — an owner rewriting them here would free a slot, turn a pet into a mount, or
+  // void the unique slot. The Mestre keeps full control. The subtype is read off the STORED document.
+  if (
+    documentType === "Actor" &&
+    !isPrivileged(role) &&
+    existing?.["type"] === "familiar" &&
+    touchesCompanionLink(expandedDiff)
+  ) {
+    return ackError(
+      "PERMISSION_DENIED",
+      "system.companionKind, system.masterActorId and system.companion.grantSlotId are not writable through doc:update by a player",
     );
   }
 

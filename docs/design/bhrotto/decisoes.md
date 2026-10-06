@@ -61,3 +61,22 @@ desbloqueada: curar da fonte). Pendente: idiomas.
   (DEC-TOK-19 mantida).
 - **Seletor de talentos**: requisito reconhecido não cumprido → candidato **marcado com aviso** (o motivo) e
   selecionável (REQ-PF2-208 emendada; DEC-BC-05/REQ-BC-032). Entrou na BHR-F0-02 (PRs core #313 e satélite #472).
+- **Decisão provisória do orquestrador, a confirmar (2026-10-06)** — **Comandar um Animal** (Natureza) continua na
+  aba Ações para animais que **não são o companheiro** (ação básica do livro: Natureza contra a Vontade do animal);
+  para o companheiro é automático (D-B10).
+- **Regra da Presa (2026-10-06, regra do PF2e remaster)**: a Presa de Caçar Presa dura **até o Patrulheiro usar
+  Caçar Presa de novo**; **não** expira na preparação diária. Os efeitos Presa e Astúcia ficam sem fronteira de
+  expiração própria (`never`); a saída é a nova Caçar Presa, que substitui o efeito.
+
+## Perguntas abertas
+
+Perguntas de produto que a revisão da onda 4 levantou. Cada uma tem um comportamento de hoje, provisório; nada foi
+construído dependendo da resposta.
+
+- **Q (dono × penalidade)**: o dono pode remover qualquer efeito do próprio ator, inclusive uma penalidade aplicada
+  pelo Mestre ou por um inimigo? **Hoje pode.** Nada foi construído dependendo da resposta.
+- **P-1 (BHR-F4-04)**: o companheiro criado pelo **Mestre** conta no teto do jogador? **Hoje conta** (se o Mestre
+  criar o urso, o Bhrotto só cria mais um).
+- **P-2 (BHR-F4-04/F4-10)**: ao criar o 2º companheiro, quem fica **ativo**? **Hoje os dois nascem ativos.**
+- **P-3 (BHR-F1-08)**: Tratar Ferimentos com CD escolhível (treinado 15; especialista pode 20; mestre 30; lendário
+  40): qual CD vem marcada por padrão? **Hoje a 15** (a mais baixa, a mais segura).

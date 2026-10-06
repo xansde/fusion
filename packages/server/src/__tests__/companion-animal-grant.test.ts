@@ -30,6 +30,7 @@ import { Role } from "../auth/user-store.js";
 import { loadOrCreateSecret } from "../auth/crypto.js";
 import { PROTOCOL_VERSION } from "@fusion/shared";
 import { pf2eSystem } from "@fusion/system-pf2e";
+import { DocumentStore } from "../documents/store.js";
 import { reserveFreePort } from "./helpers/ports.js";
 
 // ---------------------------------------------------------------------------
@@ -404,6 +405,61 @@ describe("Animal companion creation permission (BHR-F4-04)", () => {
     expect(animal["ok"]).toBe(true);
     const familiar = await createAs(ownerSocket, [companionPayload(both, "familiar", "Rato")]);
     expect(familiar["ok"]).toBe(true);
+  });
+
+  // I-6 (onda 4): the link fields are written at creation; an owner cannot rewrite them through doc:update
+  // (it would free a slot, turn a pet into a mount, or void the unique slot).
+  describe("doc:update does not rewrite the companion link", () => {
+    let petId = "";
+    let otherMasterId = "";
+    beforeAll(async () => {
+      const master = await createMaster(
+        character(ctx.ownerUserId, "LinkMaster", 1, [featItem("Animal Companion (Ranger)", "ac1")]),
+      );
+      otherMasterId = await createMaster(character(ctx.ownerUserId, "OtherMaster", 1, []));
+      const ack = await createAs(ownerSocket, [
+        companionPayload(master, "animalCompanion", "Urso Link", "slot-link"),
+      ]);
+      expect(ack["ok"]).toBe(true);
+      petId = firstDoc(ack)["_id"] as string;
+    });
+
+    const version = (): number => {
+      const store = new DocumentStore({ db: ctx.fusionDb.raw, coreVersion: "0.1.0" });
+      return (store.get("actors", petId)["_stats"] as { version: number }).version;
+    };
+    const update = (socket: ClientSocket, diff: Record<string, unknown>): Promise<Ack> =>
+      sendOp(socket, "doc:update", {
+        documentType: "Actor",
+        updates: [{ _id: petId, diff, expectedVersion: version() }],
+      });
+
+    it("the owner is refused on companionKind, masterActorId and grantSlotId, by dot path and by object", async () => {
+      const attempts: Record<string, unknown>[] = [
+        { "system.companionKind": "mount" },
+        { system: { companionKind: "mount" } },
+        { "system.masterActorId": otherMasterId },
+        { system: { masterActorId: otherMasterId } },
+        { "system.companion.grantSlotId": "slot-stolen" },
+        { system: { companion: { grantSlotId: "slot-stolen" } } },
+        { "system.companion": { typeSlug: "bear", grantSlotId: "slot-stolen" } },
+      ];
+      for (const diff of attempts) {
+        const ack = await update(ownerSocket, diff);
+        expect(ack["ok"], JSON.stringify(diff)).toBe(false);
+        expect(ack["code"], JSON.stringify(diff)).toBe("PERMISSION_DENIED");
+      }
+    });
+
+    it("the owner still edits unrelated fields of the companion", async () => {
+      const ack = await update(ownerSocket, { name: "Urso Renomeado" });
+      expect(ack["ok"], JSON.stringify(ack)).toBe(true);
+    });
+
+    it("the GM may rewrite the link", async () => {
+      const ack = await update(gm, { "system.masterActorId": otherMasterId });
+      expect(ack["ok"], JSON.stringify(ack)).toBe(true);
+    });
   });
 
   it("the GM skips the grant and the cap", async () => {

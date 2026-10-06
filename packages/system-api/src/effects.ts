@@ -623,6 +623,12 @@ export interface RollResolvedEvent {
   /** The degree the server graded, or null when the roll had nothing to grade against. */
   readonly degree: DegreeOfSuccess | null;
   readonly targets: readonly RollTargetSnapshotEntry[];
+  /**
+   * The options of the roll's single target the SERVER resolved (the same list the roll resolver
+   * saw), unprefixed: `mark:<slug>` and `condition:<slug>[:<value>]`. A listener prefixes them
+   * with `target:` to judge a predicate. Absent/empty when the roll had no single target.
+   */
+  readonly targetOptions?: readonly string[];
 }
 
 /**
