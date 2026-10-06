@@ -117,3 +117,6 @@ O gate "nenhuma regra do Bhrotto inerte" passou a exigir também produtor para o
 ## Registrado pela re-execução do L3 (onda 11)
 
 - **Glossário pt-BR de "Seek"**: a aba Ações mostra a linha de Buscar como "Investigar" (busca por "Buscar" não acha). Conferir o glossário (`tools/translate-packs/glossary.pt-BR.json`) e alinhar com o termo usado pelo livro e pelo resto do app.
+- **Fim de efeito em inglês no chat (N2)**: a mensagem do Sistema diz "Efeito Effect: Antelope Support terminou em Bhrotto."; deve usar o nome pt-BR do snapshot (`flags.fusion.i18n["pt-BR"]`), como a ficha já faz.
+- **Chamar Companheiro montado sem resposta (N3)**: com o Bhrotto montado, a linha fica habilitada mas o clique não faz nada (sem card nem motivo); só troca depois de Desmontar. Ou a linha desabilita com o motivo, ou a recusa do servidor aparece na ficha.
+- **+1d8 do Apoio do urso no card de dano**: não verificado ao vivo pelo roteiro do L3 (rolagem sem alvo; ogro fora do alcance do urso); coberto só por teste.
