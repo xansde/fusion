@@ -78,8 +78,11 @@ desbloqueada: curar da fonte). Pendente: idiomas.
   Ações) fica confirmada pelo default RAW.
 - **Q (dono × penalidade)**: mantém o comportamento atual. O dono pode remover qualquer efeito do próprio ator,
   inclusive penalidade aplicada pelo Mestre ou por inimigo; o Mestre também pode.
-- **P-1 (BHR-F4-04)**: o companheiro criado pelo **Mestre** conta no teto do jogador (se o Mestre criar o urso, o
-  Bhrotto só cria mais um).
+- **P-1 (BHR-F4-04)**: confirmado. O companheiro criado pelo **Mestre** conta no teto do jogador (se o Mestre criar
+  o urso, o Bhrotto só cria mais um).
+- **I-5 (revisão da onda 7)**: mantém o comportamento atual. O botão "Aplicar condição" aplica em quem está mirado
+  na hora do clique. Usar o alvo da rolagem, como pede a regra, fica como ajuste futuro: ver
+  [ajustes-futuros.md](ajustes-futuros.md). O contrato REQ-SYS-142 do Alquimista não muda nesta frente.
 - **CI do satélite**: fica desligado, por custo. O gate do satélite é o local (integrador e corretor) mais o CI do core.
 
 ## Perguntas abertas
@@ -87,9 +90,6 @@ desbloqueada: curar da fonte). Pendente: idiomas.
 Perguntas de produto que a revisão da onda 4 levantou. Cada uma tem um comportamento de hoje, provisório; nada foi
 construído dependendo da resposta.
 
-- **I-5 (revisão da onda 7)**: o jogador deve poder aplicar uma condição pela seleção viva, sem a foto da
-  mensagem (`actor:applyCondition` sem `source.messageId`, contrato REQ-SYS-142 da ALQ-F1-09, de outra frente)?
-  **Hoje pode.** Aberta; o contrato do Alquimista não é alterado por esta frente.
 - ~~**P-2 (BHR-F4-04/F4-10)**: ao criar o 2º companheiro, quem fica **ativo**?~~ **Resolvida**: um só companheiro
   ativo. O primeiro criado nasce ativo; o novo nasce **inativo** e o ativo anterior continua. Quem decide é o
   servidor (o `active` do cliente é ignorado). Trocar o ativo é ação explícita do dono (BHR-F4-10).
