@@ -1732,6 +1732,41 @@ export function computeSaveDegree(roll: RollResultData, ctx: SaveCheckContext): 
 // ---------------------------------------------------------------------------
 
 /**
+ * GM Core "DCs by Level", level 0..25 (PF2e remaster). Recall Knowledge about a
+ * creature is graded against the DC of the creature's level (BHR-F3-09).
+ */
+const DC_BY_LEVEL: readonly number[] = [
+  14, 15, 16, 18, 19, 20, 22, 23, 24, 26, 27, 28, 30, 31, 32, 34, 35, 36, 38, 39, 40, 42, 44, 46,
+  48, 50,
+];
+
+/** Rarity adjustment of a Recall Knowledge DC: uncommon +2, rare +5, unique +10. */
+const RARITY_DC_ADJUST: Readonly<Record<string, number>> = { uncommon: 2, rare: 5, unique: 10 };
+
+/**
+ * The creature-level DC of an actor's `system` (BHR-F3-09): the level from
+ * `details.level.value` (or `details.level`), adjusted by `traits.rarity`
+ * (a string or `{ value }`; missing means common). Null when the level is not a
+ * table level — no DC is invented.
+ */
+function readCreatureLevelDc(system: Record<string, unknown> | undefined): number | null {
+  const details = system?.["details"] as { level?: unknown } | undefined;
+  const rawLevel = details?.level;
+  const level =
+    typeof rawLevel === "number" ? rawLevel : (rawLevel as { value?: unknown } | undefined)?.value;
+  if (typeof level !== "number" || !Number.isInteger(level)) return null;
+  const base = level === -1 ? 13 : DC_BY_LEVEL[level]; // GM Core: level -1 is DC 13
+  if (base === undefined) return null;
+  const traits = system?.["traits"] as { rarity?: unknown } | undefined;
+  const rawRarity = traits?.rarity;
+  const rarity =
+    typeof rawRarity === "string"
+      ? rawRarity
+      : (rawRarity as { value?: unknown } | undefined)?.value;
+  return base + (typeof rarity === "string" ? (RARITY_DC_ADJUST[rarity] ?? 0) : 0);
+}
+
+/**
  * Read one defence the server itself derived for an actor, as the number a roll
  * is graded against. `ac`: `system.derived.ac.total`, falling back to the
  * authored `system.attributes.ac.value` (a bestiary NPC straight out of a pack,
@@ -1753,6 +1788,8 @@ function readActorDefense(db: Db, actorId: string, against: SkillCheckDefense): 
     const doc = JSON.parse(row.data) as Record<string, unknown>;
     const system = doc["system"] as Record<string, unknown> | undefined;
     const derived = system?.["derived"] as Record<string, unknown> | undefined;
+
+    if (against === "level") return readCreatureLevelDc(system);
 
     if (against === "ac") {
       const derivedAc = derived?.["ac"] as { total?: unknown } | undefined;

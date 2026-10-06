@@ -414,8 +414,19 @@ export const AttackCheckContextSchema = z.object({
 
 export type AttackCheckContext = z.infer<typeof AttackCheckContextSchema>;
 
-/** The defence of the target a skill check is rolled against (BHR-F6-01). */
-export const SkillCheckDefenseSchema = z.enum(["fortitude", "reflex", "will", "ac", "perception"]);
+/**
+ * The defence of the target a skill check is rolled against (BHR-F6-01).
+ * `level` (BHR-F3-09): Recall Knowledge about a creature, graded against the
+ * creature-level DC adjusted by rarity, which the server reads from the target.
+ */
+export const SkillCheckDefenseSchema = z.enum([
+  "fortitude",
+  "reflex",
+  "will",
+  "ac",
+  "perception",
+  "level",
+]);
 
 export type SkillCheckDefense = z.infer<typeof SkillCheckDefenseSchema>;
 
