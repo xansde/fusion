@@ -159,14 +159,12 @@ function insertMessage(msg: ChatMessage): void {
   chatStore.messages.splice(i, 0, msg);
 }
 
-/** Prepend older messages (from history load) — they arrive newest-first, we reverse. */
+/** Prepend older messages (from history load): they arrive newest-first and go in oldest-first. */
 function prependMessages(msgs: ChatMessage[]): void {
   const sorted = [...msgs].sort((a, b) => a.timestamp - b.timestamp || a._id.localeCompare(b._id));
-  for (const msg of sorted) {
-    if (!chatStore.messages.some((m) => m._id === msg._id)) {
-      chatStore.messages.unshift(msg);
-    }
-  }
+  // Oldest first, in ONE splice: unshifting one by one would reverse the page.
+  const fresh = sorted.filter((msg) => !chatStore.messages.some((m) => m._id === msg._id));
+  chatStore.messages.unshift(...fresh);
 }
 
 // ---------------------------------------------------------------------------
