@@ -1551,3 +1551,28 @@ describe("DocumentDetailsCache", () => {
     expect(cacheB.has("uuid-1")).toBe(false);
   });
 });
+
+describe("pickLocalizedName reads the import snapshot (reprint L1)", () => {
+  // `CompendiumService.importToActor` keeps the pt-BR label as `flags.fusion.i18n["pt-BR"]`, not as `i18n.ptBR`.
+  const snapshotOnly = {
+    name: "War Flail",
+    flags: { fusion: { i18n: { "pt-BR": { name: "Mangual de Guerra" } } } },
+  };
+
+  it("an item with only the snapshot shows the pt-BR name; the EN locale keeps the EN name", () => {
+    expect(pickLocalizedName(snapshotOnly, "pt-BR")).toBe("Mangual de Guerra");
+    expect(pickLocalizedName(snapshotOnly, "en")).toBe("War Flail");
+  });
+
+  it("the picker overlay (`i18n.ptBR`) still wins when both exist, and an empty snapshot name falls back to EN", () => {
+    expect(
+      pickLocalizedName({ ...snapshotOnly, i18n: { ptBR: { name: "Mangual" } } }, "pt-BR"),
+    ).toBe("Mangual");
+    expect(
+      pickLocalizedName(
+        { name: "Chain Mail", flags: { fusion: { i18n: { "pt-BR": { name: "" } } } } },
+        "pt-BR",
+      ),
+    ).toBe("Chain Mail");
+  });
+});
