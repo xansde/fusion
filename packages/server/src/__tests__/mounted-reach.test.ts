@@ -222,13 +222,21 @@ describe("Apoio do antílope: persistent bleed only while mounted (REQ-BHR-182, 
   });
 
   it("through the chat settlement the roller (the speaker's actor) is the rider the mount is proven for", () => {
-    const sceneDoc = scene("yes");
-    const db = {
+    const WALKER_ACTOR = "walkerActor00001";
+    const WALKER_TOKEN = "walkerToken00001";
+    const sceneDoc = scene("yes") as { tokens: Rec[] };
+    // A second rider with a valid card and a token next to the foe, who is NOT mounted on anything.
+    sceneDoc.tokens.push({ _id: WALKER_TOKEN, actorId: WALKER_ACTOR, x: SQUARE, y: 0 });
+    const walkerActors: Record<string, Rec> = {
+      ...actors,
+      [WALKER_ACTOR]: { _id: WALKER_ACTOR, system: { traits: { size: { value: "med" } } } },
+    };
+    const dbFor = (speakerActorId: string) => ({
       prepare: () => ({
         all: () => [
           {
             data: JSON.stringify({
-              speaker: { userId: "u1", actorId: OWNER_ACTOR },
+              speaker: { userId: "u1", actorId: speakerActorId },
               flags: {
                 pf2e: { checkContext: { kind: "attack" } },
                 fusion: { targetSnapshot: [{ tokenId: FOE_TOKEN }] },
@@ -238,26 +246,37 @@ describe("Apoio do antílope: persistent bleed only while mounted (REQ-BHR-182, 
           },
         ],
       }),
-    };
+    });
     const store = {
-      getAll: () => [sceneDoc],
-      getRaw: () => sceneDoc,
-      get: (_c: "actors", id: string) => actors[id] as Rec,
+      getAll: () => [sceneDoc as Rec],
+      getRaw: () => sceneDoc as Rec,
+      get: (_c: "actors", id: string) => walkerActors[id] as Rec,
     };
-    const run = (actorId: string) =>
+    const bear: ResolvedExtraDamage = {
+      slug: "support-bear",
+      label: "Apoio do urso",
+      count: 1,
+      die: "d8",
+      damageType: "slashing",
+      doubleOnCrit: false,
+      gate: { withinReachOf: "companion", companionActorId: ANTELOPE_ACTOR, reachFeet: 5 },
+    };
+    const run = (actorId: string, extra: ResolvedExtraDamage[]) =>
       settleChatRollExtraDamage({
-        db,
+        db: dbFor(actorId),
         store,
         userId: "u1",
         actorId,
         selectors: ["strike-damage"],
-        extra: [bleed()],
+        extra,
         snapshot: [target],
         parentMessageId: "card1",
       });
-    expect(run(OWNER_ACTOR).applied).toHaveLength(1);
-    // Another speaker is not the rider: the attack proof fails first, and no mount is proven either way.
-    expect(run(FOE_ACTOR).applied).toEqual([]);
+    expect(run(OWNER_ACTOR, [bleed()]).applied).toHaveLength(1);
+    // The walker has a proven hit on the card (a part with no mount gate counts for him)...
+    expect(run(WALKER_ACTOR, [bear]).applied).toHaveLength(1);
+    // ...and still gets no Apoio bleed: the gate that fails is the mount, not the attack proof.
+    expect(run(WALKER_ACTOR, [bleed()]).applied).toEqual([]);
   });
 
   it("with a second token of the same antelope actor, the reach is measured from the token the rider is on", () => {
