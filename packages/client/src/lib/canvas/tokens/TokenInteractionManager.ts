@@ -45,7 +45,7 @@ import type { FusionCanvas } from "../FusionCanvas.js";
 import { screenToWorld } from "../camera-math.js";
 import { sendOp, OpError } from "../../docs/sendOp.js";
 import { emitTokenPreview } from "../../presence/attachPresenceSync.js";
-import { combatActions, getMyTargets } from "../../combat/combatStore.svelte.js";
+import { combatActions, getMyTargets, setMyTargets } from "../../combat/combatStore.svelte.js";
 import type { TokenLayer } from "./TokenLayer.js";
 import { footprintOf, type FootprintActorInput } from "./footprint.js";
 import type { ActorDocument } from "../../actors/actorDirectory.js";
@@ -546,6 +546,15 @@ export class TokenInteractionManager {
     // Pointer down on the container — check if we hit a token sprite
     tokenContainer.on("pointerdown", (e: FederatedPointerEvent) => {
       if (this._destroyed) return;
+      // Right button (BHR-F3-01 / GUE-F1-01, D-G01, REQ-GUE-040..042): toggle
+      // the user's aim on the token under the cursor. It never selects and
+      // never starts a drag; the browser menu is already suppressed by
+      // FusionCanvas (`contextmenu` preventDefault) and no token context menu
+      // exists, so nothing competes for the gesture.
+      if (e.button === 2) {
+        this._toggleTarget(e);
+        return;
+      }
       if (e.button !== 0) return; // left button only
 
       const tokenId = this._getTokenIdFromTarget(e.target);
@@ -582,38 +591,6 @@ export class TokenInteractionManager {
         }
         e.stopPropagation();
         return;
-      }
-
-      // SCAFFOLDING (ALQ-F1-10): F1-05 built the live-target store and the
-      // `combat:target` op ("exposto às fichas" — combatStore.svelte.ts),
-      // but no production UI ever calls it — there is still no real click
-      // gatilho to set a combat target anywhere in the client. Until a
-      // proper targeting UX lands (canvas overlay, roster button, whatever
-      // that task decides), a single click on a token this user does NOT
-      // own toggles it in/out of THEIR live target selection (REQ-CBT-056)
-      // — just enough for `AbilityCard`'s "Alvos: …" line (ALQ-F1-10) to
-      // have a real `targetSnapshot` to read at roll time.
-      //
-      // I5 fix (onda-5 adversarial review, `.fusion-build/alquimista/
-      // onda-5/REVISAO.md`): this USED TO always send `targeted: true` and
-      // never clear it, so every inspection click on a non-owned token
-      // ADDED it to the live selection without ever removing one — three
-      // clicks to inspect three NPCs armed all three as targets, and by
-      // D-02 a damage-apply button then hits every one of them. It also
-      // excluded any privileged role (`userRole < ROLE_ASSISTANT`), leaving
-      // the GM with no targeting gatilho at all. Both fixed the same way:
-      // toggle off `getMyTargets()`'s CURRENT state (arma/desarma) instead
-      // of a one-way `true`, and no role gate — a GM inspecting/targeting a
-      // token is exactly as legitimate as a player doing it (this scaffold
-      // is a convenience click, not a permission decision; the server's own
-      // `combat:target` handler is the actual authority). Still marked
-      // SCAFFOLDING: the aditive-only behavior was the finding, not the
-      // scaffold's existence (`feedback_gatilho_ui_testavel`).
-      // Fire-and-forget: a rejected op leaves the selection unchanged, same
-      // failure mode as every other click here.
-      if (!owned.has(token.actorId)) {
-        const alreadyTargeted = getMyTargets().some((t) => t.tokenId === tokenId);
-        void combatActions.target(this._opts.socket, tokenId, !alreadyTargeted);
       }
 
       if (!canMove) return;
@@ -816,6 +793,16 @@ export class TokenInteractionManager {
   // Private — keyboard handler
   // ---------------------------------------------------------------------------
 
+  /** Right-click aim toggle (D-G01): arm/disarm the token under the cursor. */
+  private _toggleTarget(e: FederatedPointerEvent): void {
+    const tokenId = this._getTokenIdFromTarget(e.target);
+    if (!tokenId || !this._getToken(tokenId)) return;
+    const alreadyTargeted = getMyTargets().some((t) => t.tokenId === tokenId);
+    // Fire-and-forget: the server is the authority and echoes `token:targeted`.
+    void combatActions.target(this._opts.socket, tokenId, !alreadyTargeted);
+    e.stopPropagation();
+  }
+
   private _handleKeyDown(e: KeyboardEvent): void {
     if (this._destroyed) return;
 
@@ -840,6 +827,10 @@ export class TokenInteractionManager {
         this._opts.tokenLayer.applyLocalMove(tokenId, originalX, originalY);
       } else {
         this.deselectAll();
+        // D-G01: Esc also clears THIS user's aim (diffed against the live
+        // selection scoped to the local user, so other users' aims stay).
+        // No-op op-wise when nothing is aimed.
+        void setMyTargets(this._opts.socket, []);
       }
       return;
     }
