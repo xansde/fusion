@@ -509,6 +509,23 @@ export const ResyncFullPayloadSchema = z.object({
 export type ResyncFullPayload = z.infer<typeof ResyncFullPayloadSchema>;
 
 /**
+ * What the ack of a `resync:request` carries in `result`: the server answers with a delta or a full snapshot, tagged
+ * by `type`. ONE schema for both ends: the server handler returns it and the client unwraps it, so a change of shape
+ * breaks the build (and the contract test) instead of silently freezing every player's mirror.
+ */
+export const ResyncAckResultSchema = z.discriminatedUnion("type", [
+  z.object({ type: z.literal("delta"), payload: ResyncDeltaPayloadSchema }),
+  z.object({ type: z.literal("full"), payload: ResyncFullPayloadSchema }),
+]);
+
+export type ResyncAckResult = z.infer<typeof ResyncAckResultSchema>;
+
+/** The whole ack of a `resync:request`: success carries {@link ResyncAckResult}; failure only a code and message. */
+export type ResyncRequestAck =
+  | { ok: true; seq: number; result: ResyncAckResult }
+  | { ok: false; code?: string; message?: string };
+
+/**
  * world:activeScene — broadcast when the GM activates a different scene.
  * REQ-NET-005 (rooms), spec 06 §scene activation.
  *
