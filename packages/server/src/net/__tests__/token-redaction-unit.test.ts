@@ -15,6 +15,7 @@
  */
 
 import { describe, it, expect } from "vitest";
+import type { ChatMessage } from "@fusion/shared";
 import {
   stripHiddenTokens,
   redactSceneDocsForNonPrivileged,
@@ -291,8 +292,16 @@ describe("redactChatEffectExpiryForNonPrivileged", () => {
       content: "Efeito Apoio terminou em Emboscador.",
       speaker: { userId: "system", alias: "Sistema", actorId: "actor-S" },
       whisper: [],
-      flags: { fusion: { effectExpiry: { itemId: "eff-S", actorId: "actor-S", ...(hidden ? { hidden: true } : {}) } } },
-    }) as unknown as import("@fusion/shared").ChatMessage;
+      flags: {
+        fusion: {
+          effectExpiry: {
+            itemId: "eff-S",
+            actorId: "actor-S",
+            ...(hidden ? { hidden: true } : {}),
+          },
+        },
+      },
+    }) as unknown as ChatMessage;
 
   it("drops the name, the actor id and the item id for a hidden holder", () => {
     const out = redactChatEffectExpiryForNonPrivileged(expiryMsg(true));

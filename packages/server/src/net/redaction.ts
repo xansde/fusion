@@ -707,7 +707,9 @@ export function redactChatEffectExpiryForNonPrivileged(msg: ChatMessage): ChatMe
   const expiry = fusionFlags?.["effectExpiry"];
   if (!isPlainObject(expiry) || expiry["hidden"] !== true) return msg;
 
-  const { actorId: _actorId, ...speaker } = msg.speaker as typeof msg.speaker & { actorId?: string };
+  const { actorId: _actorId, ...speaker } = msg.speaker as typeof msg.speaker & {
+    actorId?: string;
+  };
   return {
     ...msg,
     content: "Um efeito terminou.",

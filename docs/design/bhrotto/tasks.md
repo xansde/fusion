@@ -264,6 +264,7 @@ deriveAnimalCompanion(input: { type: CompanionType; stage: CompanionStage; maste
 ```
 
 > **Emenda (revisão da onda 2, I-5/I-4/I-6).**
+>
 > - **Estágio e trilha.** `specialized` vem **depois** de `nimble` ou `savage` e inclui as vantagens da trilha de onde veio. O estágio continua um valor único; quem indexa por estágio (multiplicador de dados do Apoio, `deriveAnimalCompanion`) DEVE ler por `companionStageIncludes` / `stageDiceMultiplier` (`systems/pf2e/src/schemas/companion-type.ts`), nunca pelo nome cru do estágio. O `stageDiceMultiplier` do efeito traz também `specialized`.
 > - **Alcance e montaria do Apoio.** Não existem predicados `target:within-companion-reach` nem `self:mounted`. O alcance do companheiro é o campo `system.fusion.gate = { withinReachOf: "companion" }` do efeito, avaliado no servidor por `PositionQuery.distanceBetween`; "só montado" é `support.requiresMounted` do tipo.
 > - **Crítico.** O dano extra do Apoio do urso é dano do urso: a regra do efeito carrega `doubleOnCrit: false`. O motor de dano ainda não consome `damage-dice`; a BHR-F4-09 DEVE honrar o campo e cobrir o crítico no teste.
