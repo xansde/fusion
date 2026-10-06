@@ -337,6 +337,100 @@ describe("actor:applyCondition — ActorMechanicsService (ALQ-F1-09, REQ-SYS-142
     expect(hasCondition(h, npc, "quickened")).toBe(false);
   });
 
+  // BHR-F6-02 (REQ-BHR-202): with `source.messageId`, a player's targets are
+  // bounded by that message's frozen targetSnapshot, not by the live selection.
+  describe("source.messageId — alvos limitados à targetSnapshot da mensagem", () => {
+    function setup(): { pc: string; goblin: string; orc: string; messageId: string } {
+      const pc = createActor(h, "PC do jogador", "player-p");
+      const goblin = createActor(h, "Goblin");
+      const orc = createActor(h, "Orc");
+      const sceneId = createSceneWithTokens(h, [
+        { _id: "tok-goblin", name: "Goblin", actorId: goblin },
+        { _id: "tok-orc", name: "Orc", actorId: orc },
+      ]);
+      const msg = h.store.create(
+        "chat_messages",
+        {
+          author: "player-p",
+          timestamp: Date.now(),
+          speaker: { actorId: pc },
+          flags: {
+            fusion: {
+              targetSnapshot: [{ tokenId: "tok-goblin", actorId: goblin, sceneId }],
+            },
+          },
+        },
+        { userId: "player-p" },
+      );
+      return { pc, goblin, orc, messageId: msg["_id"] as string };
+    }
+
+    it("player aplica no alvo da foto SEM seleção viva -> ok", async () => {
+      const { goblin, messageId } = setup();
+      const ack = await h.handler(
+        {
+          targetTokenIds: ["tok-goblin"],
+          slug: "prone",
+          mode: "add",
+          source: { messageId },
+        },
+        playerCtx("player-p"),
+      );
+      expect(ack.ok, JSON.stringify(ack)).toBe(true);
+      expect(hasCondition(h, goblin, "prone")).toBe(true);
+    });
+
+    it("player em alvo FORA da foto, mesmo marcado ao vivo -> FORBIDDEN", async () => {
+      const { orc, messageId } = setup();
+      const target = buildCombatTargetHandler(h.targetDeps);
+      await target({ tokenId: "tok-orc", targeted: true }, playerCtx("player-p"));
+      const ack = await h.handler(
+        { targetTokenIds: ["tok-orc"], slug: "prone", mode: "add", source: { messageId } },
+        playerCtx("player-p"),
+      );
+      expect(ack.ok).toBe(false);
+      if (!ack.ok) expect(ack.code).toBe("FORBIDDEN");
+      expect(hasCondition(h, orc, "prone")).toBe(false);
+    });
+
+    it("outro jogador (não dono do autor da mensagem) -> FORBIDDEN", async () => {
+      const { goblin, messageId } = setup();
+      const ack = await h.handler(
+        { targetTokenIds: ["tok-goblin"], slug: "prone", mode: "add", source: { messageId } },
+        playerCtx("player-q"),
+      );
+      expect(ack.ok).toBe(false);
+      if (!ack.ok) expect(ack.code).toBe("FORBIDDEN");
+      expect(hasCondition(h, goblin, "prone")).toBe(false);
+    });
+
+    it("messageId inexistente -> FORBIDDEN", async () => {
+      const { goblin } = setup();
+      const ack = await h.handler(
+        {
+          targetTokenIds: ["tok-goblin"],
+          slug: "prone",
+          mode: "add",
+          source: { messageId: "nao-existe" },
+        },
+        playerCtx("player-p"),
+      );
+      expect(ack.ok).toBe(false);
+      if (!ack.ok) expect(ack.code).toBe("FORBIDDEN");
+      expect(hasCondition(h, goblin, "prone")).toBe(false);
+    });
+
+    it("GM aplica em qualquer ator mesmo fora da foto", async () => {
+      const { orc, messageId } = setup();
+      const ack = await h.handler(
+        { targetTokenIds: ["tok-orc"], slug: "prone", mode: "add", source: { messageId } },
+        GM_CTX,
+      );
+      expect(ack.ok, JSON.stringify(ack)).toBe(true);
+      expect(hasCondition(h, orc, "prone")).toBe(true);
+    });
+  });
+
   it("sem alvo (targetTokenIds vazio e sem selfActorId) -> VALIDATION_FAILED", async () => {
     const ack = await h.handler(
       { targetTokenIds: [], slug: "frightened", mode: "add", value: 1 },
