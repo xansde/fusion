@@ -985,6 +985,38 @@ function rederiveCompanionsOfUpdatedMasters(
 }
 
 /**
+ * BHR-F4-10 (DC-07): a write that turns `system.companion.active` ON for an animal companion turns every
+ * other companion of the same master OFF in the same write; the ones that changed ride the SAME broadcast
+ * (`updated`). Only a privileged writer can set the flag through doc:update (the player guard refuses it),
+ * and `companion:setActive` already does this for the owner's op. Mutates `updated`.
+ */
+function deactivateSiblingsOfActivatedCompanion(
+  deps: DocHandlerDeps,
+  written: Record<string, unknown>,
+  expandedDiff: Record<string, unknown>,
+  updated: Record<string, unknown>[],
+  authorCtx: { userId: string },
+): void {
+  const sys = expandedDiff["system"];
+  const link = typeof sys === "object" && sys !== null ? (sys as Record<string, unknown>)["companion"] : null;
+  if (typeof link !== "object" || link === null || (link as Record<string, unknown>)["active"] !== true) return;
+  if (readCompanionKind(written) !== "animalCompanion") return;
+  const masterId = readMasterActorId(written);
+  if (masterId === null) return;
+  for (const other of deps.store.getAll("actors", { type: COMPANION_ACTOR_TYPE })) {
+    if (other["_id"] === written["_id"]) continue;
+    if (readCompanionKind(other) !== "animalCompanion" || readMasterActorId(other) !== masterId) continue;
+    const otherLink = (other["system"] as Record<string, unknown> | undefined)?.["companion"];
+    if (typeof otherLink === "object" && otherLink !== null && (otherLink as Record<string, unknown>)["active"] === false) continue;
+    const off = deps.store.update("actors", String(other["_id"]), { system: { companion: { active: false } } }, authorCtx);
+    if (off === null) continue;
+    const at = updated.findIndex((d) => d["_id"] === other["_id"]);
+    if (at >= 0) updated[at] = off;
+    else updated.push(off);
+  }
+}
+
+/**
  * Authorize a single non-privileged companion delete: the target must be a
  * companion whose master the requester owns at OWNER level.
  */
@@ -1839,6 +1871,10 @@ export function buildDocUpdateHandler(deps: DocHandlerDeps): HandlerFn {
         }
         result = recomputeDerivedIfNeeded(deps, documentType, result, authorCtx);
         updated.push(result);
+        // BHR-F4-10 (DC-07): exactly one ACTIVE animal companion per master, even on a GM write.
+        if (documentType === "Actor") {
+          deactivateSiblingsOfActivatedCompanion(deps, result, expandedDiff, updated, authorCtx);
+        }
       }
     }
 
