@@ -80,7 +80,7 @@ export function pickLocalizedName(
   const enName = str(source?.["name"]) ?? "";
   if (locale !== "pt-BR") return enName;
   const ptName = str(readI18nBag(source)?.ptBR?.name);
-  if (ptName !== undefined && ptName !== null) return ptName;
+  if (ptName !== null) return ptName;
   // The label an import SNAPSHOTS (`flags.fusion.i18n["pt-BR"]`, written by `CompendiumService.importToActor`/
   // `importToWorld`) is the other place a translated name lives; `displayName` is its one reader.
   const snapshot = displayName({ flags: asFlags(source?.["flags"]) }, locale);
