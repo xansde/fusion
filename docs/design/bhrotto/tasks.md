@@ -307,6 +307,24 @@ interface ExecutableActionRow {
 // a carteira segue editável pelo jogador (DC-10)
 ```
 
+### 2.8 `FusionRollContext`, `registerRollResolver` e `ResolvedRollNote` (BHR-F2-05)
+
+> **Emenda (revisão da onda 3, I8).** O §2.8 do plano do Alquimista (`RollNotes`/`onRollResolved`) ficou assim na BHR-F2-05:
+>
+> - **`FusionRollContext`** (`packages/shared/src/chat/types.ts`), não `RollContext` (nome já tomado na `system-api`). Shape igual ao do plano:
+>   `{ actorId, itemId?, selectors: string[], options: string[] }`, em `flags.fusion.rollContext` do `chat:send`. O servidor só aceita do cliente
+>   opções `action:*`; `target:*`/`origin:*` e o resto (`feat:`, `effect:`, `item:`, interruptores) são do servidor, re-derivados do ator e do alvo.
+> - **`registerRollResolver(def: RollResolverDefinition)`** (`SystemRegistrar`, um por sistema) é o **único resolvedor** de condicionais e notas da rolagem
+>   (DF-08). A fase `"roll"` do `RuleElementRegistry` continua declarada em `RULE_PHASES`, mas **não alimenta** o resolvedor; se um rule element passar a
+>   usá-la, ele entra por `registerRollResolver`, nunca por um segundo caminho. O resolvedor devolve `{ modifiers, total, notes }`, onde `total` é o **delta**
+>   sobre o número da ficha (`stack(base + condicionais) - stack(base)`, mesmo tipo não acumula).
+> - **`ResolvedRollNote.outcome?: string[]`** (não `DegreeOfSuccess[]`; os mesmos valores: `criticalSuccess`, `success`, `failure`, `criticalFailure`;
+>   ausente = todo grau), mais `slug?` (a chave da nota). O servidor guarda só as notas cujo `outcome` casa com o grau que ele gradou.
+> - **Um alvo só por rolagem:** o `payload.target` que o servidor resolve é o alvo dos condicionais, do grau e do MAP. Sem alvo resolvido, nenhum
+>   condicional de `target:`.
+>
+> Consumidores (BHR-F2-06, F3-09, F3-10) seguem este texto, não o §2.8 do plano de origem.
+
 ## 3. Regras de colisão
 
 - Tarefas na mesma onda têm **arquivos disjuntos** (campo Onde) ou vão para a **mesma faixa** e rodam em série nela.

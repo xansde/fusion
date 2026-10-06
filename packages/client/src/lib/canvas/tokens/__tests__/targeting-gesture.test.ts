@@ -297,6 +297,57 @@ describe("TokenInteractionManager — right-click aim gesture (BHR-F3-01, D-G01)
     mgr.destroy();
   });
 
+  it("I6: Esc consumido por outro handler (defaultPrevented) não limpa a mira", async () => {
+    applyTargeted(getTargetingState(), "tokA", true, "user-player");
+    const { mgr, ops } = await build();
+    (mgr as unknown as { _handleKeyDown(e: unknown): void })._handleKeyDown({
+      code: "Escape",
+      target: null,
+      defaultPrevented: true,
+      preventDefault() {},
+    });
+    await new Promise((r) => setTimeout(r, 0));
+    expect(targetOps(ops)).toHaveLength(0);
+    mgr.destroy();
+  });
+
+  it("I6: Esc com diálogo aberto não limpa a mira; sem diálogo limpa", async () => {
+    applyTargeted(getTargetingState(), "tokA", true, "user-player");
+    const { mgr, ops } = await build();
+    vi.stubGlobal("document", {
+      activeElement: null,
+      querySelector: (sel: string) => (sel.includes("dialog") ? { tagName: "DIALOG" } : null),
+    });
+    try {
+      pressEsc(mgr);
+      await new Promise((r) => setTimeout(r, 0));
+      expect(targetOps(ops)).toHaveLength(0);
+    } finally {
+      vi.unstubAllGlobals();
+    }
+    pressEsc(mgr);
+    await new Promise((r) => setTimeout(r, 0));
+    expect(targetOps(ops).map((o) => o.payload)).toEqual([{ tokenId: "tokA", targeted: false }]);
+    mgr.destroy();
+  });
+
+  it("I6: Esc com foco em campo editável não limpa a mira", async () => {
+    applyTargeted(getTargetingState(), "tokA", true, "user-player");
+    const { mgr, ops } = await build();
+    vi.stubGlobal("document", {
+      activeElement: { tagName: "INPUT", type: "text" },
+      querySelector: () => null,
+    });
+    try {
+      pressEsc(mgr);
+      await new Promise((r) => setTimeout(r, 0));
+      expect(targetOps(ops)).toHaveLength(0);
+    } finally {
+      vi.unstubAllGlobals();
+    }
+    mgr.destroy();
+  });
+
   it("Esc while dragging only cancels the drag and keeps the aim", async () => {
     applyTargeted(getTargetingState(), "tokA", true, "user-player");
     const { mgr, ops } = await build();

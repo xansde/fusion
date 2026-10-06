@@ -514,15 +514,23 @@ export function buildChatSendHandler(deps: ChatHandlerDeps): HandlerFn {
       const effectiveMode: RollMode = payload.rollMode ?? command.mode;
 
       // --- Roll context (BHR-F2-05 / ALQ-F4-09, DF-17) ---
-      // The target photo is taken ONCE, before the dice: the conditional
-      // modifiers resolved against its single target are appended to the
-      // formula, so the server's own total and degree already count them.
+      // The conditional modifiers are resolved BEFORE the dice, against the
+      // roll's one target, and appended to the formula, so the server's own
+      // total and degree already count them. The target photo (the author's
+      // `combat:target` selection) is still taken once, for the stored message.
       const targetSnapshot = readTargetSnapshot(deps, ctx.userId);
+      // ONE source of target per roll (B1): the `payload.target` the server
+      // resolves is the target of the conditional modifiers, of the degree and
+      // of the MAP. A save check grades against its own DC, so it has none.
+      const rollTarget =
+        payload.target !== undefined && payload.flags?.checkContext?.kind !== "save"
+          ? resolveRollTarget(deps.db, payload.target, ctx)
+          : null;
       const resolution = prepareRollResolution(
         deps,
         payload.flags?.fusion?.rollContext,
         ctx,
-        targetSnapshot,
+        rollTarget === null ? [] : [rollTarget.entry],
       );
 
       let rollResult: RollResultData;
@@ -566,10 +574,7 @@ export function buildChatSendHandler(deps: ChatHandlerDeps): HandlerFn {
       // roll — so "has a target" and "has a degree" never disagree.
       // A roll already graded by a save checkContext keeps that grading: the DC
       // of a save is the caster's, not the target's AC.
-      const targetPortrait =
-        payload.target !== undefined && gradedSave === null
-          ? resolveTargetPortrait(deps.db, payload.target, ctx)
-          : null;
+      const targetPortrait = gradedSave === null ? (rollTarget?.portrait ?? null) : null;
       let messageTargets: RollTarget[] | undefined;
       if (targetPortrait !== null && targetPortrait.ac !== undefined) {
         const degree = computeAttackDegree(rollResult, targetPortrait.ac);
@@ -1690,7 +1695,7 @@ function findTokenById(
   tokenId: string,
   privileged: boolean,
   userId?: string,
-): { name: string; actorId: string | null } | null {
+): { name: string; actorId: string | null; sceneId: string } | null {
   let rows: { data: string }[];
   try {
     rows = db.prepare(`SELECT data FROM scenes`).all() as { data: string }[];
@@ -1717,7 +1722,8 @@ function findTokenById(
         if (raw["_id"] !== tokenId) continue;
         const name = typeof raw["name"] === "string" ? raw["name"] : "";
         const actorId = typeof raw["actorId"] === "string" ? raw["actorId"] : null;
-        return { name, actorId };
+        const sceneId = typeof visible["_id"] === "string" ? visible["_id"] : "";
+        return { name, actorId, sceneId };
       }
     }
   }
@@ -1764,17 +1770,31 @@ function mayNameActorDirectly(db: Db, actorId: string, ctx: HandlerContext): boo
  * actor he does not observe gets `null` — the same "no portrait, no degree"
  * outcome as a dangling reference (REQ-ACH-092). The name of what the Mestre
  * hid is not published by the chat.
+ *
+ * The roll's ONE target (BHR-F2-05, DF-17): the portrait that grades the roll
+ * and feeds the MAP, plus the token/actor ids the conditional modifiers are
+ * resolved against. Both come from the same resolution of `payload.target`, so
+ * the bonus and the degree can never read different targets. `tokenId` is ""
+ * when the client named an actor directly (no token, so no marks).
  */
-function resolveTargetPortrait(db: Db, ref: ChatTargetRef, ctx: HandlerContext): RollTarget | null {
+function resolveRollTarget(
+  db: Db,
+  ref: ChatTargetRef,
+  ctx: HandlerContext,
+): { portrait: RollTarget; entry: ResolvedTarget } | null {
   const privileged = isRolePrivileged(ctx.role);
   let name = "";
   let actorId: string | null = ref.actorId ?? null;
+  let tokenId = "";
+  let sceneId = "";
 
   if (ref.tokenId !== undefined) {
     const token = findTokenById(db, ref.tokenId, privileged, ctx.userId);
     if (token === null) return null;
     name = token.name;
     actorId = token.actorId ?? ref.actorId ?? null;
+    tokenId = ref.tokenId;
+    sceneId = token.sceneId;
   } else if (actorId !== null && !mayNameActorDirectly(db, actorId, ctx)) {
     return null;
   }
@@ -1790,7 +1810,7 @@ function resolveTargetPortrait(db: Db, ref: ChatTargetRef, ctx: HandlerContext):
     name = actorName;
   }
 
-  return { name, ac };
+  return { portrait: { name, ac }, entry: { tokenId, actorId, sceneId } };
 }
 
 /**

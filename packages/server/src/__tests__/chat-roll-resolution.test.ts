@@ -102,7 +102,7 @@ function buildTestSystem(): SystemModule {
       });
       r.registerRollResolver({
         resolve(input) {
-          if (input.rollContext.options.includes("test:boom")) throw new Error("resolver bug");
+          if (input.rollContext.options.includes("action:boom")) throw new Error("resolver bug");
           const options = new Set<string>(input.rollContext.options);
           for (const o of input.target?.options ?? []) options.add(`target:${o}`);
           const derived = (input.actor["system"] as Record<string, unknown>)["derived"] as
@@ -115,8 +115,14 @@ function buildTestSystem(): SystemModule {
             input.target !== null &&
             options.has("target:mark:hunted-prey") &&
             bonus !== 0;
-          return {
-            modifiers: hit
+          // A modifier the actor would own only with a feat the client could forge.
+          const featHit =
+            attack &&
+            input.target !== null &&
+            options.has("feat:x") &&
+            options.has("target:mark:hunted-prey");
+          const mods = [
+            ...(hit
               ? [
                   {
                     slug: "prey-bonus",
@@ -125,8 +131,12 @@ function buildTestSystem(): SystemModule {
                     value: bonus,
                   },
                 ]
-              : [],
-            total: hit ? bonus : 0,
+              : []),
+            ...(featHit ? [{ slug: "feat-x", label: "Talento X", type: "untyped", value: 7 }] : []),
+          ];
+          return {
+            modifiers: mods,
+            total: mods.reduce((a, m) => a + m.value, 0),
             notes: attack
               ? [
                   { selector: "attack-roll", title: "Sempre", text: "", sourceItemId: "feat1" },
@@ -463,13 +473,59 @@ describe("BHR-F2-05 — rolagem resolvida no servidor (RollNotes + onRollResolve
     expect(msg.flags?.fusion?.rollContext?.actorId).toBe(HUNTER_ACTOR_ID);
   });
 
-  it("sem alvo único na targetSnapshot, o modificador de alvo não soma mesmo com marca", async () => {
+  it("sem payload.target resolvido, o modificador de alvo não soma mesmo com marca e alvo mirado", async () => {
     marks.preyMarked = true;
     await targetPrey();
+    const payload = attackPayload(ctx.worldId);
+    delete payload["target"];
+    const next = nextChatMessage(gmSocket);
+    await sendOp(playerSocket, "chat:send", payload);
+    expect(flatPart(await next)).toBe(5);
+  });
+
+  it("B1: mira a presa marcada e ataca outro token — sem bônus contra a presa (uma fonte de alvo só)", async () => {
+    marks.preyMarked = true;
+    await targetPrey();
+    const next = nextChatMessage(gmSocket);
+    await sendOp(
+      playerSocket,
+      "chat:send",
+      attackPayload(ctx.worldId, { target: { tokenId: OTHER_TOKEN_ID } }),
+    );
+    const msg = await next;
+    expect(flatPart(msg)).toBe(5);
+    expect(msg.flags?.fusion?.conditionalModifiers ?? []).toEqual([]);
+  });
+
+  it("B1: o bônus resolve contra o MESMO alvo que gradua o ataque (payload.target marcado, mira em outro)", async () => {
+    marks.preyMarked = true;
     await sendOp(playerSocket, "combat:target", { tokenId: OTHER_TOKEN_ID, targeted: true });
     const next = nextChatMessage(gmSocket);
     await sendOp(playerSocket, "chat:send", attackPayload(ctx.worldId));
-    expect(flatPart(await next)).toBe(5);
+    const msg = await next;
+    expect(flatPart(msg)).toBe(5 + PREY_BONUS);
+    expect(msg.rolls?.[0]?.degreeOfSuccess).toBeDefined();
+  });
+
+  it("I2: opções feat:/effect: vindas do cliente não ligam condicional; action:* passa", async () => {
+    marks.preyMarked = true;
+    await targetPrey();
+    const next = nextChatMessage(gmSocket);
+    await sendOp(playerSocket, "chat:send", {
+      ...attackPayload(ctx.worldId),
+      flags: {
+        fusion: {
+          rollContext: {
+            actorId: HUNTER_ACTOR_ID,
+            selectors: ["attack-roll"],
+            options: ["action:strike", "feat:x", "effect:x", "self:effect:x"],
+          },
+        },
+      },
+    });
+    const msg = await next;
+    expect(flatPart(msg)).toBe(5 + PREY_BONUS);
+    expect(msg.flags?.fusion?.rollContext?.options).toEqual(["action:strike"]);
   });
 
   it("payload forjado é ignorado: opção target:* do cliente, rollNotes forjadas e ator alheio (DF-17)", async () => {
@@ -555,7 +611,7 @@ describe("BHR-F2-05 — rolagem resolvida no servidor (RollNotes + onRollResolve
           rollContext: {
             actorId: HUNTER_ACTOR_ID,
             selectors: ["attack-roll"],
-            options: ["test:boom"],
+            options: ["action:boom"],
           },
         },
       },

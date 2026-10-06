@@ -111,17 +111,33 @@ export class MapCounter {
       const active = combat["activeCombatantId"];
       if (typeof active !== "string" || !Array.isArray(combat["combatants"])) continue;
       const combatants = combat["combatants"] as Record<string, unknown>[];
-      const me = combatants.find((c) =>
-        speaker.tokenId ? c["tokenId"] === speaker.tokenId : c["actorId"] === speaker.actorId,
-      );
+      const me = pickSpeakerCombatant(combatants, speaker, active);
       if (!me || typeof me["_id"] !== "string") continue;
       // Only the one acting changes a count (its MAP group counts as acting).
-      if (this.mapGroupOf(me["_id"]) !== this.mapGroupOf(active)) return null;
+      // Not acting HERE does not end the search: another live combat may have it.
+      if (this.mapGroupOf(me["_id"]) !== this.mapGroupOf(active)) continue;
       if (!isRolePrivileged(speaker.role) && !ownsCombatant(store, speaker, me)) return null;
       return this.noteAttack(String(combat["_id"]), me["_id"], opts);
     }
     return null;
   }
+}
+
+/**
+ * The combatant a speaker stands for. By token when the speaker names one.
+ * By actor otherwise: a single combatant of that actor is it; with several
+ * (unlinked NPCs sharing one actor) the ACTIVE one if it is of that actor, and
+ * otherwise nobody — an ambiguous attack is never attributed to the wrong one.
+ */
+function pickSpeakerCombatant(
+  combatants: Record<string, unknown>[],
+  speaker: AttackSpeaker,
+  activeId: string,
+): Record<string, unknown> | undefined {
+  if (speaker.tokenId) return combatants.find((c) => c["tokenId"] === speaker.tokenId);
+  const ofActor = combatants.filter((c) => c["actorId"] === speaker.actorId);
+  if (ofActor.length <= 1) return ofActor[0];
+  return ofActor.find((c) => c["_id"] === activeId);
 }
 
 /** A non-privileged author may only count attacks of an actor he owns. */

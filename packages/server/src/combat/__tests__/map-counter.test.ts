@@ -55,6 +55,10 @@ interface Harness {
   combatId: string;
   pc: string;
   other: string;
+  store: DocumentStore;
+  combatDeps: CombatHandlerDeps;
+  /** Adds an NPC actor (no owner) to the world and returns its id. */
+  makeActor: (name: string) => string;
 }
 
 /** A PC (initiative 20, owned by player-p) and an NPC (10) in a started combat; the foe token has AC 15. */
@@ -145,6 +149,9 @@ async function buildHarness(): Promise<Harness> {
     combatId,
     pc: idOf("tok-pc"),
     other: idOf("tok-other"),
+    store,
+    combatDeps,
+    makeActor: (name) => actor(name),
   };
 }
 
@@ -241,5 +248,28 @@ describe("MapCounter (BHR-F3-04)", () => {
     h.counter.setMapGroupResolver((id) => (id === h.pc || id === h.other ? "mounted" : id));
     h.counter.noteAttack(h.combatId, h.pc);
     expect(h.counter.getAttackCount(h.combatId, h.other)).toBe(1);
+  });
+
+  it("I5: dois combatentes do mesmo ator sem token — conta o ATIVO; se o ativo é outro, não conta nem atribui", async () => {
+    const goblin = h.makeActor("Goblin");
+    const add = buildCombatAddCombatantHandler(h.combatDeps);
+    await add({ combatId: h.combatId, tokenId: "tok-g1", actorId: goblin, initiative: 5 }, GM_CTX);
+    await add({ combatId: h.combatId, tokenId: "tok-g2", actorId: goblin, initiative: 4 }, GM_CTX);
+    const doc = h.store.get("combats", h.combatId) as unknown as CombatDocument;
+    const g1 = doc.combatants.find((c) => c.tokenId === "tok-g1")?._id ?? "";
+    const g2 = doc.combatants.find((c) => c.tokenId === "tok-g2")?._id ?? "";
+    const speaker = { userId: GM_CTX.userId, role: GM_CTX.role, actorId: goblin };
+
+    // Turn order: pc, other, g1, g2. Walk to g2's turn.
+    for (let i = 0; i < 3; i++) await h.next({ combatId: h.combatId }, GM_CTX);
+    expect(h.counter.noteAttackFromSpeaker(h.store, speaker, {})).toBe(1);
+    expect(h.counter.getAttackCount(h.combatId, g2)).toBe(1);
+    expect(h.counter.getAttackCount(h.combatId, g1)).toBe(0);
+
+    // The PC's turn again: an ambiguous goblin attack counts for nobody.
+    await h.next({ combatId: h.combatId }, GM_CTX);
+    expect(h.counter.noteAttackFromSpeaker(h.store, speaker, {})).toBeNull();
+    expect(h.counter.getAttackCount(h.combatId, g1)).toBe(0);
+    expect(h.counter.getAttackCount(h.combatId, g2)).toBe(1);
   });
 });

@@ -63,6 +63,7 @@ import {
   resetToIdle,
   canStartDrag,
   isEditableTarget,
+  isEscapeForSomethingElse,
   canOpenTokenSheet,
   registerTokenClick,
   type TokenClickTracker,
@@ -826,6 +827,11 @@ export class TokenInteractionManager {
         // Snap token back to original position
         this._opts.tokenLayer.applyLocalMove(tokenId, originalX, originalY);
       } else {
+        // I6: an Esc that closes a dialog/menu, or that another handler
+        // consumed, must not also drop the selection and the aim.
+        if (isEscapeForSomethingElse(e, (globalThis as { document?: Document }).document)) {
+          return;
+        }
         this.deselectAll();
         // D-G01: Esc also clears THIS user's aim (diffed against the live
         // selection scoped to the local user, so other users' aims stay).

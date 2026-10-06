@@ -10,8 +10,8 @@
  * `rollContext`:
  *
  *   1. `prepareRollResolution` — BEFORE the dice: validates that the roller may
- *      speak for `rollContext.actorId` (OWNER, or a privileged role), drops every
- *      `target:`/`origin:` option the client sent (those are the server's to
+ *      speak for `rollContext.actorId` (OWNER, or a privileged role), keeps only the
+ *      `action:*` options the client sent (every other option is the server's to
  *      write), RE-DERIVES the actor from the stored row (a stale
  *      `system.derived` is never what a bonus is read from), gathers the options
  *      of the roll's single target (its marks from the `TokenMarkSource`, its
@@ -26,10 +26,10 @@
  *      broadcast: the system's `onRollResolved` callbacks, ONCE per roll, in
  *      series, each error-isolated (REQ-SYS-139 discipline).
  *
- * THE TARGET. The roll's target is the author's `targetSnapshot` (D-02): with
- * exactly one entry, that token is the target; with none or several, the
- * resolver is told there is no target and a `target:`-predicated modifier stays
- * unresolved (an absent option is false, so `not target:x` would otherwise pass
+ * THE TARGET. The roll's target is the ONE the chat handler resolved from
+ * `payload.target` — the same that grades the roll and feeds the MAP (B1): with
+ * exactly one entry, that token is the target; with none, the resolver is told
+ * there is no target and a `target:`-predicated modifier stays unresolved (an absent option is false, so `not target:x` would otherwise pass
  * — the warning of BHR-F2-02). `origin` (the attacker, when the roller defends)
  * has no source yet: it is always `null` until a defence roll carries its
  * attacker.
@@ -91,7 +91,12 @@ export const ROLL_CONTEXT_FLAG_KEY = "rollContext" as const;
 export const ROLL_NOTES_FLAG_KEY = "rollNotes" as const;
 export const CONDITIONAL_MODIFIERS_FLAG_KEY = "conditionalModifiers" as const;
 
-const SERVER_OWNED_OPTION_PREFIXES = ["target:", "origin:"] as const;
+/**
+ * The only options the client may DESCRIBE a roll with (I2, DF-17). Everything
+ * else — `target:`/`origin:`, `feat:`, `effect:`, `item:`, switches... — is the
+ * server's to write, derived from the re-derived actor and the resolved target.
+ */
+const CLIENT_OPTION_PREFIXES = ["action:"] as const;
 
 // ---------------------------------------------------------------------------
 // Types
@@ -138,8 +143,8 @@ export function prepareRollResolution(
 
   const rollContext: FusionRollContext = {
     ...rawContext,
-    options: rawContext.options.filter(
-      (o) => !SERVER_OWNED_OPTION_PREFIXES.some((prefix) => o.startsWith(prefix)),
+    options: rawContext.options.filter((o) =>
+      CLIENT_OPTION_PREFIXES.some((prefix) => o.startsWith(prefix)),
     ),
   };
 
@@ -317,11 +322,16 @@ function targetParty(
   entry: RollTargetSnapshotEntry,
 ): RollResolutionParty {
   const options: string[] = [];
-  for (const slug of marks.marksOn({
-    rollerActorId,
-    targetTokenId: entry.tokenId,
-    targetActorId: entry.actorId,
-  })) {
+  // No token (the roll named an actor directly) = nothing a mark could sit on.
+  const markSlugs =
+    entry.tokenId.length === 0
+      ? []
+      : marks.marksOn({
+          rollerActorId,
+          targetTokenId: entry.tokenId,
+          targetActorId: entry.actorId,
+        });
+  for (const slug of markSlugs) {
     options.push(`mark:${slug}`);
   }
   const targetActor = entry.actorId !== null ? readActor(store, entry.actorId) : null;

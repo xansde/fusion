@@ -397,13 +397,14 @@ export type CheckContext = z.infer<typeof CheckContextSchema>;
  * (plan of the Alquimista §2.8, ALQ-F4-09; spec 52 REQ-BHR-069): WHO rolls
  * (`actorId`), WITH WHAT (`itemId`), ON WHICH statistics (`selectors`, e.g.
  * `attack-roll`, `stealth`, `reflex`) and the options that describe the roll
- * (`action:strike`, `item:trait:agile`...). Recorded on the message as
+ * (`action:strike`...). Recorded on the message as
  * `flags.fusion.rollContext`.
  *
  * It is a DESCRIPTION, never a number: the server re-derives the actor and
- * settles every conditional modifier and note itself (DF-16/DF-17). The options
- * of the roll's target and attacker (`target:*` / `origin:*`) are the server's to
- * write — any the client sends are dropped before resolution.
+ * settles every conditional modifier and note itself (DF-16/DF-17). Of the
+ * options the client sends, only `action:*` is kept; every other one (`target:*`,
+ * `origin:*`, `feat:*`, `effect:*`...) is the server's to write and is dropped
+ * before resolution.
  */
 export const FusionRollContextSchema = z.object({
   actorId: z.string().min(1).max(120),
