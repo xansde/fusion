@@ -632,8 +632,9 @@ pf2e.md` DEC-PF2-04) suporte um effect cujo alvo é um Actor vinculado, não
   não traz dados de tipo — `docs/design/bhrotto/dados/companheiros.md` —, o
   que responde a Q-PET-03 pela curadoria. Os exemplos de tipo da redação
   anterior saíram: o MVP traz urso e antílope, REQ-PET-099; o avanço é por
-  estágio — jovem, maduro, ágil/selvagem, especializado —, e "incrível" é o
-  nome do talento que leva ao especializado.)_
+  estágio — jovem, maduro, ágil/selvagem, especializado. A relação entre o
+  "incrível" da redação anterior e o estágio especializado segue não
+  confirmada no levantamento (`dados/companheiros.md` b).)_
 - **REQ-PET-041** [V2] O importer DEVE converter os feats de arquétipo
   relacionados a companion/familiar mais usados (Beastmaster dedication +
   Call Companion; Familiar Master dedication) quando o pipeline de
