@@ -82,6 +82,7 @@ import {
   companionGrantAllows,
   companionGrantLimit,
   companionGroupOf,
+  getCompanionType,
   validateCharacterBuild,
   type BuildValidationVariants,
 } from "@fusion/system-pf2e";
@@ -395,12 +396,23 @@ function touchesCompanionLink(expanded: Record<string, unknown>): boolean {
   return "grantSlotId" in companion || "active" in companion;
 }
 
+/** `flags.fusion.mount` of a raw token, or undefined when absent. */
+function readTokenMountFlag(token: Record<string, unknown>): unknown {
+  const flags = token["flags"];
+  if (typeof flags !== "object" || flags === null) return undefined;
+  const fusion = (flags as Record<string, unknown>)["fusion"];
+  if (typeof fusion !== "object" || fusion === null) return undefined;
+  return (fusion as Record<string, unknown>)["mount"];
+}
+
 /**
- * Does this expanded `doc:update` diff write an INPUT of the animal companion's derivation: the master
- * cache (`system.master.*`) or the companion's `stage`, `track`, `typeSlug` or `size`? Its whole statblock is a
- * function of those (master level + stage + track + type + size), so letting the owner write them is letting
- * the owner pick the statblock (onda-6 review I-9, REQ-PET-106). Stage, track and type belong to the Plan
- * (BHR-F4-05) and the server; the master level is written by the server from the owner actor (BHR-F4-03).
+ * Does this expanded `doc:update` diff write an INPUT of the animal companion's derivation that a player
+ * may NOT touch: the master cache (`system.master.*`) or the companion's `stage` or `track`? Its whole
+ * statblock is a function of those (master level + stage + track + type + size), so letting the owner write
+ * them is letting the owner pick the statblock (onda-6 review I-9, REQ-PET-106). Stage and track belong to
+ * the Plan and the server; the master level is written by the server from the owner actor (BHR-F4-03).
+ * `typeSlug` and `size` are the owner's own choice ("Trocar tipo", D-B09) but only within what the type
+ * allows — see `companionTypeChoiceViolation`.
  * A `system` / `system.companion` set to a non-object counts: it would replace them whole.
  */
 function touchesCompanionDerivationInputs(expanded: Record<string, unknown>): boolean {
@@ -412,9 +424,39 @@ function touchesCompanionDerivationInputs(expanded: Record<string, unknown>): bo
   if (!("companion" in sys)) return false;
   const companion = sys["companion"];
   if (typeof companion !== "object" || companion === null || Array.isArray(companion)) return true;
-  return (
-    "stage" in companion || "track" in companion || "typeSlug" in companion || "size" in companion
-  );
+  return "stage" in companion || "track" in companion;
+}
+
+/**
+ * The owner's "Trocar tipo" (BHR-F4-03 extension, D-B09): a diff that writes `system.companion.typeSlug` or
+ * `.size` is valid only if the RESULTING link names a type the system knows and a size that type allows
+ * (antelope: medium or large; the others: their one fixed size). `size` null/absent means "the type's
+ * default" and is always fine. Returns the refusal message, or null when the diff does not touch either
+ * field or is valid. Judged on the merged link so a diff that only changes the type is checked against the
+ * size already stored.
+ */
+function companionTypeChoiceViolation(
+  expanded: Record<string, unknown>,
+  existing: Record<string, unknown>,
+): string | null {
+  const system = expanded["system"];
+  if (typeof system !== "object" || system === null || Array.isArray(system)) return null;
+  const diffLink = (system as Record<string, unknown>)["companion"];
+  if (typeof diffLink !== "object" || diffLink === null || Array.isArray(diffLink)) return null;
+  if (!("typeSlug" in diffLink) && !("size" in diffLink)) return null;
+  const storedLink = (existing["system"] as Record<string, unknown> | undefined)?.["companion"];
+  const merged = {
+    ...(typeof storedLink === "object" && storedLink !== null ? storedLink : {}),
+    ...(diffLink as Record<string, unknown>),
+  } as Record<string, unknown>;
+  const slug = merged["typeSlug"];
+  const type = typeof slug === "string" ? getCompanionType(slug) : undefined;
+  if (!type) return `Unknown companion type "${String(slug)}"`;
+  const size = merged["size"];
+  if (size !== null && size !== undefined && !(type.sizes as readonly unknown[]).includes(size)) {
+    return `Size ${JSON.stringify(size)} is not allowed for companion type "${type.slug}" (allowed: ${type.sizes.join(", ")})`;
+  }
+  return null;
 }
 
 function rejectUnwritableField(
@@ -508,8 +550,20 @@ function rejectUnwritableField(
   ) {
     return ackError(
       "PERMISSION_DENIED",
-      "system.master and system.companion.{stage,track,typeSlug,size} are not writable through doc:update by a player",
+      "system.master and system.companion.{stage,track} are not writable through doc:update by a player",
     );
+  }
+
+  // BHR-F4-03 extension (D-B09): the owner swaps the companion's type/size on their own, validated here.
+  if (
+    documentType === "Actor" &&
+    !isPrivileged(role) &&
+    existing?.["type"] === "familiar" &&
+    (existing["system"] as { companionKind?: unknown } | undefined)?.companionKind ===
+      "animalCompanion"
+  ) {
+    const violation = companionTypeChoiceViolation(expandedDiff, existing);
+    if (violation) return ackError("VALIDATION_FAILED", violation);
   }
 
   // The guard above reads the STORED subtype, so a player could skip it by turning an actor they own
@@ -783,6 +837,114 @@ function authorizePlayerCompanionCreate(
   batch.set(batchKey, inBatch);
 
   return { ok: true, master };
+}
+
+// ---------------------------------------------------------------------------
+// Animal companion: the server owns `system.master.level` (BHR-F4-03, D-B02, REQ-PET-107..108)
+// ---------------------------------------------------------------------------
+
+/** The owner's character level (`system.level.value`, default 1 like the character schema). */
+function readActorLevel(doc: Record<string, unknown>): number {
+  const sys = doc["system"];
+  if (!sys || typeof sys !== "object" || Array.isArray(sys)) return 1;
+  const level = (sys as Record<string, unknown>)["level"];
+  if (!level || typeof level !== "object" || Array.isArray(level)) return 1;
+  const value = (level as Record<string, unknown>)["value"];
+  return typeof value === "number" && Number.isFinite(value) ? value : 1;
+}
+
+/** `system.master.level` as stored on a companion, or undefined when never cached. */
+function readCachedMasterLevel(doc: Record<string, unknown>): unknown {
+  const sys = doc["system"];
+  if (!sys || typeof sys !== "object" || Array.isArray(sys)) return undefined;
+  const master = (sys as Record<string, unknown>)["master"];
+  if (!master || typeof master !== "object" || Array.isArray(master)) return undefined;
+  return (master as Record<string, unknown>)["level"];
+}
+
+/** The owner actor of a linked animal companion, or null (not a linked animal companion / dangling). */
+function masterOfAnimalCompanion(
+  store: DocumentStore,
+  companion: Record<string, unknown>,
+): Record<string, unknown> | null {
+  if (readCompanionKind(companion) !== "animalCompanion") return null;
+  const masterId = readMasterActorId(companion);
+  if (!masterId) return null;
+  try {
+    return store.get("actors", masterId);
+  } catch (err) {
+    if (err instanceof DocumentNotFoundError) return null;
+    throw err;
+  }
+}
+
+/**
+ * CREATE path: stamp the owner's level onto the payload before it is persisted, so a companion is
+ * never born without the cache (it would carry `derived.companion.error` instead of a statblock).
+ * Overrides whatever the creator sent: `system.master.level` is the server's field.
+ */
+function stampMasterLevelOnCreate(
+  store: DocumentStore,
+  item: Record<string, unknown>,
+): Record<string, unknown> {
+  const master = masterOfAnimalCompanion(store, item);
+  if (!master) return item;
+  const sys = (item["system"] ?? {}) as Record<string, unknown>;
+  const cache = sys["master"];
+  const cacheObj =
+    cache && typeof cache === "object" && !Array.isArray(cache)
+      ? (cache as Record<string, unknown>)
+      : {};
+  return {
+    ...item,
+    system: { ...sys, master: { ...cacheObj, level: readActorLevel(master) } },
+  };
+}
+
+/**
+ * UPDATE path: make a persisted animal companion's `system.master.level` match its owner's level.
+ * Returns the very same reference when nothing changed (no write, nothing to broadcast).
+ */
+function syncAnimalCompanionMasterLevel(
+  store: DocumentStore,
+  companion: Record<string, unknown>,
+  authorCtx: { userId: string },
+): Record<string, unknown> {
+  const master = masterOfAnimalCompanion(store, companion);
+  const id = companion["_id"];
+  if (!master || typeof id !== "string") return companion;
+  const level = readActorLevel(master);
+  if (readCachedMasterLevel(companion) === level) return companion;
+  return store.update("actors", id, { system: { master: { level } } }, authorCtx) ?? companion;
+}
+
+/**
+ * D-B02: an Actor update that reaches an owner re-derives every animal companion linked to it
+ * (`system.masterActorId`) and puts the ones that changed into the SAME broadcast. A companion whose
+ * cache and derived block already match stays out (same reference, nothing re-sent). Mutates `updated`.
+ */
+function rederiveCompanionsOfUpdatedMasters(
+  deps: DocHandlerDeps,
+  documentType: string,
+  updated: Record<string, unknown>[],
+  authorCtx: { userId: string },
+): void {
+  if (documentType !== "Actor" || updated.length === 0) return;
+  const masterIds = new Set(updated.map((d) => d["_id"]).filter((x) => typeof x === "string"));
+  const companions = deps.store.getAll("actors", { type: COMPANION_ACTOR_TYPE }).filter((c) => {
+    const masterId = readMasterActorId(c);
+    return (
+      masterId !== null && masterIds.has(masterId) && readCompanionKind(c) === "animalCompanion"
+    );
+  });
+  for (const companion of companions) {
+    const synced = syncAnimalCompanionMasterLevel(deps.store, companion, authorCtx);
+    const recomputed = recomputeDerivedIfNeeded(deps, "Actor", synced, authorCtx);
+    if (recomputed === companion) continue;
+    const at = updated.findIndex((d) => d["_id"] === companion["_id"]);
+    if (at >= 0) updated[at] = recomputed;
+    else updated.push(recomputed);
+  }
 }
 
 /**
@@ -1271,6 +1433,8 @@ export function buildDocCreateHandler(deps: DocHandlerDeps): HandlerFn {
           item = inheritMasterOwnershipOnCreate(deps.store, item);
         }
         if (documentType === "Actor") item = decideCompanionActiveOnCreate(deps.store, item);
+        // BHR-F4-03: the server (never the client) writes the owner's level into the cache.
+        if (documentType === "Actor") item = stampMasterLevelOnCreate(deps.store, item);
         let doc = deps.store.create(table as never, item, authorCtx);
         // WIRING-DERIVE: populate system.derived for newly created Actors.
         doc = recomputeDerivedIfNeeded(deps, documentType, doc, authorCtx);
@@ -1631,10 +1795,18 @@ export function buildDocUpdateHandler(deps: DocHandlerDeps): HandlerFn {
       if (result !== null) {
         // WIRING-DERIVE: keep system.derived in sync with authored-field updates
         // (e.g. an ability score edit changes AC/saves/skills totals).
+        // BHR-F4-03: an animal companion edited directly (e.g. "Trocar tipo", a GM link) gets the
+        // owner's level refreshed first, so the derivation never runs on a missing/stale cache.
+        if (documentType === "Actor") {
+          result = syncAnimalCompanionMasterLevel(deps.store, result, authorCtx);
+        }
         result = recomputeDerivedIfNeeded(deps, documentType, result, authorCtx);
         updated.push(result);
       }
     }
+
+    // BHR-F4-03 (D-B02): the owner changed -> re-derive its animal companions in the same broadcast.
+    rederiveCompanionsOfUpdatedMasters(deps, documentType, updated, authorCtx);
 
     // REQ-CFG-035: a `variantRules.classLevels`/`variantRules.freeArchetype`
     // Setting is read by EVERY Actor's derivation (world-variant-rules.ts),
@@ -2311,7 +2483,24 @@ function handleEmbeddedUpdate(
 
       // Build the updated token by applying dot-path diff (uses sanitized diff)
       const existingToken = collection[idx] ?? {};
+      // Snapshot BEFORE patching: applyDotPathDiff copies the top level only, so a dotted path walks
+      // into (and mutates) the nested objects `existingToken` still shares.
+      const mountBefore = JSON.stringify(readTokenMountFlag(existingToken));
       const patchedToken = applyDotPathDiff(existingToken, sanitizedDiff);
+
+      // BHR-F4-03 extension: `flags.fusion.mount` (MountState, spec 52 §2.5) is written by the mount
+      // handler only. Judged on the RESULT, so `flags.fusion.mount` itself, a `-=mount`/null, and a
+      // replacement of `flags` / `flags.fusion` that alters it are all caught the same way. The GM may.
+      if (
+        embeddedType === "Token" &&
+        !isPrivileged(ctx.role) &&
+        mountBefore !== JSON.stringify(readTokenMountFlag(patchedToken))
+      ) {
+        return ackError(
+          "PERMISSION_DENIED",
+          `flags.fusion.mount on token ${tokenId} is not writable through doc:update by a player`,
+        );
+      }
 
       // REQ-TOK-002/CA-TOK-003/DEC-TOK-05: the diff was only barred from
       // TOUCHING actorId when the caller is non-privileged (above). A
