@@ -89,3 +89,18 @@ o que toca e de onde veio. O comportamento de hoje continua até alguém pegar o
 - **Pergunta de produto (D7)**: o jogador vê o alvo de um card de dano como "criatura desconhecida" quando o espelho dele não tem o nome (token sem nome próprio e ator oculto). O Mestre vê "Ogro". Se o jogador deve ver o nome de um token visível no mapa, o servidor precisa expor o nome pela redação (hoje só some o alvo oculto); a regra de visibilidade de nome de token (REQ-TOK-060/063) é decisão do Alexandre.
 - **Apoio: "Comandado" é estado local da ficha**: o botão Apoio libera depois do Comandar clicado naquela ficha aberta; não há registro por turno no servidor (fechar a janela zera). Se o Alexandre quiser exigir o Comandar do turno (Apoio uma vez por Comandar), é preciso gravar o comando no combate.
 - **Linha `support` da aba Ações**: continua no registro (depende de uma ação "support" que nenhum pack tem, nunca aparece); o gatilho real passou a ser o botão da ficha do companheiro. Pode ser removida numa limpeza.
+
+## Registrados pela correção da revisão da onda 11 (gate BHR-F2-09)
+
+O gate "nenhuma regra do Bhrotto inerte" passou a exigir também produtor para os termos de predicado (`action:*`, marcas) e consumidor para as roll options. Com isso a frase "nenhuma regra está inerte" deixou de valer sem ressalva: hoje há **duas** regras inertes conhecidas, listadas em `KNOWN_INERT` do `bhrotto-rules.test.ts` (o teste falha se a lista crescer ou se uma entrada deixar de ser inerte).
+
+- **Buscar/Rastrear contra a presa (+2): LIGADO.** Faltava a rolagem. `seek` (Percepção) e `track` (Sobrevivência) viraram linhas rolaveis da aba Ações e a rolagem emite `action:seek` / `action:track`, levando o alvo mirado para o servidor resolver `target:mark:hunted-prey`. Sem alvo mirado a rolagem vale sem o bônus. Buscar tem o traço `secret` (o Mestre rola às escondidas); a linha rola em público como as demais perícias.
+- **Ignorar a penalidade de alcance na presa (`ignore-range-penalty:2`): INERTE, fica como está.** O Fusion não aplica penalidade por incremento de distância em golpe à distância, então não há penalidade para ignorar. Ligar exige construir a penalidade (distância ao alvo por incremento), uma tarefa própria. É a única regra do Bhrotto com efeito de jogo que continua sem leitor.
+- **Marcador `grants-hunt-prey` (classe Caçar Presa): INERTE, sem efeito de jogo.** Contador do vendor (quantas fontes concedem Caçar Presa); nenhuma regra do Bhrotto nem leitor do Fusion o cita, e a ação concedida não depende dele.
+
+## Menores abertos (revisão da onda 11, gate BHR-F2-09)
+
+- **Ramo morto `ANIMAL_COMPANION_GRANT_SOURCE_IDS` (M-2)**: Animal Companion (Ranger) tem 1 regra (alteração de descrição), então passa por `whyInert`, não por `whyDocInert`; o mecanismo real do companheiro (concessão por identidade) não é provado pelo gate.
+- **Alteração de descrição conta como lida (M-3)**: as três item-alterations `description/add` (Outwit x2, Animal Companion) passam por constarem em `ITEM_ALTERATION_HANDLED_FORMS`; são texto de exibição por natureza. `item:tag:hunters-edge-sharing` (Outwit) não tem produtor, sem impacto.
+- **API do gate exportada de um `.test.ts` (M-5)**, **`_env` sem uso em `whyDocInert` (M-6)** e **`sluggify` local duplicando o `sluggifyName` de produção (M-7)**: arrumar se o gate for reaproveitado em outra frente (o lugar certo é um helper).
+- **Vermelho do gate era de compilação (M-8)**: a prova comportamental do "antes da frente" está nos negativos (handlers e forma desregistrados, marca sem produtor).
