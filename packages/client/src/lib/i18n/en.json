@@ -315,6 +315,8 @@
   "FUSION.Sheet.Labels.Senses": "Senses",
   "FUSION.Sheet.Labels.Languages": "Languages",
   "FUSION.Sheet.Labels.LanguagesPending": "{{count}} language(s) still to choose",
+  "FUSION.Sheet.Labels.AddCondition": "+ Condition…",
+  "FUSION.Sheet.Labels.AddConditionAria": "Add condition",
   "FUSION.Sheet.Mode.Edit": "Edit",
   "FUSION.Sheet.Mode.Play": "Play",
   "FUSION.Sheet.Autosave.Saving": "Saving…",
