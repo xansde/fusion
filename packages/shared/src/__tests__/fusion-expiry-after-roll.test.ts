@@ -20,14 +20,21 @@ describe("FusionExpirySchema after-roll", () => {
   });
 
   it("accepts after-roll without a predicate (the owner's first roll)", () => {
-    expect(FusionExpirySchema.safeParse({ on: "after-roll", ownerActorId: "a1" }).success).toBe(true);
+    expect(FusionExpirySchema.safeParse({ on: "after-roll", ownerActorId: "a1" }).success).toBe(
+      true,
+    );
   });
 
   it("still refuses unknown fields and unknown kinds", () => {
-    expect(FusionExpirySchema.safeParse({ on: "after-roll", ownerActorId: "a1", extra: 1 }).success).toBe(false);
-    expect(FusionExpirySchema.safeParse({ on: "after-sleep", ownerActorId: "a1" }).success).toBe(false);
     expect(
-      FusionExpirySchema.safeParse({ on: "after-roll", ownerActorId: "a1", rollPredicate: [""] }).success,
+      FusionExpirySchema.safeParse({ on: "after-roll", ownerActorId: "a1", extra: 1 }).success,
+    ).toBe(false);
+    expect(FusionExpirySchema.safeParse({ on: "after-sleep", ownerActorId: "a1" }).success).toBe(
+      false,
+    );
+    expect(
+      FusionExpirySchema.safeParse({ on: "after-roll", ownerActorId: "a1", rollPredicate: [""] })
+        .success,
     ).toBe(false);
   });
 });
