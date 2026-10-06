@@ -230,6 +230,20 @@ describe("findPacksBySlug / searchPacksBySlug (B4 — mundo misto pickers)", () 
     expect(findPacksBySlug(packs, "classes-core").map((p) => p.id)).toEqual(["pf2e.classes-core"]);
   });
 
+  it("a trailing-* slug names a family: every pack of the kind, whatever its suffix, in every system", () => {
+    const packs = [
+      pack("pf2e.backgrounds-core"),
+      pack("pf2e.backgrounds-homebrew"),
+      pack("sf2e.backgrounds-core"),
+      pack("pf2e.feats-core"),
+    ];
+    expect(findPacksBySlug(packs, "backgrounds-*").map((p) => p.id)).toEqual([
+      "pf2e.backgrounds-core",
+      "pf2e.backgrounds-homebrew",
+      "sf2e.backgrounds-core",
+    ]);
+  });
+
   it("a composite world's pack list resolves BOTH systems' packs for the same slug", () => {
     const packs = [pack("pf2e.classes-core"), pack("sf2e.classes-core"), pack("pf2e.feats-core")];
     const matches = findPacksBySlug(packs, "classes-core").map((p) => p.id);

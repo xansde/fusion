@@ -157,6 +157,13 @@ export function searchPack(
  * the composite.
  */
 export function findPacksBySlug(packs: PackManifest[], packSlug: string): PackManifest[] {
+  // A trailing `*` names a FAMILY of packs of one kind (e.g. "backgrounds-*" =
+  // backgrounds-core plus any table pack of backgrounds), so a picker lists
+  // them all without naming each one in code.
+  if (packSlug.endsWith("*")) {
+    const prefix = packSlug.slice(0, -1);
+    return packs.filter((p) => p.id.slice(p.id.indexOf(".") + 1).startsWith(prefix));
+  }
   return packs.filter((p) => p.id.endsWith(`.${packSlug}`));
 }
 
