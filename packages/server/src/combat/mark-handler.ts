@@ -52,6 +52,7 @@ import type { Ownership } from "../documents/ownership.js";
 import type { TokenMarkSource } from "../chat/roll-resolution.js";
 import type { TargetingStore } from "./targeting-store.js";
 import { locateToken, resolveTargetSelection } from "./target-selection.js";
+import { activeCompanionMasterId } from "./companion-active-handler.js";
 
 export interface MarkHandlerDeps {
   store: DocumentStore;
@@ -221,15 +222,35 @@ export function getMarksOn(
 }
 
 /**
- * The real {@link TokenMarkSource} (extension point of BHR-F2-05): the slugs of
- * the marks the ROLLER placed on the roll's single target token. Looking the
- * owner up for an active companion (DC-08) belongs to the CompanionLink task.
+ * The real {@link TokenMarkSource} (extension point of BHR-F2-05): the slugs of the marks the ROLLER placed on the
+ * roll's single target token. An ACTIVE animal companion also gets its owner's Hunt Prey (DC-08, REQ-PET-122): the
+ * Prey and the Outwit edge are shared, whichever feat granted the companion. The inactive companion, the one of
+ * another owner and the owner's other marks (Monster Hunter) are not.
  */
 export function createTokenMarkSource(store: DocumentStore): TokenMarkSource {
   return {
-    marksOn: ({ rollerActorId, targetTokenId }) =>
-      getMarksOn(store, targetTokenId)
-        .filter((entry) => entry.sourceActorId === rollerActorId)
-        .map((entry) => entry.mark.slug),
+    marksOn: ({ rollerActorId, targetTokenId }) => {
+      const onTarget = getMarksOn(store, targetTokenId);
+      const slugs = new Set(
+        onTarget.filter((e) => e.sourceActorId === rollerActorId).map((e) => e.mark.slug),
+      );
+      const owner = activeCompanionOwnerOf(store, rollerActorId);
+      if (owner !== undefined) {
+        for (const e of onTarget) {
+          if (e.sourceActorId === owner && INHERITED_MARK_SLUGS.has(e.mark.slug)) {
+            slugs.add(e.mark.slug);
+          }
+        }
+      }
+      return [...slugs];
+    },
   };
+}
+
+/** The marks an active animal companion shares with its owner (the Prey; Monster Hunter stays the owner's). */
+const INHERITED_MARK_SLUGS: ReadonlySet<string> = new Set(["hunted-prey"]);
+
+function activeCompanionOwnerOf(store: DocumentStore, actorId: string): string | undefined {
+  const actor = readActorOrNull(store, actorId);
+  return actor === null ? undefined : activeCompanionMasterId(actor);
 }

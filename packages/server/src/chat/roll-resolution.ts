@@ -62,6 +62,7 @@ import type { Ownership, UserRole } from "../documents/ownership.js";
 import { runActorDerivation } from "../net/derive-runner.js";
 import { resolveWorldVariantRules } from "../documents/world-variant-rules.js";
 import { createStubTurnHookContextServices } from "../combat/turn-hook-runner.js";
+import { activeCompanionMasterId } from "../combat/companion-active-handler.js";
 
 // ---------------------------------------------------------------------------
 // Injectable sources
@@ -182,12 +183,16 @@ export function prepareRollResolution(
             snapshot[0],
           )
         : null;
+    // An ACTIVE animal companion rolls with its owner at hand (DC-08): the system decides what is shared.
+    const masterId = activeCompanionMasterId(actor);
+    const master = masterId === undefined ? null : readActor(store, masterId);
     resolution = resolver.resolve({
       actor: derived,
       rollContext,
       target,
       origin: null,
       companions: companionsOf(store, rollContext.actorId),
+      masterActor: master === null ? null : rederive(master, store, systemModule),
     });
     targetOptions = target?.options ?? [];
   } catch (err) {
