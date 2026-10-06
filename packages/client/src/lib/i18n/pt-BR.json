@@ -1132,7 +1132,7 @@
   "FUSION.Chat.AbilityCard.Title.impulse": "Impulso usado",
   "FUSION.Chat.AbilityCard.Title.strike": "Ataque",
   "FUSION.Chat.AbilityCard.Title.action": "Ação usada",
-  "FUSION.Chat.AbilityCard.EmbeddedEffect": "Efeito aplicado: {name}",
+  "FUSION.Chat.AbilityCard.EmbeddedEffect": "Efeito aplicado: {{name}}",
   "FUSION.Chat.AbilityCard.DamageFlavor": "{{name}} — Dano",
   "FUSION.Chat.RollMode.GroupLabel": "Quem vê a rolagem",
   "FUSION.Chat.RollMode.Public.Label": "Pública",
