@@ -269,8 +269,9 @@ export function settleExtraDamage(input: {
       }
     }
     const persistent = part.category === "persistent";
-    // Persistent damage is its own damage, never dice of the Strike: a critical hit does not double it.
-    const doubled = hit === "criticalSuccess" && part.doubleOnCrit && !persistent;
+    // `doubleOnCrit` is the single source of truth, persistent or not: persistent damage that is part of the
+    // Strike's own damage doubles on a critical hit; the Support parts say `false` because they are separate damage.
+    const doubled = hit === "criticalSuccess" && part.doubleOnCrit;
     const count = part.count * (doubled ? 2 : 1);
     const dice = `${String(count)}${part.die}`;
     const type = persistent ? `${typePt(part.damageType)} persistente` : typePt(part.damageType);
