@@ -960,6 +960,9 @@
 
   .nested-roll__label {
     color: var(--fusion-text-muted);
+    /* Leaves room for the dice beside it: the label alone used to take the whole row and cut the calculation. */
+    flex: 0 1 auto;
+    max-width: 55%;
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
