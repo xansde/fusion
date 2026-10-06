@@ -43,6 +43,7 @@
  */
 
 import type { Namespace } from "socket.io";
+import { createDocumentId } from "@fusion/shared";
 import type { Logger } from "pino";
 import type { Database as Db } from "better-sqlite3";
 import type {
@@ -182,11 +183,11 @@ export interface DocumentWriteTurnHookContextDeps {
  *
  * Spread this AFTER `createStubTurnHookContextServices()` at the call site
  * (packages/server/src/net/socket-manager.ts) so it overrides only these two
- * keys and leaves `roll`/`updateActor`/`createEmbedded` on the stub.
+ * keys and leaves `roll`/`updateActor` on the stub.
  */
 export function createDocumentWriteTurnHookContextServices(
   deps: DocumentWriteTurnHookContextDeps,
-): Pick<TurnHookContextServices, "deleteEmbedded" | "chat" | "listActors"> {
+): Pick<TurnHookContextServices, "createEmbedded" | "deleteEmbedded" | "chat" | "listActors"> {
   const tokenSource = tokenLookupSourceFromStore(deps.store);
 
   return {
@@ -203,6 +204,42 @@ export function createDocumentWriteTurnHookContextServices(
     // `roll`/`applyDamage`/`applyCondition` services alongside them genuinely
     // need to be), so each explicitly returns a resolved Promise rather than
     // using `async` with no `await` (`@typescript-eslint/require-await`).
+    // I-1 (wave 7 review): a hook may embed an item (the Monster Hunter effect on a critical Recall
+    // Knowledge). Every `_id` is minted here — whatever the hook sent is ignored, like `doc:create`.
+    createEmbedded(actorId, items) {
+      if (items.length === 0) return Promise.resolve();
+      const actor = deps.store.get("actors", actorId);
+      const existing = Array.isArray(actor["items"])
+        ? (actor["items"] as Record<string, unknown>[])
+        : [];
+      const usedIds = new Set(existing.map((item) => item["_id"]));
+      const created = items.map((item) => {
+        let id = createDocumentId();
+        while (usedIds.has(id)) id = createDocumentId();
+        usedIds.add(id);
+        return { ...item, _id: id };
+      });
+
+      const updated = deps.store.update(
+        "actors",
+        actorId,
+        { items: [...existing, ...created] },
+        { userId: null },
+      );
+      if (!updated) return Promise.resolve();
+
+      const seq = deps.seqStore.next();
+      const envelope: Envelope = {
+        type: "doc:update",
+        seq,
+        ts: Date.now(),
+        payload: { documentType: "Actor", documents: [updated] },
+      };
+      deps.opBuffer.push(envelope);
+      broadcastToWorld(deps.ns, envelope, "Actor");
+      return Promise.resolve();
+    },
+
     deleteEmbedded(actorId, itemIds) {
       const actor = deps.store.get("actors", actorId);
       const existing = Array.isArray(actor["items"])
