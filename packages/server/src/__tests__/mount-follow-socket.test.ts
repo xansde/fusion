@@ -223,26 +223,6 @@ function sendOp(socket: ClientSocket, type: string, payload: unknown) {
   });
 }
 
-/** The next Scene `doc:update` this socket receives. */
-function nextSceneUpdate(socket: ClientSocket): Promise<Record<string, unknown>> {
-  return new Promise((resolve, reject) => {
-    const handler = (envelope: Record<string, unknown>): void => {
-      if (envelope["type"] !== "doc:update") return;
-      const payload = envelope["payload"] as { documentType?: string; documents?: unknown[] };
-      if (payload.documentType !== "Scene") return;
-      const doc = (payload.documents ?? [])[0];
-      if (!doc) return;
-      socket.off("op", handler);
-      resolve(doc as Record<string, unknown>);
-    };
-    socket.on("op", handler);
-    setTimeout(() => {
-      socket.off("op", handler);
-      reject(new Error("no Scene doc:update"));
-    }, 3000);
-  });
-}
-
 /** Every Scene `doc:update` this socket hears until `stop()` is called. */
 function listenScene(socket: ClientSocket): {
   updates: Record<string, unknown>[];

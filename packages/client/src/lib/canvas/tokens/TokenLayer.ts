@@ -45,10 +45,12 @@
  */
 
 import type { Container } from "pixi.js";
+import { readMountState } from "@fusion/shared";
 import type { TokenDocument, SceneDocument } from "@fusion/shared";
 import type { DocumentMirror } from "../../docs/DocumentMirror.js";
 import type { ActorDocument } from "../../actors/actorDirectory.js";
 import { TokenSprite } from "./TokenSprite.js";
+import { mountedStackPlacement } from "./token-interaction.js";
 import { tokenDisplayPrefs } from "./tokenDisplayPrefsStore.svelte.js";
 import { footprintRegistry } from "./footprintRegistry.svelte.js";
 
@@ -332,6 +334,39 @@ export class TokenLayer {
         sprite.destroy();
         this._sprites.delete(id);
       }
+    }
+
+    this._stackRiders(tokens);
+  }
+
+  /**
+   * BHR-F5-03 (REQ-CNV-107): a mounted rider is drawn stacked, half size, in the upper-right corner of
+   * his mount, above it; an unmounted one goes back to his own square. The stored position never
+   * changes (the server keeps the rider beside the mount); only what is drawn does.
+   */
+  private _stackRiders(tokens: TokenDocument[]): void {
+    const byId = new Map(tokens.map((t) => [t._id, t]));
+    for (const token of tokens) {
+      const sprite = this._sprites.get(token._id);
+      if (!sprite) continue;
+      const mountId = readMountState(token).mountTokenId;
+      const mount = mountId === undefined ? undefined : byId.get(mountId);
+      const mountSprite = mountId === undefined ? undefined : this._sprites.get(mountId);
+      // A rider whose mount is not drawn (stale flag, hidden from this viewer) stays in his square.
+      if (!mount || !mountSprite || readMountState(mount).riderTokenId !== token._id) {
+        sprite.setMountStack(null);
+        continue;
+      }
+      sprite.setMountStack(
+        mountedStackPlacement(
+          { x: mount.x, y: mount.y },
+          mountSprite.pixelSize,
+          { x: token.x, y: token.y },
+          sprite.pixelSize,
+        ),
+      );
+      // Last child draws on top: the rider sits above his mount.
+      this._container.addChild(sprite.container);
     }
   }
 

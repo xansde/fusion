@@ -19,7 +19,7 @@
  * pointer events to TokenLayer.applyLocalMove() and sendOp().
  */
 
-import { squareSnapPoint } from "@fusion/shared";
+import { readMountState, squareSnapPoint } from "@fusion/shared";
 import type { TokenDocument, ScenePoint } from "@fusion/shared";
 
 // ---------------------------------------------------------------------------
@@ -54,6 +54,11 @@ export function canMoveToken(
   // GM and Assistant have blanket move permission
   if (userRole >= ROLE_ASSISTANT) return true;
 
+  // BHR-F5-03 (D-B03, REQ-CNV-106): a mounted rider travels with his mount — the only movement
+  // action he has is Mount/Dismount. The server refuses the move too (PERMISSION_DENIED); this just
+  // keeps the drag from starting.
+  if (readMountState(token).mountTokenId !== undefined) return false;
+
   // Players can only move tokens linked to actors they own
   if (ownedActorIds.has(token.actorId)) return true;
 
@@ -68,6 +73,32 @@ export function canMoveToken(
   // — the opposite of REQ-TOK-033's "the interface MAY anticipate the
   // result, but MUST NOT be the only guard".
   return false;
+}
+
+/**
+ * Where a mounted rider is DRAWN (REQ-CNV-107). The server stores him on a square beside the mount
+ * (so a dismount and the adjacency rules stay plain geometry); on the table he is stacked, half size,
+ * in the mount's upper-right corner. Pure: `offset*` is added to the rider's stored position (constant
+ * while either moves, so the slide animation of the pair stays in step), `scale` shrinks the sprite.
+ */
+export interface MountStackPlacement {
+  offsetX: number;
+  offsetY: number;
+  scale: number;
+}
+
+export const MOUNT_STACK_SCALE = 0.5;
+
+export function mountedStackPlacement(
+  mountPos: { x: number; y: number },
+  mountPx: { w: number; h: number },
+  riderPos: { x: number; y: number },
+  riderPx: { w: number; h: number },
+  scale: number = MOUNT_STACK_SCALE,
+): MountStackPlacement {
+  const drawnX = mountPos.x + mountPx.w - riderPx.w * scale;
+  const drawnY = mountPos.y;
+  return { offsetX: drawnX - riderPos.x, offsetY: drawnY - riderPos.y, scale };
 }
 
 /** Minimum role that grants blanket move permission (ASSISTANT = 3). */
