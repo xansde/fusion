@@ -83,6 +83,16 @@ import type { RollServiceOptions } from "./roll-service.js";
 import type { DocumentStore } from "../documents/store.js";
 import type { TargetingStore } from "../combat/targeting-store.js";
 import { resolveTargetSelection } from "../combat/target-selection.js";
+import type { ResolvedTarget } from "../combat/target-selection.js";
+import type { Logger } from "pino";
+import type { SystemModule, TurnHookContext } from "@fusion/system-api";
+import {
+  conditionalRollFormula,
+  finalizeRollResolution,
+  prepareRollResolution,
+  runRollResolvedHooks,
+} from "./roll-resolution.js";
+import type { TokenMarkSource } from "./roll-resolution.js";
 
 // ---------------------------------------------------------------------------
 // Types
@@ -106,6 +116,17 @@ export interface ChatHandlerDeps {
    */
   store?: DocumentStore;
   targetingStore?: TargetingStore;
+  /**
+   * BHR-F2-05 (ALQ-F4-09): the active system, whose roll resolver settles a
+   * roll's conditional modifiers and notes and whose `onRollResolved`
+   * listeners run once per resolved roll. Absent = rolls carry no resolution.
+   */
+  systemModule?: SystemModule;
+  /** Marks on a roll's target (`target:mark:*`); BHR-F3-06 provides the real one. */
+  tokenMarkSource?: TokenMarkSource;
+  /** The `TurnHookContext` handed to `onRollResolved` listeners; a stub when absent. */
+  rollHookContext?: () => TurnHookContext;
+  logger?: Pick<Logger, "error">;
 }
 
 // ---------------------------------------------------------------------------
@@ -489,10 +510,22 @@ export function buildChatSendHandler(deps: ChatHandlerDeps): HandlerFn {
       // --- Roll command ---
       const effectiveMode: RollMode = payload.rollMode ?? command.mode;
 
+      // --- Roll context (BHR-F2-05 / ALQ-F4-09, DF-17) ---
+      // The target photo is taken ONCE, before the dice: the conditional
+      // modifiers resolved against its single target are appended to the
+      // formula, so the server's own total and degree already count them.
+      const targetSnapshot = readTargetSnapshot(deps, ctx.userId);
+      const resolution = prepareRollResolution(
+        deps,
+        payload.flags?.fusion?.rollContext,
+        ctx,
+        targetSnapshot,
+      );
+
       let rollResult: RollResultData;
       try {
         rollResult = rollService.roll({
-          formula: command.formula,
+          ...conditionalRollFormula(command.formula, resolution),
           mode: effectiveMode,
           worldId: deps.worldId,
           userId: ctx.userId,
@@ -574,25 +607,45 @@ export function buildChatSendHandler(deps: ChatHandlerDeps): HandlerFn {
       // spell-cast card carries the announcement's id so the client nests it
       // under that card. Dangling parent → dropped (still delivered top-level).
       attachParentFlag(msg, resolveParentMessageId(deps.db, payload.flags?.parentMessageId));
-      attachTargetSnapshot(msg, deps, ctx.userId);
+      attachTargetSnapshot(msg, deps, ctx.userId, targetSnapshot);
+      if (resolution !== null) {
+        finalizeRollResolution(msg, resolution, rollResult.degreeOfSuccess ?? null);
+      }
 
       persistChatMessage(deps.db, msg);
-      const seq = broadcastChatMessage(
-        deps.ns,
-        deps.seqStore,
-        msg,
-        ctx.userId,
-        CHAT_BROADCAST_EVENT,
-        tokenSource,
-      );
+      const deliverRoll = () => {
+        const seq = broadcastChatMessage(
+          deps.ns,
+          deps.seqStore,
+          msg,
+          ctx.userId,
+          CHAT_BROADCAST_EVENT,
+          tokenSource,
+        );
 
-      return {
-        ok: true,
-        seq,
-        result: {
-          message: redactForAuthor(msg, ctx.userId, isRolePrivileged(ctx.role), tokenSource),
-        },
+        return {
+          ok: true as const,
+          seq,
+          result: {
+            message: redactForAuthor(msg, ctx.userId, isRolePrivileged(ctx.role), tokenSource),
+          },
+        };
       };
+      if (resolution === null) return deliverRoll();
+
+      // onRollResolved: once per resolved roll, after persisting and before
+      // the broadcast (REQ-BHR-053; same order as the turn hooks, D-13).
+      return runRollResolvedHooks(
+        deps.systemModule,
+        {
+          message: msg,
+          rollContext: resolution.rollContext,
+          degree: rollResult.degreeOfSuccess ?? null,
+          targets: targetSnapshot,
+        },
+        deps.rollHookContext,
+        deps.logger,
+      ).then(deliverRoll);
     }
 
     if (command.kind === "whisper") {
@@ -1809,12 +1862,14 @@ function attachParentFlag(msg: ChatMessage, parentId: string | undefined): void 
  * harnesses that don't wire targeting) fall back to an empty snapshot rather
  * than throwing — `[]` is already the documented "no target" shape.
  */
-function attachTargetSnapshot(msg: ChatMessage, deps: ChatHandlerDeps, authorId: string): void {
+function attachTargetSnapshot(
+  msg: ChatMessage,
+  deps: ChatHandlerDeps,
+  authorId: string,
+  taken?: ResolvedTarget[],
+): void {
   if (!msg.rolls || msg.rolls.length === 0) return;
-  const targetSnapshot =
-    deps.store && deps.targetingStore
-      ? resolveTargetSelection(deps.store, deps.targetingStore, authorId)
-      : [];
+  const targetSnapshot = taken ?? readTargetSnapshot(deps, authorId);
   msg.flags = {
     ...msg.flags,
     [PARENT_FLAG_NAMESPACE]: {
@@ -1822,6 +1877,17 @@ function attachTargetSnapshot(msg: ChatMessage, deps: ChatHandlerDeps, authorId:
       [TARGET_SNAPSHOT_FLAG_KEY]: targetSnapshot,
     },
   };
+}
+
+/**
+ * The author's live target selection, resolved (D-02). `[]` without the
+ * targeting deps. BHR-F2-05: the roll branch reads it once, before the dice,
+ * and hands the same photo to the resolution and to the stored message.
+ */
+function readTargetSnapshot(deps: ChatHandlerDeps, authorId: string): ResolvedTarget[] {
+  return deps.store && deps.targetingStore
+    ? resolveTargetSelection(deps.store, deps.targetingStore, authorId)
+    : [];
 }
 
 /**

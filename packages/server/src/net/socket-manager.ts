@@ -78,6 +78,8 @@ import {
   createStubTurnHookContextServices,
   createDocumentWriteTurnHookContextServices,
 } from "../combat/turn-hook-runner.js";
+import type { TurnHookContextServices } from "../combat/turn-hook-runner.js";
+import type { TokenMarkSource } from "../chat/roll-resolution.js";
 import { TargetingStore } from "../combat/targeting-store.js";
 import { buildCombatTargetHandler, registerTargetingCleanup } from "../combat/target-handler.js";
 import {
@@ -166,6 +168,12 @@ export interface WorldNamespaceOptions {
    * fallback (e.g. stub system, or system package not loaded).
    */
   systemModule?: SystemModule;
+  /**
+   * BHR-F2-05: where the marks on a roll's target come from
+   * (`target:mark:<slug>`). `TokenMark` (BHR-F3-06) plugs its reader in here;
+   * absent = no token carries a mark.
+   */
+  tokenMarkSource?: TokenMarkSource;
 }
 
 /**
@@ -263,6 +271,7 @@ export class SocketManager {
       compendiumService,
       systemId,
       systemModule,
+      tokenMarkSource,
     } = options;
 
     const namespacePath = `/world/${worldId}`;
@@ -410,7 +419,25 @@ export class SocketManager {
     // store/targetingStore (ALQ-F1-05 / REQ-CBT-056): chat:send reads the
     // author's live target selection to freeze `flags.fusion.targetSnapshot`
     // on every roll message.
-    const chatDeps = { db, ns, seqStore, worldId, store, targetingStore };
+    // BHR-F2-05: the system's roll resolver + `onRollResolved` listeners, the
+    // target-mark source and the hook context (assigned once the turn-hook
+    // services exist, below — only ever read when a roll is resolved).
+    const rollHook: { services?: TurnHookContextServices } = {};
+    const chatDeps = {
+      db,
+      ns,
+      seqStore,
+      worldId,
+      store,
+      targetingStore,
+      ...(systemModule !== undefined ? { systemModule } : {}),
+      ...(tokenMarkSource !== undefined ? { tokenMarkSource } : {}),
+      rollHookContext: () => ({
+        ...(rollHook.services ?? createStubTurnHookContextServices()),
+        worldTime: { round: 0, turn: 0 },
+      }),
+      logger: this.logger,
+    };
     registry.register("chat:send", buildChatSendHandler(chatDeps));
     registry.register("chat:history", buildChatHistoryHandler(chatDeps));
     // REQ-CHT-050 / REQ-ACH-012: search is open to every role; the handler
@@ -477,21 +504,24 @@ export class SocketManager {
     // onda-4 adversarial review — see combat/turn-hook-runner.ts's header);
     // `roll`/`updateActor`/`createEmbedded` stay stubs until a later task
     // actually needs them.
+    const hookServices: TurnHookContextServices = {
+      ...createStubTurnHookContextServices(),
+      ...createDocumentWriteTurnHookContextServices({
+        store,
+        db,
+        ns,
+        seqStore,
+        opBuffer,
+        worldId,
+      }),
+      applyDamage: (p) => actorMechanicsService.applyDamage(p, "system"),
+      applyCondition: (p) => actorMechanicsService.applyCondition(p, "system"),
+    };
+    // BHR-F2-05: `onRollResolved` listeners write through the SAME services.
+    rollHook.services = hookServices;
     const turnHookRunner = createTurnHookRunner({
       systemModule,
-      services: {
-        ...createStubTurnHookContextServices(),
-        ...createDocumentWriteTurnHookContextServices({
-          store,
-          db,
-          ns,
-          seqStore,
-          opBuffer,
-          worldId,
-        }),
-        applyDamage: (p) => actorMechanicsService.applyDamage(p, "system"),
-        applyCondition: (p) => actorMechanicsService.applyCondition(p, "system"),
-      },
+      services: hookServices,
       logger: this.logger,
     });
     const combatDeps = {

@@ -192,7 +192,32 @@ export const BLIND_ROLL_CONFIRMATION_CONTENT =
  * function only builds the body.
  */
 export function redactBlindRollForNonPrivileged(msg: ChatMessage): ChatMessage {
-  return { ...msg, rolls: undefined, content: BLIND_ROLL_CONFIRMATION_CONTENT };
+  return {
+    ...msg,
+    rolls: undefined,
+    content: BLIND_ROLL_CONFIRMATION_CONTENT,
+    flags: stripBlindRollResolution(msg.flags),
+  };
+}
+
+/**
+ * BHR-F2-05 (ALQ-F4-09: "blind/privada seguem a redação do resultado"): the
+ * notes the server kept for a roll are FILTERED BY ITS DEGREE, and the
+ * conditional modifiers are part of its total — either one hands the hidden
+ * result over. A blind roll's non-privileged body carries neither.
+ */
+const BLIND_HIDDEN_FUSION_FLAG_KEYS = ["rollNotes", "conditionalModifiers"] as const;
+
+function stripBlindRollResolution(flags: ChatMessage["flags"]): ChatMessage["flags"] {
+  const fusion = (flags as Record<string, unknown> | undefined)?.["fusion"];
+  if (!fusion || typeof fusion !== "object") return flags;
+  const fusionFlags = fusion as Record<string, unknown>;
+  if (!BLIND_HIDDEN_FUSION_FLAG_KEYS.some((k) => k in fusionFlags)) return flags;
+  const kept: Record<string, unknown> = {};
+  for (const [key, value] of Object.entries(fusionFlags)) {
+    if (!(BLIND_HIDDEN_FUSION_FLAG_KEYS as readonly string[]).includes(key)) kept[key] = value;
+  }
+  return { ...flags, fusion: kept };
 }
 
 /**

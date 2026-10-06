@@ -30,7 +30,7 @@ import {
 } from "./combat.js";
 import type { ActorMechanics } from "./actor-mechanics.js";
 import { DeriveStepRegistry, type DeriveStep } from "./derive.js";
-import type { StackingTable } from "./effects.js";
+import type { RollResolvedHookFn, RollResolverDefinition, StackingTable } from "./effects.js";
 import {
   type SystemSheetSpec,
   type ConditionDefinition,
@@ -110,6 +110,10 @@ interface RegistrarAccumulator {
   onConsumed: HookMap<ConsumeHookFn>;
   /** REQ-SYS-143 (ALQ-F2-11): at most one per system. */
   consumeItem: ConsumeItemDefinition | null;
+  /** BHR-F2-05 (ALQ-F4-09): at most one per system. */
+  rollResolver: RollResolverDefinition | null;
+  /** REQ-BHR-070: same registry discipline as onDamageApplied. */
+  onRollResolved: HookMap<RollResolvedHookFn>;
 }
 
 /**
@@ -297,6 +301,21 @@ export interface SystemRegistrar extends CombatRegistrar {
    * hooks above: duplicate `id` MUST throw.
    */
   registerConsumeHook(id: string, fn: ConsumeHookFn, opts?: { priority?: number }): void;
+
+  /**
+   * Register this system's roll resolver (BHR-F2-05, plan of the Alquimista
+   * §2.8): the pure rule the server calls, with the re-derived actor and the
+   * roll's target, to settle the conditional modifiers and the notes of a roll
+   * (DF-17, REQ-BHR-051). At most once per system: a second call MUST throw.
+   */
+  registerRollResolver(def: RollResolverDefinition): void;
+
+  /**
+   * Register a callback for every resolved roll (`registrar.onRollResolved(id,
+   * fn)`, REQ-BHR-053/070). Same id+priority discipline as the turn hooks:
+   * duplicate `id` MUST throw; run in series, priority descending.
+   */
+  onRollResolved(id: string, fn: RollResolvedHookFn, opts?: { priority?: number }): void;
 }
 
 // ---------------------------------------------------------------------------
@@ -333,6 +352,16 @@ export interface SystemModule {
 
   /** Sorted post-consume hook registrations (REQ-SYS-144, ALQ-F2-11). */
   readonly onConsumed: ReadonlyArray<RegisteredTurnHook<ConsumeHookFn>>;
+
+  /**
+   * This system's roll resolver (BHR-F2-05), or null when it registered none —
+   * a roll then carries its context and the server rolls the client's formula
+   * as is, with no conditional modifier and no note.
+   */
+  readonly rollResolver: RollResolverDefinition | null;
+
+  /** Sorted `onRollResolved` registrations (REQ-BHR-053/070). */
+  readonly onRollResolved: ReadonlyArray<RegisteredTurnHook<RollResolvedHookFn>>;
 
   /**
    * Derivation step registry.
@@ -460,6 +489,8 @@ export function defineSystem(
     actorMechanics: null,
     onConsumed: new Map(),
     consumeItem: null,
+    rollResolver: null,
+    onRollResolved: new Map(),
   };
 
   // Monotonic counter shared by every turn-hook event — only used to
@@ -714,6 +745,19 @@ export function defineSystem(
     registerConsumeHook(id: string, fn: ConsumeHookFn, opts?: { priority?: number }): void {
       registerHook(acc.onConsumed, manifest.id, "registerConsumeHook", id, fn, opts, nextHookOrder);
     },
+
+    registerRollResolver(def: RollResolverDefinition): void {
+      if (acc.rollResolver !== null) {
+        throw new Error(
+          `[defineSystem] system "${manifest.id}" called registerRollResolver more than once`,
+        );
+      }
+      acc.rollResolver = def;
+    },
+
+    onRollResolved(id: string, fn: RollResolvedHookFn, opts?: { priority?: number }): void {
+      registerHook(acc.onRollResolved, manifest.id, "onRollResolved", id, fn, opts, nextHookOrder);
+    },
   };
 
   build(registrar);
@@ -758,6 +802,8 @@ export function defineSystem(
     actorMechanics: acc.actorMechanics,
     consumeItem: acc.consumeItem,
     onConsumed: sortHookMap(acc.onConsumed),
+    rollResolver: acc.rollResolver,
+    onRollResolved: sortHookMap(acc.onRollResolved),
     deriveSteps: acc.deriveSteps,
     registries,
   };
