@@ -108,6 +108,7 @@ import {
   sanitizeKnowledgeOnCreate,
   isCharacterActor,
 } from "../../documents/knowledge.js";
+import { stripGmExceptionsOnCreate } from "../../documents/gm-exceptions.js";
 import { rejectAttitudeWrite, sanitizeAttitudeOnCreate } from "../../documents/attitude.js";
 import { applyMountMovement } from "../../combat/mount-follow.js";
 import {
@@ -487,6 +488,23 @@ function companionCreateViolation(companion: Record<string, unknown>): string | 
   return null;
 }
 
+/**
+ * Does this expanded `doc:update` diff write `system.build.gmExceptions` (BHR-F7-02, D-B12)? The Plan's
+ * "liberado pelo Mestre" marks live on the actor, but only the Mestre may grant one. A `system` or
+ * `system.build` set to a non-object counts: it would replace the field whole. Dotted keys are already
+ * expanded by `applyDotPathDiff` before this runs, so both diff shapes land here.
+ */
+function touchesGmExceptions(expanded: Record<string, unknown>): boolean {
+  if (!("system" in expanded)) return false;
+  const system = expanded["system"];
+  if (typeof system !== "object" || system === null || Array.isArray(system)) return true;
+  const sys = system as Record<string, unknown>;
+  if (!("build" in sys)) return false;
+  const build = sys["build"];
+  if (typeof build !== "object" || build === null || Array.isArray(build)) return true;
+  return "gmExceptions" in build;
+}
+
 function rejectUnwritableField(
   documentType: string,
   expandedDiff: Record<string, unknown>,
@@ -546,6 +564,16 @@ function rejectUnwritableField(
     return ackError(
       "PERMISSION_DENIED",
       "flags.fusion.tokenMarks is not writable through doc:update — use mark:set / mark:clear",
+    );
+  }
+
+  // `system.build.gmExceptions` (BHR-F7-02, D-B12, REQ-BHR-226..229): the Mestre's exceptions to the Plan.
+  // Authorizes on `ownership` here, so an owner could grant themselves any "liberado pelo Mestre" talent.
+  // The wallet (`system.currency`) deliberately stays player-writable (DC-10).
+  if (documentType === "Actor" && !isPrivileged(role) && touchesGmExceptions(expandedDiff)) {
+    return ackError(
+      "PERMISSION_DENIED",
+      "system.build.gmExceptions may only be written by a privileged role",
     );
   }
 
@@ -1500,6 +1528,8 @@ export function buildDocCreateHandler(deps: DocHandlerDeps): HandlerFn {
           item = sanitizeAttitudeOnCreate(item, isPrivileged(ctx.role));
           // BHR-F3-06: marks are authored by mark:set only (doc:update refuses them too).
           item = stripTokenMarksOnCreate(item, isPrivileged(ctx.role));
+          // BHR-F7-02: gmExceptions is the Mestre's to write, on create as on update.
+          item = stripGmExceptionsOnCreate(item, isPrivileged(ctx.role));
           // O6/T6.2: a create payload IS the full document (no `existing` to
           // merge onto), so it can be validated as-is — same gate the update
           // path applies to the merged document.
