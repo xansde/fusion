@@ -314,7 +314,9 @@ describe("BHR-F5-05 — MAP compartilhado entre cavaleiro e montaria", { timeout
     expect(counter.getAttackCount(combatId, heroId)).toBe(1);
   });
 
-  it("desmontar separa os contadores; o que ja foi contado no turno fica com cada um", async () => {
+  // PF2e remaster: the multiple attack penalty never goes DOWN inside a turn. The attacks that counted for the
+  // mounted group keep counting for each of the two after the dismount; new attacks add apart from there (I-4).
+  it("desmontar: cada um fica com a contagem do grupo naquele momento e os ataques novos somam separados", async () => {
     const { combatId, heroId } = await startCombat({ mounted: true });
     expect((await strikeBy({ speakerTokenId: "tokHero" })).ok).toBe(true);
     expect((await strikeBy({ speakerActorId: ANTELOPE })).ok).toBe(true);
@@ -322,24 +324,24 @@ describe("BHR-F5-05 — MAP compartilhado entre cavaleiro e montaria", { timeout
 
     writeScene(ctx.fusionDb, sceneDoc(false)); // dismount: BHR-F5-02 clears the flag on both tokens
 
-    // Each keeps exactly what it attacked: one Strike each.
-    expect(counter.getAttackCount(combatId, heroId)).toBe(1);
-    expect(counter.getMinionAttackCount(combatId, heroId, ANTELOPE)).toBe(1);
-    expect(counter.getMapPenalty(combatId, heroId, false)).toBe(-5);
-
-    // From now on they count apart: the hero's 2nd Strike does not move the antelope.
-    expect((await strikeBy({ speakerTokenId: "tokHero" })).ok).toBe(true);
+    // The group had 2 attacks: each keeps 2, so each one's next attack is the 3rd (-10), never back to -5.
     expect(counter.getAttackCount(combatId, heroId)).toBe(2);
-    expect(counter.getMinionAttackCount(combatId, heroId, ANTELOPE)).toBe(1);
+    expect(counter.getMinionAttackCount(combatId, heroId, ANTELOPE)).toBe(2);
+    expect(counter.getMapPenalty(combatId, heroId, false)).toBe(-10);
+
+    // From now on they count apart: the hero's next Strike does not move the antelope.
+    expect((await strikeBy({ speakerTokenId: "tokHero" })).ok).toBe(true);
+    expect(counter.getAttackCount(combatId, heroId)).toBe(3);
+    expect(counter.getMinionAttackCount(combatId, heroId, ANTELOPE)).toBe(2);
     expect(published(combatId)).toEqual({
       combatantId: heroId,
       round: 1,
-      count: 2,
-      byActor: { [ANTELOPE]: 1 },
+      count: 3,
+      byActor: { [ANTELOPE]: 2 },
     });
   });
 
-  it("ao desmontar o payload publicado volta a refletir os contadores separados", async () => {
+  it("ao desmontar o payload publicado mostra a contagem do grupo para os dois", async () => {
     const { combatId, heroId } = await startCombat({ mounted: true });
     expect((await strikeBy({ speakerTokenId: "tokHero" })).ok).toBe(true);
     expect((await strikeBy({ speakerActorId: ANTELOPE })).ok).toBe(true);
@@ -347,12 +349,12 @@ describe("BHR-F5-05 — MAP compartilhado entre cavaleiro e montaria", { timeout
 
     writeScene(ctx.fusionDb, sceneDoc(false)); // what mount:dismount leaves on the scene
     counter.republishScene(SCENE); // what the mount handler calls right after writing it
-    // One Strike each: both sheets read -5 for their next attack, not the group's -10.
+    // Both sheets keep reading the 2 attacks the group made: the penalty does not drop mid-turn.
     expect(published(combatId)).toEqual({
       combatantId: heroId,
       round: 1,
-      count: 1,
-      byActor: { [ANTELOPE]: 1 },
+      count: 2,
+      byActor: { [ANTELOPE]: 2 },
     });
   });
 

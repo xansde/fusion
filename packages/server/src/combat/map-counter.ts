@@ -12,8 +12,9 @@
  * - `mapGroupOf(combatantId)` (BHR-F5-05, D-B03): while mounted
  *   (`flags.fusion.mount` on the two scene tokens), rider and mount share ONE counter; otherwise
  *   it is the identity. Every attack is stored under the attacker's OWN key and a group's count is
- *   the sum of its members' keys, so a dismount separates the counters on the very next read and
- *   what each already attacked in the turn stays with it (and mounting mid-turn joins them).
+ *   the sum of its members' keys (mounting mid-turn joins them). The multiple attack penalty never goes
+ *   DOWN inside a turn (RAW, I-4): when a pair splits, each member keeps the count the group had at that
+ *   moment (`settleSplits`, on the very next read) and new attacks add apart from there.
  * - `noteAttackFromSpeaker` is what chat-handler calls: it resolves the
  *   speaker to a combatant of the live combat and ignores anyone who is not
  *   acting (an attack out of turn changes nobody's count).
@@ -71,6 +72,8 @@ export class MapCounter {
    * `<active combatant id>|actor:<actor id>` for a companion that is not a combatant itself.
    */
   private readonly counts = new Map<string, Map<string, number>>();
+  /** combatId → groupKey → the pair as last read: what `settleSplits` needs once the flags are gone. */
+  private readonly seenGroups = new Map<string, Map<string, MountPeers>>();
   private grouping: MountGrouping | null = null;
   private store: DocumentStore | null = null;
   private publisher: AttackCountPublisher | null = null;
@@ -127,10 +130,21 @@ export class MapCounter {
 
   /** Attacks already counted for the combatant's group in the current turn. */
   getAttackCount(combatId: string, combatantId: string): number {
+    this.settleSplits(combatId);
     const byKey = this.counts.get(combatId);
     if (!byKey) return 0;
     const peers = this.peersOf(combatantId, combatId);
     if (!peers) return byKey.get(combatantId) ?? 0;
+    let seen = this.seenGroups.get(combatId);
+    if (!seen) {
+      seen = new Map();
+      this.seenGroups.set(combatId, seen);
+    }
+    seen.set(peers.groupKey, peers);
+    return this.groupTotal(byKey, peers);
+  }
+
+  private groupTotal(byKey: Map<string, number>, peers: MountPeers): number {
     let total = 0;
     for (const id of peers.combatantIds) {
       total += byKey.get(id) ?? 0;
@@ -139,6 +153,49 @@ export class MapCounter {
       }
     }
     return total;
+  }
+
+  /**
+   * A pair that was mounted when last read and is not anymore (dismount, by the op or by the Mestre moving the
+   * rider) splits: every member keeps the count the group had, so the penalty does not drop mid-turn (RAW, I-4).
+   * Counts of a member are its combatant key and, for the partner that is not a combatant, the key under the
+   * combatant that is acting.
+   */
+  private settleSplits(combatId: string): void {
+    const seen = this.seenGroups.get(combatId);
+    const byKey = this.counts.get(combatId);
+    if (!seen || seen.size === 0) return;
+    for (const [groupKey, peers] of [...seen]) {
+      const first = peers.combatantIds[0];
+      if (first === undefined || this.peersOf(first, combatId)?.groupKey === groupKey) continue;
+      seen.delete(groupKey);
+      if (!byKey) continue;
+      const total = this.groupTotal(byKey, peers);
+      if (total === 0) continue;
+      const actorOf = this.combatantActors(combatId);
+      for (const id of peers.combatantIds) {
+        byKey.set(id, total);
+        for (const actorId of peers.actorIds) {
+          if (actorId !== actorOf.get(id)) byKey.set(`${id}${MINION_SEPARATOR}${actorId}`, total);
+        }
+      }
+    }
+  }
+
+  private combatantActors(combatId: string): Map<string, string> {
+    const out = new Map<string, string>();
+    try {
+      const combatants = this.store?.get("combats", combatId)["combatants"];
+      if (!Array.isArray(combatants)) return out;
+      for (const c of combatants as Record<string, unknown>[]) {
+        if (typeof c["_id"] === "string" && typeof c["actorId"] === "string") {
+          out.set(c["_id"], c["actorId"]);
+        }
+      }
+    } catch {
+      /* the combat is gone: nothing to settle against */
+    }
+    return out;
   }
 
   /** MAP the NEXT attack of this combatant takes (0, -5, -10; agile 0, -4, -8). */
@@ -153,6 +210,7 @@ export class MapCounter {
   }
 
   private bump(combatId: string, key: string): void {
+    this.settleSplits(combatId);
     let byKey = this.counts.get(combatId);
     if (!byKey) {
       byKey = new Map();
@@ -166,6 +224,7 @@ export class MapCounter {
    * the mount have no counter of their own: they read the shared group count.
    */
   getMinionAttackCount(combatId: string, activeCombatantId: string, actorId: string): number {
+    this.settleSplits(combatId);
     const peers = this.peersOf(activeCombatantId, combatId);
     if (peers?.actorIds.includes(actorId)) return this.getAttackCount(combatId, activeCombatantId);
     return this.counts.get(combatId)?.get(`${activeCombatantId}${MINION_SEPARATOR}${actorId}`) ?? 0;
@@ -207,6 +266,7 @@ export class MapCounter {
   /** Drops everything for a combat (combatEnd). */
   resetCombat(combatId: string): void {
     this.counts.delete(combatId);
+    this.seenGroups.delete(combatId);
   }
 
   /**
