@@ -8,17 +8,17 @@ Isso mede *reivindicação de cobertura*, não correção: um teste que nomeia o
 requisito afirma cobri-lo, e essa afirmação é auditável. Requisito sem citação
 nenhuma não afirma nada — é a spec pedindo algo que ninguém foi conferir.
 
-Escopo: os **2253 requisitos [MVP]** definidos nas 47 specs. Os [V2] ficam de fora
+Escopo: os **2260 requisitos [MVP]** definidos nas 47 specs. Os [V2] ficam de fora
 porque ainda não foram prometidos para nenhum marco.
 
 ## Total
 
 | Situação | Requisitos | Fatia |
 | --- | ---: | ---: |
-| Citados por algum teste | 834 | 37% |
+| Citados por algum teste | 835 | 37% |
 | Citados só por código de produção | 332 | 15% |
-| Sem nenhuma citação | 1087 | 48% |
-| **Total [MVP]** | **2253** | |
+| Sem nenhuma citação | 1093 | 48% |
+| **Total [MVP]** | **2260** | |
 
 ## Por spec
 
@@ -53,7 +53,7 @@ porque ainda não foram prometidos para nenhum marco.
 | [26](26-licencas-e-legal.md) | 23 | 3 | 0 | 20 | 13% |
 | [27](27-roadmap-e-milestones.md) | 11 | 0 | 0 | 11 | 0% |
 | [28](28-hub-do-jogador.md) | 50 | 0 | 0 | 50 | 0% |
-| [29](29-pets-companions-familiars.md) | 55 | 26 | 9 | 20 | 47% |
+| [29](29-pets-companions-familiars.md) | 55 | 27 | 9 | 19 | 49% |
 | [31](31-base-canonica-de-conteudo.md) | 1 | 1 | 0 | 0 | 100% |
 | [32](32-minimapa-tatico.md) | 14 | 0 | 0 | 14 | 0% |
 | [34](34-mapa-de-regiao.md) | 27 | 0 | 0 | 27 | 0% |
@@ -63,10 +63,10 @@ porque ainda não foram prometidos para nenhum marco.
 | [38](38-aba-chat.md) | 56 | 55 | 0 | 1 | 98% |
 | [39](39-contatos.md) | 67 | 67 | 0 | 0 | 100% |
 | [40](40-aba-combate.md) | 59 | 52 | 2 | 5 | 88% |
-| [41](41-token.md) | 70 | 48 | 6 | 16 | 69% |
+| [41](41-token.md) | 71 | 48 | 6 | 17 | 68% |
 | [42](42-aba-npcs.md) | 59 | 56 | 1 | 2 | 95% |
 | [43](43-aba-compendio.md) | 61 | 59 | 1 | 1 | 97% |
 | [44](44-aba-cenas.md) | 58 | 51 | 1 | 6 | 88% |
 | [45](45-atores.md) | 50 | 2 | 0 | 48 | 4% |
 | [47](47-fabricacao-e-alquimia.md) | 40 | 0 | 0 | 40 | 0% |
-| [52](52-cacador-companheiro-e-montaria.md) | 115 | 37 | 9 | 69 | 32% |
+| [52](52-cacador-companheiro-e-montaria.md) | 121 | 37 | 9 | 75 | 31% |
