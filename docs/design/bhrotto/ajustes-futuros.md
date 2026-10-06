@@ -113,3 +113,7 @@ O gate "nenhuma regra do Bhrotto inerte" passou a exigir também produtor para o
 - **M3** (alvo com `actorId` nulo mas nome de token público vira "criatura desconhecida"), **M5** (sabor do dano de magia e `NpcSheet.svelte:303` ainda com o slug cru do tipo), **M7** (dois companheiros do mesmo tipo: o cliente não diz qual foi clicado) e **M8** (sem teste de componente do `damageRollFlavor` no `AbilityCard.svelte`): abertos, sem impacto hoje.
 - **M2**: o botão Comandar/Apoio ainda não troca o texto para "Comandado (2 ações)" nem mostra o bloco "Apoio aplicado" do protótipo; é só UI, precisa de tela.
 - **Sem teste de componente com DOM**: o satélite roda em ambiente `node` (sem jsdom). O fluxo do Apoio e do Comandar foi extraído para `companionSupportFlow.ts` e testado com socket falso e o `sendOp` real; o clique no botão em si segue coberto por SSR e por roteiro de tela.
+
+## Registrado pela re-execução do L3 (onda 11)
+
+- **Glossário pt-BR de "Seek"**: a aba Ações mostra a linha de Buscar como "Investigar" (busca por "Buscar" não acha). Conferir o glossário (`tools/translate-packs/glossary.pt-BR.json`) e alinhar com o termo usado pelo livro e pelo resto do app.
