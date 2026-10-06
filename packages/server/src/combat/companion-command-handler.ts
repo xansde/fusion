@@ -23,7 +23,6 @@ import type { Ownership } from "../documents/ownership.js";
 import { activeCompanionMasterId } from "./companion-active-handler.js";
 import { broadcastUpdate, persistCombat } from "./combat-handlers.js";
 import type { CombatHandlerDeps } from "./combat-handlers.js";
-import type { CombatDocument } from "@fusion/shared";
 
 type Rec = Record<string, unknown>;
 
@@ -93,8 +92,8 @@ export function buildCompanionCommandHandler(deps: CombatHandlerDeps): HandlerFn
         ? [...already]
         : [...already, companionActorId];
       const commandMark = { combatantId, round, actorIds };
-      const updated = persistCombat(deps, combatId, { commandMark } as Partial<CombatDocument>);
-      broadcastUpdate(deps, updated, { commandMark } as Partial<CombatDocument>);
+      const updated = persistCombat(deps, combatId, { commandMark });
+      broadcastUpdate(deps, updated, { commandMark });
       const result: CompanionCommandResult = { marked: true };
       return { ok: true as const, seq: deps.seqStore.peek(), result };
     }
