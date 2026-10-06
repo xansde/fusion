@@ -201,4 +201,9 @@ export {
   readMountState,
   isMounted,
 } from "./mount-state.js";
-export type { MountState, MountMountPayload, MountDismountPayload } from "./mount-state.js";
+export type {
+  MountState,
+  MountMovedTurn,
+  MountMountPayload,
+  MountDismountPayload,
+} from "./mount-state.js";

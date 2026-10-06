@@ -24,14 +24,12 @@
  * Broadcast: a `doc:update` of the Scene through `broadcastToWorld` (same seq, OpBuffer replay
  * and hidden-token funnel as an ordinary embedded Token update). The token gets no badge
  * (Q-BHR-01): the state shows on the sheet strip only. The MAP group shared by the pair
- * (`mapGroupOf`, BHR-F5-05) reads this flag in `combat/mount-map-group.ts`; moving the rider along with the mount is BHR-F5-03.
+ * (`mapGroupOf`, BHR-F5-05) reads this flag in `combat/mount-map-group.ts`; moving the rider along with the mount is BHR-F5-03 (`mount-follow.ts`).
  */
 
 import type { Namespace } from "socket.io";
 import {
   MOUNTED_EFFECT_REF,
-  MOUNT_FLAG_KEY,
-  MOUNT_FLAG_NAMESPACE,
   MountDismountPayloadSchema,
   MountMountPayloadSchema,
   buildPackDocUuid,
@@ -44,6 +42,7 @@ import type { Ack, EffectApplyPayload, Envelope, ErrorCode } from "@fusion/share
 import type { HandlerContext, HandlerFn } from "../net/handler-registry.js";
 import type { SeqStore } from "../net/seq-store.js";
 import type { OpBuffer } from "../net/op-buffer.js";
+import { withMountFlag } from "./mount-follow.js";
 import { broadcastToWorld } from "../net/handlers/doc-handlers.js";
 import { buildEmbeddedEffect, startedAtFor } from "../net/handlers/effect-handlers.js";
 import type { CompendiumService } from "../compendium/service.js";
@@ -196,21 +195,6 @@ function isCompanionOf(mount: Rec, riderActorId: string): boolean {
   }
   const companion = sys["companion"];
   return !(isRec(companion) && companion["active"] === false);
-}
-
-/** The token with `flags.fusion.mount` replaced by `state` (undefined = removed); other flags kept. */
-function withMountFlag(token: Rec, state: Rec | undefined): Rec {
-  const flags: Rec = isRec(token["flags"]) ? { ...token["flags"] } : {};
-  const current = flags[MOUNT_FLAG_NAMESPACE];
-  const ns: Rec = isRec(current) ? { ...current } : {};
-  if (state === undefined) {
-    const { [MOUNT_FLAG_KEY]: _removed, ...rest } = ns;
-    flags[MOUNT_FLAG_NAMESPACE] = rest;
-    return { ...token, flags };
-  }
-  ns[MOUNT_FLAG_KEY] = state;
-  flags[MOUNT_FLAG_NAMESPACE] = ns;
-  return { ...token, flags };
 }
 
 /** True when an embedded item is the "Montado" effect this module embedded. */

@@ -37,6 +37,7 @@ import {
 } from "pixi.js";
 
 import type { TokenDocument, ActorAttitude } from "@fusion/shared";
+import type { MountStackPlacement } from "./token-interaction.js";
 import { resolveEffectiveActor, readActorAttitude } from "@fusion/shared";
 import { resolveAssetUrl } from "../../assets/assetApi.js";
 import { fusionApi } from "../../api.js";
@@ -106,11 +107,14 @@ const ELEVATION_STYLE = new TextStyle({
 // TokenSprite
 // ---------------------------------------------------------------------------
 
+const NO_STACK: MountStackPlacement = { offsetX: 0, offsetY: 0, scale: 1 };
+
 export class TokenSprite {
   // Root container — placed at (token.x, token.y) in scene coords.
   readonly container: Container;
 
   private _doc: TokenDocument;
+  private _stack: MountStackPlacement = NO_STACK;
   private _gridSize: number;
   private _isGm: boolean;
   /**
@@ -259,6 +263,34 @@ export class TokenSprite {
    */
   markLocalPending(): void {
     this._localPending = true;
+  }
+
+  /** Pixel size of the token's footprint (the layer needs it to stack a rider on this mount). */
+  get pixelSize(): { w: number; h: number } {
+    const { pixelW, pixelH } = tokenPixelSize(
+      this._footprint.width,
+      this._footprint.height,
+      this._gridSize,
+    );
+    return { w: pixelW, h: pixelH };
+  }
+
+  /**
+   * BHR-F5-03 (REQ-CNV-107): draw this token stacked on its mount (`placement`), or back in its own
+   * square (`null`). The stored position is untouched; only what is drawn changes.
+   */
+  setMountStack(placement: MountStackPlacement | null): void {
+    const next = placement ?? NO_STACK;
+    if (
+      next.offsetX === this._stack.offsetX &&
+      next.offsetY === this._stack.offsetY &&
+      next.scale === this._stack.scale
+    ) {
+      return;
+    }
+    this._stack = next;
+    this.container.scale.set(next.scale);
+    this._applyPosition(this._renderX, this._renderY);
   }
 
   /**
@@ -540,7 +572,7 @@ export class TokenSprite {
   // ---------------------------------------------------------------------------
 
   private _applyPosition(x: number, y: number): void {
-    this.container.position.set(x, y);
+    this.container.position.set(x + this._stack.offsetX, y + this._stack.offsetY);
   }
 
   // ---------------------------------------------------------------------------
