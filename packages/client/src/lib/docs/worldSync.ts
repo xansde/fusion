@@ -183,7 +183,9 @@ function _sendResyncRequest(socket: Socket): void {
       // The server answers `{ type: "delta" | "full", payload }`; the bare payload shape is still accepted.
       const raw = ack.result as unknown as { payload?: unknown } | undefined;
       const result = (
-        raw && typeof raw === "object" && raw.payload && typeof raw.payload === "object" ? raw.payload : raw
+        raw && typeof raw === "object" && raw.payload && typeof raw.payload === "object"
+          ? raw.payload
+          : raw
       ) as ResyncDeltaPayload | ResyncFullPayload | undefined;
       if (!result) return;
 
