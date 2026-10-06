@@ -387,6 +387,17 @@ describe("the rider travels with the mount (BHR-F5-03)", () => {
     expect(tokenOf(LESHY)).toMatchObject({ rotation: 90, ...at(5, 5) });
   });
 
+  it("a rider whose mount is gone (stale flag) is free to move again, and the flag heals", async () => {
+    const raw = ctx.store.getRaw("scenes", SCENE_ID);
+    ctx.store.update("scenes", SCENE_ID, {
+      tokens: (raw["tokens"] as Record<string, unknown>[]).filter((t) => t["_id"] !== ANTELOPE),
+    });
+    const ack = await docUpdate(p1, LESHY, at(5, 8));
+    expect(ack["ok"], JSON.stringify(ack)).toBe(true);
+    expect(tokenOf(LESHY)).toMatchObject(at(5, 8));
+    expect(readMountState(tokenOf(LESHY))).toEqual({});
+  });
+
   it("a player cannot move the rider on a single axis either", async () => {
     for (const diff of [{ x: 900 }, { y: 900 }]) {
       const ack = await docUpdate(p1, LESHY, diff);
