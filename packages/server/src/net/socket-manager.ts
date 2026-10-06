@@ -83,7 +83,11 @@ import {
 import type { TurnHookContextServices } from "../combat/turn-hook-runner.js";
 import type { TokenMarkSource } from "../chat/roll-resolution.js";
 import { TargetingStore } from "../combat/targeting-store.js";
-import { buildCombatTargetHandler, registerTargetingCleanup } from "../combat/target-handler.js";
+import {
+  buildCombatTargetHandler,
+  registerTargetingCleanup,
+  replayTargetingTo,
+} from "../combat/target-handler.js";
 import {
   buildMarkSetHandler,
   buildMarkClearHandler,
@@ -831,6 +835,8 @@ export class SocketManager {
       const auth = socket.handshake.auth as Record<string, unknown>;
       const lastSeq = typeof auth["lastSeq"] === "number" ? auth["lastSeq"] : undefined;
       sendJoinSnapshot(socket, syncDeps, data.userId, data.role, lastSeq);
+      // L2 defect D5: the live targeting outlives a reload; this socket starts empty, so it is told what is alive.
+      replayTargetingTo(socket, targetingStore);
 
       // Register low-level event handlers
       this._registerSocketHandlers(socket, data, registry, seqStore, ns, {
