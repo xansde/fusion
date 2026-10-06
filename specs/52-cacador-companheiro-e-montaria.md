@@ -314,12 +314,17 @@ implementa primeiro as fichas do Guerreiro que importa e fixa `AttackCheckContex
 - **Rejeitado:** reimplementar a partir das fichas do Alquimista (duas verdades) e transplante por
   tarefa (código duplicado que conflita no merge final da `feat/alquimista`).
 
-### DEC-BHR-24 — O Patrulheiro treina Natureza; a correção é na curadoria do importer
+### DEC-BHR-24 — O Patrulheiro treina Natureza; a causa é o espelho do Plano, não o pack
 
-O Patrulheiro treina Natureza e Sobrevivência, como o livro; o pack que o importer gera só trazia
-Sobrevivência. A correção é na **curadoria do importer**, não no pack à mão. Personagem existente
-que gastou uma escolha livre com Natureza a recebe de volta como livre aberta, pelo mesmo caminho da
-colisão da regra 2 da casa (DC-09).
+O Patrulheiro treina Natureza e Sobrevivência, como o livro. O documento da classe no pack (igual ao
+vendor) traz só Sobrevivência em `trainedSkills.value` e concede Natureza por uma **regra própria**
+(`system.skills.nature.rank = 1`, com predicate `not feature:vindicator`: o arquétipo de classe
+Vindicator troca Natureza por Religião). O servidor já julgava esse predicate; o **espelho do Plano**
+(`planVM`) descartava toda regra de classe com predicate, então a ficha mostrava Natureza sem
+treino e o jogador gastava uma escolha livre nela. A correção é o espelho avaliar os termos
+`feature:` do predicate, não um remendo no pack nem na curadoria do importer. O Vindicator segue sem
+Natureza. Personagem existente que gastou uma escolha livre com Natureza a recebe de volta como
+livre aberta, pelo mesmo caminho da colisão da regra 2 da casa (DC-09).
 
 ---
 
@@ -357,7 +362,8 @@ colisão da regra 2 da casa (DC-09).
   máximo do Bhrotto (Patrulheiro, Con +2) DEVE ser 22/34/46 nos níveis 1/2/3.
 - **REQ-BHR-012** [MVP] Herança sem o override de `ancestryhp` NÃO DEVE mudar o PV derivado.
 - **REQ-BHR-013** [MVP] A classe Patrulheiro DEVE treinar Natureza e Sobrevivência (DEC-BHR-24);
-  nenhuma outra classe DEVE mudar de perícias treinadas com essa correção.
+  o Patrulheiro com a característica Vindicator NÃO DEVE treinar Natureza; nenhuma outra
+  classe DEVE mudar de perícias treinadas com essa correção.
 - **REQ-BHR-014** [MVP] Personagem Patrulheiro que já gastou uma escolha livre de perícia com
   Natureza DEVE ganhar essa escolha de volta como **livre aberta** na próxima abertura do Plano, sem
   perder treino.
