@@ -67,6 +67,8 @@ import {
   resolveOwnership,
 } from "../../documents/ownership.js";
 import type { Ownership } from "../../documents/ownership.js";
+import type { SystemModule } from "@fusion/system-api";
+import { recomputeDerivedIfNeeded } from "../../documents/derive.js";
 import { snapshotPtBRLabel, type CompendiumService } from "../../compendium/service.js";
 
 export interface EffectApplyHandlerDeps {
@@ -75,6 +77,8 @@ export interface EffectApplyHandlerDeps {
   seqStore: SeqStore;
   opBuffer: OpBuffer;
   compendium: CompendiumService;
+  /** Present: the target actors are re-derived in the same broadcast (an effect changes saves, AC, ...). */
+  systemModule?: SystemModule;
 }
 
 /** Op-level error: carries the ack code across the `store.transaction()` boundary. */
@@ -536,7 +540,7 @@ function applyEffect(
     const startedAt = startedAtFor(deps.store, payload.sourceActorId);
     const giverId = supportGiverId(deps, payload.sourceActorId, source, payload.effect);
     const applied: { actorId: string; itemId: string }[] = [];
-    const updated = deps.store.transaction((txn) => {
+    const written = deps.store.transaction((txn) => {
       const docs: Doc[] = [];
       for (const [targetId] of targets) {
         // Re-read inside the transaction: the write must extend the CURRENT items.
@@ -550,6 +554,15 @@ function applyEffect(
       return docs;
     });
 
+    // The sheet reads `system.derived`: without this the new effect shows in the list but not in the numbers
+    // until a reload (L3 re-run, D4).
+    const updated = written.map((doc) =>
+      recomputeDerivedIfNeeded(
+        { store: deps.store, ...(deps.systemModule ? { systemModule: deps.systemModule } : {}) },
+        "Actor",
+        doc,
+      ),
+    );
     const seq = deps.seqStore.next();
     const envelope: Envelope = {
       type: "doc:update",

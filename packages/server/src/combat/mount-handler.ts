@@ -45,6 +45,8 @@ import type { OpBuffer } from "../net/op-buffer.js";
 import { withMountFlag } from "./mount-follow.js";
 import { broadcastToWorld } from "../net/handlers/doc-handlers.js";
 import { buildEmbeddedEffect, startedAtFor } from "../net/handlers/effect-handlers.js";
+import type { SystemModule } from "@fusion/system-api";
+import { recomputeDerivedIfNeeded } from "../documents/derive.js";
 import type { CompendiumService } from "../compendium/service.js";
 import type { DocumentStore } from "../documents/store.js";
 import { DocumentNotFoundError } from "../documents/store.js";
@@ -75,6 +77,20 @@ export interface MountHandlerDeps {
    * written to the tokens; only the -2 Reflex effect is not embedded.
    */
   compendium?: CompendiumService;
+  /** Present: the rider is re-derived in the same broadcast (the Montado -2 Reflex shows in the numbers). */
+  systemModule?: SystemModule;
+}
+
+/** The Actor docs as the sheet must receive them: `system.derived` follows the items just written. */
+function rederived(deps: MountHandlerDeps, docs: Rec[], userId: string): Rec[] {
+  return docs.map((doc) =>
+    recomputeDerivedIfNeeded(
+      { store: deps.store, ...(deps.systemModule ? { systemModule: deps.systemModule } : {}) },
+      "Actor",
+      doc,
+      { userId },
+    ),
+  );
 }
 
 type Rec = Record<string, unknown>;
@@ -301,6 +317,7 @@ function persistAndBroadcast(
     const doc = txn.update("actors", riderEffect.actorId, { items }, { userId: ctx.userId });
     if (doc !== null) actorDocs = [doc];
   });
+  actorDocs = rederived(deps, actorDocs, ctx.userId);
   // Re-read through the filtered get(): the broadcast never carries the raw token list.
   const scene = deps.store.get("scenes", located.sceneId);
   const payload = { documentType: "Scene" as const, documents: [scene] };
@@ -368,6 +385,7 @@ export function releaseDismountedRider(
       if (doc !== null) actorDocs = [doc];
     });
   }
+  actorDocs = rederived(deps, actorDocs, userId);
   if (sceneChanged) {
     const envelope: Envelope = {
       type: "doc:update",

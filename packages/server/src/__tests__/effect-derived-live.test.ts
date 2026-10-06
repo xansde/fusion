@@ -259,7 +259,7 @@ describe("a server-embedded effect re-derives the actor in the same broadcast (L
 
     const down = await sendOp(gm, "mount:dismount", {
       riderTokenId: RIDER,
-      to: { x: 800, y: 800 },
+      to: { x: 700, y: 500 },
     });
     expect(down["ok"], JSON.stringify(down)).toBe(true);
     await settle();

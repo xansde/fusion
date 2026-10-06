@@ -621,6 +621,7 @@ export class SocketManager {
         mapCounter.republishScene(sceneId);
       },
       ...(compendiumService ? { compendium: compendiumService } : {}),
+      ...(systemModule ? { systemModule } : {}),
     };
     registry.register("mount:mount", buildMountHandler(mountDeps));
     registry.register("mount:dismount", buildDismountHandler(mountDeps));
@@ -713,7 +714,14 @@ export class SocketManager {
     // BHR-F4-08 (REQ-BHR-102..105): a pack effect onto other actors, permission by link.
     registry.register(
       "effect:apply",
-      buildEffectApplyHandler({ store, ns, seqStore, opBuffer, compendium: compSvc }),
+      buildEffectApplyHandler({
+        store,
+        ns,
+        seqStore,
+        opBuffer,
+        compendium: compSvc,
+        ...(systemModule ? { systemModule } : {}),
+      }),
     );
 
     // REQ-NET-003/014: auth middleware runs before connection is accepted
