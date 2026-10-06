@@ -356,6 +356,7 @@
   "FUSION.Combat.Round": "Rodada {{round}}",
   "FUSION.Combat.Started": "Rodada {{round}}",
   "FUSION.Combat.Ended": "Combate encerrado",
+  "FUSION.Combat.PreyOf": "Presa de {{name}}",
   "FUSION.Combat.NotStarted": "Não iniciado",
   "FUSION.Combat.Begin": "Iniciar",
   "FUSION.Combat.PreviousTurn": "Turno anterior",

@@ -356,6 +356,7 @@
   "FUSION.Combat.Round": "Round {{round}}",
   "FUSION.Combat.Started": "Round {{round}}",
   "FUSION.Combat.Ended": "Combat ended",
+  "FUSION.Combat.PreyOf": "Prey of {{name}}",
   "FUSION.Combat.NotStarted": "Not started",
   "FUSION.Combat.Begin": "Begin",
   "FUSION.Combat.PreviousTurn": "Previous Turn",
