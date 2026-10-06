@@ -114,12 +114,8 @@ export function attachWorldSync(socket: Socket): () => void {
         ops?: Envelope[];
       };
       if (Array.isArray(payload.ops)) {
-        for (const op of payload.ops) {
-          // Use _applyIncomingOp so that world:activeScene ops inside a delta
-          // are handled correctly (FIX-3: they were previously forwarded only
-          // to feedOp, silently dropping the active-scene side-effect).
-          _applyIncomingOp(op);
-        }
+        // _applyIncomingOp keeps world:activeScene ops inside a delta handled (FIX-3).
+        _applyDelta(payload.ops, payload.toSeq);
       }
       return;
     }
@@ -184,7 +180,11 @@ function _sendResyncRequest(socket: Socket): void {
         return;
       }
 
-      const result = ack.result;
+      // The server answers `{ type: "delta" | "full", payload }`; the bare payload shape is still accepted.
+      const raw = ack.result as unknown as { payload?: unknown } | undefined;
+      const result = (
+        raw && typeof raw === "object" && raw.payload && typeof raw.payload === "object" ? raw.payload : raw
+      ) as ResyncDeltaPayload | ResyncFullPayload | undefined;
       if (!result) return;
 
       // Discriminate between delta and full
@@ -193,9 +193,7 @@ function _sendResyncRequest(socket: Socket): void {
         // that world:activeScene ops inside a delta are not silently dropped
         // (FIX-3).
         const delta = result;
-        for (const op of delta.ops as Envelope[]) {
-          _applyIncomingOp(op);
-        }
+        _applyDelta(delta.ops as Envelope[], delta.toSeq);
       } else if ("snapshot" in result) {
         // ResyncFullPayload
         const full = result;
@@ -205,6 +203,18 @@ function _sendResyncRequest(socket: Socket): void {
       }
     },
   );
+}
+
+/**
+ * Replay a resync delta. It lists only the ops this viewer may see, so the seq has holes the mirror must cross: each op
+ * is applied as the next one, and the delta's `toSeq` closes the range.
+ */
+function _applyDelta(ops: Envelope[], toSeq: number | undefined): void {
+  for (const op of ops) {
+    if (typeof op.seq === "number") worldMirror.advanceSeqTo(op.seq - 1);
+    _applyIncomingOp(op);
+  }
+  if (typeof toSeq === "number") worldMirror.advanceSeqTo(toSeq);
 }
 
 function _applySnapshot(snapshot: WorldSnapshotPayload): void {
