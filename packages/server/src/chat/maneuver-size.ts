@@ -71,7 +71,7 @@ function tokenSize(token: Rec, actor: Rec): string | undefined {
   const effective = resolveEffectiveActor(
     {
       actorLink: token["actorLink"] !== false,
-      actorDelta: delta as { system?: Record<string, unknown> } | null,
+      actorDelta: delta,
     },
     { name: "", system: isRec(actor["system"]) ? actor["system"] : {} },
   );

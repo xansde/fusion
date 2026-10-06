@@ -556,7 +556,7 @@ export function buildChatSendHandler(deps: ChatHandlerDeps): HandlerFn {
         }
         // The size limit of the maneuver (review M-1): judged with the sizes the database holds, for the actor the
         // user speaks as. No speaker named = the roller's size is unknown and the rule does not opine.
-        if (payload.speakerActorId !== undefined && checkContext.targetTokenId !== undefined) {
+        if (payload.speakerActorId !== undefined) {
           if (!mayRollAsActor(deps.db, payload.speakerActorId, ctx)) {
             return {
               ok: false,
