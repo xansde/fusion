@@ -532,7 +532,8 @@ potency rune) + Σ modifiers`, aplicando a penalidade de armadura `broken` quand
   presente.
 - **REQ-PF2-021** [MVP] O sistema DEVE calcular o **HP máximo** do character como
   `ancestryHP + (classHP + conMod) * level + Σ bônus`, e o do NPC a partir do
-  `system.attributes.hp.max` declarado no statblock.
+  `system.attributes.hp.max` declarado no statblock. _(Emenda da spec 52,
+  2026-10-05: `ancestryHP` respeita o override de herança, REQ-PF2-279.)_
 - **REQ-PF2-022** [MVP] O sistema DEVE rastrear `hp.value`, `hp.max`, `hp.temp`
   (HP temporário, não cumulativo: maior vence) e aplicar dano primeiro ao temp HP.
 - **REQ-PF2-023** [MVP] O sistema DEVE aplicar **Hardness** (escudo/objeto) antes
@@ -826,6 +827,26 @@ abilityMod(damage) + Σ damageModifiers`, com `abilityMod(damage)` = STR (melee)
   efeito com duração, como camada depois do talento de "Ampliar constante" (DEC-PF2-13), visível
   ao Mestre e ao afetado como anotação no canto — o padrão de estado temporizado. Por ora o
   Mestre resolve na narração (decisão do Alexandre em 29/09/2026; core #291).
+
+### Patrulheiro, companheiro e runas _(emenda da spec 52, 2026-10-05)_
+
+Requisitos obrigados por `52-cacador-companheiro-e-montaria.md`; a regra de cada um está em
+`docs/design/bhrotto/dados/`.
+
+- **REQ-PF2-279** [MVP] O PV de ancestralidade usado em REQ-PF2-021 DEVE respeitar o override de
+  `system.attributes.ancestryhp` por `ActiveEffectLike` vindo da herança ou de qualquer item
+  embutido, em vez de ler só o PV do item de ancestralidade (spec 52, REQ-BHR-011).
+- **REQ-PF2-280** [MVP] A regra `fusion-skill-substitution { action, skill }` DEVE permitir que a ação
+  indicada role com a perícia indicada em vez da padrão, com a CD disponível pelo rank da perícia usada
+  (Medicina Natural: Tratar Ferimentos com Natureza; spec 52, REQ-BHR-025..026).
+- **REQ-PF2-281** [MVP] O importer DEVE converter `ItemAlteration` do vendor em regra `item-alteration`
+  com as propriedades `traits`, `damage-dice-faces`, `other-tags` e `damage-type` e o predicado, nunca
+  como `unconverted` nem só como texto (spec 52, REQ-BHR-047).
+- **REQ-PF2-282** [MVP] O schema de efeito DEVE aceitar `system.fusion.expiry.on = "after-roll"` com
+  `rollPredicate?: string[]` (spec 52 §7.2, DEC-BHR-08).
+- **REQ-PF2-283** [MVP] Toda arma DEVE ter o editor de `system.runes` (`potency` 0..3, `striking` 0..3,
+  `property` com tantas vagas quanto a potência), sem aviso nem bloqueio (spec 52, DEC-BHR-18); o efeito
+  mecânico das runas segue REQ-PF2-130.
 
 ---
 
