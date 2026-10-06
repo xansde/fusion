@@ -135,6 +135,8 @@ function withinReachOfCompanion(
   companionActorId: string,
   reachFeet: number,
   world: ExtraDamageWorld,
+  riderActorId?: string,
+  requiresMounted = false,
 ): boolean {
   const scene =
     world.scenes.find(
@@ -142,7 +144,11 @@ function withinReachOfCompanion(
     ) ?? null;
   if (scene === null) return false;
   const targetToken = tokensOf(scene).find((t) => t["_id"] === target.tokenId);
-  const companionToken = tokensOf(scene).find((t) => t["actorId"] === companionActorId);
+  // A part that needs the mount is measured from the token the rider is ON (the actor may have other tokens).
+  const companionToken =
+    requiresMounted && riderActorId !== undefined
+      ? (mountTokenOf(scene, riderActorId, companionActorId) ?? undefined)
+      : tokensOf(scene).find((t) => t["actorId"] === companionActorId);
   if (targetToken === undefined || companionToken === undefined) return false;
   const a = positionedToken(companionToken, world);
   const b = positionedToken(targetToken, world);
@@ -160,6 +166,24 @@ function withinReachOfCompanion(
  * and the companion's token must confirm each other in the mount flag (a flag the other side does not confirm is
  * stale, as in `mount-follow`). Anything that cannot be proven is a "no".
  */
+function mountTokenOf(scene: Rec, riderActorId: string, companionActorId: string): Rec | null {
+  const tokens = tokensOf(scene);
+  for (const rider of tokens) {
+    if (rider["actorId"] !== riderActorId) continue;
+    const mountTokenId = readMountState(rider).mountTokenId;
+    if (mountTokenId === undefined) continue;
+    const mount = tokens.find((t) => t["_id"] === mountTokenId);
+    if (
+      mount !== undefined &&
+      mount["actorId"] === companionActorId &&
+      readMountState(mount).riderTokenId === rider["_id"]
+    ) {
+      return mount;
+    }
+  }
+  return null;
+}
+
 function mountedOnCompanion(
   target: RollTargetSnapshotEntry,
   riderActorId: string | undefined,
@@ -171,19 +195,7 @@ function mountedOnCompanion(
     world.scenes.find(
       (s) => (target.sceneId === "" || s["_id"] === target.sceneId) && hasToken(s, target.tokenId),
     ) ?? null;
-  if (scene === null) return false;
-  const tokens = tokensOf(scene);
-  return tokens.some((rider) => {
-    if (rider["actorId"] !== riderActorId) return false;
-    const mountTokenId = readMountState(rider).mountTokenId;
-    if (mountTokenId === undefined) return false;
-    const mount = tokens.find((t) => t["_id"] === mountTokenId);
-    return (
-      mount !== undefined &&
-      mount["actorId"] === companionActorId &&
-      readMountState(mount).riderTokenId === rider["_id"]
-    );
-  });
+  return scene !== null && mountTokenOf(scene, riderActorId, companionActorId) !== null;
 }
 
 function hasToken(scene: Rec, tokenId: string): boolean {
@@ -237,7 +249,16 @@ export function settleExtraDamage(input: {
   let suffix = "";
   for (const part of extra) {
     if (part.gate !== undefined) {
-      if (!withinReachOfCompanion(target, part.gate.companionActorId, part.gate.reachFeet, world)) {
+      if (
+        !withinReachOfCompanion(
+          target,
+          part.gate.companionActorId,
+          part.gate.reachFeet,
+          world,
+          input.rollerActorId,
+          part.gate.requiresMounted === true,
+        )
+      ) {
         continue;
       }
       if (
