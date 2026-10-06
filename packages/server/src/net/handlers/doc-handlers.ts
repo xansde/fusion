@@ -80,6 +80,7 @@ import {
 } from "../../documents/world-permissions.js";
 import {
   companionGrantAllows,
+  companionGrantLimit,
   companionGroupOf,
   validateCharacterBuild,
   type BuildValidationVariants,
@@ -469,12 +470,19 @@ function getOwnershipFromDoc(doc: Record<string, unknown>): Ownership {
 //         THAT companionKind (companionGrantAllows, read live from the
 //         master's embedded items on the SERVER — the client CTA is advisory,
 //         this is authoritative): a familiar-granting feat for familiar/pet,
-//         the Summoner class (by sourceId) for eidolon; a kind with no
-//         detector (animalCompanion, mount) is never granted to a player
+//         the Summoner class (by sourceId) for eidolon, an Animal Companion
+//         feat or the Beastmaster Dedication for animalCompanion (REQ-PET-109);
+//         a kind with no detector (mount) is never granted to a player
 //         (spec 29 DEC-PET-03, REQ-PET-092);
-//     (d) the master has no companion of the same GROUP linked yet
-//         (familiar+pet share one slot, eidolon is its own; a second is
-//         rejected as a duplicate — REQ-PET-093).
+//     (d) the master has fewer companions of the same GROUP than its cap
+//         (familiar+pet share one slot, eidolon is its own, both capped at 1;
+//         animalCompanion is capped at the NUMBER OF GRANTS the master carries,
+//         counted here on the server — REQ-PET-093, REQ-PET-110, DC-07). The
+//         companions of the SAME batch count too, so one doc:create cannot
+//         step over the cap;
+//     (e) an animalCompanion carries the `grantSlotId` of the Plan slot that
+//         creates it and no other companion of that master already holds it
+//         (REQ-PET-111). The GM skips (c)-(e): it never reaches this gate.
 //     On success the created familiar's ownership is FORCED to the master's
 //     ownership map (the master's owners become the familiar's owners), never
 //     trusting a client-supplied ownership.
@@ -513,19 +521,36 @@ function isCompanionDoc(doc: Record<string, unknown>): boolean {
   );
 }
 
-/**
- * Whether the master already has a companion of `kind`'s group linked
- * (condition d, REQ-PET-093). Scans the actors table filtered to companions
- * and matches masterActorId + group.
- */
-function masterHasCompanionOfGroup(store: DocumentStore, masterId: string, kind: string): boolean {
+/** The companions of `kind`'s group already linked to the master. */
+function companionsOfGroup(
+  store: DocumentStore,
+  masterId: string,
+  kind: string,
+): Array<Record<string, unknown>> {
   const group = companionGroupOf(kind);
-  const companions = store.getAll("actors", { type: COMPANION_ACTOR_TYPE });
-  return companions.some(
-    (c) =>
-      readMasterActorId(c) === masterId &&
-      companionGroupOf(readCompanionKind(c) ?? "familiar") === group,
-  );
+  return store
+    .getAll("actors", { type: COMPANION_ACTOR_TYPE })
+    .filter(
+      (c) =>
+        readMasterActorId(c) === masterId &&
+        companionGroupOf(readCompanionKind(c) ?? "familiar") === group,
+    );
+}
+
+/** Read `system.companion.grantSlotId` (CompanionLink) from a raw doc, or null. */
+function readGrantSlotId(doc: Record<string, unknown>): string | null {
+  const sys = doc["system"];
+  if (!sys || typeof sys !== "object" || Array.isArray(sys)) return null;
+  const link = (sys as Record<string, unknown>)["companion"];
+  if (!link || typeof link !== "object" || Array.isArray(link)) return null;
+  const raw = (link as Record<string, unknown>)["grantSlotId"];
+  return typeof raw === "string" && raw.length > 0 ? raw : null;
+}
+
+/** Companions of one master+group already accepted earlier in the SAME create batch. */
+interface BatchCompanions {
+  count: number;
+  slotIds: Set<string>;
 }
 
 /** Outcome of the player-companion create authorization. */
@@ -541,6 +566,7 @@ function authorizePlayerCompanionCreate(
   deps: Pick<DocHandlerDeps, "store" | "systemId" | "systemModule">,
   ctx: HandlerContext,
   companion: Record<string, unknown>,
+  batch: Map<string, BatchCompanions> = new Map(),
 ): CompanionCreateAuth {
   // (c-guard) Only worlds whose system includes pf2e grant familiars — the
   // literal pf2e system, or the pf2e+sf2e composite (DEC-SYS-06-bis, I4);
@@ -588,14 +614,40 @@ function authorizePlayerCompanionCreate(
     };
   }
 
-  // (d) One companion per group per master (REQ-PET-093).
-  if (masterHasCompanionOfGroup(deps.store, masterId, kind)) {
+  // (d) The group's cap: 1 for familiar/pet/eidolon, the number of grants for
+  // animalCompanion (REQ-PET-093, REQ-PET-110). Batch-mates count.
+  const existing = companionsOfGroup(deps.store, masterId, kind);
+  const batchKey = `${masterId}:${companionGroupOf(kind)}`;
+  const inBatch = batch.get(batchKey) ?? { count: 0, slotIds: new Set<string>() };
+  if (existing.length + inBatch.count >= companionGrantLimit(kind, master)) {
     return {
       ok: false,
       code: "VALIDATION_FAILED",
-      message: `Master already has a companion of kind "${kind}"`,
+      message: `Master already has the allowed number of companions of kind "${kind}"`,
     };
   }
+
+  // (e) An animal companion is born from one Plan slot (REQ-PET-111).
+  const slotId = readGrantSlotId(companion);
+  if (kind === "animalCompanion") {
+    if (slotId === null) {
+      return {
+        ok: false,
+        code: "VALIDATION_FAILED",
+        message: "An animal companion needs system.companion.grantSlotId",
+      };
+    }
+    if (inBatch.slotIds.has(slotId) || existing.some((c) => readGrantSlotId(c) === slotId)) {
+      return {
+        ok: false,
+        code: "VALIDATION_FAILED",
+        message: `Grant slot "${slotId}" already created a companion`,
+      };
+    }
+    inBatch.slotIds.add(slotId);
+  }
+  inBatch.count += 1;
+  batch.set(batchKey, inBatch);
 
   return { ok: true, master };
 }
@@ -978,10 +1030,11 @@ export function buildDocCreateHandler(deps: DocHandlerDeps): HandlerFn {
         } else {
           // Every item must be an authorized companion, else deny the whole
           // batch (O6 fixer C6: the own-character branch was removed here).
+          const companionsInBatch = new Map<string, BatchCompanions>();
           for (let i = 0; i < data.length; i++) {
             const item = data[i] as Record<string, unknown>;
             if (isCompanionDoc(item)) {
-              const auth = authorizePlayerCompanionCreate(deps, ctx, item);
+              const auth = authorizePlayerCompanionCreate(deps, ctx, item, companionsInBatch);
               if (!auth.ok) {
                 return ackError(auth.code, auth.message);
               }
