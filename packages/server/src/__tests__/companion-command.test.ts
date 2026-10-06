@@ -272,6 +272,22 @@ describe("companion:command (L3 I4)", () => {
     expect(markOf()).toEqual({ combatantId: MASTER_CMBT, round: 2, actorIds: [BEAR] });
   });
 
+  it("commanding again in the same turn is idempotent: ok, flagged, and nothing is broadcast again (N1)", async () => {
+    startCombat(MASTER_CMBT);
+    const first = await sendOp(p1, "companion:command", { companionActorId: BEAR });
+    expect((first["result"] as Rec)["alreadyCommanded"]).toBeUndefined();
+    let heardAgain = false;
+    p2.on("op", (envelope: Rec) => {
+      if (envelope["type"] === "combat:updated") heardAgain = true;
+    });
+    const second = await sendOp(p1, "companion:command", { companionActorId: BEAR });
+    expect(second["ok"], JSON.stringify(second)).toBe(true);
+    expect(second["result"]).toEqual({ marked: true, alreadyCommanded: true });
+    await new Promise((r) => setTimeout(r, 200));
+    expect(heardAgain).toBe(false);
+    expect(markOf()).toEqual({ combatantId: MASTER_CMBT, round: 2, actorIds: [BEAR] });
+  });
+
   it("is refused out of the owner turn, and nothing is stamped", async () => {
     startCombat(OTHER_CMBT);
     const ack = await sendOp(p1, "companion:command", { companionActorId: BEAR });
