@@ -38,7 +38,9 @@ const validateSpy = vi.hoisted(() => vi.fn());
 
 vi.mock("@fusion/system-pf2e", async (importOriginal) => {
   const original = await importOriginal<Record<string, unknown>>();
-  validateSpy.mockImplementation(original["validateCharacterBuild"] as (...a: unknown[]) => unknown);
+  validateSpy.mockImplementation(
+    original["validateCharacterBuild"] as (...a: unknown[]) => unknown,
+  );
   return { ...original, validateCharacterBuild: validateSpy };
 });
 
@@ -167,7 +169,6 @@ function sendOp(
   });
 }
 
-
 describe("house rules — doc:update validates the build with the world's variants", () => {
   let ctx: Ctx;
   let gm: ClientSocket;
@@ -216,7 +217,9 @@ describe("house rules — doc:update validates the build with the world's varian
     ] as const) {
       const ack = await sendOp(gm, "doc:create", {
         documentType: "Setting",
-        data: [{ key: `fake-variant-system:variantRules.${key}`, value, ownership: { default: 0 } }],
+        data: [
+          { key: `fake-variant-system:variantRules.${key}`, value, ownership: { default: 0 } },
+        ],
       });
       expect(ack["ok"]).toBe(true);
     }

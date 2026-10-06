@@ -342,7 +342,7 @@ Toda escrita das seções Mundo, Permissões, Usuários e Mods exige `role === G
      talentos de ancestralidade;
   4. `ancestryFeatLevelMinus2`: um talento de ancestralidade de nível N cabe num espaço de nível
      max(1, N-2).
-  Regras de plumbing no núcleo (espelham HJ-09/REQ-CFG-038):
+     Regras de plumbing no núcleo (espelham HJ-09/REQ-CFG-038):
   - só o GAMEMASTER escreve (REQ-CFG-070); o jogador LÊ as quatro chaves (allowlist de leitura do
     jogador, inclusive no broadcast ao vivo), porque a ficha aplica as regras;
   - o servidor entrega os valores à derivação como `system.build.variantRules.<chave>`,
