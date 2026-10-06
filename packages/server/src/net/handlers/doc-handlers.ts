@@ -785,6 +785,114 @@ function authorizePlayerCompanionCreate(
   return { ok: true, master };
 }
 
+// ---------------------------------------------------------------------------
+// Animal companion: the server owns `system.master.level` (BHR-F4-03, D-B02, REQ-PET-107..108)
+// ---------------------------------------------------------------------------
+
+/** The owner's character level (`system.level.value`, default 1 like the character schema). */
+function readActorLevel(doc: Record<string, unknown>): number {
+  const sys = doc["system"];
+  if (!sys || typeof sys !== "object" || Array.isArray(sys)) return 1;
+  const level = (sys as Record<string, unknown>)["level"];
+  if (!level || typeof level !== "object" || Array.isArray(level)) return 1;
+  const value = (level as Record<string, unknown>)["value"];
+  return typeof value === "number" && Number.isFinite(value) ? value : 1;
+}
+
+/** `system.master.level` as stored on a companion, or undefined when never cached. */
+function readCachedMasterLevel(doc: Record<string, unknown>): unknown {
+  const sys = doc["system"];
+  if (!sys || typeof sys !== "object" || Array.isArray(sys)) return undefined;
+  const master = (sys as Record<string, unknown>)["master"];
+  if (!master || typeof master !== "object" || Array.isArray(master)) return undefined;
+  return (master as Record<string, unknown>)["level"];
+}
+
+/** The owner actor of a linked animal companion, or null (not a linked animal companion / dangling). */
+function masterOfAnimalCompanion(
+  store: DocumentStore,
+  companion: Record<string, unknown>,
+): Record<string, unknown> | null {
+  if (readCompanionKind(companion) !== "animalCompanion") return null;
+  const masterId = readMasterActorId(companion);
+  if (!masterId) return null;
+  try {
+    return store.get("actors", masterId);
+  } catch (err) {
+    if (err instanceof DocumentNotFoundError) return null;
+    throw err;
+  }
+}
+
+/**
+ * CREATE path: stamp the owner's level onto the payload before it is persisted, so a companion is
+ * never born without the cache (it would carry `derived.companion.error` instead of a statblock).
+ * Overrides whatever the creator sent: `system.master.level` is the server's field.
+ */
+function stampMasterLevelOnCreate(
+  store: DocumentStore,
+  item: Record<string, unknown>,
+): Record<string, unknown> {
+  const master = masterOfAnimalCompanion(store, item);
+  if (!master) return item;
+  const sys = (item["system"] ?? {}) as Record<string, unknown>;
+  const cache = sys["master"];
+  const cacheObj =
+    cache && typeof cache === "object" && !Array.isArray(cache)
+      ? (cache as Record<string, unknown>)
+      : {};
+  return {
+    ...item,
+    system: { ...sys, master: { ...cacheObj, level: readActorLevel(master) } },
+  };
+}
+
+/**
+ * UPDATE path: make a persisted animal companion's `system.master.level` match its owner's level.
+ * Returns the very same reference when nothing changed (no write, nothing to broadcast).
+ */
+function syncAnimalCompanionMasterLevel(
+  store: DocumentStore,
+  companion: Record<string, unknown>,
+  authorCtx: { userId: string },
+): Record<string, unknown> {
+  const master = masterOfAnimalCompanion(store, companion);
+  const id = companion["_id"];
+  if (!master || typeof id !== "string") return companion;
+  const level = readActorLevel(master);
+  if (readCachedMasterLevel(companion) === level) return companion;
+  return store.update("actors", id, { system: { master: { level } } }, authorCtx) ?? companion;
+}
+
+/**
+ * D-B02: an Actor update that reaches an owner re-derives every animal companion linked to it
+ * (`system.masterActorId`) and puts the ones that changed into the SAME broadcast. A companion whose
+ * cache and derived block already match stays out (same reference, nothing re-sent). Mutates `updated`.
+ */
+function rederiveCompanionsOfUpdatedMasters(
+  deps: DocHandlerDeps,
+  documentType: string,
+  updated: Record<string, unknown>[],
+  authorCtx: { userId: string },
+): void {
+  if (documentType !== "Actor" || updated.length === 0) return;
+  const masterIds = new Set(updated.map((d) => d["_id"]).filter((x) => typeof x === "string"));
+  const companions = deps.store.getAll("actors", { type: COMPANION_ACTOR_TYPE }).filter((c) => {
+    const masterId = readMasterActorId(c);
+    return (
+      masterId !== null && masterIds.has(masterId) && readCompanionKind(c) === "animalCompanion"
+    );
+  });
+  for (const companion of companions) {
+    const synced = syncAnimalCompanionMasterLevel(deps.store, companion, authorCtx);
+    const recomputed = recomputeDerivedIfNeeded(deps, "Actor", synced, authorCtx);
+    if (recomputed === companion) continue;
+    const at = updated.findIndex((d) => d["_id"] === companion["_id"]);
+    if (at >= 0) updated[at] = recomputed;
+    else updated.push(recomputed);
+  }
+}
+
 /**
  * Authorize a single non-privileged companion delete: the target must be a
  * companion whose master the requester owns at OWNER level.
@@ -1271,6 +1379,8 @@ export function buildDocCreateHandler(deps: DocHandlerDeps): HandlerFn {
           item = inheritMasterOwnershipOnCreate(deps.store, item);
         }
         if (documentType === "Actor") item = decideCompanionActiveOnCreate(deps.store, item);
+        // BHR-F4-03: the server (never the client) writes the owner's level into the cache.
+        if (documentType === "Actor") item = stampMasterLevelOnCreate(deps.store, item);
         let doc = deps.store.create(table as never, item, authorCtx);
         // WIRING-DERIVE: populate system.derived for newly created Actors.
         doc = recomputeDerivedIfNeeded(deps, documentType, doc, authorCtx);
@@ -1631,10 +1741,18 @@ export function buildDocUpdateHandler(deps: DocHandlerDeps): HandlerFn {
       if (result !== null) {
         // WIRING-DERIVE: keep system.derived in sync with authored-field updates
         // (e.g. an ability score edit changes AC/saves/skills totals).
+        // BHR-F4-03: an animal companion edited directly (e.g. "Trocar tipo", a GM link) gets the
+        // owner's level refreshed first, so the derivation never runs on a missing/stale cache.
+        if (documentType === "Actor") {
+          result = syncAnimalCompanionMasterLevel(deps.store, result, authorCtx);
+        }
         result = recomputeDerivedIfNeeded(deps, documentType, result, authorCtx);
         updated.push(result);
       }
     }
+
+    // BHR-F4-03 (D-B02): the owner changed -> re-derive its animal companions in the same broadcast.
+    rederiveCompanionsOfUpdatedMasters(deps, documentType, updated, authorCtx);
 
     // REQ-CFG-035: a `variantRules.classLevels`/`variantRules.freeArchetype`
     // Setting is read by EVERY Actor's derivation (world-variant-rules.ts),
