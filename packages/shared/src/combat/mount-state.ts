@@ -56,3 +56,13 @@ export function readMountState(token: unknown): MountState {
 export function isMounted(token: unknown): boolean {
   return readMountState(token).mountTokenId !== undefined;
 }
+
+/**
+ * The pack effect "Montado" (-2 circumstance to Reflex saves, BHR-F5-04, REQ-BHR-177): `mount:mount`
+ * embeds it on the rider's actor, `mount:dismount` removes it. Looked up in the compendium by the
+ * server; the `docId` is also the `system.fusion.origin.itemSourceId` the embedded copy carries.
+ */
+export const MOUNTED_EFFECT_REF = {
+  packId: "pf2e.effects-ranger-homebrew",
+  docId: "HbEfMountedStat1",
+} as const;

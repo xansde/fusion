@@ -195,6 +195,7 @@ export type { TokenMark, MarkSetPayload, MarkClearPayload } from "./token-mark.j
 export {
   MOUNT_FLAG_NAMESPACE,
   MOUNT_FLAG_KEY,
+  MOUNTED_EFFECT_REF,
   MountMountPayloadSchema,
   MountDismountPayloadSchema,
   readMountState,
