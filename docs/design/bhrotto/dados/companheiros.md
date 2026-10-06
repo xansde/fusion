@@ -34,6 +34,10 @@ Hunt Prey (Ranger com feat Animal Companion): o companheiro recebe os benefício
 | Savage (de mature)     | cresce 1 tamanho se Medium-; For +2; Des/Con/Sab +1; Atletismo -> expert; +3 dano desarmado; mágico; aprende Advanced Maneuver                                                                                                                                                                                                                 |
 | Incredible/Specialized | Specialized: ataques -> expert; saves/Percepção -> master; Des +1, Int +2; 2 dados -> 3 dados; extra 2->4 ou 3->6; + especialização (Ambusher, Bully, Daredevil, Racer, Tracker, Wrecker). "Incredible" é nome do feat de Ranger/Beastmaster que concede Specialized/avanço — NÃO CONFIRMADO o texto exato do feat (fora do escopo, nível 8+). |
 
+Defesa sem armadura (conferido na onda 5, I-3, AoN Rules ID=2118/2119/2120): as listas de Ágil, Selvagem e Especializado **não** mexem na defesa sem armadura; ela segue **treinada** em todos os estágios. Só as especializações Emboscador e Atrevido a sobem para especialista (fora do escopo, nível 14+). Por isso a CA é `10 + level + 2 + Des (+ barding)` em qualquer estágio.
+
+Linha do Especializado: vem de Ágil **ou** Selvagem, nunca das duas; o vínculo guarda `track` (obrigatório em `specialized`).
+
 Nota: o nome "Support Benefit dobra se nimble ou savage" vem do stat block (2d8 / 2d6).
 
 ## (c) Tipos
