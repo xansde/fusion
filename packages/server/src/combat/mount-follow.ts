@@ -107,6 +107,15 @@ export function applyMountMovement(
 
   // A mounted RIDER moves: players cannot; the GM takes him off the mount.
   if (state.mountTokenId !== undefined) {
+    const mountIdx = next.findIndex((t) => t["_id"] === state.mountTokenId);
+    const mount = mountIdx === -1 ? undefined : next[mountIdx];
+    const confirmed = mount !== undefined && readMountState(mount).riderTokenId === tokenId;
+    // A flag its mount does not confirm (token deleted, never paired) is stale: the rider is free
+    // again and the flag heals; nobody is dragged and nobody is refused for a ghost.
+    if (!confirmed) {
+      next[index] = withMountFlag(patched, undefined);
+      return { ok: true, tokens: next };
+    }
     if (!privileged) {
       return {
         ok: false,
@@ -115,12 +124,7 @@ export function applyMountMovement(
       };
     }
     next[index] = withMountFlag(patched, undefined);
-    const mountIdx = next.findIndex((t) => t["_id"] === state.mountTokenId);
-    const mount = mountIdx === -1 ? undefined : next[mountIdx];
-    // Only a mount that points back at this rider is released; a stale flag never frees another's.
-    if (mount !== undefined && readMountState(mount).riderTokenId === tokenId) {
-      next[mountIdx] = withMountFlag(mount, undefined);
-    }
+    next[mountIdx] = withMountFlag(mount, undefined);
     return { ok: true, tokens: next };
   }
 
