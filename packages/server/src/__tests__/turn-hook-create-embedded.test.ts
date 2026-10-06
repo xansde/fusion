@@ -16,6 +16,7 @@ import { DocumentStore } from "../documents/store.js";
 import { SeqStore } from "../net/seq-store.js";
 import { OpBuffer } from "../net/op-buffer.js";
 import { createDocumentWriteTurnHookContextServices } from "../combat/turn-hook-runner.js";
+import { pf2eSystem } from "@fusion/system-pf2e";
 
 describe("createEmbedded (real hook service)", () => {
   let dataDir: string;
@@ -41,7 +42,7 @@ describe("createEmbedded (real hook service)", () => {
     rmSync(dataDir, { recursive: true, force: true });
   });
 
-  function services() {
+  function services(withSystem = false) {
     const socket = {
       data: { role: 4, userId: "gm" },
       emit: (_e: string, env: unknown) => emitted.push(env),
@@ -53,6 +54,7 @@ describe("createEmbedded (real hook service)", () => {
       seqStore: new SeqStore(fusionDb.raw),
       opBuffer: new OpBuffer(),
       worldId: "w",
+      ...(withSystem ? { systemModule: pf2eSystem } : {}),
     });
   }
 
@@ -81,5 +83,71 @@ describe("createEmbedded (real hook service)", () => {
     store.create("actors", { _id: "hunterActor00002", name: "Caçador", type: "character" });
     await services().createEmbedded("hunterActor00002", []);
     expect(emitted).toHaveLength(0);
+  });
+
+  /**
+   * L2 round 2, D2: an effect a hook embeds changes what the sheet may show (Monster Hunter's +1 against the prey is
+   * published in `system.derived.situationalModifiers`). The stored `derived` the clients read must be recomputed in
+   * the same write, or the sheet keeps the number without the bonus the roll will add.
+   */
+  const hunterEffect = {
+    name: "Caçador de Monstros",
+    type: "effect",
+    system: {
+      slug: "effect-monster-hunter",
+      duration: { value: -1, unit: "unlimited", sustained: false, expiry: null },
+      level: 1,
+      rules: [
+        {
+          kind: "flat-modifier",
+          slug: "monster-hunter",
+          selector: "attack-roll",
+          value: 1,
+          mode: "add",
+          type: "circumstance",
+          predicate: ["target:mark:hunted-prey"],
+        },
+      ],
+    },
+  };
+  const hunter = (id: string) => ({
+    _id: id,
+    name: "Caçador",
+    type: "character",
+    system: {
+      level: { value: 3 },
+      abilities: {
+        str: { value: 18 },
+        dex: { value: 10 },
+        con: { value: 14 },
+        int: { value: 12 },
+        wis: { value: 14 },
+        cha: { value: 10 },
+      },
+      proficiencies: { weapons: { simple: 1, martial: 1 }, armor: { unarmored: 1 } },
+      details: { level: 3 },
+    },
+  });
+  const published = (id: string): string[] => {
+    const derived = (store.get("actors", id)["system"] as { derived?: Record<string, unknown> })
+      .derived;
+    return ((derived?.["situationalModifiers"] as { slug: string }[] | undefined) ?? []).map(
+      (m) => m.slug,
+    );
+  };
+
+  it("re-derives the actor when a hook embeds an effect (the +1 reaches the stored derived)", async () => {
+    store.create("actors", hunter("hunterActor00003"));
+    await services(true).createEmbedded("hunterActor00003", [hunterEffect]);
+    expect(published("hunterActor00003")).toContain("monster-hunter");
+  });
+
+  it("re-derives the actor when a hook removes the effect (the +1 leaves the stored derived)", async () => {
+    store.create("actors", hunter("hunterActor00004"));
+    await services(true).createEmbedded("hunterActor00004", [hunterEffect]);
+    const effectId = (store.get("actors", "hunterActor00004")["items"] as { _id: string }[])[0]!
+      ._id;
+    await services(true).deleteEmbedded("hunterActor00004", [effectId]);
+    expect(published("hunterActor00004")).not.toContain("monster-hunter");
   });
 });

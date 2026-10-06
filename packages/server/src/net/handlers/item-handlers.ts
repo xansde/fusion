@@ -322,6 +322,7 @@ function buildConsumeHookContext(deps: ItemConsumeHandlerDeps, round: number): T
       seqStore: deps.seqStore,
       opBuffer: deps.opBuffer,
       worldId: deps.worldId,
+      ...(deps.systemModule ? { systemModule: deps.systemModule } : {}),
     }),
     applyDamage: (p) => deps.actorMechanicsService.applyDamage(p, "system"),
     worldTime: { round, turn: 0 },

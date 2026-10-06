@@ -59,6 +59,7 @@ import type {
 } from "@fusion/shared";
 import type { SystemModule, TurnHookContext } from "@fusion/system-api";
 import type { DocumentStore } from "../documents/store.js";
+import { recomputeDerivedIfNeeded } from "../documents/derive.js";
 import type { SeqStore } from "../net/seq-store.js";
 import type { OpBuffer } from "../net/op-buffer.js";
 import { broadcastToWorld } from "../net/handlers/doc-handlers.js";
@@ -172,6 +173,13 @@ export interface DocumentWriteTurnHookContextDeps {
   seqStore: SeqStore;
   opBuffer: OpBuffer;
   worldId: string;
+  /**
+   * When present, an embedded write re-derives the actor (`system.derived`) before it is broadcast, like every other
+   * path that changes an actor's items. Without it the stored `derived` stays as it was (L2 round 2, D2: the sheet
+   * kept showing the strike without the Monster Hunter's +1 the roll would add).
+   */
+  systemModule?: SystemModule;
+  logger?: Logger;
 }
 
 /**
@@ -189,6 +197,16 @@ export function createDocumentWriteTurnHookContextServices(
   deps: DocumentWriteTurnHookContextDeps,
 ): Pick<TurnHookContextServices, "createEmbedded" | "deleteEmbedded" | "chat" | "listActors"> {
   const tokenSource = tokenLookupSourceFromStore(deps.store);
+  const rederive = (actor: Record<string, unknown>): Record<string, unknown> =>
+    recomputeDerivedIfNeeded(
+      {
+        store: deps.store,
+        ...(deps.systemModule ? { systemModule: deps.systemModule } : {}),
+        ...(deps.logger ? { logger: deps.logger } : {}),
+      },
+      "Actor",
+      actor,
+    );
 
   return {
     // BHR-F0-03: read-only world snapshot, so a hook can sweep effects that
@@ -220,13 +238,14 @@ export function createDocumentWriteTurnHookContextServices(
         return { ...item, _id: id };
       });
 
-      const updated = deps.store.update(
+      let updated = deps.store.update(
         "actors",
         actorId,
         { items: [...existing, ...created] },
         { userId: null },
       );
       if (!updated) return Promise.resolve();
+      updated = rederive(updated);
 
       const seq = deps.seqStore.next();
       const envelope: Envelope = {
@@ -253,8 +272,9 @@ export function createDocumentWriteTurnHookContextServices(
       // Nothing actually removed — do not burn a seq or wake every client.
       if (kept.length === existing.length) return Promise.resolve();
 
-      const updated = deps.store.update("actors", actorId, { items: kept }, { userId: null });
+      let updated = deps.store.update("actors", actorId, { items: kept }, { userId: null });
       if (!updated) return Promise.resolve();
+      updated = rederive(updated);
 
       const seq = deps.seqStore.next();
       const envelope: Envelope = {

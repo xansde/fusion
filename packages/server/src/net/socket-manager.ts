@@ -556,6 +556,8 @@ export class SocketManager {
         seqStore,
         opBuffer,
         worldId,
+        ...(systemModule ? { systemModule } : {}),
+        logger: this.logger,
       }),
       applyDamage: (p) => actorMechanicsService.applyDamage(p, "system"),
       applyCondition: (p) => actorMechanicsService.applyCondition(p, "system"),
