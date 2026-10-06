@@ -207,7 +207,7 @@
   "FUSION.Sheet.Runes.Property.Slot": "Slot {{n}}",
   "FUSION.Sheet.Runes.Property.Placeholder": "rune name",
   "FUSION.Sheet.Runes.Property.NoSlots": "No slots: each +1 of potency opens one.",
-  "FUSION.Sheet.Runes.Preview": "Preview: attack {{attack}}, damage {{damage}}, critical {{crit}}",
+  "FUSION.Sheet.Runes.Preview": "Preview: attack {{attack}}, damage {{damage}} {{type}}, critical {{crit}}",
   "FUSION.Sheet.Runes.Preview.None": "Preview unavailable: the weapon is not in use.",
   "FUSION.Sheet.Runes.Apply": "Apply",
   "FUSION.Sheet.Inventory.CreateScaffoldingTempItem": "+ Create temporary copy (SCAFFOLDING)",
