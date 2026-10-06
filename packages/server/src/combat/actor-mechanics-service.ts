@@ -240,6 +240,31 @@ function readRollDegree(msg: Record<string, unknown>, rollIndex: number): string
   return typeof degree === "string" ? degree : undefined;
 }
 
+/**
+ * The roll messages nested under a card (`flags.fusion.parentMessageId`) that
+ * the card's own speaker rolled. A maneuver card (Trip/Shove/Grapple) is an
+ * announcement with no snapshot of its own: the graded skill check nested under
+ * it froze the targets. A nested roll of a DIFFERENT speaker never counts, so a
+ * player cannot borrow someone else's frozen targets by nesting under their card.
+ */
+function nestedRollsOfSameSpeaker(
+  store: DocumentStore,
+  card: Record<string, unknown>,
+): Record<string, unknown>[] {
+  const cardId = card["_id"];
+  const speaker = readSpeakerActorId(card);
+  if (typeof cardId !== "string" || speaker === undefined) return [];
+  return store.getAll("chat_messages").filter((m) => {
+    const fusion = (m["flags"] as Record<string, unknown> | undefined)?.["fusion"];
+    return (
+      typeof fusion === "object" &&
+      fusion !== null &&
+      (fusion as Record<string, unknown>)["parentMessageId"] === cardId &&
+      readSpeakerActorId(m) === speaker
+    );
+  });
+}
+
 function readTargetSnapshot(msg: Record<string, unknown>): TargetSnapshotEntry[] {
   const flags = msg["flags"];
   if (!flags || typeof flags !== "object") return [];
@@ -608,7 +633,11 @@ function resolveConditionTargets(
       if (message === undefined) {
         return { ok: false, ack: forbiddenCondition("forbidden") };
       }
-      const frozen = new Set(readTargetSnapshot(message).map((t) => t.tokenId));
+      const frozen = new Set(
+        [message, ...nestedRollsOfSameSpeaker(store, message)].flatMap((m) =>
+          readTargetSnapshot(m).map((t) => t.tokenId),
+        ),
+      );
       const outside = payload.targetTokenIds.filter((id) => !frozen.has(id));
       if (outside.length > 0) {
         return {
