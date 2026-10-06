@@ -41,7 +41,7 @@ export interface ChatCardExtension {
    * to the plain text/roll rendering).
    */
   recognize(message: ChatMessageType): unknown;
-  /** The Svelte component to mount with `{ card, messageId, worldId, socket, isGm, userId }`. */
+  /** The Svelte component to mount with `{ card, messageId, worldId, socket, isGm, userId, children, flags }` (`flags` = the message's own, kept live by `doc:update`). */
   component: ChatCardComponent;
 }
 
