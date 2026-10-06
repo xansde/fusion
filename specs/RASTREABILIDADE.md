@@ -15,9 +15,9 @@ porque ainda não foram prometidos para nenhum marco.
 
 | Situação | Requisitos | Fatia |
 | --- | ---: | ---: |
-| Citados por algum teste | 802 | 36% |
+| Citados por algum teste | 804 | 36% |
 | Citados só por código de produção | 332 | 15% |
-| Sem nenhuma citação | 1119 | 50% |
+| Sem nenhuma citação | 1117 | 50% |
 | **Total [MVP]** | **2253** | |
 
 ## Por spec
@@ -69,4 +69,4 @@ porque ainda não foram prometidos para nenhum marco.
 | [44](44-aba-cenas.md) | 58 | 51 | 1 | 6 | 88% |
 | [45](45-atores.md) | 50 | 2 | 0 | 48 | 4% |
 | [47](47-fabricacao-e-alquimia.md) | 40 | 0 | 0 | 40 | 0% |
-| [52](52-cacador-companheiro-e-montaria.md) | 115 | 24 | 9 | 82 | 21% |
+| [52](52-cacador-companheiro-e-montaria.md) | 115 | 26 | 9 | 80 | 23% |
