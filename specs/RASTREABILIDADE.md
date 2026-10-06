@@ -15,9 +15,9 @@ porque ainda não foram prometidos para nenhum marco.
 
 | Situação | Requisitos | Fatia |
 | --- | ---: | ---: |
-| Citados por algum teste | 823 | 37% |
+| Citados por algum teste | 834 | 37% |
 | Citados só por código de produção | 332 | 15% |
-| Sem nenhuma citação | 1098 | 49% |
+| Sem nenhuma citação | 1087 | 48% |
 | **Total [MVP]** | **2253** | |
 
 ## Por spec
@@ -30,11 +30,11 @@ porque ainda não foram prometidos para nenhum marco.
 | [03](03-persistencia-e-mundos.md) | 36 | 3 | 19 | 14 | 8% |
 | [04](04-rede-e-sincronizacao.md) | 48 | 10 | 21 | 17 | 21% |
 | [05](05-usuarios-e-permissoes.md) | 43 | 18 | 12 | 13 | 42% |
-| [06](06-canvas-e-renderizacao.md) | 89 | 14 | 29 | 46 | 16% |
+| [06](06-canvas-e-renderizacao.md) | 89 | 16 | 29 | 44 | 18% |
 | [07](07-visao-iluminacao-fog.md) | 56 | 8 | 22 | 26 | 14% |
 | [08](08-motor-de-rolagens.md) | 49 | 14 | 12 | 23 | 29% |
-| [09](09-chat-e-mensagens.md) | 55 | 17 | 10 | 28 | 31% |
-| [10](10-combate-e-iniciativa.md) | 54 | 21 | 29 | 4 | 39% |
+| [09](09-chat-e-mensagens.md) | 55 | 18 | 10 | 27 | 33% |
+| [10](10-combate-e-iniciativa.md) | 54 | 22 | 29 | 3 | 41% |
 | [11](11-ui-framework-e-fichas.md) | 62 | 10 | 16 | 36 | 16% |
 | [12](12-journal-tabelas-cartas.md) | 34 | 0 | 0 | 34 | 0% |
 | [13](13-audio-e-playlists.md) | 49 | 0 | 3 | 46 | 0% |
@@ -53,7 +53,7 @@ porque ainda não foram prometidos para nenhum marco.
 | [26](26-licencas-e-legal.md) | 23 | 3 | 0 | 20 | 13% |
 | [27](27-roadmap-e-milestones.md) | 11 | 0 | 0 | 11 | 0% |
 | [28](28-hub-do-jogador.md) | 50 | 0 | 0 | 50 | 0% |
-| [29](29-pets-companions-familiars.md) | 55 | 24 | 9 | 22 | 44% |
+| [29](29-pets-companions-familiars.md) | 55 | 26 | 9 | 20 | 47% |
 | [31](31-base-canonica-de-conteudo.md) | 1 | 1 | 0 | 0 | 100% |
 | [32](32-minimapa-tatico.md) | 14 | 0 | 0 | 14 | 0% |
 | [34](34-mapa-de-regiao.md) | 27 | 0 | 0 | 27 | 0% |
@@ -63,10 +63,10 @@ porque ainda não foram prometidos para nenhum marco.
 | [38](38-aba-chat.md) | 56 | 55 | 0 | 1 | 98% |
 | [39](39-contatos.md) | 67 | 67 | 0 | 0 | 100% |
 | [40](40-aba-combate.md) | 59 | 52 | 2 | 5 | 88% |
-| [41](41-token.md) | 70 | 47 | 6 | 17 | 67% |
+| [41](41-token.md) | 70 | 48 | 6 | 16 | 69% |
 | [42](42-aba-npcs.md) | 59 | 56 | 1 | 2 | 95% |
 | [43](43-aba-compendio.md) | 61 | 59 | 1 | 1 | 97% |
 | [44](44-aba-cenas.md) | 58 | 51 | 1 | 6 | 88% |
 | [45](45-atores.md) | 50 | 2 | 0 | 48 | 4% |
 | [47](47-fabricacao-e-alquimia.md) | 40 | 0 | 0 | 40 | 0% |
-| [52](52-cacador-companheiro-e-montaria.md) | 115 | 33 | 9 | 73 | 29% |
+| [52](52-cacador-companheiro-e-montaria.md) | 115 | 37 | 9 | 69 | 32% |
