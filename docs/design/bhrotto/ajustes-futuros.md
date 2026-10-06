@@ -72,3 +72,4 @@ o que toca e de onde veio. O comportamento de hoje continua até alguém pegar o
 - **Runas além dos espaços (M-8)**: runas de propriedade gravadas acima dos espaços, depois de baixar a potência, ficam invisíveis no editor.
 - **`masterActor` (M-12)**: é re-derivado a cada rolagem do companheiro, mesmo sem Presa (custo, não erro).
 - **Agarrado/contido (M-6)**: a expiração "até o fim do seu próximo turno" fica só no texto, sem expiração no motor.
+- **Carteira (F7-03)**: o "Ajustar carteira" do Mestre não tem campo "motivo" nem registro do ajuste (quem, quando, motivo), que o protótipo T6 mostra.
