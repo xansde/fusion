@@ -6,8 +6,8 @@ import { describe, it, expect } from "vitest";
 import ptBR from "../pt-BR.json";
 import en from "../en.json";
 
-const pt = ptBR as Record<string, string>;
-const english = en as Record<string, string>;
+const pt = ptBR as unknown as Record<string, string>;
+const english = en as unknown as Record<string, string>;
 
 describe("rune editor labels", () => {
   it("numbers the property runes as Espaço N, and counts them in espaços", () => {
