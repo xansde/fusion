@@ -449,6 +449,33 @@ export function isEditableTarget(target: unknown): boolean {
   return el.isContentEditable === true;
 }
 
+/**
+ * Whether an Escape belongs to something else than the map (BHR-F3-01, I6):
+ * another handler already consumed it (`defaultPrevented`), a dialog/modal is
+ * open (the Esc is closing IT), or the focus sits in an editable field. The aim
+ * is only cleared by an Esc that is really aimed at the map. `doc` is the
+ * `document` (absent in a non-DOM environment).
+ */
+export function isEscapeForSomethingElse(
+  e: { defaultPrevented?: boolean; target?: unknown },
+  doc:
+    | {
+        querySelector(selector: string): unknown;
+        activeElement?: unknown;
+      }
+    | undefined,
+): boolean {
+  if (e.defaultPrevented === true) return true;
+  if (isEditableTarget(e.target)) return true;
+  if (doc === undefined) return false;
+  if (isEditableTarget(doc.activeElement)) return true;
+  return (
+    doc.querySelector(
+      'dialog[open], [role="dialog"], [role="alertdialog"], [aria-modal="true"]',
+    ) !== null
+  );
+}
+
 // ---------------------------------------------------------------------------
 // TK110 — opening the sheet from the map (REQ-TOK-110..113)
 // ---------------------------------------------------------------------------

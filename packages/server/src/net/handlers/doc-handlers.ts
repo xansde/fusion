@@ -80,6 +80,7 @@ import {
 } from "../../documents/world-permissions.js";
 import {
   companionGrantAllows,
+  companionGrantLimit,
   companionGroupOf,
   validateCharacterBuild,
   type BuildValidationVariants,
@@ -93,7 +94,13 @@ import {
   TokenDocumentSchema,
 } from "@fusion/shared";
 import type { DocUpdatePayload, Ack, Ownership, Envelope, ErrorCode } from "@fusion/shared";
-import { createDocumentId, touchesKnowledgeFlag, KNOWLEDGE_FLAG_PATH } from "@fusion/shared";
+import {
+  createDocumentId,
+  touchesKnowledgeFlag,
+  touchesTokenMarksFlag,
+  stripTokenMarksOnCreate,
+  KNOWLEDGE_FLAG_PATH,
+} from "@fusion/shared";
 import { touchesAttitudeFlag, ATTITUDE_FLAG_PATH } from "@fusion/shared";
 import {
   sweepCharactersFromKnowledge,
@@ -369,6 +376,25 @@ const EMBEDDED_COLLECTION_BY_PARENT: Record<string, string> = Object.fromEntries
  * them here as well would only trade one rejection for another, so the guard
  * stays narrow: it names the shape that would otherwise succeed.
  */
+/**
+ * Does this expanded `doc:update` diff write the companion's link to its master
+ * (`system.companionKind`, `system.masterActorId`, `system.companion.grantSlotId`) or flips
+ * `system.companion.active`?
+ * A `system` (or `system.companion`) set to a non-object counts: it would replace them whole.
+ */
+function touchesCompanionLink(expanded: Record<string, unknown>): boolean {
+  if (!("system" in expanded)) return false;
+  const system = expanded["system"];
+  if (typeof system !== "object" || system === null || Array.isArray(system)) return true;
+  const sys = system as Record<string, unknown>;
+  if ("companionKind" in sys || "masterActorId" in sys) return true;
+  if (!("companion" in sys)) return false;
+  const companion = sys["companion"];
+  if (typeof companion !== "object" || companion === null || Array.isArray(companion)) return true;
+  // `active` is the server's call (DC-07: one active companion per master); swapping it is BHR-F4-10.
+  return "grantSlotId" in companion || "active" in companion;
+}
+
 function rejectUnwritableField(
   documentType: string,
   expandedDiff: Record<string, unknown>,
@@ -417,6 +443,33 @@ function rejectUnwritableField(
     return ackError(
       "VALIDATION_FAILED",
       `${KNOWLEDGE_FLAG_PATH} is not writable through doc:update — use the actor:setKnowledge operation`,
+    );
+  }
+
+  // `Actor.flags.fusion.tokenMarks` (BHR-F3-06, REQ-BHR-087/088): the Prey is
+  // checked on `mark:set` (own actor, own live target, exclusive forced) — and
+  // this path authorizes on `ownership` only, so an owner could write the array
+  // whole and skip every one of those rules. Only a privileged writer may.
+  if (documentType === "Actor" && !isPrivileged(role) && touchesTokenMarksFlag(expandedDiff)) {
+    return ackError(
+      "PERMISSION_DENIED",
+      "flags.fusion.tokenMarks is not writable through doc:update — use mark:set / mark:clear",
+    );
+  }
+
+  // The companion's link to its master (BHR-F4-04, REQ-PET-110/111, DC-07): the kind, the master and the
+  // grant slot are fixed when the companion is CREATED (where the cap, the mount refusal and the slot
+  // uniqueness are checked) — an owner rewriting them here would free a slot, turn a pet into a mount, or
+  // void the unique slot. The Mestre keeps full control. The subtype is read off the STORED document.
+  if (
+    documentType === "Actor" &&
+    !isPrivileged(role) &&
+    existing?.["type"] === "familiar" &&
+    touchesCompanionLink(expandedDiff)
+  ) {
+    return ackError(
+      "PERMISSION_DENIED",
+      "system.companionKind, system.masterActorId, system.companion.grantSlotId and system.companion.active are not writable through doc:update by a player",
     );
   }
 
@@ -469,12 +522,19 @@ function getOwnershipFromDoc(doc: Record<string, unknown>): Ownership {
 //         THAT companionKind (companionGrantAllows, read live from the
 //         master's embedded items on the SERVER — the client CTA is advisory,
 //         this is authoritative): a familiar-granting feat for familiar/pet,
-//         the Summoner class (by sourceId) for eidolon; a kind with no
-//         detector (animalCompanion, mount) is never granted to a player
+//         the Summoner class (by sourceId) for eidolon, an Animal Companion
+//         feat or the Beastmaster Dedication for animalCompanion (REQ-PET-109);
+//         a kind with no detector (mount) is never granted to a player
 //         (spec 29 DEC-PET-03, REQ-PET-092);
-//     (d) the master has no companion of the same GROUP linked yet
-//         (familiar+pet share one slot, eidolon is its own; a second is
-//         rejected as a duplicate — REQ-PET-093).
+//     (d) the master has fewer companions of the same GROUP than its cap
+//         (familiar+pet share one slot, eidolon is its own, both capped at 1;
+//         animalCompanion is capped at the NUMBER OF GRANTS the master carries,
+//         counted here on the server — REQ-PET-093, REQ-PET-110, DC-07). The
+//         companions of the SAME batch count too, so one doc:create cannot
+//         step over the cap;
+//     (e) an animalCompanion carries the `grantSlotId` of the Plan slot that
+//         creates it and no other companion of that master already holds it
+//         (REQ-PET-111). The GM skips (c)-(e): it never reaches this gate.
 //     On success the created familiar's ownership is FORCED to the master's
 //     ownership map (the master's owners become the familiar's owners), never
 //     trusting a client-supplied ownership.
@@ -513,19 +573,63 @@ function isCompanionDoc(doc: Record<string, unknown>): boolean {
   );
 }
 
-/**
- * Whether the master already has a companion of `kind`'s group linked
- * (condition d, REQ-PET-093). Scans the actors table filtered to companions
- * and matches masterActorId + group.
- */
-function masterHasCompanionOfGroup(store: DocumentStore, masterId: string, kind: string): boolean {
+/** The companions of `kind`'s group already linked to the master. */
+function companionsOfGroup(
+  store: DocumentStore,
+  masterId: string,
+  kind: string,
+): Array<Record<string, unknown>> {
   const group = companionGroupOf(kind);
-  const companions = store.getAll("actors", { type: COMPANION_ACTOR_TYPE });
-  return companions.some(
-    (c) =>
-      readMasterActorId(c) === masterId &&
-      companionGroupOf(readCompanionKind(c) ?? "familiar") === group,
-  );
+  return store
+    .getAll("actors", { type: COMPANION_ACTOR_TYPE })
+    .filter(
+      (c) =>
+        readMasterActorId(c) === masterId &&
+        companionGroupOf(readCompanionKind(c) ?? "familiar") === group,
+    );
+}
+
+/** Read `system.companion.grantSlotId` (CompanionLink) from a raw doc, or null. */
+function readGrantSlotId(doc: Record<string, unknown>): string | null {
+  const sys = doc["system"];
+  if (!sys || typeof sys !== "object" || Array.isArray(sys)) return null;
+  const link = (sys as Record<string, unknown>)["companion"];
+  if (!link || typeof link !== "object" || Array.isArray(link)) return null;
+  const raw = (link as Record<string, unknown>)["grantSlotId"];
+  return typeof raw === "string" && raw.length > 0 ? raw : null;
+}
+
+/**
+ * DEC-BHR-10 / DC-07: a master has ONE active animal companion, and the server decides which — never
+ * the client. The first companion created is born active; any later one is born inactive and the
+ * companion that was already active stays active (switching is the owner's explicit action,
+ * BHR-F4-10). Applies to every creator (player and GM) of a companion carrying a
+ * `system.companion` link; runs per item, so a batch sees the items persisted before it.
+ */
+function decideCompanionActiveOnCreate(
+  store: DocumentStore,
+  item: Record<string, unknown>,
+): Record<string, unknown> {
+  if (!isCompanionDoc(item) || readCompanionKind(item) !== "animalCompanion") return item;
+  const sys = item["system"] as Record<string, unknown>;
+  const link = sys["companion"];
+  if (!link || typeof link !== "object" || Array.isArray(link)) return item;
+  const masterId = readMasterActorId(item);
+  if (!masterId) return item;
+  const hasActive = companionsOfGroup(store, masterId, "animalCompanion").some((c) => {
+    const l = (c["system"] as Record<string, unknown>)["companion"];
+    return !!l && typeof l === "object" && (l as Record<string, unknown>)["active"] === true;
+  });
+  return {
+    ...item,
+    system: { ...sys, companion: { ...(link as Record<string, unknown>), active: !hasActive } },
+  };
+}
+
+/** Companions of one master+group already accepted earlier in the SAME create batch. */
+interface BatchCompanions {
+  count: number;
+  slotIds: Set<string>;
 }
 
 /** Outcome of the player-companion create authorization. */
@@ -541,6 +645,7 @@ function authorizePlayerCompanionCreate(
   deps: Pick<DocHandlerDeps, "store" | "systemId" | "systemModule">,
   ctx: HandlerContext,
   companion: Record<string, unknown>,
+  batch: Map<string, BatchCompanions> = new Map(),
 ): CompanionCreateAuth {
   // (c-guard) Only worlds whose system includes pf2e grant familiars — the
   // literal pf2e system, or the pf2e+sf2e composite (DEC-SYS-06-bis, I4);
@@ -588,14 +693,40 @@ function authorizePlayerCompanionCreate(
     };
   }
 
-  // (d) One companion per group per master (REQ-PET-093).
-  if (masterHasCompanionOfGroup(deps.store, masterId, kind)) {
+  // (d) The group's cap: 1 for familiar/pet/eidolon, the number of grants for
+  // animalCompanion (REQ-PET-093, REQ-PET-110). Batch-mates count.
+  const existing = companionsOfGroup(deps.store, masterId, kind);
+  const batchKey = `${masterId}:${companionGroupOf(kind)}`;
+  const inBatch = batch.get(batchKey) ?? { count: 0, slotIds: new Set<string>() };
+  if (existing.length + inBatch.count >= companionGrantLimit(kind, master)) {
     return {
       ok: false,
       code: "VALIDATION_FAILED",
-      message: `Master already has a companion of kind "${kind}"`,
+      message: `Master already has the allowed number of companions of kind "${kind}"`,
     };
   }
+
+  // (e) An animal companion is born from one Plan slot (REQ-PET-111).
+  const slotId = readGrantSlotId(companion);
+  if (kind === "animalCompanion") {
+    if (slotId === null) {
+      return {
+        ok: false,
+        code: "VALIDATION_FAILED",
+        message: "An animal companion needs system.companion.grantSlotId",
+      };
+    }
+    if (inBatch.slotIds.has(slotId) || existing.some((c) => readGrantSlotId(c) === slotId)) {
+      return {
+        ok: false,
+        code: "VALIDATION_FAILED",
+        message: `Grant slot "${slotId}" already created a companion`,
+      };
+    }
+    inBatch.slotIds.add(slotId);
+  }
+  inBatch.count += 1;
+  batch.set(batchKey, inBatch);
 
   return { ok: true, master };
 }
@@ -978,10 +1109,11 @@ export function buildDocCreateHandler(deps: DocHandlerDeps): HandlerFn {
         } else {
           // Every item must be an authorized companion, else deny the whole
           // batch (O6 fixer C6: the own-character branch was removed here).
+          const companionsInBatch = new Map<string, BatchCompanions>();
           for (let i = 0; i < data.length; i++) {
             const item = data[i] as Record<string, unknown>;
             if (isCompanionDoc(item)) {
-              const auth = authorizePlayerCompanionCreate(deps, ctx, item);
+              const auth = authorizePlayerCompanionCreate(deps, ctx, item, companionsInBatch);
               if (!auth.ok) {
                 return ackError(auth.code, auth.message);
               }
@@ -1059,6 +1191,8 @@ export function buildDocCreateHandler(deps: DocHandlerDeps): HandlerFn {
           // (a hazard, CA-NPC-010) — otherwise the create path would author a
           // field `doc:update` refuses.
           item = sanitizeAttitudeOnCreate(item, isPrivileged(ctx.role));
+          // BHR-F3-06: marks are authored by mark:set only (doc:update refuses them too).
+          item = stripTokenMarksOnCreate(item, isPrivileged(ctx.role));
           // O6/T6.2: a create payload IS the full document (no `existing` to
           // merge onto), so it can be validated as-is — same gate the update
           // path applies to the merged document.
@@ -1082,6 +1216,7 @@ export function buildDocCreateHandler(deps: DocHandlerDeps): HandlerFn {
         } else if (documentType === "Actor") {
           item = inheritMasterOwnershipOnCreate(deps.store, item);
         }
+        if (documentType === "Actor") item = decideCompanionActiveOnCreate(deps.store, item);
         let doc = deps.store.create(table as never, item, authorCtx);
         // WIRING-DERIVE: populate system.derived for newly created Actors.
         doc = recomputeDerivedIfNeeded(deps, documentType, doc, authorCtx);
@@ -1192,6 +1327,18 @@ export function buildDocUpdateHandler(deps: DocHandlerDeps): HandlerFn {
     }
     const payload = parsed.data;
     const { documentType, updates } = payload;
+
+    // Prototype pollution: refuse before anything is looked up or expanded. Covers the three
+    // applyDotPathDiff entry points (primary, embedded, token) because they all pass through here.
+    for (const upd of updates) {
+      const polluting = findPollutingKey(upd.diff);
+      if (polluting !== null) {
+        return ackError(
+          "VALIDATION_FAILED",
+          `Diff for ${documentType}/${upd._id} contains the forbidden key segment "${polluting}"`,
+        );
+      }
+    }
 
     // Types the chat handlers own (REQ-CHT-005 / REQ-ACH-080 / REQ-ACH-090).
     // Checked against every embedded type in the batch as well, so an
@@ -2662,6 +2809,32 @@ function stripSystemDerived(diff: Record<string, unknown>): Record<string, unkno
     result[key] = value;
   }
   return result;
+}
+
+const POLLUTING_SEGMENTS = new Set(["__proto__", "constructor", "prototype"]);
+
+/**
+ * First key segment in a client diff that could reach Object.prototype, or null. Checks every dotted
+ * segment of every key and every nested object/array key in the values, at any depth.
+ */
+function findPollutingKey(value: unknown, depth = 0): string | null {
+  if (depth > 64) return "<too deep>";
+  if (Array.isArray(value)) {
+    for (const item of value) {
+      const found = findPollutingKey(item, depth + 1);
+      if (found !== null) return found;
+    }
+    return null;
+  }
+  if (value === null || typeof value !== "object") return null;
+  for (const [key, child] of Object.entries(value as Record<string, unknown>)) {
+    for (const segment of key.split(".")) {
+      if (POLLUTING_SEGMENTS.has(segment)) return segment;
+    }
+    const found = findPollutingKey(child, depth + 1);
+    if (found !== null) return found;
+  }
+  return null;
 }
 
 // ---------------------------------------------------------------------------

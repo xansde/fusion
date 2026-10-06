@@ -108,6 +108,10 @@ export const EnvelopeTypeSchema = z.union([
   // The one way in: doc:update refuses the flag path outright, so knowledge
   // never rides an ordinary document write (REQ-CTT-070/072/080).
   z.literal("actor:setKnowledge"),
+  // Spec 52 REQ-BHR-086..090 (BHR-F3-06): the Prey (TokenMark) persisted on the
+  // marking actor — not doc:update (permission is "own actor + own target").
+  z.literal("mark:set"),
+  z.literal("mark:clear"),
   // Spec 42 — removing a folder without removing anything it held (REQ-NPC-022).
   // Not doc:delete: that path drops the row and stops, leaving every actor of the
   // folder pointing at an id that is gone and every subfolder orphaned.
@@ -640,6 +644,7 @@ export const ExpiryOnSchema = z.enum([
   "combat-end",
   "daily-prep",
   "never",
+  "after-roll",
 ]);
 
 export type ExpiryOn = z.infer<typeof ExpiryOnSchema>;
@@ -649,6 +654,8 @@ export const FusionExpirySchema = z
     on: ExpiryOnSchema,
     ownerActorId: z.string().min(1),
     remainingRounds: z.number().int().nonnegative().optional(),
+    // `after-roll` only (BHR-F2-06, DC-05): the roll that spends the effect.
+    rollPredicate: z.array(z.string().min(1)).max(16).optional(),
   })
   .strict();
 

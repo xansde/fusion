@@ -56,6 +56,8 @@ import type {
   AbilityCard,
   SaveCheckContext,
   ChatTargetRef,
+  AttackCheckContext,
+  CheckContext,
   RollTarget,
 } from "@fusion/shared";
 
@@ -71,6 +73,7 @@ import type { Ownership } from "../documents/ownership.js";
 import {
   redactBlindRollForNonPrivileged,
   redactChatDamageAppliedForNonPrivileged,
+  redactChatEffectExpiryForNonPrivileged,
   redactChatTargetsForNonPrivileged,
   redactChatTargetSnapshotForNonPrivileged,
   redactSceneDocsForNonPrivileged,
@@ -82,6 +85,17 @@ import type { RollServiceOptions } from "./roll-service.js";
 import type { DocumentStore } from "../documents/store.js";
 import type { TargetingStore } from "../combat/targeting-store.js";
 import { resolveTargetSelection } from "../combat/target-selection.js";
+import type { ResolvedTarget } from "../combat/target-selection.js";
+import type { Logger } from "pino";
+import type { SystemModule, TurnHookContext } from "@fusion/system-api";
+import {
+  conditionalRollFormula,
+  finalizeRollResolution,
+  prepareRollResolution,
+  runRollResolvedHooks,
+} from "./roll-resolution.js";
+import type { TokenMarkSource } from "./roll-resolution.js";
+import type { MapCounter } from "../combat/map-counter.js";
 
 // ---------------------------------------------------------------------------
 // Types
@@ -105,6 +119,19 @@ export interface ChatHandlerDeps {
    */
   store?: DocumentStore;
   targetingStore?: TargetingStore;
+  /**
+   * BHR-F2-05 (ALQ-F4-09): the active system, whose roll resolver settles a
+   * roll's conditional modifiers and notes and whose `onRollResolved`
+   * listeners run once per resolved roll. Absent = rolls carry no resolution.
+   */
+  systemModule?: SystemModule;
+  /** Marks on a roll's target (`target:mark:*`); BHR-F3-06 provides the real one. */
+  tokenMarkSource?: TokenMarkSource;
+  /** The `TurnHookContext` handed to `onRollResolved` listeners; a stub when absent. */
+  rollHookContext?: () => TurnHookContext;
+  logger?: Pick<Logger, "error">;
+  /** BHR-F3-04: counts the multiple attack penalty when an attack is graded. */
+  mapCounter?: MapCounter;
 }
 
 // ---------------------------------------------------------------------------
@@ -275,14 +302,16 @@ function buildPayloadForSocket(
   // every `return` below hands out the already-redacted body.
   const msg = socketIsPrivileged
     ? fullMessage
-    : redactChatDamageAppliedForNonPrivileged(
-        redactChatTargetSnapshotForNonPrivileged(
-          redactChatTargetsForNonPrivileged(fullMessage),
+    : redactChatEffectExpiryForNonPrivileged(
+        redactChatDamageAppliedForNonPrivileged(
+          redactChatTargetSnapshotForNonPrivileged(
+            redactChatTargetsForNonPrivileged(fullMessage),
+            socketUserId,
+            tokenSource,
+          ),
           socketUserId,
           tokenSource,
         ),
-        socketUserId,
-        tokenSource,
       );
 
   const whisper = msg.whisper;
@@ -486,10 +515,32 @@ export function buildChatSendHandler(deps: ChatHandlerDeps): HandlerFn {
       // --- Roll command ---
       const effectiveMode: RollMode = payload.rollMode ?? command.mode;
 
+      // --- Roll context (BHR-F2-05 / ALQ-F4-09, DF-17) ---
+      // The conditional modifiers are resolved BEFORE the dice, against the
+      // roll's one target, and appended to the formula, so the server's own
+      // total and degree already count them. The target photo (the author's
+      // `combat:target` selection) is still taken once, for the stored message.
+      const targetSnapshot = readTargetSnapshot(deps, ctx.userId);
+      // ONE source of target per roll (B1): the `payload.target` the server
+      // resolves is the target of the conditional modifiers, of the degree and
+      // of the MAP. A save check grades against its own DC, so it has none.
+      const checkContext = payload.flags?.checkContext;
+      const aimedRef = attackTargetRef(payload.target, checkContext);
+      const rollTarget =
+        aimedRef !== null && checkContext?.kind !== "save"
+          ? resolveRollTarget(deps.db, aimedRef, ctx)
+          : null;
+      const resolution = prepareRollResolution(
+        deps,
+        payload.flags?.fusion?.rollContext,
+        ctx,
+        rollTarget === null ? [] : [rollTarget.entry],
+      );
+
       let rollResult: RollResultData;
       try {
         rollResult = rollService.roll({
-          formula: command.formula,
+          ...conditionalRollFormula(command.formula, resolution),
           mode: effectiveMode,
           worldId: deps.worldId,
           userId: ctx.userId,
@@ -509,7 +560,6 @@ export function buildChatSendHandler(deps: ChatHandlerDeps): HandlerFn {
       // When the client attached a validated save checkContext, grade the roll
       // AUTHORITATIVELY here (never on the client). The DC came from the card's
       // coherence-checked spellcasting DC; the total was rolled by the server.
-      const checkContext = payload.flags?.checkContext;
       let gradedSave: SaveCheckContext | null = null;
       if (checkContext?.kind === "save") {
         const degree = computeSaveDegree(rollResult, checkContext);
@@ -527,16 +577,25 @@ export function buildChatSendHandler(deps: ChatHandlerDeps): HandlerFn {
       // roll — so "has a target" and "has a degree" never disagree.
       // A roll already graded by a save checkContext keeps that grading: the DC
       // of a save is the caster's, not the target's AC.
-      const targetPortrait =
-        payload.target !== undefined && gradedSave === null
-          ? resolveTargetPortrait(deps.db, payload.target, ctx)
-          : null;
+      const targetPortrait = gradedSave === null ? (rollTarget?.portrait ?? null) : null;
       let messageTargets: RollTarget[] | undefined;
+      let gradedAttack: AttackCheckContext | null = null;
       if (targetPortrait !== null && targetPortrait.ac !== undefined) {
         const degree = computeAttackDegree(rollResult, targetPortrait.ac);
         if (degree !== null) {
           rollResult = { ...rollResult, degreeOfSuccess: degree, target: targetPortrait };
           messageTargets = [targetPortrait];
+          if (checkContext?.kind === "attack") gradedAttack = checkContext;
+          deps.mapCounter?.noteAttackFromSpeaker(
+            deps.store,
+            {
+              userId: ctx.userId,
+              role: ctx.role,
+              actorId: payload.speakerActorId,
+              tokenId: payload.speakerTokenId,
+            },
+            { countsForMap: true },
+          );
         }
       }
 
@@ -567,29 +626,68 @@ export function buildChatSendHandler(deps: ChatHandlerDeps): HandlerFn {
         };
       }
 
+      // The strike's own context (BHR-F3-03), stored only when the server really
+      // graded the roll — so the card never offers a damage button for a degree
+      // that does not exist. The target token and the AC are not repeated here:
+      // the message already carries the portrait, and the AC stays out of it.
+      if (gradedAttack !== null) {
+        msg.flags = {
+          ...msg.flags,
+          [SPELLCAST_FLAG_NAMESPACE]: {
+            ...msg.flags[SPELLCAST_FLAG_NAMESPACE],
+            [CHECK_CONTEXT_FLAG_KEY]: {
+              kind: "attack",
+              mapIndex: gradedAttack.mapIndex,
+              ...(gradedAttack.agile !== undefined ? { agile: gradedAttack.agile } : {}),
+            },
+          },
+        };
+      }
+
       // Parent linkage (r18-N1): an attack / damage / save roll fired from a
       // spell-cast card carries the announcement's id so the client nests it
       // under that card. Dangling parent → dropped (still delivered top-level).
       attachParentFlag(msg, resolveParentMessageId(deps.db, payload.flags?.parentMessageId));
-      attachTargetSnapshot(msg, deps, ctx.userId);
+      attachTargetSnapshot(msg, deps, ctx.userId, targetSnapshot);
+      if (resolution !== null) {
+        finalizeRollResolution(msg, resolution, rollResult.degreeOfSuccess ?? null);
+      }
 
       persistChatMessage(deps.db, msg);
-      const seq = broadcastChatMessage(
-        deps.ns,
-        deps.seqStore,
-        msg,
-        ctx.userId,
-        CHAT_BROADCAST_EVENT,
-        tokenSource,
-      );
+      const deliverRoll = () => {
+        const seq = broadcastChatMessage(
+          deps.ns,
+          deps.seqStore,
+          msg,
+          ctx.userId,
+          CHAT_BROADCAST_EVENT,
+          tokenSource,
+        );
 
-      return {
-        ok: true,
-        seq,
-        result: {
-          message: redactForAuthor(msg, ctx.userId, isRolePrivileged(ctx.role), tokenSource),
-        },
+        return {
+          ok: true as const,
+          seq,
+          result: {
+            message: redactForAuthor(msg, ctx.userId, isRolePrivileged(ctx.role), tokenSource),
+          },
+        };
       };
+      if (resolution === null) return deliverRoll();
+
+      // onRollResolved: once per resolved roll, after persisting and before
+      // the broadcast (REQ-BHR-053; same order as the turn hooks, D-13).
+      return runRollResolvedHooks(
+        deps.systemModule,
+        {
+          message: msg,
+          rollContext: resolution.rollContext,
+          degree: rollResult.degreeOfSuccess ?? null,
+          targets: targetSnapshot,
+          targetOptions: resolution.targetOptions,
+        },
+        deps.rollHookContext,
+        deps.logger,
+      ).then(deliverRoll);
     }
 
     if (command.kind === "whisper") {
@@ -1332,14 +1430,16 @@ function redactForViewer(
   // already-redacted body.
   const msg = privileged
     ? fullMessage
-    : redactChatDamageAppliedForNonPrivileged(
-        redactChatTargetSnapshotForNonPrivileged(
-          redactChatTargetsForNonPrivileged(fullMessage),
+    : redactChatEffectExpiryForNonPrivileged(
+        redactChatDamageAppliedForNonPrivileged(
+          redactChatTargetSnapshotForNonPrivileged(
+            redactChatTargetsForNonPrivileged(fullMessage),
+            viewerId,
+            tokenSource,
+          ),
           viewerId,
           tokenSource,
         ),
-        viewerId,
-        tokenSource,
       );
 
   const whisper = msg.whisper;
@@ -1403,14 +1503,16 @@ function redactForAuthor(
   tokenSource?: TokenLookupSource,
 ): ChatMessage {
   if (privileged) return msg;
-  const withoutAc = redactChatDamageAppliedForNonPrivileged(
-    redactChatTargetSnapshotForNonPrivileged(
-      redactChatTargetsForNonPrivileged(msg),
+  const withoutAc = redactChatEffectExpiryForNonPrivileged(
+    redactChatDamageAppliedForNonPrivileged(
+      redactChatTargetSnapshotForNonPrivileged(
+        redactChatTargetsForNonPrivileged(msg),
+        authorId,
+        tokenSource,
+      ),
       authorId,
       tokenSource,
     ),
-    authorId,
-    tokenSource,
   );
   if (withoutAc.blind && withoutAc.speaker.userId === authorId) {
     return redactBlindRollForNonPrivileged(withoutAc);
@@ -1617,7 +1719,7 @@ function findTokenById(
   tokenId: string,
   privileged: boolean,
   userId?: string,
-): { name: string; actorId: string | null } | null {
+): { name: string; actorId: string | null; sceneId: string } | null {
   let rows: { data: string }[];
   try {
     rows = db.prepare(`SELECT data FROM scenes`).all() as { data: string }[];
@@ -1644,7 +1746,8 @@ function findTokenById(
         if (raw["_id"] !== tokenId) continue;
         const name = typeof raw["name"] === "string" ? raw["name"] : "";
         const actorId = typeof raw["actorId"] === "string" ? raw["actorId"] : null;
-        return { name, actorId };
+        const sceneId = typeof visible["_id"] === "string" ? visible["_id"] : "";
+        return { name, actorId, sceneId };
       }
     }
   }
@@ -1691,17 +1794,31 @@ function mayNameActorDirectly(db: Db, actorId: string, ctx: HandlerContext): boo
  * actor he does not observe gets `null` — the same "no portrait, no degree"
  * outcome as a dangling reference (REQ-ACH-092). The name of what the Mestre
  * hid is not published by the chat.
+ *
+ * The roll's ONE target (BHR-F2-05, DF-17): the portrait that grades the roll
+ * and feeds the MAP, plus the token/actor ids the conditional modifiers are
+ * resolved against. Both come from the same resolution of `payload.target`, so
+ * the bonus and the degree can never read different targets. `tokenId` is ""
+ * when the client named an actor directly (no token, so no marks).
  */
-function resolveTargetPortrait(db: Db, ref: ChatTargetRef, ctx: HandlerContext): RollTarget | null {
+function resolveRollTarget(
+  db: Db,
+  ref: ChatTargetRef,
+  ctx: HandlerContext,
+): { portrait: RollTarget; entry: ResolvedTarget } | null {
   const privileged = isRolePrivileged(ctx.role);
   let name = "";
   let actorId: string | null = ref.actorId ?? null;
+  let tokenId = "";
+  let sceneId = "";
 
   if (ref.tokenId !== undefined) {
     const token = findTokenById(db, ref.tokenId, privileged, ctx.userId);
     if (token === null) return null;
     name = token.name;
     actorId = token.actorId ?? ref.actorId ?? null;
+    tokenId = ref.tokenId;
+    sceneId = token.sceneId;
   } else if (actorId !== null && !mayNameActorDirectly(db, actorId, ctx)) {
     return null;
   }
@@ -1717,7 +1834,24 @@ function resolveTargetPortrait(db: Db, ref: ChatTargetRef, ctx: HandlerContext):
     name = actorName;
   }
 
-  return { name, ac };
+  return { portrait: { name, ac }, entry: { tokenId, actorId, sceneId } };
+}
+
+/**
+ * The ONE target ref of a roll (BHR-F3-03): `payload.target` names it, and an
+ * attack `checkContext` names it too. Naming different tokens is an incoherent
+ * request (a payload naming only an actor cannot be tied to the context's
+ * token), so there is no target and no degree (REQ-ACH-071); with only the
+ * context, its `targetTokenId` resolves.
+ */
+function attackTargetRef(
+  target: ChatTargetRef | undefined,
+  checkContext: CheckContext | undefined,
+): ChatTargetRef | null {
+  if (checkContext?.kind !== "attack") return target ?? null;
+  if (target === undefined) return { tokenId: checkContext.targetTokenId };
+  if (target.tokenId !== checkContext.targetTokenId) return null;
+  return target;
 }
 
 /**
@@ -1802,12 +1936,14 @@ function attachParentFlag(msg: ChatMessage, parentId: string | undefined): void 
  * harnesses that don't wire targeting) fall back to an empty snapshot rather
  * than throwing — `[]` is already the documented "no target" shape.
  */
-function attachTargetSnapshot(msg: ChatMessage, deps: ChatHandlerDeps, authorId: string): void {
+function attachTargetSnapshot(
+  msg: ChatMessage,
+  deps: ChatHandlerDeps,
+  authorId: string,
+  taken?: ResolvedTarget[],
+): void {
   if (!msg.rolls || msg.rolls.length === 0) return;
-  const targetSnapshot =
-    deps.store && deps.targetingStore
-      ? resolveTargetSelection(deps.store, deps.targetingStore, authorId)
-      : [];
+  const targetSnapshot = taken ?? readTargetSnapshot(deps, authorId);
   msg.flags = {
     ...msg.flags,
     [PARENT_FLAG_NAMESPACE]: {
@@ -1815,6 +1951,17 @@ function attachTargetSnapshot(msg: ChatMessage, deps: ChatHandlerDeps, authorId:
       [TARGET_SNAPSHOT_FLAG_KEY]: targetSnapshot,
     },
   };
+}
+
+/**
+ * The author's live target selection, resolved (D-02). `[]` without the
+ * targeting deps. BHR-F2-05: the roll branch reads it once, before the dice,
+ * and hands the same photo to the resolution and to the stored message.
+ */
+function readTargetSnapshot(deps: ChatHandlerDeps, authorId: string): ResolvedTarget[] {
+  return deps.store && deps.targetingStore
+    ? resolveTargetSelection(deps.store, deps.targetingStore, authorId)
+    : [];
 }
 
 /**

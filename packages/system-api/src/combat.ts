@@ -203,6 +203,15 @@ export interface TurnHookContext {
   updateActor(actorId: string, diff: Record<string, unknown>): Promise<void>;
   createEmbedded(actorId: string, items: Record<string, unknown>[]): Promise<void>;
   deleteEmbedded(actorId: string, itemIds: string[]): Promise<void>;
+  /**
+   * Read-only snapshot of every Actor document in the world, fresh at call
+   * time (BHR-F0-03). A turn hook is handed only the actor whose turn is
+   * transitioning, which is not enough for effects that live on OTHER actors
+   * but count by this one's turn (`fusion.expiry.ownerActorId`, REQ-BHR-005..007).
+   * Reads go through the same document store as every other write; the hook
+   * still writes only through the methods above.
+   */
+  listActors(): Record<string, unknown>[];
   worldTime: { round: number; turn: number };
 }
 

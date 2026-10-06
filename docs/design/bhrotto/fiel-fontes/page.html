@@ -1,0 +1,167 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Bhrotto Raiz-funda: protótipo fiel</title>
+<style>/*__PAGECSS__*/</style>
+</head>
+<body>
+<header class="top">
+  <div class="top__row">
+    <h1>Bhrotto Raiz-funda: telas-alvo sobre as telas reais do Fusion</h1>
+    <div class="toggles">
+      <label class="nw-lbl"><input type="checkbox" id="tgNew" checked /> mostrar o que é novo (contorno tracejado)</label>
+      <label><input type="checkbox" id="tgNotes" checked /> notas de design</label>
+      <label><input type="checkbox" id="tgFit" checked /> ajustar à largura</label>
+    </div>
+  </div>
+  <p>Cada tela é o DOM e o CSS reais do app rodando (Plano, ficha, NPC, chat, mapa), capturados e embutidos; só o que está com contorno tracejado é novo e reaproveita as classes da ficha. Decisões D-B01..D-B13 em <code>docs/design/bhrotto/decisoes.md</code>. Números ilustrativos onde a derivação nova ainda não existe; os da ficha do Bhrotto vêm da ficha real montada no app.</p>
+  <nav class="switcher" id="switcher">
+    <button data-screen="t1">1 · Plano (builder)</button>
+    <button data-screen="t2">2 · Ficha do companheiro</button>
+    <button data-screen="t3">3 · Bhrotto: combate</button>
+    <button data-screen="t4">4 · Mapa</button>
+    <button data-screen="t5">5 · Cards de chat</button>
+    <button data-screen="t6">6 · Inventário</button>
+  </nav>
+</header>
+<main>
+
+<!-- ======================================================= T1 -->
+<section class="screen" data-screen="t1">
+  <h2>1 · Plano: companheiros e Floração Nobre</h2>
+  <p class="sub">O talento de classe Animal de Companhia abre um sub-slot "Escolher companheiro"; a Dedicação de Domador de Bestas abre o segundo. No nível 3, a Floração Nobre só entra no slot geral com liberação do Mestre.</p>
+  <div class="states">
+    <span class="states__tag">estados</span>
+    <span class="sg"><span class="sg__label">1º companheiro</span><button data-set="t1pick=closed">vazio</button><button data-set="t1pick=open">picker aberto</button><button data-set="t1pick=urso">urso</button><button data-set="t1pick=antilope">antílope</button></span>
+    <span class="sg"><span class="sg__label">2º (nível 2)</span><button data-set="t1pick2=closed">vazio</button><button data-set="t1pick2=open">picker aberto</button><button data-set="t1pick2=chosen">escolhido</button></span>
+    <span class="sg"><span class="sg__label">Floração Nobre</span><button data-flip="t1gm">liberada pelo Mestre</button></span>
+    <span class="sg"><span class="sg__label">visão</span><button data-set="t1view=jogador">jogador</button><button data-set="t1view=mestre">Mestre</button></span>
+  </div>
+  <div class="fw-clip"><div class="fw"><iframe class="frame" data-body="t1" style="height:1990px" title="Plano"></iframe></div></div>
+  <div class="notes">
+    <div class="dn"><b>D-B09</b>O sub-slot nasce dentro do talento (recuado, padrão <code>level-card__slot--nested</code> que a ficha já usa para "Chamar Companheiro") e vira slot preenchido depois de escolhido. O slot é o vínculo: clicar abre a ficha do companheiro. "Trocar tipo" refaz a derivação.</div>
+    <div class="dn"><b>D-B09</b>Mesmo padrão no nível 2; o segundo companheiro nasce "em espera". A Beastmaster permite até 4 companheiros, 1 ativo por vez; trocar custa Chamar Companheiro (exploração, 1 minuto; PC2 p. 189).</div>
+    <div class="dn"><b>D-B12</b>Sem liberação o slot mostra o selo vermelho com o motivo (Acesso: herança crisântemo; Bhrotto é Raiz). O jogador só pede; quem grava a exceção é o Mestre, com motivo, e o selo "liberado pelo Mestre" fica no slot para os dois. Hoje o Plano real aceita o talento sem aviso nenhum: o selo é o que falta.</div>
+    <div class="dn"><b>D-B15</b>O mesmo tipo pode ser escolhido mais de uma vez (dois ursos): o picker do 2º não esconde nem desabilita o tipo já tomado.</div>
+    <div class="dn dn--p"><b>pendência do jogador</b>Compartilhamento de Caçar Presa e Astúcia: só o companheiro vindo do talento Animal de Companhia recebe (PC p. 127). Qual dos dois veio de qual talento ainda não foi definido; os selos ficam neutros até lá.</div>
+  </div>
+</section>
+
+<!-- ======================================================= T2 -->
+<section class="screen" data-screen="t2" hidden>
+  <h2>2 · Ficha própria do companheiro</h2>
+  <p class="sub">Cada companheiro é um ator com ficha própria (a do NPC real, vista do Mestre); a ficha do Bhrotto só guarda o vínculo. Números derivados no servidor do nível do dono e do estágio.</p>
+  <div class="states">
+    <span class="states__tag">estados</span>
+    <span class="sg"><span class="sg__label">ficha</span><button data-set="t2sheet=urso">Urso</button><button data-set="t2sheet=antilope">Antílope</button></span>
+    <span class="sg"><span class="sg__label">ativo no mapa</span><button data-set="comp=urso">urso</button><button data-set="comp=antilope">antílope</button></span>
+    <span class="sg"><span class="sg__label">rodada</span><button data-flip="cmd">comandado</button><button data-flip="mounted" data-when="t2sheet=antilope">montado</button></span>
+    <span class="sg"><span class="sg__label">Apoio</span><button data-flip="support">aplicado no dono</button></span>
+  </div>
+  <div class="fw-clip"><div class="fw"><iframe class="frame" data-body="t2" style="height:1680px" title="Ficha do companheiro"></iframe></div></div>
+  <div class="notes">
+    <div class="dn"><b>D-B01</b>Todo número da faixa tem origem derivada (tipo + estágio + nível do dono); o campo é somente leitura, com tooltip "como foi calculado". A ficha de NPC real hoje só mostra HP, CA, saves, perícias e golpes digitados: o cabeçalho de estágio e o vínculo são novos. Os rótulos em inglês (Creature, Strikes, Actions, Skills) são os da ficha de NPC real.</div>
+    <div class="dn"><b>D-B10</b>"Comandar" posta o card (tela 5) e libera as ações. "Apoio" não pede configuração: aplica o efeito no dono e o efeito sai sozinho no início do turno dele (tela 3 mostra o estado). Comandar não rola Natureza: o companheiro recebe 2 ações (PC p. 242). O Apoio do antílope só vale com o dono montado.</div>
+    <div class="dn"><b>D-B03</b>Estado montado é um par: aparece aqui, como selo na ficha do Bhrotto (tela 3) e como token empilhado no mapa (tela 4). Montar/Desmontar é a única ponte entre as duas fichas. As regras listadas são as mesmas da tela 3.</div>
+    <div class="dn"><b>D-B04</b>Sem aba Pets na ficha do Bhrotto (a aba nem aparece para Patrulheiro hoje): o cabeçalho "companheiro de …" e o link de volta substituem. A ficha do dono mostra só o bloco "Companheiros" (tela 3).</div>
+    <div class="dn dn--q"><b>pergunta aberta</b>O que o jogador vê quando o estágio muda (Maduro)? Aqui só há o selo "Jovem".</div>
+    <div class="dn dn--p"><b>pendência do jogador</b>Caçar Presa compartilhado: depende de qual companheiro veio do talento Animal de Companhia.</div>
+  </div>
+</section>
+
+<!-- ======================================================= T3 -->
+<section class="screen" data-screen="t3" hidden>
+  <h2>3 · Ficha do Bhrotto: combate</h2>
+  <p class="sub">Aba Ações da ficha real. O alvo vem do mapa; os modificadores mostram o que vale contra ESTE alvo. Troque o alvo e o companheiro ativo para ver o detalhamento mudar.</p>
+  <div class="states">
+    <span class="states__tag">estados</span>
+    <span class="sg"><span class="sg__label">alvo (mapa)</span><button data-set="target=none">nenhum</button><button data-set="target=ogro">Ogro (Grande)</button><button data-set="target=gigante">Gigante (Enorme)</button></span>
+    <span class="sg"><span class="sg__label">Presa</span><button data-set="prey=none">sem presa</button><button data-set="prey=ogro">Ogro</button></span>
+    <span class="sg"><span class="sg__label">ativo</span><button data-set="comp=urso">urso</button><button data-set="comp=antilope">antílope</button><button data-flip="mounted">montado</button></span>
+    <span class="sg"><span class="sg__label">efeitos</span><button data-flip="support">Apoio</button><button data-flip="mh">Caçador de Monstros</button><button data-flip="reach">Alcance Prênsil</button></span>
+  </div>
+  <div class="fw-clip"><div class="fw"><iframe class="frame" data-body="t3" style="height:2460px" title="Bhrotto: combate"></iframe></div></div>
+  <div class="notes">
+    <div class="dn"><b>D-B05</b>A defesa mostra o bônus de Astúcia (+1 circunstância na CA) só quando existe uma Presa marcada, com a origem ao lado do número. Contra qualquer outro atacante vale o número normal. Hoje a ficha real lista esse bônus como texto cru ("origin:mark:hunted-prey") em Bônus condicionais, na aba Principal.</div>
+    <div class="dn"><b>D-B05</b>O botão vira "Presa: …" depois de usado. A marca vive no token (tela 4); o bônus de Caçador de Monstros nasce do Rememorar Conhecimento embutido (card na tela 5).</div>
+    <div class="dn"><b>Estados de combate</b>A faixa "Estados de combate" já existe sobre os golpes (hoje só para classes com Panache/Estratagema). Alcance Prênsil, Caçador de Monstros e Apoio entram nela como interruptores novos, no mesmo padrão: ligado diz "ligado" por escrito, bloqueado diz o motivo.</div>
+    <div class="dn"><b>D-B05 / D-B10</b>O detalhamento lista o que está ativo e diz por que cada item vale ou não contra o alvo atual (padrão do card Bônus condicionais). Apoio vale em criatura no alcance do companheiro e expira no início do turno do Bhrotto; Caçador de Monstros (só em sucesso crítico) é consumido pela rolagem.</div>
+    <div class="dn"><b>D-B03</b>Cada linha de Combate Montado traz a fonte (Player Core). O que o jogo não fixa (queda forçada) fica fora.</div>
+    <div class="dn dn--p"><b>pendência do jogador</b>Quem compartilha Caçar Presa/Astúcia depende de qual companheiro veio de qual talento; os dois chips ficam sem selo até ele definir.</div>
+  </div>
+</section>
+
+<!-- ======================================================= T4 -->
+<section class="screen" data-screen="t4" hidden>
+  <h2>4 · Mapa: montaria, companheiro, Presa e alvo</h2>
+  <p class="sub">Fundo e fichas são o canvas real (captura do mapa de teste); marcadores novos desenhados por cima, com a mesma forma dos tokens. O cavaleiro anda junto com a montaria; o jogador só vê e controla os próprios tokens (os outros aparecem como "?", como já é hoje).</p>
+  <div class="states">
+    <span class="states__tag">estados</span>
+    <span class="sg"><span class="sg__label">ativo</span><button data-set="comp=antilope">antílope (montado)</button><button data-set="comp=urso">urso (a pé)</button></span>
+    <span class="sg"><span class="sg__label">montaria</span><button data-flip="mounted">montado</button></span>
+    <span class="sg"><span class="sg__label">posição</span><button data-flip="moved">após mover 4 casas</button></span>
+    <span class="sg"><span class="sg__label">alvo/Presa</span><button data-set="target=ogro">mirar Ogro</button><button data-set="target=none">sem alvo</button><button data-set="prey=ogro">marcar Presa</button><button data-set="prey=none">sem marca</button></span>
+    <span class="sg"><span class="sg__label">visão</span><button data-set="mapview=jogador">jogador</button><button data-set="mapview=mestre">Mestre</button></span>
+  </div>
+  <div class="fw-clip" data-when="mapview=jogador"><div class="fw"><iframe class="frame" data-body="t4p" style="height:950px" title="Mapa (jogador)"></iframe></div></div>
+  <div class="fw-clip" data-when="mapview=mestre"><div class="fw"><iframe class="frame" data-body="t4g" style="height:950px" title="Mapa (Mestre)"></iframe></div></div>
+  <div class="notes">
+    <div class="dn"><b>D-B03</b>Montado, o token do Bhrotto (menor, preso ao canto) fica empilhado sobre o do antílope e a trilha de movimento é uma só: o cavaleiro usa a Velocidade terrestre da montaria (40 pés) e a única ação de movimento dele é Montar. A montaria só anda se for Comandada. Desmontado, ele fica na casa vizinha e cada token se move separado. Selecionado o token montado, aparecem os selos "Reflexos −2" e "MAP compartilhado".</div>
+    <div class="dn"><b>D-B05</b>A Presa vira selo laranja "PRESA" no token; a mira é a retícula de cantos vermelhos que o canvas já usa para alvos (TargetingMarker). São dois estados independentes: pode-se mirar o que não é Presa e vice-versa.</div>
+    <div class="dn"><b>Tokens e controle</b>Bhrotto, antílope e urso: jogador (via vínculo, herdado do dono). Ogro: Mestre. O companheiro em espera não tem token: só aparece na lista do Mestre.</div>
+    <div class="dn dn--q"><b>pergunta aberta</b>A posse do token do companheiro é herdada do dono automaticamente ou o Mestre atribui? O protótipo assume herdada.</div>
+    <div class="dn dn--q"><b>pergunta aberta</b>O jogador vê o selo de Presa (é a marca dele) e o nome do ogro mesmo com o token anônimo ("?")? O protótipo mostra o selo e mantém o "?".</div>
+  </div>
+</section>
+
+<!-- ======================================================= T5 -->
+<section class="screen" data-screen="t5" hidden>
+  <h2>5 · Cards de chat</h2>
+  <p class="sub">Cada ação do fluxo posta um card, no padrão dos cards reais do chat (cartão de habilidade com rolagem aninhada). O alvo é a presa marcada.</p>
+  <div class="states">
+    <span class="states__tag">estados</span>
+    <span class="sg"><span class="sg__label">golpe</span><button data-set="t5deg=sucesso">sucesso</button><button data-set="t5deg=critico">sucesso crítico</button></span>
+    
+  </div>
+  <div class="fw-clip"><div class="fw"><iframe class="frame" data-body="t5" style="height:1500px" title="Chat"></iframe></div></div>
+  <div class="notes">
+    <div class="dn"><b>D-B05</b>Um card só junta marca + Rememorar Conhecimento de Caçador de Monstros; o efeito aplicado aparece dentro do card, não como segunda mensagem.</div>
+    <div class="dn"><b>D-B10</b>Autor do card de Apoio é o companheiro (alias verde, "de Bhrotto" ao lado); o corpo diz a condição do bônus (criatura no alcance do Urso).</div>
+    <div class="dn"><b>D-B05 / D-B10</b>Os modificadores listados são os mesmos do detalhamento da tela 3, congelados no momento da rolagem. Itens consumidos ou expirados aparecem com o destino ao lado.</div>
+  </div>
+</section>
+
+<!-- ======================================================= T6 -->
+<section class="screen" data-screen="t6" hidden>
+  <h2>6 · Inventário: runas e carteira</h2>
+  <p class="sub">Aba Inventário da ficha real. Editor de runas genérico por arma; carteira ajustável só pelo Mestre.</p>
+  <div class="states">
+    <span class="states__tag">estados</span>
+    <span class="sg"><span class="sg__label">editor</span><button data-flip="t6open">runas abertas</button></span>
+    <span class="sg"><span class="sg__label">potência</span><button data-set="pot=0">0</button><button data-set="pot=1">+1</button><button data-set="pot=2">+2</button><button data-set="pot=3">+3</button></span>
+    <span class="sg"><span class="sg__label">Runa de ataque</span><button data-set="stk=0">nenhum</button><button data-set="stk=1">ataque</button><button data-set="stk=2">ataque maior</button><button data-set="stk=3">ataque suprema</button></span>
+    <span class="sg"><span class="sg__label">visão</span><button data-set="t6view=jogador">jogador</button><button data-set="t6view=mestre">Mestre</button></span>
+    <span class="sg"><span class="sg__label">carteira</span><button data-flip="t6wallet">modal do Mestre</button></span>
+  </div>
+  <div class="fw-clip"><div class="fw"><iframe class="frame" data-body="t6" style="height:1000px" title="Inventário"></iframe></div></div>
+  <div class="notes">
+    <div class="dn"><b>D-B06</b>"Runas" é um botão da linha da arma (qualquer arma, não só o mangual), no padrão do botão "Equipado". A potência abre tantos slots de propriedade quanto o seu valor; o preview mostra ataque e dados já derivados, como a ficha mostrará. Hoje não há como pôr runa pela interface.</div>
+    <div class="dn"><b>D-B13</b>Hoje a carteira real é editável pelo próprio jogador ("ajuste o saldo aqui"). Na decisão, o jogador vê o saldo e nenhum campo editável; o Mestre ajusta com motivo e o ajuste fica no registro da ficha.</div>
+    <div class="dn"><b>D-B19 / D-B20 / D-B21</b>Três campos nomeados: Potência, Runa de ataque (tradução de <i>striking</i>; cada opção diz os dados de dano) e Runas de propriedade (espaços = Potência). O editor é livre: sem aviso nem bloqueio.</div>
+    <div class="dn dn--q"><b>pergunta aberta</b>Mangual de Guerra não existe no pack (só o Mangual, 1 mão): o protótipo mostra a linha como se existisse. O nome inglês dos itens ("Chain Mail") é o que a ficha real mostra hoje.</div>
+  </div>
+</section>
+
+</main>
+
+<!--__BODIES__-->
+<script type="text/plain" id="app-css">/*__APPCSS__*/</script>
+<script type="text/plain" id="extra-css">/*__EXTRACSS__*/</script>
+<script>
+/*__DATA__*/
+/*__ENGINE__*/
+</script>
+</body>
+</html>

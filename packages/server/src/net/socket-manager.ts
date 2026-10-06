@@ -78,8 +78,16 @@ import {
   createStubTurnHookContextServices,
   createDocumentWriteTurnHookContextServices,
 } from "../combat/turn-hook-runner.js";
+import type { TurnHookContextServices } from "../combat/turn-hook-runner.js";
+import type { TokenMarkSource } from "../chat/roll-resolution.js";
 import { TargetingStore } from "../combat/targeting-store.js";
 import { buildCombatTargetHandler, registerTargetingCleanup } from "../combat/target-handler.js";
+import {
+  buildMarkSetHandler,
+  buildMarkClearHandler,
+  createTokenMarkSource,
+} from "../combat/mark-handler.js";
+import { MapCounter, registerMapCounterReset } from "../combat/map-counter.js";
 import {
   buildResyncRequestHandler,
   buildActiveSceneHandler,
@@ -166,6 +174,12 @@ export interface WorldNamespaceOptions {
    * fallback (e.g. stub system, or system package not loaded).
    */
   systemModule?: SystemModule;
+  /**
+   * BHR-F2-05: where the marks on a roll's target come from
+   * (`target:mark:<slug>`). `TokenMark` (BHR-F3-06) plugs its reader in here;
+   * absent = no token carries a mark.
+   */
+  tokenMarkSource?: TokenMarkSource;
 }
 
 /**
@@ -221,6 +235,7 @@ export class SocketManager {
    * neither is reachable from a closure nobody holds.
    */
   private readonly writeMetrics = new Map<string, WriteMetricsCollector>();
+  private readonly mapCounters = new Map<string, MapCounter>();
 
   constructor(options: SocketManagerOptions) {
     this.logger = options.logger;
@@ -263,6 +278,7 @@ export class SocketManager {
       compendiumService,
       systemId,
       systemModule,
+      tokenMarkSource,
     } = options;
 
     const namespacePath = `/world/${worldId}`;
@@ -288,6 +304,9 @@ export class SocketManager {
     // Constructed here (not next to the combat handlers below) so chat:send
     // (ALQ-F1-05 / REQ-CBT-056) can also read it for the targetSnapshot photo.
     const targetingStore = new TargetingStore();
+    // BHR-F3-04: server-side multiple attack penalty counter (chat:send notes, turnStart zeroes).
+    const mapCounter = new MapCounter();
+    this.mapCounters.set(worldId, mapCounter);
     const registry = new HandlerRegistry();
 
     // Spec 39 §5.9 (REQ-CTT-083): bind this namespace to the Actor table its
@@ -410,7 +429,27 @@ export class SocketManager {
     // store/targetingStore (ALQ-F1-05 / REQ-CBT-056): chat:send reads the
     // author's live target selection to freeze `flags.fusion.targetSnapshot`
     // on every roll message.
-    const chatDeps = { db, ns, seqStore, worldId, store, targetingStore };
+    // BHR-F2-05: the system's roll resolver + `onRollResolved` listeners, the
+    // target-mark source and the hook context (assigned once the turn-hook
+    // services exist, below — only ever read when a roll is resolved).
+    const rollHook: { services?: TurnHookContextServices } = {};
+    const chatDeps = {
+      db,
+      ns,
+      seqStore,
+      worldId,
+      store,
+      targetingStore,
+      ...(systemModule !== undefined ? { systemModule } : {}),
+      // BHR-F3-06: the persisted Prey, unless a caller injected another source.
+      tokenMarkSource: tokenMarkSource ?? createTokenMarkSource(store),
+      rollHookContext: () => ({
+        ...(rollHook.services ?? createStubTurnHookContextServices()),
+        worldTime: { round: 0, turn: 0 },
+      }),
+      logger: this.logger,
+      mapCounter,
+    };
     registry.register("chat:send", buildChatSendHandler(chatDeps));
     registry.register("chat:history", buildChatHistoryHandler(chatDeps));
     // REQ-CHT-050 / REQ-ACH-012: search is open to every role; the handler
@@ -452,6 +491,7 @@ export class SocketManager {
       );
     }
     const eventBus = new CombatEventBus();
+    registerMapCounterReset(mapCounter, eventBus);
     // ALQ-F1-08: the real `actor:applyDamage` service — validates, rereads
     // amount/targets from the persisted roll, calls the active system's
     // ActorMechanics and publishes the redacted `actor:damageApplied`
@@ -477,21 +517,24 @@ export class SocketManager {
     // onda-4 adversarial review — see combat/turn-hook-runner.ts's header);
     // `roll`/`updateActor`/`createEmbedded` stay stubs until a later task
     // actually needs them.
+    const hookServices: TurnHookContextServices = {
+      ...createStubTurnHookContextServices(),
+      ...createDocumentWriteTurnHookContextServices({
+        store,
+        db,
+        ns,
+        seqStore,
+        opBuffer,
+        worldId,
+      }),
+      applyDamage: (p) => actorMechanicsService.applyDamage(p, "system"),
+      applyCondition: (p) => actorMechanicsService.applyCondition(p, "system"),
+    };
+    // BHR-F2-05: `onRollResolved` listeners write through the SAME services.
+    rollHook.services = hookServices;
     const turnHookRunner = createTurnHookRunner({
       systemModule,
-      services: {
-        ...createStubTurnHookContextServices(),
-        ...createDocumentWriteTurnHookContextServices({
-          store,
-          db,
-          ns,
-          seqStore,
-          opBuffer,
-          worldId,
-        }),
-        applyDamage: (p) => actorMechanicsService.applyDamage(p, "system"),
-        applyCondition: (p) => actorMechanicsService.applyCondition(p, "system"),
-      },
+      services: hookServices,
       logger: this.logger,
     });
     const combatDeps = {
@@ -525,6 +568,11 @@ export class SocketManager {
     // targetingStore constructed earlier (near `store`) so chat:send can use it too.
     const targetDeps = { store, seqStore, ns, targetingStore };
     registry.register("combat:target", buildCombatTargetHandler(targetDeps));
+    // BHR-F3-06 (REQ-BHR-086..090): the Prey persisted on the marking actor —
+    // not part of the targeting store, so it outlives turnEnd.
+    const markDeps = { store, seqStore, opBuffer, ns, targetingStore };
+    registry.register("mark:set", buildMarkSetHandler(markDeps));
+    registry.register("mark:clear", buildMarkClearHandler(markDeps));
     // REQ-CBT-055: clear a targeter's targets when their combatant's turn ends.
     registerTargetingCleanup(targetDeps, eventBus);
 
@@ -803,7 +851,13 @@ export class SocketManager {
         metrics.stop();
         this.writeMetrics.delete(worldId);
       }
+      this.mapCounters.delete(worldId);
     }
+  }
+
+  /** BHR-F3-04: the world's MAP counter (read by the sheet channel and by tests). */
+  mapCounterFor(worldId: string): MapCounter | undefined {
+    return this.mapCounters.get(worldId);
   }
 
   /**

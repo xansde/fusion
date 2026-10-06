@@ -104,6 +104,8 @@ import {
   KNOWLEDGE_FLAG_KEY,
   ATTITUDE_FLAG_NAMESPACE,
   ATTITUDE_FLAG_KEY,
+  TOKEN_MARKS_FLAG_NAMESPACE,
+  TOKEN_MARKS_FLAG_KEY,
 } from "@fusion/shared";
 import type {
   ActorDamageAppliedPayload,
@@ -192,7 +194,32 @@ export const BLIND_ROLL_CONFIRMATION_CONTENT =
  * function only builds the body.
  */
 export function redactBlindRollForNonPrivileged(msg: ChatMessage): ChatMessage {
-  return { ...msg, rolls: undefined, content: BLIND_ROLL_CONFIRMATION_CONTENT };
+  return {
+    ...msg,
+    rolls: undefined,
+    content: BLIND_ROLL_CONFIRMATION_CONTENT,
+    flags: stripBlindRollResolution(msg.flags),
+  };
+}
+
+/**
+ * BHR-F2-05 (ALQ-F4-09: "blind/privada seguem a redação do resultado"): the
+ * notes the server kept for a roll are FILTERED BY ITS DEGREE, and the
+ * conditional modifiers are part of its total — either one hands the hidden
+ * result over. A blind roll's non-privileged body carries neither.
+ */
+const BLIND_HIDDEN_FUSION_FLAG_KEYS = ["rollNotes", "conditionalModifiers"] as const;
+
+function stripBlindRollResolution(flags: ChatMessage["flags"]): ChatMessage["flags"] {
+  const fusion = (flags as Record<string, unknown> | undefined)?.["fusion"];
+  if (!fusion || typeof fusion !== "object") return flags;
+  const fusionFlags = fusion as Record<string, unknown>;
+  if (!BLIND_HIDDEN_FUSION_FLAG_KEYS.some((k) => k in fusionFlags)) return flags;
+  const kept: Record<string, unknown> = {};
+  for (const [key, value] of Object.entries(fusionFlags)) {
+    if (!(BLIND_HIDDEN_FUSION_FLAG_KEYS as readonly string[]).includes(key)) kept[key] = value;
+  }
+  return { ...flags, fusion: kept };
 }
 
 /**
@@ -313,7 +340,7 @@ function docHasTargetAc(doc: unknown): boolean {
  * behaviour: EVERY hidden token is treated as hidden from it, `seenBy` or
  * not.
  */
-function tokenIsHiddenFromViewer(
+export function tokenIsHiddenFromViewer(
   token: Record<string, unknown>,
   userId: string | undefined,
 ): boolean {
@@ -686,6 +713,42 @@ export function redactChatDamageAppliedForNonPrivileged(
 }
 
 // ---------------------------------------------------------------------------
+// Effect-expiry announcement redaction (BHR-F0-03, I-3 of the wave-2 review)
+//
+// `flags.fusion.effectExpiry` is stamped by the system's expiry hook
+// (pf2e effect-expiry.ts). When the holder's combatant is `hidden` (the same
+// field {@link stripHiddenCombatantsFromCombat} cuts on) the hook adds
+// `hidden: true`; a NON-PRIVILEGED viewer must then learn neither who held
+// the effect nor which effect it was.
+// ---------------------------------------------------------------------------
+
+/**
+ * The ChatMessage a NON-PRIVILEGED viewer may receive for an effect-expiry
+ * announcement: a hidden holder's line is rebuilt as a neutral sentence and
+ * its holder/item ids and speaker actor are removed. Returns the SAME
+ * reference when there is nothing to cut.
+ */
+export function redactChatEffectExpiryForNonPrivileged(msg: ChatMessage): ChatMessage {
+  const flags = msg.flags as Record<string, Record<string, unknown>> | undefined;
+  const fusionFlags = flags?.[CHAT_FUSION_FLAG_NAMESPACE];
+  const expiry = fusionFlags?.["effectExpiry"];
+  if (!isPlainObject(expiry) || expiry["hidden"] !== true) return msg;
+
+  const { actorId: _actorId, ...speaker } = msg.speaker as typeof msg.speaker & {
+    actorId?: string;
+  };
+  return {
+    ...msg,
+    content: "Um efeito terminou.",
+    speaker,
+    flags: {
+      ...flags,
+      [CHAT_FUSION_FLAG_NAMESPACE]: { ...fusionFlags, effectExpiry: { hidden: true } },
+    },
+  };
+}
+
+// ---------------------------------------------------------------------------
 // Secret-door redaction (M2-A, REQ-VIS-005)
 // ---------------------------------------------------------------------------
 
@@ -1009,6 +1072,14 @@ export interface ContactViewer {
   userId: string;
   role: number;
   ownedCharacterIds: readonly string[];
+  /**
+   * Whether a token is hidden from THIS viewer (the same hidden + `seenBy` cut
+   * as {@link tokenIsHiddenFromViewer}). Read only by the TokenMark redaction
+   * (REQ-BHR-089); absent means "cannot tell", and the cut then drops every
+   * mark — the conservative side. Set non-enumerable by {@link buildContactViewer}
+   * so it never shows up when a viewer is compared or serialized.
+   */
+  isTokenHidden?: (tokenId: string) => boolean;
 }
 
 /** One player character, reduced to what deciding ownership needs. */
@@ -1026,6 +1097,18 @@ export interface CharacterOwnershipRow {
  */
 export interface ContactKnowledgeSource {
   listCharacterOwnership(): readonly CharacterOwnershipRow[];
+  /**
+   * Every hidden token of the world with its `seenBy` exceptions — what the
+   * TokenMark cut needs to tell which marks sit on a token the viewer must not
+   * know. Optional: a source without it makes the cut drop every mark.
+   */
+  listHiddenTokens?(): readonly HiddenTokenRow[];
+}
+
+/** One hidden token, reduced to what {@link tokenIsHiddenFromViewer} reads. */
+export interface HiddenTokenRow {
+  tokenId: string;
+  seenBy: readonly string[];
 }
 
 /** The canonical source: the world's own Actor table. */
@@ -1041,6 +1124,25 @@ export function contactKnowledgeSourceFromStore(store: DocumentStore): ContactKn
         for (const doc of store.getAll("actors", { type: subtype })) {
           const id = doc["_id"];
           if (typeof id === "string") rows.push({ id, ownership: doc["ownership"] });
+        }
+      }
+      return rows;
+    },
+    listHiddenTokens(): readonly HiddenTokenRow[] {
+      const rows: HiddenTokenRow[] = [];
+      for (const scene of store.getAll("scenes")) {
+        const tokens = scene["tokens"];
+        if (!Array.isArray(tokens)) continue;
+        for (const token of tokens as Record<string, unknown>[]) {
+          const id = token["_id"];
+          if (token["hidden"] !== true || typeof id !== "string") continue;
+          const seenBy = token["seenBy"];
+          rows.push({
+            tokenId: id,
+            seenBy: Array.isArray(seenBy)
+              ? (seenBy as unknown[]).filter((u): u is string => typeof u === "string")
+              : [],
+          });
         }
       }
       return rows;
@@ -1094,7 +1196,22 @@ export function buildContactViewer(
       ownedCharacterIds.push(row.id);
     }
   }
-  return { userId, role, ownedCharacterIds };
+  const viewer: ContactViewer = { userId, role, ownedCharacterIds };
+  const listHidden = source?.listHiddenTokens?.bind(source);
+  if (listHidden !== undefined) {
+    // Lazy and memoized: the Scene table is only read when a document that
+    // actually carries a TokenMark reaches this viewer.
+    let hidden: Map<string, readonly string[]> | undefined;
+    Object.defineProperty(viewer, "isTokenHidden", {
+      enumerable: false,
+      value: (tokenId: string): boolean => {
+        hidden ??= new Map(listHidden().map((row) => [row.tokenId, row.seenBy]));
+        const seenBy = hidden.get(tokenId);
+        return seenBy !== undefined && !seenBy.includes(userId);
+      },
+    });
+  }
+  return viewer;
 }
 
 function isPlainObject(value: unknown): value is Record<string, unknown> {
@@ -1269,9 +1386,49 @@ export function stripPrivilegedActorFields(
   doc: Record<string, unknown>,
   viewer?: ContactViewer,
 ): Record<string, unknown> {
-  const stripped = stripAttitude(stripKnowledgeMap(doc));
+  let stripped = stripAttitude(stripKnowledgeMap(doc));
+  if (viewer) stripped = stripHiddenTokenMarks(stripped, viewer);
   if (!viewer || viewerOwnsActorHp(stripped, viewer)) return stripped;
   return stripActorHp(stripped);
+}
+
+/** True when the Actor carries at least one entry in `flags.fusion.tokenMarks`. */
+export function actorHasTokenMarks(doc: Record<string, unknown>): boolean {
+  const flags = doc["flags"];
+  if (!isPlainObject(flags)) return false;
+  const ns = flags[TOKEN_MARKS_FLAG_NAMESPACE];
+  if (!isPlainObject(ns)) return false;
+  const marks = ns[TOKEN_MARKS_FLAG_KEY];
+  return Array.isArray(marks) && marks.length > 0;
+}
+
+/**
+ * Remove, from `flags.fusion.tokenMarks`, every mark that sits on a token the
+ * viewer must not learn about (REQ-BHR-089): a hidden token the viewer is not in
+ * the `seenBy` of. A privileged viewer keeps everything (`isRolePrivileged`).
+ * A viewer that cannot say which tokens are hidden loses every mark — the
+ * conservative side, like {@link tokenIsHiddenFromViewer} without a user id.
+ * Returns the original reference when nothing was stripped.
+ */
+export function stripHiddenTokenMarks(
+  doc: Record<string, unknown>,
+  viewer: ContactViewer,
+): Record<string, unknown> {
+  if (isRolePrivileged(viewer.role) || !actorHasTokenMarks(doc)) return doc;
+  const flags = doc["flags"] as Record<string, unknown>;
+  const ns = flags[TOKEN_MARKS_FLAG_NAMESPACE] as Record<string, unknown>;
+  const marks = ns[TOKEN_MARKS_FLAG_KEY] as unknown[];
+  const kept = marks.filter((mark) => {
+    if (!isPlainObject(mark)) return false;
+    const tokenId = mark["targetTokenId"];
+    if (typeof tokenId !== "string" || viewer.isTokenHidden === undefined) return false;
+    return !viewer.isTokenHidden(tokenId);
+  });
+  if (kept.length === marks.length) return doc;
+  return {
+    ...doc,
+    flags: { ...flags, [TOKEN_MARKS_FLAG_NAMESPACE]: { ...ns, [TOKEN_MARKS_FLAG_KEY]: kept } },
+  };
 }
 
 /**
@@ -1536,7 +1693,15 @@ export function redactAckResultForNonPrivileged(
   // writing an embedded document requires OWNER, and OWNER escapes the
   // knowledge filter by construction.
   if (isPlainObject(parent)) {
-    const strippedParent = stripPrivilegedActorFields(parent);
+    let strippedParent = stripPrivilegedActorFields(parent);
+    // REQ-BHR-089: the parent carries the actor's TokenMarks too. Only built
+    // when there are marks, so an ordinary embedded ack never reads the world.
+    if (contactCtx && actorHasTokenMarks(strippedParent)) {
+      strippedParent = stripHiddenTokenMarks(
+        strippedParent,
+        buildContactViewer(contactCtx.source, contactCtx.userId, contactCtx.role),
+      );
+    }
     if (strippedParent !== parent) {
       return redactAckResultForNonPrivileged(
         { ...ack, result: { ...bodyObj, parent: strippedParent } },

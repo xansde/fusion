@@ -20,54 +20,55 @@ Estas specs foram geradas a partir da pesquisa em [`docs/research/`](../docs/res
 
 ## Índice
 
-| #   | Spec                                                                 | Tema                                             |
-| --- | -------------------------------------------------------------------- | ------------------------------------------------ |
-| 00  | [Visão e Escopo](00-visao-e-escopo.md)                               | Por quê, objetivos, não-objetivos, princípios    |
-| 01  | [Arquitetura Geral](01-arquitetura-geral.md)                         | Componentes, processos, boot, configuração       |
-| 02  | [Modelo de Dados](02-modelo-de-dados.md)                             | Documents, schemas, ownership, CRUD              |
-| 03  | [Persistência e Mundos](03-persistencia-e-mundos.md)                 | SQLite, layout em disco, export/import           |
-| 04  | [Rede e Sincronização](04-rede-e-sincronizacao.md)                   | Protocolo WS, autoridade, reconexão, presença    |
-| 05  | [Usuários e Permissões](05-usuarios-e-permissoes.md)                 | Roles, matriz de permissões, login               |
-| 06  | [Canvas e Renderização](06-canvas-e-renderizacao.md)                 | PIXI, camadas, grid, tokens, templates           |
-| 07  | [Visão, Iluminação e Fog](07-visao-iluminacao-fog.md)                | Walls, visibility polygon, luzes, fog of war     |
-| 08  | [Motor de Rolagens](08-motor-de-rolagens.md)                         | Sintaxe, RNG no servidor, roll modes, dados 3D   |
-| 09  | [Chat e Mensagens](09-chat-e-mensagens.md)                           | Mensagens, comandos, chat cards declarativos     |
-| 10  | [Combate e Iniciativa](10-combate-e-iniciativa.md)                   | Encounters, iniciativa por sistema, turnos       |
-| 11  | [UI Framework e Fichas](11-ui-framework-e-fichas.md)                 | Window manager, sheets Svelte, theming, i18n     |
-| 12  | [Journal, Tabelas e Cartas](12-journal-tabelas-cartas.md)            | Journals, @links, roll tables                    |
-| 13  | [Áudio e Playlists](13-audio-e-playlists.md)                         | Playlists, canais, ambient sounds                |
-| 14  | [Macros e Automação](14-macros-e-automacao.md)                       | Macros, hotbar, ações declarativas, game time    |
-| 15  | [API de Sistemas](15-api-de-sistemas.md)                             | Contrato engine↔sistema, motor de modifiers      |
-| 16  | [Compendiums e Importação](16-compendiums-e-importacao.md)           | Packs, browser, importer pf2e                    |
-| 17  | [Sistema Pathfinder 2e](17-sistema-pf2e.md)                          | Engine 2e, automação, fichas, cobertura          |
-| 18  | [Sistema Starfinder 2e](18-sistema-sf2e.md)                          | Deltas sobre a engine 2e                         |
-| 19  | [Sistema Etmos](19-sistema-etmos.md)                                 | Compositor de magias, Partículas, Marcos         |
-| 20  | [Assets e Mídia](20-assets-e-midia.md)                               | Upload, storage, serving, browser de assets      |
-| 21  | [Segurança](21-seguranca.md)                                         | Threat model, auth, sanitização, exposição       |
-| 22  | [Instalação e Distribuição](22-instalacao-e-distribuicao.md)         | Executável, setup, auto-update, túneis           |
-| 23  | [Acessibilidade e Dispositivos](23-acessibilidade-e-dispositivos.md) | A11y, tablets/touch                              |
-| 24  | [Operação, Backups e Telemetria](24-operacao-backups-telemetria.md)  | Backups, logs, diagnóstico                       |
-| 25  | [Testes e Qualidade](25-testes-e-qualidade.md)                       | Pirâmide de testes, golden tests 2e, CI          |
-| 26  | [Licenças e Legal](26-licencas-e-legal.md)                           | Clean-room, ORC/OGL, marcas, Etmos               |
-| 27  | [Roadmap e Milestones](27-roadmap-e-milestones.md)                   | Fases, dependências, definition of done          |
-| 28  | [Hub do Jogador](28-hub-do-jogador.md)                               | System Window, missões, comitiva, mapa           |
-| 29  | [Pets, Companions e Familiars](29-pets-companions-familiars.md)      | Familiars, animal companions, pets, mounts       |
-| 30  | [Multiclasse por Níveis](30-multiclasse-por-niveis.md)               | Regra variante: níveis de classe divididos       |
-| 31  | [Base Canônica de Conteúdo](31-base-canonica-de-conteudo.md)         | Segunda fonte, eixos de sub-escolha, portões     |
-| 32  | [Minimapa Tático](32-minimapa-tatico.md)                             | Overview da cena ativa, navegação de câmera      |
-| 34  | [Mapa de Região](34-mapa-de-regiao.md)                               | Exploração em km, POIs reveláveis, overlays      |
-| 35  | [Avatar do Personagem](35-avatar-do-personagem.md)                   | Boneco LPC montável, canto da mesa, acervo pin   |
-| 36  | [Gaveta Lateral](36-gaveta-lateral.md)                               | Trilho só-ícone, gaveta, registro de abas (mãe)  |
-| 37  | [Configurações](37-configuracoes.md)                                 | Aba da gaveta: preferências, mundo, usuários     |
-| 38  | [Aba Chat](38-aba-chat.md)                                           | Aba da gaveta: log, dados favoritos, invalidação |
-| 39  | [Contatos](39-contatos.md)                                           | Aba da gaveta: mesa, conhecidos, quem conhece    |
-| 40  | [Aba Combate](40-aba-combate.md)                                     | Aba da gaveta: cabeça de turno, fila, montagem   |
-| 41  | [Token](41-token.md)                                                 | A peça na cena: herança, permissão, movimento    |
-| 42  | [Aba NPCs](42-aba-npcs.md)                                           | Aba da gaveta: pastas, autoria, atitude, baú     |
-| 43  | [Aba Compêndio](43-aba-compendio.md)                                 | Aba da gaveta: estante, busca no acervo, trazer  |
-| 44  | [Aba Cenas](44-aba-cenas.md)                                         | Aba da gaveta: o que está no ar, acervo, preparo |
-| 45  | [Atores](45-atores.md)                                               | O que é um ator, facetas, ciclo de vida, posse   |
-| 47  | [Fabricação e Alquimia](47-fabricacao-e-alquimia.md)                 | Recurso de classe, preparação diária, fabricação |
+| #   | Spec                                                                    | Tema                                             |
+| --- | ----------------------------------------------------------------------- | ------------------------------------------------ |
+| 00  | [Visão e Escopo](00-visao-e-escopo.md)                                  | Por quê, objetivos, não-objetivos, princípios    |
+| 01  | [Arquitetura Geral](01-arquitetura-geral.md)                            | Componentes, processos, boot, configuração       |
+| 02  | [Modelo de Dados](02-modelo-de-dados.md)                                | Documents, schemas, ownership, CRUD              |
+| 03  | [Persistência e Mundos](03-persistencia-e-mundos.md)                    | SQLite, layout em disco, export/import           |
+| 04  | [Rede e Sincronização](04-rede-e-sincronizacao.md)                      | Protocolo WS, autoridade, reconexão, presença    |
+| 05  | [Usuários e Permissões](05-usuarios-e-permissoes.md)                    | Roles, matriz de permissões, login               |
+| 06  | [Canvas e Renderização](06-canvas-e-renderizacao.md)                    | PIXI, camadas, grid, tokens, templates           |
+| 07  | [Visão, Iluminação e Fog](07-visao-iluminacao-fog.md)                   | Walls, visibility polygon, luzes, fog of war     |
+| 08  | [Motor de Rolagens](08-motor-de-rolagens.md)                            | Sintaxe, RNG no servidor, roll modes, dados 3D   |
+| 09  | [Chat e Mensagens](09-chat-e-mensagens.md)                              | Mensagens, comandos, chat cards declarativos     |
+| 10  | [Combate e Iniciativa](10-combate-e-iniciativa.md)                      | Encounters, iniciativa por sistema, turnos       |
+| 11  | [UI Framework e Fichas](11-ui-framework-e-fichas.md)                    | Window manager, sheets Svelte, theming, i18n     |
+| 12  | [Journal, Tabelas e Cartas](12-journal-tabelas-cartas.md)               | Journals, @links, roll tables                    |
+| 13  | [Áudio e Playlists](13-audio-e-playlists.md)                            | Playlists, canais, ambient sounds                |
+| 14  | [Macros e Automação](14-macros-e-automacao.md)                          | Macros, hotbar, ações declarativas, game time    |
+| 15  | [API de Sistemas](15-api-de-sistemas.md)                                | Contrato engine↔sistema, motor de modifiers      |
+| 16  | [Compendiums e Importação](16-compendiums-e-importacao.md)              | Packs, browser, importer pf2e                    |
+| 17  | [Sistema Pathfinder 2e](17-sistema-pf2e.md)                             | Engine 2e, automação, fichas, cobertura          |
+| 18  | [Sistema Starfinder 2e](18-sistema-sf2e.md)                             | Deltas sobre a engine 2e                         |
+| 19  | [Sistema Etmos](19-sistema-etmos.md)                                    | Compositor de magias, Partículas, Marcos         |
+| 20  | [Assets e Mídia](20-assets-e-midia.md)                                  | Upload, storage, serving, browser de assets      |
+| 21  | [Segurança](21-seguranca.md)                                            | Threat model, auth, sanitização, exposição       |
+| 22  | [Instalação e Distribuição](22-instalacao-e-distribuicao.md)            | Executável, setup, auto-update, túneis           |
+| 23  | [Acessibilidade e Dispositivos](23-acessibilidade-e-dispositivos.md)    | A11y, tablets/touch                              |
+| 24  | [Operação, Backups e Telemetria](24-operacao-backups-telemetria.md)     | Backups, logs, diagnóstico                       |
+| 25  | [Testes e Qualidade](25-testes-e-qualidade.md)                          | Pirâmide de testes, golden tests 2e, CI          |
+| 26  | [Licenças e Legal](26-licencas-e-legal.md)                              | Clean-room, ORC/OGL, marcas, Etmos               |
+| 27  | [Roadmap e Milestones](27-roadmap-e-milestones.md)                      | Fases, dependências, definition of done          |
+| 28  | [Hub do Jogador](28-hub-do-jogador.md)                                  | System Window, missões, comitiva, mapa           |
+| 29  | [Pets, Companions e Familiars](29-pets-companions-familiars.md)         | Familiars, animal companions, pets, mounts       |
+| 30  | [Multiclasse por Níveis](30-multiclasse-por-niveis.md)                  | Regra variante: níveis de classe divididos       |
+| 31  | [Base Canônica de Conteúdo](31-base-canonica-de-conteudo.md)            | Segunda fonte, eixos de sub-escolha, portões     |
+| 32  | [Minimapa Tático](32-minimapa-tatico.md)                                | Overview da cena ativa, navegação de câmera      |
+| 34  | [Mapa de Região](34-mapa-de-regiao.md)                                  | Exploração em km, POIs reveláveis, overlays      |
+| 35  | [Avatar do Personagem](35-avatar-do-personagem.md)                      | Boneco LPC montável, canto da mesa, acervo pin   |
+| 36  | [Gaveta Lateral](36-gaveta-lateral.md)                                  | Trilho só-ícone, gaveta, registro de abas (mãe)  |
+| 37  | [Configurações](37-configuracoes.md)                                    | Aba da gaveta: preferências, mundo, usuários     |
+| 38  | [Aba Chat](38-aba-chat.md)                                              | Aba da gaveta: log, dados favoritos, invalidação |
+| 39  | [Contatos](39-contatos.md)                                              | Aba da gaveta: mesa, conhecidos, quem conhece    |
+| 40  | [Aba Combate](40-aba-combate.md)                                        | Aba da gaveta: cabeça de turno, fila, montagem   |
+| 41  | [Token](41-token.md)                                                    | A peça na cena: herança, permissão, movimento    |
+| 42  | [Aba NPCs](42-aba-npcs.md)                                              | Aba da gaveta: pastas, autoria, atitude, baú     |
+| 43  | [Aba Compêndio](43-aba-compendio.md)                                    | Aba da gaveta: estante, busca no acervo, trazer  |
+| 44  | [Aba Cenas](44-aba-cenas.md)                                            | Aba da gaveta: o que está no ar, acervo, preparo |
+| 45  | [Atores](45-atores.md)                                                  | O que é um ator, facetas, ciclo de vida, posse   |
+| 47  | [Fabricação e Alquimia](47-fabricacao-e-alquimia.md)                    | Recurso de classe, preparação diária, fabricação |
+| 52  | [Caçador, Companheiro e Montaria](52-cacador-companheiro-e-montaria.md) | Presa no token, efeito em outro ator, montado    |
 
 ## Níveis
 
@@ -87,54 +88,55 @@ pelo `tools/spec-lint`; alterá-la sem mover os requisitos correspondentes quebr
 
 <!-- prefixos:start -->
 
-| Prefixo     | Spec dona                                 | Área                                 |
-| ----------- | ----------------------------------------- | ------------------------------------ |
-| `REQ-ESC-`  | [00](00-visao-e-escopo.md)                | Visão, escopo e linhas vermelhas     |
-| `REQ-ARQ-`  | [01](01-arquitetura-geral.md)             | Arquitetura geral                    |
-| `REQ-DOC-`  | [02](02-modelo-de-dados.md)               | Documents e modelo de dados          |
-| `REQ-PER-`  | [03](03-persistencia-e-mundos.md)         | Persistência e mundos                |
-| `REQ-NET-`  | [04](04-rede-e-sincronizacao.md)          | Rede e sincronização                 |
-| `REQ-USR-`  | [05](05-usuarios-e-permissoes.md)         | Usuários e permissões                |
-| `REQ-CNV-`  | [06](06-canvas-e-renderizacao.md)         | Canvas e renderização                |
-| `REQ-VIS-`  | [07](07-visao-iluminacao-fog.md)          | Visão, iluminação e fog              |
-| `REQ-ROL-`  | [08](08-motor-de-rolagens.md)             | Motor de rolagens                    |
-| `REQ-CHT-`  | [09](09-chat-e-mensagens.md)              | Chat e mensagens                     |
-| `REQ-CBT-`  | [10](10-combate-e-iniciativa.md)          | Combate e iniciativa                 |
-| `REQ-UIF-`  | [11](11-ui-framework-e-fichas.md)         | UI framework e fichas                |
-| `REQ-JRN-`  | [12](12-journal-tabelas-cartas.md)        | Journal, tabelas e cartas            |
-| `REQ-AUD-`  | [13](13-audio-e-playlists.md)             | Áudio e playlists                    |
-| `REQ-MAC-`  | [14](14-macros-e-automacao.md)            | Macros e automação                   |
-| `REQ-SYS-`  | [15](15-api-de-sistemas.md)               | API de sistemas                      |
-| `REQ-CMP-`  | [16](16-compendiums-e-importacao.md)      | Compendiums e importação             |
-| `REQ-PF2-`  | [17](17-sistema-pf2e.md)                  | Sistema Pathfinder 2e                |
-| `REQ-SF2-`  | [18](18-sistema-sf2e.md)                  | Sistema Starfinder 2e                |
-| `REQ-ETM-`  | [19](19-sistema-etmos.md)                 | Sistema Etmos                        |
-| `REQ-AST-`  | [20](20-assets-e-midia.md)                | Assets e mídia                       |
-| `REQ-SEC-`  | [21](21-seguranca.md)                     | Segurança                            |
-| `REQ-DST-`  | [22](22-instalacao-e-distribuicao.md)     | Instalação e distribuição            |
-| `REQ-A11-`  | [23](23-acessibilidade-e-dispositivos.md) | Acessibilidade e dispositivos        |
-| `REQ-OPS-`  | [24](24-operacao-backups-telemetria.md)   | Operação, backups e telemetria       |
-| `REQ-TST-`  | [25](25-testes-e-qualidade.md)            | Testes e qualidade                   |
-| `REQ-LEG-`  | [26](26-licencas-e-legal.md)              | Licenças e legal                     |
-| `REQ-ROD-`  | [27](27-roadmap-e-milestones.md)          | Roadmap e milestones                 |
-| `REQ-HUB-`  | [28](28-hub-do-jogador.md)                | Hub do jogador                       |
-| `REQ-PET-`  | [29](29-pets-companions-familiars.md)     | Pets, companions e familiars         |
-| `REQ-MCL-`  | [30](30-multiclasse-por-niveis.md)        | Multiclasse por níveis               |
-| `REQ-BC-`   | [31](31-base-canonica-de-conteudo.md)     | Base canônica de conteúdo            |
-| `REQ-MMT-`  | [32](32-minimapa-tatico.md)               | Minimapa tático                      |
-| `REQ-MREG-` | [34](34-mapa-de-regiao.md)                | Mapa de região                       |
-| `REQ-AVT-`  | [35](35-avatar-do-personagem.md)          | Avatar do personagem                 |
-| `REQ-GAV-`  | [36](36-gaveta-lateral.md)                | Gaveta lateral (spec-mãe das abas)   |
-| `REQ-CFG-`  | [37](37-configuracoes.md)                 | Configurações (aba da gaveta)        |
-| `REQ-ACH-`  | [38](38-aba-chat.md)                      | Aba Chat (painel da gaveta)          |
-| `REQ-CTT-`  | [39](39-contatos.md)                      | Contatos (aba da gaveta)             |
-| `REQ-CBA-`  | [40](40-aba-combate.md)                   | Aba Combate (painel da gaveta)       |
-| `REQ-TOK-`  | [41](41-token.md)                         | Token (manifestação de ator em cena) |
-| `REQ-NPC-`  | [42](42-aba-npcs.md)                      | Aba NPCs (painel da gaveta)          |
-| `REQ-CPD-`  | [43](43-aba-compendio.md)                 | Aba Compêndio (painel da gaveta)     |
-| `REQ-CEN-`  | [44](44-aba-cenas.md)                     | Aba Cenas (painel da gaveta)         |
-| `REQ-ATR-`  | [45](45-atores.md)                        | Atores (conceito, facetas, posse)    |
-| `REQ-FAB-`  | [47](47-fabricacao-e-alquimia.md)         | Fabricação e alquimia                |
+| Prefixo     | Spec dona                                  | Área                                 |
+| ----------- | ------------------------------------------ | ------------------------------------ |
+| `REQ-ESC-`  | [00](00-visao-e-escopo.md)                 | Visão, escopo e linhas vermelhas     |
+| `REQ-ARQ-`  | [01](01-arquitetura-geral.md)              | Arquitetura geral                    |
+| `REQ-DOC-`  | [02](02-modelo-de-dados.md)                | Documents e modelo de dados          |
+| `REQ-PER-`  | [03](03-persistencia-e-mundos.md)          | Persistência e mundos                |
+| `REQ-NET-`  | [04](04-rede-e-sincronizacao.md)           | Rede e sincronização                 |
+| `REQ-USR-`  | [05](05-usuarios-e-permissoes.md)          | Usuários e permissões                |
+| `REQ-CNV-`  | [06](06-canvas-e-renderizacao.md)          | Canvas e renderização                |
+| `REQ-VIS-`  | [07](07-visao-iluminacao-fog.md)           | Visão, iluminação e fog              |
+| `REQ-ROL-`  | [08](08-motor-de-rolagens.md)              | Motor de rolagens                    |
+| `REQ-CHT-`  | [09](09-chat-e-mensagens.md)               | Chat e mensagens                     |
+| `REQ-CBT-`  | [10](10-combate-e-iniciativa.md)           | Combate e iniciativa                 |
+| `REQ-UIF-`  | [11](11-ui-framework-e-fichas.md)          | UI framework e fichas                |
+| `REQ-JRN-`  | [12](12-journal-tabelas-cartas.md)         | Journal, tabelas e cartas            |
+| `REQ-AUD-`  | [13](13-audio-e-playlists.md)              | Áudio e playlists                    |
+| `REQ-MAC-`  | [14](14-macros-e-automacao.md)             | Macros e automação                   |
+| `REQ-SYS-`  | [15](15-api-de-sistemas.md)                | API de sistemas                      |
+| `REQ-CMP-`  | [16](16-compendiums-e-importacao.md)       | Compendiums e importação             |
+| `REQ-PF2-`  | [17](17-sistema-pf2e.md)                   | Sistema Pathfinder 2e                |
+| `REQ-SF2-`  | [18](18-sistema-sf2e.md)                   | Sistema Starfinder 2e                |
+| `REQ-ETM-`  | [19](19-sistema-etmos.md)                  | Sistema Etmos                        |
+| `REQ-AST-`  | [20](20-assets-e-midia.md)                 | Assets e mídia                       |
+| `REQ-SEC-`  | [21](21-seguranca.md)                      | Segurança                            |
+| `REQ-DST-`  | [22](22-instalacao-e-distribuicao.md)      | Instalação e distribuição            |
+| `REQ-A11-`  | [23](23-acessibilidade-e-dispositivos.md)  | Acessibilidade e dispositivos        |
+| `REQ-OPS-`  | [24](24-operacao-backups-telemetria.md)    | Operação, backups e telemetria       |
+| `REQ-TST-`  | [25](25-testes-e-qualidade.md)             | Testes e qualidade                   |
+| `REQ-LEG-`  | [26](26-licencas-e-legal.md)               | Licenças e legal                     |
+| `REQ-ROD-`  | [27](27-roadmap-e-milestones.md)           | Roadmap e milestones                 |
+| `REQ-HUB-`  | [28](28-hub-do-jogador.md)                 | Hub do jogador                       |
+| `REQ-PET-`  | [29](29-pets-companions-familiars.md)      | Pets, companions e familiars         |
+| `REQ-MCL-`  | [30](30-multiclasse-por-niveis.md)         | Multiclasse por níveis               |
+| `REQ-BC-`   | [31](31-base-canonica-de-conteudo.md)      | Base canônica de conteúdo            |
+| `REQ-MMT-`  | [32](32-minimapa-tatico.md)                | Minimapa tático                      |
+| `REQ-MREG-` | [34](34-mapa-de-regiao.md)                 | Mapa de região                       |
+| `REQ-AVT-`  | [35](35-avatar-do-personagem.md)           | Avatar do personagem                 |
+| `REQ-GAV-`  | [36](36-gaveta-lateral.md)                 | Gaveta lateral (spec-mãe das abas)   |
+| `REQ-CFG-`  | [37](37-configuracoes.md)                  | Configurações (aba da gaveta)        |
+| `REQ-ACH-`  | [38](38-aba-chat.md)                       | Aba Chat (painel da gaveta)          |
+| `REQ-CTT-`  | [39](39-contatos.md)                       | Contatos (aba da gaveta)             |
+| `REQ-CBA-`  | [40](40-aba-combate.md)                    | Aba Combate (painel da gaveta)       |
+| `REQ-TOK-`  | [41](41-token.md)                          | Token (manifestação de ator em cena) |
+| `REQ-NPC-`  | [42](42-aba-npcs.md)                       | Aba NPCs (painel da gaveta)          |
+| `REQ-CPD-`  | [43](43-aba-compendio.md)                  | Aba Compêndio (painel da gaveta)     |
+| `REQ-CEN-`  | [44](44-aba-cenas.md)                      | Aba Cenas (painel da gaveta)         |
+| `REQ-ATR-`  | [45](45-atores.md)                         | Atores (conceito, facetas, posse)    |
+| `REQ-FAB-`  | [47](47-fabricacao-e-alquimia.md)          | Fabricação e alquimia                |
+| `REQ-BHR-`  | [52](52-cacador-companheiro-e-montaria.md) | Caçador, companheiro e montaria      |
 
 <!-- prefixos:end -->
 
@@ -148,6 +150,12 @@ Números reservados e ainda não escritos:
   e o resolvedor de DC de item (REQ-FAB-037), e é dona do veneno, da doença e do mutágeno.
 - **49** — **Custo de ação, reação e aditivo** (`REQ-ACO-`). Reservada pela `47`: consome o
   hook de rascunho de item (REQ-FAB-028) e é dona da oferta de reação e do aditivo.
+- **50** — **Animista e conjuração dupla** (`REQ-ANI-`). Reservada pelo plano do Animista (ANI-F0-01).
+- **51** — **Combate marcial** (`REQ-GUE-`). Reservada pelo plano do Guerreiro (GUE-F0-01).
+
+A **52** (Caçador, Companheiro e Montaria) nasceu nesta faixa e já está no índice. Até 50–51
+serem escritas, as reservas vivem só aqui e nos planos de cada frente — o `spec-lint` não as
+enxerga.
 
 ## Stack fixada
 

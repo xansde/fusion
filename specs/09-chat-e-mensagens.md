@@ -367,6 +367,16 @@ _(Emenda obrigada por `specs/41-token.md` §12, 2026-08-17.)_
 
 **REQ-CHT-049** [MVP] Revelar NÃO DEVE reexecutar a rolagem nem expor a semente do RNG: o payload emitido é exatamente o resultado persistido no momento da rolagem, e o `seed` permanece restrito ao log de auditoria (ver `08-motor-de-rolagens.md`, REQ-ROL-049). Em particular, o autor de uma `blindroll` revelada DEVE passar a receber o resultado real no lugar do texto substituto de confirmação previsto em REQ-ROL-032.
 
+### Cards de ação do caçador e do companheiro _(emenda da spec 52, 2026-10-05)_
+
+**REQ-CHT-061** [MVP] Uma ação que rola, marca e aplica efeito (ex.: Caçar Presa, `52-cacador-companheiro-e-montaria.md`) DEVE produzir **uma** mensagem: o card carrega o alvo (`targetSnapshot`), a marca e o efeito aplicado; o efeito NÃO DEVE sair como segunda mensagem.
+
+**REQ-CHT-062** [MVP] Uma rolagem secundária disparada pela mesma ação (ex.: o Rememorar Conhecimento do Caçador de Monstros) DEVE entrar no **mesmo** card, rolada no servidor, e o efeito condicionado ao grau dela DEVE ser aplicado pelo servidor e mostrado no card.
+
+**REQ-CHT-063** [MVP] O card de Comandar um companheiro animal DEVE ser registro sem rolagem: "`<dono>` comanda `<companheiro>`: 2 ações".
+
+**REQ-CHT-064** [MVP] Com efeito de Apoio ativo no atacante, o card de dano do golpe que cumpre a condição do Apoio contra criatura ao alcance do companheiro (medido no servidor) DEVE incluir o dano extra do Apoio; alvo fora do alcance, ou golpe que não cumpre a condição, NÃO DEVE incluir.
+
 ### Busca para todos e leitura de contexto
 
 **REQ-CHT-050** [MVP] A busca de REQ-CHT-036 DEVE estar disponível a **qualquer papel**, e o servidor DEVE aplicar aos resultados o mesmo predicado de visibilidade do broadcast e do histórico (REQ-CHT-004, DEC-CHT-02): ninguém encontra sussurro alheio nem rolagem cega de terceiro. NÃO DEVE existir um segundo predicado de visibilidade para busca.

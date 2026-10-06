@@ -1,0 +1,360 @@
+{
+  "versao": 1,
+  "tarefas": {
+    "BHR-F0-01": {
+      "status": "integrada",
+      "tentativas": 1,
+      "onda": 1,
+      "modelo": "opus/high",
+      "resumo": "spec 52 + emendas 29/17/10/06/41/09/15; spec-lint 29/29",
+      "core_sha": "f41b9794",
+      "sat_sha": "73df51d"
+    },
+    "BHR-F0-02": {
+      "status": "integrada",
+      "tentativas": 1,
+      "onda": 1,
+      "modelo": "opus/high",
+      "resumo": "base do Alquimista (ondas 1-5) sincronizada com alfa/main; PRs core #313 e satélite #472 (merge humano); seletor marcado com aviso",
+      "core_sha": "f41b9794",
+      "sat_sha": "73df51d"
+    },
+    "BHR-F1-01": {
+      "status": "integrada",
+      "tentativas": 1,
+      "onda": 1,
+      "modelo": "sonnet/medium",
+      "resumo": "PV de ancestralidade por override de herança; Bhrotto 22/34/46",
+      "core_sha": "f41b9794",
+      "sat_sha": "73df51d"
+    },
+    "BHR-F1-02": {
+      "status": "integrada",
+      "tentativas": 1,
+      "onda": 1,
+      "modelo": "sonnet/medium",
+      "resumo": "Ranger treina Natureza pela regra da classe (Plano avalia predicate feature:)",
+      "core_sha": "f41b9794",
+      "sat_sha": "73df51d"
+    },
+    "BHR-F1-03": {
+      "status": "integrada",
+      "tentativas": 1,
+      "onda": 1,
+      "modelo": "haiku/low",
+      "resumo": "War Flail no weapons-core com id do importer; +9 / 2d10+4",
+      "core_sha": "f41b9794",
+      "sat_sha": "73df51d"
+    },
+    "BHR-F1-06": {
+      "status": "integrada",
+      "tentativas": 1,
+      "onda": 1,
+      "modelo": "sonnet/low",
+      "resumo": "pt-BR do jogador; 'Alcance Prênsil' a provar no print da F1-09",
+      "core_sha": "f41b9794",
+      "sat_sha": "73df51d"
+    },
+    "BHR-F0-03": {
+      "status": "integrada",
+      "tentativas": 1,
+      "onda": 2,
+      "modelo": "sonnet/high",
+      "resumo": "expiração por ownerActorId (listActors no TurnHookContext); fichas corrigidas",
+      "core_sha": "6c9a3883",
+      "sat_sha": "6a6dd0b"
+    },
+    "BHR-F1-04": {
+      "status": "integrada",
+      "tentativas": 1,
+      "onda": 2,
+      "modelo": "sonnet/medium",
+      "resumo": "pack companion-types-homebrew (urso, antílope)",
+      "core_sha": "6c9a3883",
+      "sat_sha": "6a6dd0b"
+    },
+    "BHR-F1-05": {
+      "status": "integrada",
+      "tentativas": 1,
+      "onda": 2,
+      "modelo": "sonnet/medium",
+      "resumo": "pack effects-ranger-homebrew (Presa, Astúcia, Caçador de Monstros, Apoios, Montado)",
+      "core_sha": "6c9a3883",
+      "sat_sha": "6a6dd0b"
+    },
+    "BHR-F1-07": {
+      "status": "integrada",
+      "tentativas": 1,
+      "onda": 2,
+      "modelo": "haiku/low",
+      "resumo": "Wildborne (Nativo da Mata) no Plano; texto OGL integral pendente",
+      "core_sha": "6c9a3883",
+      "sat_sha": "6a6dd0b"
+    },
+    "BHR-F2-01": {
+      "status": "integrada",
+      "tentativas": 1,
+      "onda": 2,
+      "modelo": "sonnet/high",
+      "resumo": "seletores de ataque/dano/defesa/iniciativa leem synthetics",
+      "core_sha": "6c9a3883",
+      "sat_sha": "6a6dd0b"
+    },
+    "BHR-F2-03": {
+      "status": "integrada",
+      "tentativas": 1,
+      "onda": 2,
+      "modelo": "sonnet/medium",
+      "resumo": "ItemAlteration completo no importer; Alcance Prênsil convertido",
+      "core_sha": "6c9a3883",
+      "sat_sha": "6a6dd0b"
+    },
+    "BHR-F2-02": {
+      "status": "integrada",
+      "tentativas": 1,
+      "onda": 3,
+      "modelo": "sonnet/high",
+      "resumo": "Predicado com contexto de alvo: rollPredicate.ts (evaluateRollPredicate, buildRollOptions com prefixos target:/origin:, resolveConditionalModifiers); modificador com target:/origin: fica fora do número base.",
+      "core_sha": "8b5b8c96",
+      "sat_sha": "1398c9b0"
+    },
+    "BHR-F2-05": {
+      "status": "integrada",
+      "tentativas": 1,
+      "onda": 3,
+      "modelo": "opus/high",
+      "resumo": "Servidor re-deriva o ator, resolve condicionais e notas contra o alvo resolvido da rolagem (fonte única com grau e MAP), aceita do cliente só action:*, grava flags.fusion.rollNotes e emite onRollResolved; FusionRollContext + registerRollResolver (emenda §2.8); TokenMarkSource como ponto de extensão para a F3-06.",
+      "core_sha": "8b5b8c96",
+      "sat_sha": "1398c9b0"
+    },
+    "BHR-F2-07": {
+      "status": "integrada",
+      "tentativas": 1,
+      "onda": 3,
+      "modelo": "sonnet/medium",
+      "resumo": "Seção Efeitos ativos na ficha (origem, duração por expiry.on, remover para dono e Mestre); anotação do canto só como dado (cornerNotesFor) porque o slot de HUD da ALQ-F6-01 não existe.",
+      "core_sha": "8b5b8c96",
+      "sat_sha": "1398c9b0"
+    },
+    "BHR-F2-08": {
+      "status": "integrada",
+      "tentativas": 1,
+      "onda": 3,
+      "modelo": "sonnet/high",
+      "resumo": "Registro ExecutableActionRow (§2.6) com requisito e motivo na aba Ações, rolagem com rollContext, Chamar Companheiro na lista; marca hunted-prey e mount ainda SCAFFOLDING (sem TokenMark/MountState).",
+      "core_sha": "8b5b8c96",
+      "sat_sha": "1398c9b0"
+    },
+    "BHR-F3-01": {
+      "status": "integrada",
+      "tentativas": 1,
+      "onda": 3,
+      "modelo": "sonnet/high",
+      "resumo": "Clique direito alterna a mira, Esc limpa a própria mira (fora de diálogo/campo editável), gesto provisório do Alquimista removido.",
+      "core_sha": "8b5b8c96",
+      "sat_sha": "1398c9b0"
+    },
+    "BHR-F3-04": {
+      "status": "integrada",
+      "tentativas": 1,
+      "onda": 3,
+      "modelo": "sonnet/medium",
+      "resumo": "MapCounter no servidor (noteAttack/getAttackCount, reset em turnStart, calculateMapPenalty, mapGroupOf identidade); chamada única no chat-handler; countsForMap fixo em true até a F3-03.",
+      "core_sha": "8b5b8c96",
+      "sat_sha": "1398c9b0"
+    },
+    "BHR-F1-08": {
+      "status": "integrada",
+      "tentativas": 1,
+      "onda": 4,
+      "modelo": "sonnet/medium",
+      "resumo": "fusion-skill-substitution no pf2eRuleElementRegistry; Tratar Ferimentos com Medicina ou Natureza, CD escolhivel ate o rank (padrao 15); interruptor fresh-ingredients (+2) aplicado pelo servidor; regra da Natural Medicine como curadoria do importer",
+      "core_sha": "dcfb70d90550247982a6cb3eafb509998b431e04",
+      "sat_sha": "4d1441363cedfd971358576ce9950fe2c52242eb"
+    },
+    "BHR-F2-04": {
+      "status": "integrada",
+      "tentativas": 1,
+      "onda": 4,
+      "modelo": "sonnet/high",
+      "resumo": "handler item-alteration (traits, damage-dice-faces) com predicado; interruptor grasping-reach: Mangual de Guerra ganha reach e cai de 2d10+4 para 2d8+4",
+      "core_sha": "dcfb70d90550247982a6cb3eafb509998b431e04",
+      "sat_sha": "4d1441363cedfd971358576ce9950fe2c52242eb"
+    },
+    "BHR-F2-06": {
+      "status": "integrada",
+      "tentativas": 1,
+      "onda": 4,
+      "modelo": "sonnet/medium",
+      "resumo": "FusionExpiry after-roll + rollPredicate nos quatro lugares; gasto pela rolagem de quem carrega o efeito; targetOptions com marcas no RollResolvedEvent",
+      "core_sha": "dcfb70d90550247982a6cb3eafb509998b431e04",
+      "sat_sha": "4d1441363cedfd971358576ce9950fe2c52242eb"
+    },
+    "BHR-F3-02": {
+      "status": "integrada",
+      "tentativas": 1,
+      "onda": 4,
+      "modelo": "sonnet/medium",
+      "resumo": "strikeCard/rollStrike enviam payload.target + rollContext de ataque; sem alvo payload identico",
+      "core_sha": "dcfb70d90550247982a6cb3eafb509998b431e04",
+      "sat_sha": "4d1441363cedfd971358576ce9950fe2c52242eb"
+    },
+    "BHR-F3-06": {
+      "status": "integrada",
+      "tentativas": 1,
+      "onda": 4,
+      "modelo": "sonnet/high",
+      "resumo": "TokenMark: mark:set/mark:clear com permissao no servidor, exclusive para hunted-prey, persistencia em flags.fusion.tokenMarks, redacao de token oculto, getMarksOn no TokenMarkSource; guard contra forjar tokenMarks por doc:update/doc:create",
+      "core_sha": "dcfb70d90550247982a6cb3eafb509998b431e04",
+      "sat_sha": "4d1441363cedfd971358576ce9950fe2c52242eb"
+    },
+    "BHR-F4-04": {
+      "status": "integrada",
+      "tentativas": 1,
+      "onda": 4,
+      "modelo": "sonnet/high",
+      "resumo": "companionGrantAllows animalCompanion por Animal Companion/Beastmaster Dedication; teto = numero de concessoes no servidor; grantSlotId unico; guard de campos do companheiro",
+      "core_sha": "dcfb70d90550247982a6cb3eafb509998b431e04",
+      "sat_sha": "4d1441363cedfd971358576ce9950fe2c52242eb"
+    },
+    "BHR-F1-09": {
+      "status": "integrada",
+      "tentativas": 1,
+      "onda": 5,
+      "modelo": "sonnet/medium",
+      "resumo": "roteiro tutorial-e2e do L1: 26 prints + relatorio.html P3; REQ-BHR-023 provado ('Alcance Prênsil' em pt-BR); achou o +2 da Medicina Natural perdido (corrigido: composto pf2e-sf2e)",
+      "core_sha": "bb1c5a9a",
+      "sat_sha": "2650056"
+    },
+    "BHR-F2-10": {
+      "status": "integrada",
+      "tentativas": 1,
+      "onda": 5,
+      "modelo": "sonnet/medium",
+      "resumo": "CombatStatesStrip + combatStatesVM (só nome, clique revela, pt-BR); interruptores viram só controle (I-5)",
+      "core_sha": "bb1c5a9a",
+      "sat_sha": "2650056"
+    },
+    "BHR-F3-03": {
+      "status": "integrada",
+      "tentativas": 1,
+      "onda": 5,
+      "modelo": "sonnet/high",
+      "resumo": "AttackCheckContext; grau do golpe no servidor com CA do banco; card com grau e um botão de dano; grau por golpe (I-4)",
+      "core_sha": "bb1c5a9a",
+      "sat_sha": "2650056"
+    },
+    "BHR-F3-07": {
+      "status": "integrada",
+      "tentativas": 1,
+      "onda": 5,
+      "modelo": "sonnet/medium",
+      "resumo": "selo da Presa no canvas (PreyMarker), tooltip 'Presa de <nome>', corte de token oculto",
+      "core_sha": "bb1c5a9a",
+      "sat_sha": "2650056"
+    },
+    "BHR-F3-08": {
+      "status": "integrada",
+      "tentativas": 1,
+      "onda": 5,
+      "modelo": "sonnet/medium",
+      "resumo": "Caçar Presa executável: exige alvo, mark:set com ack, efeito Presa embutido num card único",
+      "core_sha": "bb1c5a9a",
+      "sat_sha": "2650056"
+    },
+    "BHR-F4-01": {
+      "status": "integrada",
+      "tentativas": 1,
+      "onda": 5,
+      "modelo": "sonnet/medium",
+      "resumo": "deriveAnimalCompanion puro com breakdown; track obrigatório no Especializado (I-2); CA treinada em todos os estágios confirmada",
+      "core_sha": "bb1c5a9a",
+      "sat_sha": "2650056"
+    }
+  },
+  "rodadas": [
+    {
+      "onda": 1,
+      "tarefas": ["BHR-F0-01", "BHR-F0-02", "BHR-F1-01", "BHR-F1-02", "BHR-F1-03", "BHR-F1-06"],
+      "integradas": ["BHR-F0-01", "BHR-F0-02", "BHR-F1-01", "BHR-F1-02", "BHR-F1-03", "BHR-F1-06"],
+      "gate": true,
+      "revisao": {
+        "achados": 0,
+        "abertos": ["I-3 print real do Alcance Prênsil (F1-09)", "6 menores (revisao.md)"]
+      },
+      "core_sha": "f41b9794",
+      "sat_sha": "73df51d"
+    },
+    {
+      "onda": 2,
+      "tarefas": ["BHR-F0-03", "BHR-F1-04", "BHR-F1-05", "BHR-F1-07", "BHR-F2-01", "BHR-F2-03"],
+      "integradas": ["BHR-F0-03", "BHR-F1-04", "BHR-F1-05", "BHR-F1-07", "BHR-F2-01", "BHR-F2-03"],
+      "gate": true,
+      "revisao": {
+        "achados": 23,
+        "abertos": [
+          "texto integral OGL 1.0a (REQ-LEG-006)",
+          "iniciativa com perícia alternativa",
+          "Presa expira na preparação diária",
+          "tipo de companheiro em pf2e",
+          "471 regras não convertidas"
+        ]
+      },
+      "core_sha": "6c9a3883",
+      "sat_sha": "6a6dd0b"
+    },
+    {
+      "onda": 3,
+      "tarefas": ["BHR-F2-02", "BHR-F2-05", "BHR-F2-07", "BHR-F2-08", "BHR-F3-01", "BHR-F3-04"],
+      "integradas": ["BHR-F2-02", "BHR-F2-05", "BHR-F2-07", "BHR-F2-08", "BHR-F3-01", "BHR-F3-04"],
+      "gate": true,
+      "revisao": {
+        "achados": 52,
+        "abertos": [
+          "I1 em attack-roll: DerivedStrike sem breakdown, condicionais de ataque empilham só entre si",
+          "I7 +1 CA da Astúcia contra a presa fica com a BHR-F3-10",
+          "onRollResolved.targets ainda usa targetSnapshot e não o payload.target",
+          "menores (revisao.md)",
+          "produto: permissão de remover efeito alheio; Presa expira na preparação diária"
+        ]
+      },
+      "core_sha": "8b5b8c96",
+      "sat_sha": "1398c9b0"
+    },
+    {
+      "onda": 4,
+      "tarefas": ["BHR-F1-08", "BHR-F2-04", "BHR-F2-06", "BHR-F3-02", "BHR-F3-06", "BHR-F4-04"],
+      "integradas": ["BHR-F1-08", "BHR-F2-04", "BHR-F2-06", "BHR-F3-02", "BHR-F3-06", "BHR-F4-04"],
+      "gate": true,
+      "revisao": {
+        "achados": 64,
+        "abertos": [
+          "M-1..M-13 menores (revisao.md)",
+          "applyDotPathDiff sem filtro de __proto__ (pre-existente, tarefa de seguranca a parte)",
+          "P-1/P-2/P-3 e Q de remocao de efeito: perguntas ao Alexandre em decisoes.md"
+        ]
+      },
+      "core_sha": "dcfb70d90550247982a6cb3eafb509998b431e04",
+      "sat_sha": "4d1441363cedfd971358576ce9950fe2c52242eb"
+    },
+    {
+      "onda": 5,
+      "tarefas": ["BHR-F1-09", "BHR-F2-10", "BHR-F3-03", "BHR-F3-07", "BHR-F3-08", "BHR-F4-01"],
+      "integradas": ["BHR-F1-09", "BHR-F2-10", "BHR-F3-03", "BHR-F3-07", "BHR-F3-08", "BHR-F4-01"],
+      "gate": true,
+      "revisao": {
+        "achados": 46,
+        "abertos": ["M-2..M-15 (ver onda-5/revisao.md)"]
+      },
+      "core_sha": "bb1c5a9a",
+      "sat_sha": "2650056"
+    }
+  ],
+  "lotes": {
+    "L1": {
+      "fechado": true,
+      "core_sha": "bb1c5a9a",
+      "sat_sha": "2650056"
+    }
+  }
+}
