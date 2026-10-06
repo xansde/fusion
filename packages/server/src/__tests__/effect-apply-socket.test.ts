@@ -813,6 +813,17 @@ describe("effect:apply refuses the Support of a blocked companion (I-1, REQ-BHR-
     expect(ack["ok"], JSON.stringify(ack)).toBe(true);
   });
 
+  it("the Support records the companion that gave it on the effect's origin (wave 9 review M-3)", async () => {
+    ctx.store.update("combats", combatId, { turnIndex: 2 });
+    const ack = await sendOp(p1, "effect:apply", support);
+    expect(ack["ok"], JSON.stringify(ack)).toBe(true);
+    const [effect] = itemsOf(ctx.store, HUNTER_ID);
+    const origin = (effect?.["system"] as { fusion: { origin: Record<string, unknown> } }).fusion
+      .origin;
+    expect(origin["actorId"]).toBe(BEAR_ID);
+    expect(origin["companionActorId"]).toBe(BEAR_ID);
+  });
+
   it("a companion of type mount (the antelope) is not blocked by the move rule", async () => {
     ctx.store.update("actors", BEAR_ID, {
       system: { ...BEAR_SYSTEM, derived: { companion: { mount: true } } },
