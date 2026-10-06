@@ -393,6 +393,58 @@ export const CheckContextSchema = z.discriminatedUnion("kind", [SaveCheckContext
 export type CheckContext = z.infer<typeof CheckContextSchema>;
 
 /**
+ * The context of a roll the client describes when it fires one from a sheet
+ * (plan of the Alquimista §2.8, ALQ-F4-09; spec 52 REQ-BHR-069): WHO rolls
+ * (`actorId`), WITH WHAT (`itemId`), ON WHICH statistics (`selectors`, e.g.
+ * `attack-roll`, `stealth`, `reflex`) and the options that describe the roll
+ * (`action:strike`, `item:trait:agile`...). Recorded on the message as
+ * `flags.fusion.rollContext`.
+ *
+ * It is a DESCRIPTION, never a number: the server re-derives the actor and
+ * settles every conditional modifier and note itself (DF-16/DF-17). The options
+ * of the roll's target and attacker (`target:*` / `origin:*`) are the server's to
+ * write — any the client sends are dropped before resolution.
+ */
+export const FusionRollContextSchema = z.object({
+  actorId: z.string().min(1).max(120),
+  itemId: z.string().min(1).max(120).optional(),
+  selectors: z.array(z.string().min(1).max(120)).min(1).max(16),
+  options: z.array(z.string().min(1).max(160)).max(128),
+});
+
+export type FusionRollContext = z.infer<typeof FusionRollContextSchema>;
+
+/**
+ * One roll note the server resolved for a roll (plan §2.8 `ResolvedRollNote`),
+ * stored on `flags.fusion.rollNotes`. `outcome` lists the degrees of success the
+ * note belongs to (absent = every outcome); the server keeps only the notes whose
+ * outcome matches the degree it graded. `slug` is the note's own key (the sheet
+ * keys its pt-BR text by it); `title`/`text` may be empty when the pack carries
+ * no readable text of its own.
+ */
+export interface ResolvedRollNote {
+  selector: string;
+  title: string;
+  text: string;
+  outcome?: string[];
+  sourceItemId: string;
+  slug?: string;
+}
+
+/**
+ * One conditional modifier the server settled for a roll (`flags.fusion.
+ * conditionalModifiers`): a modifier that is not in the sheet's base number
+ * because its predicate needs the roll's context (a target, an attacker).
+ */
+export interface ResolvedRollModifier {
+  slug: string;
+  label: string;
+  type: string;
+  value: number;
+  sourceItemId?: string;
+}
+
+/**
  * Flags a client may attach to a chat:send payload (r17-P2 / r17.1 / r18-N1).
  * Whitelisted paths:
  *   - `pf2e.spellCast`    — the interactive spell-cast card (r17-P2);
@@ -424,6 +476,16 @@ export const ChatSendFlagsSchema = z.object({
    * dangling parent is dropped, never a hard failure).
    */
   parentMessageId: z.string().min(1).max(120).optional(),
+  /**
+   * Core-namespaced flags (BHR-F2-05). Only `rollContext` is read; any other key
+   * (a forged `rollNotes`, a pre-computed bonus) is stripped by this schema and
+   * never reaches the stored message (DF-17).
+   */
+  fusion: z
+    .object({
+      rollContext: FusionRollContextSchema.optional(),
+    })
+    .optional(),
 });
 
 export type ChatSendFlags = z.infer<typeof ChatSendFlagsSchema>;

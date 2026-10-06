@@ -35,6 +35,16 @@
  * REQ-ARQ-005: system-api must NOT import from server or client.
  */
 import type { Predicate, Synthetics } from "./derive.js";
+import type {
+  ChatMessage,
+  DegreeOfSuccess,
+  FusionRollContext,
+  ResolvedRollModifier,
+  ResolvedRollNote,
+} from "@fusion/shared";
+import type { TurnHookContext } from "./combat.js";
+
+export type { FusionRollContext, ResolvedRollModifier, ResolvedRollNote };
 
 // ---------------------------------------------------------------------------
 // Rule element type keys (discriminator enum)
@@ -538,3 +548,89 @@ export function aggregateModifiers(
 
   return total;
 }
+
+// ---------------------------------------------------------------------------
+// Roll resolution — RollNotes + onRollResolved (ALQ-F4-09, imported by BHR-F2-05)
+// Plan of the Alquimista §2.8; spec 52 REQ-BHR-051..053, REQ-BHR-069/070.
+// ---------------------------------------------------------------------------
+
+/**
+ * One party to a roll other than the roller, as the server sees it when the
+ * roll is resolved. `options` are that party's OWN options, unprefixed
+ * (`mark:hunted-prey`, `condition:frightened`): the system enters them into the
+ * roll's flat option set with the `target:`/`origin:` prefix (BHR-F2-02).
+ */
+export interface RollResolutionParty {
+  readonly tokenId: string | null;
+  readonly actorId: string | null;
+  readonly options: readonly string[];
+}
+
+/**
+ * What the server hands the system's roll resolver. Every field is the
+ * server's own reading — nothing here is a number the client computed (DF-17).
+ */
+export interface RollResolutionInput {
+  /** The rolling actor, re-derived by the server right before the roll. */
+  readonly actor: Record<string, unknown>;
+  /**
+   * The roll's description as the client sent it, minus any `target:`/`origin:`
+   * option (those are the server's to write — see `target`/`origin`).
+   */
+  readonly rollContext: FusionRollContext;
+  /**
+   * The roll's target, when the roll has EXACTLY one (the message's
+   * `targetSnapshot`). `null` = no target, or several: a modifier or note
+   * whose predicate cites `target:` MUST then stay unresolved — an absent option
+   * is false, so `not target:x` would otherwise pass on a roll with no target.
+   */
+  readonly target: RollResolutionParty | null;
+  /** The attacker, when the roller defends. `null` = no attacker known. Same rule as `target`. */
+  readonly origin: RollResolutionParty | null;
+}
+
+/** The system's verdict on a roll's context, before the server rolls the dice. */
+export interface RollResolution {
+  /** The conditional modifiers that apply to this roll, after the system's stacking. */
+  readonly modifiers: readonly ResolvedRollModifier[];
+  /** Their stacked sum — what the server adds to the client's formula. */
+  readonly total: number;
+  /** Every note whose selector and predicate match; the server filters by `outcome` once it grades. */
+  readonly notes: readonly ResolvedRollNote[];
+}
+
+/**
+ * The pure rule that settles a roll's conditional modifiers and notes
+ * (DF-17). Registered at most once per system (`registerRollResolver`);
+ * synchronous and I/O-free, like a DeriveStep.
+ */
+export interface RollResolverDefinition {
+  resolve(input: RollResolutionInput): RollResolution;
+}
+
+/** One entry of a roll's `flags.fusion.targetSnapshot` (plan §2.3, ALQ-F1-05). */
+export interface RollTargetSnapshotEntry {
+  readonly tokenId: string;
+  readonly actorId: string | null;
+  readonly sceneId: string;
+}
+
+/** The event `onRollResolved` callbacks receive (plan §2.8). */
+export interface RollResolvedEvent {
+  /** The stored roll message, unredacted (server side). */
+  readonly message: ChatMessage;
+  readonly rollContext: FusionRollContext;
+  /** The degree the server graded, or null when the roll had nothing to grade against. */
+  readonly degree: DegreeOfSuccess | null;
+  readonly targets: readonly RollTargetSnapshotEntry[];
+}
+
+/**
+ * Called ONCE per resolved roll (REQ-BHR-053), after the message is persisted
+ * and before it is broadcast, in series, error-isolated (same discipline as the
+ * turn hooks — REQ-SYS-139, REQ-BHR-070). Writes go through `ctx` only.
+ */
+export type RollResolvedHookFn = (
+  e: RollResolvedEvent,
+  ctx: TurnHookContext,
+) => void | Promise<void>;
