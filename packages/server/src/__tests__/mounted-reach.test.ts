@@ -256,4 +256,22 @@ describe("Apoio do antílope: persistent bleed only while mounted (REQ-BHR-182, 
     // Another speaker is not the rider: the attack proof fails first, and no mount is proven either way.
     expect(run(FOE_ACTOR).applied).toEqual([]);
   });
+
+  it("with a second token of the same antelope actor, the reach is measured from the token the rider is on", () => {
+    const sceneDoc = scene("yes") as { tokens: Rec[] };
+    // A decoy token of the same actor stands next to the foe, earlier in the list; the rider is on the other one.
+    sceneDoc.tokens.unshift({ _id: "decoyToken00001", actorId: ANTELOPE_ACTOR, x: 3 * SQUARE, y: 0 });
+    // Move the mounted pair far away from the foe (rider and antelope together).
+    for (const t of sceneDoc.tokens) {
+      if (t["_id"] === MOUNT_TOKEN || t["_id"] === RIDER_TOKEN) t["x"] = -6 * SQUARE;
+    }
+    const out = settleExtraDamage({
+      extra: [bleed()],
+      target,
+      hit: "success",
+      world: { scenes: [sceneDoc as Rec], getActor },
+      rollerActorId: OWNER_ACTOR,
+    });
+    expect(out.applied).toEqual([]);
+  });
 });
