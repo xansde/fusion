@@ -283,6 +283,7 @@ describe("the rider travels with the mount (BHR-F5-03)", () => {
     // The Small Leshy (5,5) rides the Medium antelope (6,5).
     const ack = await sendOp(p1, "mount:mount", { riderTokenId: LESHY, mountTokenId: ANTELOPE });
     expect(ack["ok"], JSON.stringify(ack)).toBe(true);
+    await wait(200); // let the mount broadcast reach every client before a test starts counting
   }, 15_000);
 
   afterEach(async () => {

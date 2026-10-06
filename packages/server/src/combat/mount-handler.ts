@@ -24,13 +24,11 @@
  * Broadcast: a `doc:update` of the Scene through `broadcastToWorld` (same seq, OpBuffer replay
  * and hidden-token funnel as an ordinary embedded Token update). The token gets no badge
  * (Q-BHR-01): the state shows on the sheet strip only. The MAP group shared by the pair
- * (`mapGroupOf`) is BHR-F5-05; moving the rider along with the mount is BHR-F5-03.
+ * (`mapGroupOf`) is BHR-F5-05; moving the rider along with the mount is BHR-F5-03 (`mount-follow.ts`).
  */
 
 import type { Namespace } from "socket.io";
 import {
-  MOUNT_FLAG_KEY,
-  MOUNT_FLAG_NAMESPACE,
   MountDismountPayloadSchema,
   MountMountPayloadSchema,
   readActorSizeCategory,
@@ -42,6 +40,7 @@ import type { Ack, Envelope, ErrorCode } from "@fusion/shared";
 import type { HandlerContext, HandlerFn } from "../net/handler-registry.js";
 import type { SeqStore } from "../net/seq-store.js";
 import type { OpBuffer } from "../net/op-buffer.js";
+import { withMountFlag } from "./mount-follow.js";
 import { broadcastToWorld } from "../net/handlers/doc-handlers.js";
 import type { DocumentStore } from "../documents/store.js";
 import { DocumentNotFoundError } from "../documents/store.js";
@@ -180,21 +179,6 @@ function isCompanionOf(mount: Rec, riderActorId: string): boolean {
   }
   const companion = sys["companion"];
   return !(isRec(companion) && companion["active"] === false);
-}
-
-/** The token with `flags.fusion.mount` replaced by `state` (undefined = removed); other flags kept. */
-function withMountFlag(token: Rec, state: Rec | undefined): Rec {
-  const flags: Rec = isRec(token["flags"]) ? { ...token["flags"] } : {};
-  const current = flags[MOUNT_FLAG_NAMESPACE];
-  const ns: Rec = isRec(current) ? { ...current } : {};
-  if (state === undefined) {
-    const { [MOUNT_FLAG_KEY]: _removed, ...rest } = ns;
-    flags[MOUNT_FLAG_NAMESPACE] = rest;
-    return { ...token, flags };
-  }
-  ns[MOUNT_FLAG_KEY] = state;
-  flags[MOUNT_FLAG_NAMESPACE] = ns;
-  return { ...token, flags };
 }
 
 function persistAndBroadcast(

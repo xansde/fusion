@@ -109,6 +109,7 @@ import {
   isCharacterActor,
 } from "../../documents/knowledge.js";
 import { rejectAttitudeWrite, sanitizeAttitudeOnCreate } from "../../documents/attitude.js";
+import { applyMountMovement } from "../../combat/mount-follow.js";
 import {
   findBlockingCombats,
   blockingCombatMessage,
@@ -2587,6 +2588,22 @@ function handleEmbeddedUpdate(
           return ackError("VALIDATION_FAILED", validation.message);
         }
         collection[idx] = validation.doc;
+        continue;
+      }
+
+      // BHR-F5-03 (D-B03): a mounted pair is one body — the mount drags its rider in this same write; a
+      // mounted rider is not movable by a player (and the GM moving him takes him off the mount).
+      if (embeddedType === "Token") {
+        const moved = applyMountMovement(
+          deps.store,
+          parentId,
+          collection,
+          idx,
+          patchedToken,
+          isPrivileged(ctx.role),
+        );
+        if (!moved.ok) return ackError(moved.code, moved.message);
+        collection.splice(0, collection.length, ...moved.tokens);
         continue;
       }
 

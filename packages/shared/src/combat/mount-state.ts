@@ -15,11 +15,25 @@ import { z } from "zod";
 export const MOUNT_FLAG_NAMESPACE = "fusion" as const;
 export const MOUNT_FLAG_KEY = "mount" as const;
 
+/**
+ * Where in the combat the mount last moved WITH a rider (BHR-F5-03). Stamped by the server, on the
+ * MOUNT token only, in the same write that moves the pair; read by BHR-F5-04 ("a mount carrying a
+ * rider cannot move and Support in the same turn"). Never written outside a running combat.
+ * Cleared with the rest of the flag when the rider dismounts.
+ */
+export interface MountMovedTurn {
+  combatId: string;
+  round: number;
+  turn: number;
+}
+
 export interface MountState {
   /** Set on the MOUNT token: the token riding it. */
   riderTokenId?: string;
   /** Set on the RIDER token: the token being ridden. */
   mountTokenId?: string;
+  /** Set on the MOUNT token by the server when it moved carrying a rider during a combat. */
+  movedTurn?: MountMovedTurn;
 }
 
 /** `mount:mount` — the rider climbs onto the mount. Everything else is decided on the server. */
@@ -45,10 +59,28 @@ export function readMountState(token: unknown): MountState {
   if (typeof ns !== "object" || ns === null) return {};
   const raw = (ns as Record<string, unknown>)[MOUNT_FLAG_KEY];
   if (typeof raw !== "object" || raw === null) return {};
-  const { riderTokenId, mountTokenId } = raw as Record<string, unknown>;
+  const { riderTokenId, mountTokenId, movedTurn } = raw as Record<string, unknown>;
+  const moved =
+    typeof movedTurn === "object" && movedTurn !== null
+      ? (movedTurn as Record<string, unknown>)
+      : {};
+  const hasMoved =
+    typeof moved["combatId"] === "string" &&
+    moved["combatId"] !== "" &&
+    typeof moved["round"] === "number" &&
+    typeof moved["turn"] === "number";
   return {
     ...(typeof riderTokenId === "string" && riderTokenId !== "" ? { riderTokenId } : {}),
     ...(typeof mountTokenId === "string" && mountTokenId !== "" ? { mountTokenId } : {}),
+    ...(hasMoved
+      ? {
+          movedTurn: {
+            combatId: moved["combatId"] as string,
+            round: moved["round"] as number,
+            turn: moved["turn"] as number,
+          },
+        }
+      : {}),
   };
 }
 
