@@ -83,6 +83,8 @@ desbloqueada: curar da fonte). Pendente: idiomas.
 - **I-5 (revisão da onda 7)**: mantém o comportamento atual. O botão "Aplicar condição" aplica em quem está mirado
   na hora do clique. Usar o alvo da rolagem, como pede a regra, fica como ajuste futuro: ver
   [ajustes-futuros.md](ajustes-futuros.md). O contrato REQ-SYS-142 do Alquimista não muda nesta frente.
+- **Alcance de golpe (pergunta 1 da onda 10)**: o Fusion **não faz nada** com o alcance do ataque: nem bloqueia nem avisa golpe fora de alcance. Não se constrói checagem de alcance de golpe.
+- **Anti-cheat do Apoio (pergunta 2 da onda 10, M-10)**: não fazer; o Alexandre confia nos jogadores (D-B20). O gate do Apoio continua lido da cópia do efeito no ator.
 - **CI do satélite**: fica desligado, por custo. O gate do satélite é o local (integrador e corretor) mais o CI do core.
 
 ## Perguntas abertas
