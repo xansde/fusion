@@ -46,7 +46,7 @@ const SQUARE = 100;
 const FOE_AC = 15;
 
 /** Where the foe stands, in squares from the bear; a test moves it. */
-const world = { foeSquares: 1, bearReach: 5 };
+const world = { foeSquares: 1, bearReach: 5, condBonus: 0, outcomeNotes: false };
 
 function buildTestSystem(): SystemModule {
   return defineSystem(
@@ -64,10 +64,35 @@ function buildTestSystem(): SystemModule {
         resolve(input) {
           const damage = input.rollContext.selectors.includes("strike-damage");
           const bear = (input.companions ?? [])[0];
+          // A conditional modifier of the Strike's damage (a flat bonus against a marked target, say) and the notes that
+          // only apply on one degree of the attack (a debilitating strike on a hit, a bonus on a critical).
+          const conditional = damage && world.condBonus !== 0;
           return {
-            modifiers: [],
-            total: 0,
-            notes: [],
+            modifiers: conditional
+              ? [{ slug: "cond", label: "Condicional", type: "untyped", value: world.condBonus }]
+              : [],
+            total: conditional ? world.condBonus : 0,
+            notes:
+              damage && world.outcomeNotes
+                ? [
+                    {
+                      selector: "strike-damage",
+                      title: "Só no acerto",
+                      text: "x",
+                      outcome: ["success"],
+                      sourceItemId: "it1",
+                      slug: "on-hit",
+                    },
+                    {
+                      selector: "strike-damage",
+                      title: "Só no crítico",
+                      text: "y",
+                      outcome: ["criticalSuccess"],
+                      sourceItemId: "it2",
+                      slug: "on-crit",
+                    },
+                  ]
+                : [],
             ...(damage && bear !== undefined
               ? {
                   extraDamage: [
@@ -301,6 +326,8 @@ describe("BHR-F4-09 — Apoio do urso: o dano extra entra na rolagem de dano do 
 
   beforeEach(() => {
     world.foeSquares = 1;
+    world.condBonus = 0;
+    world.outcomeNotes = false;
   });
 
   afterEach(async () => {
@@ -333,6 +360,15 @@ describe("BHR-F4-09 — Apoio do urso: o dano extra entra na rolagem de dano do 
     expect(attack.ok).toBe(true);
     lastDegree = attack.result?.message?.rolls?.[0]?.degreeOfSuccess;
     return cardId;
+  }
+
+  /** A plain hit (not a critical one) cannot be fixed by the dice alone: roll again until the server grades it so. */
+  async function strikeUntil(degree: string): Promise<string> {
+    for (let attempt = 0; attempt < 40; attempt++) {
+      const cardId = await strike("1d20+5");
+      if (lastDegree === degree) return cardId;
+    }
+    throw new Error(`never graded ${degree}`);
   }
 
   async function damage(
@@ -413,5 +449,64 @@ describe("BHR-F4-09 — Apoio do urso: o dano extra entra na rolagem de dano do 
     expect(msg.rolls?.[0]?.formula).toContain("1d8");
     expect(msg.rolls?.[0]?.formula).not.toContain("2d8");
     expect(msg.flags?.fusion?.extraDamage).toEqual([expect.objectContaining({ dice: "1d8" })]);
+  });
+
+  // PF2e remaster (Player Core, critical hits): on a critical hit ALL the damage of the Strike is doubled, the
+  // conditional modifiers included. The bear's Support is a separate damage and is not (above).
+  it("acerto crítico: o modificador condicional de dano dobra junto com o golpe (+2 vira +4)", async () => {
+    await boot(6); // out of the bear's reach: only the conditional modifier is in play
+    world.condBonus = 2;
+    const card = await strike("1d20+40");
+    expect(lastDegree).toBe("criticalSuccess");
+    const msg = await damage(card, "(1d4+2)*2");
+    expect(msg.rolls?.[0]?.formula).toMatch(/\(1d4\+2\)\*2 \+ 4(?!\d)/);
+  });
+
+  it("acerto comum: o modificador condicional entra uma vez só (+2)", async () => {
+    await boot(6);
+    world.condBonus = 2;
+    const card = await strikeUntil("success");
+    expect(lastDegree).toBe("success");
+    const msg = await damage(card, "1d4+2");
+    expect(msg.rolls?.[0]?.formula).toMatch(/1d4\+2 \+ 2(?!\d)/);
+  });
+
+  it("acerto crítico com bônus condicional negativo: a penalidade também dobra", async () => {
+    await boot(6);
+    world.condBonus = -1;
+    const card = await strike("1d20+40");
+    const msg = await damage(card, "(1d4+2)*2");
+    expect(msg.rolls?.[0]?.formula).toMatch(/\(1d4\+2\)\*2 - 2(?!\d)/);
+  });
+
+  // The damage roll has no degree of its own: a note that applies on one degree is judged by the degree of the
+  // attack the server graded under the same card (the proof the Apoio already uses).
+  it("nota de dano com `outcome`: vale o grau do ataque que o servidor graduou no mesmo card (acerto)", async () => {
+    await boot(6);
+    world.outcomeNotes = true;
+    const card = await strikeUntil("success");
+    expect(lastDegree).toBe("success");
+    const msg = await damage(card);
+    expect((msg.flags?.fusion?.rollNotes as { title: string }[]).map((n) => n.title)).toEqual([
+      "Só no acerto",
+    ]);
+  });
+
+  it("nota de dano com `outcome`: vale o grau do ataque que o servidor graduou no mesmo card (crítico)", async () => {
+    await boot(6);
+    world.outcomeNotes = true;
+    const card = await strike("1d20+40");
+    expect(lastDegree).toBe("criticalSuccess");
+    const msg = await damage(card, "(1d4+2)*2");
+    expect((msg.flags?.fusion?.rollNotes as { title: string }[]).map((n) => n.title)).toEqual([
+      "Só no crítico",
+    ]);
+  });
+
+  it("nota de dano com `outcome`, sem ataque graduado sob o card: comportamento antigo (a nota some)", async () => {
+    await boot(6);
+    world.outcomeNotes = true;
+    const msg = await damage("nonexistentcard");
+    expect(msg.flags?.fusion?.rollNotes).toEqual([]);
   });
 });
