@@ -451,9 +451,9 @@ describe("Animal companion creation permission (BHR-F4-04)", () => {
       }
     });
 
-    it("I-9: the owner cannot write the inputs of the animal companion's derivation (master cache, stage, track, type, size)", async () => {
+    it("I-9: the owner cannot write the inputs of the animal companion's derivation (master cache, stage, track)", async () => {
       // The statblock is a function of master level + stage + track + type + size
-      // (Player Core). The owner choosing any of them chooses the statblock.
+      // (Player Core). The owner choosing master level, stage or track chooses the statblock.
       const attempts: Record<string, unknown>[] = [
         { "system.master.level": 20 },
         { system: { master: { level: 20 } } },
@@ -461,9 +461,9 @@ describe("Animal companion creation permission (BHR-F4-04)", () => {
         { "system.companion.stage": "specialized" },
         { system: { companion: { stage: "specialized" } } },
         { "system.companion.track": "specialized" },
-        { "system.companion.typeSlug": "antelope" },
-        { "system.companion.size": "lg" },
       ];
+      // typeSlug and size are the owner's own choice since BHR-F4-03 (D-B09), validated against the
+      // type table: companion-master-level.test.ts covers them.
       for (const diff of attempts) {
         const ack = await update(ownerSocket, diff);
         expect(ack["ok"], JSON.stringify(diff)).toBe(false);

@@ -410,4 +410,148 @@ describe("Owner change re-derives the animal companion on the server (BHR-F4-03)
       "antelope",
     );
   });
+
+  describe("the owner swaps the companion's type and size on their own (D-B09)", () => {
+    async function bearFor(masterName: string): Promise<{ id: string; version: number }> {
+      const masterId = await createMaster(3, masterName);
+      const created = await createAs(gm, [bearPayload(masterId, "Urso", `slot-${masterName}`)]);
+      const doc = docsOf(created)[0]!;
+      return { id: doc["_id"] as string, version: (doc["_stats"] as { version: number }).version };
+    }
+
+    function companionOf(doc: Doc): Record<string, unknown> {
+      return sysOf(doc)["companion"] as Record<string, unknown>;
+    }
+
+    it("bear -> antelope: accepted, and the derived HP changes (8 + 3x8 = 32 -> 6 + 3x8 = 30)", async () => {
+      const bear = await bearFor("SwapOk");
+      const ack = await updateAs(
+        ownerSocket,
+        bear.id,
+        { "system.companion.typeSlug": "antelope" },
+        bear.version,
+      );
+      expect(ack["ok"], JSON.stringify(ack)).toBe(true);
+      const swapped = docsOf(ack)[0]!;
+      expect(companionOf(swapped)["typeSlug"]).toBe("antelope");
+      expect(cachedLevel(swapped)).toBe(3);
+      expect(hpMax(swapped)).toBe(30);
+    });
+
+    it("an unknown typeSlug is refused", async () => {
+      const bear = await bearFor("SwapUnknown");
+      const ack = await updateAs(
+        ownerSocket,
+        bear.id,
+        { "system.companion.typeSlug": "dragon" },
+        bear.version,
+      );
+      expect(ack["ok"]).toBe(false);
+      expect(ack["message"]).toMatch(/Unknown companion type/);
+    });
+
+    it("antelope Large is accepted; bear Large is refused", async () => {
+      const bear = await bearFor("SwapSize");
+      const refused = await updateAs(
+        ownerSocket,
+        bear.id,
+        { "system.companion.size": "lg" },
+        bear.version,
+      );
+      expect(refused["ok"]).toBe(false);
+      expect(refused["message"]).toMatch(/not allowed for companion type "bear"/);
+
+      const ack = await updateAs(
+        ownerSocket,
+        bear.id,
+        { "system.companion.typeSlug": "antelope", "system.companion.size": "lg" },
+        bear.version,
+      );
+      expect(ack["ok"], JSON.stringify(ack)).toBe(true);
+      const swapped = docsOf(ack)[0]!;
+      expect(companionOf(swapped)["size"]).toBe("lg");
+      expect(derivedOf(swapped)["size"]).toBe("lg");
+    });
+
+    it("any other derivation input stays refused to the player (stage, track, master.*)", async () => {
+      const bear = await bearFor("SwapInputs");
+      for (const diff of [
+        { "system.companion.stage": "mature" },
+        { "system.companion.track": "savage" },
+        { "system.master.level": 20 },
+        { "system.companion": { typeSlug: "antelope", stage: "savage" } },
+      ]) {
+        const ack = await updateAs(ownerSocket, bear.id, diff, bear.version);
+        expect(ack["ok"], JSON.stringify(diff)).toBe(false);
+        expect(ack["code"]).toBe("PERMISSION_DENIED");
+      }
+    });
+  });
+
+  describe("flags.fusion.mount is not forgeable by a player (MountState, spec 52 2.5)", () => {
+    let sceneId = "";
+    let tokenId = "";
+    let masterId = "";
+
+    async function updateToken(socket: ClientSocket, diff: Doc): Promise<Ack> {
+      return sendOp(socket, "doc:update", {
+        documentType: "Token",
+        updates: [{ _id: tokenId, diff, embedded: { type: "Token", id: sceneId } }],
+      });
+    }
+
+    beforeAll(async () => {
+      masterId = await createMaster(3, "MountOwner");
+      const sceneAck = await sendOp(gm, "doc:create", {
+        documentType: "Scene",
+        data: [{ name: "Mount Scene" }],
+      });
+      sceneId = docsOf(sceneAck)[0]!["_id"] as string;
+      // A player only reaches the scene that is on air.
+      const onAir = await sendOp(gm, "world:activeScene", { sceneId });
+      expect(onAir["ok"], JSON.stringify(onAir)).toBe(true);
+      const tokenAck = await sendOp(gm, "doc:create", {
+        documentType: "Token",
+        data: [{ name: "Rider", actorId: masterId, x: 0, y: 0 }],
+        parent: { type: "Scene", id: sceneId },
+      });
+      const tokens = (
+        (tokenAck["result"] as Record<string, unknown>)["parent"] as Record<string, unknown>
+      )["tokens"] as Array<{ _id: string }>;
+      tokenId = tokens[0]!._id;
+    });
+
+    it("the token owner writing flags.fusion.mount is refused, whatever the spelling", async () => {
+      for (const diff of [
+        { "flags.fusion.mount": { riderTokenId: "x" } },
+        { "flags.fusion.mount.mountTokenId": "x" },
+        { flags: { fusion: { mount: { riderTokenId: "x" } } } },
+      ]) {
+        const ack = await updateToken(ownerSocket, diff);
+        expect(ack["ok"], JSON.stringify(diff)).toBe(false);
+        expect(ack["code"]).toBe("PERMISSION_DENIED");
+        expect(String(ack["message"])).toMatch(/flags\.fusion\.mount/);
+      }
+    });
+
+    it("the GM can write it, and then the player can neither erase nor replace it", async () => {
+      const gmWrite = await updateToken(gm, { "flags.fusion.mount": { mountTokenId: "m1" } });
+      expect(gmWrite["ok"], JSON.stringify(gmWrite)).toBe(true);
+
+      for (const diff of [
+        { "flags.fusion.mount": null },
+        { "flags.fusion": { other: 1 } },
+        { flags: {} },
+      ]) {
+        const ack = await updateToken(ownerSocket, diff);
+        expect(ack["ok"], JSON.stringify(diff)).toBe(false);
+        expect(ack["code"]).toBe("PERMISSION_DENIED");
+      }
+    });
+
+    it("another flag of the token is still the player's to write", async () => {
+      const ack = await updateToken(ownerSocket, { "flags.fusion.note": "ok" });
+      expect(ack["ok"], JSON.stringify(ack)).toBe(true);
+    });
+  });
 });

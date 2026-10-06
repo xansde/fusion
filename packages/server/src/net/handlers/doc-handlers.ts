@@ -82,6 +82,7 @@ import {
   companionGrantAllows,
   companionGrantLimit,
   companionGroupOf,
+  getCompanionType,
   validateCharacterBuild,
   type BuildValidationVariants,
 } from "@fusion/system-pf2e";
@@ -395,12 +396,23 @@ function touchesCompanionLink(expanded: Record<string, unknown>): boolean {
   return "grantSlotId" in companion || "active" in companion;
 }
 
+/** `flags.fusion.mount` of a raw token, or undefined when absent. */
+function readTokenMountFlag(token: Record<string, unknown>): unknown {
+  const flags = token["flags"];
+  if (typeof flags !== "object" || flags === null) return undefined;
+  const fusion = (flags as Record<string, unknown>)["fusion"];
+  if (typeof fusion !== "object" || fusion === null) return undefined;
+  return (fusion as Record<string, unknown>)["mount"];
+}
+
 /**
- * Does this expanded `doc:update` diff write an INPUT of the animal companion's derivation: the master
- * cache (`system.master.*`) or the companion's `stage`, `track`, `typeSlug` or `size`? Its whole statblock is a
- * function of those (master level + stage + track + type + size), so letting the owner write them is letting
- * the owner pick the statblock (onda-6 review I-9, REQ-PET-106). Stage, track and type belong to the Plan
- * (BHR-F4-05) and the server; the master level is written by the server from the owner actor (BHR-F4-03).
+ * Does this expanded `doc:update` diff write an INPUT of the animal companion's derivation that a player
+ * may NOT touch: the master cache (`system.master.*`) or the companion's `stage` or `track`? Its whole
+ * statblock is a function of those (master level + stage + track + type + size), so letting the owner write
+ * them is letting the owner pick the statblock (onda-6 review I-9, REQ-PET-106). Stage and track belong to
+ * the Plan and the server; the master level is written by the server from the owner actor (BHR-F4-03).
+ * `typeSlug` and `size` are the owner's own choice ("Trocar tipo", D-B09) but only within what the type
+ * allows — see `companionTypeChoiceViolation`.
  * A `system` / `system.companion` set to a non-object counts: it would replace them whole.
  */
 function touchesCompanionDerivationInputs(expanded: Record<string, unknown>): boolean {
@@ -412,9 +424,39 @@ function touchesCompanionDerivationInputs(expanded: Record<string, unknown>): bo
   if (!("companion" in sys)) return false;
   const companion = sys["companion"];
   if (typeof companion !== "object" || companion === null || Array.isArray(companion)) return true;
-  return (
-    "stage" in companion || "track" in companion || "typeSlug" in companion || "size" in companion
-  );
+  return "stage" in companion || "track" in companion;
+}
+
+/**
+ * The owner's "Trocar tipo" (BHR-F4-03 extension, D-B09): a diff that writes `system.companion.typeSlug` or
+ * `.size` is valid only if the RESULTING link names a type the system knows and a size that type allows
+ * (antelope: medium or large; the others: their one fixed size). `size` null/absent means "the type's
+ * default" and is always fine. Returns the refusal message, or null when the diff does not touch either
+ * field or is valid. Judged on the merged link so a diff that only changes the type is checked against the
+ * size already stored.
+ */
+function companionTypeChoiceViolation(
+  expanded: Record<string, unknown>,
+  existing: Record<string, unknown>,
+): string | null {
+  const system = expanded["system"];
+  if (typeof system !== "object" || system === null || Array.isArray(system)) return null;
+  const diffLink = (system as Record<string, unknown>)["companion"];
+  if (typeof diffLink !== "object" || diffLink === null || Array.isArray(diffLink)) return null;
+  if (!("typeSlug" in diffLink) && !("size" in diffLink)) return null;
+  const storedLink = (existing["system"] as Record<string, unknown> | undefined)?.["companion"];
+  const merged = {
+    ...(typeof storedLink === "object" && storedLink !== null ? storedLink : {}),
+    ...(diffLink as Record<string, unknown>),
+  } as Record<string, unknown>;
+  const slug = merged["typeSlug"];
+  const type = typeof slug === "string" ? getCompanionType(slug) : undefined;
+  if (!type) return `Unknown companion type "${String(slug)}"`;
+  const size = merged["size"];
+  if (size !== null && size !== undefined && !(type.sizes as readonly unknown[]).includes(size)) {
+    return `Size ${JSON.stringify(size)} is not allowed for companion type "${type.slug}" (allowed: ${type.sizes.join(", ")})`;
+  }
+  return null;
 }
 
 function rejectUnwritableField(
@@ -508,8 +550,20 @@ function rejectUnwritableField(
   ) {
     return ackError(
       "PERMISSION_DENIED",
-      "system.master and system.companion.{stage,track,typeSlug,size} are not writable through doc:update by a player",
+      "system.master and system.companion.{stage,track} are not writable through doc:update by a player",
     );
+  }
+
+  // BHR-F4-03 extension (D-B09): the owner swaps the companion's type/size on their own, validated here.
+  if (
+    documentType === "Actor" &&
+    !isPrivileged(role) &&
+    existing?.["type"] === "familiar" &&
+    (existing["system"] as { companionKind?: unknown } | undefined)?.companionKind ===
+      "animalCompanion"
+  ) {
+    const violation = companionTypeChoiceViolation(expandedDiff, existing);
+    if (violation) return ackError("VALIDATION_FAILED", violation);
   }
 
   // The guard above reads the STORED subtype, so a player could skip it by turning an actor they own
@@ -2429,7 +2483,24 @@ function handleEmbeddedUpdate(
 
       // Build the updated token by applying dot-path diff (uses sanitized diff)
       const existingToken = collection[idx] ?? {};
+      // Snapshot BEFORE patching: applyDotPathDiff copies the top level only, so a dotted path walks
+      // into (and mutates) the nested objects `existingToken` still shares.
+      const mountBefore = JSON.stringify(readTokenMountFlag(existingToken));
       const patchedToken = applyDotPathDiff(existingToken, sanitizedDiff);
+
+      // BHR-F4-03 extension: `flags.fusion.mount` (MountState, spec 52 §2.5) is written by the mount
+      // handler only. Judged on the RESULT, so `flags.fusion.mount` itself, a `-=mount`/null, and a
+      // replacement of `flags` / `flags.fusion` that alters it are all caught the same way. The GM may.
+      if (
+        embeddedType === "Token" &&
+        !isPrivileged(ctx.role) &&
+        mountBefore !== JSON.stringify(readTokenMountFlag(patchedToken))
+      ) {
+        return ackError(
+          "PERMISSION_DENIED",
+          `flags.fusion.mount on token ${tokenId} is not writable through doc:update by a player`,
+        );
+      }
 
       // REQ-TOK-002/CA-TOK-003/DEC-TOK-05: the diff was only barred from
       // TOUCHING actorId when the caller is non-privileged (above). A
