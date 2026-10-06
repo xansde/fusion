@@ -213,6 +213,21 @@ describe("system.build.gmExceptions is Mestre-only (BHR-F7-02)", () => {
     expect(stored(OWN_ID, ["system", "build", "gmExceptions"])).toBeUndefined();
   });
 
+  it("the owner cannot release Noble Bloom for themselves (the real shape: a list of feat ids)", async () => {
+    const nobleBloomSourceId = "B7VfoCspflTNfmde";
+    const ack = await update(p1, OWN_ID, { "system.build.gmExceptions": [nobleBloomSourceId] });
+    expect(ack).toMatchObject({ ok: false, code: "PERMISSION_DENIED" });
+    expect(stored(OWN_ID, ["system", "build", "gmExceptions"])).toBeUndefined();
+    // The Mestre releases it, and the list lands as written.
+    const granted = await update(gm, OWN_ID, { "system.build.gmExceptions": [nobleBloomSourceId] });
+    expect(granted["ok"], JSON.stringify(granted)).toBe(true);
+    expect(stored(OWN_ID, ["system", "build", "gmExceptions"])).toEqual([nobleBloomSourceId]);
+    // Once released the owner still cannot revoke or extend it.
+    const revoke = await update(p1, OWN_ID, { "system.build.gmExceptions": [] });
+    expect(revoke).toMatchObject({ ok: false, code: "PERMISSION_DENIED" });
+    expect(stored(OWN_ID, ["system", "build", "gmExceptions"])).toEqual([nobleBloomSourceId]);
+  });
+
   it("the owner cannot write them on an actor they do not own either", async () => {
     const ack = await update(p1, OTHER_ID, { "system.build.gmExceptions": exceptions });
     expect(ack["ok"]).toBe(false);
