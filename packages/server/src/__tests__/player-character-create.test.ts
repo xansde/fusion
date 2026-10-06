@@ -602,9 +602,26 @@ describe("Player-owned character edit + build legality (pf2e, O6/T6.2-T6.3; O6 f
       ],
     });
     expect(ack["ok"]).toBe(false);
-    // Denied either way: BHR-F7-02 refuses a non-object `system.build` replacement up front (it would wipe
-    // gmExceptions), before the build validation that used to answer VALIDATION_FAILED.
-    expect(["VALIDATION_FAILED", "PERMISSION_DENIED"]).toContain(ack["code"]);
+    // BHR-F7-02 refuses a non-object `system.build` replacement up front (it would wipe gmExceptions), before the
+    // build validation that used to answer VALIDATION_FAILED: the answer is deterministic.
+    expect(ack["code"]).toBe("PERMISSION_DENIED");
+  });
+
+  it("still answers VALIDATION_FAILED to invalid `system.build.choices` (two choices in one slot: the build validation is not bypassed)", async () => {
+    const twice = { level: 2, slot: "skillFeat-2", type: "skillFeat" };
+    const ack = await sendOp(ownerSocket, "doc:update", {
+      documentType: "Actor",
+      updates: [
+        {
+          _id: characterId,
+          diff: { "system.build.choices": [twice, twice] },
+          expectedVersion: version,
+        },
+      ],
+    });
+    expect(ack["ok"]).toBe(false);
+    expect(ack["code"]).toBe("VALIDATION_FAILED");
+    expect(String(ack["message"])).toContain("DUPLICATE_SLOT");
   });
 
   // -------------------------------------------------------------------------
