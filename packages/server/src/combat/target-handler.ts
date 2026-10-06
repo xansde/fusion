@@ -87,7 +87,10 @@ function broadcastTargeted(
  * broadcast uses, so the client needs no new path. It carries no `seq`: a replay is not a new canonical op, and the
  * world mirror ignores an op without one (a seq could land past the mirror's own, before its snapshot, as a gap).
  */
-export function replayTargetingTo(socket: Pick<Socket, "emit">, targetingStore: TargetingStore): void {
+export function replayTargetingTo(
+  socket: Pick<Socket, "emit">,
+  targetingStore: TargetingStore,
+): void {
   for (const [userId, tokenIds] of targetingStore.entries()) {
     for (const tokenId of tokenIds) {
       const envelope: Envelope = {

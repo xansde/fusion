@@ -8,11 +8,12 @@
  */
 import { describe, it, expect } from "vitest";
 import type { Socket } from "socket.io";
+import type { Envelope } from "@fusion/shared";
 import { TargetingStore } from "../targeting-store.js";
 import { replayTargetingTo } from "../target-handler.js";
 
-function fakeSocket(): { socket: Socket; sent: Array<{ event: string; envelope: any }> } {
-  const sent: Array<{ event: string; envelope: any }> = [];
+function fakeSocket(): { socket: Socket; sent: Array<{ event: string; envelope: Envelope }> } {
+  const sent: Array<{ event: string; envelope: Envelope }> = [];
   const socket = {
     emit: (event: string, envelope: unknown) => sent.push({ event, envelope }),
   } as unknown as Socket;
