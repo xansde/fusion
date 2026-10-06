@@ -686,6 +686,40 @@ export function redactChatDamageAppliedForNonPrivileged(
 }
 
 // ---------------------------------------------------------------------------
+// Effect-expiry announcement redaction (BHR-F0-03, I-3 of the wave-2 review)
+//
+// `flags.fusion.effectExpiry` is stamped by the system's expiry hook
+// (pf2e effect-expiry.ts). When the holder's combatant is `hidden` (the same
+// field {@link stripHiddenCombatantsFromCombat} cuts on) the hook adds
+// `hidden: true`; a NON-PRIVILEGED viewer must then learn neither who held
+// the effect nor which effect it was.
+// ---------------------------------------------------------------------------
+
+/**
+ * The ChatMessage a NON-PRIVILEGED viewer may receive for an effect-expiry
+ * announcement: a hidden holder's line is rebuilt as a neutral sentence and
+ * its holder/item ids and speaker actor are removed. Returns the SAME
+ * reference when there is nothing to cut.
+ */
+export function redactChatEffectExpiryForNonPrivileged(msg: ChatMessage): ChatMessage {
+  const flags = msg.flags as Record<string, Record<string, unknown>> | undefined;
+  const fusionFlags = flags?.[CHAT_FUSION_FLAG_NAMESPACE];
+  const expiry = fusionFlags?.["effectExpiry"];
+  if (!isPlainObject(expiry) || expiry["hidden"] !== true) return msg;
+
+  const { actorId: _actorId, ...speaker } = msg.speaker as typeof msg.speaker & { actorId?: string };
+  return {
+    ...msg,
+    content: "Um efeito terminou.",
+    speaker,
+    flags: {
+      ...flags,
+      [CHAT_FUSION_FLAG_NAMESPACE]: { ...fusionFlags, effectExpiry: { hidden: true } },
+    },
+  };
+}
+
+// ---------------------------------------------------------------------------
 // Secret-door redaction (M2-A, REQ-VIS-005)
 // ---------------------------------------------------------------------------
 

@@ -24,6 +24,7 @@ import {
   stripTokenActorDeltaHp,
   redactTokenActorDeltaHp,
   type ContactViewer,
+  redactChatEffectExpiryForNonPrivileged,
 } from "../redaction.js";
 // ---------------------------------------------------------------------------
 // TK070 — stripHiddenTokens / redactSceneDocsForNonPrivileged: seenBy
@@ -276,5 +277,33 @@ describe("redactSceneDocsForNonPrivileged also strips actorDelta hp (REQ-DOC-062
     const delta = tokens[0]!["actorDelta"] as Record<string, unknown>;
     const system = delta["system"] as Record<string, unknown>;
     expect((system["traits"] as Record<string, unknown>)["size"]).toBe("sm");
+  });
+});
+
+// ---------------------------------------------------------------------------
+// I-3 (revisão da onda 2) — effect-expiry chat line of a hidden combatant
+// ---------------------------------------------------------------------------
+
+describe("redactChatEffectExpiryForNonPrivileged", () => {
+  const expiryMsg = (hidden: boolean) =>
+    ({
+      _id: "m1",
+      content: "Efeito Apoio terminou em Emboscador.",
+      speaker: { userId: "system", alias: "Sistema", actorId: "actor-S" },
+      whisper: [],
+      flags: { fusion: { effectExpiry: { itemId: "eff-S", actorId: "actor-S", ...(hidden ? { hidden: true } : {}) } } },
+    }) as unknown as import("@fusion/shared").ChatMessage;
+
+  it("drops the name, the actor id and the item id for a hidden holder", () => {
+    const out = redactChatEffectExpiryForNonPrivileged(expiryMsg(true));
+    expect(out.content).toBe("Um efeito terminou.");
+    expect(JSON.stringify(out)).not.toContain("Emboscador");
+    expect(JSON.stringify(out)).not.toContain("actor-S");
+    expect(JSON.stringify(out)).not.toContain("eff-S");
+  });
+
+  it("returns the same message when the holder is not hidden", () => {
+    const msg = expiryMsg(false);
+    expect(redactChatEffectExpiryForNonPrivileged(msg)).toBe(msg);
   });
 });

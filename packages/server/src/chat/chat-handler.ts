@@ -71,6 +71,7 @@ import type { Ownership } from "../documents/ownership.js";
 import {
   redactBlindRollForNonPrivileged,
   redactChatDamageAppliedForNonPrivileged,
+  redactChatEffectExpiryForNonPrivileged,
   redactChatTargetsForNonPrivileged,
   redactChatTargetSnapshotForNonPrivileged,
   redactSceneDocsForNonPrivileged,
@@ -275,14 +276,16 @@ function buildPayloadForSocket(
   // every `return` below hands out the already-redacted body.
   const msg = socketIsPrivileged
     ? fullMessage
-    : redactChatDamageAppliedForNonPrivileged(
-        redactChatTargetSnapshotForNonPrivileged(
-          redactChatTargetsForNonPrivileged(fullMessage),
+    : redactChatEffectExpiryForNonPrivileged(
+        redactChatDamageAppliedForNonPrivileged(
+          redactChatTargetSnapshotForNonPrivileged(
+            redactChatTargetsForNonPrivileged(fullMessage),
+            socketUserId,
+            tokenSource,
+          ),
           socketUserId,
           tokenSource,
         ),
-        socketUserId,
-        tokenSource,
       );
 
   const whisper = msg.whisper;
@@ -1332,14 +1335,16 @@ function redactForViewer(
   // already-redacted body.
   const msg = privileged
     ? fullMessage
-    : redactChatDamageAppliedForNonPrivileged(
-        redactChatTargetSnapshotForNonPrivileged(
-          redactChatTargetsForNonPrivileged(fullMessage),
+    : redactChatEffectExpiryForNonPrivileged(
+        redactChatDamageAppliedForNonPrivileged(
+          redactChatTargetSnapshotForNonPrivileged(
+            redactChatTargetsForNonPrivileged(fullMessage),
+            viewerId,
+            tokenSource,
+          ),
           viewerId,
           tokenSource,
         ),
-        viewerId,
-        tokenSource,
       );
 
   const whisper = msg.whisper;
@@ -1403,14 +1408,16 @@ function redactForAuthor(
   tokenSource?: TokenLookupSource,
 ): ChatMessage {
   if (privileged) return msg;
-  const withoutAc = redactChatDamageAppliedForNonPrivileged(
-    redactChatTargetSnapshotForNonPrivileged(
-      redactChatTargetsForNonPrivileged(msg),
+  const withoutAc = redactChatEffectExpiryForNonPrivileged(
+    redactChatDamageAppliedForNonPrivileged(
+      redactChatTargetSnapshotForNonPrivileged(
+        redactChatTargetsForNonPrivileged(msg),
+        authorId,
+        tokenSource,
+      ),
       authorId,
       tokenSource,
     ),
-    authorId,
-    tokenSource,
   );
   if (withoutAc.blind && withoutAc.speaker.userId === authorId) {
     return redactBlindRollForNonPrivileged(withoutAc);
