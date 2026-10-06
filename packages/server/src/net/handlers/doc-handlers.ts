@@ -1326,6 +1326,18 @@ export function buildDocUpdateHandler(deps: DocHandlerDeps): HandlerFn {
     const payload = parsed.data;
     const { documentType, updates } = payload;
 
+    // Prototype pollution: refuse before anything is looked up or expanded. Covers the three
+    // applyDotPathDiff entry points (primary, embedded, token) because they all pass through here.
+    for (const upd of updates) {
+      const polluting = findPollutingKey(upd.diff);
+      if (polluting !== null) {
+        return ackError(
+          "VALIDATION_FAILED",
+          `Diff for ${documentType}/${upd._id} contains the forbidden key segment "${polluting}"`,
+        );
+      }
+    }
+
     // Types the chat handlers own (REQ-CHT-005 / REQ-ACH-080 / REQ-ACH-090).
     // Checked against every embedded type in the batch as well, so an
     // `updates[].embedded` entry cannot smuggle one past the top-level type.
@@ -2795,6 +2807,32 @@ function stripSystemDerived(diff: Record<string, unknown>): Record<string, unkno
     result[key] = value;
   }
   return result;
+}
+
+const POLLUTING_SEGMENTS = new Set(["__proto__", "constructor", "prototype"]);
+
+/**
+ * First key segment in a client diff that could reach Object.prototype, or null. Checks every dotted
+ * segment of every key and every nested object/array key in the values, at any depth.
+ */
+function findPollutingKey(value: unknown, depth = 0): string | null {
+  if (depth > 64) return "<too deep>";
+  if (Array.isArray(value)) {
+    for (const item of value) {
+      const found = findPollutingKey(item, depth + 1);
+      if (found !== null) return found;
+    }
+    return null;
+  }
+  if (value === null || typeof value !== "object") return null;
+  for (const [key, child] of Object.entries(value as Record<string, unknown>)) {
+    for (const segment of key.split(".")) {
+      if (POLLUTING_SEGMENTS.has(segment)) return segment;
+    }
+    const found = findPollutingKey(child, depth + 1);
+    if (found !== null) return found;
+  }
+  return null;
 }
 
 // ---------------------------------------------------------------------------
