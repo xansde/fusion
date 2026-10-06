@@ -274,9 +274,14 @@ export function broadcastCombatUpdate(
  * kept by the counter and the attack is never undone.
  */
 export function buildAttackCountPublisher(deps: CombatHandlerDeps): AttackCountPublisher {
-  return ({ combatId, combatantId, round, count }) => {
+  return ({ combatId, combatantId, round, count, byActor }) => {
     try {
-      const attackCount = { combatantId, round, count };
+      const attackCount = {
+        combatantId,
+        round,
+        count,
+        ...(byActor !== undefined ? { byActor } : {}),
+      };
       const updated = persistCombat(deps, combatId, { attackCount });
       broadcastUpdate(deps, updated, { attackCount });
     } catch (err) {

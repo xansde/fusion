@@ -121,6 +121,22 @@ function seedActor(db: FusionDatabase, id: string, name: string): void {
     .run(id, JSON.stringify(actor), name, "npc", now, now);
 }
 
+function seedCompanion(db: FusionDatabase, id: string, name: string, masterId: string): void {
+  const now = Date.now();
+  const actor = {
+    _id: id,
+    name,
+    type: "familiar",
+    system: { companionKind: "animalCompanion", masterActorId: masterId },
+  };
+  db.raw
+    .prepare(
+      `INSERT INTO actors (id, data, name, type, sort, created_at, updated_at)
+       VALUES (?, ?, ?, ?, 0, ?, ?)`,
+    )
+    .run(id, JSON.stringify(actor), name, "familiar", now, now);
+}
+
 describe("BHR-F3-04 — o servidor conta o ataque múltiplo pelo socket", { timeout: 30000 }, () => {
   let ctx: Ctx;
   let gm: ClientSocket;
@@ -253,5 +269,81 @@ describe("BHR-F3-04 — o servidor conta o ataque múltiplo pelo socket", { time
     };
     // PF2e: the second Strike of the turn is the one that takes -5; two were made.
     expect(attackCountOf()).toEqual({ combatantId: heroId, round: 1, count: 2 });
+  });
+
+  it("I-3 (onda 7): o companheiro animal age no turno do dono e tem MAP próprio, separado do dono", async () => {
+    seedActor(ctx.fusionDb, "actorHeroAAAAAAA1", "Hero");
+    seedActor(ctx.fusionDb, "actorOtherAAAAAA1", "Other");
+    seedCompanion(ctx.fusionDb, "actorBearAAAAAAA1", "Urso", "actorHeroAAAAAAA1");
+    seedCompanion(ctx.fusionDb, "actorBearOtherAA1", "Urso alheio", "actorOtherAAAAAA1");
+    const now = Date.now();
+    const scene = { _id: "sceneMapCounter03", name: "Map", active: true, tokens: [] };
+    ctx.fusionDb.raw
+      .prepare(
+        `INSERT INTO scenes (id, data, name, navigation, sort, created_at, updated_at)
+         VALUES (?, ?, ?, 1, 0, ?, ?)`,
+      )
+      .run(scene._id, JSON.stringify(scene), scene.name, now, now);
+    const created = await sendOp(gm, "combat:create", { sceneId: scene._id });
+    const combatId = created.result.combat._id;
+    await sendOp(gm, "combat:addCombatant", {
+      combatId,
+      tokenId: "tokHero",
+      actorId: "actorHeroAAAAAAA1",
+      initiative: 20,
+    });
+    await sendOp(gm, "combat:addCombatant", {
+      combatId,
+      tokenId: "tokOther",
+      actorId: "actorOtherAAAAAA1",
+      initiative: 10,
+    });
+    const begun = await sendOp(gm, "combat:beginCombat", { combatId });
+    const heroId = (
+      begun["result"]["combat"]["combatants"] as { _id: string; tokenId: string }[]
+    ).find((c) => c.tokenId === "tokHero")!._id;
+    const counter = ctx.socketManager.mapCounterFor(WORLD_ID);
+    if (!counter) throw new Error("no counter");
+
+    const strike = (speakerActorId: string): Promise<Ack> =>
+      sendOp(gm, "chat:send", {
+        content: "/r 1d20+5",
+        worldId: WORLD_ID,
+        rollMode: "public",
+        speakerActorId,
+        flags: { checkContext: { kind: "attack", mapIndex: 0 } },
+      });
+    const attackCountOf = (): unknown => {
+      const row = ctx.fusionDb.raw
+        .prepare(`SELECT data FROM combats WHERE id = ?`)
+        .get(combatId) as { data: string };
+      return (JSON.parse(row.data) as Record<string, unknown>)["attackCount"];
+    };
+
+    // The owner Strikes once; the bear Strikes twice in the same turn.
+    expect((await strike("actorHeroAAAAAAA1")).ok).toBe(true);
+    expect((await strike("actorBearAAAAAAA1")).ok).toBe(true);
+    // PF2e: the bear's SECOND attack of the turn is the one that takes -5 (MAP is per creature).
+    expect(counter.getMinionAttackCount(combatId, heroId, "actorBearAAAAAAA1")).toBe(1);
+    expect((await strike("actorBearAAAAAAA1")).ok).toBe(true);
+
+    expect(counter.getMinionAttackCount(combatId, heroId, "actorBearAAAAAAA1")).toBe(2);
+    expect(counter.getAttackCount(combatId, heroId)).toBe(1); // the owner keeps their own count
+    expect(attackCountOf()).toEqual({
+      combatantId: heroId,
+      round: 1,
+      count: 1,
+      byActor: { actorBearAAAAAAA1: 2 },
+    });
+
+    // The companion of someone who is NOT acting changes nothing.
+    await strike("actorBearOtherAA1");
+    expect(counter.getMinionAttackCount(combatId, heroId, "actorBearOtherAA1")).toBe(0);
+
+    // The owner's next turn starts everyone from zero.
+    await sendOp(gm, "combat:nextTurn", { combatId });
+    await sendOp(gm, "combat:nextTurn", { combatId });
+    expect(counter.getAttackCount(combatId, heroId)).toBe(0);
+    expect(counter.getMinionAttackCount(combatId, heroId, "actorBearAAAAAAA1")).toBe(0);
   });
 });

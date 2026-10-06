@@ -159,6 +159,11 @@ export const CombatDocumentSchema = z.object({
       combatantId: z.string(),
       round: z.number().int().min(0),
       count: z.number().int().min(0),
+      /**
+       * Attacks already made this turn by each animal companion acting on the active combatant's turn
+       * (its owner's), by actor id. A companion has a MAP of its own, apart from the owner's (wave 7 review I-3).
+       */
+      byActor: z.record(z.string(), z.number().int().min(0)).optional(),
     })
     .nullable()
     .default(null),

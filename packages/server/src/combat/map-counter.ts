@@ -14,6 +14,10 @@
  * - `noteAttackFromSpeaker` is what chat-handler calls: it resolves the
  *   speaker to a combatant of the live combat and ignores anyone who is not
  *   acting (an attack out of turn changes nobody's count).
+ * - An animal companion acts on its owner's turn and has a MAP of its own, apart from the owner's
+ *   (PF2e remaster: the multiple attack penalty is per creature, and a minion's turn is the master's —
+ *   wave 7 review I-3). Its attacks are counted per companion actor inside the active owner's turn,
+ *   whether or not the companion is a combatant itself, and reset when the owner's turn starts.
  *
  * In-memory only, like the targeting store: a restart starts a fresh turn.
  */
@@ -51,7 +55,12 @@ export type AttackCountPublisher = (mark: {
   combatantId: string;
   round: number;
   count: number;
+  /** Attacks already made this turn by each companion acting on the active combatant's turn (by actor id). */
+  byActor?: Record<string, number>;
 }) => void;
+
+/** Separates the group key from a companion's actor id in the counts map. */
+const MINION_SEPARATOR = "|actor:";
 
 export class MapCounter {
   /** combatId → map group → attacks already made this turn. */
@@ -97,9 +106,30 @@ export class MapCounter {
     return current + 1;
   }
 
-  /** Zeroes the group of a combatant (turnStart). */
+  /** Attacks a companion already made during the turn of the combatant whose group is `groupId`. */
+  getMinionAttackCount(combatId: string, groupId: string, actorId: string): number {
+    return this.counts.get(combatId)?.get(`${groupId}${MINION_SEPARATOR}${actorId}`) ?? 0;
+  }
+
+  /** The count of every companion that attacked during the turn of `groupId`, by actor id. */
+  private minionCounts(combatId: string, groupId: string): Record<string, number> {
+    const out: Record<string, number> = {};
+    const prefix = `${groupId}${MINION_SEPARATOR}`;
+    for (const [key, count] of this.counts.get(combatId) ?? []) {
+      if (key.startsWith(prefix)) out[key.slice(prefix.length)] = count;
+    }
+    return out;
+  }
+
+  /** Zeroes the group of a combatant and its companions (turnStart). */
   resetCombatant(combatId: string, combatantId: string): void {
-    this.counts.get(combatId)?.delete(this.mapGroupOf(combatantId));
+    const byGroup = this.counts.get(combatId);
+    if (!byGroup) return;
+    const group = this.mapGroupOf(combatantId);
+    byGroup.delete(group);
+    for (const key of [...byGroup.keys()]) {
+      if (key.startsWith(`${group}${MINION_SEPARATOR}`)) byGroup.delete(key);
+    }
   }
 
   /** Drops everything for a combat (combatEnd). */
@@ -131,27 +161,89 @@ export class MapCounter {
       if (typeof active !== "string" || !Array.isArray(combat["combatants"])) continue;
       const combatants = combat["combatants"] as Record<string, unknown>[];
       const me = pickSpeakerCombatant(combatants, speaker, active);
-      if (!me || typeof me["_id"] !== "string") continue;
       // Only the one acting changes a count (its MAP group counts as acting).
       // Not acting HERE does not end the search: another live combat may have it.
-      if (this.mapGroupOf(me["_id"]) !== this.mapGroupOf(active)) continue;
-      if (!isRolePrivileged(speaker.role) && !ownsCombatant(store, speaker, me)) return null;
-      const combatId = String(combat["_id"]);
-      const count = this.noteAttack(combatId, me["_id"], opts);
-      if (opts.countsForMap !== false) {
-        const round = combat["round"];
-        this.publisher?.({
-          combatId,
-          // The mark names the ACTIVE combatant, which the client matches against
-          // `activeCombatantId` (a mounted rider shares the mount's group).
-          combatantId: active,
-          round: typeof round === "number" ? round : 0,
-          count,
-        });
+      if (
+        me &&
+        typeof me["_id"] === "string" &&
+        this.mapGroupOf(me["_id"]) === this.mapGroupOf(active)
+      ) {
+        if (!isRolePrivileged(speaker.role) && !ownsCombatant(store, speaker, me)) return null;
+        const combatId = String(combat["_id"]);
+        const count = this.noteAttack(combatId, me["_id"], opts);
+        if (opts.countsForMap !== false) {
+          const round = combat["round"];
+          const byActor = this.minionCounts(combatId, this.mapGroupOf(active));
+          this.publisher?.({
+            combatId,
+            // The mark names the ACTIVE combatant, which the client matches against
+            // `activeCombatantId` (a mounted rider shares the mount's group).
+            combatantId: active,
+            round: typeof round === "number" ? round : 0,
+            count,
+            ...(Object.keys(byActor).length > 0 ? { byActor } : {}),
+          });
+        }
+        return count;
       }
-      return count;
+      // A companion of the combatant acting now: its attacks count apart, inside this turn.
+      const minionCount = this.noteMinionAttack(store, combat, combatants, active, speaker, opts);
+      if (minionCount !== undefined) return minionCount;
     }
     return null;
+  }
+
+  /**
+   * An attack by an animal companion during its owner's turn: counted under the companion's own key inside
+   * the active group, published with the owner's count unchanged. `undefined` when the speaker is not a
+   * companion of the combatant acting now (or the author may not speak for it).
+   */
+  private noteMinionAttack(
+    store: DocumentStore,
+    combat: Record<string, unknown>,
+    combatants: Record<string, unknown>[],
+    activeId: string,
+    speaker: AttackSpeaker,
+    opts: NoteAttackOptions,
+  ): number | undefined {
+    const actorId = speaker.actorId;
+    if (!actorId) return undefined;
+    let actor: Record<string, unknown>;
+    try {
+      actor = store.get("actors", actorId);
+    } catch {
+      return undefined;
+    }
+    const system = actor["system"];
+    if (!system || typeof system !== "object" || Array.isArray(system)) return undefined;
+    const sys = system as Record<string, unknown>;
+    if (sys["companionKind"] !== "animalCompanion") return undefined;
+    const masterId = sys["masterActorId"];
+    if (typeof masterId !== "string" || masterId === "") return undefined;
+    const activeCombatant = combatants.find((c) => c["_id"] === activeId);
+    if (activeCombatant?.["actorId"] !== masterId) return undefined;
+    if (!isRolePrivileged(speaker.role) && !ownsActor(store, speaker, actorId)) return undefined;
+
+    const combatId = String(combat["_id"]);
+    const group = this.mapGroupOf(activeId);
+    const key = `${group}${MINION_SEPARATOR}${actorId}`;
+    let byGroup = this.counts.get(combatId);
+    if (!byGroup) {
+      byGroup = new Map();
+      this.counts.set(combatId, byGroup);
+    }
+    const current = byGroup.get(key) ?? 0;
+    if (opts.countsForMap === false) return current;
+    byGroup.set(key, current + 1);
+    const round = combat["round"];
+    this.publisher?.({
+      combatId,
+      combatantId: activeId,
+      round: typeof round === "number" ? round : 0,
+      count: this.getAttackCount(combatId, activeId),
+      byActor: this.minionCounts(combatId, group),
+    });
+    return current + 1;
   }
 }
 
@@ -179,7 +271,10 @@ function ownsCombatant(
   combatant: Record<string, unknown>,
 ): boolean {
   const actorId = combatant["actorId"];
-  if (typeof actorId !== "string") return false;
+  return typeof actorId === "string" && ownsActor(store, speaker, actorId);
+}
+
+function ownsActor(store: DocumentStore, speaker: AttackSpeaker, actorId: string): boolean {
   try {
     const actor = store.get("actors", actorId);
     const ownership = actor["ownership"];

@@ -179,7 +179,13 @@ export interface CombatDocument {
    * them (D-G03, onda-6 review I-7). Valid only when `combatantId` is the
    * active combatant and `round` the current round; null/absent otherwise.
    */
-  attackCount?: { combatantId: string; round: number; count: number } | null;
+  attackCount?: {
+    combatantId: string;
+    round: number;
+    count: number;
+    /** Attacks per animal companion acting on this combatant's turn (a MAP of its own). */
+    byActor?: Record<string, number>;
+  } | null;
 
   /**
    * Whether the encounter has been started (beginCombat was called).
