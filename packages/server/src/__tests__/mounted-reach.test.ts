@@ -21,7 +21,7 @@ import {
   type PositionGrid,
   type PositionedToken,
 } from "../combat/position.js";
-import { settleExtraDamage } from "../chat/extra-damage.js";
+import { settleChatRollExtraDamage, settleExtraDamage } from "../chat/extra-damage.js";
 
 type Rec = Record<string, unknown>;
 
@@ -216,5 +216,44 @@ describe("Apoio do antílope: persistent bleed only while mounted (REQ-BHR-182, 
       gate: { withinReachOf: "companion", companionActorId: ANTELOPE_ACTOR, reachFeet: 5 },
     };
     expect(settle("no", "success", [bear], null).formulaSuffix).toBe(" + 1d8");
+  });
+
+  it("through the chat settlement the roller (the speaker's actor) is the rider the mount is proven for", () => {
+    const sceneDoc = scene("yes");
+    const db = {
+      prepare: () => ({
+        all: () => [
+          {
+            data: JSON.stringify({
+              speaker: { userId: "u1", actorId: OWNER_ACTOR },
+              flags: {
+                pf2e: { checkContext: { kind: "attack" } },
+                fusion: { targetSnapshot: [{ tokenId: FOE_TOKEN }] },
+              },
+              rolls: [{ degreeOfSuccess: "success" }],
+            }),
+          },
+        ],
+      }),
+    };
+    const store = {
+      getAll: () => [sceneDoc],
+      getRaw: () => sceneDoc,
+      get: (_c: "actors", id: string) => actors[id] as Rec,
+    };
+    const run = (actorId: string) =>
+      settleChatRollExtraDamage({
+        db,
+        store,
+        userId: "u1",
+        actorId,
+        selectors: ["strike-damage"],
+        extra: [bleed()],
+        snapshot: [target],
+        parentMessageId: "card1",
+      });
+    expect(run(OWNER_ACTOR).applied).toHaveLength(1);
+    // Another speaker is not the rider: the attack proof fails first, and no mount is proven either way.
+    expect(run(FOE_ACTOR).applied).toEqual([]);
   });
 });
