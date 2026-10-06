@@ -473,6 +473,21 @@ function rejectUnwritableField(
     );
   }
 
+  // The guard above reads the STORED subtype, so a player could skip it by turning an actor they own
+  // into a "familiar" in the same diff — and then pass for a companion of anyone (`effect:apply`
+  // authorizes on that link). Minting a companion is the guarded create path's job, never a retype.
+  if (
+    documentType === "Actor" &&
+    !isPrivileged(role) &&
+    expandedDiff["type"] === "familiar" &&
+    existing?.["type"] !== "familiar"
+  ) {
+    return ackError(
+      "PERMISSION_DENIED",
+      "an Actor cannot be turned into a companion through doc:update by a player",
+    );
+  }
+
   if (documentType === "Scene" && "active" in expandedDiff) {
     return ackError(
       "VALIDATION_FAILED",
@@ -2817,7 +2832,7 @@ const POLLUTING_SEGMENTS = new Set(["__proto__", "constructor", "prototype"]);
  * First key segment in a client diff that could reach Object.prototype, or null. Checks every dotted
  * segment of every key and every nested object/array key in the values, at any depth.
  */
-function findPollutingKey(value: unknown, depth = 0): string | null {
+export function findPollutingKey(value: unknown, depth = 0): string | null {
   if (depth > 64) return "<too deep>";
   if (Array.isArray(value)) {
     for (const item of value) {

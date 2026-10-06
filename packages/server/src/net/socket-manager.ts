@@ -72,6 +72,7 @@ import { CombatEventBus } from "../combat/combat-event-bus.js";
 import { createActorMechanicsService } from "../combat/actor-mechanics-service.js";
 import { buildApplyDamageHandler } from "../combat/apply-damage-handler.js";
 import { buildApplyConditionHandler } from "../combat/apply-condition-handler.js";
+import { buildEffectApplyHandler } from "./handlers/effect-handlers.js";
 import { buildItemConsumeHandler } from "./handlers/item-handlers.js";
 import {
   createTurnHookRunner,
@@ -655,6 +656,12 @@ export class SocketManager {
         actorMechanicsService,
         logger: this.logger,
       }),
+    );
+
+    // BHR-F4-08 (REQ-BHR-102..105): a pack effect onto other actors, permission by link.
+    registry.register(
+      "effect:apply",
+      buildEffectApplyHandler({ store, ns, seqStore, opBuffer, compendium: compSvc }),
     );
 
     // REQ-NET-003/014: auth middleware runs before connection is accepted
