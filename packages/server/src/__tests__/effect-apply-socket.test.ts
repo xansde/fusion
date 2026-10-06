@@ -711,3 +711,134 @@ describe("effect:apply on the pf2e-sf2e composite world (the table's system)", (
     });
   });
 });
+
+describe("effect:apply refuses the Support of a blocked companion (I-1, REQ-BHR-178, REQ-PET-121)", () => {
+  let ctx: Ctx;
+  let gm: ClientSocket;
+  let p1: ClientSocket;
+  const BEAR_TOKEN = "bearToken0000001";
+  const BEAR_SYSTEM = {
+    companionKind: "animalCompanion",
+    masterActorId: HUNTER_ID,
+    companion: { typeSlug: "bear" },
+  };
+  const HUNTER_TOKEN = "hunterToken00001";
+  let combatId = "";
+
+  // PF2e remaster: a mount that carries its rider and MOVED this turn cannot Support in the same turn
+  // (the animal companion acts on its master's turn: it is not a combatant); only the active companion
+  // supports; a companion of type `mount` (the antelope) is exempt from the move rule.
+  const stampMoved = (turn: number) =>
+    ctx.store.update("scenes", ctx.store.getAll("scenes")[0]?.["_id"] as string, {
+      tokens: [
+        { _id: FOE_TOKEN, name: "Foe", actorId: FOE_ID, hidden: false },
+        {
+          _id: HUNTER_TOKEN,
+          name: "Hunter",
+          actorId: HUNTER_ID,
+          hidden: false,
+          flags: { fusion: { mount: { mountTokenId: BEAR_TOKEN } } },
+        },
+        {
+          _id: BEAR_TOKEN,
+          name: "Bear",
+          actorId: BEAR_ID,
+          hidden: false,
+          flags: {
+            fusion: {
+              mount: { riderTokenId: HUNTER_TOKEN, movedTurn: { combatId, round: 2, turn } },
+            },
+          },
+        },
+      ],
+    });
+
+  beforeEach(async () => {
+    ctx = await buildCtx();
+    [gm, p1] = await Promise.all([
+      connect(ctx.port, ctx.worldId, ctx.gmToken),
+      connect(ctx.port, ctx.worldId, ctx.p1Token),
+    ]);
+    const combat = ctx.store.create(
+      "combats",
+      {
+        sceneId: ctx.store.getAll("scenes")[0]?.["_id"],
+        started: true,
+        ended: false,
+        round: 2,
+        turnIndex: 1,
+        combatants: [
+          {
+            _id: "cmbt000000000001",
+            name: "Hunter",
+            img: "",
+            initiative: null,
+            initiativeStatistic: null,
+            actorId: HUNTER_ID,
+            tokenId: HUNTER_TOKEN,
+          },
+        ],
+      },
+      { userId: "gm" },
+    );
+    combatId = combat["_id"] as string;
+    stampMoved(1);
+  }, 15_000);
+
+  afterEach(async () => {
+    gm.disconnect();
+    p1.disconnect();
+    await teardown(ctx);
+  });
+
+  const support = {
+    sourceActorId: BEAR_ID,
+    targetActorIds: [HUNTER_ID],
+    effect: { packId: PACK_ID, docId: PLAIN_EFFECT },
+  };
+
+  it("the bear carrying the rider that moved this turn: refused with the reason, for the owner and the GM", async () => {
+    for (const socket of [p1, gm]) {
+      const ack = await sendOp(socket, "effect:apply", support);
+      expect(ack["ok"]).toBe(false);
+      expect(ack["code"]).toBe("CONFLICT");
+      expect(String(ack["message"])).toContain("já se moveu neste turno");
+    }
+    expect(itemsOf(ctx.store, HUNTER_ID)).toHaveLength(0);
+  });
+
+  it("the next turn frees the Support", async () => {
+    ctx.store.update("combats", combatId, { turnIndex: 2 });
+    const ack = await sendOp(p1, "effect:apply", support);
+    expect(ack["ok"], JSON.stringify(ack)).toBe(true);
+  });
+
+  it("a companion of type mount (the antelope) is not blocked by the move rule", async () => {
+    ctx.store.update("actors", BEAR_ID, {
+      system: { ...BEAR_SYSTEM, derived: { companion: { mount: true } } },
+    });
+    const ack = await sendOp(p1, "effect:apply", support);
+    expect(ack["ok"], JSON.stringify(ack)).toBe(true);
+  });
+
+  it("an inactive companion cannot Support: refused with the reason", async () => {
+    ctx.store.update("scenes", ctx.store.getAll("scenes")[0]?.["_id"] as string, {
+      tokens: [],
+    });
+    ctx.store.update("actors", BEAR_ID, {
+      system: { ...BEAR_SYSTEM, companion: { typeSlug: "bear", active: false } },
+    });
+    const ack = await sendOp(p1, "effect:apply", support);
+    expect(ack["ok"]).toBe(false);
+    expect(ack["code"]).toBe("CONFLICT");
+    expect(String(ack["message"])).toContain("Companheiro inativo");
+  });
+
+  it("an effect that is not the companion's Support is not gated", async () => {
+    const ack = await sendOp(gm, "effect:apply", {
+      ...support,
+      effect: { packId: PACK_ID, docId: ALLOW_EFFECT },
+    });
+    expect(ack["ok"], JSON.stringify(ack)).toBe(true);
+  });
+});

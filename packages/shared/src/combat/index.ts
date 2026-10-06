@@ -214,3 +214,15 @@ export type {
 
 export { CompanionSetActivePayloadSchema } from "./companion-active.js";
 export type { CompanionSetActivePayload } from "./companion-active.js";
+
+// ---------------------------------------------------------------------------
+// Support gate — one predicate for the server and the sheets (BHR-F4-10, BHR-F5-04)
+// ---------------------------------------------------------------------------
+
+export {
+  SUPPORT_BLOCK_TEXT_PT,
+  mountSupportBlock,
+  companionMountBlock,
+  companionSupportBlockReasons,
+} from "./support-gate.js";
+export type { SupportTurnRef } from "./support-gate.js";

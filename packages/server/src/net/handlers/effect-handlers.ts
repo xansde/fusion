@@ -43,6 +43,7 @@ import {
   FusionExpirySchema,
   OwnershipLevel,
   buildPackDocUuid,
+  companionSupportBlockReasons,
   createDocumentId,
 } from "@fusion/shared";
 import type {
@@ -263,6 +264,41 @@ function isReferencedByOrigin(
 }
 
 /**
+ * The reasons the Support of a companion is blocked (REQ-PET-121, REQ-BHR-178), when `ref` is the Support
+ * effect of the type of a companion tied to the source (the source itself, or a companion of the source).
+ * Same predicate the sheets use (`companionSupportBlockReasons`), so the button and the server agree.
+ */
+function supportBlockedReasons(
+  deps: EffectApplyHandlerDeps,
+  sourceActorId: string,
+  source: Doc,
+  ref: EffectApplyPayload["effect"],
+): string[] {
+  const companions: Doc[] = [];
+  if (asRecord(source["system"])["companionKind"] === "animalCompanion") companions.push(source);
+  for (const actor of deps.store.getAll("actors")) {
+    const system = asRecord(actor["system"]);
+    if (
+      system["masterActorId"] === sourceActorId &&
+      system["companionKind"] === "animalCompanion"
+    ) {
+      companions.push(actor);
+    }
+  }
+  const scenes = deps.store.getAll("scenes") as Doc[];
+  const combats = deps.store.getAll("combats") as Doc[];
+  const reasons: string[] = [];
+  for (const companion of companions) {
+    const slug = asRecord(asRecord(companion["system"])["companion"])["typeSlug"];
+    if (typeof slug !== "string" || slug === "") continue;
+    const support = companionTypeSupportRef(deps, slug);
+    if (support === null || support.packId !== ref.packId || support.docId !== ref.docId) continue;
+    reasons.push(...companionSupportBlockReasons({ scenes, combats, companion }));
+  }
+  return reasons;
+}
+
+/**
  * Resolve the pack effect — server-side, never trusting client content.
  *
  * Mestre/assistant name any effect. A player may only name an effect the
@@ -454,6 +490,8 @@ function applyEffect(
       if (!targets.has(targetId)) targets.set(targetId, readActor(deps.store, targetId));
     }
     const effect = resolveEffect(deps, ctx, privileged, payload, source);
+    const blocked = supportBlockedReasons(deps, payload.sourceActorId, source, payload.effect);
+    if (blocked.length > 0) throw new EffectApplyError("CONFLICT", blocked.join(" "));
     if (!privileged) authorizePlayer(deps, ctx, payload, source, targets, effect);
     const expiry = buildExpiry(effect, payload, privileged);
 
