@@ -57,6 +57,8 @@ import type {
   SaveCheckContext,
   ChatTargetRef,
   AttackCheckContext,
+  SkillCheckContext,
+  SkillCheckDefense,
   CheckContext,
   RollTarget,
 } from "@fusion/shared";
@@ -528,7 +530,12 @@ export function buildChatSendHandler(deps: ChatHandlerDeps): HandlerFn {
       const aimedRef = attackTargetRef(payload.target, checkContext);
       const rollTarget =
         aimedRef !== null && checkContext?.kind !== "save"
-          ? resolveRollTarget(deps.db, aimedRef, ctx)
+          ? resolveRollTarget(
+              deps.db,
+              aimedRef,
+              ctx,
+              checkContext?.kind === "skill" ? checkContext.against : "ac",
+            )
           : null;
       const resolution = prepareRollResolution(
         deps,
@@ -577,25 +584,33 @@ export function buildChatSendHandler(deps: ChatHandlerDeps): HandlerFn {
       // roll — so "has a target" and "has a degree" never disagree.
       // A roll already graded by a save checkContext keeps that grading: the DC
       // of a save is the caster's, not the target's AC.
-      const targetPortrait = gradedSave === null ? (rollTarget?.portrait ?? null) : null;
+      // A skill check (BHR-F6-01) is graded the same way against the DC of the
+      // defence it names; only an Athletics maneuver (an attack-trait action)
+      // feeds the MAP, a plain check such as Recall Knowledge does not.
+      const gradedTarget = gradedSave === null ? rollTarget : null;
       let messageTargets: RollTarget[] | undefined;
       let gradedAttack: AttackCheckContext | null = null;
-      if (targetPortrait !== null && targetPortrait.ac !== undefined) {
-        const degree = computeAttackDegree(rollResult, targetPortrait.ac);
+      let gradedSkill: SkillCheckContext | null = null;
+      if (gradedTarget !== null) {
+        const degree = computeAttackDegree(rollResult, gradedTarget.defense);
         if (degree !== null) {
+          const targetPortrait = gradedTarget.portrait;
           rollResult = { ...rollResult, degreeOfSuccess: degree, target: targetPortrait };
           messageTargets = [targetPortrait];
           if (checkContext?.kind === "attack") gradedAttack = checkContext;
-          deps.mapCounter?.noteAttackFromSpeaker(
-            deps.store,
-            {
-              userId: ctx.userId,
-              role: ctx.role,
-              actorId: payload.speakerActorId,
-              tokenId: payload.speakerTokenId,
-            },
-            { countsForMap: true },
-          );
+          if (checkContext?.kind === "skill") gradedSkill = checkContext;
+          if (gradedSkill === null || gradedSkill.maneuver !== undefined) {
+            deps.mapCounter?.noteAttackFromSpeaker(
+              deps.store,
+              {
+                userId: ctx.userId,
+                role: ctx.role,
+                actorId: payload.speakerActorId,
+                tokenId: payload.speakerTokenId,
+              },
+              { countsForMap: true },
+            );
+          }
         }
       }
 
@@ -639,6 +654,22 @@ export function buildChatSendHandler(deps: ChatHandlerDeps): HandlerFn {
               kind: "attack",
               mapIndex: gradedAttack.mapIndex,
               ...(gradedAttack.agile !== undefined ? { agile: gradedAttack.agile } : {}),
+            },
+          },
+        };
+      }
+
+      // The skill check's own context (BHR-F6-01): only the defence and the
+      // maneuver the card needs; neither the target token nor any DC is repeated.
+      if (gradedSkill !== null) {
+        msg.flags = {
+          ...msg.flags,
+          [SPELLCAST_FLAG_NAMESPACE]: {
+            ...msg.flags[SPELLCAST_FLAG_NAMESPACE],
+            [CHECK_CONTEXT_FLAG_KEY]: {
+              kind: "skill",
+              against: gradedSkill.against,
+              ...(gradedSkill.maneuver !== undefined ? { maneuver: gradedSkill.maneuver } : {}),
             },
           },
         };
@@ -1659,14 +1690,17 @@ export function computeSaveDegree(roll: RollResultData, ctx: SaveCheckContext): 
 // ---------------------------------------------------------------------------
 
 /**
- * Read the AC the server itself derived for an actor: `system.derived.ac.total`
- * when the derivation pipeline has run, falling back to the authored
- * `system.attributes.ac.value` (a bestiary NPC straight out of a pack, before
- * any derivation). Returns null when the actor is unknown or carries no AC — and
- * then no target portrait is written at all, because a degree of success without
- * a DC is a guess presented as a rule (DEC-ACH-09).
+ * Read one defence the server itself derived for an actor, as the number a roll
+ * is graded against. `ac`: `system.derived.ac.total`, falling back to the
+ * authored `system.attributes.ac.value` (a bestiary NPC straight out of a pack,
+ * before any derivation). A save or perception: `system.derived.saves.<n>.dc` /
+ * `system.derived.perception.dc`, falling back to `10 + ` the authored
+ * `system.saves.<n>.value` / `system.perception.mod`. Returns null when the
+ * actor is unknown or carries no such defence — and then no target portrait is
+ * written at all, because a degree of success without a DC is a guess presented
+ * as a rule (DEC-ACH-09).
  */
-function readActorAc(db: Db, actorId: string): number | null {
+function readActorDefense(db: Db, actorId: string, against: SkillCheckDefense): number | null {
   try {
     const row = db.prepare(`SELECT data FROM actors WHERE id = ?`).get(actorId) as
       | { data: string }
@@ -1674,16 +1708,35 @@ function readActorAc(db: Db, actorId: string): number | null {
     if (!row) return null;
     const doc = JSON.parse(row.data) as Record<string, unknown>;
     const system = doc["system"] as Record<string, unknown> | undefined;
-
     const derived = system?.["derived"] as Record<string, unknown> | undefined;
-    const derivedAc = derived?.["ac"] as { total?: unknown } | undefined;
-    if (typeof derivedAc?.total === "number") return derivedAc.total;
 
-    const attributes = system?.["attributes"] as Record<string, unknown> | undefined;
-    const authoredAc = attributes?.["ac"] as { value?: unknown } | undefined;
-    if (typeof authoredAc?.value === "number") return authoredAc.value;
+    if (against === "ac") {
+      const derivedAc = derived?.["ac"] as { total?: unknown } | undefined;
+      if (typeof derivedAc?.total === "number") return derivedAc.total;
 
-    return null;
+      const attributes = system?.["attributes"] as Record<string, unknown> | undefined;
+      const authoredAc = attributes?.["ac"] as { value?: unknown } | undefined;
+      if (typeof authoredAc?.value === "number") return authoredAc.value;
+      return null;
+    }
+
+    if (against === "perception") {
+      const derivedPerception = derived?.["perception"] as { dc?: unknown } | undefined;
+      if (typeof derivedPerception?.dc === "number") return derivedPerception.dc;
+      // Real packs keep perception at the top level; some docs nest it.
+      const attributes = system?.["attributes"] as Record<string, unknown> | undefined;
+      const authored = (system?.["perception"] ?? attributes?.["perception"]) as
+        | { mod?: unknown }
+        | undefined;
+      return typeof authored?.mod === "number" ? 10 + authored.mod : null;
+    }
+
+    const derivedSaves = derived?.["saves"] as Record<string, { dc?: unknown }> | undefined;
+    const derivedDc = derivedSaves?.[against]?.dc;
+    if (typeof derivedDc === "number") return derivedDc;
+    const authoredSaves = system?.["saves"] as Record<string, { value?: unknown }> | undefined;
+    const authoredValue = authoredSaves?.[against]?.value;
+    return typeof authoredValue === "number" ? 10 + authoredValue : null;
   } catch {
     return null;
   }
@@ -1795,6 +1848,9 @@ function mayNameActorDirectly(db: Db, actorId: string, ctx: HandlerContext): boo
  * outcome as a dangling reference (REQ-ACH-092). The name of what the Mestre
  * hid is not published by the chat.
  *
+ * `against` names the defence that grades the roll (BHR-F6-01): the AC for a
+ * strike, a save or perception DC for a skill check against a creature.
+ *
  * The roll's ONE target (BHR-F2-05, DF-17): the portrait that grades the roll
  * and feeds the MAP, plus the token/actor ids the conditional modifiers are
  * resolved against. Both come from the same resolution of `payload.target`, so
@@ -1805,7 +1861,8 @@ function resolveRollTarget(
   db: Db,
   ref: ChatTargetRef,
   ctx: HandlerContext,
-): { portrait: RollTarget; entry: ResolvedTarget } | null {
+  against: SkillCheckDefense = "ac",
+): { portrait: RollTarget; entry: ResolvedTarget; defense: number } | null {
   const privileged = isRolePrivileged(ctx.role);
   let name = "";
   let actorId: string | null = ref.actorId ?? null;
@@ -1825,8 +1882,8 @@ function resolveRollTarget(
 
   if (actorId === null) return null;
 
-  const ac = readActorAc(db, actorId);
-  if (ac === null) return null;
+  const defense = readActorDefense(db, actorId, against);
+  if (defense === null) return null;
 
   if (name.length === 0) {
     const actorName = readActorName(db, actorId);
@@ -1834,7 +1891,10 @@ function resolveRollTarget(
     name = actorName;
   }
 
-  return { portrait: { name, ac }, entry: { tokenId, actorId, sceneId } };
+  // The portrait carries the AC only when the AC is what graded the roll: a
+  // Fortitude DC written as `ac` would be shown to the Mestre as the target's AC.
+  const portrait: RollTarget = against === "ac" ? { name, ac: defense } : { name };
+  return { portrait, entry: { tokenId, actorId, sceneId }, defense };
 }
 
 /**
@@ -1848,7 +1908,7 @@ function attackTargetRef(
   target: ChatTargetRef | undefined,
   checkContext: CheckContext | undefined,
 ): ChatTargetRef | null {
-  if (checkContext?.kind !== "attack") return target ?? null;
+  if (checkContext?.kind !== "attack" && checkContext?.kind !== "skill") return target ?? null;
   if (target === undefined) return { tokenId: checkContext.targetTokenId };
   if (target.tokenId !== checkContext.targetTokenId) return null;
   return target;

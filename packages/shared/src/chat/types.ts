@@ -410,14 +410,42 @@ export const AttackCheckContextSchema = z.object({
 
 export type AttackCheckContext = z.infer<typeof AttackCheckContextSchema>;
 
+/** The defence of the target a skill check is rolled against (BHR-F6-01). */
+export const SkillCheckDefenseSchema = z.enum(["fortitude", "reflex", "will", "ac", "perception"]);
+
+export type SkillCheckDefense = z.infer<typeof SkillCheckDefenseSchema>;
+
+/**
+ * Context of a skill check rolled against ANOTHER creature's DC — Athletics
+ * maneuvers, Recall Knowledge against the quarry (BHR-F6-01, importing
+ * GUE-F5-05; REQ-BHR-201). Like {@link AttackCheckContextSchema} it carries no
+ * number: the server reads the DC of the `against` defence from the target's
+ * database row (`system.derived.saves.<n>.dc` / `perception.dc` / the AC) and
+ * ignores any DC the client sent. `maneuver` names an Athletics maneuver
+ * (`grapple`, `shove`, `trip`...): a maneuver is an attack-trait action, so it
+ * counts for the MAP; a plain check (Recall Knowledge) leaves it out.
+ */
+export const SkillCheckContextSchema = z.object({
+  kind: z.literal("skill"),
+  /** Token aimed at; the DC comes from the database, NEVER from the payload. */
+  targetTokenId: z.string().min(1).max(120),
+  /** Which defence of the target the roll is graded against. */
+  against: SkillCheckDefenseSchema,
+  /** Athletics maneuver this check carries, when it is one. */
+  maneuver: z.string().min(1).max(40).optional(),
+});
+
+export type SkillCheckContext = z.infer<typeof SkillCheckContextSchema>;
+
 /**
  * Discriminated union of check contexts a `chat:send` may carry (r17.1):
- * `save` (graded against a DC) and `attack` (BHR-F3-03, graded against the
- * target's AC). `kind` keeps the shape open for skill checks.
+ * `save` (graded against a DC), `attack` (BHR-F3-03, graded against the
+ * target's AC) and `skill` (BHR-F6-01, graded against a defence of the target).
  */
 export const CheckContextSchema = z.discriminatedUnion("kind", [
   SaveCheckContextSchema,
   AttackCheckContextSchema,
+  SkillCheckContextSchema,
 ]);
 
 export type CheckContext = z.infer<typeof CheckContextSchema>;
