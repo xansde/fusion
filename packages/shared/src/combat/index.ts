@@ -201,3 +201,10 @@ export {
   isMounted,
 } from "./mount-state.js";
 export type { MountState, MountMountPayload, MountDismountPayload } from "./mount-state.js";
+
+// ---------------------------------------------------------------------------
+// Active animal companion (BHR-F4-10) — the swap is decided on the server
+// ---------------------------------------------------------------------------
+
+export { CompanionSetActivePayloadSchema } from "./companion-active.js";
+export type { CompanionSetActivePayload } from "./companion-active.js";

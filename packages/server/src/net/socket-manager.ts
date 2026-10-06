@@ -90,6 +90,7 @@ import {
   createTokenMarkSource,
 } from "../combat/mark-handler.js";
 import { buildMountHandler, buildDismountHandler } from "../combat/mount-handler.js";
+import { buildCompanionSetActiveHandler } from "../combat/companion-active-handler.js";
 import { MapCounter, registerMapCounterReset } from "../combat/map-counter.js";
 import {
   buildResyncRequestHandler,
@@ -582,6 +583,8 @@ export class SocketManager {
     const mountDeps = { store, seqStore, opBuffer, ns };
     registry.register("mount:mount", buildMountHandler(mountDeps));
     registry.register("mount:dismount", buildDismountHandler(mountDeps));
+    // BHR-F4-10 (REQ-PET-120..121, DC-07): swap the active animal companion, decided on the server.
+    registry.register("companion:setActive", buildCompanionSetActiveHandler(mountDeps));
     // REQ-CBT-055: clear a targeter's targets when their combatant's turn ends.
     registerTargetingCleanup(targetDeps, eventBus);
 
