@@ -490,6 +490,59 @@ describe("Animal companion creation permission (BHR-F4-04)", () => {
     expect(activeOf(store.get("actors", firstDoc(second)["_id"] as string))).toBe(false);
   });
 
+  // I-1 (onda 5, revisão): `active` is decided by the server at creation; the owner cannot turn a second
+  // companion on through doc:update (swapping the active one is BHR-F4-10, not here). The GM can.
+  it("the owner cannot switch a second companion on through doc:update: one stays active", async () => {
+    const master = await createMaster(
+      character(ctx.ownerUserId, "ActiveGuard", 2, [
+        featItem("Animal Companion (Ranger)", "ac1"),
+        featItem("Beastmaster Dedication", "bd1"),
+      ]),
+    );
+    const first = await createAs(ownerSocket, [
+      companionPayload(master, "animalCompanion", "Ativo", "slot-a1"),
+    ]);
+    const second = await createAs(ownerSocket, [
+      companionPayload(master, "animalCompanion", "Reserva", "slot-a2"),
+    ]);
+    const firstId = firstDoc(first)["_id"] as string;
+    const secondId = firstDoc(second)["_id"] as string;
+    const store = new DocumentStore({ db: ctx.fusionDb.raw, coreVersion: "0.1.0" });
+    const stored = (id: string): Record<string, unknown> => store.get("actors", id);
+    const activeOf = (id: string): unknown =>
+      ((stored(id)["system"] as Record<string, unknown>)["companion"] as Record<string, unknown>)[
+        "active"
+      ];
+    const update = (
+      socket: ClientSocket,
+      id: string,
+      diff: Record<string, unknown>,
+    ): Promise<Ack> =>
+      sendOp(socket, "doc:update", {
+        documentType: "Actor",
+        updates: [
+          {
+            _id: id,
+            diff,
+            expectedVersion: (stored(id)["_stats"] as { version: number }).version,
+          },
+        ],
+      });
+    const attempts: Record<string, unknown>[] = [
+      { "system.companion.active": true },
+      { system: { companion: { active: true } } },
+    ];
+    for (const diff of attempts) {
+      const ack = await update(ownerSocket, secondId, diff);
+      expect(ack["ok"], JSON.stringify(diff)).toBe(false);
+      expect(ack["code"], JSON.stringify(diff)).toBe("PERMISSION_DENIED");
+    }
+    expect(activeOf(firstId)).toBe(true);
+    expect(activeOf(secondId)).toBe(false);
+    const gmAck = await update(gm, secondId, { "system.companion.active": true });
+    expect(gmAck["ok"], JSON.stringify(gmAck)).toBe(true);
+  });
+
   it("the GM skips the grant and the cap", async () => {
     for (const name of ["G1", "G2", "G3"]) {
       const ack = await createAs(gm, [companionPayload(gmCapId, "animalCompanion", name)]);

@@ -378,7 +378,8 @@ const EMBEDDED_COLLECTION_BY_PARENT: Record<string, string> = Object.fromEntries
  */
 /**
  * Does this expanded `doc:update` diff write the companion's link to its master
- * (`system.companionKind`, `system.masterActorId`, `system.companion.grantSlotId`)?
+ * (`system.companionKind`, `system.masterActorId`, `system.companion.grantSlotId`) or flips
+ * `system.companion.active`?
  * A `system` (or `system.companion`) set to a non-object counts: it would replace them whole.
  */
 function touchesCompanionLink(expanded: Record<string, unknown>): boolean {
@@ -390,7 +391,8 @@ function touchesCompanionLink(expanded: Record<string, unknown>): boolean {
   if (!("companion" in sys)) return false;
   const companion = sys["companion"];
   if (typeof companion !== "object" || companion === null || Array.isArray(companion)) return true;
-  return "grantSlotId" in companion;
+  // `active` is the server's call (DC-07: one active companion per master); swapping it is BHR-F4-10.
+  return "grantSlotId" in companion || "active" in companion;
 }
 
 function rejectUnwritableField(
@@ -467,7 +469,7 @@ function rejectUnwritableField(
   ) {
     return ackError(
       "PERMISSION_DENIED",
-      "system.companionKind, system.masterActorId and system.companion.grantSlotId are not writable through doc:update by a player",
+      "system.companionKind, system.masterActorId, system.companion.grantSlotId and system.companion.active are not writable through doc:update by a player",
     );
   }
 
