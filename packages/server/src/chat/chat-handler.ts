@@ -99,7 +99,12 @@ import {
 import type { TokenMarkSource } from "./roll-resolution.js";
 import type { MapCounter } from "../combat/map-counter.js";
 import { maneuverDefense } from "@fusion/engine-2e";
-import { NO_EXTRA_DAMAGE, settleChatRollExtraDamage, withExtraDice } from "./extra-damage.js";
+import {
+  NO_EXTRA_DAMAGE,
+  proveStrikeAttackDegree,
+  settleChatRollExtraDamage,
+  withExtraDice,
+} from "./extra-damage.js";
 
 // ---------------------------------------------------------------------------
 // Types
@@ -565,6 +570,21 @@ export function buildChatSendHandler(deps: ChatHandlerDeps): HandlerFn {
         ctx,
         rollTarget === null ? [] : [rollTarget.entry],
       );
+      // What the server graded for the attack under the card this Strike damage nests under (null = no proof, or not a
+      // Strike's damage): it doubles the conditional modifiers on a critical hit, settles the extra dice and picks the
+      // notes that apply to one degree (the damage roll has no degree of its own).
+      const parentMessageId = resolveParentMessageId(deps.db, payload.flags?.parentMessageId);
+      const strikeAttackDegree =
+        prepared !== null
+          ? proveStrikeAttackDegree({
+              db: deps.db,
+              userId: ctx.userId,
+              actorId: prepared.rollContext.actorId,
+              selectors: prepared.rollContext.selectors,
+              snapshot: targetSnapshot,
+              parentMessageId,
+            })
+          : null;
       // Extra damage dice of the roller's own effects (the Apoio of an animal companion, BHR-F4-09): the
       // system names them, the server settles them — the Strike hit, the companion's reach — and they join
       // the formula it rolls, so the card's total already counts them. Their notes ride with the roll's.
@@ -578,7 +598,8 @@ export function buildChatSendHandler(deps: ChatHandlerDeps): HandlerFn {
               selectors: prepared.rollContext.selectors,
               extra: prepared.extraDamage,
               snapshot: targetSnapshot,
-              parentMessageId: resolveParentMessageId(deps.db, payload.flags?.parentMessageId),
+              parentMessageId,
+              attackDegree: strikeAttackDegree,
             })
           : NO_EXTRA_DAMAGE;
       const resolution =
@@ -590,7 +611,9 @@ export function buildChatSendHandler(deps: ChatHandlerDeps): HandlerFn {
       try {
         rollResult = rollService.roll({
           ...withExtraDice(
-            conditionalRollFormula(command.formula, resolution),
+            conditionalRollFormula(command.formula, resolution, {
+              criticalHit: strikeAttackDegree === "criticalSuccess",
+            }),
             extraDamage.formulaSuffix,
           ),
           mode: effectiveMode,
@@ -747,7 +770,12 @@ export function buildChatSendHandler(deps: ChatHandlerDeps): HandlerFn {
       attachParentFlag(msg, resolveParentMessageId(deps.db, payload.flags?.parentMessageId));
       attachTargetSnapshot(msg, deps, ctx.userId, targetSnapshot);
       if (resolution !== null) {
-        finalizeRollResolution(msg, resolution, rollResult.degreeOfSuccess ?? null);
+        // A Strike's damage roll has no degree: its notes follow the attack the server graded under the same card.
+        finalizeRollResolution(
+          msg,
+          resolution,
+          strikeAttackDegree ?? rollResult.degreeOfSuccess ?? null,
+        );
       }
       if (extraDamage.applied.length > 0) {
         msg.flags = {

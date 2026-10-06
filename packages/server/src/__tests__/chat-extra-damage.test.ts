@@ -357,15 +357,17 @@ describe("BHR-F4-09 — Apoio do urso: o dano extra entra na rolagem de dano do 
         checkContext: { kind: "attack", targetTokenId: FOE_TOKEN_ID, mapIndex: 0 },
       },
     });
-    expect(attack.ok).toBe(true);
+    expect(attack.ok, JSON.stringify(attack)).toBe(true);
     lastDegree = attack.result?.message?.rolls?.[0]?.degreeOfSuccess;
     return cardId;
   }
 
-  /** A plain hit (not a critical one) cannot be fixed by the dice alone: roll again until the server grades it so. */
-  async function strikeUntil(degree: string): Promise<string> {
+  /** A natural 1 or 20 moves the degree a step, so a given degree cannot be fixed by the dice alone: roll again until the server grades it so. */
+  async function strikeUntil(degree: string, formula = "1d20+5"): Promise<string> {
     for (let attempt = 0; attempt < 40; attempt++) {
-      const cardId = await strike("1d20+5");
+      // The chat takes 5 messages per second per user: past the first miss, wait out the window.
+      if (attempt > 0) await new Promise((r) => setTimeout(r, 1_100));
+      const cardId = await strike(formula);
       if (lastDegree === degree) return cardId;
     }
     throw new Error(`never graded ${degree}`);
@@ -443,7 +445,7 @@ describe("BHR-F4-09 — Apoio do urso: o dano extra entra na rolagem de dano do 
   it("acerto crítico: o dano do urso não dobra (continua 1d8 mesmo com a fórmula crítica do golpe)", async () => {
     await boot(1);
     // A natural 20 with a huge bonus is a critical success against AC 15 (10 or more above).
-    const card = await strike("1d20+40");
+    const card = await strikeUntil("criticalSuccess", "1d20+40");
     expect(lastDegree).toBe("criticalSuccess");
     const msg = await damage(card, "(1d4+2)*2");
     expect(msg.rolls?.[0]?.formula).toContain("1d8");
@@ -456,7 +458,7 @@ describe("BHR-F4-09 — Apoio do urso: o dano extra entra na rolagem de dano do 
   it("acerto crítico: o modificador condicional de dano dobra junto com o golpe (+2 vira +4)", async () => {
     await boot(6); // out of the bear's reach: only the conditional modifier is in play
     world.condBonus = 2;
-    const card = await strike("1d20+40");
+    const card = await strikeUntil("criticalSuccess", "1d20+40");
     expect(lastDegree).toBe("criticalSuccess");
     const msg = await damage(card, "(1d4+2)*2");
     expect(msg.rolls?.[0]?.formula).toMatch(/\(1d4\+2\)\*2 \+ 4(?!\d)/);
@@ -474,7 +476,7 @@ describe("BHR-F4-09 — Apoio do urso: o dano extra entra na rolagem de dano do 
   it("acerto crítico com bônus condicional negativo: a penalidade também dobra", async () => {
     await boot(6);
     world.condBonus = -1;
-    const card = await strike("1d20+40");
+    const card = await strikeUntil("criticalSuccess", "1d20+40");
     const msg = await damage(card, "(1d4+2)*2");
     expect(msg.rolls?.[0]?.formula).toMatch(/\(1d4\+2\)\*2 - 2(?!\d)/);
   });
@@ -495,7 +497,7 @@ describe("BHR-F4-09 — Apoio do urso: o dano extra entra na rolagem de dano do 
   it("nota de dano com `outcome`: vale o grau do ataque que o servidor graduou no mesmo card (crítico)", async () => {
     await boot(6);
     world.outcomeNotes = true;
-    const card = await strike("1d20+40");
+    const card = await strikeUntil("criticalSuccess", "1d20+40");
     expect(lastDegree).toBe("criticalSuccess");
     const msg = await damage(card, "(1d4+2)*2");
     expect((msg.flags?.fusion?.rollNotes as { title: string }[]).map((n) => n.title)).toEqual([

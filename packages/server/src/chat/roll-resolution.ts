@@ -215,15 +215,19 @@ export function prepareRollResolution(
 /**
  * The formula the server rolls: the client's, with the server-settled
  * conditional total appended before the flavor (`1d20+5 # Golpe` → `1d20+5 + 2`,
- * flavor `Golpe`). Unchanged when there is nothing to add.
+ * flavor `Golpe`). Unchanged when there is nothing to add. On a critical hit of a
+ * Strike's damage the total is doubled (`(1d6+4)*2 + 4`).
  */
 export function conditionalRollFormula(
   commandFormula: string,
   prepared: PreparedRollResolution | null,
+  options: { criticalHit?: boolean } = {},
 ): { formula: string; flavor?: string } {
   if (prepared === null || prepared.total === 0) return { formula: commandFormula };
   const { formula, flavor } = extractFlavor(commandFormula);
-  const total = prepared.total;
+  // PF2e remaster: on a critical hit ALL the damage of the Strike doubles, the conditional modifiers included
+  // (`options.criticalHit`: the server proved the attack under the same card was a critical hit).
+  const total = options.criticalHit === true ? prepared.total * 2 : prepared.total;
   const appended = total > 0 ? `${formula} + ${String(total)}` : `${formula} - ${String(-total)}`;
   return flavor !== undefined ? { formula: appended, flavor } : { formula: appended };
 }

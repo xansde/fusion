@@ -262,13 +262,14 @@ export interface ChatMessageReader {
 }
 
 /**
- * The degree of the attack the server graded under `parentMessageId` for this speaker and this target token,
- * when it hit. The most recent attack of the card wins (a card may carry several). `null` = no proof.
+ * The degree of the LATEST attack the server graded under `parentMessageId` for this speaker and this target token
+ * (any degree: a hit or a miss), or `null` when there is none. The most recent attack of the card wins (a card may
+ * carry several).
  */
-export function readStrikeHit(
+export function readStrikeAttackDegree(
   db: ChatMessageReader,
   input: { parentMessageId: string; userId: string; actorId: string; targetTokenId: string },
-): StrikeHitDegree | null {
+): string | null {
   const rows = db
     .prepare(
       `SELECT data FROM chat_messages
@@ -300,9 +301,21 @@ export function readStrikeHit(
     const rolls = Array.isArray(msg["rolls"]) ? (msg["rolls"] as unknown[]) : [];
     const degree = isRec(rolls[0]) ? rolls[0]["degreeOfSuccess"] : undefined;
     // Only the latest attack counts: a later miss is not overruled by an earlier hit.
-    return degree === "success" || degree === "criticalSuccess" ? degree : null;
+    return typeof degree === "string" ? degree : null;
   }
   return null;
+}
+
+/**
+ * The degree of the attack the server graded under `parentMessageId` for this speaker and this target token,
+ * when it hit. `null` = no proof of a hit.
+ */
+export function readStrikeHit(
+  db: ChatMessageReader,
+  input: { parentMessageId: string; userId: string; actorId: string; targetTokenId: string },
+): StrikeHitDegree | null {
+  const degree = readStrikeAttackDegree(db, input);
+  return degree === "success" || degree === "criticalSuccess" ? degree : null;
 }
 
 // ---------------------------------------------------------------------------
@@ -317,11 +330,38 @@ export interface ExtraDamageStore {
 }
 
 /**
+ * The degree of the attack the server graded under the card a Strike's damage roll nests under (same speaker, same
+ * target token), or `null` when the roll is not a Strike's damage, is not nested or has no single target. One proof
+ * for everything the damage roll needs the attack for: the extra dice, the critical doubling, the notes by degree.
+ */
+export function proveStrikeAttackDegree(input: {
+  db: ChatMessageReader;
+  userId: string;
+  actorId: string;
+  selectors: readonly string[];
+  snapshot: readonly RollTargetSnapshotEntry[];
+  parentMessageId: string | undefined;
+}): string | null {
+  if (!input.selectors.includes("strike-damage")) return null;
+  if (input.parentMessageId === undefined || input.snapshot.length !== 1) return null;
+  const target = input.snapshot[0];
+  if (target === undefined) return null;
+  return readStrikeAttackDegree(input.db, {
+    parentMessageId: input.parentMessageId,
+    userId: input.userId,
+    actorId: input.actorId,
+    targetTokenId: target.tokenId,
+  });
+}
+
+/**
  * Settle the extra damage of ONE chat roll. Only a Strike's damage roll counts (the selector the sheet
  * declares, `strike-damage`), nested under its card, with exactly one live target: anything else, and the
  * roll goes out as the client wrote it.
  */
 export function settleChatRollExtraDamage(input: {
+  /** The proven attack degree when the caller already read it (`proveStrikeAttackDegree`); read here when absent. */
+  attackDegree?: string | null;
   db: ChatMessageReader;
   store: ExtraDamageStore;
   userId: string;
@@ -336,12 +376,9 @@ export function settleChatRollExtraDamage(input: {
   if (input.parentMessageId === undefined || input.snapshot.length !== 1) return NO_EXTRA_DAMAGE;
   const target = input.snapshot[0];
   if (target === undefined) return NO_EXTRA_DAMAGE;
-  const hit = readStrikeHit(input.db, {
-    parentMessageId: input.parentMessageId,
-    userId: input.userId,
-    actorId: input.actorId,
-    targetTokenId: target.tokenId,
-  });
+  const proven =
+    input.attackDegree !== undefined ? input.attackDegree : proveStrikeAttackDegree(input);
+  const hit = proven === "success" || proven === "criticalSuccess" ? proven : null;
   const scenes: Rec[] = [];
   for (const listed of input.store.getAll("scenes")) {
     const id = listed["_id"];
