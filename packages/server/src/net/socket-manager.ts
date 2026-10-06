@@ -82,6 +82,11 @@ import type { TurnHookContextServices } from "../combat/turn-hook-runner.js";
 import type { TokenMarkSource } from "../chat/roll-resolution.js";
 import { TargetingStore } from "../combat/targeting-store.js";
 import { buildCombatTargetHandler, registerTargetingCleanup } from "../combat/target-handler.js";
+import {
+  buildMarkSetHandler,
+  buildMarkClearHandler,
+  createTokenMarkSource,
+} from "../combat/mark-handler.js";
 import { MapCounter, registerMapCounterReset } from "../combat/map-counter.js";
 import {
   buildResyncRequestHandler,
@@ -436,7 +441,8 @@ export class SocketManager {
       store,
       targetingStore,
       ...(systemModule !== undefined ? { systemModule } : {}),
-      ...(tokenMarkSource !== undefined ? { tokenMarkSource } : {}),
+      // BHR-F3-06: the persisted Prey, unless a caller injected another source.
+      tokenMarkSource: tokenMarkSource ?? createTokenMarkSource(store),
       rollHookContext: () => ({
         ...(rollHook.services ?? createStubTurnHookContextServices()),
         worldTime: { round: 0, turn: 0 },
@@ -562,6 +568,11 @@ export class SocketManager {
     // targetingStore constructed earlier (near `store`) so chat:send can use it too.
     const targetDeps = { store, seqStore, ns, targetingStore };
     registry.register("combat:target", buildCombatTargetHandler(targetDeps));
+    // BHR-F3-06 (REQ-BHR-086..090): the Prey persisted on the marking actor —
+    // not part of the targeting store, so it outlives turnEnd.
+    const markDeps = { store, seqStore, opBuffer, ns, targetingStore };
+    registry.register("mark:set", buildMarkSetHandler(markDeps));
+    registry.register("mark:clear", buildMarkClearHandler(markDeps));
     // REQ-CBT-055: clear a targeter's targets when their combatant's turn ends.
     registerTargetingCleanup(targetDeps, eventBus);
 
