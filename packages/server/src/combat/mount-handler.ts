@@ -29,23 +29,32 @@
 
 import type { Namespace } from "socket.io";
 import {
+  MOUNTED_EFFECT_REF,
   MOUNT_FLAG_KEY,
   MOUNT_FLAG_NAMESPACE,
   MountDismountPayloadSchema,
   MountMountPayloadSchema,
+  buildPackDocUuid,
   readActorSizeCategory,
   readMountState,
   resolveEffectiveActor,
   squarePixelToCell,
 } from "@fusion/shared";
-import type { Ack, Envelope, ErrorCode } from "@fusion/shared";
+import type { Ack, EffectApplyPayload, Envelope, ErrorCode } from "@fusion/shared";
 import type { HandlerContext, HandlerFn } from "../net/handler-registry.js";
 import type { SeqStore } from "../net/seq-store.js";
 import type { OpBuffer } from "../net/op-buffer.js";
 import { broadcastToWorld } from "../net/handlers/doc-handlers.js";
+import { buildEmbeddedEffect, startedAtFor } from "../net/handlers/effect-handlers.js";
+import type { CompendiumService } from "../compendium/service.js";
 import type { DocumentStore } from "../documents/store.js";
 import { DocumentNotFoundError } from "../documents/store.js";
-import { OwnershipLevel, isRolePrivileged, resolveOwnership } from "../documents/ownership.js";
+import {
+  OwnershipLevel,
+  UserRole,
+  isRolePrivileged,
+  resolveOwnership,
+} from "../documents/ownership.js";
 import type { Ownership } from "../documents/ownership.js";
 import {
   areAdjacent,
@@ -60,6 +69,11 @@ export interface MountHandlerDeps {
   seqStore: SeqStore;
   opBuffer: OpBuffer;
   ns: Namespace;
+  /**
+   * Source of the "Montado" effect (BHR-F5-04). Without it (or without the pack) the state is still
+   * written to the tokens; only the -2 Reflex effect is not embedded.
+   */
+  compendium?: CompendiumService;
 }
 
 type Rec = Record<string, unknown>;
@@ -197,13 +211,59 @@ function withMountFlag(token: Rec, state: Rec | undefined): Rec {
   return { ...token, flags };
 }
 
+/** True when an embedded item is the "Montado" effect this module embedded. */
+function isMountedEffect(item: unknown): boolean {
+  if (!isRec(item) || item["type"] !== "effect") return false;
+  const system = isRec(item["system"]) ? item["system"] : {};
+  const fusion = isRec(system["fusion"]) ? system["fusion"] : {};
+  const origin = isRec(fusion["origin"]) ? fusion["origin"] : {};
+  return origin["itemSourceId"] === MOUNTED_EFFECT_REF.docId;
+}
+
+/** The "Montado" effect document from the pack, or null when there is no compendium / no such pack. */
+function readMountedEffectDoc(deps: MountHandlerDeps): Rec | null {
+  if (deps.compendium === undefined) return null;
+  const uuid = buildPackDocUuid(MOUNTED_EFFECT_REF.packId, "Item", MOUNTED_EFFECT_REF.docId);
+  const doc = deps.compendium.getDocument(UserRole.GAMEMASTER, uuid);
+  return doc !== null && doc["type"] === "effect" ? doc : null;
+}
+
+/** What `persistAndBroadcast` does to the rider's embedded items together with the scene write. */
+interface RiderEffectChange {
+  actorId: string;
+  mode: "add" | "remove";
+}
+
 function persistAndBroadcast(
   deps: MountHandlerDeps,
   located: Located,
   nextTokens: Rec[],
   ctx: HandlerContext,
+  riderEffect?: RiderEffectChange,
 ): Ack<{ documentType: "Scene"; documents: Rec[] }> {
-  deps.store.update("scenes", located.sceneId, { tokens: nextTokens }, { userId: ctx.userId });
+  // The effect is read BEFORE any write: a missing pack must not leave half a mount behind.
+  const effectDoc = riderEffect?.mode === "add" ? readMountedEffectDoc(deps) : null;
+  let actorDocs: Rec[] = [];
+  deps.store.transaction((txn) => {
+    txn.update("scenes", located.sceneId, { tokens: nextTokens }, { userId: ctx.userId });
+    if (riderEffect === undefined) return;
+    const fresh = deps.store.get("actors", riderEffect.actorId);
+    const current = Array.isArray(fresh["items"]) ? (fresh["items"] as Rec[]) : [];
+    const kept = current.filter((item) => !isMountedEffect(item));
+    let items = kept;
+    if (riderEffect.mode === "add" && effectDoc !== null) {
+      const payload = {
+        sourceActorId: riderEffect.actorId,
+        targetActorIds: [riderEffect.actorId],
+        effect: { ...MOUNTED_EFFECT_REF },
+      } as EffectApplyPayload;
+      const startedAt = startedAtFor(deps.store, riderEffect.actorId);
+      items = [...kept, buildEmbeddedEffect(effectDoc, payload, startedAt, undefined).item];
+    }
+    if (items.length === current.length && kept.length === current.length) return;
+    const doc = txn.update("actors", riderEffect.actorId, { items }, { userId: ctx.userId });
+    if (doc !== null) actorDocs = [doc];
+  });
   // Re-read through the filtered get(): the broadcast never carries the raw token list.
   const scene = deps.store.get("scenes", located.sceneId);
   const payload = { documentType: "Scene" as const, documents: [scene] };
@@ -211,6 +271,16 @@ function persistAndBroadcast(
   const envelope: Envelope = { type: "doc:update", seq, ts: Date.now(), payload };
   deps.opBuffer.push(envelope);
   broadcastToWorld(deps.ns, envelope, "Scene");
+  if (actorDocs.length > 0) {
+    const actorEnvelope: Envelope = {
+      type: "doc:update",
+      seq: deps.seqStore.next(),
+      ts: Date.now(),
+      payload: { documentType: "Actor", documents: actorDocs },
+    };
+    deps.opBuffer.push(actorEnvelope);
+    broadcastToWorld(deps.ns, actorEnvelope, "Actor");
+  }
   return { ok: true, seq, result: payload };
 }
 
@@ -276,7 +346,10 @@ export function buildMountHandler(deps: MountHandlerDeps): HandlerFn {
           ? withMountFlag(t, { riderTokenId })
           : t,
     );
-    return persistAndBroadcast(deps, located, nextTokens, ctx);
+    return persistAndBroadcast(deps, located, nextTokens, ctx, {
+      actorId: rider.actorId,
+      mode: "add",
+    });
   };
 }
 
@@ -347,6 +420,9 @@ export function buildDismountHandler(deps: MountHandlerDeps): HandlerFn {
       }
       return t;
     });
-    return persistAndBroadcast(deps, located, nextTokens, ctx);
+    return persistAndBroadcast(deps, located, nextTokens, ctx, {
+      actorId: rider.actorId,
+      mode: "remove",
+    });
   };
 }

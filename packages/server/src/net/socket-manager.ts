@@ -579,7 +579,13 @@ export class SocketManager {
     registry.register("mark:set", buildMarkSetHandler(markDeps));
     registry.register("mark:clear", buildMarkClearHandler(markDeps));
     // BHR-F5-02 (REQ-BHR-174..176): MountState on the two tokens, decided on the server.
-    const mountDeps = { store, seqStore, opBuffer, ns };
+    const mountDeps = {
+      store,
+      seqStore,
+      opBuffer,
+      ns,
+      ...(compendiumService ? { compendium: compendiumService } : {}),
+    };
     registry.register("mount:mount", buildMountHandler(mountDeps));
     registry.register("mount:dismount", buildDismountHandler(mountDeps));
     // REQ-CBT-055: clear a targeter's targets when their combatant's turn ends.

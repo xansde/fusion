@@ -369,7 +369,7 @@ function authorizePlayer(
 }
 
 /** The origin round, when the source actor is in an active combat. */
-function startedAtFor(
+export function startedAtFor(
   store: DocumentStore,
   actorId: string,
 ): { combatId: string | null; round: number | null } {
@@ -387,7 +387,7 @@ function startedAtFor(
   return { combatId: null, round: null };
 }
 
-function buildEmbeddedEffect(
+export function buildEmbeddedEffect(
   effect: Doc,
   payload: EffectApplyPayload,
   startedAt: { combatId: string | null; round: number | null },
