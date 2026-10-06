@@ -473,6 +473,38 @@ describe("companion:setActive (BHR-F4-10)", () => {
     expect(tokens().some((t) => t["actorId"] === ANTELOPE)).toBe(false);
   });
 
+  // PF2e remaster: Call Companion is an exploration activity (about a minute); it cannot be done in an encounter.
+  it("I-3: refuses the swap while a combat runs in a scene that holds the active companion's token, and changes nothing", async () => {
+    ctx.store.create(
+      "combats",
+      { sceneId: SCENE_ID, started: true, ended: false, round: 1, turnIndex: 0 },
+      { userId: "gm" },
+    );
+    for (const socket of [p1, gm]) {
+      const ack = await sendOp(socket, "companion:setActive", set(ANTELOPE));
+      expect(ack).toMatchObject({ ok: false, code: "CONFLICT" });
+      expect(String(ack["message"])).toMatch(/exploration|combat/i);
+    }
+    expect(activeOf(BEAR)).toBe(true);
+    expect(activeOf(ANTELOPE)).toBe(false);
+    expect(tokens().some((t) => t["_id"] === BEAR_TOKEN)).toBe(true);
+  });
+
+  it("I-3: an ended combat, or a combat of another scene, does not block the swap", async () => {
+    ctx.store.create(
+      "combats",
+      { sceneId: SCENE_ID, started: true, ended: true, round: 4, turnIndex: 0 },
+      { userId: "gm" },
+    );
+    ctx.store.create(
+      "combats",
+      { sceneId: "elsewhere0000001", started: true, ended: false, round: 1, turnIndex: 0 },
+      { userId: "gm" },
+    );
+    const ack = await sendOp(p1, "companion:setActive", set(ANTELOPE));
+    expect(ack["ok"], JSON.stringify(ack)).toBe(true);
+  });
+
   it("a player who does not own the master gets PERMISSION_DENIED; the GM may", async () => {
     const denied = await sendOp(p2, "companion:setActive", set(ANTELOPE));
     expect(denied).toMatchObject({ ok: false, code: "PERMISSION_DENIED" });

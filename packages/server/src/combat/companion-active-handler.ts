@@ -13,6 +13,8 @@
  *   - while a previously active companion is mounted (`flags.fusion.mount`, MountState of BHR-F5-02) the
  *     swap is refused with the reason: moving it out of the scene would leave the rider's state dangling.
  *     The rider dismounts first;
+ *   - Call Companion is an EXPLORATION activity (PC2 p. 189): refused with the reason while a combat is
+ *     running in a scene that holds the token being replaced (which would also orphan its combatant);
  *   - every companion of THAT master other than the target ends with `active = false`, the target with
  *     `active = true` — exactly one active, even when the stored state was forged;
  *   - in each scene holding a token of a previously active companion, that token is replaced in the same
@@ -86,6 +88,13 @@ function isActive(actor: Rec): boolean {
   return !(isRec(companion) && companion["active"] === false);
 }
 
+/** A started, not ended combat on the scene. */
+function hasRunningCombat(store: DocumentStore, sceneId: string): boolean {
+  return store
+    .getAll("combats")
+    .some((c) => c["sceneId"] === sceneId && c["started"] === true && c["ended"] !== true);
+}
+
 function broadcast(
   deps: CompanionActiveHandlerDeps,
   documentType: "Actor" | "Scene",
@@ -157,6 +166,14 @@ export function buildCompanionSetActiveHandler(deps: CompanionActiveHandlerDeps)
         (t) => typeof t["actorId"] === "string" && deactivateIds.has(t["actorId"]),
       );
       if (olds.length === 0) continue;
+      // Call Companion is an exploration activity (PC2): never in an encounter. Refusing here also keeps a
+      // combatant from being left pointing at a token the swap deletes.
+      if (hasRunningCombat(deps.store, sceneId)) {
+        return ackError(
+          "CONFLICT",
+          "Call Companion is an exploration activity: it cannot be used while a combat is running in the scene",
+        );
+      }
       for (const old of olds) {
         const mount = readMountState(old);
         if (mount.riderTokenId !== undefined || mount.mountTokenId !== undefined) {
