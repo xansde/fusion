@@ -1,6 +1,91 @@
 {
   "versao": 1,
-  "tarefas": {},
-  "rodadas": [],
+  "tarefas": {
+    "BHR-F0-01": {
+      "status": "integrada",
+      "tentativas": 1,
+      "onda": 1,
+      "modelo": "opus/high",
+      "resumo": "spec 52 + emendas 29/17/10/06/41/09/15; spec-lint 29/29",
+      "core_sha": "f41b9794",
+      "sat_sha": "73df51d"
+    },
+    "BHR-F0-02": {
+      "status": "integrada",
+      "tentativas": 1,
+      "onda": 1,
+      "modelo": "opus/high",
+      "resumo": "base do Alquimista (ondas 1-5) sincronizada com alfa/main; PRs core #313 e satélite #472 (merge humano); seletor marcado com aviso",
+      "core_sha": "f41b9794",
+      "sat_sha": "73df51d"
+    },
+    "BHR-F1-01": {
+      "status": "integrada",
+      "tentativas": 1,
+      "onda": 1,
+      "modelo": "sonnet/medium",
+      "resumo": "PV de ancestralidade por override de herança; Bhrotto 22/34/46",
+      "core_sha": "f41b9794",
+      "sat_sha": "73df51d"
+    },
+    "BHR-F1-02": {
+      "status": "integrada",
+      "tentativas": 1,
+      "onda": 1,
+      "modelo": "sonnet/medium",
+      "resumo": "Ranger treina Natureza pela regra da classe (Plano avalia predicate feature:)",
+      "core_sha": "f41b9794",
+      "sat_sha": "73df51d"
+    },
+    "BHR-F1-03": {
+      "status": "integrada",
+      "tentativas": 1,
+      "onda": 1,
+      "modelo": "haiku/low",
+      "resumo": "War Flail no weapons-core com id do importer; +9 / 2d10+4",
+      "core_sha": "f41b9794",
+      "sat_sha": "73df51d"
+    },
+    "BHR-F1-06": {
+      "status": "integrada",
+      "tentativas": 1,
+      "onda": 1,
+      "modelo": "sonnet/low",
+      "resumo": "pt-BR do jogador; 'Alcance Prênsil' a provar no print da F1-09",
+      "core_sha": "f41b9794",
+      "sat_sha": "73df51d"
+    }
+  },
+  "rodadas": [
+    {
+      "onda": 1,
+      "tarefas": [
+        "BHR-F0-01",
+        "BHR-F0-02",
+        "BHR-F1-01",
+        "BHR-F1-02",
+        "BHR-F1-03",
+        "BHR-F1-06"
+      ],
+      "integradas": [
+        "BHR-F0-01",
+        "BHR-F0-02",
+        "BHR-F1-01",
+        "BHR-F1-02",
+        "BHR-F1-03",
+        "BHR-F1-06"
+      ],
+      "gate": true,
+      "revisao": {
+        "achados": 0,
+        "abertos": [
+          "I-3 print real do Alcance Prênsil (F1-09)",
+          "6 menores (revisao.md)"
+        ]
+      },
+      "core_sha": "f41b9794",
+      "sat_sha": "73df51d"
+    }
+  ],
   "lotes": {}
 }
