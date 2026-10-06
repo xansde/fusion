@@ -112,6 +112,9 @@ export const EnvelopeTypeSchema = z.union([
   // marking actor — not doc:update (permission is "own actor + own target").
   z.literal("mark:set"),
   z.literal("mark:clear"),
+  // Spec 52 REQ-BHR-102..105 (BHR-F4-08, DEC-BHR-09): a pack effect copied onto
+  // other actors, with the permission-by-link rule decided on the server.
+  z.literal("effect:apply"),
   // Spec 42 — removing a folder without removing anything it held (REQ-NPC-022).
   // Not doc:delete: that path drops the row and stops, leaving every actor of the
   // folder pointing at an id that is gone and every subfolder orphaned.
@@ -857,6 +860,33 @@ export interface ItemConsumeResult {
 }
 
 export type ItemConsumeAck = Ack<ItemConsumeResult>;
+
+// ---------------------------------------------------------------------------
+// effect:apply — client → server. Spec 52 §7.3 (REQ-BHR-102..105), DC-06,
+// task BHR-F4-08. The client only NAMES the effect (`packId` + `docId`); the
+// server reads it from the pack, so no effect content ever travels on the wire.
+// ---------------------------------------------------------------------------
+
+export const EffectApplyPayloadSchema = z
+  .object({
+    sourceActorId: z.string().min(1),
+    targetActorIds: z.array(z.string().min(1)).min(1).max(32),
+    effect: z.object({ packId: z.string().min(1), docId: z.string().min(1) }).strict(),
+    /** e.g. Apoio → `{ on: "turn-start", ownerActorId: <the owner> }`. */
+    expiry: FusionExpirySchema.optional(),
+    /** The roll message whose `targetSnapshot` names the targets (DF-03). */
+    messageId: z.string().min(1).optional(),
+  })
+  .strict();
+
+export type EffectApplyPayload = z.infer<typeof EffectApplyPayloadSchema>;
+
+export interface EffectApplyResult {
+  /** One embedded effect item per target, in `targetActorIds` order. */
+  readonly applied: { readonly actorId: string; readonly itemId: string }[];
+}
+
+export type EffectApplyAck = Ack<EffectApplyResult>;
 
 // ---------------------------------------------------------------------------
 // Target-selection assertion — REQ-CBT-056, plan §2.3. TYPE ONLY: the plan
