@@ -15,9 +15,9 @@ porque ainda não foram prometidos para nenhum marco.
 
 | Situação | Requisitos | Fatia |
 | --- | ---: | ---: |
-| Citados por algum teste | 779 | 35% |
+| Citados por algum teste | 781 | 35% |
 | Citados só por código de produção | 320 | 14% |
-| Sem nenhuma citação | 1154 | 51% |
+| Sem nenhuma citação | 1152 | 51% |
 | **Total [MVP]** | **2253** | |
 
 ## Por spec
@@ -50,7 +50,7 @@ porque ainda não foram prometidos para nenhum marco.
 | [23](23-acessibilidade-e-dispositivos.md) | 45 | 2 | 0 | 43 | 4% |
 | [24](24-operacao-backups-telemetria.md) | 41 | 0 | 0 | 41 | 0% |
 | [25](25-testes-e-qualidade.md) | 42 | 0 | 0 | 42 | 0% |
-| [26](26-licencas-e-legal.md) | 23 | 2 | 0 | 21 | 9% |
+| [26](26-licencas-e-legal.md) | 23 | 3 | 0 | 20 | 13% |
 | [27](27-roadmap-e-milestones.md) | 11 | 0 | 0 | 11 | 0% |
 | [28](28-hub-do-jogador.md) | 50 | 0 | 0 | 50 | 0% |
 | [29](29-pets-companions-familiars.md) | 55 | 11 | 8 | 36 | 20% |
@@ -69,4 +69,4 @@ porque ainda não foram prometidos para nenhum marco.
 | [44](44-aba-cenas.md) | 58 | 51 | 1 | 6 | 88% |
 | [45](45-atores.md) | 50 | 2 | 0 | 48 | 4% |
 | [47](47-fabricacao-e-alquimia.md) | 40 | 0 | 0 | 40 | 0% |
-| [52](52-cacador-companheiro-e-montaria.md) | 115 | 7 | 1 | 107 | 6% |
+| [52](52-cacador-companheiro-e-montaria.md) | 115 | 8 | 1 | 106 | 7% |
