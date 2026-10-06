@@ -91,7 +91,7 @@ recomendação, com a alternativa e o que muda no plano se ela for escolhida.
 
 ### 1.2.1 Questões abertas do Alexandre
 
-- **Q-BHR-01 (pendente)**: a BHR-F5-04 pede os selos "Reflexos −2" e "Montado" no token, o que conflita com DEC-TOK-19 (o token não carrega selos de estado). Até a decisão do Alexandre, os dois ficam só na faixa compacta da ficha (D-B23), sem selo no token.
+- **Q-BHR-01 (fechada, 2026-10-05)**: "Reflexos −2" e "Montado" ficam **só** na faixa compacta da ficha (D-B23), sem selo no token — DEC-TOK-19 mantida (decisão do Alexandre: "pode manter como está").
 
 ### 1.3 Decisões herdadas (valem aqui, não se rediscutem)
 
@@ -997,12 +997,12 @@ interface ExecutableActionRow {
 
 - **Repo**: satélite
 - **Onde**: efeito "Montado" (BHR-F1-05) aplicado/removido por Montar; `characterSheetVM.ts` (selos); ficha do companheiro (montaria carregando cavaleiro)
-- **Entrega**: Montado, o cavaleiro tem −2 circunstância em Reflexos (efeito, via seletor da BHR-F2-01) e só Montar como ação de movimento; a montaria companheira carregando cavaleiro usa só Velocidade terrestre e não pode mover e Apoiar no mesmo turno — **salvo** se o tipo tem `mount` (antílope ignora as duas). Selos "Reflexos −2" e "Montado" no token e, na ficha, como itens da faixa compacta (D-B23).
+- **Entrega**: Montado, o cavaleiro tem −2 circunstância em Reflexos (efeito, via seletor da BHR-F2-01) e só Montar como ação de movimento; a montaria companheira carregando cavaleiro usa só Velocidade terrestre e não pode mover e Apoiar no mesmo turno — **salvo** se o tipo tem `mount` (antílope ignora as duas). "Reflexos −2" e "Montado" como itens da faixa compacta da ficha (D-B23); **sem** selo no token (Q-BHR-01).
 - **Depende de**: BHR-F5-02, BHR-F2-01, BHR-F1-05, BHR-F2-10
 - **Paralelo com**: BHR-F3-11, BHR-F4-07, BHR-F4-10
 - **Modelo / esforço**: sonnet / medium.
 - **Teste (TDD)**: montado: Reflexos do Bhrotto +7 → +5; desmontar volta; montaria sem `mount` com cavaleiro tem Apoio desabilitado depois de mover; antílope não.
-- **Prova visual (print)**: ficha do Bhrotto montado com os selos (tela T3, "gigante-montado").
+- **Prova visual (print)**: ficha do Bhrotto montado com os dois estados na faixa compacta (tela T3, "gigante-montado").
 - **Spec/REQ**: `REQ-BHR-177..179`
 - **Tamanho**: P
 - **Onda**: 8 · **Lote**: L3

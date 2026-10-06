@@ -54,3 +54,10 @@ carteira"; refina a D-B13) · DC-02..07, DC-09, DC-11, DC-12 como recomendado em
 General feat extra do nível 1: **Toughness** · regra da casa: **Ocultismo** · **urso** vem do Animal Companion
 (classe), **antílope** da Beastmaster Dedication (arquétipo) · Wildborne é de um livro **Lost Omens** (DC-12
 desbloqueada: curar da fonte). Pendente: idiomas.
+
+## Decisões durante a execução (Alexandre, 2026-10-05)
+
+- **Q-BHR-01**: os estados "Montado" e "Reflexos −2" ficam só na faixa compacta da ficha; o token não ganha selo
+  (DEC-TOK-19 mantida).
+- **Seletor de talentos**: requisito reconhecido não cumprido → candidato **marcado com aviso** (o motivo) e
+  selecionável (REQ-PF2-208 emendada; DEC-BC-05/REQ-BC-032). Entrou na BHR-F0-02 (PRs core #313 e satélite #472).

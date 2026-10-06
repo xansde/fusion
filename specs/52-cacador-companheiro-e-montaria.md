@@ -551,7 +551,8 @@ targets })` **uma vez** por rolagem resolvida.
   companheira carregando cavaleiro DEVE usar só a Velocidade terrestre e NÃO DEVE mover e Apoiar no
   mesmo turno — salvo se o tipo tem `mount`, que ignora as duas restrições.
 - **REQ-BHR-179** [MVP] "Montado" e "Reflexos −2" DEVEM aparecer como itens da faixa compacta de
-  estados (DEC-BHR-16) na ficha do cavaleiro (selo no token: Q-BHR-01).
+  estados (DEC-BHR-16) na ficha do cavaleiro; o token NÃO ganha selo desses estados (DEC-TOK-19
+  mantida; Q-BHR-01 fechada pelo Alexandre em 2026-10-05).
 - **REQ-BHR-180** [MVP] Enquanto montados, o botão de golpe do cavaleiro e o da montaria DEVEM mostrar
   o MAP do **grupo** (REQ-CBT-070).
 - **REQ-BHR-181** [MVP] Montado, a distância e o alcance dos ataques do cavaleiro DEVEM ser medidos a
