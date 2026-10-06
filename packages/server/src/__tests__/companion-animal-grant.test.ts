@@ -472,7 +472,9 @@ describe("Animal companion creation permission (BHR-F4-04)", () => {
       ]),
     );
     const activeOf = (doc: Record<string, unknown>): unknown =>
-      ((doc["system"] as Record<string, unknown>)["companion"] as Record<string, unknown>)["active"];
+      ((doc["system"] as Record<string, unknown>)["companion"] as Record<string, unknown>)[
+        "active"
+      ];
     const first = await createAs(ownerSocket, [
       companionPayload(master, "animalCompanion", "Urso", "slot-1"),
     ]);

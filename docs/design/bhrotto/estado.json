@@ -221,51 +221,20 @@
   "rodadas": [
     {
       "onda": 1,
-      "tarefas": [
-        "BHR-F0-01",
-        "BHR-F0-02",
-        "BHR-F1-01",
-        "BHR-F1-02",
-        "BHR-F1-03",
-        "BHR-F1-06"
-      ],
-      "integradas": [
-        "BHR-F0-01",
-        "BHR-F0-02",
-        "BHR-F1-01",
-        "BHR-F1-02",
-        "BHR-F1-03",
-        "BHR-F1-06"
-      ],
+      "tarefas": ["BHR-F0-01", "BHR-F0-02", "BHR-F1-01", "BHR-F1-02", "BHR-F1-03", "BHR-F1-06"],
+      "integradas": ["BHR-F0-01", "BHR-F0-02", "BHR-F1-01", "BHR-F1-02", "BHR-F1-03", "BHR-F1-06"],
       "gate": true,
       "revisao": {
         "achados": 0,
-        "abertos": [
-          "I-3 print real do Alcance Prênsil (F1-09)",
-          "6 menores (revisao.md)"
-        ]
+        "abertos": ["I-3 print real do Alcance Prênsil (F1-09)", "6 menores (revisao.md)"]
       },
       "core_sha": "f41b9794",
       "sat_sha": "73df51d"
     },
     {
       "onda": 2,
-      "tarefas": [
-        "BHR-F0-03",
-        "BHR-F1-04",
-        "BHR-F1-05",
-        "BHR-F1-07",
-        "BHR-F2-01",
-        "BHR-F2-03"
-      ],
-      "integradas": [
-        "BHR-F0-03",
-        "BHR-F1-04",
-        "BHR-F1-05",
-        "BHR-F1-07",
-        "BHR-F2-01",
-        "BHR-F2-03"
-      ],
+      "tarefas": ["BHR-F0-03", "BHR-F1-04", "BHR-F1-05", "BHR-F1-07", "BHR-F2-01", "BHR-F2-03"],
+      "integradas": ["BHR-F0-03", "BHR-F1-04", "BHR-F1-05", "BHR-F1-07", "BHR-F2-01", "BHR-F2-03"],
       "gate": true,
       "revisao": {
         "achados": 23,
@@ -282,22 +251,8 @@
     },
     {
       "onda": 3,
-      "tarefas": [
-        "BHR-F2-02",
-        "BHR-F2-05",
-        "BHR-F2-07",
-        "BHR-F2-08",
-        "BHR-F3-01",
-        "BHR-F3-04"
-      ],
-      "integradas": [
-        "BHR-F2-02",
-        "BHR-F2-05",
-        "BHR-F2-07",
-        "BHR-F2-08",
-        "BHR-F3-01",
-        "BHR-F3-04"
-      ],
+      "tarefas": ["BHR-F2-02", "BHR-F2-05", "BHR-F2-07", "BHR-F2-08", "BHR-F3-01", "BHR-F3-04"],
+      "integradas": ["BHR-F2-02", "BHR-F2-05", "BHR-F2-07", "BHR-F2-08", "BHR-F3-01", "BHR-F3-04"],
       "gate": true,
       "revisao": {
         "achados": 52,
@@ -314,22 +269,8 @@
     },
     {
       "onda": 4,
-      "tarefas": [
-        "BHR-F1-08",
-        "BHR-F2-04",
-        "BHR-F2-06",
-        "BHR-F3-02",
-        "BHR-F3-06",
-        "BHR-F4-04"
-      ],
-      "integradas": [
-        "BHR-F1-08",
-        "BHR-F2-04",
-        "BHR-F2-06",
-        "BHR-F3-02",
-        "BHR-F3-06",
-        "BHR-F4-04"
-      ],
+      "tarefas": ["BHR-F1-08", "BHR-F2-04", "BHR-F2-06", "BHR-F3-02", "BHR-F3-06", "BHR-F4-04"],
+      "integradas": ["BHR-F1-08", "BHR-F2-04", "BHR-F2-06", "BHR-F3-02", "BHR-F3-06", "BHR-F4-04"],
       "gate": true,
       "revisao": {
         "achados": 64,
