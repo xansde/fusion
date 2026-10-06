@@ -147,6 +147,23 @@ export const CombatDocumentSchema = z.object({
   activeCombatantId: z.string().nullable().default(null),
 
   /**
+   * The multiple attack penalty count the SERVER keeps for the combatant whose
+   * turn it is (BHR onda-6 review I-7, D-G03): how many attacks it already made
+   * this turn. Valid only while `combatantId` is the active combatant and
+   * `round` is the current round; otherwise the count is stale (a new turn
+   * starts at zero without a write). Masked for players when the active
+   * combatant is hidden, like `activeCombatantId` (REQ-CBT-031).
+   */
+  attackCount: z
+    .object({
+      combatantId: z.string(),
+      round: z.number().int().min(0),
+      count: z.number().int().min(0),
+    })
+    .nullable()
+    .default(null),
+
+  /**
    * Whether beginCombat has been called.
    * REQ-CBT-020.
    */

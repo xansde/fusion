@@ -400,8 +400,12 @@ export type SaveCheckContext = z.infer<typeof SaveCheckContextSchema>;
  */
 export const AttackCheckContextSchema = z.object({
   kind: z.literal("attack"),
-  /** Token aimed at; the AC comes from the database, NEVER from the payload. */
-  targetTokenId: z.string().min(1).max(120),
+  /**
+   * Token aimed at; the AC comes from the database, NEVER from the payload.
+   * Absent for a strike thrown without a target: the server still counts it for
+   * the MAP (every attack counts, onda-6 review I-7) but grades nothing.
+   */
+  targetTokenId: z.string().min(1).max(120).optional(),
   /** MAP index applied to this strike — audit only, it does not enter the math. */
   mapIndex: z.union([z.literal(0), z.literal(1), z.literal(2)]),
   /** Agile weapon: the MAP penalty is -4/-8 instead of -5/-10. */

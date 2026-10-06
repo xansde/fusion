@@ -55,6 +55,7 @@ import type { SystemModule } from "@fusion/system-api";
 import type { InitiativeFormulaRegistry } from "./initiative-registry.js";
 import type { CombatEventBus } from "./combat-event-bus.js";
 import type { TurnHookRunner } from "./turn-hook-runner.js";
+import type { AttackCountPublisher } from "./map-counter.js";
 import { buildInitiativeRollBroadcaster, type InitiativeRollChatEntry } from "./combat-chat.js";
 import { runActorDerivation } from "../net/derive-runner.js";
 import { resolveWorldVariantRules } from "../documents/world-variant-rules.js";
@@ -232,9 +233,12 @@ export function broadcastCombatUpdate(
     const needsCombatantStrip =
       typeof diff["combatants"] !== "undefined" && Array.isArray(diff["combatants"]);
     const needsActiveMask = activeIsHidden && typeof diff["activeCombatantId"] !== "undefined";
+    // The attack count names the active combatant: a hidden one stays hidden.
+    const needsCountMask = activeIsHidden && typeof diff["attackCount"] !== "undefined";
 
-    if (needsCombatantStrip || needsActiveMask) {
+    if (needsCombatantStrip || needsActiveMask || needsCountMask) {
       const newDiff: Record<string, unknown> = { ...diff };
+      if (needsCountMask) delete newDiff["attackCount"];
       if (needsCombatantStrip) {
         newDiff["combatants"] = (diff["combatants"] as Record<string, unknown>[]).filter(
           (c) => c["hidden"] !== true,
@@ -260,6 +264,25 @@ export function broadcastCombatUpdate(
       socket.emit("op", playerEnvelope);
     }
   }
+}
+
+/**
+ * The publisher `MapCounter` calls after a counted attack: stores the count on
+ * the combat (`attackCount`) and broadcasts it like any other combat change, so
+ * a sheet opened or reloaded mid-turn reads the same number the server counts
+ * (onda-6 review I-7). A failed write only logs: the count itself is already
+ * kept by the counter and the attack is never undone.
+ */
+export function buildAttackCountPublisher(deps: CombatHandlerDeps): AttackCountPublisher {
+  return ({ combatId, combatantId, round, count }) => {
+    try {
+      const attackCount = { combatantId, round, count };
+      const updated = persistCombat(deps, combatId, { attackCount });
+      broadcastUpdate(deps, updated, { attackCount });
+    } catch (err) {
+      deps.logger?.warn({ err, combatId }, "[combat] could not publish the attack count");
+    }
+  };
 }
 
 /**

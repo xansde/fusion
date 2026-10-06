@@ -98,6 +98,7 @@ import {
 } from "./roll-resolution.js";
 import type { TokenMarkSource } from "./roll-resolution.js";
 import type { MapCounter } from "../combat/map-counter.js";
+import { maneuverDefense } from "@fusion/engine-2e";
 
 // ---------------------------------------------------------------------------
 // Types
@@ -527,6 +528,26 @@ export function buildChatSendHandler(deps: ChatHandlerDeps): HandlerFn {
       // resolves is the target of the conditional modifiers, of the degree and
       // of the MAP. A save check grades against its own DC, so it has none.
       const checkContext = payload.flags?.checkContext;
+      // A maneuver's defence is fixed by the action (Trip/Disarm: Reflex,
+      // Grapple/Shove/Reposition: Fortitude, Feint: Perception, Demoralize: Will),
+      // so the client cannot grade it against the weakest defence (review I-4).
+      if (checkContext?.kind === "skill" && checkContext.maneuver !== undefined) {
+        const fixed = maneuverDefense(checkContext.maneuver);
+        if (fixed === undefined) {
+          return {
+            ok: false,
+            code: "VALIDATION_FAILED" as const,
+            message: `Unknown maneuver "${checkContext.maneuver}"`,
+          };
+        }
+        if (fixed !== checkContext.against) {
+          return {
+            ok: false,
+            code: "VALIDATION_FAILED" as const,
+            message: `Maneuver "${checkContext.maneuver}" is rolled against ${fixed}, not ${checkContext.against}`,
+          };
+        }
+      }
       const aimedRef = attackTargetRef(payload.target, checkContext);
       const rollTarget =
         aimedRef !== null && checkContext?.kind !== "save"
@@ -591,6 +612,7 @@ export function buildChatSendHandler(deps: ChatHandlerDeps): HandlerFn {
       let messageTargets: RollTarget[] | undefined;
       let gradedAttack: AttackCheckContext | null = null;
       let gradedSkill: SkillCheckContext | null = null;
+      let countsForMap = false;
       if (gradedTarget !== null) {
         const degree = computeAttackDegree(rollResult, gradedTarget.defense);
         if (degree !== null) {
@@ -599,19 +621,27 @@ export function buildChatSendHandler(deps: ChatHandlerDeps): HandlerFn {
           messageTargets = [targetPortrait];
           if (checkContext?.kind === "attack") gradedAttack = checkContext;
           if (checkContext?.kind === "skill") gradedSkill = checkContext;
-          if (gradedSkill === null || gradedSkill.maneuver !== undefined) {
-            deps.mapCounter?.noteAttackFromSpeaker(
-              deps.store,
-              {
-                userId: ctx.userId,
-                role: ctx.role,
-                actorId: payload.speakerActorId,
-                tokenId: payload.speakerTokenId,
-              },
-              { countsForMap: true },
-            );
-          }
+          if (gradedSkill === null || gradedSkill.maneuver !== undefined) countsForMap = true;
         }
+      }
+      // Every attack counts for the MAP, aimed or not (PF2e: the Attack trait is
+      // what counts, onda-6 review I-7). A Strike the client declared as an
+      // attack counts even without a resolvable target; the context-less roll and
+      // the skill check keep counting only when the server graded them.
+      if (checkContext?.kind === "attack") countsForMap = true;
+      let attackNumber: number | null = null;
+      if (countsForMap) {
+        attackNumber =
+          deps.mapCounter?.noteAttackFromSpeaker(
+            deps.store,
+            {
+              userId: ctx.userId,
+              role: ctx.role,
+              actorId: payload.speakerActorId,
+              tokenId: payload.speakerTokenId,
+            },
+            { countsForMap: true },
+          ) ?? null;
       }
 
       const msg = buildRollMessage(
@@ -654,6 +684,8 @@ export function buildChatSendHandler(deps: ChatHandlerDeps): HandlerFn {
               kind: "attack",
               mapIndex: gradedAttack.mapIndex,
               ...(gradedAttack.agile !== undefined ? { agile: gradedAttack.agile } : {}),
+              // The server's own count of this attack in the turn (D-G03).
+              ...(attackNumber !== null ? { attackNumber } : {}),
             },
           },
         };
@@ -670,6 +702,9 @@ export function buildChatSendHandler(deps: ChatHandlerDeps): HandlerFn {
               kind: "skill",
               against: gradedSkill.against,
               ...(gradedSkill.maneuver !== undefined ? { maneuver: gradedSkill.maneuver } : {}),
+              ...(gradedSkill.maneuver !== undefined && attackNumber !== null
+                ? { attackNumber }
+                : {}),
             },
           },
         };
@@ -1695,7 +1730,9 @@ export function computeSaveDegree(roll: RollResultData, ctx: SaveCheckContext): 
  * authored `system.attributes.ac.value` (a bestiary NPC straight out of a pack,
  * before any derivation). A save or perception: `system.derived.saves.<n>.dc` /
  * `system.derived.perception.dc`, falling back to `10 + ` the authored
- * `system.saves.<n>.value` / `system.perception.mod`. Returns null when the
+ * `system.saves.<n>.value` / `system.perception.mod`; between the two, a derived
+ * `total` alone gives `10 + total` (NPC and companion blocks publish no `dc`).
+ * Returns null when the
  * actor is unknown or carries no such defence — and then no target portrait is
  * written at all, because a degree of success without a DC is a guess presented
  * as a rule (DEC-ACH-09).
@@ -1720,9 +1757,20 @@ function readActorDefense(db: Db, actorId: string, against: SkillCheckDefense): 
       return null;
     }
 
+    // A save / Perception DC is 10 + the creature's CURRENT modifier. Order:
+    // the derived `.dc` (when a system publishes one), then `10 + derived.total`
+    // (NPCs and animal companions publish only `total`, and it already counts
+    // conditions and effects), then `10 + authored` (a bestiary NPC never derived).
+    const derivedStat =
+      against === "perception"
+        ? (derived?.["perception"] as { dc?: unknown; total?: unknown } | undefined)
+        : (derived?.["saves"] as Record<string, { dc?: unknown; total?: unknown }> | undefined)?.[
+            against
+          ];
+    if (typeof derivedStat?.dc === "number") return derivedStat.dc;
+    if (typeof derivedStat?.total === "number") return 10 + derivedStat.total;
+
     if (against === "perception") {
-      const derivedPerception = derived?.["perception"] as { dc?: unknown } | undefined;
-      if (typeof derivedPerception?.dc === "number") return derivedPerception.dc;
       // Real packs keep perception at the top level; some docs nest it.
       const attributes = system?.["attributes"] as Record<string, unknown> | undefined;
       const authored = (system?.["perception"] ?? attributes?.["perception"]) as
@@ -1730,10 +1778,6 @@ function readActorDefense(db: Db, actorId: string, against: SkillCheckDefense): 
         | undefined;
       return typeof authored?.mod === "number" ? 10 + authored.mod : null;
     }
-
-    const derivedSaves = derived?.["saves"] as Record<string, { dc?: unknown }> | undefined;
-    const derivedDc = derivedSaves?.[against]?.dc;
-    if (typeof derivedDc === "number") return derivedDc;
     const authoredSaves = system?.["saves"] as Record<string, { value?: unknown }> | undefined;
     const authoredValue = authoredSaves?.[against]?.value;
     return typeof authoredValue === "number" ? 10 + authoredValue : null;
@@ -1909,6 +1953,8 @@ function attackTargetRef(
   checkContext: CheckContext | undefined,
 ): ChatTargetRef | null {
   if (checkContext?.kind !== "attack" && checkContext?.kind !== "skill") return target ?? null;
+  // A Strike thrown without a target names nobody: nothing to resolve or grade.
+  if (checkContext.targetTokenId === undefined) return target ?? null;
   if (target === undefined) return { tokenId: checkContext.targetTokenId };
   if (target.tokenId !== checkContext.targetTokenId) return null;
   return target;

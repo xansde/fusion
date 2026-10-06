@@ -46,6 +46,13 @@ const TOKEN_ID = "ogreToken00000a1";
 const BESTIARY_ACTOR_ID = "bestiaryNpc0001a";
 const BESTIARY_TOKEN_ID = "bestiaryTok0001a";
 const NO_DC_ACTOR_ID = "bareNpc00000001";
+const NO_DC_DERIVED_ACTOR_ID = "derivedNoDc0001a"; // derived saves carry only `total` (an NPC)
+const NO_DC_DERIVED_TOKEN_ID = "derivedNoDcTok1a";
+const BEAR_ACTOR_ID = "bearCompanion01a"; // an animal companion: no authored saves at all
+const BEAR_TOKEN_ID = "bearToken000001a";
+const DERIVED_FORT_TOTAL = 7; // authored value is 12, but a condition lowered the derived total
+const BEAR_REFLEX_TOTAL = 8;
+const BEAR_PERCEPTION_TOTAL = 6;
 const NO_DC_TOKEN_ID = "bareToken000001a";
 const HIDDEN_TOKEN_ID = "cloakToken00001a";
 const HIDDEN_ACTOR_ID = "assassinNpc0001a";
@@ -82,7 +89,7 @@ function seed(db: Db): void {
     now,
   );
   const insertActor = db.prepare(
-    `INSERT INTO actors (id, data, name, type, sort, created_at, updated_at) VALUES (?, ?, ?, 'npc', 0, ?, ?)`,
+    `INSERT INTO actors (id, data, name, type, sort, created_at, updated_at) VALUES (?, ?, ?, ?, 0, ?, ?)`,
   );
   const derived = {
     ac: { total: AC },
@@ -93,7 +100,7 @@ function seed(db: Db): void {
     },
     perception: { total: PERCEPTION_DC - 10, dc: PERCEPTION_DC },
   };
-  const docs: [string, string, Record<string, unknown>][] = [
+  const docs: [string, string, Record<string, unknown>, string?][] = [
     [ACTOR_ID, "Ogro", { derived }],
     [HIDDEN_ACTOR_ID, "Assassino", { derived }],
     [
@@ -109,9 +116,40 @@ function seed(db: Db): void {
       },
     ],
     [NO_DC_ACTOR_ID, "Vazio", { derived: { ac: { total: AC } } }],
+    [
+      NO_DC_DERIVED_ACTOR_ID,
+      "Debilitado",
+      {
+        saves: { fortitude: { value: AUTHORED_FORT_VALUE } },
+        derived: { saves: { fortitude: { total: DERIVED_FORT_TOTAL } } },
+      },
+    ],
+    [
+      BEAR_ACTOR_ID,
+      "Urso",
+      {
+        derived: {
+          ac: { total: 17 },
+          saves: {
+            fortitude: { total: 9 },
+            reflex: { total: BEAR_REFLEX_TOTAL },
+            will: { total: 5 },
+          },
+          perception: { total: BEAR_PERCEPTION_TOTAL },
+        },
+      },
+      "familiar",
+    ],
   ];
-  for (const [id, name, system] of docs) {
-    insertActor.run(id, JSON.stringify({ _id: id, name, type: "npc", system }), name, now, now);
+  for (const [id, name, system, type] of docs) {
+    insertActor.run(
+      id,
+      JSON.stringify({ _id: id, name, type: type ?? "npc", system }),
+      name,
+      type ?? "npc",
+      now,
+      now,
+    );
   }
   const scene = {
     _id: SCENE_ID,
@@ -121,6 +159,13 @@ function seed(db: Db): void {
       { _id: TOKEN_ID, name: "Ogro Batedor", actorId: ACTOR_ID, hidden: false },
       { _id: BESTIARY_TOKEN_ID, name: "Lobo Cinzento", actorId: BESTIARY_ACTOR_ID, hidden: false },
       { _id: NO_DC_TOKEN_ID, name: "Sem Defesa", actorId: NO_DC_ACTOR_ID, hidden: false },
+      {
+        _id: NO_DC_DERIVED_TOKEN_ID,
+        name: "Debilitado",
+        actorId: NO_DC_DERIVED_ACTOR_ID,
+        hidden: false,
+      },
+      { _id: BEAR_TOKEN_ID, name: "Urso", actorId: BEAR_ACTOR_ID, hidden: false },
       { _id: HIDDEN_TOKEN_ID, name: "Espreitador", actorId: HIDDEN_ACTOR_ID, hidden: true },
     ],
   };
@@ -271,6 +316,69 @@ describe("BHR-F6-01 — grau da perícia contra a CD lida do banco", () => {
     );
   });
 
+  it("I-3: sem .dc, a CD e 10 + o total derivado (condicoes contam), nao o valor autorado", () => {
+    // Rule: a DC is 10 + the creature's CURRENT modifier. Authored Fortitude is
+    // +12 (DC 22) but the derived total is +7 (say, frightened), so DC 17.
+    const fort = { kind: "skill", targetTokenId: NO_DC_DERIVED_TOKEN_ID, against: "fortitude" };
+    const base = { natural: 10, target: { tokenId: NO_DC_DERIVED_TOKEN_ID }, skill: fort };
+    expect(degreeOf(check({ ...base, total: 10 + DERIVED_FORT_TOTAL }))).toBe("success");
+    expect(degreeOf(check({ ...base, total: 9 + DERIVED_FORT_TOTAL }))).toBe("failure");
+  });
+
+  it("I-3: um companheiro animal como alvo (so derived.total, sem autorado) mantem o alvo e o grau", () => {
+    const trip = {
+      kind: "skill",
+      targetTokenId: BEAR_TOKEN_ID,
+      against: "reflex",
+      maneuver: "trip",
+    };
+    const base = { natural: 10, target: { tokenId: BEAR_TOKEN_ID }, skill: trip };
+    const hit = check({ ...base, total: 10 + BEAR_REFLEX_TOTAL });
+    expect(degreeOf(hit)).toBe("success");
+    expect(hit.result!.message.rolls?.[0]?.target?.name).toBe("Urso");
+    expect(degreeOf(check({ ...base, total: 9 + BEAR_REFLEX_TOTAL }))).toBe("failure");
+    const perception = { kind: "skill", targetTokenId: BEAR_TOKEN_ID, against: "perception" };
+    expect(
+      degreeOf(
+        check({
+          natural: 10,
+          total: 10 + BEAR_PERCEPTION_TOTAL,
+          target: { tokenId: BEAR_TOKEN_ID },
+          skill: perception,
+        }),
+      ),
+    ).toBe("success");
+  });
+
+  it.each([
+    ["trip", "reflex", true],
+    ["disarm", "reflex", true],
+    ["grapple", "fortitude", true],
+    ["shove", "fortitude", true],
+    ["reposition", "fortitude", true],
+    ["feint", "perception", true],
+    ["demoralize", "will", true],
+    ["trip", "will", false],
+    ["grapple", "reflex", false],
+    ["feint", "ac", false],
+    ["demoralize", "fortitude", false],
+    ["flying-kick", "reflex", false],
+  ])("I-4: manobra %s contra %s e %s", (maneuver, against, allowed) => {
+    // PF2e remaster: the defence of an Athletics maneuver is fixed by the
+    // action (Trip/Disarm: Reflex; Grapple/Shove/Reposition: Fortitude;
+    // Feint: Perception; Demoralize: Will). The client cannot pick the weaker.
+    const ack = check({
+      natural: 10,
+      total: 30,
+      skill: { kind: "skill", targetTokenId: TOKEN_ID, against, maneuver },
+    });
+    if (allowed) {
+      expect(degreeOf(ack)).toBeDefined();
+    } else {
+      expect(ack).toMatchObject({ ok: false, code: "VALIDATION_FAILED" });
+    }
+  });
+
   it("alvo sem a defesa pedida: so o total, sem grau e sem contexto gravado", () => {
     const ack = check({
       natural: 10,
@@ -396,12 +504,61 @@ describe("BHR-F6-01 — grau da perícia contra a CD lida do banco", () => {
       skill: {
         kind: "skill",
         targetTokenId: "noSuchToken00001",
-        against: "fortitude",
+        against: "reflex",
         maneuver: "trip",
       },
       mapCounter: spyCounter(calls),
     });
     expect(calls).toHaveLength(0);
+  });
+
+  describe("I-7: o servidor conta o ataque (MAP) e grava o numero na mensagem", () => {
+    function countingCounter(calls: unknown[], next: number): MapCounter {
+      return {
+        noteAttackFromSpeaker: (...args: unknown[]) => {
+          calls.push(args);
+          return next;
+        },
+      } as unknown as MapCounter;
+    }
+
+    it("um golpe SEM alvo tambem conta: na regra todo ataque conta para o MAP", () => {
+      const calls: unknown[] = [];
+      const ack = check({
+        natural: 10,
+        total: 20,
+        target: null,
+        skill: { kind: "attack", mapIndex: 0 },
+        mapCounter: countingCounter(calls, 1),
+      });
+      expect(ack.ok, JSON.stringify(ack)).toBe(true);
+      expect(calls).toHaveLength(1);
+      // nothing was graded, so no target and no degree are invented
+      expect(degreeOf(ack)).toBeUndefined();
+      expect(ack.result!.message.rolls?.[0]?.target).toBeUndefined();
+    });
+
+    it("um golpe com alvo conta uma vez so e a mensagem leva o numero do ataque", () => {
+      const calls: unknown[] = [];
+      const ack = check({
+        natural: 10,
+        total: AC,
+        skill: { kind: "attack", targetTokenId: TOKEN_ID, mapIndex: 1 },
+        mapCounter: countingCounter(calls, 2),
+      });
+      expect(calls).toHaveLength(1);
+      expect(pf2eFlag(ack, "checkContext")).toMatchObject({ kind: "attack", attackNumber: 2 });
+    });
+
+    it("a manobra graduada tambem grava o numero do ataque", () => {
+      const ack = check({
+        natural: 10,
+        total: REFLEX_DC,
+        skill: { kind: "skill", targetTokenId: TOKEN_ID, against: "reflex", maneuver: "trip" },
+        mapCounter: countingCounter([], 3),
+      });
+      expect(pf2eFlag(ack, "checkContext")).toMatchObject({ maneuver: "trip", attackNumber: 3 });
+    });
   });
 
   it("o contexto de ataque continua graduando pela CA (sem regressao)", () => {

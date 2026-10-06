@@ -1009,7 +1009,11 @@ export function stripHiddenCombatantsFromCombat(
 
   const result: Record<string, unknown> = { ...combat };
   if (!nothingRemoved) result["combatants"] = filtered;
-  if (activeIsHidden) result["activeCombatantId"] = null;
+  if (activeIsHidden) {
+    result["activeCombatantId"] = null;
+    // The attack count names the active combatant (onda-6 review I-7).
+    result["attackCount"] = null;
+  }
   return result;
 }
 

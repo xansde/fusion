@@ -40,10 +40,29 @@ export interface AttackSpeaker {
 
 export type MapGroupResolver = (combatantId: string) => string;
 
+/**
+ * Called after a counted attack so the count reaches the clients (D-G03, onda-6
+ * review I-7): the combat document carries it as `attackCount`, valid for the
+ * active combatant in this round. Nothing is published at turnStart: the new
+ * turn is another `combatantId`/`round`, so the old mark is simply stale.
+ */
+export type AttackCountPublisher = (mark: {
+  combatId: string;
+  combatantId: string;
+  round: number;
+  count: number;
+}) => void;
+
 export class MapCounter {
   /** combatId → map group → attacks already made this turn. */
   private readonly counts = new Map<string, Map<string, number>>();
   private resolver: MapGroupResolver = (combatantId) => combatantId;
+  private publisher: AttackCountPublisher | null = null;
+
+  /** Where counted attacks are announced to the clients (wired by SocketManager). */
+  setPublisher(publisher: AttackCountPublisher | null): void {
+    this.publisher = publisher;
+  }
 
   /** Which counter a combatant feeds. Identity until BHR-F5-05 (mount). */
   mapGroupOf(combatantId: string): string {
@@ -117,7 +136,20 @@ export class MapCounter {
       // Not acting HERE does not end the search: another live combat may have it.
       if (this.mapGroupOf(me["_id"]) !== this.mapGroupOf(active)) continue;
       if (!isRolePrivileged(speaker.role) && !ownsCombatant(store, speaker, me)) return null;
-      return this.noteAttack(String(combat["_id"]), me["_id"], opts);
+      const combatId = String(combat["_id"]);
+      const count = this.noteAttack(combatId, me["_id"], opts);
+      if (opts.countsForMap !== false) {
+        const round = combat["round"];
+        this.publisher?.({
+          combatId,
+          // The mark names the ACTIVE combatant, which the client matches against
+          // `activeCombatantId` (a mounted rider shares the mount's group).
+          combatantId: active,
+          round: typeof round === "number" ? round : 0,
+          count,
+        });
+      }
+      return count;
     }
     return null;
   }

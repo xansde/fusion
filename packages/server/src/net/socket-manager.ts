@@ -65,6 +65,7 @@ import {
   buildCombatSetHiddenHandler,
   buildCombatReorderHandler,
   buildCombatEndHandler,
+  buildAttackCountPublisher,
 } from "../combat/combat-handlers.js";
 import { InitiativeFormulaRegistry } from "../combat/initiative-registry.js";
 import { registerSystemFormulas } from "../combat/system-formula-adapter.js";
@@ -551,6 +552,8 @@ export class SocketManager {
       logger: this.logger,
       ...(systemModule !== undefined ? { systemModule } : {}),
     };
+    // BHR onda-6 I-7: the counter publishes its count on the combat document.
+    mapCounter.setPublisher(buildAttackCountPublisher(combatDeps));
     // Handler names match the EnvelopeTypeSchema literals in packages/shared/src/protocol.ts
     registry.register("combat:create", buildCombatCreateHandler(combatDeps));
     registry.register("combat:beginCombat", buildCombatStartHandler(combatDeps));

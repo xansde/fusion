@@ -203,4 +203,55 @@ describe("BHR-F3-04 — o servidor conta o ataque múltiplo pelo socket", { time
     await sendOp(gm, "combat:nextTurn", { combatId });
     expect(counter.getAttackCount(combatId, heroId)).toBe(0);
   });
+
+  it("I-7: o servidor publica a contagem no estado do combate (golpe sem alvo conta) e ela vale so no turno", async () => {
+    seedActor(ctx.fusionDb, "actorHeroAAAAAAA1", "Hero");
+    seedActor(ctx.fusionDb, "actorOtherAAAAAA1", "Other");
+    const now = Date.now();
+    const scene = { _id: "sceneMapCounter02", name: "Map", active: true, tokens: [] };
+    ctx.fusionDb.raw
+      .prepare(
+        `INSERT INTO scenes (id, data, name, navigation, sort, created_at, updated_at)
+         VALUES (?, ?, ?, 1, 0, ?, ?)`,
+      )
+      .run(scene._id, JSON.stringify(scene), scene.name, now, now);
+    const created = await sendOp(gm, "combat:create", { sceneId: scene._id });
+    const combatId = created.result.combat._id;
+    await sendOp(gm, "combat:addCombatant", {
+      combatId,
+      tokenId: "tokHero",
+      actorId: "actorHeroAAAAAAA1",
+      initiative: 20,
+    });
+    await sendOp(gm, "combat:addCombatant", {
+      combatId,
+      tokenId: "tokOther",
+      actorId: "actorOtherAAAAAA1",
+      initiative: 10,
+    });
+    const begun = await sendOp(gm, "combat:beginCombat", { combatId });
+    const heroId = (
+      begun["result"]["combat"]["combatants"] as { _id: string; tokenId: string }[]
+    ).find((c) => c.tokenId === "tokHero")!._id;
+
+    const strike = (): Promise<Ack> =>
+      sendOp(gm, "chat:send", {
+        content: "/r 1d20+5",
+        worldId: WORLD_ID,
+        rollMode: "public",
+        speakerTokenId: "tokHero",
+        flags: { checkContext: { kind: "attack", mapIndex: 0 } },
+      });
+    expect((await strike()).ok).toBe(true);
+    expect((await strike()).ok).toBe(true);
+
+    const attackCountOf = (): unknown => {
+      const row = ctx.fusionDb.raw
+        .prepare(`SELECT data FROM combats WHERE id = ?`)
+        .get(combatId) as { data: string };
+      return (JSON.parse(row.data) as Record<string, unknown>)["attackCount"];
+    };
+    // PF2e: the second Strike of the turn is the one that takes -5; two were made.
+    expect(attackCountOf()).toEqual({ combatantId: heroId, round: 1, count: 2 });
+  });
 });
