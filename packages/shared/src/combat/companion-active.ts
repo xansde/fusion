@@ -23,4 +23,6 @@ export type CompanionCommandPayload = z.infer<typeof CompanionCommandPayloadSche
 /** The ack result: whether a mark was stamped on a combat (false outside combat). */
 export interface CompanionCommandResult {
   readonly marked: boolean;
+  /** True when the companion was already commanded this turn: nothing changed, the sheet posts no second card. */
+  readonly alreadyCommanded?: boolean;
 }

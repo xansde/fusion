@@ -274,8 +274,10 @@ describe("companion:command (L3 I4)", () => {
 
   it("commanding again in the same turn is idempotent: ok, flagged, and nothing is broadcast again (N1)", async () => {
     startCombat(MASTER_CMBT);
+    const firstHeard = nextCombatDiff(p2);
     const first = await sendOp(p1, "companion:command", { companionActorId: BEAR });
     expect((first["result"] as Rec)["alreadyCommanded"]).toBeUndefined();
+    await firstHeard;
     let heardAgain = false;
     p2.on("op", (envelope: Rec) => {
       if (envelope["type"] === "combat:updated") heardAgain = true;

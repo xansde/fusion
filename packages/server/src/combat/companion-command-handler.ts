@@ -88,9 +88,13 @@ export function buildCompanionCommandHandler(deps: CombatHandlerDeps): HandlerFn
         isRec(previous) && previous["combatantId"] === combatantId && previous["round"] === round;
       const already =
         sameTurn && Array.isArray(previous["actorIds"]) ? (previous["actorIds"] as string[]) : [];
-      const actorIds = already.includes(companionActorId)
-        ? [...already]
-        : [...already, companionActorId];
+      if (already.includes(companionActorId)) {
+        // Commanding again in the same turn is legal (it costs another action) but changes nothing: the store
+        // returns no document for an empty diff, so answer here instead of letting persistCombat throw (a 500).
+        const result: CompanionCommandResult = { marked: true, alreadyCommanded: true };
+        return { ok: true as const, seq: deps.seqStore.peek(), result };
+      }
+      const actorIds = [...already, companionActorId];
       const commandMark = { combatantId, round, actorIds };
       const updated = persistCombat(deps, combatId, { commandMark });
       broadcastUpdate(deps, updated, { commandMark });
