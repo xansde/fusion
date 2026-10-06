@@ -168,3 +168,22 @@ export type {
   CombatInitiativeSetPayload,
   TokenTargetedPayload,
 } from "./protocol.js";
+
+// ---------------------------------------------------------------------------
+// TokenMark (BHR-F3-06) — the Prey persisted on the marking actor
+// ---------------------------------------------------------------------------
+
+export {
+  TOKEN_MARKS_FLAG_NAMESPACE,
+  TOKEN_MARKS_FLAG_KEY,
+  HUNTED_PREY_MARK_SLUG,
+  MONSTER_HUNTER_MARK_SLUG,
+  EXCLUSIVE_MARK_SLUGS,
+  TokenMarkSchema,
+  MarkSetPayloadSchema,
+  MarkClearPayloadSchema,
+  readTokenMarks,
+  touchesTokenMarksFlag,
+  stripTokenMarksOnCreate,
+} from "./token-mark.js";
+export type { TokenMark, MarkSetPayload, MarkClearPayload } from "./token-mark.js";
