@@ -602,7 +602,9 @@ describe("Player-owned character edit + build legality (pf2e, O6/T6.2-T6.3; O6 f
       ],
     });
     expect(ack["ok"]).toBe(false);
-    expect(ack["code"]).toBe("VALIDATION_FAILED");
+    // Denied either way: BHR-F7-02 refuses a non-object `system.build` replacement up front (it would wipe
+    // gmExceptions), before the build validation that used to answer VALIDATION_FAILED.
+    expect(["VALIDATION_FAILED", "PERMISSION_DENIED"]).toContain(ack["code"]);
   });
 
   // -------------------------------------------------------------------------

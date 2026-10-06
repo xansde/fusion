@@ -15,9 +15,9 @@ porque ainda não foram prometidos para nenhum marco.
 
 | Situação | Requisitos | Fatia |
 | --- | ---: | ---: |
-| Citados por algum teste | 835 | 37% |
-| Citados só por código de produção | 332 | 15% |
-| Sem nenhuma citação | 1093 | 48% |
+| Citados por algum teste | 843 | 37% |
+| Citados só por código de produção | 334 | 15% |
+| Sem nenhuma citação | 1083 | 48% |
 | **Total [MVP]** | **2260** | |
 
 ## Por spec
@@ -33,7 +33,7 @@ porque ainda não foram prometidos para nenhum marco.
 | [06](06-canvas-e-renderizacao.md) | 89 | 16 | 29 | 44 | 18% |
 | [07](07-visao-iluminacao-fog.md) | 56 | 8 | 22 | 26 | 14% |
 | [08](08-motor-de-rolagens.md) | 49 | 14 | 12 | 23 | 29% |
-| [09](09-chat-e-mensagens.md) | 55 | 18 | 10 | 27 | 33% |
+| [09](09-chat-e-mensagens.md) | 55 | 19 | 10 | 26 | 35% |
 | [10](10-combate-e-iniciativa.md) | 54 | 22 | 29 | 3 | 41% |
 | [11](11-ui-framework-e-fichas.md) | 62 | 10 | 16 | 36 | 16% |
 | [12](12-journal-tabelas-cartas.md) | 34 | 0 | 0 | 34 | 0% |
@@ -41,7 +41,7 @@ porque ainda não foram prometidos para nenhum marco.
 | [14](14-macros-e-automacao.md) | 34 | 0 | 0 | 34 | 0% |
 | [15](15-api-de-sistemas.md) | 81 | 28 | 31 | 22 | 35% |
 | [16](16-compendiums-e-importacao.md) | 57 | 19 | 16 | 22 | 33% |
-| [17](17-sistema-pf2e.md) | 109 | 67 | 16 | 26 | 61% |
+| [17](17-sistema-pf2e.md) | 109 | 68 | 16 | 25 | 62% |
 | [18](18-sistema-sf2e.md) | 46 | 22 | 8 | 16 | 48% |
 | [19](19-sistema-etmos.md) | 46 | 0 | 2 | 44 | 0% |
 | [20](20-assets-e-midia.md) | 50 | 5 | 13 | 32 | 10% |
@@ -53,7 +53,7 @@ porque ainda não foram prometidos para nenhum marco.
 | [26](26-licencas-e-legal.md) | 23 | 3 | 0 | 20 | 13% |
 | [27](27-roadmap-e-milestones.md) | 11 | 0 | 0 | 11 | 0% |
 | [28](28-hub-do-jogador.md) | 50 | 0 | 0 | 50 | 0% |
-| [29](29-pets-companions-familiars.md) | 55 | 27 | 9 | 19 | 49% |
+| [29](29-pets-companions-familiars.md) | 55 | 30 | 10 | 15 | 55% |
 | [31](31-base-canonica-de-conteudo.md) | 1 | 1 | 0 | 0 | 100% |
 | [32](32-minimapa-tatico.md) | 14 | 0 | 0 | 14 | 0% |
 | [34](34-mapa-de-regiao.md) | 27 | 0 | 0 | 27 | 0% |
@@ -69,4 +69,4 @@ porque ainda não foram prometidos para nenhum marco.
 | [44](44-aba-cenas.md) | 58 | 51 | 1 | 6 | 88% |
 | [45](45-atores.md) | 50 | 2 | 0 | 48 | 4% |
 | [47](47-fabricacao-e-alquimia.md) | 40 | 0 | 0 | 40 | 0% |
-| [52](52-cacador-companheiro-e-montaria.md) | 121 | 37 | 9 | 75 | 31% |
+| [52](52-cacador-companheiro-e-montaria.md) | 121 | 40 | 10 | 71 | 33% |
