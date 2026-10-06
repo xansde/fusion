@@ -158,6 +158,35 @@ export function distanceBetween(
 }
 
 /**
+ * Distance of a Strike from `attacker` to `target`. A creature on a mount attacks from ANY square the mount occupies
+ * (BHR-F5-06, REQ-BHR-181), so with a `mount` the distance is the shorter of the two: from the rider's own square or
+ * from the nearest square of the mount. Without a mount it is plain edge-to-edge distance.
+ */
+export function strikeDistance(
+  attacker: PositionedToken,
+  target: PositionedToken,
+  grid: PositionGrid,
+  mount?: PositionedToken | null,
+): number {
+  const own = distanceBetween(attacker, target, grid);
+  if (mount === undefined || mount === null) return own;
+  return Math.min(own, distanceBetween(mount, target, grid));
+}
+
+/** Whether `target` is within `reachFeet` of a Strike by `attacker`, measured from the mount when there is one. */
+export function isWithinStrikeReach(input: {
+  attacker: PositionedToken;
+  target: PositionedToken;
+  grid: PositionGrid;
+  reachFeet: number;
+  mount?: PositionedToken | null;
+}): boolean {
+  return (
+    strikeDistance(input.attacker, input.target, input.grid, input.mount) <= input.reachFeet
+  );
+}
+
+/**
  * Whether `b` is within one square of `a`'s space, diagonals included. A token
  * is never adjacent to itself (same `id`).
  */

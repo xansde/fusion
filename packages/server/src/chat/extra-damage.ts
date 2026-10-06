@@ -22,6 +22,7 @@
 import {
   extractFlavor,
   readActorSizeCategory,
+  readMountState,
   resolveEffectiveActor,
   type ResolvedRollNote,
 } from "@fusion/shared";
@@ -134,6 +135,8 @@ function withinReachOfCompanion(
   companionActorId: string,
   reachFeet: number,
   world: ExtraDamageWorld,
+  riderActorId?: string,
+  requiresMounted = false,
 ): boolean {
   const scene =
     world.scenes.find(
@@ -141,7 +144,11 @@ function withinReachOfCompanion(
     ) ?? null;
   if (scene === null) return false;
   const targetToken = tokensOf(scene).find((t) => t["_id"] === target.tokenId);
-  const companionToken = tokensOf(scene).find((t) => t["actorId"] === companionActorId);
+  // A part that needs the mount is measured from the token the rider is ON (the actor may have other tokens).
+  const companionToken =
+    requiresMounted && riderActorId !== undefined
+      ? (mountTokenOf(scene, riderActorId, companionActorId) ?? undefined)
+      : tokensOf(scene).find((t) => t["actorId"] === companionActorId);
   if (targetToken === undefined || companionToken === undefined) return false;
   const a = positionedToken(companionToken, world);
   const b = positionedToken(targetToken, world);
@@ -152,6 +159,43 @@ function withinReachOfCompanion(
     if (err instanceof RangeError) return false;
     throw err;
   }
+}
+
+/**
+ * Is `riderActorId` mounted on the token of `companionActorId`, in the scene the target stands in? The rider's token
+ * and the companion's token must confirm each other in the mount flag (a flag the other side does not confirm is
+ * stale, as in `mount-follow`). Anything that cannot be proven is a "no".
+ */
+function mountTokenOf(scene: Rec, riderActorId: string, companionActorId: string): Rec | null {
+  const tokens = tokensOf(scene);
+  for (const rider of tokens) {
+    if (rider["actorId"] !== riderActorId) continue;
+    const mountTokenId = readMountState(rider).mountTokenId;
+    if (mountTokenId === undefined) continue;
+    const mount = tokens.find((t) => t["_id"] === mountTokenId);
+    if (
+      mount !== undefined &&
+      mount["actorId"] === companionActorId &&
+      readMountState(mount).riderTokenId === rider["_id"]
+    ) {
+      return mount;
+    }
+  }
+  return null;
+}
+
+function mountedOnCompanion(
+  target: RollTargetSnapshotEntry,
+  riderActorId: string | undefined,
+  companionActorId: string,
+  world: ExtraDamageWorld,
+): boolean {
+  if (riderActorId === undefined) return false;
+  const scene =
+    world.scenes.find(
+      (s) => (target.sceneId === "" || s["_id"] === target.sceneId) && hasToken(s, target.tokenId),
+    ) ?? null;
+  return scene !== null && mountTokenOf(scene, riderActorId, companionActorId) !== null;
 }
 
 function hasToken(scene: Rec, tokenId: string): boolean {
@@ -194,6 +238,8 @@ export function settleExtraDamage(input: {
   target: RollTargetSnapshotEntry | null;
   hit: StrikeHitDegree | null;
   world: ExtraDamageWorld;
+  /** The actor that rolls: needed to prove the mount of a part with `gate.requiresMounted`. */
+  rollerActorId?: string;
 }): SettledExtraDamage {
   const { extra, target, hit, world } = input;
   if (extra.length === 0 || hit === null || target === null) return NO_EXTRA_DAMAGE;
@@ -203,14 +249,30 @@ export function settleExtraDamage(input: {
   let suffix = "";
   for (const part of extra) {
     if (part.gate !== undefined) {
-      if (!withinReachOfCompanion(target, part.gate.companionActorId, part.gate.reachFeet, world)) {
+      if (
+        !withinReachOfCompanion(
+          target,
+          part.gate.companionActorId,
+          part.gate.reachFeet,
+          world,
+          input.rollerActorId,
+          part.gate.requiresMounted === true,
+        )
+      ) {
+        continue;
+      }
+      if (
+        part.gate.requiresMounted === true &&
+        !mountedOnCompanion(target, input.rollerActorId, part.gate.companionActorId, world)
+      ) {
         continue;
       }
     }
-    const doubled = hit === "criticalSuccess" && part.doubleOnCrit;
+    const persistent = part.category === "persistent";
+    // Persistent damage is its own damage, never dice of the Strike: a critical hit does not double it.
+    const doubled = hit === "criticalSuccess" && part.doubleOnCrit && !persistent;
     const count = part.count * (doubled ? 2 : 1);
     const dice = `${String(count)}${part.die}`;
-    const persistent = part.category === "persistent";
     const type = persistent ? `${typePt(part.damageType)} persistente` : typePt(part.damageType);
     const text = persistent
       ? `${dice} de dano de ${type} (não entra na rolagem)`
@@ -390,6 +452,7 @@ export function settleChatRollExtraDamage(input: {
     extra: input.extra,
     target,
     hit,
+    rollerActorId: input.actorId,
     world: {
       scenes,
       getActor: (actorId) => {
