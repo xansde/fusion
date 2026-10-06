@@ -63,7 +63,9 @@ explicitamente **[V2]**.
   com MAP e dano, degrees of success, saves, AC, HP/temp HP, dying/wounded/doomed,
   condições aplicáveis com efeitos mecânicos automáticos (lista priorizada), IWR
   na aplicação de dano, spellcasting básico (slots, focus points), Hero Points,
-  iniciativa por Perception/skill.
+  iniciativa por Perception/skill; **consumo de item com efeito e cura no uso,
+  efeito embutido com duração e expiração, e strike de item consumível** (emenda de
+  2026-09-16, REQ-PF2-217..228).
 - **Motor de modifiers** (versão MVP): aplicação declarativa de bônus/penalidades
   tipados às estatísticas via "effects" simples; equivalente reduzido dos Rule
   Elements do pf2e.
@@ -307,6 +309,15 @@ dano/metade/dobro/cura por botões no card de dano.
 auditabilidade; o breakdown explica ao jogador por que o número final difere do
 rolado.
 
+> **Emenda de 2026-09-15** (plano do Alquimista, ALQ-F1-01). O pipeline desta decisão
+> passa a ser a mecânica registrada por `registerActorMechanics` e chamada pelo op do core
+> (`15-api-de-sistemas.md`, DEC-SYS-12, REQ-SYS-142). Duas precisões: o montante **não**
+> chega como `{ amount }` do cliente — vem da rolagem gravada, e os alvos vêm da foto na
+> mensagem (`10-combate-e-iniciativa.md`, DEC-CBT-10); e quem aperta os botões do card é
+> também o jogador dono do ator que rolou, não só o GM (`09-chat-e-mensagens.md`,
+> DEC-CHT-12). O "prompt de mitigação" (Shield Block e afins) não é tocado por esta emenda.
+> Requisitos em REQ-PF2-209..216.
+
 ### DEC-PF2-09 — Ficha de personagem por abas (referência ficha oficial); NPC enxuta
 
 **Decisão:** A character sheet é organizada em abas — **Character** (resumo/skills/
@@ -477,6 +488,95 @@ aparecer, é dar por atendido o requisito que qualquer dos dois tamanhos satisfa
 29/09/2026: por ora o Mestre resolve na narração; core #291); alcance, espaço, manobra por
 tamanho, carga e o corredor de 5 pés (REQ-PF2-122 [V2], satélite #323).
 
+### DEC-PF2-14 — Efeito aplicado é cópia embutida no ator, com origem e início
+
+> **Emenda de 2026-09-16** (plano do Alquimista, ALQ-F2-01; decisão de desenho DF-06 do
+> plano). Decisão nova: não substitui nenhuma anterior. Estende aos itens de efeito a
+> mesma escolha que DEC-PF2-07 fez para as condições, e fecha o que DEC-PF2-04 não cobria
+> — efeito com duração, origem e nível de item.
+
+**Decisão:** Aplicar um efeito a um ator **copia** o documento do pack para dentro do
+ator, como item embedded de subtype `effect`. A cópia é autossuficiente: além do conteúdo
+do documento de origem, ela carrega `flags.fusion.sourceId` (identidade do documento de
+origem — mesma regra de identidade de `ver 45-atores.md`, DEC-ATR-11), `system.fusion.origin` (ator de
+origem e, quando o efeito vem de um item, `itemSourceId`, `itemLevel` e `infused`),
+`system.fusion.startedAt` (combate e rodada do início) e `system.fusion.expiry` (a
+ancoragem de duração). O efeito **nunca** é referência viva ao pack: regerar, reimportar
+ou corrigir o pack não muda efeito já aplicado, e apagar a cópia apaga o efeito inteiro.
+
+**Alternativas rejeitadas:**
+
+- _Referência ao documento do pack (uuid de compêndio)_: o efeito mudaria embaixo do jogo
+  a cada regeração de pack, e a mesa perderia a auditoria de "o que exatamente estava
+  valendo naquele turno". Pior no item fabricado, que carrega o nível e a CD de quem o
+  fez (`infused`): esse valor teria de ser recalculado a cada derivação, olhando para fora
+  do item, para um ator que pode nem estar na cena.
+- _Lista de modifiers solta no ator, sem item_: não há como exibir, remover ou expirar um
+  efeito individualmente, nem dizer de onde ele veio — e a remoção vira varredura.
+- _Copiar sem `origin` e sem `startedAt`_: a contagem de duração pelo turno de quem
+  aplicou (REQ-PF2-219) e a expiração ficam indecidíveis. Foi a tentativa de fazer isso
+  que obrigou esta decisão.
+
+**Racional:** Pack é publicação, não estado de jogo
+(`ver 16-compendiums-e-importacao.md`). A cópia embutida torna o efeito auditável,
+removível e estável entre reimportações; `origin` e `startedAt` respondem sozinhos quando
+o efeito começou e por conta de quem — exatamente o que a expiração precisa saber
+(REQ-PF2-217..220).
+
+### DEC-PF2-15 — Strike de item consumível sai do inventário, sem equipar
+
+> **Emenda de 2026-09-16** (plano do Alquimista, ALQ-F2-01; decisão de desenho DF-09 do
+> plano). Decisão nova. Não contraria DEC-PF2-06 (strikes derivados de itens equipados):
+> acrescenta o segundo caminho, para o item que é gasto ao ser usado.
+
+**Decisão:** Um item consumível cujo uso é um ataque — a bomba alquímica é o caso do MVP
+— gera um **strike derivado direto do inventário**, sem passo de equipar e sem virar uma
+arma. O strike existe enquanto houver quantidade e some quando ela chega a zero. Rolá-lo é
+**uma única operação de servidor** (`item:consume` com `mode: "strike"`), que gasta o item
+e rola o ataque juntos. O custo de ação de sacar (Interact) não é contabilizado nem
+bloqueado: vira **nota** no card.
+
+**Alternativas rejeitadas:**
+
+- _Exigir equipar antes de arremessar_: o PF2e não tem slot de bomba, e o alquimista
+  arremessa bombas diferentes no mesmo turno; equipar/desequipar a cada arremesso aparece
+  dezenas de vezes por sessão e inviabiliza a classe na mesa.
+- _Modelar cada bomba como `weapon`_: arma não tem quantidade que decrementa nem destruição
+  no uso, e o inventário passaria a ter uma arma por frasco.
+- _Rolar primeiro e consumir depois, em duas ops_: duas janelas abertas gastam a mesma
+  bomba duas vezes, e uma falha entre as duas deixa o ator com o dano rolado e o item
+  intacto — ou o contrário.
+- _Contabilizar a ação de sacar_: o contador de ações por turno está fora do escopo
+  (decisão D-15 do Alexandre, `docs/design/alquimista/tasks.md`); automatizar só este
+  pedaço criaria um orçamento de ações pela metade.
+
+**Racional:** O laço do alquimista é sacar e arremessar. Uma op atômica mantém a contagem
+do item e a rolagem no servidor (a mesma divisão de `ver 15-api-de-sistemas.md`,
+DEC-SYS-12), e o strike derivado reaproveita inteiro o pipeline de ataque de
+REQ-PF2-030..035, em vez de abrir um segundo caminho de dano.
+
+> **Emenda de 2026-09-16** (correção do bloqueante B2, onda 2 do plano do Alquimista;
+> decisão do Alexandre — ver `.fusion-build/alquimista/onda-2/correcao-bloqueantes.md`).
+> A alternativa rejeitada "modelar cada bomba como `weapon`" acima é sobre o **documento
+> canônico do pack**, não sobre o schema: `WeaponSystemSchema` já tem `quantity` e já
+> tolera `expend` por `.passthrough()`, então "arma não tem quantidade que decrementa"
+> não é mais o motivo — o motivo é semântico, não técnico (consumo/destruição de item é o
+> plano de REQ-PF2-224, feito para `consumable`; duplicá-lo para `weapon` seria retrabalho
+> sem ganho). Esta emenda fixa três pontos: **(1)** o pack canônico de bomba alquímica
+> emite sempre `type: "consumable"` — é o tipo oficial, alinhado ao RAW remaster (bomba é
+> consumível que se arremessa, não arma que se equipa). **(2)** a forma `WeaponSystem` que
+> `deriveStrikeFromWeapon` (`systems/pf2e/src/actions/strikes.ts`) consome é uma
+> **projeção do motor**, derivada em memória a partir dos campos que o próprio documento
+> consumível já carrega (`damage`, `splashDamage`, `bonus`, `range`, `runes`, `baseItem`,
+> `expend`, `traits`) — nunca escrita de volta como `type: "weapon"` no documento;
+> implementar essa projeção é a **ALQ-F2-13** (onda 4), não esta correção, que só garante
+> que os campos sobrevivem no documento. **(3)** o schema **tolera**, não rejeita, um item
+> cadastrado à mão como `weapon` com a trait `bomb` — é o "permite cadastrar como arma,
+> para facilitar" — e nenhum mundo com uma bomba assim quebra ao carregar; a ALQ-F2-13
+> DEVE aceitar as duas formas de entrada (`consumable`+trait `bomb`, canônica, e
+> `weapon`+trait `bomb`, cadastro manual) para o mesmo strike, sem que uma vire
+> pré-requisito da outra.
+
 ---
 
 ## Requisitos funcionais
@@ -626,6 +726,15 @@ abilityMod(damage) + Σ damageModifiers`, com `abilityMod(damage)` = STR (melee)
   complexas (ex.: `persistent damage` ao fim do turno com flat check DC 15
   automatizado) — ver REQ-PF2-061.
 
+  > **Emenda de 2026-09-16** (plano do Alquimista, ALQ-F2-01). A **expiração de item de
+  > efeito** saiu deste requisito e passou a ser [MVP]: a ancoragem de duração está em
+  > REQ-PF2-219 e o resolvedor único, em REQ-PF2-220. O que continua [V2] aqui é só o
+  > decremento automatizado orientado a regra complexa — hoje o `persistent damage` de
+  > REQ-PF2-061, cuja automação é decidida pela fase de dano do plano do Alquimista
+  > (decisão D-13 do Alexandre: automático para personagem e NPC no fim do turno). O
+  > requisito NÃO foi removido, para não quebrar citação já feita; o escopo dele é o que
+  > sobrou acima.
+
 ### IWR e apply damage
 
 - **REQ-PF2-060** [MVP] O pipeline de **apply damage** DEVE aplicar, nesta ordem,
@@ -695,6 +804,12 @@ abilityMod(damage) + Σ damageModifiers`, com `abilityMod(damage)` = STR (melee)
   processar `slowed`/`stunned` na contagem de ações, oferecer recovery check de
   Dying e aplicar persistent damage.
 
+  > **Emenda de 2026-09-15** (ALQ-F1-01). Os handlers deste requisito DEVEM ser
+  > registrados como hooks com id e prioridade (`15-api-de-sistemas.md`, REQ-SYS-138),
+  > um por automação, conforme a tabela de REQ-PF2-216. Recovery check e decaimento de
+  > `frightened` estão fixados em REQ-PF2-214 e REQ-PF2-216; dano persistente segue
+  > REQ-PF2-061 e é escrito pela fase do plano que o implementa.
+
 ### Ações de skill e inline
 
 - **REQ-PF2-100** [MVP] O sistema DEVE prover as **ações básicas de skill** mais
@@ -709,7 +824,15 @@ abilityMod(damage) + Σ damageModifiers`, com `abilityMod(damage)` = STR (melee)
   `@Template[type:burst distance:20]`, `@UUID[...]` — renderizando-os como botões
   clicáveis (`ver 09-chat-e-mensagens.md`, `ver 11-ui-framework-e-fichas.md`).
 - **REQ-PF2-103** [V2] Exploration/downtime activities (Avoid Notice, Scout,
-  Search, Investigate, Craft, Earn Income) com automação.
+  Search, Investigate, Earn Income) com automação.
+
+  > **Emenda de 2026-09-17** (plano do Alquimista, ALQ-F3-01; decisão D-07 do Alexandre).
+  > **Reclassificação:** a atividade **Craft** sai desta lista [V2] e passa a [MVP] sob a spec
+  > `47-fabricacao-e-alquimia.md` (REQ-FAB-039), que a especifica como op de servidor com
+  > rolagem de Crafting contra a DC por nível (REQ-PF2-042) e custo emitido por porta, sem
+  > desconto de moeda. As demais atividades de exploração e downtime continuam [V2] neste
+  > mesmo id — nenhum id é renumerado (`CONVENCOES.md` §4). O que permanece fora de escopo
+  > aqui e lá é a **passagem de tempo**: não há relógio de downtime (REQ-PF2-223).
 
 ### Fichas (sheets)
 
@@ -748,6 +871,376 @@ abilityMod(damage) + Σ damageModifiers`, com `abilityMod(damage)` = STR (melee)
   (+1/+2/+3 dados de dano), armor potency (+1/+2/+3 AC), resilient (+1/+2/+3 saves).
 - **REQ-PF2-131** [V2] Runas de **propriedade** com efeitos automatizados
   (flaming, frost, etc.) e seus limites por potência; transferência de runas.
+
+### Talentos: legado, pré-requisito e proficiência extra
+
+> **Emenda de 2026-09-15** (plano do Alquimista, ALQ-F1-01). Absorve as emendas que
+> estavam soltas nas tarefas ALQ-F0-03, ALQ-F0-08 e ALQ-F0-09. Os exemplos numéricos são
+> calculados pela regra do Player Core / Player Core 2 (remaster), não lidos do pack.
+
+- **REQ-PF2-206** [MVP] Talento pré-remaster DEVE permanecer no pack, marcado com a trait
+  `legacy`; NÃO DEVE ser removido. Nenhum documento remaster DEVE receber a trait. O
+  picker de talentos do builder DEVE exibir o selo **"Legado"** em todo documento com a
+  trait e oferecer o filtro **"Esconder legado"**. A regra DEVE ser genérica por trait,
+  NÃO uma lista por classe: os 16 talentos pré-remaster do Alquimista (Perpetual Breadth,
+  Wish Alchemy…) são o primeiro caso, não o único. O compêndio (`43-aba-compendio.md`)
+  continua mostrando todos. **Critério verificável:** com o filtro ligado, Wish Alchemy
+  some da lista e Mega Bomb fica; com o filtro desligado os dois aparecem e só Wish
+  Alchemy tem o selo.
+- **REQ-PF2-207** [MVP] Proficiência em categoria de ataque que não seja simples, marcial,
+  avançada ou desarmada DEVE ser modelada como **mapa por chave**
+  `system.proficiencies.attacks[<chave>] = { rank, label, predicate }` (ex.:
+  `weapon-base-alchemical-bomb`), e o strike DEVE usar o maior `rank` entre a categoria da
+  arma e as entradas cujo `predicate` casar com ela. Efeito que melhora essa proficiência
+  DEVE só alterar o `rank` da entrada existente. O documento de classe DEVE preservar a
+  categoria extra na importação. **Critério verificável:** Alquimista nível 1 com Int +4 e
+  Des +2, treinado em bombas alquímicas e na CD de classe: CD de classe = 10 + 4 + (2 + 1) =
+  17; ataque com Acid Flask = 2 + (2 + 1) = +5, antes de bônus de item.
+- **REQ-PF2-208** [MVP] O picker de talentos DEVE mostrar **desabilitado, com o motivo**, o
+  talento cujo pré-requisito reconhecível falha. Reconhecedores obrigatórios: (a) talento ou
+  dedicação possuído, identificado por `flags.fusion.sourceId` e nunca pelo nome; (b)
+  atributo mínimo (ex.: "Inteligência +2"). Pré-requisito em texto livre não reconhecido
+  NÃO DEVE bloquear: o talento fica elegível e exibe o aviso. **Critério verificável:**
+  Guerreiro com Int +0 não pode escolher Alchemist Dedication e com Int +2 pode; Basic
+  Concoction é inelegível sem a dedicação.
+
+### Aplicar dano, condições e automação de turno
+
+> **Emenda de 2026-09-15** (plano do Alquimista, ALQ-F1-01; decisões do Alexandre D-02,
+> D-03 e D-04). O op, a permissão e a leitura da mensagem são do core
+> (`15-api-de-sistemas.md`, REQ-SYS-142; `10-combate-e-iniciativa.md`, REQ-CBT-056); o
+> resumo no chat é de `09-chat-e-mensagens.md` (REQ-CHT-053). Aqui fica a **regra**, como
+> função pura `(actor, instances, opts) → ActorMechanicsPatch` registrada por
+> `registerActorMechanics`. As decisões de efeito, duração, strike de bomba e munição
+> alquímica (DF-06..DF-10 do plano) são escritas pela tarefa ALQ-F2-01, que consome os
+> hooks e o `TurnHookContext` fixados aqui.
+
+- **REQ-PF2-209** [MVP] O sistema DEVE registrar `applyDamage` calculando o dano **por
+  instância** com IWR (REQ-PF2-060): instâncias do mesmo `type` no mesmo payload DEVEM ser
+  somadas **antes** do IWR; exceções de imunidade/fraqueza/resistência DEVEM considerar
+  `traits` e `materials` da instância (ex.: fraqueza 5 a ferro frio só com
+  `materials: ["cold-iron"]`); `ignoreResistance` DEVE reduzir a resistência daquele tipo
+  pelo valor dado, sem ficar abaixo de 0. Imunidade DEVE zerar a instância com uma linha no
+  `breakdown`. A função NÃO DEVE ler montante nem alvo de outro lugar que não os
+  argumentos, e NÃO DEVE escrever: devolve o `ActorMechanicsPatch`.
+- **REQ-PF2-210** [MVP] `basicSave.degree` DEVE virar multiplicador pela tabela de
+  REQ-PF2-041 (sucesso crítico 0, sucesso ½, falha 1, falha crítica 2); `multiplier` DEVE
+  ser aplicado como veio. O multiplicador DEVE incidir **antes** de fraqueza e resistência
+  (REQ-PF2-062), e a metade DEVE arredondar para baixo. `hardness` DEVE ser subtraída
+  depois do IWR (REQ-PF2-023).
+- **REQ-PF2-211** [MVP] Dano DEVE consumir primeiro o PV temporário e depois o PV. Instância
+  `temp-hp` DEVE definir o PV temporário como o **maior** entre o atual e o novo, sem somar
+  (REQ-PF2-022). Instância `healing` DEVE somar ao PV até o máximo e NUNCA ao temporário.
+  **Critério verificável:** PV 20 e temporário 5, 12 de fogo com resistência a fogo 5 →
+  temporário 0, PV 18; temporário 4 e "PV temporário 3" → temporário 4.
+- **REQ-PF2-212** [MVP] Character que chega a 0 PV DEVE ganhar `dying` pelas regras de
+  REQ-PF2-070 (1, ou 2 com `critical`, somando `wounded`), dano recebido enquanto `dying`
+  DEVE somar conforme REQ-PF2-072, e `doomed` DEVE reduzir o máximo (REQ-PF2-074); chegar ao
+  máximo DEVE aplicar `dead`. Cura que tira o character de 0 PV DEVE remover `dying` e
+  aplicar `wounded` +1 (REQ-PF2-073). Dano com `nonlethal: true` que leva a 0 DEVE aplicar
+  `unconscious` sem `dying`. O patch DEVE marcar `droppedToZero`, `dyingChanged` e `dead`.
+  **Critério verificável:** PV 3 com `wounded 1`, 10 de dano crítico → PV 0, `dying 3`;
+  `dying 2` e cura 5 → `dying` removido, `wounded` +1, PV 5.
+- **REQ-PF2-212a** [MVP] **Dano massivo**: dano que, numa única aplicação (um golpe),
+  somar o **dobro ou mais** do PV máximo do alvo DEVE matar na hora — o character NÃO
+  passa por `dying` e recebe `dead` direto. Para NPC o resultado já é `dead` por
+  REQ-PF2-213; o que muda aqui é o character. A comparação DEVE usar o total
+  **efetivamente aplicado** naquela chamada (depois de imunidade, fraqueza, resistência,
+  multiplicador de crítico ou de salvamento e dureza — REQ-PF2-209, REQ-PF2-210) contra
+  `hp.max` do alvo, NÃO o total rolado; PV temporário absorve dano, mas NÃO DEVE alterar
+  a comparação, porque não aumenta o PV máximo. Dano com `nonlethal: true` NUNCA DEVE
+  matar por esta regra (aplica `unconscious`, REQ-PF2-212). O patch DEVE marcar
+  `dead: true`. **Critério verificável:** character com `hp.max` 20 e PV 20 que leva 40 de
+  dano de fogo aplicado morre na hora, sem passar por `dying`; o mesmo character com
+  resistência a fogo 5 levando 42 rolados (37 aplicados) vai a PV 0 com `dying`, não
+  morre.
+
+  > **Emenda de 2026-09-16** (ALQ-F2-01), obrigada pela revisão adversarial da onda 1 do
+  > plano do Alquimista: REQ-PF2-212 cobria 0 PV e `dying`, e a morte por dano massivo do
+  > remaster não estava em requisito nenhum. Entra com sufixo de letra por ser inserção
+  > dentro do bloco de dano já numerado (`specs/CONVENCOES.md` §4), e não no fim da faixa.
+
+- **REQ-PF2-213** [MVP] NPC que chega a 0 PV DEVE ganhar a condição `dead`, exibida como
+  badge no token, e o patch DEVE marcar `dead: true` para que o core marque o combatente
+  como derrotado (`10-combate-e-iniciativa.md`, REQ-CBT-059). Com `nonlethal: true`, DEVE
+  ganhar `unconscious` em vez de `dead`. O sistema DEVE registrar `dead` como condição
+  (REQ-SYS-043) com `tone: "special"`, `critical: true` e sem modifiers.
+- **REQ-PF2-214** [MVP] O sistema DEVE registrar o hook `onTurnStart("pf2e.recoveryCheck")`
+  com prioridade 80: se o ator do turno tem `dying`, o servidor DEVE rolar o flat check de
+  CD `10 + dying` por `ctx.roll`, ajustar `dying`/`wounded` pelos graus de REQ-PF2-071 via
+  `ctx.applyCondition`, aplicar `dead` (e portanto `defeated`) ao atingir o máximo e postar o
+  card por `ctx.chat`. O teste é **rolado automaticamente** no início do turno; isto
+  concretiza o "oferecer" de REQ-PF2-071. **Critério verificável:** `dying 1` e d20 = 15
+  contra CD 11 → sucesso, `dying` 0 e `wounded 1`; `dying 3` e d20 = 1 → falha crítica,
+  `dying` 5 ≥ 4 → morto.
+- **REQ-PF2-215** [MVP] O sistema DEVE registrar `applyCondition` com os modos `add`,
+  `remove`, `set`, `increase` e `decrease`. `add` de condição com valor DEVE manter o maior
+  valor (REQ-PF2-054): `frightened 1` sobre `frightened 3` não muda nada, `frightened 2`
+  sobre `frightened 1` vira 2. Condição a que o ator é imune NÃO DEVE ser aplicada e o ack
+  DEVE trazer a nota (REQ-PF2-053). `dying` com valor maior que 0 DEVE trazer `unconscious`
+  junto. `remove` de condição ausente DEVE ser no-op com sucesso. `data` e `expiry` DEVEM ser
+  gravados no item de condição (`system.fusion.expiry` para `expiry`) sem interpretação
+  nesta fase. Os slugs aceitos DEVEM ser os das condições registradas mais `dead`.
+- **REQ-PF2-216** [MVP] O sistema DEVE registrar o hook `onTurnEnd("pf2e.frightenedDecay")`
+  com prioridade 50, que reduz `frightened` em 1 **só no ator cujo turno terminou**
+  (REQ-PF2-051). Os ids e prioridades das automações de turno do PF2e são reservados
+  assim, e fase posterior que registrar uma delas DEVE usar o id e a prioridade da tabela:
+
+  | Evento                                      | Id                      | Prioridade | Fase do plano |
+  | ------------------------------------------- | ----------------------- | ---------- | ------------- |
+  | `onTurnEnd`                                 | `pf2e.persistentDamage` | 100        | F5            |
+  | `onTurnEnd`                                 | `pf2e.frightenedDecay`  | 50         | F1            |
+  | `onTurnEnd` / `onTurnStart` / `onCombatEnd` | `pf2e.effectExpiry`     | 40         | F2            |
+  | `onTurnStart`                               | `pf2e.recoveryCheck`    | 80         | F1            |
+  | `onTurnStart`                               | `pf2e.afflictionStage`  | 70         | F6            |
+  | todos                                       | `pf2e.reactionOffers`   | 0          | F7            |
+
+### Normalização de itens de efeito importados (packs)
+
+> **Emenda de 2026-09-15** (ALQ-F2-02, onda 1 do Alquimista). O importador
+> (`tools/importer-pf2e`) publica o pack `equipment-effects-core` com os efeitos de
+> item alquímico (poções, elixires, venenos) do vendor. O vendor usa formas que o
+> `EffectSystemSchema` do Fusion não aceita — este requisito fixa a normalização que
+> fecha essa lacuna na fronteira do importador, não no motor.
+>
+> **Emenda de 2026-09-15** (revisão adversarial da onda 1, achado importante). A
+> redação original desta REQ dizia que `"encounter"` "passa sem alteração" e, na
+> frase seguinte, tratava toda duração que não fosse `unit` como finita e forçava
+> `expiry: "turn-start"` nela — as duas afirmações se contradizem para
+> `"encounter"`, e o vendor de fato ship `expiry: "turn-start"` em efeitos
+> `encounter` (ex.: "Magnetic Bola (Speed Penalty)"). Isso violava DF-07/§2.5
+> (`docs/design/alquimista/tasks.md`): um efeito `encounter` sai só no
+> `combatEnd`, nunca num limite de turno. `unit` continua passando sem alteração
+> (só o `expiry` muda) — corrigido abaixo.
+
+- **REQ-PF2-221** [MVP] O importador DEVE normalizar `system.duration` de todo item
+  de efeito publicado em `equipment-effects-core` antes da validação contra
+  `EffectSystemSchema`:
+  - `unit` no plural do vendor (`"minutes"`, `"hours"`, `"rounds"`, `"days"`) DEVE
+    virar a forma singular do schema (`"minute"`, `"hour"`, `"round"`, `"day"`);
+    `"encounter"` e `"unlimited"` já são singulares/invariantes e passam sem
+    alteração, e uma unidade não reconhecida passa inalterada (fail-open: um erro
+    de validação do schema é preferível a uma duração silenciosamente errada).
+  - `unit: "unlimited"` DEVE resultar em `value: -1` (o sentinel de
+    permanente/ilimitado do schema) independente do `value` recebido do vendor, e
+    `expiry` DEVE ser forçado a `null` — um efeito ilimitado nunca expira num
+    limite de turno.
+  - `unit: "encounter"` DEVE ter `expiry` forçado a `null` também (mesmo quando o
+    vendor manda um `expiry` explícito) — DF-07/§2.5: um efeito `encounter` expira
+    só no `combatEnd`, nunca num `turn-start`/`turn-end`/`round-end`. Diferente de
+    `unlimited`, `value` NÃO é forçado a `-1`: é dado do vendor que sobrevive.
+  - Toda duração finita (qualquer `unit` que não seja `unlimited` nem `encounter`)
+    com `expiry: null` DEVE receber `expiry: "turn-start"` como default — sem essa
+    correção o efeito fica sem limite de turno para `resolveExpirations` (§2.5)
+    jamais expirar.
+
+### Efeito aplicado: cópia embutida, duração e expiração
+
+> **Emenda de 2026-09-16** (plano do Alquimista, ALQ-F2-01; DEC-PF2-14 e as decisões de
+> desenho DF-06, DF-07 e DF-08 do plano, mais a decisão D-05 do Alexandre). Fixa o contrato
+> `EffectItem` que as fases seguintes do plano (fabricação, mutágenos, aflições, aditivos,
+> reações) consomem. O op que grava, o hook que dispara e a permissão são do core
+> (`ver 15-api-de-sistemas.md`, REQ-SYS-138..142); aqui fica a regra do PF2e.
+
+```typescript
+// systems/pf2e — `system` de um item embedded de subtype `effect`
+type ExpiryOn =
+  | "turn-start"
+  | "turn-end"
+  | "round-end"
+  | "combat-end"
+  | "daily-prep"
+  | "never";
+
+interface FusionExpiry {
+  on: ExpiryOn;
+  ownerActorId: string; // ator de ORIGEM, não o portador (REQ-PF2-219)
+  remainingRounds?: number;
+}
+
+interface EffectItemSystem {
+  duration: {
+    value: number; // -1 = ilimitado
+    unit: "round" | "minute" | "hour" | "day" | "encounter" | "unlimited";
+    sustained: boolean;
+    expiry: "turn-start" | "turn-end" | "round-end" | null;
+  };
+  rules: EffectRule[];
+  grantedConditions: { slug: string; value?: number }[]; // materializadas só no derivado
+  iwr?: IWREntry[];
+  fusion: {
+    origin: { actorId: string; itemSourceId?: string; itemLevel?: number; infused?: boolean };
+    startedAt: { combatId: string | null; round: number | null };
+    expiry: FusionExpiry;
+    automation?: "full" | "partial" | "manual";
+  };
+}
+
+// resolvedor único, puro, que não escreve (REQ-PF2-220)
+resolveExpirations(
+  actor: ActorSnapshot,
+  event:
+    | { type: "turn-start" | "turn-end" | "round-end"; actorId: string; combatId: string; round: number }
+    | { type: "combat-end"; combatId: string }
+    | { type: "daily-prep"; actorId: string },
+): { expiredItemIds: string[]; decremented: { itemId: string; remainingRounds: number }[] };
+```
+
+- **REQ-PF2-217** [MVP] Aplicar um efeito DEVE criar no ator uma **cópia embutida** do
+  documento de efeito (DEC-PF2-14), com `flags.fusion.sourceId` do documento de origem,
+  `system.fusion.origin` (ator de origem e, quando o efeito vem de um item, `itemSourceId`,
+  `itemLevel` e `infused`) e `system.fusion.startedAt` (`combatId` e `round` do momento da
+  aplicação, ou `null` fora de combate). O efeito NÃO DEVE referenciar o pack em tempo de
+  jogo: regerar ou reimportar o pack NÃO DEVE alterar efeito já aplicado. Dois efeitos com o
+  mesmo `sourceId` no mesmo ator continuam sendo **dois itens** — empilhar ou substituir é
+  regra de cada efeito, não do mecanismo. **Critério verificável:** aplicar o efeito do
+  Elixir da Vida a um ator e depois regerar o pack com outro texto e outros `rules` não muda
+  o efeito que está no ator; apagar o item de efeito remove junto o bônus e as condições que
+  ele concedia.
+- **REQ-PF2-218** [MVP] O efeito embutido DEVE participar da derivação (`prepareData`,
+  DEC-PF2-03): `system.rules` entra pelo motor de effects (`ver 15-api-de-sistemas.md`,
+  REQ-SYS-080..082), `iwr` entra no IWR derivado do ator (REQ-PF2-060) e `grantedConditions`
+  DEVE ser materializada **só no dado derivado** — o sistema NÃO DEVE criar item de condição
+  embutido para elas. Remover o efeito DEVE remover junto tudo o que ele concedia, sem
+  varredura nem limpeza posterior. Condição aplicada por ação explícita
+  (`actor:applyCondition`, REQ-PF2-215) continua sendo item próprio e NÃO é afetada por este
+  requisito. **Critério verificável:** um efeito que concede `clumsy 1` deixa o ator com
+  `clumsy 1` no derivado e com **nenhum** item de condição novo no inventário; apagar o
+  efeito devolve a AC ao valor anterior na mesma derivação.
+- **REQ-PF2-219** [MVP] A duração DEVE ser contada pelo **turno do ator de origem**, não do
+  portador (decisão de desenho DF-07 do plano): `system.fusion.expiry.ownerActorId` é o ator
+  de `origin`, e `remainingRounds` só DEVE ser decrementado no evento de turno **dele**. A
+  tradução de `duration` para `FusionExpiry` DEVE ser:
+  - `unit: "round"` — `on` recebe o `expiry` declarado pelo documento (`"turn-start"` por
+    default, REQ-PF2-221), com `remainingRounds` igual a `value`;
+  - `unit: "encounter"` — `on: "combat-end"`, sem contagem de rodadas; o efeito NÃO DEVE
+    sair num limite de turno;
+  - `unit: "unlimited"` — `on: "never"`; NÃO DEVE expirar sozinho nunca;
+  - `minute`, `hour`, `day` — `on` recebe o `expiry` declarado e `remainingRounds` recebe a
+    duração convertida em rodadas (1 minuto = 10 rodadas), que é o que corre **em combate**;
+    fora de combate a saída é a de REQ-PF2-223.
+
+  **Critério verificável:** um efeito de 1 rodada que o alquimista aplica no alvo expira no
+  próximo `turn-start` **do alquimista**, mesmo que o alvo tenha jogado dois turnos no meio;
+  um efeito `encounter` atravessa todos os turnos e só sai no fim do combate.
+
+- **REQ-PF2-220** [MVP] A expiração DEVE ser resolvida por **um único resolvedor puro**,
+  `resolveExpirations(actor, event)`, usado tanto para item de efeito quanto para item físico
+  temporário (decisão de desenho DF-08 do plano) — NÃO DEVE haver um segundo mecanismo de
+  expiração. Ele NÃO DEVE escrever: devolve `expiredItemIds` e `decremented`. No evento
+  ancorado, `remainingRounds` DEVE ser decrementado em 1 e, ao chegar a zero, o item DEVE
+  entrar em `expiredItemIds` **no mesmo evento**. O sistema DEVE registrá-lo em
+  `onTurnStart`, `onTurnEnd` e `onCombatEnd` com o id `pf2e.effectExpiry` e prioridade **40**
+  (REQ-PF2-216), e o servidor DEVE aplicar o resultado por `ctx.deleteEmbedded` e
+  `ctx.updateActor` (`ver 15-api-de-sistemas.md`, REQ-SYS-140). A prioridade 40 é menor que a
+  do dano persistente (100) de propósito: o dano do turno é aplicado enquanto o efeito ainda
+  vale, e só depois ele sai. **Critério verificável:** efeito com `remainingRounds: 2`
+  ancorado no ator A vai a 1 no `turn-start` de A, é removido no `turn-start` seguinte de A,
+  e não muda em nenhum turno de B.
+- **REQ-PF2-222** [MVP] Item **físico temporário** (fabricação rápida, munição improvisada,
+  qualquer item com prazo) DEVE usar o mesmo `system.fusion.expiry` no próprio item e DEVE
+  ser **removido do inventário** ao expirar — sem segundo mecanismo e sem item morto com
+  quantidade zerada. O strike derivado dele (DEC-PF2-15) DEVE sumir junto. Efeito que esse
+  item já aplicou em alguém NÃO DEVE ser removido junto: o efeito tem a própria expiração
+  (REQ-PF2-219). Qual ancoragem cada fabricação usa é da fase de fabricação do plano do
+  Alquimista (decisão D-06 do Alexandre), não deste requisito. **Critério verificável:** item
+  com `expiry.on: "turn-start"` ancorado no fabricante some do inventário no início do
+  próximo turno dele, e o elixir que alguém bebeu antes disso continua valendo.
+- **REQ-PF2-223** [MVP] **Fora de combate não corre relógio** (decisão D-05 do Alexandre). O
+  sistema NÃO DEVE ter relógio de mundo nem ação de "passar tempo", e nenhum efeito, item
+  temporário ou estado temporizado DEVE expirar sozinho fora de combate. As duas únicas
+  saídas DEVEM ser: (a) o passo de expiração da **preparação diária** (evento `daily-prep`),
+  que DEVE expirar todo item cujo `expiry.on` não seja `"never"`, independentemente de
+  `remainingRounds`; e (b) a **remoção manual** pelo dono do ator ou pelo Mestre, disponível
+  na ficha e no card. Estado que avançaria por passagem de tempo (estágio de aflição, por
+  exemplo) DEVE avançar só por ação explícita do Mestre. **Critério verificável:** um efeito
+  de 10 minutos aplicado fora de combate continua no ator depois de qualquer número de
+  rolagens e trocas de cena, e sai na preparação diária seguinte.
+
+### Uso, consumo e strike de item alquímico
+
+> **Emenda de 2026-09-16** (plano do Alquimista, ALQ-F2-01; DEC-PF2-15 e as decisões de
+> desenho DF-09 e DF-10 do plano). O op `item:consume`, a permissão e a atomicidade são do
+> core (`ver 15-api-de-sistemas.md`, REQ-SYS-143 e REQ-SYS-144); aqui fica o **plano de
+> consumo** do PF2e, registrado como `ConsumeItemDefinition`.
+
+- **REQ-PF2-224** [MVP] O sistema DEVE registrar o plano de consumo do PF2e para
+  `consumable` e para todo item com carga, cobrindo os três modos de `item:consume`:
+  - `use` — gasta **uma carga** (`system.charges.value` menos 1). Chegando a zero com
+    `system.autoDestroy` verdadeiro, DEVE gastar uma unidade de `system.quantity` e
+    recarregar `charges` para `max`; com `quantity` zerada, o item DEVE ser **apagado** do
+    inventário e o resultado DEVE trazer `destroyed: true`. Com `autoDestroy` falso, o item
+    DEVE ficar com zero cargas e recusar o próximo uso (`VALIDATION_FAILED`). O default de
+    `autoDestroy` DEVE ser verdadeiro para `consumable` e falso para os demais subtypes.
+  - `strike` — o mesmo gasto de `use`, na mesma operação da rolagem (REQ-PF2-226).
+  - `resource` — gasta o recurso de classe do ator em `system.resources.special`, sem tocar
+    em item nenhum (é o caso do frasco versátil e da frequência de talento); valor
+    insuficiente DEVE recusar com `VALIDATION_FAILED`.
+
+  O plano DEVE ser uma função **pura**, que devolve as escritas e nunca escreve (quem aplica
+  é o serviço do core), e o consumo DEVE ser atômico com os efeitos, o dano e os cards que
+  ele gera: ou tudo entra, ou nada entra. **Critério verificável:** poção com `quantity: 3` e
+  uma carga de uma usada uma vez fica com `quantity: 2` e a carga cheia, ainda no inventário;
+  a mesma poção com `quantity: 1` usada uma vez some do inventário com `destroyed: true`.
+
+- **REQ-PF2-225** [MVP] O uso de um item DEVE aplicar o que ele faz, na mesma operação:
+  - cada `sourceId` de `system.fusion.effectRefs` DEVE virar uma cópia embutida de efeito
+    (REQ-PF2-217) no alvo do uso — o próprio ator, por default;
+  - cura e dano declarados pelo item DEVEM ser rolados **no servidor** e aplicados pelo mesmo
+    caminho de `applyDamage` (cura como instância `healing`, REQ-PF2-211), nunca por escrita
+    direta no PV;
+  - o card DEVE dizer o que foi consumido, o que foi aplicado e por quanto tempo, e DEVE
+    trazer como **nota** o que o item faz e o sistema não automatiza: item com
+    `system.fusion.automation` diferente de `"full"` DEVE declarar isso no card em vez de
+    fingir que aplicou.
+
+  Item sem efeito, cura ou dano estruturados DEVE continuar consumível — gasta e posta a
+  nota. **Critério verificável:** beber um Elixir da Vida (menor) gasta o frasco, rola a cura
+  no servidor, soma no PV até o máximo e deixa no ator a cópia do efeito que o pack declara;
+  o card entregue ao jogador segue a redação de `ver 09-chat-e-mensagens.md`, REQ-CHT-053.
+
+- **REQ-PF2-226** [MVP] Item consumível de arremesso — a **bomba alquímica** no MVP — DEVE
+  gerar um strike derivado direto do inventário, sem equipar (DEC-PF2-15): um strike por
+  documento de item com a trait `bomb`, listado junto com os strikes de arma. O que
+  identifica o item arremessável é a trait `bomb`, não o `type` do documento: o pack
+  canônico emite sempre `type: "consumable"` (nunca `weapon`), mas um item cadastrado à
+  mão como `type: "weapon"` com a mesma trait DEVE gerar o mesmo strike — o schema tolera
+  as duas formas (DEC-PF2-15). `quantityLeft`
+  zero DEVE fazer o strike sumir da lista. A rolagem DEVE acontecer por `item:consume` com
+  `mode: "strike"` e `mapIndex`, numa única operação que gasta o item e rola o ataque: gastar
+  sem rolar, ou rolar sem gastar, NÃO DEVE ser possível pelo cliente. Sacar o item (Interact)
+  NÃO DEVE ser contabilizado nem bloqueado — vira nota no card (decisão D-15 do Alexandre).
+  **Critério verificável:** com 2 frascos de ácido (`type: "consumable"`, trait `bomb`),
+  dois arremessos no mesmo turno usam
+  `mapIndex` 0 e 1 e deixam o strike fora da lista; o terceiro arremesso responde
+  `VALIDATION_FAILED` sem rolar nada.
+- **REQ-PF2-227** [MVP] O strike derivado DEVE expor os campos que o card e a fase de dano
+  consomem: `source` (o item ou o recurso que o originou), `consumesOnUse`, `quantityLeft`,
+  `itemBonus`, `rangeIncrement`, `splash` (valor e tipo de dano), `persistent` (dados, faces,
+  valor e tipo de dano) e `notes`. O ataque DEVE seguir REQ-PF2-032 com a proficiência da
+  categoria de ataque do item (REQ-PF2-207 — `weapon-base-alchemical-bomb` no Alquimista), e
+  o dano DEVE seguir REQ-PF2-033 com os dados declarados pelo próprio item. Os campos que
+  REQ-PF2-032/033 consomem (`damage`, `bonus`, `range`, `runes`, `baseItem`) DEVEM
+  sobreviver no documento fonte — `consumable` ou `weapon` — mesmo sem schema de dano
+  tipado para `consumable` hoje; quem projeta esses campos na forma `WeaponSystem` que
+  `deriveStrikeFromWeapon` (`systems/pf2e/src/actions/strikes.ts`) espera é a
+  implementação da ALQ-F2-13 (onda 4, DEC-PF2-15), não esta spec. Esta fase
+  **deriva e exibe** `splash` e `persistent`; a conta do respingo e a condição de dano
+  persistente são da fase de dano do plano do Alquimista (REQ-PF2-061). **Critério
+  verificável:** um Frasco de Ácido (`type: "consumable"`, trait `bomb`) em um alquimista
+  de nível 1, treinado em bombas e com
+  Des +4, mostra ataque +7 (`2 + 1 + 4`), incremento de 20 pés, **1 de ácido direto** (fixo
+  nos quatro graus — só persistente e respingo escalam), respingo 1 de ácido e persistente
+  `1d6` de ácido — nenhum desses números lido do pack como total pronto.
+- **REQ-PF2-228** [MVP] Munição alquímica DEVE ser importada e tratada como `consumable` com
+  `category: "ammo"` (decisão de desenho DF-10 do plano), nunca como arma e nunca como
+  subtype novo. Ela NÃO DEVE gerar strike próprio (REQ-PF2-226) e DEVE ser gasta pelo strike
+  da arma que a dispara, pelo plano de consumo de REQ-PF2-224 no modo `use`. O que a munição
+  faz (dano extra, condição, efeito) DEVE vir dos mesmos `effectRefs` e `rules` do item
+  (REQ-PF2-225). Arma de munição sem munição selecionada DEVE **avisar** e deixar rolar, não
+  bloquear — a mesa resolve. **Critério verificável:** uma bala alquímica aparece no
+  inventário como consumível, não aparece na lista de strikes, e disparar a arma que a usa
+  decrementa a quantidade dela em 1.
 
 ### Plateia dos packs publicados
 
@@ -906,32 +1399,32 @@ plano (`ver 45-atores.md`, DEC-ATR-10).
 > Lista da pesquisa 10 §4.1. Coluna MVP indica o que o MVP precisa entender
 > mecanicamente; itens [V2] podem existir como dados importados mas sem automação.
 
-| Subtype              | MVP?       | Categoria   | Campos centrais                                                                                                                                     |
-| -------------------- | ---------- | ----------- | --------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `weapon`             | ✅         | Equipamento | `damage{dice,die,damageType,modifier,persistent?}`, `category`, `group`, `runes{potency,striking,property[]}`, `range`, `reload`, `traits`, `usage` |
-| `armor`              | ✅         | Equipamento | `category`, `group`, `acBonus`, `dexCap`, `checkPenalty`, `speedPenalty`, `strength`, `runes{potency,resilient,property[]}`                         |
-| `shield`             | ✅         | Equipamento | `acBonus`, `hardness`, `hp`, `brokenThreshold`                                                                                                      |
-| `equipment`          | ✅         | Equipamento | `bulk`, `price`, `usage`, `traits`                                                                                                                  |
-| `consumable`         | ✅         | Equipamento | `category` (scroll/wand/potion…), `charges`, `spell?`                                                                                               |
-| `treasure`           | ✅         | Equipamento | `value` (gp/sp/cp)                                                                                                                                  |
-| `container`          | ✅         | Equipamento | `capacity`, `bulkReduction`                                                                                                                         |
-| `condition`          | ✅         | Estado      | `slug`, `value?`, `modifiers[]`, `overrides[]`                                                                                                      |
-| `effect`             | ✅         | Estado      | `duration`, `badge?`, `modifiers[]`, `grantedConditions[]`, `iwr?`                                                                                  |
-| `spell`              | ✅         | Magia       | `level`, `traits{value[],traditions[]}`, `area?`, `range`, `time`, `duration`, `defense?{save{statistic,basic}}`, `damage`, `rules?`                |
-| `spellcastingEntry`  | ✅         | Magia       | `tradition`, `ability`, `proficiency{value}`, `slots{slot0..10{value,max,prepared[]}}`, `prepared{value}` (prepared/spontaneous/innate)             |
-| `feat`               | ✅         | Mecânica    | `level`, `category`, `actionType`, `actions`, `frequency?`, `modifiers[]`, `grantedConditions[]`                                                    |
-| `action` / `ability` | ✅         | Mecânica    | ação/atividade rolável (NPC abilities, basic actions)                                                                                               |
-| `lore`               | ✅         | Perícia     | `rank`, atributo INT                                                                                                                                |
-| `melee`              | ✅         | NPC-only    | ataque de NPC: `bonus`, `damage[]`, `traits`                                                                                                        |
-| `ancestry`           | ⚙️ parcial | Construção  | `hp`, `speed`, `size`, `boosts`, `flaws`, `languages`, `vision`                                                                                     |
-| `heritage`           | ⚙️ parcial | Construção  | herda de ancestry; `modifiers[]`                                                                                                                    |
-| `background`         | ⚙️ parcial | Construção  | `boosts`, skill proficiency                                                                                                                         |
-| `class`              | ⚙️ parcial | Construção  | `hp`/nível, proficiências iniciais, key ability, save progressions                                                                                  |
-| `affliction`         | ⏳ V2      | Estado      | venenos/doenças com `stages[]`                                                                                                                      |
-| `book`               | ⏳ V2      | Equipamento | habilidades contidas                                                                                                                                |
-| `kit`                | ⏳ V2      | Equipamento | bundle de itens                                                                                                                                     |
-| `deity`              | ⏳ V2      | Referência  | domains, edicts, anathemas, spell list                                                                                                              |
-| `campaignFeature`    | ⏳ V2      | Campanha    | feature de AP (kingmaker etc.)                                                                                                                      |
+| Subtype              | MVP?       | Categoria   | Campos centrais                                                                                                                                                                                                                                                                                                                                       |
+| -------------------- | ---------- | ----------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `weapon`             | ✅         | Equipamento | `damage{dice,die,damageType,modifier,persistent?}`, `category`, `group`, `runes{potency,striking,property[]}`, `range`, `reload`, `traits`, `usage`                                                                                                                                                                                                   |
+| `armor`              | ✅         | Equipamento | `category`, `group`, `acBonus`, `dexCap`, `checkPenalty`, `speedPenalty`, `strength`, `runes{potency,resilient,property[]}`                                                                                                                                                                                                                           |
+| `shield`             | ✅         | Equipamento | `acBonus`, `hardness`, `hp`, `brokenThreshold`                                                                                                                                                                                                                                                                                                        |
+| `equipment`          | ✅         | Equipamento | `bulk`, `price`, `usage`, `traits`                                                                                                                                                                                                                                                                                                                    |
+| `consumable`         | ✅         | Equipamento | `category` (scroll/wand/potion/ammo/bomb…), `charges`, `autoDestroy`, `spell?`, `fusion.effectRefs[]` (REQ-PF2-224, REQ-PF2-225); bomba alquímica (trait `bomb`) carrega também o payload de arma (`damage`, `splashDamage`, `bonus`, `range`, `runes`, `baseItem`, `expend`) que a projeção do strike consome (DEC-PF2-15, REQ-PF2-226, REQ-PF2-227) |
+| `treasure`           | ✅         | Equipamento | `value` (gp/sp/cp)                                                                                                                                                                                                                                                                                                                                    |
+| `container`          | ✅         | Equipamento | `capacity`, `bulkReduction`                                                                                                                                                                                                                                                                                                                           |
+| `condition`          | ✅         | Estado      | `slug`, `value?`, `modifiers[]`, `overrides[]`                                                                                                                                                                                                                                                                                                        |
+| `effect`             | ✅         | Estado      | `duration`, `badge?`, `modifiers[]`, `grantedConditions[]`, `iwr?`, `fusion{origin,startedAt,expiry}` (REQ-PF2-217, REQ-PF2-219)                                                                                                                                                                                                                      |
+| `spell`              | ✅         | Magia       | `level`, `traits{value[],traditions[]}`, `area?`, `range`, `time`, `duration`, `defense?{save{statistic,basic}}`, `damage`, `rules?`                                                                                                                                                                                                                  |
+| `spellcastingEntry`  | ✅         | Magia       | `tradition`, `ability`, `proficiency{value}`, `slots{slot0..10{value,max,prepared[]}}`, `prepared{value}` (prepared/spontaneous/innate)                                                                                                                                                                                                               |
+| `feat`               | ✅         | Mecânica    | `level`, `category`, `actionType`, `actions`, `frequency?`, `modifiers[]`, `grantedConditions[]`                                                                                                                                                                                                                                                      |
+| `action` / `ability` | ✅         | Mecânica    | ação/atividade rolável (NPC abilities, basic actions)                                                                                                                                                                                                                                                                                                 |
+| `lore`               | ✅         | Perícia     | `rank`, atributo INT                                                                                                                                                                                                                                                                                                                                  |
+| `melee`              | ✅         | NPC-only    | ataque de NPC: `bonus`, `damage[]`, `traits`                                                                                                                                                                                                                                                                                                          |
+| `ancestry`           | ⚙️ parcial | Construção  | `hp`, `speed`, `size`, `boosts`, `flaws`, `languages`, `vision`                                                                                                                                                                                                                                                                                       |
+| `heritage`           | ⚙️ parcial | Construção  | herda de ancestry; `modifiers[]`                                                                                                                                                                                                                                                                                                                      |
+| `background`         | ⚙️ parcial | Construção  | `boosts`, skill proficiency                                                                                                                                                                                                                                                                                                                           |
+| `class`              | ⚙️ parcial | Construção  | `hp`/nível, proficiências iniciais, key ability, save progressions                                                                                                                                                                                                                                                                                    |
+| `affliction`         | ⏳ V2      | Estado      | venenos/doenças com `stages[]`                                                                                                                                                                                                                                                                                                                        |
+| `book`               | ⏳ V2      | Equipamento | habilidades contidas                                                                                                                                                                                                                                                                                                                                  |
+| `kit`                | ⏳ V2      | Equipamento | bundle de itens                                                                                                                                                                                                                                                                                                                                       |
+| `deity`              | ⏳ V2      | Referência  | domains, edicts, anathemas, spell list                                                                                                                                                                                                                                                                                                                |
+| `campaignFeature`    | ⏳ V2      | Campanha    | feature de AP (kingmaker etc.)                                                                                                                                                                                                                                                                                                                        |
 
 > **⚙️ parcial (MVP)**: ancestry/heritage/background/class são importáveis e
 > contribuem com HP, proficiências e modifiers **estáticos** declarados; a
@@ -1072,6 +1565,12 @@ interface EffectSystem {
 }
 ```
 
+> **Emenda de 2026-09-16** (ALQ-F2-01). O `EffectSystem` acima é o **conteúdo
+> declarativo** do efeito. O efeito **embutido em um ator** carrega ainda o bloco
+> `system.fusion` (origem, início e expiração) e aceita `duration.unit` `"encounter"` e
+> `"unlimited"`; a forma completa é `EffectItemSystem`, na seção "Efeito aplicado: cópia
+> embutida, duração e expiração" (REQ-PF2-217, REQ-PF2-219, REQ-PF2-221).
+
 ---
 
 ## API e eventos
@@ -1093,15 +1592,25 @@ interface EffectSystem {
 | `registerDegreeOfSuccess(fn)`                                      | Cálculo de grau a partir de `RollResult` + DC (REQ-PF2-040).                                           |
 | `registerActionMacros(list)`                                       | Strike, Seek, Recall Knowledge, Demoralize, Trip, etc. (REQ-PF2-100).                                  |
 | `registerInlineEnrichers(handlers)`                                | `@Check`, `@Damage`, `@Template`, `@UUID` (REQ-PF2-102).                                               |
+| `registerActorMechanics({ applyDamage, applyCondition })`          | Regra de dano, cura, PV temporário, dying/`dead` e condições (REQ-PF2-209..213, REQ-PF2-215).          |
+| `onTurnStart/onTurnEnd/onCombatEnd(id, fn, { priority })`          | Automações de turno com id e prioridade (REQ-PF2-214, REQ-PF2-216; REQ-SYS-138).                       |
+| `registerConsumeItem(def)`                                         | Plano de consumo de item: carga, efeito, cura e strike (REQ-PF2-224..227; REQ-SYS-143).                |
+| `registerConsumeHook(id, fn, { priority })`                        | Extensão pós-consumo, por alvo do consumo (REQ-SYS-144).                                               |
 
 ### Eventos de ciclo de vida consumidos (`ver 10-combate-e-iniciativa.md`)
 
-| Evento                        | Ação do PF2e                                                                                                                          |
-| ----------------------------- | ------------------------------------------------------------------------------------------------------------------------------------- |
-| `onTurnStart(combatant)`      | Resetar MAP; processar `slowed`/`stunned` na contagem de ações; oferecer recovery check de Dying; aplicar persistent damage pendente. |
-| `onTurnEnd(combatant)`        | Decrementar `frightened` (e outras que reduzem ao fim do turno); resolver persistent damage do tipo "fim de turno".                   |
-| `onRoundStart` / `onRoundEnd` | Reservado para efeitos de duração em rodadas.                                                                                         |
-| `onCombatEnd`                 | Limpar efeitos com duração "encounter".                                                                                               |
+| Evento                        | Ação do PF2e                                                                                                                                                                                   |
+| ----------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `onTurnStart(combatant)`      | Resetar MAP; processar `slowed`/`stunned` na contagem de ações; rolar o recovery check de Dying (`pf2e.recoveryCheck`, 80, REQ-PF2-214); expirar efeitos (`pf2e.effectExpiry`, 40).            |
+| `onTurnEnd(combatant)`        | Dano persistente com flat check (`pf2e.persistentDamage`, 100); decrementar `frightened` do próprio ator (`pf2e.frightenedDecay`, 50, REQ-PF2-216); expirar efeitos (`pf2e.effectExpiry`, 40). |
+| `onRoundStart` / `onRoundEnd` | Reservado para efeitos de duração em rodadas.                                                                                                                                                  |
+| `onCombatEnd`                 | Limpar efeitos com duração "encounter" (`pf2e.effectExpiry`, 40, REQ-PF2-220).                                                                                                                 |
+
+> **Emenda de 2026-09-15** (ALQ-F1-01). Cada ação da tabela é um hook próprio com id e
+> prioridade (REQ-PF2-216, `15-api-de-sistemas.md` REQ-SYS-138), aguardado no servidor na
+> ordem de `10-combate-e-iniciativa.md` REQ-CBT-057; a coluna acima nomeia o id e a
+> prioridade reservados. Dano persistente pela condição remaster no fim do turno é da fase
+> F5 do plano; reset de MAP e contagem de `slowed`/`stunned` não mudam com esta emenda.
 
 ### Métodos do ator (expostos pela system API ao runtime/macros)
 
@@ -1195,46 +1704,54 @@ interface EffectSystem {
 > parcial (automação + input manual) · **M** = manual/assistido (sem automação,
 > ferramenta de apoio). Baseado na pesquisa 13 §16.
 
-| Mecânica                                        | MVP       | Notas                                            |
-| ----------------------------------------------- | --------- | ------------------------------------------------ |
-| Modificador de ability (`floor((score−10)/2)`)  | A         | REQ-PF2-010                                      |
-| Proficiência TEML (rank\*2+nível)               | A         | REQ-PF2-011                                      |
-| Skills/Perception/Saves/Class DC derivados      | A         | REQ-PF2-012..016                                 |
-| AC (com dex cap, runa, broken)                  | A         | REQ-PF2-020                                      |
-| HP máximo (char e NPC)                          | A         | REQ-PF2-021                                      |
-| Degree of success (±10, nat20/nat1)             | A         | REQ-PF2-040                                      |
-| MAP acumulado por turno                         | A         | REQ-PF2-031, 035                                 |
-| Strike attack + damage (melee/ranged)           | A         | contexto de flanking/cobertura é M               |
-| Crítico: dobra de dano; deadly; fatal           | A         | crit specialization é A(V2)                      |
-| Basic saving throw (dano por grau)              | A         | REQ-PF2-041                                      |
-| Condições numeradas (efeito mecânico)           | A         | conjunto priorizado, REQ-PF2-051                 |
-| Decremento de `frightened` por turno            | A         | REQ-PF2-092                                      |
-| `slowed`/`stunned` na contagem de ações         | A         | REQ-PF2-092                                      |
-| Persistent damage (aplicação + flat check)      | A/P       | dano automático; flat check rolável              |
-| IWR no apply damage                             | A         | REQ-PF2-060                                      |
-| Dying/Recovery/Wounded/Doomed                   | A         | REQ-PF2-070..074                                 |
-| Hero Points (reroll, heroic recovery)           | A         | REQ-PF2-044                                      |
-| Spell slot tracking (prepared/spontaneous)      | A         | REQ-PF2-081                                      |
-| Cantrip ilimitado + heighten automático         | A         | REQ-PF2-082                                      |
-| Focus points + refocus                          | A         | REQ-PF2-083                                      |
-| Heightening manual (rank superior)              | A(V2)     | parcial no MVP, REQ-PF2-085                      |
-| Counteract/Counterspell                         | A(V2)     | REQ-PF2-086                                      |
-| Bulk/encumbrance                                | A         | REQ-PF2-120                                      |
-| Runas fundamentais (potency/striking/resilient) | A         | REQ-PF2-130                                      |
-| Runas de propriedade (flaming etc.)             | A(V2)     | REQ-PF2-131                                      |
-| Iniciativa por skill                            | A         | REQ-PF2-090                                      |
-| Recall Knowledge (secret check + DC)            | P         | rola e apresenta; GM escolhe info, REQ-PF2-101   |
-| Inline enrichers (@Check/@Damage/@Template)     | A         | REQ-PF2-102                                      |
-| Condições de detecção (efeito de visão)         | P/M       | flat check A; posição/visão parcial, REQ-PF2-052 |
-| Motor de rule-elements-like completo            | A(V2)     | GrantItem/ChoiceSet/Aura/BattleForm, DEC-PF2-04  |
-| Character builder (ABC + ChoiceSet)             | M / A(V2) | montagem manual ou import no MVP                 |
-| Exploration/Downtime/Crafting                   | M / A(V2) | REQ-PF2-103                                      |
-| Tamanho efetivo do personagem (ABC + talento)   | A         | REQ-PF2-150..155, DEC-PF2-13                     |
-| Tamanho que muda em jogo (Ampliar/Encolher)     | A(V2)     | REQ-PF2-157; hoje o Mestre narra                 |
-| Efeito do tamanho (alcance, manobra, carga)     | M         | fora do "montar a ficha"; REQ-PF2-122            |
-| Range increments / cover                        | M         | A(V2); cobertura depende do mapa                 |
-| Flanking (posição exata)                        | M         | requer grid/julgamento do GM                     |
-| Party/Kingmaker                                 | A(V2)     | fora do MVP                                      |
+| Mecânica                                        | MVP       | Notas                                              |
+| ----------------------------------------------- | --------- | -------------------------------------------------- |
+| Modificador de ability (`floor((score−10)/2)`)  | A         | REQ-PF2-010                                        |
+| Proficiência TEML (rank\*2+nível)               | A         | REQ-PF2-011                                        |
+| Skills/Perception/Saves/Class DC derivados      | A         | REQ-PF2-012..016                                   |
+| AC (com dex cap, runa, broken)                  | A         | REQ-PF2-020                                        |
+| HP máximo (char e NPC)                          | A         | REQ-PF2-021                                        |
+| Degree of success (±10, nat20/nat1)             | A         | REQ-PF2-040                                        |
+| MAP acumulado por turno                         | A         | REQ-PF2-031, 035                                   |
+| Strike attack + damage (melee/ranged)           | A         | contexto de flanking/cobertura é M                 |
+| Crítico: dobra de dano; deadly; fatal           | A         | crit specialization é A(V2)                        |
+| Basic saving throw (dano por grau)              | A         | REQ-PF2-041                                        |
+| Condições numeradas (efeito mecânico)           | A         | conjunto priorizado, REQ-PF2-051                   |
+| Decremento de `frightened` por turno            | A         | REQ-PF2-092                                        |
+| `slowed`/`stunned` na contagem de ações         | A         | REQ-PF2-092                                        |
+| Persistent damage (aplicação + flat check)      | A/P       | dano automático; flat check rolável                |
+| IWR no apply damage                             | A         | REQ-PF2-060                                        |
+| Dying/Recovery/Wounded/Doomed                   | A         | REQ-PF2-070..074                                   |
+| Hero Points (reroll, heroic recovery)           | A         | REQ-PF2-044                                        |
+| Dano massivo (dobro do PV máximo num golpe)     | A         | REQ-PF2-212a                                       |
+| Consumo de item (carga, quantidade, destruição) | A         | REQ-PF2-224                                        |
+| Efeito e cura no uso de consumível              | A         | REQ-PF2-225                                        |
+| Efeito com duração: cópia, contagem, expiração  | A         | em combate; REQ-PF2-217..220                       |
+| Strike de bomba (sem equipar, gasta ao rolar)   | A         | REQ-PF2-226, REQ-PF2-227                           |
+| Respingo e persistente da bomba                 | P         | campos derivados; conta na fase de dano            |
+| Passagem de tempo fora de combate               | M         | sem relógio de mundo, REQ-PF2-223                  |
+| Spell slot tracking (prepared/spontaneous)      | A         | REQ-PF2-081                                        |
+| Cantrip ilimitado + heighten automático         | A         | REQ-PF2-082                                        |
+| Focus points + refocus                          | A         | REQ-PF2-083                                        |
+| Heightening manual (rank superior)              | A(V2)     | parcial no MVP, REQ-PF2-085                        |
+| Counteract/Counterspell                         | A(V2)     | REQ-PF2-086                                        |
+| Bulk/encumbrance                                | A         | REQ-PF2-120                                        |
+| Runas fundamentais (potency/striking/resilient) | A         | REQ-PF2-130                                        |
+| Runas de propriedade (flaming etc.)             | A(V2)     | REQ-PF2-131                                        |
+| Iniciativa por skill                            | A         | REQ-PF2-090                                        |
+| Recall Knowledge (secret check + DC)            | P         | rola e apresenta; GM escolhe info, REQ-PF2-101     |
+| Inline enrichers (@Check/@Damage/@Template)     | A         | REQ-PF2-102                                        |
+| Condições de detecção (efeito de visão)         | P/M       | flat check A; posição/visão parcial, REQ-PF2-052   |
+| Motor de rule-elements-like completo            | A(V2)     | GrantItem/ChoiceSet/Aura/BattleForm, DEC-PF2-04    |
+| Character builder (ABC + ChoiceSet)             | M / A(V2) | montagem manual ou import no MVP                   |
+| Craft (atividade)                               | A         | rolagem no servidor + custo por porta, REQ-FAB-039 |
+| Exploration/Downtime (demais)                   | M / A(V2) | REQ-PF2-103                                        |
+| Tamanho efetivo do personagem (ABC + talento)   | A         | REQ-PF2-150..155, DEC-PF2-13                       |
+| Tamanho que muda em jogo (Ampliar/Encolher)     | A(V2)     | REQ-PF2-157; hoje o Mestre narra                   |
+| Efeito do tamanho (alcance, manobra, carga)     | M         | fora do "montar a ficha"; REQ-PF2-122              |
+| Range increments / cover                        | M         | A(V2); cobertura depende do mapa                   |
+| Flanking (posição exata)                        | M         | requer grid/julgamento do GM                       |
+| Party/Kingmaker                                 | A(V2)     | fora do MVP                                        |
 
 ### Fontes de dados
 
@@ -1272,9 +1789,12 @@ interface EffectSystem {
    de rank superior consome o slot mas não recalcula o dano heightened
    automaticamente (REQ-PF2-085). Validar se isso é aceitável ou se um subconjunto
    de heightening (apenas dano `(+X)` linear) deve entrar no MVP.
-8. **Sustained spells e durações em rodadas** — O rastreamento automático de
-   durações de efeito (em rodadas/minutos) depende da integração com o combate;
-   definir se o MVP expira efeitos automaticamente ou apenas avisa o GM.
+8. **Sustained spells** — _parcialmente resolvida em 2026-09-16 (ALQ-F2-01)_: o MVP
+   **expira** efeitos automaticamente em combate, pelo resolvedor único de REQ-PF2-220,
+   com a duração ancorada no turno do ator de origem (REQ-PF2-219); fora de combate não
+   há relógio, e a saída é a preparação diária ou a remoção manual (REQ-PF2-223).
+   Continua em aberto só o `sustained`: quem sustenta, com que ação, e o que acontece
+   quando a ação não é gasta.
 
 ---
 

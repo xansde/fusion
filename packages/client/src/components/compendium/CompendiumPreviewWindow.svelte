@@ -41,6 +41,7 @@
     type PreviewLoadState,
   } from "../../lib/compendium/previewWindow.js";
   import { buildDocumentPreview, isKnownPlaceholderImg } from "../../lib/compendium/compendiumBrowser.js";
+  import { sanitizeDescriptionToText } from "../../lib/compendium/documentDetails.js";
   import { resolveFieldLabel } from "../../lib/compendium/resultLine.js";
   import {
     getDocument,
@@ -103,6 +104,32 @@
   const document = $derived(loadState.status === "ready" ? loadState.document : null);
 
   const preview = $derived(document ? buildDocumentPreview(document, i18n.locale) : null);
+
+  /**
+   * ALQ-F2-19: `preview.description` is the vendor's description HTML
+   * VERBATIM (compendiumBrowser.ts's own doc comment claims "the browser
+   * preview does not render prose HTML", but until now nothing enforced
+   * that — `{preview.description}` interpolated the raw markup as text, so
+   * Svelte's escaping showed the literal `<p>`/`<em>` tags and `@UUID[...]`
+   * enricher syntax on screen instead of hiding them.
+   *
+   * Fixed by converting to clean, paragraph-preserving TEXT rather than
+   * sanitizing-and-rendering HTML: `sanitizeDescriptionHtml` (also in
+   * documentDetails.ts) would need `{@html ...}` to have any visible effect,
+   * which is a second injection surface this window has no reason to open.
+   * `sanitizeDescriptionToText` strips every tag unconditionally (no
+   * allow-list branch — see its doc comment) and returns plain strings that
+   * ordinary `{...}` interpolation escapes like any other text, so nothing
+   * executable can survive even if a future vendor payload slipped past the
+   * tag-strip regex. Paragraphs are joined with a blank line rather than
+   * rendered as separate elements: `.compendium-preview__description`
+   * already sets `white-space: pre-wrap` for exactly this shape.
+   */
+  const descriptionText = $derived.by(() => {
+    if (!preview) return null;
+    const paragraphs = sanitizeDescriptionToText(preview.description, i18n.locale);
+    return paragraphs.length > 0 ? paragraphs.join("\n\n") : null;
+  });
 
   /** The loaded name once it arrives, the line's name until then. */
   const displayName = $derived(preview?.name ?? name);
@@ -263,8 +290,8 @@
       </div>
     </div>
 
-    {#if preview.description !== null}
-      <p class="compendium-preview__description">{preview.description}</p>
+    {#if descriptionText !== null}
+      <p class="compendium-preview__description">{descriptionText}</p>
     {/if}
 
     {#if preview.fields.length > 0}

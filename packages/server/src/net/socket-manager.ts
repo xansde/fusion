@@ -69,6 +69,15 @@ import {
 import { InitiativeFormulaRegistry } from "../combat/initiative-registry.js";
 import { registerSystemFormulas } from "../combat/system-formula-adapter.js";
 import { CombatEventBus } from "../combat/combat-event-bus.js";
+import { createActorMechanicsService } from "../combat/actor-mechanics-service.js";
+import { buildApplyDamageHandler } from "../combat/apply-damage-handler.js";
+import { buildApplyConditionHandler } from "../combat/apply-condition-handler.js";
+import { buildItemConsumeHandler } from "./handlers/item-handlers.js";
+import {
+  createTurnHookRunner,
+  createStubTurnHookContextServices,
+  createDocumentWriteTurnHookContextServices,
+} from "../combat/turn-hook-runner.js";
 import { TargetingStore } from "../combat/targeting-store.js";
 import { buildCombatTargetHandler, registerTargetingCleanup } from "../combat/target-handler.js";
 import {
@@ -275,6 +284,10 @@ export class SocketManager {
       metrics: writeMetrics,
       logger: this.logger,
     });
+    // REQ-CBT-053..055: token targeting (ephemeral; userId server-authoritative).
+    // Constructed here (not next to the combat handlers below) so chat:send
+    // (ALQ-F1-05 / REQ-CBT-056) can also read it for the targetSnapshot photo.
+    const targetingStore = new TargetingStore();
     const registry = new HandlerRegistry();
 
     // Spec 39 §5.9 (REQ-CTT-083): bind this namespace to the Actor table its
@@ -323,8 +336,11 @@ export class SocketManager {
       logger: this.logger,
       ...(systemId !== undefined ? { systemId } : {}),
       ...(systemModule !== undefined ? { systemModule } : {}),
-      // REQ-CHT-033: supply recent chat for join snapshot
-      getRecentChat: (userId: string, role: number) => getRecentChatForUser(db, userId, role),
+      // REQ-CHT-033: supply recent chat for join snapshot. `store` threaded
+      // through so the targetSnapshot B1 redaction can resolve hidden tokens
+      // (ALQ-F1-05).
+      getRecentChat: (userId: string, role: number) =>
+        getRecentChatForUser(db, userId, role, undefined, store),
     };
 
     // Register built-in system handlers
@@ -391,7 +407,10 @@ export class SocketManager {
     registry.register("world:activeScene", buildActiveSceneHandler(syncDeps));
 
     // Register M1-D chat + roll handlers
-    const chatDeps = { db, ns, seqStore, worldId };
+    // store/targetingStore (ALQ-F1-05 / REQ-CBT-056): chat:send reads the
+    // author's live target selection to freeze `flags.fusion.targetSnapshot`
+    // on every roll message.
+    const chatDeps = { db, ns, seqStore, worldId, store, targetingStore };
     registry.register("chat:send", buildChatSendHandler(chatDeps));
     registry.register("chat:history", buildChatHistoryHandler(chatDeps));
     // REQ-CHT-050 / REQ-ACH-012: search is open to every role; the handler
@@ -433,6 +452,48 @@ export class SocketManager {
       );
     }
     const eventBus = new CombatEventBus();
+    // ALQ-F1-08: the real `actor:applyDamage` service — validates, rereads
+    // amount/targets from the persisted roll, calls the active system's
+    // ActorMechanics and publishes the redacted `actor:damageApplied`
+    // summary. Constructed before the turn-hook runner below so its
+    // `applyDamage` can replace that one stub service (`actingAs: "system"`).
+    const actorMechanicsService = createActorMechanicsService({
+      store,
+      db,
+      ns,
+      seqStore,
+      opBuffer,
+      // ALQ-F1-09 / REQ-CBT-056: applyCondition's own live-TargetSelection
+      // gate for a non-privileged caller.
+      targetingStore,
+      worldId,
+      systemModule,
+      logger: this.logger,
+    });
+    // DEC-CBT-09 / ALQ-F1-04: awaited system turn-hook runner, wired
+    // alongside (not instead of) the fire-and-forget CombatEventBus above.
+    // `applyDamage`/`applyCondition` are the REAL service (ALQ-F1-08/F1-09);
+    // `deleteEmbedded`/`chat` are the REAL document-write services (B4 fix,
+    // onda-4 adversarial review — see combat/turn-hook-runner.ts's header);
+    // `roll`/`updateActor`/`createEmbedded` stay stubs until a later task
+    // actually needs them.
+    const turnHookRunner = createTurnHookRunner({
+      systemModule,
+      services: {
+        ...createStubTurnHookContextServices(),
+        ...createDocumentWriteTurnHookContextServices({
+          store,
+          db,
+          ns,
+          seqStore,
+          opBuffer,
+          worldId,
+        }),
+        applyDamage: (p) => actorMechanicsService.applyDamage(p, "system"),
+        applyCondition: (p) => actorMechanicsService.applyCondition(p, "system"),
+      },
+      logger: this.logger,
+    });
     const combatDeps = {
       store,
       seqStore,
@@ -440,6 +501,7 @@ export class SocketManager {
       ns,
       formulaRegistry,
       eventBus,
+      turnHookRunner,
       db,
       worldId,
       logger: this.logger,
@@ -460,12 +522,28 @@ export class SocketManager {
     registry.register("combat:reorder", buildCombatReorderHandler(combatDeps));
     registry.register("combat:endCombat", buildCombatEndHandler(combatDeps));
 
-    // REQ-CBT-053..055: token targeting (ephemeral; userId server-authoritative).
-    const targetingStore = new TargetingStore();
+    // targetingStore constructed earlier (near `store`) so chat:send can use it too.
     const targetDeps = { store, seqStore, ns, targetingStore };
     registry.register("combat:target", buildCombatTargetHandler(targetDeps));
     // REQ-CBT-055: clear a targeter's targets when their combatant's turn ends.
     registerTargetingCleanup(targetDeps, eventBus);
+
+    // ALQ-F1-08 / REQ-SYS-142: `actor:applyDamage` — permission, anti-cheat
+    // (montante/alvos relidos da rolagem gravada) and D-04 redaction all live
+    // in `actorMechanicsService`, constructed above.
+    registry.register(
+      "actor:applyDamage",
+      buildApplyDamageHandler({ service: actorMechanicsService }),
+    );
+
+    // ALQ-F1-09 / REQ-SYS-142, REQ-PF2-215, REQ-CBT-056: `actor:applyCondition`
+    // — same permission/target-resolution discipline as `actor:applyDamage`
+    // above (GM: any actor; player: own actor or live TargetSelection), via
+    // the same `actorMechanicsService`.
+    registry.register(
+      "actor:applyCondition",
+      buildApplyConditionHandler({ service: actorMechanicsService }),
+    );
 
     // Register M3-D compendium handlers (REQ-CMP-010..024)
     const compSvc = compendiumService ?? new CompendiumService();
@@ -509,6 +587,27 @@ export class SocketManager {
     // DEC-CPD-05 / REQ-CPD-061/073: the sheet door. Not gated by role — gated
     // by OWNER of the destination actor, inside the service.
     registry.register("compendium:importToActor", buildCompendiumImportToActorHandler(compDeps));
+
+    // ALQ-F2-11 / REQ-SYS-143/144: `item:consume` — permission, atomicity
+    // (expectedVersion) and the post-consume hook run all live in
+    // item-handlers.ts; the game-specific plan is whatever the active system
+    // registered via `registrar.registerConsumeItem`.
+    registry.register(
+      "item:consume",
+      buildItemConsumeHandler({
+        store,
+        db,
+        ns,
+        seqStore,
+        opBuffer,
+        worldId,
+        systemModule,
+        targetingStore,
+        compendium: compSvc,
+        actorMechanicsService,
+        logger: this.logger,
+      }),
+    );
 
     // REQ-NET-003/014: auth middleware runs before connection is accepted
     ns.use((socket, next) => {

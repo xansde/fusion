@@ -67,6 +67,7 @@ Estas specs foram geradas a partir da pesquisa em [`docs/research/`](../docs/res
 | 43  | [Aba Compêndio](43-aba-compendio.md)                                    | Aba da gaveta: estante, busca no acervo, trazer  |
 | 44  | [Aba Cenas](44-aba-cenas.md)                                            | Aba da gaveta: o que está no ar, acervo, preparo |
 | 45  | [Atores](45-atores.md)                                                  | O que é um ator, facetas, ciclo de vida, posse   |
+| 47  | [Fabricação e Alquimia](47-fabricacao-e-alquimia.md)                 | Recurso de classe, preparação diária, fabricação |
 | 52  | [Caçador, Companheiro e Montaria](52-cacador-companheiro-e-montaria.md) | Presa no token, efeito em outro ator, montado    |
 
 ## Níveis
@@ -134,6 +135,7 @@ pelo `tools/spec-lint`; alterá-la sem mover os requisitos correspondentes quebr
 | `REQ-CPD-`  | [43](43-aba-compendio.md)                  | Aba Compêndio (painel da gaveta)     |
 | `REQ-CEN-`  | [44](44-aba-cenas.md)                      | Aba Cenas (painel da gaveta)         |
 | `REQ-ATR-`  | [45](45-atores.md)                         | Atores (conceito, facetas, posse)    |
+| `REQ-FAB-`  | [47](47-fabricacao-e-alquimia.md)         | Fabricação e alquimia                |
 | `REQ-BHR-`  | [52](52-cacador-companheiro-e-montaria.md) | Caçador, companheiro e montaria      |
 
 <!-- prefixos:end -->
@@ -144,13 +146,14 @@ Números reservados e ainda não escritos:
 - **46** — **Recipientes**. Reservada pela `45` (DEC-ATR-13, DEC-ATR-17): dona do saque, do
   comércio e de quem pode abrir um recipiente. A `45` define a faceta `container` e como se
   ganha e se perde; o que se **faz** com ela é desta spec.
-- **47** — **Fabricação e Alquimia** (`REQ-FAB-`). Reservada pelo plano do Alquimista (ALQ-F3-01).
-- **48** — **Aflições e Mutágenos** (`REQ-AFL-`). Reservada pelo plano do Alquimista (ALQ-F6-01).
-- **49** — **Custo de ação, reação e aditivo** (`REQ-ACO-`). Reservada pelo plano do Alquimista (ALQ-F7-01).
+- **48** — **Aflições e Mutágenos** (`REQ-AFL-`). Reservada pela `47`: consome o item infundido
+  e o resolvedor de DC de item (REQ-FAB-037), e é dona do veneno, da doença e do mutágeno.
+- **49** — **Custo de ação, reação e aditivo** (`REQ-ACO-`). Reservada pela `47`: consome o
+  hook de rascunho de item (REQ-FAB-028) e é dona da oferta de reação e do aditivo.
 - **50** — **Animista e conjuração dupla** (`REQ-ANI-`). Reservada pelo plano do Animista (ANI-F0-01).
 - **51** — **Combate marcial** (`REQ-GUE-`). Reservada pelo plano do Guerreiro (GUE-F0-01).
 
-A **52** (Caçador, Companheiro e Montaria) nasceu nesta faixa e já está no índice. Até 47–51
+A **52** (Caçador, Companheiro e Montaria) nasceu nesta faixa e já está no índice. Até 50–51
 serem escritas, as reservas vivem só aqui e nos planos de cada frente — o `spec-lint` não as
 enxerga.
 

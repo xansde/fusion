@@ -27,11 +27,12 @@
   import { canLoadScene } from "../lib/canvas/canvasReadyGate.js";
   import { createSceneLoadGuard } from "../lib/canvas/sceneLoadGuard.js";
   import { activeSceneState } from "../lib/docs/activeScene.svelte.js";
-  import { attachCombatSync } from "../lib/combat/combatStore.svelte.js";
+  import { attachCombatSync, setTargetingViewer } from "../lib/combat/combatStore.svelte.js";
   import { setCombatBadgeViewer } from "../lib/combat/combatBadge.svelte.js";
   import { attachChatSync, attachChatMessageSync } from "../lib/chat/chatStore.svelte.js";
   import Sidebar from "./sidebar/Sidebar.svelte";
   import { registerCoreSidebarTabs } from "../lib/sidebar/registerCoreTabs.js";
+  import { registerCoreChatCardExtensions } from "../lib/chat/registerCoreChatCardExtensions.js";
   import ActiveSceneBadge from "./scenes/ActiveSceneBadge.svelte";
   import NoSceneOverlay from "./scenes/NoSceneOverlay.svelte";
   import ScenePrepareNotice from "./scenes/ScenePrepareNotice.svelte";
@@ -76,12 +77,25 @@
   // opens (REQ-GAV-015/016), and it is idempotent, so a remount is harmless.
   registerCoreSidebarTabs();
 
+  // ALQ-F1-10: CORE's own `actor:applyDamage` summary card
+  // (`flags.fusion.damageApplied` — DF-02, core-level, unlike PF2e's
+  // `flags.pf2e.abilityCard`), through the same `chatCardExtensionRegistry`
+  // a system uses. Idempotent, same reasoning as the tabs above.
+  registerCoreChatCardExtensions();
+
   // REQ-CBA-004: the Combate dot goes amber when the participant of the turn belongs
   // to this user, so the badge has to know which seat this is. Who is logged in is the
   // session's fact, and this is where the session meets the drawer — the rail itself
   // stays ignorant of every badge rule (REQ-GAV-023).
   $effect(() => {
     setCombatBadgeViewer(session.user?.id ?? null);
+  });
+
+  // REQ-CBT-056: getMyTargets()/setMyTargets() (combatStore) are scoped to a
+  // single user — same reasoning as the badge viewer above, this is the one
+  // place session meets the combat store for it.
+  $effect(() => {
+    setTargetingViewer(session.user?.id ?? null);
   });
 
   let loggingOut = $state(false);
