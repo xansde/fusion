@@ -59,29 +59,12 @@
   "rodadas": [
     {
       "onda": 1,
-      "tarefas": [
-        "BHR-F0-01",
-        "BHR-F0-02",
-        "BHR-F1-01",
-        "BHR-F1-02",
-        "BHR-F1-03",
-        "BHR-F1-06"
-      ],
-      "integradas": [
-        "BHR-F0-01",
-        "BHR-F0-02",
-        "BHR-F1-01",
-        "BHR-F1-02",
-        "BHR-F1-03",
-        "BHR-F1-06"
-      ],
+      "tarefas": ["BHR-F0-01", "BHR-F0-02", "BHR-F1-01", "BHR-F1-02", "BHR-F1-03", "BHR-F1-06"],
+      "integradas": ["BHR-F0-01", "BHR-F0-02", "BHR-F1-01", "BHR-F1-02", "BHR-F1-03", "BHR-F1-06"],
       "gate": true,
       "revisao": {
         "achados": 0,
-        "abertos": [
-          "I-3 print real do Alcance Prênsil (F1-09)",
-          "6 menores (revisao.md)"
-        ]
+        "abertos": ["I-3 print real do Alcance Prênsil (F1-09)", "6 menores (revisao.md)"]
       },
       "core_sha": "f41b9794",
       "sat_sha": "73df51d"
