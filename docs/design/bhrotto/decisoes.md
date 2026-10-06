@@ -69,19 +69,27 @@ desbloqueada: curar da fonte). Pendente: idiomas.
   expiração própria (`never`); a saída é a nova Caçar Presa, que substitui o efeito.
 - **Faixa × lista de interruptores (2026-10-06, orquestrador, derivada da D-B23; revisão da onda 5, I-5)**: a faixa "Estados de combate" **substitui** o texto por extenso. `CombatStates` e `RollOptionToggles` ficam só como controle de ligar/desligar (nome, interruptor, ligado/desligado e o motivo de um bloqueio), sem o efeito, o limite nem a dica por extenso. A faixa é o único lugar que mostra o efeito, ao clicar no nome, e traz junto o limite e a dica que a lista mostrava. Cada estado aparece uma vez como estado. Nome e descrição de efeitos e condições vêm do snapshot pt-BR (`flags.fusion.i18n["pt-BR"]`), com o inglês só como reserva.
 
+### Decisões do Alexandre (2026-10-06)
+
+- **RAW é o default**: na falta de decisão explícita, vale a regra do livro (PF2e remaster).
+- **Forçar MAP (BHR-F3-05)**: confirmado. O ataque forçado **conta** para o MAP (todo ataque conta, pela regra); o
+  seletor só escolhe qual penalidade aplicar àquele golpe. Deixa de ser provisório.
+- **Comandar um Animal fora do companheiro**: a decisão provisória acima (Natureza contra a Vontade do animal, na aba
+  Ações) fica confirmada pelo default RAW.
+- **Q (dono × penalidade)**: mantém o comportamento atual. O dono pode remover qualquer efeito do próprio ator,
+  inclusive penalidade aplicada pelo Mestre ou por inimigo; o Mestre também pode.
+- **P-1 (BHR-F4-04)**: o companheiro criado pelo **Mestre** conta no teto do jogador (se o Mestre criar o urso, o
+  Bhrotto só cria mais um).
+- **CI do satélite**: fica desligado, por custo. O gate do satélite é o local (integrador e corretor) mais o CI do core.
+
 ## Perguntas abertas
 
 Perguntas de produto que a revisão da onda 4 levantou. Cada uma tem um comportamento de hoje, provisório; nada foi
 construído dependendo da resposta.
 
-- **Q (dono × penalidade)**: o dono pode remover qualquer efeito do próprio ator, inclusive uma penalidade aplicada
-  pelo Mestre ou por um inimigo? **Hoje pode.** Nada foi construído dependendo da resposta.
-- **Forçar MAP (BHR-F3-05; decisão provisória do orquestrador, a confirmar, 2026-10-06)**: o seletor recolhido
-  "Forçar MAP" deve tirar o ataque da contagem do MAP (`countsForMap: false`, como pede a GUE-F1-05)? **Provisório:
-  não tira.** Pela regra do PF2e todo ataque conta para o MAP, então o ataque forçado continua contando; o seletor só
-  escolhe qual penalidade aplicar àquele golpe.
-- **P-1 (BHR-F4-04)**: o companheiro criado pelo **Mestre** conta no teto do jogador? **Aberta; decisão
-  provisória mantida: conta** (se o Mestre criar o urso, o Bhrotto só cria mais um).
+- **I-5 (revisão da onda 7)**: o jogador deve poder aplicar uma condição pela seleção viva, sem a foto da
+  mensagem (`actor:applyCondition` sem `source.messageId`, contrato REQ-SYS-142 da ALQ-F1-09, de outra frente)?
+  **Hoje pode.** Aberta; o contrato do Alquimista não é alterado por esta frente.
 - ~~**P-2 (BHR-F4-04/F4-10)**: ao criar o 2º companheiro, quem fica **ativo**?~~ **Resolvida**: um só companheiro
   ativo. O primeiro criado nasce ativo; o novo nasce **inativo** e o ativo anterior continua. Quem decide é o
   servidor (o `active` do cliente é ignorado). Trocar o ativo é ação explícita do dono (BHR-F4-10).
