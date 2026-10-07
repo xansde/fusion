@@ -131,6 +131,7 @@ import type {
   ChatSpeaker,
   DamageAppliedTarget,
   DamageAppliedTypeBreakdown,
+  Envelope,
 } from "@fusion/shared";
 import type {
   ActorMechanicsPatch,
@@ -168,6 +169,8 @@ import {
 } from "../chat/chat-handler.js";
 import { createStubTurnHookContextServices } from "./turn-hook-runner.js";
 import { markCombatantDefeatedForActor } from "./combat-handlers.js";
+import { broadcastToWorld } from "../net/handlers/doc-handlers.js";
+import { recomputeDerivedIfNeeded } from "../documents/derive.js";
 
 // ---------------------------------------------------------------------------
 // Public types
@@ -1308,6 +1311,7 @@ function computeApplyCondition(
 
   const results: ActorConditionAppliedResult[] = [];
   const appliedTokenIds: string[] = [];
+  const changedActors: Record<string, unknown>[] = [];
   for (const target of targetResolution.targets) {
     let actorBefore: Record<string, unknown>;
     try {
@@ -1319,7 +1323,8 @@ function computeApplyCondition(
 
     const opts: ApplyConditionOptions = { now: resolveNow(deps.store, target.sceneId) };
     const patch = mechanics.applyCondition(actorBefore, payload, opts);
-    applyMechanicsPatch(deps.store, target.actorId, actorBefore, patch);
+    const actorAfter = applyMechanicsPatch(deps.store, target.actorId, actorBefore, patch);
+    if (patchChangesActor(patch)) changedActors.push(actorAfter);
     if (target.tokenId !== null) appliedTokenIds.push(target.tokenId);
 
     // Echo the REQUEST's own slug/mode/value back per target, rather than
@@ -1343,9 +1348,56 @@ function computeApplyCondition(
     return { ok: false, code: "NOT_FOUND", message: "no target actor could be resolved" };
   }
 
+  // BHR-F7-06 D3: the write above only reached world.db. Every mirror (the GM's, the player's) kept the actor as it
+  // was, so a button reading "does the target have the condition?" stayed stale until a reload.
+  broadcastChangedActors(deps, changedActors);
   recordAppliedCondition(deps, payload, appliedTokenIds);
 
   return { ok: true, result: { targets: results } };
+}
+
+/** Whether a mechanics patch wrote anything to the actor (a no-op removal writes nothing and wakes nobody). */
+function patchChangesActor(patch: ActorMechanicsPatch): boolean {
+  return (
+    Object.keys(patch.diff).length > 0 ||
+    patch.embeddedCreate.length > 0 ||
+    patch.embeddedDelete.length > 0
+  );
+}
+
+/**
+ * One `doc:update` of the actors a condition write changed: same seq, OpBuffer replay and per-user redaction funnel
+ * as every other actor change (the items are re-derived first, like any path that changes an actor's items).
+ * Bookkeeping for the mirrors: the condition is already applied, so a failure is logged and never fails the ack.
+ */
+function broadcastChangedActors(
+  deps: ActorMechanicsServiceDeps,
+  actors: readonly Record<string, unknown>[],
+): void {
+  if (actors.length === 0) return;
+  try {
+    const documents = actors.map((actor) =>
+      recomputeDerivedIfNeeded(
+        {
+          store: deps.store,
+          ...(deps.systemModule ? { systemModule: deps.systemModule } : {}),
+          ...(deps.logger ? { logger: deps.logger } : {}),
+        },
+        "Actor",
+        actor,
+      ),
+    );
+    const envelope: Envelope = {
+      type: "doc:update",
+      seq: deps.seqStore.next(),
+      ts: Date.now(),
+      payload: { documentType: "Actor", documents },
+    };
+    deps.opBuffer.push(envelope);
+    broadcastToWorld(deps.ns, envelope, "Actor");
+  } catch (err) {
+    deps.logger?.warn({ err }, "could not broadcast the actors a condition changed");
+  }
 }
 
 /** `flags.fusion` key under which the server records, on the card a button came from, what that card applied. */

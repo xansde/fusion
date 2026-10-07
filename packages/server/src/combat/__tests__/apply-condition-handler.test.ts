@@ -621,7 +621,14 @@ describe("actor:applyCondition — ActorMechanicsService (ALQ-F1-09, REQ-SYS-142
           );
           expect(ack.ok, JSON.stringify(ack)).toBe(true);
           const docOf = (e: Array<Record<string, unknown>>): Record<string, unknown> => {
-            const env = e.find((x) => x["type"] === "doc:update");
+            // O doc:update do ator alvo (D3) também passa por aqui: o do card é o que leva o `cardId`.
+            const env = e.find(
+              (x) =>
+                x["type"] === "doc:update" &&
+                (x["payload"] as { documents?: Array<Record<string, unknown>> }).documents?.[0]?.[
+                  "_id"
+                ] === cardId,
+            );
             const docs = (env?.["payload"] as { documents: Array<Record<string, unknown>> })
               .documents;
             return docs[0]!;
