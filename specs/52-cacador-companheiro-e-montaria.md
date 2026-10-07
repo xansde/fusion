@@ -744,7 +744,7 @@ deriveAnimalCompanion(input: { type: CompanionType; stage: CompanionStage; maste
 >
 > - **Estágio e trilha.** `specialized` vem **depois** de `nimble` ou `savage` e inclui as vantagens da trilha de onde veio. O estágio continua um valor único; quem indexa por estágio (multiplicador de dados do Apoio, `deriveAnimalCompanion`) DEVE ler por `companionStageIncludes` / `stageDiceMultiplier` (`systems/pf2e/src/schemas/companion-type.ts`), nunca pelo nome cru do estágio. O `stageDiceMultiplier` do efeito traz também `specialized`.
 > - **Alcance e montaria do Apoio.** Não existem predicados `target:within-companion-reach` nem `self:mounted`. O alcance do companheiro é o campo `system.fusion.gate = { withinReachOf: "companion" }` do efeito, avaliado no servidor por `PositionQuery.distanceBetween`; "só montado" é `support.requiresMounted` do tipo.
-> - **Crítico.** _(Revisto na BHR-F7-06, D6.)_ O acerto crítico dobra todo o dano do golpe, inclusive dados extras de habilidades e efeitos (RAW, decisão da mesa): a regra do Apoio do urso carrega `doubleOnCrit: true`. Só o dano persistente continua sem dobrar (o sangramento do Apoio do antílope carrega `doubleOnCrit: false`).
+> - **Crítico.** O dano extra do Apoio do urso é dano do urso: a regra do efeito carrega `doubleOnCrit: false`. O motor de dano ainda não consome `damage-dice`; a BHR-F4-09 DEVE honrar o campo e cobrir o crítico no teste. _(Confirmado na revisão da onda 13, RAW: o texto diz que a criatura sofre o dano "do urso", dano separado do Golpe, então o golpe dobra e o 1d8 do urso não. O teste `extra-damage-pack.test.ts` liga o efeito real do pack ao servidor.)_
 
 ### 7.5 `CombatStatesStrip` (BHR-F2-10)
 

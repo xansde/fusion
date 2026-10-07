@@ -90,6 +90,11 @@ desbloqueada: curar da fonte). Pendente: idiomas.
   comportamento atual está certo. O mecanismo já existe e já está ligado aos cards: o servidor só entrega o nome de um
   ator conhecido (`redactActorDocsForViewer`; o "avistado" vai sem nome) e o card resolve o nome pelo espelho do
   jogador (`resolveTargetName`). Visto no roteiro L4: depois de o Mestre revelar o Ogro, o card do jogador diz "Ogro".
+  O jogador recebe de um monstro Conhecido **sem ownership** só nome, título, retrato e tamanho (DEC-CTT-04,
+  REQ-CTT-074), nunca a ficha (revisão da onda 13, B1); com ownership LIMITED ou mais o corpo segue como antes.
+- **Apoio do urso no crítico (revisão da onda 13, RAW)**: o texto diz que a criatura sofre 1d8 de dano cortante "do
+  urso", dano separado do Golpe. No acerto crítico o golpe dobra e o 1d8 do urso **não** dobra (`doubleOnCrit: false`,
+  como era o contrato original da spec 52). Reverte o D6 da onda 13.
 - **CI do satélite**: fica desligado, por custo. O gate do satélite é o local (integrador e corretor) mais o CI do core.
 
 ## Perguntas abertas

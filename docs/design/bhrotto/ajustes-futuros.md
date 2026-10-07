@@ -147,5 +147,18 @@ O gate "nenhuma regra do Bhrotto inerte" passou a exigir também produtor para o
 - **Presença (D2)**: o roster `presence:online` passou a ser ouvido desde a criação do socket (`SocketManager.connect`); o Mestre vê "conectado" sem esperar outra conexão. Não verificado num navegador.
 - **Rótulos de condição na ficha (correção B)**: `SCAFFOLDING_CONDITION_CATALOG` em `characterSheetVM.ts` ainda tem rótulos em inglês (Prone, Off-Guard...); os do SF2e (`systems/sf2e/src/conditions.ts`) também.
 - **Iniciativa por perícia alternativa**: a tradução do "(Perception)" no chat cobre só Perception; outras perícias saem com o nome em inglês.
-- **Apoio do urso já aplicado**: efeitos criados com `doubleOnCrit: false` não migram (duram uma rodada, impacto nulo).
 - **Condições pt-BR não conferidas contra o livro oficial**: os 41 rótulos seguem o glossário do projeto; sem print nem servidor.
+
+## Registrados pela revisão da onda 13
+
+- **Condições do monstro Conhecido (pergunta para o Alexandre)**: o recorte do B1 não leva os itens `type: "condition"` do monstro Conhecido sem ownership. Se a aba Contatos do jogador deve mostrar "caído", "sangrando" (DEC-CTT-02), é um acréscimo deliberado à allow-list, com emenda na spec 39.
+- **I4 (teste do D4)**: `companionPrey.names-pt.test.ts` prova por regex sobre o fonte `.svelte`, não pelo que o jogador vê. Limitação de SSR; trocar por teste de comportamento quando houver harness de componente.
+- **`token:preview` sem checar oculto**: `ephemeral-handlers.ts` reenvia o preview de arraste do Mestre a toda a sala sem olhar se o token é oculto. Hoje o cliente só guarda; quem desenhar o fantasma de arraste expõe a posição de token oculto.
+- **Dois `attachPresenceSync` na convergência**: se a linha `build/app` (TableScreen, d295c6fe) e esta convergirem, haverá dois listeners (ping e cursor em dobro) e o `stop` da poda é compartilhado.
+- **Teste de presença**: não prova que `disconnect` desliga nem que reconectar não duplica.
+- **Snapshot filtra PC por ownership**: o snapshot mantém personagens com ownership `>= LIMITED`, enquanto ao vivo e no replay "personagem é sempre visível". Um PC com `default:0` aparece ao vivo e some ao recarregar.
+- **Apply de dano sem `doc:update`**: o apply de dano (diferente do de condição, D3) continua sem propagar o ator aos espelhos.
+- **Condição em alvo de token oculto**: `broadcastChangedActors` leva o ator com a condição ao jogador mesmo com o token escondido (igual a qualquer update de ator).
+- **`_id` duplicado no lote**: dois tokens do mesmo ator no mesmo apply geram o mesmo `_id` duas vezes em `documents` (o upsert em ordem resolve; é ruído).
+- **Persistente não dobra**: mantido como decisão da mesa, não conferido como RAW remaster.
+- **Rótulos de condição**: "Sentenciado", "Esgotado", "Estupidificado" seguem o glossário, não o livro em pt-BR.
