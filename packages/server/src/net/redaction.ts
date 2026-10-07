@@ -1269,8 +1269,11 @@ function isPlainObject(value: unknown): value is Record<string, unknown> {
  *      Actor of type "familiar" whose ownership is forced to the master's
  *      (r17-P1); knowledge must not take it away from its owner.
  *
- * Both are restrictions on the FILTER, never grants: an actor that escapes the
- * filter is still gated by `ownership` exactly as before (REQ-CTT-074).
+ * Both are restrictions on the FILTER: an actor that escapes the filter is still
+ * gated by `ownership` exactly as before. An actor that does NOT escape it and is
+ * Known to a viewer with no ownership (below LIMITED) still never gets the ficha:
+ * {@link knownContactView} hands that viewer only name, title, portrait and size
+ * (DEC-CTT-04, REQ-CTT-074 — knowing never grants what ownership denies).
  */
 export function actorIsSubjectToKnowledge(
   doc: Record<string, unknown>,
@@ -1529,6 +1532,30 @@ export function glimpsedContactView(doc: Record<string, unknown>): Record<string
 }
 
 /**
+ * What a viewer owes-to-see of a contact that is KNOWN to them but whose
+ * `ownership` they do not reach LIMITED on (DEC-CTT-04: "conhecido: nome, título
+ * e categoria"; REQ-CTT-074: knowing never grants what ownership denies).
+ *
+ * The allow-list of {@link glimpsedContactView} (id, type, stats, portrait, size
+ * category) plus the identity the Known step reveals — `name` and the free title
+ * (`flags.fusion.title`, spec 39 REQ-CTT-023). No `items`, no `derived`, nothing
+ * else of `system` (the stat block is what Recall Knowledge earns, not a
+ * side effect of a reload), and no `glimpsed` marker: this contact IS identified.
+ * Conditions of the monster are deliberately NOT in the cut (open question for
+ * the Alexandre, see docs/design/bhrotto/ajustes-futuros.md).
+ */
+export function knownContactView(doc: Record<string, unknown>): Record<string, unknown> {
+  const view = glimpsedContactView(doc);
+  delete view["flags"];
+  if (typeof doc["name"] === "string") view["name"] = doc["name"];
+  const flags = doc["flags"];
+  const ns = isPlainObject(flags) ? flags[KNOWLEDGE_FLAG_NAMESPACE] : undefined;
+  const title = isPlainObject(ns) ? ns["title"] : undefined;
+  if (typeof title === "string") view["flags"] = { [KNOWLEDGE_FLAG_NAMESPACE]: { title } };
+  return view;
+}
+
+/**
  * What a non-privileged viewer is owed for a batch of Actor documents.
  *
  * Two halves, because dropping a document is only half of the delta:
@@ -1556,6 +1583,8 @@ export interface RedactedActorBatch {
  * alike.
  * REQ-CTT-081: a contact that was `glimpsed` is reduced to
  * {@link glimpsedContactView}.
+ * REQ-CTT-074: a Known contact the viewer has no LIMITED ownership of is reduced
+ * to {@link knownContactView} (name, title, portrait, size — never the ficha).
  * REQ-CTT-084: every surviving Actor loses its knowledge map.
  * REQ-NPC-082: every surviving Actor loses its attitude.
  * REQ-CTT-074: an Actor the knowledge filter says nothing about — a character, a
@@ -1595,6 +1624,12 @@ export function redactActorDocsForViewer(
     }
     if (state === KnowledgeState.Glimpsed) {
       result.push(glimpsedContactView(doc));
+      continue;
+    }
+    // REQ-CTT-074 / DEC-CTT-04: Known is "nome, título e categoria". The ficha travels only to a viewer whose
+    // ownership already reaches LIMITED; below that, knowing never grants what ownership denies.
+    if (ownershipLevelFor(doc, viewer) < OwnershipLevel.LIMITED) {
+      result.push(knownContactView(doc));
       continue;
     }
     result.push(stripPrivilegedActorFields(doc, viewer));

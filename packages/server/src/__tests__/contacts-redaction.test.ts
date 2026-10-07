@@ -1052,8 +1052,8 @@ describe("spec 39 §5.9 — contact knowledge redacts in the single module (G061
     // Known for Fofurinha is the GM's deliberate act, and the player saw the
     // name live — but the join snapshot used to filter by ownership BEFORE the
     // knowledge funnel and dropped it, so a reload sent them back to "criatura
-    // desconhecida". Ownership still gates (REQ-CTT-074): the GM act is what
-    // makes the contact reachable, never the knowledge map by itself.
+    // desconhecida". Knowing reveals the NAME only (REQ-CTT-074, DEC-CTT-04):
+    // without ownership the ficha stays server-side (see the B1 test below).
     const freshOgreId = await createActor({
       name: OGRE_NAME,
       type: "npc",

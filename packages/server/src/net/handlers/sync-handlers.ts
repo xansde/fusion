@@ -530,8 +530,9 @@ function buildSnapshot(deps: SyncHandlerDeps, userId: string, role: number): Wor
       // Spec 39 §5.9, AFTER derivation on purpose: a glimpsed contact must
       // carry no system data (REQ-CTT-081) but its size category, and deriving
       // first then stripping is the only order that guarantees `system.derived`
-      // never slips back in behind the redaction. Ownership above is still the gate
-      // — this only ever removes more (REQ-CTT-074).
+      // never slips back in behind the redaction. A contact skips the ownership gate
+      // above (the funnel decides), but a Known one the viewer has no LIMITED ownership of is cut
+      // to name/title/portrait/size by the funnel itself (REQ-CTT-074, DEC-CTT-04).
       // A snapshot REPLACES the mirror wholesale, so an absent contact is
       // already forgotten — `removedIds` is a delta concept and has no meaning
       // here (REQ-CTT-075 is served by the broadcast and replay paths).
