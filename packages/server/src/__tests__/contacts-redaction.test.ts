@@ -1092,6 +1092,96 @@ describe("spec 39 §5.9 — contact knowledge redacts in the single module (G061
     bJoinAgain.disconnect();
   });
 
+  it("REQ-CTT-074 / DEC-CTT-04 (BHR-F7-06 revisão B1): a Known contact the viewer has no ownership of arrives as name, title, portrait and size — never the ficha — on snapshot, live broadcast and replay; with LIMITED it arrives whole", async () => {
+    const probe = connectClient(ctx, ctx.playerAToken);
+    const probeTraffic = recordEnvelopes(probe);
+    probe.connect();
+    await waitForConnect(probe);
+    await waitForJoinBatch(probeTraffic);
+    const lastSeq = snapshotSeq(probeTraffic);
+    probe.disconnect();
+
+    const knownBody = (ownership: Record<string, unknown>): Record<string, unknown> => ({
+      name: OGRE_NAME,
+      type: "npc",
+      img: OGRE_PORTRAIT,
+      ownership,
+      system: {
+        traits: { size: "lg", value: ["giant"] },
+        attributes: { hp: { value: 59, max: 59 }, ac: { value: 22 } },
+        details: { level: { value: 3 } },
+        saves: { fortitude: { value: 11 } },
+      },
+      items: [{ name: "Maça Brutal", type: "melee", system: { bonus: { value: 9 } } }],
+      flags: {
+        fusion: {
+          title: OGRE_TITLE,
+          knowledge: { general: KnowledgeState.Known, exceptions: {} },
+        },
+      },
+    });
+
+    const liveTraffic = recordEnvelopes(playerASocket);
+    const noneId = await createActor(knownBody({ default: 0 }));
+    const limitedId = await createActor(knownBody({ default: 1 }));
+    await waitForSeq(liveTraffic, seqOfCreate(limitedId), "player A's copy of the creates");
+
+    const joiner = connectClient(ctx, ctx.playerAToken);
+    const snapshotTraffic = recordEnvelopes(joiner);
+    joiner.connect();
+    await waitForConnect(joiner);
+    await waitForJoinBatch(snapshotTraffic);
+
+    const replayer = connectClient(ctx, ctx.playerAToken, lastSeq);
+    const replayTraffic = recordEnvelopes(replayer);
+    replayer.connect();
+    await waitForConnect(replayer);
+    await waitFor(
+      () => replayedOps(replayTraffic).some((op) => op["seq"] === seqOfCreate(limitedId)),
+      "the replayed creates in the delta",
+    );
+
+    for (const [path, traffic] of [
+      ["live broadcast", liveTraffic],
+      ["join snapshot", snapshotTraffic],
+      ["delta replay", replayTraffic],
+    ] as const) {
+      const none = actorDocsIn(traffic).find((d) => d["_id"] === noneId);
+      // Anchor: the contact DID reach this path, named — absence below means nothing without it.
+      expect({ path, name: none?.["name"] }).toEqual({ path, name: OGRE_NAME });
+      expect({ path, img: none?.["img"] }).toEqual({ path, img: OGRE_PORTRAIT });
+      const flags = none?.["flags"] as Record<string, Record<string, unknown>> | undefined;
+      expect({ path, title: flags?.["fusion"]?.["title"] }).toEqual({ path, title: OGRE_TITLE });
+      // DEC-CTT-04: name, title and category. Of `system`, only the size; no items, no derived, no marker.
+      expect({ path, system: none?.["system"] }).toEqual({
+        path,
+        system: { traits: { size: "lg" } },
+      });
+      expect({ path, hasItems: none !== undefined && "items" in none }).toEqual({
+        path,
+        hasItems: false,
+      });
+      expect(flags?.["fusion"]).not.toHaveProperty("knowledge");
+      expect(flags?.["fusion"]).not.toHaveProperty("glimpsed");
+      const wire = JSON.stringify(actorDocsIn(traffic).filter((d) => d["_id"] === noneId));
+      expect(wire).not.toContain("Maça Brutal");
+      expect(wire).not.toContain('"hp"');
+      expect(wire).not.toContain('"giant"');
+      expect(wire).not.toContain('"derived"');
+      // Every path yields exactly what the single module yields (REQ-CTT-083).
+      expect({ path, doc: none }).toEqual({ path, doc: expectedFor(noneId, ctx.playerAId) });
+
+      // With LIMITED the ownership already entitles the viewer: the contact arrives as it always did.
+      const limited = actorDocsIn(traffic).find((d) => d["_id"] === limitedId);
+      expect({ path, name: limited?.["name"] }).toEqual({ path, name: OGRE_NAME });
+      expect({ path, items: Array.isArray(limited?.["items"]) }).toEqual({ path, items: true });
+      expect((limited?.["system"] as Record<string, unknown> | undefined)?.["saves"]).toBeDefined();
+    }
+
+    joiner.disconnect();
+    replayer.disconnect();
+  });
+
   // -------------------------------------------------------------------------
   // REQ-CTT-085 / REQ-CTT-080 — the title is a server-checked write
   // -------------------------------------------------------------------------
