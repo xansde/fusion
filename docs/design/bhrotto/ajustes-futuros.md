@@ -4,14 +4,15 @@ Consolidado no fechamento da frente, por tema. Cada linha diz o que falta e de o
 revisão; REQ = requisito). O comportamento de hoje continua até alguém pegar o item. Itens resolvidos ou decididos
 saíram (ver [decisoes.md](decisoes.md)).
 
-## Perguntas de produto para o Alexandre
+## Decididos pelo Alexandre, a implementar (2026-10-07)
 
-- **Condições do monstro Conhecido no recorte do jogador**: o recorte do B1 não leva os itens `type: "condition"` do
-  monstro Conhecido sem ownership. Mostrar "caído", "sangrando" na aba Contatos (DEC-CTT-02) é acréscimo deliberado à
-  allow-list, com emenda na spec 39 (onda 13).
-- **Personagem já criado não recebe regra nova do pack**: pede migração do snapshot de talento (O1 da onda 13).
-- **Vocabulário do tipo de dano**: glossário diz "corte", o protótipo diz "cortante"; unificar é decisão para o app todo
-  (L3, onda 11).
+- **Condições do monstro Conhecido no recorte do jogador**: acrescentar os itens `type: "condition"` do monstro
+  Conhecido sem ownership à allow-list do recorte (B1), mostrar "caído", "sangrando" na aba Contatos (DEC-CTT-02) e
+  emendar a spec 39.
+- **Migração de regra nova do pack**: personagem já criado passa a receber regra nova do pack (migração do snapshot de
+  talento, O1 da onda 13). Ex.: Lutador de Titãs antigo ganha o limite de tamanho.
+- **Tipo de dano "cortante"**: unificar o vocabulário do glossário com o protótipo ("cortante", e o mesmo padrão
+  adjetivo nos demais tipos).
 
 ## Combate e dano
 
