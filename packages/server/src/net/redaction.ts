@@ -1272,7 +1272,8 @@ function isPlainObject(value: unknown): value is Record<string, unknown> {
  * Both are restrictions on the FILTER: an actor that escapes the filter is still
  * gated by `ownership` exactly as before. An actor that does NOT escape it and is
  * Known to a viewer with no ownership (below LIMITED) still never gets the ficha:
- * {@link knownContactView} hands that viewer only name, title, portrait and size
+ * {@link knownContactView} hands that viewer only name, title, portrait, size and the
+ * monster's conditions
  * (DEC-CTT-04, REQ-CTT-074 — knowing never grants what ownership denies).
  */
 export function actorIsSubjectToKnowledge(
@@ -1564,12 +1565,12 @@ function knownConditionViews(items: unknown): Record<string, unknown>[] {
  *
  * The allow-list of {@link glimpsedContactView} (id, type, stats, portrait, size
  * category) plus the identity the Known step reveals — `name` and the free title
- * (`flags.fusion.title`, spec 39 REQ-CTT-023). No `items`, no `derived`, nothing
+ * (`flags.fusion.title`, spec 39 REQ-CTT-023). No items but conditions, no `derived`, nothing
  * else of `system` (the stat block is what Recall Knowledge earns, not a
  * side effect of a reload), and no `glimpsed` marker: this contact IS identified.
  *
- * The one addition (spec 39 REQ-CTT-027 / DEC-CTT-12, decision of 2026-10-07): the
- * items of `type: "condition"`, each cut to {@link knownConditionView}. Other items
+ * The one addition (spec 39 REQ-CTT-086 / DEC-CTT-04, decision of 2026-10-07): the
+ * items of `type: "condition"`, each cut to {@link knownConditionViews}. Other items
  * (strikes, effects, spells, gear) never travel; `items` is absent when the monster
  * carries no condition, and the client mirror replaces the document by `_id`, so a
  * condition removed at the table disappears for whoever knows the monster too.

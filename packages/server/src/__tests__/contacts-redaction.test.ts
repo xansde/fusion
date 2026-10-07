@@ -1346,6 +1346,12 @@ describe("spec 39 §5.9 — contact knowledge redacts in the single module (G061
     // Live: a condition added now reaches the player who knows it, and only him.
     const beforeA = liveA.length;
     const beforeB = liveB.length;
+    const storedConditionId = (): string => {
+      const items = readFromStore(hiddenForBId)["items"] as { _id: string; name: string }[];
+      const bleeding = items.find((i) => i.name === "Sangrando");
+      if (!bleeding) throw new Error("the live condition was not stored");
+      return bleeding._id;
+    };
     const added = await sendOp(gmSocket, "doc:create", {
       documentType: "Item",
       data: [{ type: "condition", name: "Sangrando", system: { slug: "bleeding" } }],
@@ -1360,6 +1366,21 @@ describe("spec 39 §5.9 — contact knowledge redacts in the single module (G061
     const bAfter = JSON.stringify(liveB.slice(beforeB));
     expect(bAfter).not.toContain("Sangrando");
     expect(bAfter).not.toContain(OGRE_NAME);
+
+    // Removing every condition reaches A as a document without `items`: the mirror replaces by `_id`.
+    const beforeRemoval = liveA.length;
+    const removal = await sendOp(gmSocket, "doc:delete", {
+      documentType: "Item",
+      ids: ["cndprone00000001", "cndfrightened001", storedConditionId()],
+      parent: { type: "Actor", id: hiddenForBId },
+    });
+    expect(removal["ok"]).toBe(true);
+    await waitForSeq(liveA, seqOf(removal), "player A's copy of the removal");
+    const afterRemoval = actorDocsIn(liveA.slice(beforeRemoval)).find(
+      (d) => d["_id"] === hiddenForBId,
+    );
+    expect(afterRemoval?.["name"]).toBe(OGRE_NAME);
+    expect(afterRemoval).not.toHaveProperty("items");
 
     joinerA.disconnect();
     replayerA.disconnect();
