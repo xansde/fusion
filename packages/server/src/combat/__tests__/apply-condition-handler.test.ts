@@ -29,6 +29,8 @@ import { mkdirSync, rmSync } from "node:fs";
 import { join } from "node:path";
 import { tmpdir } from "node:os";
 import type { Namespace } from "socket.io";
+import { KnowledgeState } from "@fusion/shared";
+import { registerContactKnowledgeSource } from "../../net/redaction.js";
 
 import { openDatabase, applyMigrations } from "../../db/index.js";
 import type { FusionDatabase } from "../../db/index.js";
@@ -681,6 +683,97 @@ describe("actor:applyCondition — ActorMechanicsService (ALQ-F1-09, REQ-SYS-142
           }
         });
       });
+    });
+
+    // BHR-F7-06 revisão I3: o teste do D3 usava um alvo `character`, que escapa do conhecimento. Aqui os alvos são
+    // NPCs de verdade, um por estado, e o que o jogador recebe é lido do payload do socket dele.
+    it("o doc:update do ator obedece ao funil de conhecimento: Oculto some, Entrevisto sem nome nem itens, Conhecido sem ownership só identidade, PV fora do corpo do jogador", async () => {
+      const pc = createActor(h, "PC do jogador", "player-p");
+      const npc = (name: string, state: number, ownership: Record<string, number>): string =>
+        h.store.create(
+          "actors",
+          {
+            name,
+            type: "npc",
+            ownership,
+            system: {
+              traits: { size: "lg" },
+              attributes: { hp: { value: 59, max: 59 }, ac: { value: 22 } },
+            },
+            items: [{ _id: `atk-${name}`, type: "melee", name: `Golpe de ${name}`, system: {} }],
+            flags: { fusion: { knowledge: { general: 0, exceptions: { [pc]: state } } } },
+          },
+          { userId: GM_CTX.userId },
+        )["_id"] as string;
+      const hiddenId = npc("Espreitador", KnowledgeState.Hidden, { default: 0 });
+      const glimpsedId = npc("Vulto", KnowledgeState.Glimpsed, { default: 0 });
+      const knownNoneId = npc("Ogro", KnowledgeState.Known, { default: 0 });
+      const knownLimitedId = npc("Troll", KnowledgeState.Known, { default: 1 });
+      createSceneWithTokens(
+        h,
+        [hiddenId, glimpsedId, knownNoneId, knownLimitedId].map((actorId, i) => ({
+          _id: `tok-${String(i)}`,
+          name: "alvo",
+          actorId,
+        })),
+      );
+      registerContactKnowledgeSource(h.ns, {
+        listCharacterOwnership: () =>
+          h.store
+            .getAll("actors")
+            .filter((a) => a["type"] === "character")
+            .map((a) => ({ id: a["_id"] as string, ownership: a["ownership"] })),
+      });
+      const emitted: Array<Record<string, unknown>> = [];
+      (h.ns.sockets as unknown as Map<string, unknown>).set("player-p", {
+        data: { userId: "player-p", role: UserRole.PLAYER },
+        emit: (_event: string, envelope: Record<string, unknown>) => emitted.push(envelope),
+      });
+
+      const ack = await h.handler(
+        { targetTokenIds: ["tok-0", "tok-1", "tok-2", "tok-3"], slug: "prone", mode: "add" },
+        GM_CTX,
+      );
+      expect(ack.ok, JSON.stringify(ack)).toBe(true);
+
+      const env = emitted.find(
+        (e) =>
+          e["type"] === "doc:update" &&
+          (e["payload"] as { documentType?: string }).documentType === "Actor",
+      );
+      // Anchor: the envelope arrived — what follows is about its CONTENT, not its absence.
+      expect(env, "o doc:update do ator chegou ao jogador").toBeDefined();
+      const payload = env?.["payload"] as {
+        documents: Array<Record<string, unknown>>;
+        removedIds?: string[];
+      };
+      const byId = (id: string): Record<string, unknown> | undefined =>
+        payload.documents.find((d) => d["_id"] === id);
+
+      // Oculto: only the removal travels.
+      expect(byId(hiddenId)).toBeUndefined();
+      expect(payload.removedIds).toEqual([hiddenId]);
+      // Entrevisto: no name, no items.
+      const glimpsed = byId(glimpsedId);
+      expect(glimpsed).toBeDefined();
+      expect(glimpsed).not.toHaveProperty("name");
+      expect(glimpsed).not.toHaveProperty("items");
+      // Conhecido sem ownership (B1): identity and size, never the ficha nor the condition item.
+      const known = byId(knownNoneId);
+      expect(known?.["name"]).toBe("Ogro");
+      expect(known?.["system"]).toEqual({ traits: { size: "lg" } });
+      expect(known).not.toHaveProperty("items");
+      // Conhecido com LIMITED: the body (with the condition just applied), but never the HP.
+      const limited = byId(knownLimitedId);
+      expect(limited?.["name"]).toBe("Troll");
+      expect(Array.isArray(limited?.["items"])).toBe(true);
+      const hp = (limited?.["system"] as { attributes?: { hp?: unknown } } | undefined)?.attributes
+        ?.hp;
+      expect(hp).toBeUndefined();
+      const wire = JSON.stringify(payload);
+      for (const secret of ["Espreitador", "Vulto", "Golpe de Ogro", '"hp"']) {
+        expect(wire).not.toContain(secret);
+      }
     });
 
     it("GM aplica em qualquer ator mesmo fora da foto", async () => {
