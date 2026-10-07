@@ -303,6 +303,30 @@ describe("the sub-character is inside the owner's card (REQ-CTT-025)", () => {
   });
 });
 
+describe("the sub-character opens its own sheet (pedido do Alexandre, 2026-10-07)", () => {
+  it("the owner gets a real button on the sub-card, wired to the same opener as the card", () => {
+    const mine = cardOf(renderPanel(), "act-fofurinha01");
+
+    expect(mine).toMatch(/<button[^>]*aria-label="Abrir a ficha de Grão"/);
+    expect(mine).not.toContain('tabindex="-1"');
+    expect(code()).toContain("openSheet(sub.id)");
+  });
+
+  it("the GM gets the button too", () => {
+    const body = renderPanel({ isGm: true, userId: "user-gm-1" });
+
+    expect(cardOf(body, "act-fofurinha01")).toMatch(/aria-label="Abrir a ficha de Grão"/);
+  });
+
+  it("another player sees the sub-card but no click to open it", () => {
+    const body = renderPanel({ userId: TOBIAS });
+    const card = cardOf(body, "act-fofurinha01");
+
+    expect(card).toContain('data-sub-id="act-grao000001"');
+    expect(card).not.toContain("Abrir a ficha de Grão");
+  });
+});
+
 // ---------------------------------------------------------------------------
 // Opening the sheet and dragging — REQ-CTT-027 / REQ-CTT-028
 // ---------------------------------------------------------------------------
