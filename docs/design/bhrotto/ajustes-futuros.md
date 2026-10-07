@@ -4,15 +4,13 @@ Consolidado no fechamento da frente, por tema. Cada linha diz o que falta e de o
 revisão; REQ = requisito). O comportamento de hoje continua até alguém pegar o item. Itens resolvidos ou decididos
 saíram (ver [decisoes.md](decisoes.md)).
 
-## Decididos pelo Alexandre, a implementar (2026-10-07)
+## Decididos pelo Alexandre em 2026-10-07 — feitos
 
-- **Condições do monstro Conhecido no recorte do jogador**: acrescentar os itens `type: "condition"` do monstro
-  Conhecido sem ownership à allow-list do recorte (B1), mostrar "caído", "sangrando" na aba Contatos (DEC-CTT-02) e
-  emendar a spec 39.
-- **Migração de regra nova do pack**: personagem já criado passa a receber regra nova do pack (migração do snapshot de
-  talento, O1 da onda 13). Ex.: Lutador de Titãs antigo ganha o limite de tamanho.
-- **Tipo de dano "cortante"**: unificar o vocabulário do glossário com o protótipo ("cortante", e o mesmo padrão
-  adjetivo nos demais tipos).
+- **Condições do monstro Conhecido**: o jogador vê as condições (REQ-CTT-086, PR #320).
+- **Migração de regra nova do pack**: sync das regras dos itens embutidos no boot (REQ-CMP-056, PR #319).
+- **Tipo de dano**: "cortante", "perfurante", "contundente" (PRs #318 e satélite #476). Texto corrido das descrições
+  dos packs (~100 ocorrências de "dano de corte" etc.) ficou como está; o `fix-missing-accents.mjs` ainda reintroduz
+  "concussão" se o pipeline de tradução rodar de novo.
 
 ## Combate e dano
 
