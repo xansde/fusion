@@ -630,6 +630,47 @@ describe("actor:applyCondition — ActorMechanicsService (ALQ-F1-09, REQ-SYS-142
           expect(applied(docOf(gm.emitted))).toEqual({ "add:prone": ["tok-ogre"] });
           expect(applied(docOf(player.emitted))).toEqual({ "add:prone": [] });
         });
+
+        // BHR-F7-06 D3: o servidor gravava a condição no ator e NÃO avisava ninguém. Os espelhos (Mestre e jogador)
+        // ficavam com o ator antigo, e o botão "Caído aplicado" lia esse estado velho até recarregar a página.
+        it("propaga doc:update do ATOR alvo com a condição, para o Mestre e para o jogador", async () => {
+          const { ogre, cardId } = setupCard("player-p");
+          const gm = addSocket("gm-user", UserRole.GAMEMASTER);
+          const player = addSocket("player-p", UserRole.PLAYER);
+          const ack = await h.handler(
+            {
+              targetTokenIds: ["tok-ogre"],
+              slug: "prone",
+              mode: "add",
+              source: { messageId: cardId },
+            },
+            GM_CTX,
+          );
+          expect(ack.ok, JSON.stringify(ack)).toBe(true);
+          const actorDoc = (e: Array<Record<string, unknown>>): Record<string, unknown> | undefined => {
+            for (const env of e) {
+              const payload = env["payload"] as
+                | { documentType?: string; documents?: Array<Record<string, unknown>> }
+                | undefined;
+              if (env["type"] !== "doc:update" || payload?.documentType !== "Actor") continue;
+              const found = payload.documents?.find((d) => d["_id"] === ogre);
+              if (found) return found;
+            }
+            return undefined;
+          };
+          for (const who of [gm, player]) {
+            const doc = actorDoc(who.emitted);
+            expect(doc, "o ator alvo chegou no doc:update").toBeDefined();
+            const items = (doc?.["items"] ?? []) as Array<Record<string, unknown>>;
+            expect(
+              items.some(
+                (i) =>
+                  i["type"] === "condition" &&
+                  (i["system"] as { slug?: string } | undefined)?.slug === "prone",
+              ),
+            ).toBe(true);
+          }
+        });
       });
     });
 
