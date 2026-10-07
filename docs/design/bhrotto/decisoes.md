@@ -85,6 +85,11 @@ desbloqueada: curar da fonte). Pendente: idiomas.
   [ajustes-futuros.md](ajustes-futuros.md). O contrato REQ-SYS-142 do Alquimista não muda nesta frente.
 - **Alcance de golpe (pergunta 1 da onda 10)**: o Fusion **não faz nada** com o alcance do ataque: nem bloqueia nem avisa golpe fora de alcance. Não se constrói checagem de alcance de golpe.
 - **Anti-cheat do Apoio (pergunta 2 da onda 10, M-10)**: não fazer; o Alexandre confia nos jogadores (D-B20). O gate do Apoio continua lido da cópia do efeito no ator.
+- **Nome do monstro nos cards (pergunta da onda 11, D7 do L3)**: o jogador só vê o nome da criatura (ex.: "Ogro") se o
+  Mestre a marcar como **conhecida** em "Quem conhece quem" (contatos, spec 39); senão vê "criatura desconhecida". O
+  comportamento atual está certo. O mecanismo já existe e já está ligado aos cards: o servidor só entrega o nome de um
+  ator conhecido (`redactActorDocsForViewer`; o "avistado" vai sem nome) e o card resolve o nome pelo espelho do
+  jogador (`resolveTargetName`). Visto no roteiro L4: depois de o Mestre revelar o Ogro, o card do jogador diz "Ogro".
 - **CI do satélite**: fica desligado, por custo. O gate do satélite é o local (integrador e corretor) mais o CI do core.
 
 ## Perguntas abertas
