@@ -145,3 +145,7 @@ O gate "nenhuma regra do Bhrotto inerte" passou a exigir também produtor para o
 - **Apply de dano também não propaga o ator**: `computeApplyDamage` grava o HP no ator e só emite o card de resumo; o espelho dos clientes fica velho como o da condição ficava. Fora do escopo desta onda (D3 era a condição); conferir se a barra de PV do token anda sozinha.
 - **Ícone de Caído no token**: com o ator agora propagado, falta só o consumidor visual (já estava em "sem ícone de condição no token").
 - **Presença (D2)**: o roster `presence:online` passou a ser ouvido desde a criação do socket (`SocketManager.connect`); o Mestre vê "conectado" sem esperar outra conexão. Não verificado num navegador.
+- **Rótulos de condição na ficha (correção B)**: `SCAFFOLDING_CONDITION_CATALOG` em `characterSheetVM.ts` ainda tem rótulos em inglês (Prone, Off-Guard...); os do SF2e (`systems/sf2e/src/conditions.ts`) também.
+- **Iniciativa por perícia alternativa**: a tradução do "(Perception)" no chat cobre só Perception; outras perícias saem com o nome em inglês.
+- **Apoio do urso já aplicado**: efeitos criados com `doubleOnCrit: false` não migram (duram uma rodada, impacto nulo).
+- **Condições pt-BR não conferidas contra o livro oficial**: os 41 rótulos seguem o glossário do projeto; sem print nem servidor.
