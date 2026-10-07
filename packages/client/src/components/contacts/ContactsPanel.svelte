@@ -579,6 +579,31 @@
                   />
                   <span class="contact-card__sub-name">{sub.name}</span>
                   <span class="contact-card__sub-kind">{companionKindLabel(sub.kind)}</span>
+                  {#if sub.canOpenSheet}
+                    <button
+                      class="contact-card__icon-btn contact-card__sheet-btn"
+                      type="button"
+                      aria-label={t("FUSION.Contacts.OpenSheet", { name: sub.name })}
+                      onclick={() => openSheet(sub.id)}
+                    >
+                      <svg
+                        viewBox="0 0 16 16"
+                        width="13"
+                        height="13"
+                        aria-hidden="true"
+                        focusable="false"
+                      >
+                        <path
+                          d="M4 2.2h6.2L13 5v8.8H4z"
+                          fill="none"
+                          stroke="currentColor"
+                          stroke-width="1.3"
+                          stroke-linejoin="round"
+                        />
+                        <path d="M6 7.4h5M6 10h3.5" fill="none" stroke="currentColor" stroke-width="1.3" />
+                      </svg>
+                    </button>
+                  {/if}
                   {#if sub.conditions.length > 0}
                     <ConditionChips conditions={sub.conditions} idPrefix={`sub-${sub.id}`} />
                   {/if}
@@ -1203,6 +1228,10 @@
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
+  }
+
+  .contact-card__sub .contact-card__sheet-btn {
+    margin-left: auto;
   }
 
   .contact-card__sub-kind {

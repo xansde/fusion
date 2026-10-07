@@ -446,6 +446,17 @@ describe("sub-characters live inside the owner's card (REQ-CTT-025)", () => {
     expect(cards.flatMap((card) => card.subCharacters.map((sub) => sub.name))).toEqual(["Grão"]);
   });
 
+  it("pedido do Alexandre (2026-10-07): a sub-ficha só abre para o Mestre e para o dono", () => {
+    const subOf = (userId: string, isPrivileged: boolean) =>
+      sectionFor(userId, isPrivileged)
+        .mine.concat(sectionFor(userId, isPrivileged).others)
+        .find((card) => card.id === "act-fofurinha01")!.subCharacters[0]!;
+
+    expect(subOf(ALEX, false).canOpenSheet).toBe(true);
+    expect(subOf(GM, true).canOpenSheet).toBe(true);
+    expect(subOf(TOBIAS, false).canOpenSheet).toBe(false);
+  });
+
   it("REQ-CTT-021: a sub-character carries conditions and no hit points either", () => {
     const [sub] = sectionFor(ALEX).mine[0]!.subCharacters;
 

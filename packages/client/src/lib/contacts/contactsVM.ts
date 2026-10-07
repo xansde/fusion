@@ -134,6 +134,8 @@ export interface SubContactCard {
   readonly img: string | null;
   /** Kind of companion as the system stored it ("familiar", "animalCompanion", …). */
   readonly kind: string;
+  /** Whether the viewer may open this companion's own sheet: the GM or its owner. */
+  readonly canOpenSheet: boolean;
   readonly conditions: readonly ConditionView[];
 }
 
@@ -470,6 +472,8 @@ function byName(a: { name: string }, b: { name: string }): number {
 function buildSubCard(
   doc: ContactActorDoc,
   declarations: ReadonlyMap<string, ConditionDisplayContract> | undefined,
+  userId: string,
+  isPrivileged: boolean,
 ): SubContactCard {
   const kind = text(record(doc.system)["companionKind"]) || COMPANION_ACTOR_SUBTYPE;
   return {
@@ -477,6 +481,7 @@ function buildSubCard(
     name: displayName(doc),
     img: doc.img ?? null,
     kind,
+    canOpenSheet: isPrivileged || ownsContact(doc, userId),
     conditions: buildContactConditions(doc, declarations),
   };
 }
@@ -534,7 +539,9 @@ export function buildTableSection(input: TableSectionInput): TableSection {
       canEditTitle: canEditContactTitle(doc, input.userId, input.isPrivileged),
       draggable: canDragContactToCanvas(input.isPrivileged),
       conditions: buildContactConditions(doc, declarations),
-      subCharacters: [...subs].map((sub) => buildSubCard(sub, declarations)).sort(byName),
+      subCharacters: [...subs]
+        .map((sub) => buildSubCard(sub, declarations, input.userId, input.isPrivileged))
+        .sort(byName),
     };
     (isMine ? mine : others).push(card);
   }
