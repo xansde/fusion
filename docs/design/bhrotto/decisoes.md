@@ -99,11 +99,21 @@ desbloqueada: curar da fonte). Pendente: idiomas.
 
 ## Perguntas abertas
 
-Perguntas de produto que a revisão da onda 4 levantou. Cada uma tem um comportamento de hoje, provisório; nada foi
-construído dependendo da resposta.
+Detalhes e contexto em [ajustes-futuros.md](ajustes-futuros.md#perguntas-de-produto-para-o-alexandre).
 
-- ~~**P-2 (BHR-F4-04/F4-10)**: ao criar o 2º companheiro, quem fica **ativo**?~~ **Resolvida**: um só companheiro
-  ativo. O primeiro criado nasce ativo; o novo nasce **inativo** e o ativo anterior continua. Quem decide é o
-  servidor (o `active` do cliente é ignorado). Trocar o ativo é ação explícita do dono (BHR-F4-10).
-- ~~**P-3 (BHR-F1-08)**: Tratar Ferimentos, qual CD vem marcada por padrão?~~ **Resolvida**: a CD padrão é **15**
-  (treinado), confirmada; as maiores (especialista 20, mestre 30, lendário 40) continuam escolhíveis.
+- **Condições do monstro Conhecido no recorte do jogador**: mostrar "caído", "sangrando" na aba Contatos exige
+  acréscimo à allow-list e emenda na spec 39 (onda 13).
+- **Personagem já criado não recebe regra nova do pack**: pede migração do snapshot de talento (O1, onda 13).
+- **Vocabulário do tipo de dano**: "corte" (glossário) × "cortante" (protótipo); decisão para o app todo (L3, onda 11).
+
+### Resolvidas
+
+- **P-2 (BHR-F4-04/F4-10)**: um só companheiro ativo; o novo nasce inativo, quem decide é o servidor, trocar é ação do
+  dono (revisão da onda 4).
+- **P-3 (BHR-F1-08)**: CD padrão de Tratar Ferimentos é 15 (revisão da onda 4).
+- **Alcance de golpe (onda 10)**: o Fusion não bloqueia nem avisa (Decisões do Alexandre, 2026-10-06).
+- **Anti-cheat do Apoio, M-10 (onda 10)**: não fazer, confia nos jogadores (Decisões do Alexandre, 2026-10-06).
+- **Nome do monstro nos cards, D7 (onda 11)**: só criatura Conhecida mostra o nome (Decisões do Alexandre, 2026-10-06).
+- **Aplicar condição, I-5 (onda 7)**: mantém a mira no clique; alvo da rolagem virou ajuste futuro (Decisões do
+  Alexandre, 2026-10-06).
+- **Forçar MAP, Comandar Animal, dono × penalidade, P-1**: confirmados (Decisões do Alexandre, 2026-10-06).
