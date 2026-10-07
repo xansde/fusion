@@ -12,7 +12,7 @@ import { mkdirSync, rmSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { tmpdir } from "node:os";
 
-import { CompendiumService } from "../compendium/index.js";
+import { CompendiumService, resolveSystemPacksDir } from "../compendium/index.js";
 import { syncEmbeddedPackRules } from "../compendium/embedded-rules-sync.js";
 import { openDatabase, applyMigrations } from "../db/index.js";
 import { DocumentStore } from "../documents/store.js";
@@ -62,7 +62,9 @@ function tmp(): string {
   dirs.push(dir);
   return dir;
 }
+const openDbs: { close(): void }[] = [];
 afterEach(() => {
+  for (const db of openDbs.splice(0)) db.close();
   for (const d of dirs.splice(0)) rmSync(d, { recursive: true, force: true });
 });
 
@@ -88,6 +90,7 @@ function setup(packDocs: unknown[]) {
   const fusionDb = openDatabase({ path: dbPath, skipIntegrityCheck: true });
   applyMigrations(fusionDb.raw, dbPath);
   const db = fusionDb.raw;
+  openDbs.push(db);
   return { packsRoot, svc, db, store: new DocumentStore({ db }) };
 }
 type Ctx = ReturnType<typeof setup>;
@@ -204,5 +207,27 @@ describe("syncEmbeddedPackRules (REQ-CMP-056)", () => {
 
     expect(out.itemsUpdated).toBe(1);
     expect(readItems(ctx.db, id)[0]!["system"].rules).toEqual([changed]);
+  });
+
+  it("real pf2e pack: Lutador de Titas snapshot from before wave 10 gains the size limit", () => {
+    const packsDir = resolveSystemPacksDir("pf2e");
+    if (packsDir === null) return; // submodule not checked out
+    const svc = new CompendiumService();
+    svc.discoverPacks(packsDir, "pf2e");
+    const ctx = setup([]);
+    const id = createActor(ctx.store, [
+      embedded({
+        name: "Titan Wrestler",
+        system: { rules: [] },
+        flags: { fusion: { packName: "feats", sourceId: "KxaYlC50zzHysJj8" } },
+      }),
+    ]);
+
+    run(ctx, svc);
+
+    const kinds = (readItems(ctx.db, id)[0]!["system"].rules as { kind: string }[]).map(
+      (r) => r.kind,
+    );
+    expect(kinds).toContain("fusion-maneuver-size-limit");
   });
 });

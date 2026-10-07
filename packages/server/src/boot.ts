@@ -732,6 +732,24 @@ export async function boot(options: BootOptions): Promise<BootResult> {
       logger.warn("No systemId provided to net context — compendium packs not loaded");
     }
 
+    // REQ-CMP-056: characters created before a pack gained a rule get it now.
+    // Idempotent (a second boot writes nothing) and never fatal to the boot.
+    if (netContext.systemId !== undefined) {
+      try {
+        const { syncEmbeddedPackRules } = await import("./compendium/embedded-rules-sync.js");
+        syncEmbeddedPackRules({
+          db: netContext.db,
+          compendiumService,
+          ...(netContext.systemModule !== undefined
+            ? { systemModule: netContext.systemModule }
+            : {}),
+          logger,
+        });
+      } catch (err) {
+        logger.warn({ err }, "Embedded pack rules sync failed — characters left as they were");
+      }
+    }
+
     const nsOptions: WorldNamespaceOptions = {
       worldId: netContext.worldId,
       db: netContext.db,
