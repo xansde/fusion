@@ -230,4 +230,24 @@ describe("syncEmbeddedPackRules (REQ-CMP-056)", () => {
     );
     expect(kinds).toContain("fusion-maneuver-size-limit");
   });
+
+  it("copies the rule-state flags from the pack and drops the ones the pack no longer has", () => {
+    const doc = packDoc([SIZE_LIMIT_RULE]);
+    (doc["flags"] as { fusion: Record<string, unknown> }).fusion["curatedRules"] = [{ fix: "x" }];
+    (doc["flags"] as { fusion: Record<string, unknown> }).fusion["conversion"] = "full";
+    const ctx = setup([doc]);
+    const id = createActor(ctx.store, [
+      embedded({
+        flags: { fusion: { ...FUSION_ORIGIN, unconvertedRules: [{ old: true }] } },
+      }),
+    ]);
+
+    run(ctx);
+
+    const fusion = readItems(ctx.db, id)[0]!["flags"].fusion;
+    expect(fusion.curatedRules).toEqual([{ fix: "x" }]);
+    expect(fusion.conversion).toBe("full");
+    expect(fusion.unconvertedRules).toBeUndefined();
+    expect(fusion.packName).toBe("feats");
+  });
 });
