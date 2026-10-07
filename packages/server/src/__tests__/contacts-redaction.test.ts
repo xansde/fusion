@@ -709,19 +709,34 @@ describe("spec 39 §5.9 — contact knowledge redacts in the single module (G061
     joiner.disconnect();
   });
 
-  it("REQ-CTT-074: knowledge never grants what ownership denies — a known contact owned by nobody still does not arrive", async () => {
+  it("REQ-CTT-083 (BHR-F7-06 D1): a contact is governed by knowledge on every door — a Known one owned by nobody arrives in the snapshot like it does live; Hidden stays out and Glimpsed comes without a name", async () => {
+    // A monster born with ownership NONE. The funnel (live broadcast, replay) never asked ownership of a contact, so
+    // the snapshot must not either: it used to drop the contact before the funnel ran and a reload lost the reveal.
+    // What ownership still gates are the actors knowledge says nothing about (the `loot` test above).
+    const bare = (name: string, general: number): Record<string, unknown> => ({
+      name,
+      type: "npc",
+      ownership: { default: 0 },
+      flags: { fusion: { knowledge: { general, exceptions: {} } } },
+    });
+    const bareHidden = await createActor(bare("Espreitador Oculto", KnowledgeState.Hidden));
+    const bareGlimpsed = await createActor(bare("Vulto Entrevisto", KnowledgeState.Glimpsed));
     const joiner = connectClient(ctx, ctx.playerAToken);
     const traffic = recordEnvelopes(joiner);
     joiner.connect();
     await waitForConnect(joiner);
     await waitForJoinBatch(traffic);
 
-    // Anchor: the batch that should have carried the denied contact did arrive
-    // and did carry contacts — what is missing is the one ownership shuts out.
+    // Anchors: the batch carried contacts, and the Known one owned by nobody is among them.
     expect(actorDocsIn(traffic).some((doc) => doc["_id"] === knownId)).toBe(true);
+    expect(actorDocsIn(traffic).find((doc) => doc["_id"] === deniedId)?.["name"]).toBe(DENIED_NAME);
 
-    expect(JSON.stringify(traffic)).not.toContain(DENIED_NAME);
-    expect(actorDocsIn(traffic).some((doc) => doc["_id"] === deniedId)).toBe(false);
+    expect(actorDocsIn(traffic).some((doc) => doc["_id"] === bareHidden)).toBe(false);
+    expect(JSON.stringify(traffic)).not.toContain("Espreitador Oculto");
+    const glimpsed = actorDocsIn(traffic).find((doc) => doc["_id"] === bareGlimpsed);
+    expect(glimpsed).toBeDefined();
+    expect(glimpsed).not.toHaveProperty("name");
+    expect(JSON.stringify(traffic)).not.toContain("Vulto Entrevisto");
     joiner.disconnect();
   });
 
