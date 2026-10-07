@@ -1270,7 +1270,9 @@ describe("value translation helpers (r15-A1)", () => {
   it("translateDamageType maps damage slugs", () => {
     expect(translateDamageType("electricity", "pt-BR")).toBe("eletricidade");
     expect(translateDamageType("fire", "pt-BR")).toBe("fogo");
-    expect(translateDamageType("bludgeoning", "pt-BR")).toBe("concussão");
+    expect(translateDamageType("bludgeoning", "pt-BR")).toBe("contundente");
+    expect(translateDamageType("piercing", "pt-BR")).toBe("perfurante");
+    expect(translateDamageType("slashing", "pt-BR")).toBe("cortante");
     expect(translateDamageType("fire", "en")).toBe("fire");
     expect(translateDamageType("unknownType", "pt-BR")).toBe("unknownType");
   });
