@@ -1532,6 +1532,32 @@ export function glimpsedContactView(doc: Record<string, unknown>): Record<string
 }
 
 /**
+ * The allow-list of one condition item a viewer who KNOWS a monster may see
+ * (REQ-CTT-027): id, type, name, icon, and of `system` only the `slug` and the
+ * degree (`value`). Everything else of the item — description, rules, references
+ * to the effect or actor that applied it, flags — stays on the server.
+ */
+function knownConditionViews(items: unknown): Record<string, unknown>[] {
+  if (!Array.isArray(items)) return [];
+  const views: Record<string, unknown>[] = [];
+  for (const raw of items) {
+    if (!isPlainObject(raw) || raw["type"] !== "condition") continue;
+    const view: Record<string, unknown> = { type: "condition" };
+    if (typeof raw["_id"] === "string") view["_id"] = raw["_id"];
+    if (typeof raw["name"] === "string") view["name"] = raw["name"];
+    if (typeof raw["img"] === "string") view["img"] = raw["img"];
+    const system = isPlainObject(raw["system"]) ? raw["system"] : {};
+    const slim: Record<string, unknown> = {};
+    if (typeof system["slug"] === "string") slim["slug"] = system["slug"];
+    const value = system["value"];
+    if (typeof value === "number" || value === null) slim["value"] = value;
+    view["system"] = slim;
+    views.push(view);
+  }
+  return views;
+}
+
+/**
  * What a viewer owes-to-see of a contact that is KNOWN to them but whose
  * `ownership` they do not reach LIMITED on (DEC-CTT-04: "conhecido: nome, título
  * e categoria"; REQ-CTT-074: knowing never grants what ownership denies).
@@ -1541,12 +1567,18 @@ export function glimpsedContactView(doc: Record<string, unknown>): Record<string
  * (`flags.fusion.title`, spec 39 REQ-CTT-023). No `items`, no `derived`, nothing
  * else of `system` (the stat block is what Recall Knowledge earns, not a
  * side effect of a reload), and no `glimpsed` marker: this contact IS identified.
- * Conditions of the monster are deliberately NOT in the cut (open question for
- * the Alexandre, see docs/design/bhrotto/ajustes-futuros.md).
+ *
+ * The one addition (spec 39 REQ-CTT-027 / DEC-CTT-12, decision of 2026-10-07): the
+ * items of `type: "condition"`, each cut to {@link knownConditionView}. Other items
+ * (strikes, effects, spells, gear) never travel; `items` is absent when the monster
+ * carries no condition, and the client mirror replaces the document by `_id`, so a
+ * condition removed at the table disappears for whoever knows the monster too.
  */
 export function knownContactView(doc: Record<string, unknown>): Record<string, unknown> {
   const view = glimpsedContactView(doc);
   delete view["flags"];
+  const conditions = knownConditionViews(doc["items"]);
+  if (conditions.length > 0) view["items"] = conditions;
   if (typeof doc["name"] === "string") view["name"] = doc["name"];
   const flags = doc["flags"];
   const ns = isPlainObject(flags) ? flags[KNOWLEDGE_FLAG_NAMESPACE] : undefined;
@@ -1584,7 +1616,7 @@ export interface RedactedActorBatch {
  * REQ-CTT-081: a contact that was `glimpsed` is reduced to
  * {@link glimpsedContactView}.
  * REQ-CTT-074: a Known contact the viewer has no LIMITED ownership of is reduced
- * to {@link knownContactView} (name, title, portrait, size — never the ficha).
+ * to {@link knownContactView} (name, title, portrait, size and conditions — never the ficha).
  * REQ-CTT-084: every surviving Actor loses its knowledge map.
  * REQ-NPC-082: every surviving Actor loses its attitude.
  * REQ-CTT-074: an Actor the knowledge filter says nothing about — a character, a

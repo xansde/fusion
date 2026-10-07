@@ -21,6 +21,8 @@
  *              reaches a socket without a privileged role.
  * REQ-CTT-085: changing the title is checked on the server — privileged role or
  *              OWNER, anybody else refused.
+ * REQ-CTT-086: a Known contact the viewer does not own reaches him with its conditions
+ *              (and only them) — never the rest of the ficha.
  * REQ-CTT-013: a glimpsed contact cannot be found by name, because there is no
  *              name in the payload to find.
  *
@@ -1183,10 +1185,10 @@ describe("spec 39 §5.9 — contact knowledge redacts in the single module (G061
   });
 
   // -------------------------------------------------------------------------
-  // REQ-CTT-027 / DEC-CTT-12 — conditions of a Known contact (decision of 2026-10-07)
+  // REQ-CTT-086 / DEC-CTT-04 — conditions of a Known contact (decision of 2026-10-07)
   // -------------------------------------------------------------------------
 
-  it("REQ-CTT-027 / DEC-CTT-12: a player who KNOWS a monster sees its conditions (name, slug, degree, icon) and nothing else of the items; a player who does not know it, or only glimpsed it, receives none — on snapshot, live broadcast and replay; the GM is unchanged", async () => {
+  it("REQ-CTT-086 / DEC-CTT-04: a player who KNOWS a monster sees its conditions (name, slug, degree, icon) and nothing else of the items; a player who does not know it, or only glimpsed it, receives none — on snapshot, live broadcast and replay; the GM is unchanged", async () => {
     const probe = connectClient(ctx, ctx.playerAToken);
     const probeTraffic = recordEnvelopes(probe);
     probe.connect();
@@ -1232,7 +1234,7 @@ describe("spec 39 §5.9 — contact knowledge redacts in the single module (G061
         system: { bonus: { value: 9 } },
       },
     ];
-    const monster = (exceptions: Record<string, number>): Record<string, unknown> => ({
+    const monster = (general: number): Record<string, unknown> => ({
       name: OGRE_NAME,
       type: "npc",
       img: OGRE_PORTRAIT,
@@ -1243,18 +1245,25 @@ describe("spec 39 §5.9 — contact knowledge redacts in the single module (G061
       },
       items: conditionItems,
       flags: {
-        fusion: { title: OGRE_TITLE, knowledge: { general: KnowledgeState.Known, exceptions } },
+        fusion: { title: OGRE_TITLE, knowledge: { general, exceptions: {} } },
       },
     });
 
     const liveA = recordEnvelopes(playerASocket);
     const liveB = recordEnvelopes(playerBSocket);
-    // A knows it (general rule); B does not (hidden by exception).
-    const hiddenForBId = await createActor(monster({ [charBId]: KnowledgeState.Hidden }));
-    // B only glimpsed it.
-    const glimpsedForBId = await createActor(monster({ [charBId]: KnowledgeState.Glimpsed }));
-    await waitForSeq(liveA, seqOfCreate(glimpsedForBId), "player A's copy of the creates");
-    await waitForSeq(liveB, seqOfCreate(glimpsedForBId), "player B's copy of the creates");
+    // Nobody knows them by the general rule; then only Fofurinha (player A's) comes to know both.
+    // So A KNOWS the first, while B never even glimpsed it (hidden); B only GLIMPSED the second.
+    const hiddenForBId = await createActor(monster(KnowledgeState.Hidden));
+    const glimpsedForBId = await createActor(monster(KnowledgeState.Glimpsed));
+    const known = await sendOp(gmSocket, "actor:setKnowledge", {
+      updates: [
+        { actorId: hiddenForBId, exceptions: { [charAId]: KnowledgeState.Known } },
+        { actorId: glimpsedForBId, exceptions: { [charAId]: KnowledgeState.Known } },
+      ],
+    });
+    expect(known["ok"]).toBe(true);
+    await waitForSeq(liveA, seqOf(known), "player A's copy of the knowledge update");
+    await waitForSeq(liveB, seqOf(known), "player B's copy of the knowledge update");
 
     const joinerA = connectClient(ctx, ctx.playerAToken);
     const snapshotA = recordEnvelopes(joinerA);
@@ -1266,8 +1275,8 @@ describe("spec 39 §5.9 — contact knowledge redacts in the single module (G061
     replayerA.connect();
     await waitForConnect(replayerA);
     await waitFor(
-      () => replayedOps(replayA).some((op) => op["seq"] === seqOfCreate(glimpsedForBId)),
-      "the replayed creates in the delta",
+      () => replayedOps(replayA).some((op) => op["seq"] === seqOf(known)),
+      "the replayed knowledge update in the delta",
     );
 
     for (const [path, traffic] of [
