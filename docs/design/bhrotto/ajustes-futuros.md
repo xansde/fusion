@@ -141,10 +141,7 @@ O gate "nenhuma regra do Bhrotto inerte" passou a exigir também produtor para o
 
 ## Registrados pela onda 13
 
-- **Revelar abre o ownership (D1, pergunta de produto)**: o `actor:setKnowledge` agora grava `ownership` LIMITED (no `default` quando a regra geral é entrevisto ou mais; nos donos do personagem quando é exceção) no mesmo patch, porque o snapshot de join filtra por ownership antes do funil de conhecimento e o monstro nasce NONE (REQ-CTT-074 mantido: o conhecimento sozinho não concede, o gesto do Mestre concede). Fica aberto: baixar o conhecimento depois não devolve o ownership (o funil segue escondendo o contato). Alternativa se o Alexandre preferir: o conhecimento valer como porta para contatos e o snapshot não filtrar por ownership (muda REQ-CTT-074).
-- **Mundos já revelados (D1)**: um contato marcado Conhecido ANTES desta correção continua sem ownership; o Mestre precisa alternar a célula uma vez (ou dar OBSERVER ao contato). Sem migração.
-- **O4 (token "?" do Ogro depois de recarregar)**: mesma causa do D1 (ator ausente do snapshot do jogador); não verificado ao vivo depois da correção.
+- **O4 (token "?" do Ogro depois de recarregar)**: mesma causa do D1 (o snapshot de join descartava o contato por ownership antes do funil de conhecimento); não verificado ao vivo depois da correção.
 - **Apply de dano também não propaga o ator**: `computeApplyDamage` grava o HP no ator e só emite o card de resumo; o espelho dos clientes fica velho como o da condição ficava. Fora do escopo desta onda (D3 era a condição); conferir se a barra de PV do token anda sozinha.
 - **Ícone de Caído no token**: com o ator agora propagado, falta só o consumidor visual (já estava em "sem ícone de condição no token").
 - **Presença (D2)**: o roster `presence:online` passou a ser ouvido desde a criação do socket (`SocketManager.connect`); o Mestre vê "conectado" sem esperar outra conexão. Não verificado num navegador.
-
