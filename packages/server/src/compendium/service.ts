@@ -177,6 +177,9 @@ export class CompendiumService {
    */
   private _dedupIndex: DedupResult | null = null;
 
+  /** Parsed documents per pack id, for {@link getSourceDocumentForSync}. */
+  private readonly _docsByPackId = new Map<string, Map<string, Record<string, unknown>>>();
+
   constructor(logger?: Logger) {
     this.logger = logger ?? null;
   }
@@ -712,6 +715,42 @@ export class CompendiumService {
       this.logger?.warn({ err, ref }, "Failed to read document from pack by source ref");
       return null;
     }
+  }
+
+  /**
+   * Pack document for a `(packName, sourceId)` origin reference, for SERVER-SIDE
+   * callers that are not answering a viewer (REQ-CMP-056: the boot-time sync of
+   * rules into embedded items). Same reverse index as
+   * {@link getDocumentBySourceRef}, but the parsed `documents.json` of each pack
+   * is kept per pack, so syncing N items costs one parse per pack instead of N.
+   *
+   * No audience gate on purpose: the result never reaches a client, it only
+   * decides which rules an item the actor ALREADY owns should carry.
+   */
+  getSourceDocumentForSync(ref: {
+    packName: string;
+    sourceId: string;
+  }): Record<string, unknown> | null {
+    const hit = this._getSourceRefIndex().get(buildSourceRefKey(ref.packName, ref.sourceId));
+    if (!hit) return null;
+    const loaded = this.packs.get(hit.packId);
+    if (!loaded) return null;
+
+    let byId = this._docsByPackId.get(hit.packId);
+    if (!byId) {
+      byId = new Map();
+      try {
+        const docs = JSON.parse(readFileSync(loaded.docsPath, "utf8")) as unknown[];
+        for (const d of docs) {
+          const id = (d as Record<string, unknown> | null)?.["_id"];
+          if (typeof id === "string") byId.set(id, d as Record<string, unknown>);
+        }
+      } catch (err) {
+        this.logger?.warn({ err, packId: hit.packId }, "Failed to read pack documents for sync");
+      }
+      this._docsByPackId.set(hit.packId, byId);
+    }
+    return byId.get(hit.docId) ?? null;
   }
 
   /**

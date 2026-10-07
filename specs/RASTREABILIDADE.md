@@ -40,7 +40,7 @@ porque ainda não foram prometidos para nenhum marco.
 | [13](13-audio-e-playlists.md) | 49 | 0 | 3 | 46 | 0% |
 | [14](14-macros-e-automacao.md) | 34 | 0 | 0 | 34 | 0% |
 | [15](15-api-de-sistemas.md) | 81 | 29 | 31 | 21 | 36% |
-| [16](16-compendiums-e-importacao.md) | 57 | 19 | 16 | 22 | 33% |
+| [16](16-compendiums-e-importacao.md) | 58 | 20 | 16 | 22 | 34% |
 | [17](17-sistema-pf2e.md) | 109 | 68 | 16 | 25 | 62% |
 | [18](18-sistema-sf2e.md) | 46 | 22 | 8 | 16 | 48% |
 | [19](19-sistema-etmos.md) | 46 | 0 | 2 | 44 | 0% |

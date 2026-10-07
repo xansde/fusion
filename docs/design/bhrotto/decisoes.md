@@ -101,10 +101,7 @@ desbloqueada: curar da fonte). Pendente: idiomas.
 
 Detalhes e contexto em [ajustes-futuros.md](ajustes-futuros.md#perguntas-de-produto-para-o-alexandre).
 
-- **Condições do monstro Conhecido no recorte do jogador**: mostrar "caído", "sangrando" na aba Contatos exige
-  acréscimo à allow-list e emenda na spec 39 (onda 13).
-- **Personagem já criado não recebe regra nova do pack**: pede migração do snapshot de talento (O1, onda 13).
-- **Vocabulário do tipo de dano**: "corte" (glossário) × "cortante" (protótipo); decisão para o app todo (L3, onda 11).
+Nenhuma.
 
 ### Resolvidas
 
@@ -117,3 +114,11 @@ Detalhes e contexto em [ajustes-futuros.md](ajustes-futuros.md#perguntas-de-prod
 - **Aplicar condição, I-5 (onda 7)**: mantém a mira no clique; alvo da rolagem virou ajuste futuro (Decisões do
   Alexandre, 2026-10-06).
 - **Forçar MAP, Comandar Animal, dono × penalidade, P-1**: confirmados (Decisões do Alexandre, 2026-10-06).
+- **Condições do monstro Conhecido**: o jogador VÊ as condições (caído, sangrando) de monstro Conhecido — entra na
+  allow-list do recorte do jogador com emenda na spec 39 (Alexandre, 2026-10-07). A implementar.
+- **Regra nova do pack em personagem já criado**: FAZER migração do snapshot de talento (Alexandre, 2026-10-07).
+  A implementar.
+- **Tipo de dano**: "cortante" em todo o app (glossário passa a usar "cortante"; vale para os demais tipos no mesmo
+  padrão adjetivo) (Alexandre, 2026-10-07). A implementar.
+- **MAP de cavaleiro e montaria**: compartilhado, como manda a regra de Combate Montado ("você e a montaria lutam
+  como uma unidade; vocês compartilham a penalidade de ataques múltiplos") — confirmado pelo RAW (2026-10-07).
