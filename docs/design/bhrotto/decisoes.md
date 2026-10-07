@@ -68,6 +68,7 @@ desbloqueada: curar da fonte). Pendente: idiomas.
   Caçar Presa de novo**; **não** expira na preparação diária. Os efeitos Presa e Astúcia ficam sem fronteira de
   expiração própria (`never`); a saída é a nova Caçar Presa, que substitui o efeito.
 - **Faixa × lista de interruptores (2026-10-06, orquestrador, derivada da D-B23; revisão da onda 5, I-5)**: a faixa "Estados de combate" **substitui** o texto por extenso. `CombatStates` e `RollOptionToggles` ficam só como controle de ligar/desligar (nome, interruptor, ligado/desligado e o motivo de um bloqueio), sem o efeito, o limite nem a dica por extenso. A faixa é o único lugar que mostra o efeito, ao clicar no nome, e traz junto o limite e a dica que a lista mostrava. Cada estado aparece uma vez como estado. Nome e descrição de efeitos e condições vêm do snapshot pt-BR (`flags.fusion.i18n["pt-BR"]`), com o inglês só como reserva.
+- **D-B04, emenda (2026-10-07)**: o companheiro abre também pela aba Contatos e a ficha do PJ mostra um resumo na aba Pets (pedido do Alexandre).
 
 ### Decisões do Alexandre (2026-10-06)
 

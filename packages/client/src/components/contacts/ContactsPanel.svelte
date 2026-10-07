@@ -1230,6 +1230,10 @@
     white-space: nowrap;
   }
 
+  .contact-card__sub .contact-card__sheet-btn {
+    margin-left: auto;
+  }
+
   .contact-card__sub-kind {
     font-size: 0.64rem;
     color: var(--fusion-text-subtle);

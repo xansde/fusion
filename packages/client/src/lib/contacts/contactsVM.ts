@@ -539,7 +539,9 @@ export function buildTableSection(input: TableSectionInput): TableSection {
       canEditTitle: canEditContactTitle(doc, input.userId, input.isPrivileged),
       draggable: canDragContactToCanvas(input.isPrivileged),
       conditions: buildContactConditions(doc, declarations),
-      subCharacters: [...subs].map((sub) => buildSubCard(sub, declarations, input.userId, input.isPrivileged)).sort(byName),
+      subCharacters: [...subs]
+        .map((sub) => buildSubCard(sub, declarations, input.userId, input.isPrivileged))
+        .sort(byName),
     };
     (isMine ? mine : others).push(card);
   }
