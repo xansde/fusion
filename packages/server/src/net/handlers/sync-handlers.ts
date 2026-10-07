@@ -29,6 +29,7 @@ import {
   redactSceneDocsForNonPrivileged,
   stripHiddenCombatantsFromCombat,
   redactActorDocsForViewer,
+  actorIsSubjectToKnowledge,
   buildContactViewer,
   contactKnowledgeSourceFromStore,
 } from "../redaction.js";
@@ -473,6 +474,10 @@ function buildSnapshot(deps: SyncHandlerDeps, userId: string, role: number): Wor
         visible = redactSceneDocsForNonPrivileged(all, userId);
       } else {
         visible = all.filter((doc) => {
+          // BHR-F7-06 D1: a contact answers to the knowledge funnel below, exactly as in the live broadcast and the
+          // replay (hidden is dropped there, glimpsed is redacted there). Asking ownership first dropped a monster
+          // born with ownership NONE even after the GM marked it Known, so a reload lost what the live op had shown.
+          if (docType === "Actor" && viewer && actorIsSubjectToKnowledge(doc, viewer)) return true;
           const ownership = getOwnershipFromDoc(doc);
           const level = resolveOwnership(ownership, userId, role);
           return level >= OwnershipLevel.LIMITED;
