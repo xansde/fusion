@@ -1032,6 +1032,51 @@ describe("spec 39 §5.9 — contact knowledge redacts in the single module (G061
     expect(fusion === undefined || !("knowledge" in fusion)).toBe(true);
   });
 
+  it("REQ-CTT-075/REQ-CTT-083 (BHR-F7-06 D1): a contact the GM just marked Known stays Known for the player who reloads — snapshot agrees with the live broadcast", async () => {
+    // A monster dragged in by the GM is born with ownership NONE. Marking it
+    // Known for Fofurinha is the GM's deliberate act, and the player saw the
+    // name live — but the join snapshot used to filter by ownership BEFORE the
+    // knowledge funnel and dropped it, so a reload sent them back to "criatura
+    // desconhecida". Ownership still gates (REQ-CTT-074): the GM act is what
+    // makes the contact reachable, never the knowledge map by itself.
+    const freshOgreId = await createActor({
+      name: OGRE_NAME,
+      type: "npc",
+      img: OGRE_PORTRAIT,
+      ownership: { default: 0 },
+      flags: { fusion: { knowledge: { general: KnowledgeState.Hidden, exceptions: {} } } },
+    });
+    const aTraffic = recordEnvelopes(playerASocket);
+    const ack = await sendOp(gmSocket, "actor:setKnowledge", {
+      updates: [{ actorId: freshOgreId, exceptions: { [charAId]: KnowledgeState.Known } }],
+    });
+    expect(ack["ok"]).toBe(true);
+    await waitForSeq(aTraffic, seqOf(ack), "player A's copy of the knowledge update");
+    // Anchor: live, the player does receive the named contact.
+    const live = actorDocsIn(aTraffic).find((d) => d["_id"] === freshOgreId);
+    expect(live?.["name"]).toBe(OGRE_NAME);
+
+    // The reload: a brand-new socket for the same user.
+    const reloaded = connectClient(ctx, ctx.playerAToken);
+    const snapshotTraffic = recordEnvelopes(reloaded);
+    reloaded.connect();
+    await waitForConnect(reloaded);
+    await waitForJoinBatch(snapshotTraffic);
+    const afterReload = actorDocsIn(snapshotTraffic).find((d) => d["_id"] === freshOgreId);
+    expect(afterReload?.["name"]).toBe(OGRE_NAME);
+    reloaded.disconnect();
+
+    // Player B's character was not told anything: ownership of the contact
+    // must not have opened the door for him.
+    const bJoinAgain = connectClient(ctx, ctx.playerBToken);
+    const bTraffic = recordEnvelopes(bJoinAgain);
+    bJoinAgain.connect();
+    await waitForConnect(bJoinAgain);
+    await waitForJoinBatch(bTraffic);
+    expect(JSON.stringify(bTraffic)).not.toContain(OGRE_NAME);
+    bJoinAgain.disconnect();
+  });
+
   // -------------------------------------------------------------------------
   // REQ-CTT-085 / REQ-CTT-080 — the title is a server-checked write
   // -------------------------------------------------------------------------
