@@ -124,6 +124,9 @@ retrato ou uma silhueta em seu lugar. `conhecido` — nome, título e categoria.
 - **Isto não afrouxa `oculto`:** um ator que o usuário não conhece continua sem ser emitido
   a ele — a mudança é só no degrau `entrevisto` (REQ-CTT-082 permanece intocado).
 
+  > **Emenda de 2026-10-07:** o degrau `conhecido` sem posse do ator passa a incluir também
+  > as condições do ator (REQ-CTT-086) — nada mais da ficha.
+
   > **Emenda obrigada pela spec 41** (`41-token.md`, DEC-TOK-09 e §12, 2026-08-17): a
   > redação anterior redigia nome, título **e retrato** do payload de um contato
   > `entrevisto`. Mas uma peça no mapa precisa da arte para ser desenhada, e o jogador está
@@ -447,6 +450,22 @@ botão de ficha alcançável por teclado e por toque.
   personagens sabem.
 - **REQ-CTT-085** [MVP] Alterar o **título** DEVE ser permitido a papel privilegiado e a
   quem tenha `OWNER` sobre o personagem; qualquer outro DEVE ser recusado pelo servidor.
+- **REQ-CTT-086** [MVP] O payload de um contato `conhecido` entregue a usuário cujo `ownership`
+  não alcança `LIMITED` DEVE conter, além de nome, título, retrato e categoria de tamanho
+  (REQ-CTT-074, DEC-CTT-04), **somente** os itens `type: "condition"` do ator, e de cada um
+  apenas `_id`, `type`, `name`, `img` e, em `system`, `slug` e `value` (o grau). Descrição, regras,
+  referências ao efeito ou ator de origem, `flags` e qualquer outro item (golpes, efeitos,
+  magias, equipamento) NÃO DEVEM viajar; CA, PV e o resto da ficha continuam fora. Quando o ator
+  não carrega condição, `items` fica ausente do payload. A redação ocorre no módulo único
+  (REQ-CTT-083) e vale nos três caminhos de emissão (snapshot, broadcast, replay); quando a
+  condição muda, o delta chega ao usuário que conhece o contato e a mais ninguém — `entrevisto`
+  e `oculto` seguem como em REQ-CTT-081 e REQ-CTT-082. Para papel privilegiado nada muda.
+
+  > **Emenda de 2026-10-07 (decisão do Alexandre):** a correção de segurança da onda 13
+  > (REQ-CTT-074) reduziu o conhecido sem posse a nome, título, retrato e tamanho, e deixou a
+  > condição de fora até a mesa decidir. A mesa decidiu: o jogador VÊ "caído", "sangrando" do
+  > monstro que conhece, como DEC-CTT-02 e DEC-CTT-11 já previam. Conhecer continua não
+  > concedendo a ficha: a allow-list ganha apenas as condições.
 
 ### 5.10 Estado vazio e acessibilidade
 

@@ -758,11 +758,12 @@ describe("actor:applyCondition — ActorMechanicsService (ALQ-F1-09, REQ-SYS-142
       expect(glimpsed).toBeDefined();
       expect(glimpsed).not.toHaveProperty("name");
       expect(glimpsed).not.toHaveProperty("items");
-      // Conhecido sem ownership (B1): identity and size, never the ficha nor the condition item.
+      // Conhecido sem ownership (B1 + REQ-CTT-086): identity and size, plus ONLY the condition items.
       const known = byId(knownNoneId);
       expect(known?.["name"]).toBe("Ogro");
       expect(known?.["system"]).toEqual({ traits: { size: "lg" } });
-      expect(known).not.toHaveProperty("items");
+      const knownItems = known?.["items"] as Array<Record<string, unknown>> | undefined;
+      expect(knownItems?.map((i) => i["type"])).toEqual(["condition"]);
       // Conhecido com LIMITED: the body (with the condition just applied), but never the HP.
       const limited = byId(knownLimitedId);
       expect(limited?.["name"]).toBe("Troll");

@@ -115,10 +115,10 @@ Nenhuma.
   Alexandre, 2026-10-06).
 - **Forçar MAP, Comandar Animal, dono × penalidade, P-1**: confirmados (Decisões do Alexandre, 2026-10-06).
 - **Condições do monstro Conhecido**: o jogador VÊ as condições (caído, sangrando) de monstro Conhecido — entra na
-  allow-list do recorte do jogador com emenda na spec 39 (Alexandre, 2026-10-07). A implementar.
+  allow-list do recorte do jogador com emenda na spec 39 (Alexandre, 2026-10-07). Feito.
 - **Regra nova do pack em personagem já criado**: FAZER migração do snapshot de talento (Alexandre, 2026-10-07).
-  A implementar.
+  Feito.
 - **Tipo de dano**: "cortante" em todo o app (glossário passa a usar "cortante"; vale para os demais tipos no mesmo
-  padrão adjetivo) (Alexandre, 2026-10-07). A implementar.
+  padrão adjetivo) (Alexandre, 2026-10-07). Feito.
 - **MAP de cavaleiro e montaria**: compartilhado, como manda a regra de Combate Montado ("você e a montaria lutam
   como uma unidade; vocês compartilham a penalidade de ataques múltiplos") — confirmado pelo RAW (2026-10-07).
