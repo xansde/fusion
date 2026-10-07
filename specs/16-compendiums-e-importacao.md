@@ -443,6 +443,28 @@ de Foundry.
   snapshot do pack, não view viva). A alternativa descartada foi gravar `name` em
   pt-BR direto na importação; o risco documentado — "o mundo deixa de ser espelho
   puro do pack" — foi o que decidiu pela opção do snapshot em `flags`.
+- **REQ-CMP-056** [MVP] Item embutido num ator (REQ-CMP-021, "trazer para a ficha") é
+  cópia do pack, mas as **regras** dele DEVEM acompanhar o pack: ao subir o servidor,
+  depois de descobrir os packs, para cada item embutido cuja origem
+  (`flags.fusion.packName` + `flags.fusion.sourceId`) resolva para um documento de pack
+  do mesmo `type`, o servidor DEVE copiar para o item **somente** `system.rules` e as
+  chaves de estado de regra `flags.fusion.{unconvertedRules, disabledRules,
+curatedRules, conversion}`. NUNCA DEVE alterar o que é do personagem: nome,
+  quantidade, equipado, notas, runas e as escolhas do jogador
+  (`flags.system.rulesSelections`). Item sem origem, com origem inexistente nos packs
+  carregados (homebrew, removido do pack) ou de `type` diferente fica intocado. A
+  operação DEVE ser idempotente: `flags.fusion.rulesSync` guarda o hash do conteúdo de
+  regra do pack aplicado; item com marcador igual ao hash atual, ou com regras já
+  iguais às do pack, não é gravado, e uma segunda execução sobre os mesmos dados não
+  grava nada. Atores alterados são gravados uma vez (um `update` por ator) e
+  re-derivados. A falha de um ator é registrada e não derruba o boot. Não é migração
+  numerada do banco: o pack muda independente da versão do esquema e a migração não
+  tem acesso ao compêndio. **Limites conhecidos:** edição manual das regras de um
+  item é sobrescrita quando o pack muda (ou na primeira sincronização, se o item
+  nunca foi marcado); concessões novas (`GrantItem`) que o pack ganhar não
+  materializam itens concedidos em personagens antigos — só a regra do próprio item é
+  trazida. Fecha o caso da Q7 para itens embutidos em atores; documentos importados
+  para o mundo como entidades próprias seguem independentes do pack.
 - **REQ-CMP-022** [MVP] Na importação, referências `@UUID` internas ao **mesmo pack**
   para itens que também forem importados em lote DEVEM ser **remapeadas** para os
   novos `_id` de mundo; referências a documentos não importados DEVEM permanecer como
@@ -921,9 +943,10 @@ packer build                 # empacota arquivos-fonte (Etmos) → pack.db (REQ-
   escolhido em `ver 20-`/`ver 26-`.
 - **Q7 — Atualização de packs já importados no mundo.** Quando um pack do sistema é
   re-importado (nova `source.version`), como (ou se) propagar mudanças para documentos
-  **já copiados** para mundos existentes? No MVP a cópia de mundo é independente e não
-  é atualizada automaticamente; avaliar um fluxo de "atualizar do compendium" em
-  `ver 15-`.
+  **já copiados** para mundos existentes? As **regras** dos itens embutidos em atores já são
+  sincronizadas no boot (REQ-CMP-056); a cópia de mundo como entidade própria segue
+  independente e não é atualizada automaticamente; avaliar um fluxo de "atualizar do
+  compendium" em `ver 15-` para o resto.
 - **Q8 — Lore mecânica vs. setting.** A fronteira entre "texto de regra mecânica"
   (importável) e "lore de setting" (Reserved Material) nem sempre é nítida em
   descrições de feats/spells (`docs/research/14-...md` §5.3). Definir heurística de
