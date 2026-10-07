@@ -1,122 +1,147 @@
 # Bhrotto — ajustes futuros
 
-Ajustes já decididos pelo Alexandre, ou achados menores abertos, que ficam para depois. Cada entrada diz o que muda,
-o que toca e de onde veio. O comportamento de hoje continua até alguém pegar o ajuste.
+Consolidado no fechamento da frente, por tema. Cada linha diz o que falta e de onde veio (D/I/M = achado da onda ou
+revisão; REQ = requisito). O comportamento de hoje continua até alguém pegar o item. Itens resolvidos ou decididos
+saíram (ver [decisoes.md](decisoes.md)).
 
-## Aplicar condição usa o alvo da rolagem
+## Perguntas de produto para o Alexandre
 
-- **O que muda**: o botão "Aplicar condição" do card passa a usar o alvo da rolagem (a foto da mensagem,
-  `targetSnapshot`) em vez da mira atual na hora do clique. É o que a regra pede (RAW).
-- **Hoje**: sem `source.messageId`, `actor:applyCondition` aplica em quem está mirado no clique (decidido em
-  2026-10-06: manter por enquanto).
-- **Toca**: o contrato REQ-SYS-142 do Alquimista (ALQ-F1-09), de outra frente.
-- **Origem**: I-5 da revisão da onda 7.
+- **Condições do monstro Conhecido no recorte do jogador**: o recorte do B1 não leva os itens `type: "condition"` do
+  monstro Conhecido sem ownership. Mostrar "caído", "sangrando" na aba Contatos (DEC-CTT-02) é acréscimo deliberado à
+  allow-list, com emenda na spec 39 (onda 13).
+- **Personagem já criado não recebe regra nova do pack**: pede migração do snapshot de talento (O1 da onda 13).
+- **Vocabulário do tipo de dano**: glossário diz "corte", o protótipo diz "cortante"; unificar é decisão para o app todo
+  (L3, onda 11).
 
-## Menores abertos (revisão da onda 7)
+## Combate e dano
 
-- **Caçador de Monstros**: o hook do crítico não confere que a rolagem-pai é um card `hunt-prey`.
-- **"1×/dia por criatura" (DC-04)**: só exibido, não aplicado pelo servidor.
-- **Companheiro órfão**: o `grantSlotId` continua o antigo no servidor depois de voltar ao sub-slot vazio.
+- **Aplicar condição usa o alvo da rolagem**: hoje usa a mira no clique; RAW pede a foto da mensagem (`targetSnapshot`).
+  Toca o contrato REQ-SYS-142 do Alquimista (I-5, onda 7).
+- **Servidor não confere slug nem grau (M2, onda 12)**: `computeApplyCondition` aplica qualquer slug em qualquer alvo da
+  foto; "oferecido, não aplicado" é garantia só do cliente.
+- **Apply de dano não propaga o ator**: `computeApplyDamage` não emite `doc:update`; conferir se a barra de PV do token
+  anda sozinha (onda 13).
+- **Apoio repetido (M-2, onda 9)**: replay de "Rolar dano" (ou "Dano" e "Crítico" no mesmo card) soma o 1d8 de novo.
+- **Dano persistente do Apoio do antílope (D9, onda 11)**: falta o ciclo da condição (dano no fim do turno, teste de
+  recuperação, fusão de instâncias; F5-03 do plano de condições). Sangramento fica só como anotação no card.
+- **Penalidade de alcance por incremento**: `ignore-range-penalty:2` da presa é inerte porque o Fusion não tem a
+  penalidade; ligar exige construí-la (gate BHR-F2-09, onda 11).
+- **Marcador `grants-hunt-prey`**: inerte, sem leitor nem efeito de jogo (gate BHR-F2-09).
+- **Caçador de Monstros**: o hook do crítico não confere que a rolagem-pai é um card `hunt-prey` (onda 7).
+- **"1×/dia por criatura" (DC-04)**: só exibido, não aplicado pelo servidor (onda 7).
+- **Prévia do crítico das runas (M-8, onda 9)**: não ajusta `deadly`/`fatal`. Runas de propriedade acima dos espaços,
+  depois de baixar a potência, ficam invisíveis no editor.
+- **Agarrado/contido (M-6, onda 9)**: expiração "até o fim do seu próximo turno" só no texto, sem expiração no motor.
+- **Persistente não dobra**: mantido como decisão da mesa, não conferido como RAW remaster (onda 13).
+- **Cavaleiro não-combatente (F5-05, onda 8)**: atacando no turno da montaria combatente não conta.
 
-## Chat não confere a posse do ator que fala (pré-existente)
+## Condições e cards
 
-- **O que muda**: o servidor passa a exigir OWNER do `speakerActorId` de quem não é privilegiado (ou descarta o
-  `actorId` do speaker sem posse).
-- **Hoje**: `chat-handler.ts:508-513` aceita o `speaker.actorId` do payload sem checar posse, e
-  `sanitizeAbilityCard` (`:2237-2241`) só exige `casterActorId === speakerActorId`. Dá para forjar um card (ex.:
-  "comanda o urso") em nome de ator alheio.
-- **Gravidade**: média-baixa. O MAP, a CD e o dano já conferem posse (aplicar dano exige OWNER do ator que fala);
-  sobram a personificação no chat e registros falsos.
-- **Origem**: I-8 da revisão da onda 8. Tarefa própria da faixa A; fora do escopo da onda 8.
+- **Ícone de Caído (e de qualquer condição) no token**: `TokenSprite` só desenha barras, nome e selos; o ator já é
+  propagado, falta o consumidor visual (D2 onda 12; onda 13).
+- **Estado "aplicado" do card (I1, onda 12)**: depende do registro do servidor; alvo fora do espelho do jogador segue
+  "aplicado ✓" depois que a condição sai; condição aplicada por outro caminho não aparece.
+- **Recusa genérica por código (M5, onda 12)**: FORBIDDEN junta "alvo fora da foto", "card de outro dono" e "fora da
+  mira viva"; separar pede código novo no protocolo.
+- **Foto de alvo do card de manobra**: outras fontes que nomeiem a mensagem do botão sem foto própria seguem o mesmo
+  caminho; sem caso conhecido (onda 12).
+- **Condição em alvo de token oculto**: `broadcastChangedActors` leva o ator com a condição ao jogador mesmo com o token
+  escondido (onda 13).
+- **Botão Comandar/Apoio (M2, onda 11)**: não troca o texto para "Comandado (2 ações)" nem mostra o bloco "Apoio
+  aplicado" do protótipo; é UI.
+- **Card de Comandar (onda 8)**: artigo "o" fixo ("comanda o Luna", REQ-CHT-063); com companheiro presente usa sempre a
+  variante automática, mesmo mirando outro animal.
+- **Sabor do dano (M3, M5, M7, M8 da correção do L3)**: alvo com `actorId` nulo e token público vira "criatura
+  desconhecida"; `NpcSheet.svelte:303` e sabor de magia com slug cru do tipo; dois companheiros do mesmo tipo (cliente
+  não diz qual foi clicado); sem teste de componente do `damageRollFlavor`.
 
-## Montado em token não vinculado: só o efeito (corrigido), não o resto
+## Companheiros e montaria
 
-- O efeito "Montado" de token não vinculado vai para a `actorDelta.items` do token (I-5, REQ-BHR-187). Ao
-  desmontar, `releaseDismountedRider` tira de lá. Um ator **vinculado** presente em duas cenas continua perdendo o
-  efeito nas duas ao desmontar uma só (a flag é do ator). Raro; fica como está.
+- **Velocidade da montaria carregando cavaleiro**: metade "usa só a Velocidade terrestre" da REQ-BHR-178 sem fiação
+  (`mountedMovementBlock`); o servidor já recusa mover o cavaleiro (onda 8).
+- **Pack ausente**: sem o efeito "Montado" no compendium, Montar grava o par sem o −2, em silêncio; vale aviso no log.
+- **Montado em ator vinculado presente em duas cenas**: perde o efeito nas duas ao desmontar uma só (flag é do ator).
+  Raro (I-5, REQ-BHR-187).
+- **`doc:update` do Mestre que liga `active`** (`doc-handlers.ts:987-1033`): não recusa com montaria nem troca o token;
+  com dois "ligar" no lote vence o último. Edição livre do Mestre.
+- **Flag velha no cliente**: `token-interaction.ts:60` bloqueia o arraste sem conferir reciprocidade.
+- **Posição lógica ≠ desenhada**: cavaleiro gravado ao lado da montaria e desenhado por cima; medição e alcance usam a
+  célula gravada (spec 07 e F5-06 precisam saber).
+- **Empilhamento sem teste**: `TokenSprite.setMountStack` e `TokenLayer._stackRiders`; `scale.set(0.5)` encolhe barras,
+  nameplate e selo de presa; `addChild` a cada render reordena o z.
+- **Ordem do lote do Mestre**: só "montaria, depois cavaleiro" tem teste; "cavaleiro, depois montaria" desmonta.
+- **Companheiro órfão**: `grantSlotId` continua o antigo no servidor depois de voltar ao sub-slot vazio (onda 7).
+- **Troca de token do Chamar Companheiro**: token novo copia flags e disposição; mira/seleção para o `_id` apagado fica
+  órfã; escrita não atômica (onda 8).
+- **Chamar Companheiro montado sem resposta (N3)**: linha habilitada, clique sem efeito nem motivo; desabilitar com o
+  motivo ou mostrar a recusa do servidor (onda 11).
+- **`masterActor` (M-12, onda 9)**: re-derivado a cada rolagem do companheiro, mesmo sem Presa (custo, não erro).
+- **Linha `support` da aba Ações**: depende de ação "support" que nenhum pack tem, nunca aparece; pode sair numa limpeza.
+- **+1d8 do Apoio do urso no card de dano**: não verificado ao vivo (L3), coberto só por teste.
+- **Ramo morto `ANIMAL_COMPANION_GRANT_SOURCE_IDS` (M-2, gate)**: a concessão real do companheiro não é provada pelo
+  gate; item-alterations `description/add` contam como lidas (M-3).
 
-## Menores abertos (revisão da onda 8)
+## Ficha e Plano
 
-- **`doc:update` do Mestre que liga `active`** (`doc-handlers.ts:987-1033`): não recusa com montaria nem troca o
-  token; com dois "ligar" no mesmo lote, vence o último. Nenhuma UI escreve esse caminho: é edição livre do Mestre.
-- **Flag velha no cliente**: `token-interaction.ts:60` bloqueia o arraste de quem tem `mountTokenId` sem conferir a
-  reciprocidade (o `TokenLayer._stackRiders` já confere). O jogador sai pelo Montar, então não fica preso.
-- **Empilhamento sem teste**: `TokenSprite.setMountStack` e `TokenLayer._stackRiders`; `container.scale.set(0.5)`
-  encolhe barras, nameplate e selo de presa; o `addChild` a cada render reordena o z. Prints do fechamento do lote.
-- **Posição lógica ≠ desenhada**: o cavaleiro fica gravado ao lado da montaria e é desenhado por cima. Medição e
-  alcance usam a célula gravada até a F5-06; a spec 07 e a F5-06 precisam saber disso.
-- **Ordem do lote do Mestre**: o lote "cavaleiro, depois montaria" desmonta; só "montaria, depois cavaleiro" tem teste.
-- **Velocidade da montaria carregando cavaleiro**: a metade "usa só a Velocidade terrestre" da REQ-BHR-178 não está
-  implementada (`mountedMovementBlock` sem fiação); o servidor já recusa mover o cavaleiro.
-- **Pack ausente**: sem o efeito "Montado" no compendium, Montar grava o par sem o −2, em silêncio. Hoje só há
-  comentário; vale um aviso no log.
-- **F5-05, testes e redação**: os testes de desmonte gravam a cena por SQL e chamam `republishScene` à mão (falta
-  teste de socket de `mount:mount`/`mount:dismount` → `onMountChanged`); cavaleiro não-combatente atacando no turno
-  da montaria combatente não conta; `byActor[partnerActorId]` expõe actorId e contagem de um parceiro oculto
+- **Exceções de elegibilidade (F7-04)**: P1 T1 sem card "Exceções de elegibilidade", sem motivo nem "Pedir liberação ao
+  Mestre"; `system.access` do Noble Bloom curado à mão (`rule-fixes.mjs`/`prerequisiteFixes` não cobrem campo de
+  `system`; travado por `curated-access-field.test.mjs`).
+- **Carteira (F7-03)**: "Ajustar carteira" do Mestre sem campo "motivo" nem registro (quem, quando, motivo), como o
+  protótipo T6.
+- **Slot "skillFeat" cru (D4, onda 12)**: escolha sem item (artefato de fixture) aparece com o tipo cru; robustez
+  opcional.
+- **Herança Crisântemo sem documento (D5)**: nome pt-BR vem de `SUPPLEMENTAL_NAME_ENTRIES` (`planVM.ts`); sai se o pack
+  ganhar o documento. O suplemento pertence ao `translate-packs` (M8, onda 12).
+- **Botão dentro de botão no `PlanSlot` (M7, onda 12)**: selo "Liberar exceção" dentro de `button.plan-slot__body`; tirar
+  o selo do botão-corpo.
+- **Snapshot filtra PC por ownership**: PC com `default:0` aparece ao vivo e some ao recarregar (onda 13).
+- **Plano do Bhrotto em inglês na visão do Mestre (D11, onda 11)**: `PlanColumn.loadContentTranslator` deixa o tradutor
+  nulo se o socket não conectou; tentar de novo quando a conexão subir (hipótese não verificada ao vivo).
+
+## Mestre, contatos e visibilidade
+
+- **Chat não confere a posse do ator que fala**: `chat-handler.ts:508-513` aceita `speaker.actorId` sem checar OWNER e
+  `sanitizeAbilityCard` (`:2237-2241`) só confere `casterActorId === speakerActorId`; dá para forjar card em nome de ator
+  alheio. Gravidade média-baixa; tarefa própria da faixa A (I-8, onda 8). Fecha também o limite de tamanho da manobra
+  sem orador (M-1, onda 10).
+- **`token:preview` sem checar oculto**: `ephemeral-handlers.ts` reenvia o preview de arraste do Mestre a toda a sala;
+  quem desenhar o fantasma expõe token oculto (onda 13).
+- **Token "?" do Ogro depois de recarregar (O4, onda 13)**: mesma causa do D1; não verificado ao vivo.
+- **Presença (D2, onda 13)**: roster `presence:online` ouvido desde `SocketManager.connect`; não verificado em
+  navegador. Teste não prova que `disconnect` desliga nem que reconectar não duplica.
+- **Dois `attachPresenceSync` na convergência**: se `build/app` (TableScreen, d295c6fe) e esta linha convergirem, ping e
+  cursor em dobro e `stop` da poda compartilhado.
+- **Redação (F5-05)**: `byActor[partnerActorId]` expõe actorId e contagem de um parceiro oculto
   (`redaction.ts:1009-1016`).
-- **Card de Comandar**: o artigo "o" é fixo ("comanda o Luna"; a REQ-CHT-063 não tem artigo) e, com companheiro
-  presente, a linha usa sempre a variante automática, mesmo mirando outro animal (para outro animal vale Natureza
-  contra Vontade).
-- **Troca de token do Chamar Companheiro**: o token novo copia flags e disposição do antigo; mira ou seleção
-  apontando para o `_id` apagado fica órfã; a escrita não é atômica (atores e depois cenas).
-- **Testes da aba Ações e da aba Pets leem o fonte** (`commandAnAnimal.tab.test.ts`, `companionActive.render.test.ts`):
-  o satélite só tem `svelte/server` (SSR, sem DOM nem `@testing-library`), então `ActionsTab` não monta em teste e o
-  clique (`useExecutable`) não tem prova executável. Sair disso pede extrair o despacho para uma função pura ou
-  adotar um ambiente de DOM.
-- **Processo**: `doc-handlers.ts` (arquivo-gargalo da §3) foi tocado por duas lanes na mesma onda; o merge saiu limpo.
+- **Chat privado ao jogador sem acesso**: chega vazio, mas revela que "algo foi dito" (mesma regra do resto do servidor).
+- **`_id` duplicado no lote**: dois tokens do mesmo ator no mesmo apply geram o mesmo `_id` em `documents`; ruído.
 
-## Menores abertos (revisão da onda 9)
+## i18n pt-BR
 
-- **Apoio repetido (M-2)**: um replay de "Rolar dano" (ou "Dano" e "Crítico" no mesmo card) soma o 1d8 do Apoio de novo.
-- **Prévia do crítico das runas (M-8)**: a prévia não ajusta `deadly`/`fatal` no crítico.
-- **Runas além dos espaços (M-8)**: runas de propriedade gravadas acima dos espaços, depois de baixar a potência, ficam invisíveis no editor.
-- **`masterActor` (M-12)**: é re-derivado a cada rolagem do companheiro, mesmo sem Presa (custo, não erro).
-- **Agarrado/contido (M-6)**: a expiração "até o fim do seu próximo turno" fica só no texto, sem expiração no motor.
-- **Carteira (F7-03)**: o "Ajustar carteira" do Mestre não tem campo "motivo" nem registro do ajuste (quem, quando, motivo), que o protótipo T6 mostra.
-- **Alcance de golpe (F5-06)**: o Fusion não checa alcance de golpe em lugar nenhum; `isWithinStrikeReach`/`strikeDistance` (alcance a partir de qualquer célula da montaria) estão prontos e testados, sem consumidor. **Decidido (2026-10-06)**: o Fusion não bloqueia nem avisa golpe fora de alcance; o cálculo (inclusive a partir da montaria, F5-06) existe e fica sem uso por decisão do Alexandre (ver decisoes.md).
-- **Exceções de elegibilidade (F7-04)**: P1 T1 sem card "Exceções de elegibilidade", sem motivo da exceção e sem "Pedir liberação ao Mestre"; o `system.access` do Noble Bloom foi curado à mão (o importer o apagaria se regenerar o feats-core). O mecanismo de curadoria (`rule-fixes.mjs`, `prerequisiteFixes`) só cobre regras e texto de pré-requisito, não um campo de `system`; por ora um teste de pack (`curated-access-field.test.mjs`) trava o campo.
+- **Rótulos de condição**: `SCAFFOLDING_CONDITION_CATALOG` (`characterSheetVM.ts`) e `systems/sf2e/src/conditions.ts`
+  ainda em inglês; os 41 rótulos pt-BR seguem o glossário, não o livro ("Sentenciado", "Esgotado", "Estupidificado").
+- **Glossário de "Seek"**: a aba Ações mostra "Investigar"; alinhar `glossary.pt-BR.json` com o livro e o app (L3).
+- **Fim de efeito em inglês no chat (N2)**: "Efeito Effect: Antelope Support terminou em Bhrotto."; usar o nome do
+  snapshot `flags.fusion.i18n["pt-BR"]` (L3).
+- **Iniciativa por perícia alternativa**: tradução do "(Perception)" cobre só Perception (onda 13).
+- **"contundente" × "concussão"** entre editor de runas e aba Ações (D6, onda 12).
 
-## Menores abertos (revisão da onda 10)
+## Cosméticos
 
-- **Gate do Apoio lido da cópia embutida (M-10)**: o `requiresMounted` (e o dado) do Apoio é lido da cópia do efeito no ator, que o dono pode editar; ler pela origem (`origin.itemSourceId` -> pack) se o Alexandre quiser anti-cheat. **Decidido (2026-10-06): não fazer** — o Alexandre confia nos jogadores (D-B20); fica como está.
-- **Limite de tamanho da manobra sem orador (M-1)**: o servidor só julga o limite quando o payload nomeia `speakerActorId` (e, nesse caso, exige OWNER dele, só nas manobras); sem orador o tamanho de quem rola é desconhecido e a regra não opina. Fechar isso depende da tarefa "Chat não confere a posse do ator que fala".
+- Rastreador do Mestre sem nome nas linhas; marcador de turno fora do centro do token empilhado (D10, onda 11).
+- "Chamar Companheiro" desabilitado com o motivo sobreposto ao título; placeholder da busca da aba Ações cortado (D10,
+  D6).
+- Botão "Ajustar carteira" nativo sem estilo; editor de Runas fica aberto depois de Aplicar sem sinal de gravado (D6,
+  onda 12).
 
-## Registrados pela correção do L3 (onda 11)
+## Testes e dívida técnica
 
-- **Dano persistente do Apoio do antílope (D9)**: o Fusion tem a condição `persistent-damage` (definição) e o `actor:applyCondition` aceita `data`, mas nada aplica o dano no fim do turno, nem faz o teste simples de recuperação, nem funde instâncias do mesmo tipo (a F5-03 do plano de condições não foi construída). O sangramento fica só como anotação no card ("não entra na rolagem"). Ligar exige construir esse ciclo, fora do escopo do Bhrotto.
-- **Plano do Bhrotto em inglês na visão do Mestre (D11)**: não é o mecanismo do snapshot (`flags.fusion.i18n`): o Plano traduz nomes por um tradutor que carrega os índices dos packs pelo socket uma vez (`PlanColumn.loadContentTranslator`) e, se o socket ainda não está conectado ou a busca falha, deixa o tradutor nulo para sempre, sem nova tentativa. Hipótese não verificada ao vivo; correção provável: tentar de novo quando a conexão subir.
-- **Cosméticos do D10 que ficaram**: rastreador do Mestre sem nome nas linhas, marcador de turno fora do centro do token empilhado, e motivo sobreposto ao título na linha "Chamar Companheiro" desabilitada (aba Ações). Exigem olhar a tela; não foram mexidos às cegas.
-- **Pergunta de produto (D7)**: o jogador vê o alvo de um card de dano como "criatura desconhecida" quando o espelho dele não tem o nome (token sem nome próprio e ator oculto). O Mestre vê "Ogro". Se o jogador deve ver o nome de um token visível no mapa, o servidor precisa expor o nome pela redação (hoje só some o alvo oculto); a regra de visibilidade de nome de token (REQ-TOK-060/063) é decisão do Alexandre.
-- **Apoio: "Comandado"**: resolvido na correção da revisão do L3 (abaixo): o servidor registra o Comandar no combate (`commandMark`).
-- **Linha `support` da aba Ações**: continua no registro (depende de uma ação "support" que nenhum pack tem, nunca aparece); o gatilho real passou a ser o botão da ficha do companheiro. Pode ser removida numa limpeza.
-
-## Registrados pela correção da revisão da onda 11 (gate BHR-F2-09)
-
-O gate "nenhuma regra do Bhrotto inerte" passou a exigir também produtor para os termos de predicado (`action:*`, marcas) e consumidor para as roll options. Com isso a frase "nenhuma regra está inerte" deixou de valer sem ressalva: hoje há **duas** regras inertes conhecidas, listadas em `KNOWN_INERT` do `bhrotto-rules.test.ts` (o teste falha se a lista crescer ou se uma entrada deixar de ser inerte).
-
-- **Buscar/Rastrear contra a presa (+2): LIGADO.** Faltava a rolagem. `seek` (Percepção) e `track` (Sobrevivência) viraram linhas rolaveis da aba Ações e a rolagem emite `action:seek` / `action:track`, levando o alvo mirado para o servidor resolver `target:mark:hunted-prey`. Sem alvo mirado a rolagem vale sem o bônus. Buscar tem o traço `secret`: a linha rola cega (resolvido na correção da revisão do L3, abaixo); Rastrear rola em público.
-- **Ignorar a penalidade de alcance na presa (`ignore-range-penalty:2`): INERTE, fica como está.** O Fusion não aplica penalidade por incremento de distância em golpe à distância, então não há penalidade para ignorar. Ligar exige construir a penalidade (distância ao alvo por incremento), uma tarefa própria. É a única regra do Bhrotto com efeito de jogo que continua sem leitor.
-- **Marcador `grants-hunt-prey` (classe Caçar Presa): INERTE, sem efeito de jogo.** Contador do vendor (quantas fontes concedem Caçar Presa); nenhuma regra do Bhrotto nem leitor do Fusion o cita, e a ação concedida não depende dele.
-
-## Menores abertos (revisão da onda 11, gate BHR-F2-09)
-
-- **Ramo morto `ANIMAL_COMPANION_GRANT_SOURCE_IDS` (M-2)**: Animal Companion (Ranger) tem 1 regra (alteração de descrição), então passa por `whyInert`, não por `whyDocInert`; o mecanismo real do companheiro (concessão por identidade) não é provado pelo gate.
-- **Alteração de descrição conta como lida (M-3)**: as três item-alterations `description/add` (Outwit x2, Animal Companion) passam por constarem em `ITEM_ALTERATION_HANDLED_FORMS`; são texto de exibição por natureza. `item:tag:hunters-edge-sharing` (Outwit) não tem produtor, sem impacto.
-- **API do gate exportada de um `.test.ts` (M-5)**, **`_env` sem uso em `whyDocInert` (M-6)** e **`sluggify` local duplicando o `sluggifyName` de produção (M-7)**: arrumar se o gate for reaproveitado em outra frente (o lugar certo é um helper).
-- **Vermelho do gate era de compilação (M-8)**: a prova comportamental do "antes da frente" está nos negativos (handlers e forma desregistrados, marca sem produtor).
-
-## Registrados pela correção da revisão do L3 (onda 11)
-
-- **Vocabulário do tipo de dano**: o glossário compartilhado diz "corte" (`slashing`), o protótipo diz "cortante". O rótulo do Apoio usa o adjetivo do protótipo por um mapa local (`companionSupport.ts`: cortante, perfurante, contundente); o resto do app continua com o glossário. Unificar é decisão de vocabulário para o app todo.
-- **Chat privado agora chega vazio ao jogador sem acesso**: o envelope mantém o seq contíguo (sem buraco, sem resync), mas revela que "algo foi dito"; o conteúdo não vaza. Mesma regra que o resto do servidor já seguia.
-- **Comandar fora do turno do dono é recusado em combate** (`companion:command`, CONFLICT). Fora de combate, ou com o dono fora do encontro, vale o estado local da ficha como antes.
-- **M3** (alvo com `actorId` nulo mas nome de token público vira "criatura desconhecida"), **M5** (sabor do dano de magia e `NpcSheet.svelte:303` ainda com o slug cru do tipo), **M7** (dois companheiros do mesmo tipo: o cliente não diz qual foi clicado) e **M8** (sem teste de componente do `damageRollFlavor` no `AbilityCard.svelte`): abertos, sem impacto hoje.
-- **M2**: o botão Comandar/Apoio ainda não troca o texto para "Comandado (2 ações)" nem mostra o bloco "Apoio aplicado" do protótipo; é só UI, precisa de tela.
-- **Sem teste de componente com DOM**: o satélite roda em ambiente `node` (sem jsdom). O fluxo do Apoio e do Comandar foi extraído para `companionSupportFlow.ts` e testado com socket falso e o `sendOp` real; o clique no botão em si segue coberto por SSR e por roteiro de tela.
-
-## Registrado pela re-execução do L3 (onda 11)
-
-- **Glossário pt-BR de "Seek"**: a aba Ações mostra a linha de Buscar como "Investigar" (busca por "Buscar" não acha). Conferir o glossário (`tools/translate-packs/glossary.pt-BR.json`) e alinhar com o termo usado pelo livro e pelo resto do app.
-- **Fim de efeito em inglês no chat (N2)**: a mensagem do Sistema diz "Efeito Effect: Antelope Support terminou em Bhrotto."; deve usar o nome pt-BR do snapshot (`flags.fusion.i18n["pt-BR"]`), como a ficha já faz.
-- **Chamar Companheiro montado sem resposta (N3)**: com o Bhrotto montado, a linha fica habilitada mas o clique não faz nada (sem card nem motivo); só troca depois de Desmontar. Ou a linha desabilita com o motivo, ou a recusa do servidor aparece na ficha.
-- **+1d8 do Apoio do urso no card de dano**: não verificado ao vivo pelo roteiro do L3 (rolagem sem alvo; ogro fora do alcance do urso); coberto só por teste.
+- **Sem DOM no satélite**: só há `svelte/server`; testes da aba Ações, Pets, `LevelCard` e `companionPrey.names-pt`
+  leem o fonte (frágeis a refatoração) e o clique (`useExecutable`) não tem prova executável. Saída: extrair o despacho
+  para função pura ou adotar `jsdom` (onda 8, M4 e M3 da onda 12, I4 da onda 13).
+- **Testes de socket ausentes**: `mount:mount`/`mount:dismount` → `onMountChanged` (desmonte grava a cena por SQL e chama
+  `republishScene` à mão); teste de integração de `apply-condition` via `chat:send` com `flags.parentMessageId` (M3,
+  onda 12).
+- **Gate BHR-F2-09**: API exportada de um `.test.ts` (M-5), `_env` sem uso em `whyDocInert` (M-6), `sluggify` local
+  duplicando `sluggifyName` (M-7); mover para helper se o gate for reaproveitado.
+- **Processo**: `doc-handlers.ts` foi tocado por duas lanes na mesma onda (merge limpo, onda 8).

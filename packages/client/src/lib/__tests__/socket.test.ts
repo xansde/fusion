@@ -26,6 +26,14 @@ class MockEmitter {
     return this;
   }
 
+  off(event: string, cb: (...args: unknown[]) => void): this {
+    this.handlers.set(
+      event,
+      (this.handlers.get(event) ?? []).filter((h) => h !== cb),
+    );
+    return this;
+  }
+
   removeAllListeners(): this {
     this.handlers.clear();
     return this;
@@ -194,6 +202,42 @@ describe("SocketManager state transitions", () => {
     mgr.connect("world-abc");
 
     expect(latestMockSocket!.auth).toMatchObject({ protocolVersion: PROTOCOL_VERSION });
+    mgr.disconnect();
+  });
+});
+
+describe("SocketManager presence wiring (BHR-F7-06 D2)", () => {
+  beforeEach(() => {
+    latestMockSocket = null;
+    vi.resetModules();
+  });
+
+  afterEach(() => {
+    vi.clearAllMocks();
+  });
+
+  it("feeds presenceState.onlineUsers from the presence:online roster the server pushes on connect", async () => {
+    const { SocketManager } = await import("../socket.js");
+    const { presenceState } = await import("../presence/presenceStore.svelte.js");
+    const mgr = new SocketManager(() => "tok");
+
+    mgr.connect("world-1");
+    // The server emits the roster as soon as the handshake is accepted, so the
+    // listener has to exist from the moment the socket does — a listener
+    // attached later (when the table screen mounts) misses that first roster
+    // and the Mestre sees every player as "fora" until somebody else connects.
+    latestMockSocket!.emit("ephemeral", {
+      type: "presence:online",
+      ts: Date.now(),
+      payload: {
+        users: [
+          { userId: "gm-1", userName: "Gamemaster", color: "#e03030", online: true },
+          { userId: "p-1", userName: "Bhrotto", color: "#1f8dd6", online: true },
+        ],
+      },
+    });
+
+    expect(presenceState.onlineUsers.map((u) => u.userId)).toEqual(["gm-1", "p-1"]);
     mgr.disconnect();
   });
 });

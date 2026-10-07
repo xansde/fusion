@@ -7,7 +7,7 @@
  *     is Nimble or Savage); a Strike that misses adds nothing;
  *   - "within reach" is measured edge to edge on the scene: a creature adjacent to the bear (5 feet) is in reach, one
  *     30 feet away is not, even if the owner's Strike hit it;
- *   - the extra damage is the bear's, so a critical hit does NOT double it (unless the effect says so).
+ *   - the extra damage is the bear's ("the creature takes 1d8 from the bear"), so a critical hit does NOT double it (unless the effect says so; the real pack effect is chained to this settlement in extra-damage-pack.test.ts).
  *
  * `settleExtraDamage` is pure (scenes and actors in); `readStrikeHit` reads the card from an in-memory database.
  */

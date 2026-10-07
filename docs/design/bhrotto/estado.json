@@ -531,6 +531,24 @@
       "resumo": "Roteiro tutorial-e2e do L3 (local na skill), prints em .fusion-build/bhrotto/L3/; achou D1–D11; D1–D8 corrigidos na feat/bhrotto (dono do companheiro, botão Apoio real + companion:command por turno no servidor, resync do cliente + envelope vazio de chat no servidor, ordem do chat, alvo/tipo de dano pt-BR, efeitos pt-BR); D9/D10/D11 em ajustes-futuros.",
       "core_sha": "38d4016e",
       "sat_sha": "42c9250"
+    },
+    "BHR-F7-05": {
+      "status": "integrada",
+      "tentativas": 1,
+      "onda": 12,
+      "modelo": "sonnet/medium",
+      "resumo": "Roteiro tutorial-e2e do L4 (local na skill), 36 prints em .fusion-build/bhrotto/L4/, P3 T1/T6; 1a execução achou D1-D6 (jogador não aplicava Caído pelo próprio card, botão sem estado, Liberar exceção abria o picker, herança em inglês); corrigidos na feat/bhrotto; re-execução 29 linhas, 0 divergências.",
+      "core_sha": "5a10c0c5",
+      "sat_sha": "1bc7936"
+    },
+    "BHR-F7-06": {
+      "status": "integrada",
+      "tentativas": 1,
+      "onda": 13,
+      "modelo": "sonnet/high",
+      "resumo": "Roteiro ponta a ponta (local na skill) sobre cópia do a_queda: 101 prints, 109 linhas esperado × tela, 0 divergências na re-execução 2; ficha bate com os números do PDF (CA 19, Fort +9, Ref +7/+5 montado, Von +9, ataque +9, 2d10+4; PV 46 = 49 do PDF menos o talento geral pendente). D1–D7 corrigidos (conhecimento ao recarregar, presença, Caído aplicado ao vivo, i18n de companheiro/chat/condições); D6 revertido na revisão (1d8 do urso é dano do urso, não dobra).",
+      "core_sha": "45d71183",
+      "sat_sha": "d012356"
     }
   },
   "rodadas": [
@@ -711,6 +729,41 @@
       },
       "core_sha": "38d4016e",
       "sat_sha": "42c9250"
+    },
+    {
+      "onda": 12,
+      "tarefas": ["BHR-F7-05"],
+      "integradas": ["BHR-F7-05"],
+      "gate": true,
+      "revisao": {
+        "achados": 59,
+        "abertos": [
+          "M2 servidor não confere slug/grau (lacuna antiga)",
+          "M3 teste do D1 com fixture sintética",
+          "M4 vermelho do D3 não comprovado no histórico",
+          "M7 botão dentro de botão no PlanSlot",
+          "M8 suplemento do tradutor no planVM",
+          "ícone de condição no token",
+          "D6 cosméticos"
+        ]
+      },
+      "core_sha": "5a10c0c5",
+      "sat_sha": "1bc7936"
+    },
+    {
+      "onda": 13,
+      "tarefas": ["BHR-F7-06"],
+      "integradas": ["BHR-F7-06"],
+      "gate": true,
+      "revisao": {
+        "achados": 38,
+        "abertos": [
+          "I4 teste do D4 por regex no fonte",
+          "menores e ajustes consolidados em docs/design/bhrotto/ajustes-futuros.md"
+        ]
+      },
+      "core_sha": "45d71183",
+      "sat_sha": "d012356"
     }
   ],
   "lotes": {
@@ -728,6 +781,11 @@
       "fechado": true,
       "core_sha": "38d4016e",
       "sat_sha": "42c9250"
+    },
+    "L4": {
+      "fechado": true,
+      "core_sha": "45d71183",
+      "sat_sha": "d012356"
     }
   }
 }

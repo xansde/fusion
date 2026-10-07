@@ -1345,7 +1345,7 @@ export function buildChatContextHandler(deps: ChatHandlerDeps): HandlerFn {
  * `author_id` are deliberately left alone — the message keeps its position in
  * the log, which is the whole point of invalidating instead of deleting.
  */
-function rewriteChatMessage(db: Db, msg: ChatMessage): void {
+export function rewriteChatMessage(db: Db, msg: ChatMessage): void {
   db.prepare(`UPDATE chat_messages SET data = ?, updated_at = ? WHERE id = ?`).run(
     JSON.stringify(msg),
     Date.now(),

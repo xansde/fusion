@@ -19,6 +19,7 @@
 
 import { io, type Socket } from "socket.io-client";
 import { PROTOCOL_VERSION } from "@fusion/shared";
+import { attachPresenceSync } from "./presence/attachPresenceSync.js";
 
 // ---------------------------------------------------------------------------
 // Connection state
@@ -44,6 +45,7 @@ export class SocketManager {
   private _listeners: Set<ConnectionStateListener> = new Set();
   private _pingInterval: ReturnType<typeof setInterval> | null = null;
   private _rttMs: number | null = null;
+  private _detachPresence: (() => void) | null = null;
 
   /** Token supplier — injected so the manager doesn't import fusionApi directly. */
   constructor(private readonly getToken: () => string | null) {}
@@ -104,6 +106,10 @@ export class SocketManager {
 
     this._socket = socket;
     this._attachHandlers(socket);
+    // REQ-NET-043: the server pushes the presence:online roster the instant the
+    // handshake is accepted, so the listener lives here, with the socket — not in
+    // a screen that mounts later and would miss the first roster (BHR-F7-06 D2).
+    this._detachPresence = attachPresenceSync(socket);
   }
 
   /**
@@ -111,6 +117,8 @@ export class SocketManager {
    */
   disconnect(): void {
     this._stopPing();
+    this._detachPresence?.();
+    this._detachPresence = null;
     if (this._socket) {
       this._socket.removeAllListeners();
       this._socket.disconnect();

@@ -457,6 +457,7 @@
       {isGm}
       {userId}
       {children}
+      flags={message.flags}
     />
   {:else}
     <!-- text / whisper / system (no card) -->
