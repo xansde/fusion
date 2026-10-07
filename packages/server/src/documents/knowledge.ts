@@ -159,11 +159,13 @@ export function ownershipOpeningPatch(
       ? (raw as Record<string, unknown>)
       : { default: OwnershipLevel.NONE };
   const levelOf = (value: unknown): number => (typeof value === "number" ? value : 0);
+  const limited: number = OwnershipLevel.LIMITED;
+  const owner: number = OwnershipLevel.OWNER;
   const defaultLevel = levelOf(current["default"]);
   const entries: Record<string, number> = {};
 
-  if (next.general >= KnowledgeState.Glimpsed && defaultLevel < OwnershipLevel.LIMITED) {
-    entries["default"] = OwnershipLevel.LIMITED;
+  if (next.general >= KnowledgeState.Glimpsed && defaultLevel < limited) {
+    entries["default"] = limited;
   }
   const effectiveDefault = entries["default"] ?? defaultLevel;
 
@@ -178,9 +180,9 @@ export function ownershipOpeningPatch(
     const characterOwnership = character["ownership"];
     if (typeof characterOwnership !== "object" || characterOwnership === null) continue;
     for (const [userId, level] of Object.entries(characterOwnership as Record<string, unknown>)) {
-      if (userId === "default" || levelOf(level) < OwnershipLevel.OWNER) continue;
+      if (userId === "default" || levelOf(level) < owner) continue;
       const has = userId in current ? levelOf(current[userId]) : effectiveDefault;
-      if (has < OwnershipLevel.LIMITED) entries[userId] = OwnershipLevel.LIMITED;
+      if (has < limited) entries[userId] = limited;
     }
   }
 

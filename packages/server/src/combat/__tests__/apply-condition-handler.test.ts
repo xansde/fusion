@@ -654,7 +654,9 @@ describe("actor:applyCondition — ActorMechanicsService (ALQ-F1-09, REQ-SYS-142
             GM_CTX,
           );
           expect(ack.ok, JSON.stringify(ack)).toBe(true);
-          const actorDoc = (e: Array<Record<string, unknown>>): Record<string, unknown> | undefined => {
+          const actorDoc = (
+            e: Array<Record<string, unknown>>,
+          ): Record<string, unknown> | undefined => {
             for (const env of e) {
               const payload = env["payload"] as
                 | { documentType?: string; documents?: Array<Record<string, unknown>> }

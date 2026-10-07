@@ -35,7 +35,11 @@ import type { Ack, Envelope } from "@fusion/shared";
 import { ActorSetKnowledgePayloadSchema } from "@fusion/shared";
 import { isRolePrivileged } from "../../documents/ownership.js";
 import { DocumentNotFoundError } from "../../documents/store.js";
-import { planKnowledgeEdit, isCharacterActor, ownershipOpeningPatch } from "../../documents/knowledge.js";
+import {
+  planKnowledgeEdit,
+  isCharacterActor,
+  ownershipOpeningPatch,
+} from "../../documents/knowledge.js";
 import type { DocHandlerDeps } from "./doc-handlers.js";
 import { broadcastToWorld } from "./doc-handlers.js";
 
