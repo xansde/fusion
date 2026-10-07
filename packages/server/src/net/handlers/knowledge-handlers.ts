@@ -35,7 +35,7 @@ import type { Ack, Envelope } from "@fusion/shared";
 import { ActorSetKnowledgePayloadSchema } from "@fusion/shared";
 import { isRolePrivileged } from "../../documents/ownership.js";
 import { DocumentNotFoundError } from "../../documents/store.js";
-import { planKnowledgeEdit, isCharacterActor } from "../../documents/knowledge.js";
+import { planKnowledgeEdit, isCharacterActor, ownershipOpeningPatch } from "../../documents/knowledge.js";
 import type { DocHandlerDeps } from "./doc-handlers.js";
 import { broadcastToWorld } from "./doc-handlers.js";
 
@@ -93,10 +93,16 @@ export function buildActorSetKnowledgeHandler(deps: DocHandlerDeps): HandlerFn {
       // the same contact, and the second has to plan against what the first
       // just wrote. Existence was settled above and nothing here deletes, so
       // this read cannot come up empty.
-      const plan = planKnowledgeEdit(deps.store.get("actors", edit.actorId), edit);
+      const contact = deps.store.get("actors", edit.actorId);
+      const plan = planKnowledgeEdit(contact, edit);
       if (!plan) continue;
 
-      const result = deps.store.update("actors", edit.actorId, plan.patch, author);
+      // BHR-F7-06 D1: revealing a contact opens it to who it was revealed to,
+      // in the SAME write, so the snapshot a reload gets agrees with the live
+      // broadcast (ownership stays the door, REQ-CTT-074).
+      const opening = ownershipOpeningPatch(deps.store, contact, plan.next);
+      const patch = opening ? { ...plan.patch, ...opening } : plan.patch;
+      const result = deps.store.update("actors", edit.actorId, patch, author);
       if (result !== null) updated.push(result);
     }
 

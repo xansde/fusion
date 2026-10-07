@@ -33,9 +33,11 @@ import {
   normalizeKnowledge,
   KNOWLEDGE_FLAG_NAMESPACE,
   KNOWLEDGE_FLAG_KEY,
+  KnowledgeState,
 } from "@fusion/shared";
 import type { ActorKnowledgeEdit, KnowledgeMap } from "@fusion/shared";
 import { prunedPatch } from "./merge.js";
+import { OwnershipLevel } from "./ownership.js";
 import type { DocumentStore, AuthorContext } from "./store.js";
 
 /**
@@ -126,6 +128,63 @@ export function planKnowledgeEdit(
   const next = applyKnowledgeEdit(current, edit);
   if (knowledgeMapsEqual(current, next)) return null;
   return { patch: knowledgePatchFor(doc, next), next };
+}
+
+/**
+ * The ownership entries the GM's act of revealing a contact must write so the
+ * contact is REACHABLE by the players it was revealed to (BHR-F7-06 D1).
+ *
+ * Ownership stays the door and knowledge only restricts (REQ-CTT-074): a
+ * monster dragged in by the GM is born with ownership NONE, and the join
+ * snapshot — which asks ownership first — never delivered it, so a player who
+ * saw the name live lost it on reload. Instead of letting knowledge grant
+ * access on its own, the explicit GM act (`actor:setKnowledge`) raises the
+ * ownership to LIMITED for exactly who it revealed the contact to: the owners
+ * of each character holding an exception at `entrevisto` or above, and
+ * `default` when the general rule itself is `entrevisto` or above. It never
+ * lowers anything, so lowering knowledge later is the funnel's job (the
+ * contact is withheld by knowledge), not a silent ownership edit.
+ *
+ * Returns a patch fragment (`{ ownership: {...} }`) or `null` when nothing
+ * needs raising.
+ */
+export function ownershipOpeningPatch(
+  store: DocumentStore,
+  contact: Record<string, unknown>,
+  next: KnowledgeMap,
+): Record<string, unknown> | null {
+  const raw = contact["ownership"];
+  const current: Record<string, unknown> =
+    typeof raw === "object" && raw !== null && !Array.isArray(raw)
+      ? (raw as Record<string, unknown>)
+      : { default: OwnershipLevel.NONE };
+  const levelOf = (value: unknown): number => (typeof value === "number" ? value : 0);
+  const defaultLevel = levelOf(current["default"]);
+  const entries: Record<string, number> = {};
+
+  if (next.general >= KnowledgeState.Glimpsed && defaultLevel < OwnershipLevel.LIMITED) {
+    entries["default"] = OwnershipLevel.LIMITED;
+  }
+  const effectiveDefault = entries["default"] ?? defaultLevel;
+
+  for (const [characterId, state] of Object.entries(next.exceptions)) {
+    if (state < KnowledgeState.Glimpsed) continue;
+    let character: Record<string, unknown>;
+    try {
+      character = store.get("actors", characterId);
+    } catch {
+      continue;
+    }
+    const characterOwnership = character["ownership"];
+    if (typeof characterOwnership !== "object" || characterOwnership === null) continue;
+    for (const [userId, level] of Object.entries(characterOwnership as Record<string, unknown>)) {
+      if (userId === "default" || levelOf(level) < OwnershipLevel.OWNER) continue;
+      const has = userId in current ? levelOf(current[userId]) : effectiveDefault;
+      if (has < OwnershipLevel.LIMITED) entries[userId] = OwnershipLevel.LIMITED;
+    }
+  }
+
+  return Object.keys(entries).length === 0 ? null : { ownership: entries };
 }
 
 /**
