@@ -25,6 +25,10 @@ import type { TokenDocument } from "@fusion/shared";
 import type { Socket } from "socket.io-client";
 import type { TokenInteractionOptions } from "../TokenInteractionManager.js";
 import { resetFootprintRegistry, seedFootprintRegistry } from "../footprintRegistry.svelte.js";
+// Preload the manager's module graph while the file is collected: a cold import inside a test
+// can pass the 15 s per-test ceiling on a loaded machine, and every `await import()` below then
+// gets the module already loaded (BAR-F1-01 verification).
+import "../TokenInteractionManager.js";
 
 // ---------------------------------------------------------------------------
 // Minimal fakes — no PIXI required (mirrors TokenInteractionManager.dragFootprint)

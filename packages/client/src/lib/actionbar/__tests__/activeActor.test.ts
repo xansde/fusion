@@ -90,6 +90,20 @@ const spectatorSeat: Seat = {
   ownedCharacters: [],
 };
 
+/**
+ * A MALFORMED seat: `ownedCharacters` lists a character missing from `ownedActorIds` — and as
+ * the most recently used one. A correct store never builds this; it is here so I1 is proven to
+ * hold for any input, not only for the ones a well-behaved caller assembles.
+ */
+const inconsistentSeat: Seat = {
+  viewer: { userId: PLAYER, isGm: false },
+  ownedActorIds: new Set([PC]),
+  ownedCharacters: [
+    { actorId: OTHER_PC, lastUsedAt: 999, tokenId: TOK_OTHER_PC },
+    { actorId: PC, lastUsedAt: 1, tokenId: TOK_PC },
+  ],
+};
+
 const everyProvider = (_actorId: string): boolean => true;
 
 function input(
@@ -374,13 +388,29 @@ describe("resolveActiveActor — as regras da §2.4, caso a caso", () => {
       GM_HIDDEN,
     );
   });
+
+  it("I1 com entrada inconsistente: personagem fora de ownedActorIds nunca vira o ativo", () => {
+    // The store builds `ownedCharacters` from the same ownership read, so this cannot happen
+    // there; the resolver re-checks anyway, so I1 never depends on a well-behaved caller.
+    const result = resolveActiveActor(input(inconsistentSeat, []));
+    expect(result).toStrictEqual(PLAYER_OWN_CHARACTER);
+    expectNoTraceOf(result, OTHER_PC, TOK_OTHER_PC);
+
+    const onlyForeign: Seat = {
+      ...inconsistentSeat,
+      ownedCharacters: [{ actorId: OTHER_PC, lastUsedAt: 999, tokenId: TOK_OTHER_PC }],
+    };
+    const none = resolveActiveActor(input(onlyForeign, []));
+    expect(none).toStrictEqual(NO_CHARACTER);
+    expectNoTraceOf(none, OTHER_PC, TOK_OTHER_PC);
+  });
 });
 
 // ---------------------------------------------------------------------------
 // The invariants I1..I6, over every combination of a small table
 // ---------------------------------------------------------------------------
 
-const SEATS: readonly Seat[] = [playerSeat, otherSeat, gmSeat, spectatorSeat];
+const SEATS: readonly Seat[] = [playerSeat, otherSeat, gmSeat, spectatorSeat, inconsistentSeat];
 
 const SELECTIONS: readonly Selection[] = [
   [],
