@@ -344,8 +344,12 @@ export interface ActiveActorInput {
   selection: ReadonlyArray<{ tokenId: string | null; actorId: string }>;
   /** `ownedActorIdsOf(atores, userId)`: leitura viva e role-blind (só entrada de `ownership` conta). */
   ownedActorIds: ReadonlySet<string>;
-  /** Personagens (`type: "character"`) de que o usuário é OWNER, com o último uso. */
-  ownedCharacters: ReadonlyArray<{ actorId: string; lastUsedAt: number | null }>;
+  /** Personagens (`type: "character"`) de que o usuário é OWNER, com o último uso e o token na cena do canvas (emenda da BAR-F1-01). */
+  ownedCharacters: ReadonlyArray<{
+    actorId: string;
+    lastUsedAt: number | null;
+    tokenId?: string | null;
+  }>;
   /** O ator tem provedor (`actionBarRegistry.resolve("Actor", tipo)`)? Sem provedor não há barra (REQ-BAR-012) e o ator nunca é o ativo: vale a regra seguinte (REQ-BAR-009). */
   hasProvider(actorId: string): boolean;
 }
@@ -379,6 +383,11 @@ export function setActiveActorProviderCheck(fn: (actorId: string) => boolean): v
 ```
 
 O manager ganha `onSelectionChange?: (tokenIds: ReadonlySet<string>) => void` nas suas opções (mesmo padrão do `onOpenSheet`) e a chama em `_selectToken`, no clique no vazio, em Del/Esc e no `destroy()`. O manager continua de seleção única até a BAR-F4-03.
+
+**Emendas da BAR-F1-01** (aceitas pelo orquestrador em 11/10):
+
+- **Só a cena do canvas mexe no ator:** o store só aceita a publicação do manager da cena que o canvas desenha (`resolveCanvasScene`). O `destroy()` do manager de uma cena que já saiu do canvas fica sem efeito, e é isso que deixa a seleção atravessar a troca de cena; já o clique no vazio da cena atual limpa a seleção.
+- **`tokenId` do personagem:** cada item de `ActiveActorInput.ownedCharacters` ganha o campo opcional `tokenId?: string | null`, o token do personagem na cena do canvas que a regra 2 devolve. A mudança é aditiva.
 
 ### 2.5 `flags.fusion.actionBar`: favoritos e ícones (BAR-F3-01, BAR-F3-05)
 
