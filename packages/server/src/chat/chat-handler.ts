@@ -76,10 +76,12 @@ import {
   redactBlindRollForNonPrivileged,
   redactChatDamageAppliedForNonPrivileged,
   redactChatEffectExpiryForNonPrivileged,
+  redactChatSpeakerForNonPrivileged,
   redactChatTargetsForNonPrivileged,
   redactChatTargetSnapshotForNonPrivileged,
   redactSceneDocsForNonPrivileged,
   tokenLookupSourceFromStore,
+  lookupSourceForOnePass,
 } from "../net/redaction.js";
 import type { TokenLookupSource } from "../net/redaction.js";
 import { RollService, RollError } from "./roll-service.js";
@@ -301,6 +303,20 @@ function buildPayloadForSocket(
   authorId: string,
   tokenSource: TokenLookupSource | undefined,
 ): ChatMessage | null {
+  const visible = visiblePayloadForSocket(socket, fullMessage, authorId, tokenSource);
+  const socketData = socket.data as { userId?: string; role?: number } | undefined;
+  if (visible === null || isRolePrivileged(socketData?.role ?? 0)) return visible;
+  // The speaker of a roll an NPC made answers to the contact knowledge too (BAR-F4-01). Applied LAST, on what the
+  // socket may read at all: a message it cannot see must not cost it a read of the speaker and of every character.
+  return redactChatSpeakerForNonPrivileged(visible, socketData?.userId ?? "", tokenSource);
+}
+
+function visiblePayloadForSocket(
+  socket: Socket,
+  fullMessage: ChatMessage,
+  authorId: string,
+  tokenSource: TokenLookupSource | undefined,
+): ChatMessage | null {
   const socketData = socket.data as { userId?: string; role?: number } | undefined;
   const socketUserId = socketData?.userId ?? "";
   const socketRole = socketData?.role ?? 0;
@@ -393,13 +409,16 @@ export function broadcastChatMessage(
   tokenSource?: TokenLookupSource,
 ): number {
   const seq = seqStore.next();
+  // ONE pass: every socket reads the same speaker and the same characters, so they are read once for this
+  // broadcast — and only for it (BAR-F4-01): the next broadcast reads the world again.
+  const passSource = lookupSourceForOnePass(tokenSource);
 
   for (const [, socket] of ns.sockets) {
     // ONE funnel: the blindroll confirmation that REQ-ROL-032 owes the author
     // is built inside `buildPayloadForSocket`, like every other redaction. It
     // used to be a second body assembled right here, which is exactly how the
     // read paths (history/search/context/ack) ended up shipping the total.
-    const payload = buildPayloadForSocket(socket, msg, authorId, tokenSource);
+    const payload = buildPayloadForSocket(socket, msg, authorId, passSource);
 
     // A socket that may not see the message still gets the envelope, EMPTY: the seq was
     // burned for everyone, and the client mirror treats a jump as a gap and resyncs
@@ -507,6 +526,27 @@ export function buildChatSendHandler(deps: ChatHandlerDeps): HandlerFn {
         message: "World ID mismatch",
       };
     }
+
+    // --- Who may speak AS this actor (BAR-F4-01) ---
+    // `speakerActorId` is how a sheet speaks as the actor it shows (a character, a companion, an NPC) and how
+    // the server finds the combatant that is attacking. The client only NAMES it; whether the sender may act as
+    // that actor is the server's call, for every kind of message: the GM always may, anyone else must be an
+    // OWNER. Without this a player could post as any actor whose id they knew — an NPC, another player's
+    // character — with that actor's real name as the speaker. Same answer as the maneuver check below.
+    if (
+      payload.speakerActorId !== undefined &&
+      !mayRollAsActor(deps.db, payload.speakerActorId, ctx)
+    ) {
+      return {
+        ok: false,
+        code: "VALIDATION_FAILED" as const,
+        message: "The speaker actor is not yours",
+      };
+    }
+    // `speakerTokenId` is not gated, as on alfa/app: it names no identity (the alias and the actor come from
+    // `speakerActorId` alone) and its one reader, the MAP counter, checks the ownership of the combatant itself.
+    // A gate would refuse the combatant whose token left the scene, or — relaxed for that — answer differently for
+    // a token that exists, an oracle of the hidden ones.
 
     // --- Parse command ---
     const command = parseChatCommand(payload.content);
@@ -1040,7 +1080,8 @@ export function buildChatHistoryHandler(deps: ChatHandlerDeps): HandlerFn {
         .all(fetchLimit) as typeof rows;
     }
 
-    // Parse and filter by visibility
+    // Parse and filter by visibility — one pass over the page (BAR-F4-01: each speaker is read once).
+    const pageSource = lookupSourceForOnePass(tokenSource);
     const visible: ChatMessage[] = [];
 
     for (const row of rows) {
@@ -1053,7 +1094,7 @@ export function buildChatHistoryHandler(deps: ChatHandlerDeps): HandlerFn {
         continue;
       }
 
-      const redacted = redactForViewer(msg, ctx.userId, privileged, tokenSource);
+      const redacted = redactForViewer(msg, ctx.userId, privileged, pageSource);
       if (redacted !== null) {
         visible.push(redacted);
       }
@@ -1150,6 +1191,8 @@ export function buildChatSearchHandler(deps: ChatHandlerDeps): HandlerFn {
     const messages: ChatMessage[] = [];
     let visibleSeen = 0;
     let hasMore = false;
+    // One pass over the scan (BAR-F4-01: each speaker is read once).
+    const pageSource = lookupSourceForOnePass(tokenSource);
 
     for (const raw of statement.iterate(pattern, CHAT_SEARCH_SCAN_CAP)) {
       const row = raw as { id: string; data: string };
@@ -1162,7 +1205,7 @@ export function buildChatSearchHandler(deps: ChatHandlerDeps): HandlerFn {
       }
 
       // THE predicate — same function as chat:history / join snapshot.
-      const redacted = redactForViewer(msg, ctx.userId, privileged, tokenSource);
+      const redacted = redactForViewer(msg, ctx.userId, privileged, pageSource);
       if (redacted === null) continue;
 
       // Paging counts VISIBLE results only: an invisible message never takes a
@@ -1267,7 +1310,9 @@ export function buildChatContextHandler(deps: ChatHandlerDeps): HandlerFn {
 
     if (!anchorRow) return notFound;
 
-    const target = readVisibleRow(anchorRow.data, ctx.userId, privileged, tokenSource);
+    // One pass over the anchor and both sides of it (BAR-F4-01: each speaker is read once).
+    const pageSource = lookupSourceForOnePass(tokenSource);
+    const target = readVisibleRow(anchorRow.data, ctx.userId, privileged, pageSource);
     // Same answer as a missing id — never leak that a hidden message lives here.
     if (target === null) return notFound;
 
@@ -1298,7 +1343,7 @@ export function buildChatContextHandler(deps: ChatHandlerDeps): HandlerFn {
           (raw as { data: string }).data,
           ctx.userId,
           privileged,
-          tokenSource,
+          pageSource,
         );
         if (visible === null) continue; // invisible: takes no slot, is never signalled
 
@@ -1535,7 +1580,8 @@ export function getRecentChatForUser(
   store?: DocumentStore,
 ): ChatMessage[] {
   const privileged = isRolePrivileged(role);
-  const tokenSource = store ? tokenLookupSourceFromStore(store) : undefined;
+  // One pass over the snapshot (BAR-F4-01: each speaker is read once).
+  const tokenSource = lookupSourceForOnePass(store ? tokenLookupSourceFromStore(store) : undefined);
   const fetchLimit = limit * 4 + 50;
 
   const rows = db
@@ -1572,6 +1618,20 @@ export function getRecentChatForUser(
  * Returns null if the viewer should not see this message at all.
  */
 function redactForViewer(
+  fullMessage: ChatMessage,
+  viewerId: string,
+  privileged: boolean,
+  tokenSource?: TokenLookupSource,
+): ChatMessage | null {
+  const visible = visibleBodyForViewer(fullMessage, viewerId, privileged, tokenSource);
+  if (visible === null || privileged) return visible;
+  // The speaker of a roll an NPC made answers to the contact knowledge too (BAR-F4-01). Applied LAST, on what the
+  // viewer may read at all: a page of history walks messages he cannot see, and none of them may cost a read of
+  // the speaker and of every character.
+  return redactChatSpeakerForNonPrivileged(visible, viewerId, tokenSource);
+}
+
+function visibleBodyForViewer(
   fullMessage: ChatMessage,
   viewerId: string,
   privileged: boolean,
@@ -1658,16 +1718,20 @@ function redactForAuthor(
   tokenSource?: TokenLookupSource,
 ): ChatMessage {
   if (privileged) return msg;
-  const withoutAc = redactChatEffectExpiryForNonPrivileged(
-    redactChatDamageAppliedForNonPrivileged(
-      redactChatTargetSnapshotForNonPrivileged(
-        redactChatTargetsForNonPrivileged(msg),
+  const withoutAc = redactChatSpeakerForNonPrivileged(
+    redactChatEffectExpiryForNonPrivileged(
+      redactChatDamageAppliedForNonPrivileged(
+        redactChatTargetSnapshotForNonPrivileged(
+          redactChatTargetsForNonPrivileged(msg),
+          authorId,
+          tokenSource,
+        ),
         authorId,
         tokenSource,
       ),
-      authorId,
-      tokenSource,
     ),
+    authorId,
+    tokenSource,
   );
   if (withoutAc.blind && withoutAc.speaker.userId === authorId) {
     return redactBlindRollForNonPrivileged(withoutAc);
