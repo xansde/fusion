@@ -61,7 +61,7 @@
     type ActorDragPayload,
   } from "../lib/actors/actorDirectory.js";
   import { buildTokenCreateOp } from "../lib/docs/tokenCreateOp.js";
-  import { sendOp } from "../lib/docs/sendOp.js";
+  import { sendOp, makeSendOpFn } from "../lib/docs/sendOp.js";
   import { importToWorld as compendiumImportToWorld } from "../lib/compendium/compendiumApi.js";
   import { decideSceneDrop } from "../lib/compendium/importTargets.js";
   import type { CompendiumDragPayload } from "../lib/compendium/compendiumBrowser.js";
@@ -686,10 +686,12 @@
               worldId: session.worldInfo?.id ?? "",
               socket: sock,
               // Lazy socket accessor: a captured socket goes stale across a
-              // reconnect (same pattern as the NPCs tab).
-              sendOpFn: (op: unknown) => {
-                void sendOp(getSocket() ?? sock, op as Parameters<typeof sendOp>[1]);
-              },
+              // reconnect (same pattern as the NPCs tab). `makeSendOpFn`, not the raw
+              // `sendOp`: a sheet emits a FLAT op ({ type, ...fields }) and only the
+              // adapter splits it into the { type, payload } envelope the server reads.
+              // The raw call sent every roll and every autosave of a sheet opened from
+              // a token as an envelope with no payload, which the server refused.
+              sendOpFn: makeSendOpFn(() => getSocket() ?? sock),
             },
           );
         },
