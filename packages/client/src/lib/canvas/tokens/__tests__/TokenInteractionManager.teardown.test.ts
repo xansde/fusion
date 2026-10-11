@@ -139,3 +139,146 @@ describe("TokenInteractionManager teardown (R9)", () => {
     expect(container.hitArea).toBeNull();
   });
 });
+
+// ---------------------------------------------------------------------------
+// BAR-F1-01 — destroy() publishes, and nothing publishes after it
+// ---------------------------------------------------------------------------
+
+/**
+ * The manager publishes its selection to the active-actor store (`onSelectionChange`, tasks.md
+ * §2.4). Its last word is the empty selection, in `destroy()`; after that no pointer handler,
+ * key or late ack may publish again — a dead manager speaking for a scene that left the canvas
+ * would move the bar. Whether that last word clears the store is the store's call (only the
+ * scene the canvas draws counts), not the manager's.
+ */
+describe("TokenInteractionManager teardown publishes the selection (BAR-F1-01)", () => {
+  const TOKEN_ID = "tok001";
+
+  function makeToken(): TokenDocument {
+    return {
+      _id: TOKEN_ID,
+      name: null,
+      actorId: "actor001",
+      actorLink: true,
+      actorDelta: null,
+      x: 0,
+      y: 0,
+      hidden: false,
+      flags: {},
+    } as unknown as TokenDocument;
+  }
+
+  /** A tokens layer that remembers its handlers, so they can be fired after destroy(). */
+  function makeRecordingContainer() {
+    const handlers = new Map<string, (e: unknown) => void>();
+    return {
+      eventMode: "none" as string,
+      hitArea: null as unknown,
+      on: vi.fn((event: string, cb: (e: unknown) => void) => {
+        handlers.set(event, cb);
+      }),
+      removeAllListeners: vi.fn(),
+      handlers,
+    };
+  }
+
+  /** A socket whose acks wait until the test releases them. */
+  function makeDeferredSocket() {
+    const pending: Array<(result: unknown) => void> = [];
+    const socket = {
+      emit(event: string, _envelope: unknown, ack?: (result: unknown) => void) {
+        if (event === "op" && ack) pending.push(ack);
+      },
+    } as unknown as Socket;
+    return { socket, releaseAll: () => pending.splice(0).forEach((ack) => ack({ ok: true })) };
+  }
+
+  async function build(socket: Socket = makeFakeSocket()) {
+    const { TokenInteractionManager } = await import("../TokenInteractionManager.js");
+    const published: string[][] = [];
+    const container = makeRecordingContainer();
+    const mgr = new TokenInteractionManager({
+      tokenContainer: container as never,
+      tokenLayer: makeFakeTokenLayer() as never,
+      mirror: makeFakeMirror(SCENE_ID, [makeToken()]) as never,
+      sceneId: SCENE_ID,
+      canvas: makeFakeCanvas() as never,
+      socket,
+      userId: "user-gm",
+      userRole: 4,
+      getOwnedActorIds: () => new Set<string>(),
+      gridConfig: { size: 100, offsetX: 0, offsetY: 0 },
+      attachKeyboard: false,
+      onSelectionChange: (tokenIds) => published.push([...tokenIds]),
+    });
+    return { mgr, container, published };
+  }
+
+  function clickToken(container: ReturnType<typeof makeRecordingContainer>): void {
+    container.handlers.get("pointerdown")?.({
+      button: 0,
+      target: { label: `token:${TOKEN_ID}`, parent: null },
+      clientX: 10,
+      clientY: 10,
+      stopPropagation: () => {},
+    });
+    container.handlers.get("pointerup")?.({});
+  }
+
+  function press(mgr: unknown, code: string): void {
+    (mgr as { _handleKeyDown(e: unknown): void })._handleKeyDown({
+      code,
+      target: null,
+      preventDefault() {},
+    });
+  }
+
+  it("destroy() publishes the empty selection, exactly once", async () => {
+    const { mgr, container, published } = await build();
+    clickToken(container);
+    expect(published).toEqual([[TOKEN_ID]]);
+
+    mgr.destroy();
+    expect(published).toEqual([[TOKEN_ID], []]);
+    expect([...mgr.selectedIds]).toEqual([]);
+
+    mgr.destroy();
+    expect(published).toEqual([[TOKEN_ID], []]);
+  });
+
+  it("after destroy() no handler, key or public call publishes again (no listener survives)", async () => {
+    const { mgr, container, published } = await build();
+    clickToken(container);
+    mgr.destroy();
+    const afterDestroy = published.length;
+
+    clickToken(container);
+    container.handlers.get("pointerdown")?.({
+      button: 0,
+      target: null,
+      clientX: 0,
+      clientY: 0,
+      stopPropagation: () => {},
+    });
+    press(mgr, "Escape");
+    mgr.deselectAll();
+
+    expect(published.length).toBe(afterDestroy);
+  });
+
+  it("a delete whose ack lands after destroy() publishes nothing", async () => {
+    const { socket, releaseAll } = makeDeferredSocket();
+    const { mgr, container, published } = await build(socket);
+    clickToken(container);
+
+    const deleting = mgr.deleteSelectedToken();
+    mgr.destroy();
+    const afterDestroy = published.length;
+
+    releaseAll();
+    await deleting;
+
+    expect(published.length).toBe(afterDestroy);
+    expect(published.at(-1)).toEqual([]);
+  });
+});
