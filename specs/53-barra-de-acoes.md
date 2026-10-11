@@ -583,7 +583,8 @@ Cada requisito cita, entre parênteses no fim, a decisão que o origina e as tar
 - **REQ-BAR-058** [MVP] O provedor de **Testes** DEVE listar Percepção, salvamentos, perícias e saberes
   e rolar pelo mesmo caminho da ficha. _(DEC-BAR-05; BAR-F2-05)_
 - **REQ-BAR-059** [MVP] O provedor PF2e DEVE preencher a faixa de estado com PV, temporário,
-  foco, herói, os slots do patamar em foco, as condições compactas, o alvo e o MAP do próximo ataque.
+  foco, herói, as condições compactas, o alvo e o MAP do próximo ataque. Os slots de magia ficam no cabeçalho de
+  cada grupo da aba Magias, como no protótipo aprovado (T3; reconciliação de 11/10).
   _(DEC-BAR-05; BAR-F2-06)_
 - **REQ-BAR-060** [MVP] O satélite PF2e DEVE registrar o provedor em `registerPf2eSheets`, com
   tag do satélite e bump do pin no core. A entrega da F2 DEVE passar por um roteiro `tutorial-e2e` com
@@ -818,7 +819,19 @@ entregam. BAR-F0-01 (o protótipo) é a fonte visual, e BAR-F0-03 (o `tasks.md`,
 ### 7.1 O contrato do registry
 
 O contrato abaixo fecha o esboço da §5.1 do plano. A BAR-F1-02 pode ajustar o nome dos campos
-auxiliares; as invariantes dos requisitos do §5 não mudam.
+auxiliares; as invariantes dos requisitos do §5 não mudam. Os shapes canônicos, que as tarefas seguem pelo nome,
+estão no §2 de `docs/design/barra-de-acoes/tasks.md`. Reconciliação de 11/10 entre os dois textos, nascidos em
+paralelo:
+
+- `execute` recebe também o `ctx` do ator dono da entrada: o provedor é um por tipo de ator e o `id` da entrada só
+  é único dentro do ator.
+- O custo da entrada é `ActionBarCost`, exibido pelo `formatActionCost` que o cliente já tem. Isso fecha a Q-BAR-06.
+- O MAP do próximo ataque vem do provedor de Golpes pela contagem do satélite (`attacksThisTurn`/
+  `attackCountForActor`, REQ-BAR-053), não de um campo próprio do contexto.
+- Os alvos chegam por um caminho só: `choice.targetTokenIds` (a foto no instante do clique) e `ctx.combat.targets`
+  (para exibir). O provedor não lê alvo por conta própria.
+- Os slots ficam no cabeçalho do grupo da aba Magias, como no protótipo aprovado (T3). A faixa traz foco e herói
+  (REQ-BAR-059).
 
 ```ts
 // core: packages/client/src/lib/actionbar/actionBarRegistry.ts
@@ -839,6 +852,7 @@ interface ActionBarProvider {
     entry: ActionBarEntry,
     choice: ActionBarChoice,
     services: ActionBarServices,
+    ctx: ActionBarContext, // o contexto do ator dono da entrada
   ): Promise<void>;
   /** Painel de detalhe do sistema (o mesmo da ficha), aberto pelo tooltip. */
   details?: Component<{ entry: ActionBarEntry }>;
@@ -851,7 +865,7 @@ interface ActionBarEntry {
   group?: string; // "2º patamar", "Atletismo"…
   label: string; // pt-BR, o do pack
   icon?: string; // ícone genérico livre; a imagem customizada vem de flags.fusion.actionBar.icons
-  cost?: ActionCost; // 1–3 ações, reação, livre ou variável: só exibido (D-15)
+  cost?: ActionBarCost; // 1–3 ações, reação, livre ou variável: só exibido (D-15)
   traits?: string[];
   uses?: { value: number; max?: number }; // quantidade, slots, cargas
   state?: "ready" | "unavailable" | "spent-until-recharge" | "active";
@@ -864,20 +878,20 @@ interface ActionBarEntry {
 interface ActionBarContext {
   actor: ActorDocument; // o ator ativo, já filtrado pelo gate de posse (REQ-BAR-003)
   derived: Readonly<Record<string, unknown>>; // valores derivados do sistema; nunca persistidos
-  combat: ActionBarCombatContext; // turno, ataques do turno (MAP) e alvos marcados
+  combat: ActionBarCombatContext; // encontro, vez, rodada e alvos marcados (só para exibir)
 }
 ```
 
 Os tipos auxiliares têm o conteúdo mínimo abaixo, tirado do §4 e do §5 do plano:
 
-| Tipo                     | Conteúdo mínimo                                                                                                                                                                                                                 |
-| ------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `ActionBarCombatContext` | Se há encontro; se o participante da vez é do usuário; a rodada; a contagem de ataques do turno do ator ativo (a que o servidor publica em `combat.attackCount`); os alvos marcados (`getMyTargets()`, com o nome já redigido). |
-| `ActionBarStatus`        | Nome, classes e retrato; PV com o temporário; os recursos (foco, herói, slots do patamar em foco, recursos de classe); as condições (nome e efeito); o alvo; o MAP do próximo ataque.                                           |
-| `ActionBarVariant`       | Uma forma de executar a entrada: o número do ataque (MAP), o número de ações, o patamar ou o elemento, com rótulo, custo e o efeito de cada uma.                                                                                |
-| `ActionBarChoice`        | A variante escolhida pelo usuário, ou a padrão (REQ-BAR-041).                                                                                                                                                                   |
-| `ActionBarServices`      | O que o core empresta ao provedor para executar pelos mesmos caminhos da ficha: enviar op com `expectedVersion` (`makeSendOpFn`), ler os alvos marcados (`getMyTargets()`), abrir a ficha (`openActorSheet`) e postar no chat.  |
-| `ActionCost`             | O custo exibido: ações (1 a 3), reação, livre, atividade, passivo ou nenhum. Forma de ALQ-F7-02 (plano do Alquimista §2.11); só dado, nada conta nem bloqueia (D-15). Ver Q-BAR-06.                                             |
+| Tipo                     | Conteúdo mínimo                                                                                                                                                                                                                                           |
+| ------------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `ActionBarCombatContext` | Se há encontro; se o participante da vez é do usuário; a rodada; os alvos marcados em `targets` (`getMyTargets()`, com o nome já redigido), só para exibir. O MAP vem do provedor de Golpes (REQ-BAR-053).                                                |
+| `ActionBarStatus`        | Nome, classes e retrato; PV com o temporário; os recursos (foco, herói e, quando a frente Alquimista entregar, o contador de recurso de classe); as condições (nome e efeito); o alvo; o MAP do próximo ataque.                                           |
+| `ActionBarVariant`       | Uma forma de executar a entrada: o número do ataque (MAP), o número de ações, o patamar ou o elemento, com rótulo, custo e o efeito de cada uma.                                                                                                          |
+| `ActionBarChoice`        | A variante escolhida pelo usuário, ou a padrão (REQ-BAR-041).                                                                                                                                                                                             |
+| `ActionBarServices`      | O que o core empresta ao provedor para executar pelos mesmos caminhos da ficha: enviar op com `expectedVersion` (`makeSendOpFn`), abrir a ficha (`openActorSheet`) e postar no chat. Os alvos chegam em `choice.targetTokenIds`.                          |
+| `ActionBarCost`          | O custo exibido: ações (1 a 3), reação, livre, atividade, passivo ou nenhum. Nome próprio da barra, para não dividir o `ActionCost` de exibição do compêndio; exibido pelo `formatActionCost`; só dado, nada conta nem bloqueia (D-15). Fecha a Q-BAR-06. |
 
 ### 7.2 O que a barra guarda no ator
 
@@ -1031,7 +1045,8 @@ com o contrato que o plano de origem fixou, e a ficha de origem é marcada como 
   frente está parada em 33/125, sem esse tipo entregue. O cliente já tem outro `ActionCost`, de
   formatação (`{ icons, label, isText }`), em `packages/client/src/lib/compendium/documentDetails.ts`.
   A barra precisa do custo agora (DEC-BAR-14). Qual forma o `cost` da entrada usa, e como as duas
-  deixam de dividir o mesmo nome?
+  deixam de dividir o mesmo nome? **Fechada em 11/10:** a barra declara `ActionBarCost` (§7.1 e `tasks.md` §2.2)
+  e exibe pelo `formatActionCost` existente.
 - **Q-BAR-07** Clicar num slot com o mouse deixa o foco no botão, e o guard (REQ-BAR-049)
   suspende as teclas com botão em foco: quem clica e em seguida aperta uma tecla não vê nada
   acontecer. A BAR-F1-04 e a BAR-F1-05 devolvem o foco ao canvas depois do clique, ou há outra saída
