@@ -1,0 +1,37 @@
+{
+  "versao": 1,
+  "tarefas": {
+    "BAR-F0-01": {
+      "status": "integrada",
+      "tentativas": 1,
+      "onda": 0,
+      "modelo": "opus/high",
+      "resumo": "protótipo fiel T1–T7 (v1.1) aprovado pelo Alexandre em 11/10/2026",
+      "core_sha": "d9c4d21c"
+    },
+    "BAR-F0-02": {
+      "status": "integrada",
+      "tentativas": 1,
+      "onda": 0,
+      "modelo": "opus/high",
+      "resumo": "spec 53 e emendas nas specs 11/14/28/40/41/23/20, em lane paralela: chega pela branch docs/barra-spec-53, que o orquestrador integra à feat/barra-de-acoes antes da onda 1; se a lane falhar, o orquestrador corrige este status para pendente"
+    },
+    "BAR-F0-03": {
+      "status": "integrada",
+      "tentativas": 1,
+      "onda": 0,
+      "modelo": "sonnet/high",
+      "resumo": "tasks.md com 36 cartões, tasks-resumo.json, estado.json, tools/ (ondas, build-resumo, colisoes), entrada barra em frentes.json e skill /barra-de-acoes; validado com plan.mjs --mode status"
+    },
+    "BAR-F4-01": {
+      "status": "integrada",
+      "tentativas": 0,
+      "onda": 0,
+      "modelo": "sonnet/medium",
+      "resumo": "FORA da frente (D-BA13): corrigida avulsa em fix/npc-rolagens, com PRs próprios para a main do satélite e a alfa/app. Marcada integrada só para o plan.mjs não escalá-la numa rodada nem travar o fechamento do L2; a espera real é a porteira da BAR-F4-02 (tasks.md §3)",
+      "foraDaFrente": true
+    }
+  },
+  "rodadas": [],
+  "lotes": {}
+}
