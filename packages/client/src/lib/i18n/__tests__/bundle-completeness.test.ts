@@ -333,6 +333,8 @@ describe("Pets Kind badge keys coverage", () => {
     "FUSION.Sheet.Pets.Kind.animalCompanion",
     "FUSION.Sheet.Pets.Kind.mount",
     "FUSION.Sheet.Pets.Kind.eidolon",
+    "FUSION.Sheet.Pets.Kind.thrall",
+    "FUSION.Contacts.CompanionKind.thrall",
   ];
 
   it("all Pets Kind keys exist in pt-BR", () => {

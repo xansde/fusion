@@ -23,6 +23,11 @@
  *   wave 7 review I-3). Its attacks are counted per companion actor inside the active owner's turn,
  *   whether or not the companion is a combatant itself, and reset when the owner's turn starts.
  *
+ * - A Servo (`companionKind: "thrall"`, the Necromancer's) has NO multiple attack penalty of its own: its
+ *   Strike uses and counts toward its controller's (Command a Thrall: "uses and counts toward your multiple
+ *   attack penalty"). It is counted under the controller's combatant, only while that group is acting, with
+ *   no "active" flag to ask for; the clients read the same number for the Servo through `byActor`.
+ *
  * In-memory only, like the targeting store: a restart starts a fresh turn.
  */
 
@@ -248,7 +253,24 @@ export class MapCounter {
     const peers = this.peersOf(activeId, combatId);
     // The active combatant's own actor reads `count`; the partner's reads the group count.
     if (peers?.partnerActorId !== undefined) byActor[peers.partnerActorId] = count;
+    // A Servo has no MAP of its own: its controller's count is the one it reads.
+    for (const thrallId of this.thrallsOfActiveActor(combatId, activeId)) byActor[thrallId] = count;
     return { count, ...(Object.keys(byActor).length > 0 ? { byActor } : {}) };
+  }
+
+  /** The Servos (`thrall`) controlled by the actor of combatant `activeId`. */
+  private thrallsOfActiveActor(combatId: string, activeId: string): string[] {
+    if (!this.store) return [];
+    const controllerActorId = this.combatantActors(combatId).get(activeId);
+    if (controllerActorId === undefined) return [];
+    try {
+      return this.store
+        .getAll("actors")
+        .filter((a) => thrallMasterId(a) === controllerActorId)
+        .map((a) => String(a["_id"]));
+    } catch {
+      return [];
+    }
   }
 
   /** Zeroes the group of a combatant (rider and mount) and its companions (turnStart). */
@@ -287,11 +309,17 @@ export class MapCounter {
     } catch {
       return null;
     }
+    const thrallMasterId = thrallMasterOf(store, speaker.actorId);
     for (const combat of combats) {
       if (combat["started"] !== true || combat["ended"] === true) continue;
       const active = combat["activeCombatantId"];
       if (typeof active !== "string" || !Array.isArray(combat["combatants"])) continue;
       const combatants = combat["combatants"] as Record<string, unknown>[];
+      if (thrallMasterId !== undefined) {
+        const counted = this.noteThrallAttack(store, combat, combatants, active, speaker, thrallMasterId, opts);
+        if (counted !== undefined) return counted;
+        continue;
+      }
       const me = pickSpeakerCombatant(combatants, speaker, active);
       // Only the one acting changes a count (its MAP group counts as acting).
       // Not acting HERE does not end the search: another live combat may have it.
@@ -322,6 +350,39 @@ export class MapCounter {
       if (minionCount !== undefined) return minionCount;
     }
     return null;
+  }
+
+  /**
+   * A Strike by a Servo: counted under its controller's combatant, which must be the one acting now (its MAP group
+   * included). `undefined` when the controller is not acting in this combat or the author may not speak for the Servo.
+   */
+  private noteThrallAttack(
+    store: DocumentStore,
+    combat: Record<string, unknown>,
+    combatants: Record<string, unknown>[],
+    active: string,
+    speaker: AttackSpeaker,
+    masterId: string,
+    opts: NoteAttackOptions,
+  ): number | undefined {
+    const combatId = String(combat["_id"]);
+    const controller = pickSpeakerCombatant(combatants, { ...speaker, actorId: masterId, tokenId: undefined }, active);
+    if (!controller || typeof controller["_id"] !== "string") return undefined;
+    if (this.mapGroupOf(controller["_id"], combatId) !== this.mapGroupOf(active, combatId)) return undefined;
+    if (!isRolePrivileged(speaker.role) && !(speaker.actorId && ownsActor(store, speaker, speaker.actorId))) {
+      return undefined;
+    }
+    const count = this.noteAttack(combatId, controller["_id"], opts);
+    if (opts.countsForMap !== false) {
+      const round = combat["round"];
+      this.publisher?.({
+        combatId,
+        combatantId: active,
+        round: typeof round === "number" ? round : 0,
+        ...this.markFor(combatId, active),
+      });
+    }
+    return count;
   }
 
   /**
@@ -384,6 +445,26 @@ function pickSpeakerCombatant(
   const ofActor = combatants.filter((c) => c["actorId"] === speaker.actorId);
   if (ofActor.length <= 1) return ofActor[0];
   return ofActor.find((c) => c["_id"] === activeId);
+}
+
+/** The controller of a Servo actor (`system.companionKind === "thrall"`, `system.masterActorId`), or undefined. */
+function thrallMasterId(actor: Record<string, unknown>): string | undefined {
+  const sys = actor["system"];
+  if (!sys || typeof sys !== "object" || Array.isArray(sys)) return undefined;
+  const { companionKind, masterActorId } = sys as Record<string, unknown>;
+  return companionKind === "thrall" && typeof masterActorId === "string" && masterActorId !== ""
+    ? masterActorId
+    : undefined;
+}
+
+/** The controller of the Servo the speaker is, or undefined when the speaker is not a Servo. */
+function thrallMasterOf(store: DocumentStore, actorId: string | undefined): string | undefined {
+  if (!actorId) return undefined;
+  try {
+    return thrallMasterId(store.get("actors", actorId));
+  } catch {
+    return undefined;
+  }
 }
 
 /** A non-privileged author may only count attacks of an actor he owns. */
