@@ -250,13 +250,13 @@ fusion-data/                 → raiz do data dir (ver 03-persistencia-e-mundos.
 
 > **Emenda (2026-10-11, obrigada por `specs/53-barra-de-acoes.md` §12, DEC-BAR-03):** o **envio de
 > imagem** deixa de exigir `STORAGE_UPLOAD`: todo usuário autenticado, inclusive o jogador, pode
-> enviar uma imagem para escolher o ícone de uma entrada da barra de ações (REQ-BAR-075). A
+> enviar imagem (REQ-BAR-075), o que permite escolher o ícone de uma entrada da barra de ações. A
 > validação de tipo e tamanho (REQ-AST-007, REQ-AST-008) vale igual para todos; apagar continua
-> sendo `STORAGE_DELETE`, só do GM (REQ-AST-029); e esse envio não tem cota por usuário
-> (REQ-BAR-077), de modo que a questão 1 de "Questões em Aberto" não se aplica a ele. Todo
-> envio feito por esse gesto fica **marcado como ícone** no registro de assets (REQ-BAR-078), e
-> o destino é decidido pelo servidor, nunca pelo cliente (REQ-BAR-076). _(A redação acima
-> continua valendo para os demais envios.)_
+> sendo `STORAGE_DELETE`, só do GM (REQ-AST-029); e o envio de quem não tem `STORAGE_UPLOAD` não
+> tem cota por usuário (REQ-BAR-077), de modo que a questão 1 de "Questões em Aberto" não se aplica
+> a ele. O destino desse envio é decidido pelo servidor, nunca pelo cliente (REQ-BAR-076), e o envio
+> feito pelo gesto de trocar ícone fica **marcado como ícone** no registro de assets (REQ-BAR-078,
+> REQ-BAR-103). _(A redação acima continua valendo para os demais tipos de arquivo.)_
 
 **REQ-AST-012** [MVP] Usuários com role `TRUSTED` PODEM fazer upload somente se a pasta de destino tiver sido marcada pelo GM como `upload_allowed: true` na tabela de metadados de pasta. Por padrão, nenhuma pasta tem esse atributo. Isso permite, por exemplo, liberar uma pasta de avatares de personagem para jogadores.
 

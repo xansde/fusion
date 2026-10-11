@@ -40,8 +40,8 @@
 
 > **Aviso clean-room.** Esta spec descreve o **comportamento observável** de barras de ação de jogos e
 > de módulos de mesa virtual (plano §2 e §12) e não copia código, texto nem arte de nenhum deles. Sem
-> arte da Paizo: os ícones são genéricos e livres (REQ-AST-048), e os nomes de ação são os do pack
-> pt-BR, os mesmos da ficha.
+> arte da Paizo: os ícones são genéricos e livres, do tipo dos placeholders livres do bundle
+> (REQ-AST-048), e os nomes de ação são os do pack pt-BR, os mesmos da ficha.
 
 ---
 
@@ -87,8 +87,8 @@ da F0: depende de a linha `build/app` convergir com a alfa, e o plano não a põ
 - Os **favoritos no ator** e a semente da primeira abertura (DEC-BAR-06, DEC-BAR-08).
 - O **ícone customizado** por entrada, o envio de imagem aberto ao jogador, a galeria compartilhada de
   ícones e a regra de quem troca (DEC-BAR-02, DEC-BAR-03).
-- O **conteúdo PF2e do personagem** (golpes, magias, ações, testes), a **barra de NPC** só do Mestre, os
-  itens, os companheiros, o **motor das ações que faltam** e o que ele espera de outras frentes
+- O **conteúdo PF2e do personagem** (golpes, magias, ações, testes), a **barra de NPC** só do Mestre e o
+  conserto das rolagens da ficha de NPC, os itens, os companheiros, o **motor das ações que faltam** e o que ele espera de outras frentes
   (DEC-BAR-11, DEC-BAR-12, DEC-BAR-13), e o alcance, a mira, o tablet e o SF2e.
 - A **substituição da hotbar** da spec `14` (DEC-BAR-04).
 
@@ -110,7 +110,10 @@ da F0: depende de a linha `build/app` convergir com a alfa, e o plano não a põ
 - **A regra de jogo**: golpe, grau, MAP, conjuração, consumo e permissão são do servidor e das specs
   `08`, `10` e `17`. A barra só os chama.
 - **A ficha** de personagem e de NPC (`11`, `17`): a barra a chama por "Abrir na ficha" e extrai dela a
-  lógica de execução sem mudar o comportamento (REQ-BAR-052).
+  lógica de execução sem mudar o comportamento (REQ-BAR-052). A única mudança na ficha de NPC é o
+  conserto das rolagens (REQ-BAR-084).
+- **Política por reação** (Perguntar, Automático ou Desligado): o plano a lista como padrão da F7
+  (§2.1), mas nenhuma tarefa a entrega; esta spec não a decide.
 - **Etmos**: legado, vive na linha `build/app`.
 
 ## 3. Conceitos e terminologia
@@ -120,6 +123,7 @@ da F0: depende de a linha `build/app` convergir com a alfa, e o plano não a põ
 | **Barra de ações**    | A barra do rodapé da mesa. É sempre de um ator, mostra o que ele pode usar no turno e executa pelos mesmos caminhos da ficha.                                     |
 | **Ator ativo**        | O ator cuja barra está na tela. Publicado por um store reativo **depois** do gate de posse (DEC-BAR-01).                                                          |
 | **Gate de posse**     | A regra, no store do ator ativo, que impede que um ator alheio chegue ao provedor quando o usuário é jogador.                                                     |
+| **Mestre**            | Nesta spec, o usuário de papel privilegiado (`isRolePrivileged`: GM e Assistente), como nas specs `40` e `41`. A D-BA01 diz "só o Mestre" e é lida assim.         |
 | **Ator alheio**       | Para um jogador, qualquer ator de que ele não é OWNER: um NPC ou o personagem de outro jogador.                                                                   |
 | **Casca**             | A parte da barra que mora no core: posição, faixa de estado, abas, slots, tooltip, menu, teclado, favoritos e Encerrar turno. Não conhece nenhum sistema de jogo. |
 | **Provedor**          | O objeto que o sistema registra para dizer quais entradas o ator tem, qual é a faixa de estado e como executar cada entrada (`ActionBarProvider`, §7.1).          |
@@ -166,7 +170,7 @@ contador de ações por turno está fora do escopo — ele precisa desfazer, des
 contar nem bloquear — e que `ActionCost` fica só como dado exibido (`docs/design/alquimista/tasks.md`,
 D-15 e ALQ-F7-02). `decisoes.md` registra que ela continua valendo sobre tudo aqui. A barra mostra o
 custo, o MAP do próximo ataque (contado no servidor), de quem é a vez e Encerrar turno; não tem pips,
-não conta e não bloqueia (§5.4). Não é uma DEC desta spec porque a decisão é de outra frente; é uma
+não conta e não bloqueia (§5.5). Não é uma DEC desta spec porque a decisão é de outra frente; é uma
 restrição que esta spec não pode contrariar.
 
 ### DEC-BAR-01 — A barra é só do dono: o jogador nunca vê a de um ator alheio
@@ -189,12 +193,13 @@ alvo usa o nome redigido, o mesmo que o jogador já vê no token.
 Cada entrada da barra aceita uma **imagem customizada**, se o usuário quiser; sem imagem, vale o ícone
 genérico. A escolha fica no ator, em `flags.fusion.actionBar.icons`: um mapa do `id` da entrada para
 um caminho `/assets/…` do acervo do mundo — sem URL externa —, com **teto de entradas**. O campo é
-registrado em `server/assets/asset-fields.ts`.
+registrado em `packages/server/src/assets/asset-fields.ts`.
 
 - **Origem:** D-BA02 (Alexandre, 11/10/2026: "quero que tenha como adicionar imagem customizada para
   cada ícone, se eu quiser").
 - **Racional:** o `FilePicker` aceita URL, mas a imagem precisa obedecer à CSP e ao grant de leitura.
-  Sem o registro em `asset-fields.ts`, a imagem não carrega para os outros que veem o ator. O teto
+  Sem o registro em `asset-fields.ts`, a imagem não carrega para quem vê a barra do ator sem ser o dono
+  que a escolheu: o Mestre e os demais donos. O teto
   existe porque um jogador que escrevesse milhares de caminhos no mapa do próprio ator geraria milhares
   de grants assinados numa só requisição — o caso que o próprio `asset-fields.ts` documenta.
 - **Tarefas:** BAR-F3-05.
@@ -377,13 +382,14 @@ Cada requisito cita, entre parênteses no fim, a decisão que o origina e as tar
   `TokenInteractionManager`: o manager passa a publicar a seleção, em vez de guardá-la num `Set`
   privado e não reativo, e a seleção DEVE sobreviver à troca de cena. _(DEC-BAR-01; BAR-F1-01)_
 - **REQ-BAR-008** [MVP] Se o usuário selecionou exatamente um token cujo ator é dele (ou se
-  é o Mestre), o ator ativo DEVE ser o desse token. _(DEC-BAR-01; BAR-F1-01)_
+  é o Mestre) e há provedor para esse ator (REQ-BAR-012), o ator ativo DEVE ser o desse
+  token; sem provedor — como o companheiro, antes da F6 —, vale a regra seguinte.
+  _(DEC-BAR-01; BAR-F1-01)_
 - **REQ-BAR-009** [MVP] Fora desse caso, o ator ativo de um jogador que tem personagem DEVE
   ser o personagem dele — mesmo sem token na cena e mesmo que ele tenha selecionado um token alheio.
   Com mais de um personagem, vale o último usado (Q-BAR-01). _(DEC-BAR-01; BAR-F1-01)_
-- **REQ-BAR-010** [MVP] O Mestre sem seleção DEVE ter a barra **oculta**. Sem ator
-  ativo — o Mestre sem seleção, ou o usuário sem ator próprio —, a barra NÃO DEVE ser desenhada.
-  _(DEC-BAR-10; BAR-F1-01, BAR-F1-04)_
+- **REQ-BAR-010** [MVP] O Mestre sem seleção DEVE ter a barra **oculta**. A barra é
+  sempre de um ator; sem ator ativo, ela NÃO DEVE ser desenhada. _(DEC-BAR-10; BAR-F1-01, BAR-F1-04)_
 
 ### 5.3 O registro e o provedor (DEC-BAR-05)
 
@@ -393,8 +399,9 @@ Cada requisito cita, entre parênteses no fim, a decisão que o origina e as tar
 - **REQ-BAR-012** [MVP] O sistema DEVE registrar um **provedor** (`ActionBarProvider`, §7.1)
   no `actionBarRegistry` do core (`packages/client/src/lib/actionbar/actionBarRegistry.ts`), no padrão
   em que `registerPf2eSheets` já preenche o `sheetRegistry`, o `chatCardExtensionRegistry` e o
-  `skillNameRegistry`. O registro DEVE resolver o provedor pelo `documentType` e pelo `subtype` do ator,
-  como a ficha (REQ-UIF-019); ator sem provedor registrado NÃO DEVE ter barra.
+  `skillNameRegistry`. O registro DEVE resolver o provedor de um ator pelo mesmo critério com que a
+  ficha é resolvida (REQ-UIF-019: tipo e subtipo do documento); ator sem provedor registrado NÃO DEVE
+  ter barra.
   _(DEC-BAR-05; BAR-F1-02, BAR-F2-07)_
 - **REQ-BAR-013** [MVP] O core NÃO DEVE importar o satélite de sistema senão pelo ponto de entrada
   publicado do pacote (`src/index.ts` de `@fusion/sheets-pf2e`, o `sat/index.ts` do plano).
@@ -443,7 +450,7 @@ Cada requisito cita, entre parênteses no fim, a decisão que o origina e as tar
   BAR-F1-04, a barra DEVE recolher-se sozinha para a faixa de estado. _(DEC-BAR-09; BAR-F1-04)_
 - **REQ-BAR-026** [MVP] A barra DEVE ter **Favoritos**, a linha principal, e as abas **Golpes**,
   **Magias**, **Ações**, **Itens**, **Reações** e **Testes**. Aba sem entradas NÃO DEVE sumir nem
-  quebrar: mostra o estado vazio. _(DEC-BAR-07; BAR-F1-04)_
+  quebrar: mostra o estado vazio (protótipo, T6). _(DEC-BAR-07; BAR-F1-04)_
 - **REQ-BAR-027** [MVP] A faixa de estado DEVE mostrar o retrato, o nome e as classes do ator
   ativo; o PV, com o temporário; os recursos que importam no turno; as condições ativas; o alvo
   marcado; e, à direita, de quem é a vez e o MAP do próximo ataque. _(DEC-BAR-07; BAR-F1-04, BAR-F2-06)_
@@ -467,9 +474,13 @@ Cada requisito cita, entre parênteses no fim, a decisão que o origina e as tar
 - **REQ-BAR-032** [MVP] O estado `unavailable` e o `reason` DEVEM vir de recurso ou estado
   real do ator — slot, foco, quantidade, uso já registrado no turno, requisito não cumprido — e NUNCA
   de uma contagem de ações do turno (REQ-BAR-036). _(DEC-BAR-07; BAR-F1-04, BAR-F2-04)_
+- **REQ-BAR-104** [MVP] Esmaecer é sinal, não trava: a barra NÃO DEVE impedir o clique
+  numa entrada esmaecida por estado de turno ou de uso — o `commandMark`, a reação já usada. Quem
+  recusa, quando recusa, é a mesma função da ficha que `execute` chama, por falta de alvo, quantidade,
+  slot ou foco (Q-BAR-11). _(D-15; BAR-F1-04, BAR-F2-04)_
 - **REQ-BAR-033** [MVP] A barra DEVE poder ser **recolhida** à faixa de estado, e o botão de
-  expandir a devolve. O estado recolhido DEVE ficar salvo no dispositivo (REQ-BAR-034). A
-  barra DEVE começar enxuta. _(DEC-BAR-07; BAR-F1-04, BAR-F3-04)_
+  expandir a devolve. O estado recolhido DEVE ficar salvo no dispositivo (REQ-BAR-034).
+  _(DEC-BAR-07; BAR-F1-04, BAR-F3-04)_
 - **REQ-BAR-034** [MVP] As preferências do dispositivo — barra recolhida e última aba — DEVEM
   usar o padrão que já existe, a chave `fusion:actionBar:<worldId>:<userId>` (DEC-UIF-10), e NÃO DEVEM
   ir ao servidor. _(DEC-BAR-07; BAR-F3-04)_
@@ -484,7 +495,7 @@ Cada requisito cita, entre parênteses no fim, a decisão que o origina e as tar
   restantes", nem orçamento, nem bloqueio de entrada por custo, por turno ou por MAP. _(D-15; BAR-F1-04,
   BAR-F2-06)_
 - **REQ-BAR-037** [MVP] O **custo** de cada entrada DEVE ser mostrado no slot e no tooltip, só
-  como dado exibido (`ActionCost`, ALQ-F7-02): as ações (◆, ◆◆, ◆◆◆), a reação (⟳), a ação livre (◇) e o
+  como dado exibido (`ActionCost` da ALQ-F7-02, Q-BAR-06): as ações (◆, ◆◆, ◆◆◆), a reação (⟳), a ação livre (◇) e o
   custo variável. _(D-15; BAR-F1-04, BAR-F2-02, BAR-F2-03, BAR-F2-04)_
 - **REQ-BAR-038** [MVP] A faixa de estado DEVE mostrar o **MAP do próximo ataque**, lido da contagem
   que o servidor mantém (`combat.attackCount`, REQ-CBT-069); o cliente NÃO DEVE decidir o índice. O
@@ -505,12 +516,13 @@ Cada requisito cita, entre parênteses no fim, a decisão que o origina e as tar
   de chat que já existe, com ataque, dano e salvamentos aninhados.
   _(DEC-BAR-05; BAR-F2-02, BAR-F2-03, BAR-F2-04)_
 - **REQ-BAR-042** [MVP] A entrada que precisa de alvo DEVE usar os alvos marcados pelo
-  botão direito no token (`getMyTargets()`, REQ-CBT-056). Sem alvo marcado, até a F8 a entrada DEVE se
-  comportar como a ficha: o golpe sai sem grau, e a ação que a ficha só aceita com alvo (Caçar Presa,
-  REQ-BHR-092) fica esmaecida com o motivo. O modo mira é da F8 (REQ-BAR-099).
+  botão direito no token (`getMyTargets()`, REQ-CBT-056). Sem alvo marcado, a entrada DEVE se
+  comportar como a ficha se comporta sem alvo — o golpe com o payload de sempre (REQ-BHR-082) e a ação
+  que exige alvo esmaecida com o motivo (Caçar Presa, REQ-BHR-092) —; o modo mira, que muda isso, é
+  da F8 (REQ-BAR-099).
   _(DEC-BAR-05; BAR-F2-02, BAR-F2-04)_
 - **REQ-BAR-043** [MVP] O tooltip/popover e o menu de contexto DEVEM ser componentes
-  **genéricos** de `components/common/`, com clique fora, `Esc`, foco e `aria`, reutilizáveis pelo
+  **genéricos** de `packages/client/src/components/common/`, com clique fora, `Esc`, foco e `aria`, reutilizáveis pelo
   resto do app; NÃO DEVEM conhecer a barra. _(DEC-BAR-05; BAR-F1-03)_
 - **REQ-BAR-044** [MVP] O tooltip curto, ao passar o mouse, DEVE mostrar nome, custo, traços, bônus
   ou CD, alcance e uma linha de efeito; `Alt` DEVE abrir o painel completo, o mesmo da ficha
@@ -528,7 +540,8 @@ Cada requisito cita, entre parênteses no fim, a decisão que o origina e as tar
 ### 5.7 Atalhos e guard
 
 - **REQ-BAR-048** [MVP] As teclas **1–9, 0, − e =** DEVEM executar os 12 slots de Favoritos, na ordem.
-  `Esc` DEVE cancelar a mira ou o menu. _(DEC-BAR-07; BAR-F1-05)_
+  `Esc` DEVE cancelar o menu e, quando o modo mira existir (REQ-BAR-099), a mira.
+  _(DEC-BAR-07; BAR-F1-05)_
 - **REQ-BAR-049** [MVP] Os atalhos da barra NUNCA DEVEM disparar com o foco em campo de texto
   (`<input>`, `<textarea>`, `[contenteditable]`), em botão ou em diálogo (`<dialog>`).
   _(DEC-BAR-07; BAR-F1-05)_
@@ -543,8 +556,8 @@ Cada requisito cita, entre parênteses no fim, a decisão que o origina e as tar
 
 - **REQ-BAR-052** [MVP] A lógica da ficha de que a barra precisa DEVE ser extraída do componente
   **sem mudança de comportamento**: o `CharacterSheetVM` construível sem montar a ficha; a
-  orquestração do "Usar", o `emitAbility` e o `emitCast` como funções de `lib/`, chamadas pela ficha e
-  pela barra. A suíte da ficha e a catraca `pathbuilder-parity` DEVEM continuar verdes **antes** de
+  orquestração do "Usar", o `emitAbility` e o `emitCast` como funções de `lib/` do satélite, chamadas pela
+  ficha e pela barra. A suíte da ficha e a catraca `pathbuilder-parity` DEVEM continuar verdes **antes** de
   qualquer conteúdo da barra, e nada DEVE mudar na tela. _(DEC-BAR-05; BAR-F2-01)_
 - **REQ-BAR-053** [MVP] O provedor de **Golpes** DEVE listar os golpes do personagem com o MAP
   corrente (lido de `attacksThisTurn`), as variantes de MAP, a munição exibida e as bombas, e executar
@@ -563,9 +576,10 @@ Cada requisito cita, entre parênteses no fim, a decisão que o origina e as tar
   do alvo lida do banco, limite de tamanho, MAP), Investigar, Rastrear, Tratar Ferimentos, Caçar Presa,
   Comandar um Animal, Apoio e Montar — DEVEM entrar na barra com o "Usar" de hoje, sem esperar a F7.
   _(DEC-BAR-12; BAR-F2-04)_
-- **REQ-BAR-057** [MVP] As ações sem motor — Desmoralizar, Fintar, Rememorar Conhecimento, Esconder,
-  Desarmar, Reposicionar, Escapar, Erguer um Escudo, Passo, Deslocar e recarregar — DEVEM **aparecer**
-  e **postar o card da ação**, sem rolagem automática, até a F7. _(DEC-BAR-11; BAR-F2-04)_
+- **REQ-BAR-057** [MVP] As ações sem motor DEVEM **aparecer** e **postar o card da ação**, sem
+  rolagem automática: Desmoralizar, Fintar, Rememorar Conhecimento e Esconder até o motor da F7-01;
+  Desarmar, Reposicionar e Escapar até o da F7-02; Erguer um Escudo até o da F7-03. Passo, Deslocar e
+  Recarregar não têm tarefa de motor no plano e seguem postando o card. _(DEC-BAR-11; BAR-F2-04)_
 - **REQ-BAR-058** [MVP] O provedor de **Testes** DEVE listar Percepção, salvamentos, perícias e saberes
   e rolar pelo mesmo caminho da ficha. _(DEC-BAR-05; BAR-F2-05)_
 - **REQ-BAR-059** [MVP] O provedor PF2e DEVE preencher a faixa de estado com PV, temporário,
@@ -586,7 +600,7 @@ Cada requisito cita, entre parênteses no fim, a decisão que o origina e as tar
   (REQ-BAR-048). _(DEC-BAR-07; BAR-F3-01)_
 - **REQ-BAR-063** [MVP] Fixar, desafixar e reordenar DEVEM escrever no ator com `expectedVersion`,
   pelo `makeSendOpFn`; uma escrita sobre versão velha DEVE ser recusada (`STALE_WRITE`, REQ-NET-026) e
-  refeita sobre o estado fresco, sem sobrescrever. _(DEC-BAR-06; BAR-F3-01)_
+  refeita sobre o estado fresco (DEC-NET-05), sem sobrescrever. _(DEC-BAR-06; BAR-F3-01)_
 - **REQ-BAR-064** [MVP] Na primeira abertura da barra de um ator sem favoritos gravados, a barra DEVE
   semear os Favoritos com golpes, magias e ações mais usadas, até 12 (critério em Q-BAR-02), e
   DEVE gravar que a semente foi aplicada. _(DEC-BAR-08; BAR-F3-01)_
@@ -604,12 +618,15 @@ Cada requisito cita, entre parênteses no fim, a decisão que o origina e as tar
   caminho da imagem; sem imagem, vale o ícone genérico. _(DEC-BAR-02; BAR-F3-05)_
 - **REQ-BAR-068** [MVP] Cada valor do mapa DEVE ser um caminho `/assets/…` do acervo do
   mundo, inteiro. O schema DEVE recusar URL externa: a imagem precisa obedecer à CSP e ao grant de
-  leitura. _(DEC-BAR-02; BAR-F3-05)_
+  leitura. REQ-AST-043 admite também `AssetRef` relativo a `fusion-data/` e URL https; este campo é mais
+  estrito e só aceita o caminho servível `/assets/…`, o único que `asset-fields.ts` assina.
+  _(DEC-BAR-02; BAR-F3-05)_
 - **REQ-BAR-069** [MVP] O mapa DEVE ter **teto de entradas** no schema, e cada valor DEVE carregar um
   único caminho (Q-BAR-03). _(DEC-BAR-02; BAR-F3-05)_
-- **REQ-BAR-070** [MVP] O campo DEVE ser registrado em `server/assets/asset-fields.ts`,
-  seguindo as regras do arquivo — um caminho por valor, casado inteiro —, para que quem vê o ator
-  receba o grant da imagem; sem isso, a imagem não carrega para os outros. O arquivo hoje só conhece os
+- **REQ-BAR-070** [MVP] O campo DEVE ser registrado em `packages/server/src/assets/asset-fields.ts`,
+  seguindo as regras do arquivo — um caminho por valor, casado inteiro —, para que quem vê a barra do ator sem
+  ser o dono que escolheu a imagem — o Mestre e os demais donos — receba o grant dela; sem isso, a imagem
+  não carrega para eles. O arquivo hoje só conhece os
   caminhos `campo` e `lista[].campo` e proíbe `flags.*` (regra de manutenção 2): a BAR-F3-05 DEVE
   estender a gramática e documentar a exceção no próprio arquivo (Q-BAR-04).
   _(DEC-BAR-02; BAR-F3-05)_
@@ -624,22 +641,32 @@ Cada requisito cita, entre parênteses no fim, a decisão que o origina e as tar
 - **REQ-BAR-074** [MVP] O menu da entrada DEVE oferecer **Trocar ícone…**, que abre o seletor de
   imagem do acervo (o mesmo do retrato), e **Restaurar ícone padrão**, que volta ao genérico.
   _(DEC-BAR-02; BAR-F3-05)_
-- **REQ-BAR-075** [MVP] O envio de imagem DEVE estar aberto a todo jogador, sem exigir papel
-  Confiável nem `STORAGE_UPLOAD` (emenda da REQ-AST-011). A validação de tipo e tamanho do pipeline
-  (REQ-AST-007, REQ-AST-008) DEVE valer igual para todos. _(DEC-BAR-03; BAR-F0-02, BAR-F3-05)_
-- **REQ-BAR-076** [MVP] O servidor DEVE decidir o destino do envio de quem não tem
-  `STORAGE_UPLOAD`; o cliente NÃO DEVE escolher pasta nem caminho (REQ-SEC-043, REQ-AST-031).
+- **REQ-BAR-075** [MVP] O envio de **imagem** DEVE estar aberto a todo jogador, sem exigir papel
+  Confiável nem `STORAGE_UPLOAD` (emenda da REQ-AST-011); os demais tipos de arquivo seguem com
+  `STORAGE_UPLOAD`. A validação de tipo e tamanho do pipeline (REQ-AST-007, REQ-AST-008) e o resto dele —
+  sanitização de SVG (REQ-AST-016), renomeação (REQ-SEC-040) — DEVEM valer igual para todos.
+  _(DEC-BAR-03; BAR-F0-02, BAR-F3-05)_
+- **REQ-BAR-076** [MVP] REQ-SEC-043 não dá diretório de escrita ao jogador; por consequência, o
+  servidor DEVE decidir o destino do envio de quem não tem `STORAGE_UPLOAD`, e o cliente NÃO DEVE
+  escolher pasta nem caminho (REQ-AST-031). A área reservada e a exceção em REQ-SEC-043 são da
+  BAR-F3-05 (§12). _(DEC-BAR-03; BAR-F3-05)_
+- **REQ-BAR-077** [MVP] O envio de imagem aberto ao jogador NÃO DEVE ter cota por usuário.
   _(DEC-BAR-03; BAR-F3-05)_
-- **REQ-BAR-077** [MVP] Esse envio NÃO DEVE ter cota por usuário. _(DEC-BAR-03; BAR-F3-05)_
 - **REQ-BAR-078** [MVP] Todo envio feito por **Trocar ícone…** DEVE ficar marcado como ícone no
   registro de assets. _(DEC-BAR-03; BAR-F3-05)_
+- **REQ-BAR-103** [MVP] O pedido de envio feito por **Trocar ícone…** DEVE declarar a
+  finalidade "ícone", e o servidor DEVE gravar a marca de ícone no mesmo ato do envio, a partir dela.
+  NÃO DEVE existir outro caminho de cliente que marque como ícone um asset já existente (o envio
+  deduplicado está em Q-BAR-05). _(DEC-BAR-03; BAR-F3-05)_
 - **REQ-BAR-079** [MVP] A galeria compartilhada DEVE listar, para qualquer jogador, **só** os
   assets marcados como ícone. Mapas, retratos e handouts do Mestre DEVEM seguir fora da lista do
   jogador, porque o nome do arquivo pode ser spoiler. Quem tem `STORAGE_BROWSE` mantém a navegação de
   REQ-AST-032..037. _(DEC-BAR-03; BAR-F3-05)_
 - **REQ-BAR-080** [MVP] O jogador DEVE poder escolher na galeria um ícone que outro já enviou e
-  carregar a imagem (grant de leitura), mas só DEVE poder aplicá-lo às entradas do próprio personagem
-  (REQ-BAR-072). _(DEC-BAR-03; BAR-F3-05)_
+  carregar a imagem, mas só DEVE poder aplicá-lo às entradas do próprio personagem
+  (REQ-BAR-072). Para isso o servidor DEVE emitir o grant de leitura das imagens marcadas como
+  ícone a quem lista a galeria, mesmo sem `STORAGE_BROWSE`; o canal é da BAR-F3-05 e passa pela revisão
+  adversarial (REQ-BAR-071). _(DEC-BAR-03; BAR-F3-05)_
 - **REQ-BAR-081** [MVP] Apagar um asset DEVE continuar sendo só do GM (`STORAGE_DELETE`,
   REQ-AST-029): o Mestre apaga da galeria o que quiser. _(DEC-BAR-03; BAR-F3-05)_
 
@@ -658,7 +685,7 @@ Cada requisito cita, entre parênteses no fim, a decisão que o origina e as tar
   _(DEC-BAR-13; BAR-F4-01)_
 - **REQ-BAR-086** [MVP] Com **seleção múltipla** (só o Mestre; hoje a seleção é única), a barra DEVE
   mostrar uma barra-resumo ("N tokens") com testes em grupo: salvamentos, Percepção e iniciativa.
-  _(DEC-BAR-10; BAR-F4-03)_
+  _(plano §4.2; BAR-F4-03)_
 
 ### 5.12 Itens e consumíveis (DEC-BAR-12)
 
@@ -672,10 +699,11 @@ Cada requisito cita, entre parênteses no fim, a decisão que o origina e as tar
 ### 5.13 Companheiros e vínculos
 
 - **REQ-BAR-089** [V2] Com um companheiro, eidolon ou servo selecionado, a barra DEVE ser a
-  dele **se ele for do jogador** — a posse do companheiro já é forçada à do dono —, o que cobre o urso
-  e o antílope do Bhrotto. Se não for do jogador, vale REQ-BAR-002. _(DEC-BAR-01; BAR-F6-01)_
+  dele **se ele for do jogador**: a posse do companheiro nasce copiada da do dono (DEC-ATR-18,
+  DEC-ATR-19), então o mesmo gate de REQ-BAR-001 vale sem predicado novo. Isso cobre o urso e o
+  antílope do Bhrotto. Se não for do jogador, vale REQ-BAR-002. _(plano §4.2, DEC-BAR-01; BAR-F6-01)_
 - **REQ-BAR-090** [V2] A barra do dono DEVE mostrar Comandar um Animal ou Agir Juntos,
-  esmaecido com o motivo quando já usado no turno (`commandMark`). _(DEC-BAR-01; BAR-F6-01)_
+  esmaecido com o motivo quando já usado no turno (`commandMark`). _(plano §4.2; BAR-F6-01)_
 
 ### 5.14 O motor das ações que faltam (DEC-BAR-11, DEC-BAR-12)
 
@@ -700,7 +728,7 @@ Cada requisito cita, entre parênteses no fim, a decisão que o origina e as tar
 ### 5.15 Alcance, mira, tablet e SF2e
 
 - **REQ-BAR-098** [V2] Ao passar o mouse num golpe ou magia com alcance, um **anel de alcance**
-  DEVE aparecer em volta do token, com a geometria de `shared/grid` e vermelho fora de alcance.
+  DEVE aparecer em volta do token, com a geometria de `packages/shared/src/grid` e vermelho fora de alcance.
   _(plano §4.3; BAR-F8-01)_
 - **REQ-BAR-099** [V2] Sem alvo marcado, a entrada que precisa de alvo DEVE entrar em **modo mira**:
   cursor de mira, clique no token, e `Esc` cancela. A mira por botão direito, que já existe, não muda.
@@ -726,44 +754,44 @@ entregam. BAR-F0-01 (o protótipo) é a fonte visual, e BAR-F0-03 (o `tasks.md`,
 `frentes.json` e a skill `/barra-de-acoes`) vem depois desta spec; nenhuma das duas gera requisito
 (DEC-BAR-14 só fixa a fila).
 
-| Tarefa    | Entrega                                                                       | Requisitos                                                                                                                         |
-| --------- | ----------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------- |
-| BAR-F0-01 | Protótipo fiel (T1–T7), revisado pelo Alexandre                               | —                                                                                                                                  |
-| BAR-F0-02 | Esta spec e as emendas nas specs 11, 14, 20, 23, 28, 40 e 41                  | REQ-BAR-024, REQ-BAR-075, REQ-BAR-102                                                                                              |
-| BAR-F0-03 | `tasks.md` no formato das frentes, `frentes.json` e a skill `/barra-de-acoes` | —                                                                                                                                  |
-| BAR-F1-01 | Store de ator ativo e gate de posse                                           | REQ-BAR-001..005, REQ-BAR-007..010                                                                                                 |
-| BAR-F1-02 | `actionBarRegistry` e tipos, com provedor stub                                | REQ-BAR-011..014, REQ-BAR-016..020                                                                                                 |
-| BAR-F1-03 | Tooltip, popover e menu de contexto genéricos                                 | REQ-BAR-020, REQ-BAR-039, REQ-BAR-043..045                                                                                         |
-| BAR-F1-04 | Componente `ActionBar`: faixa de estado, abas, slots, recolher                | REQ-BAR-010, REQ-BAR-011, REQ-BAR-022, REQ-BAR-023, REQ-BAR-025..027, REQ-BAR-029..033, REQ-BAR-035..037, REQ-BAR-040, REQ-BAR-102 |
-| BAR-F1-05 | Registro mínimo de atalhos e guard                                            | REQ-BAR-048..051, REQ-BAR-102                                                                                                      |
-| BAR-F2-01 | Extração da lógica da ficha, sem mudança de comportamento                     | REQ-BAR-052                                                                                                                        |
-| BAR-F2-02 | Provedor de Golpes                                                            | REQ-BAR-015, REQ-BAR-021, REQ-BAR-037..039, REQ-BAR-041, REQ-BAR-042, REQ-BAR-044, REQ-BAR-053                                     |
-| BAR-F2-03 | Provedor de Magias                                                            | REQ-BAR-015, REQ-BAR-021, REQ-BAR-037, REQ-BAR-041, REQ-BAR-044, REQ-BAR-054                                                       |
-| BAR-F2-04 | Provedor de Ações                                                             | REQ-BAR-015, REQ-BAR-021, REQ-BAR-030..032, REQ-BAR-037, REQ-BAR-041, REQ-BAR-042, REQ-BAR-044, REQ-BAR-055..057                   |
-| BAR-F2-05 | Provedor de Testes                                                            | REQ-BAR-021, REQ-BAR-058                                                                                                           |
-| BAR-F2-06 | Faixa de estado do PF2e                                                       | REQ-BAR-006, REQ-BAR-019, REQ-BAR-027, REQ-BAR-028, REQ-BAR-035, REQ-BAR-036, REQ-BAR-038, REQ-BAR-040, REQ-BAR-059                |
-| BAR-F2-07 | Registro em `registerPf2eSheets`, tag, pin e roteiro `tutorial-e2e`           | REQ-BAR-005, REQ-BAR-012, REQ-BAR-060                                                                                              |
-| BAR-F3-01 | Favoritos no ator, semente e entrada órfã                                     | REQ-BAR-016, REQ-BAR-017, REQ-BAR-061..066                                                                                         |
-| BAR-F3-02 | Menu de contexto completo e seletor de variantes                              | REQ-BAR-045, REQ-BAR-046                                                                                                           |
-| BAR-F3-03 | Arrastar e soltar dentro da barra                                             | REQ-BAR-047                                                                                                                        |
-| BAR-F3-04 | Preferências do dispositivo                                                   | REQ-BAR-033, REQ-BAR-034                                                                                                           |
-| BAR-F3-05 | Ícone customizado, galeria compartilhada e envio de imagem                    | REQ-BAR-016, REQ-BAR-029, REQ-BAR-067..081                                                                                         |
-| BAR-F4-01 | Rolagens da ficha de NPC                                                      | REQ-BAR-084, REQ-BAR-085                                                                                                           |
-| BAR-F4-02 | Provedor de NPC, só para o Mestre                                             | REQ-BAR-082, REQ-BAR-083                                                                                                           |
-| BAR-F4-03 | Seleção múltipla do Mestre e barra-resumo                                     | REQ-BAR-086                                                                                                                        |
-| BAR-F5-01 | `item:consume` na aba Itens e no inventário                                   | REQ-BAR-087                                                                                                                        |
-| BAR-F5-02 | Bomba consome a unidade; munição baixa no disparo                             | REQ-BAR-088                                                                                                                        |
-| BAR-F6-01 | Barra do companheiro, do eidolon e do servo                                   | REQ-BAR-089, REQ-BAR-090                                                                                                           |
-| BAR-F7-01 | Desmoralizar, Fintar, Rememorar Conhecimento e Esconder executáveis           | REQ-BAR-091                                                                                                                        |
-| BAR-F7-02 | Desarmar, Reposicionar e Escapar                                              | REQ-BAR-092                                                                                                                        |
-| BAR-F7-03 | Erguer um Escudo com estado e Bloqueio com Escudo                             | REQ-BAR-093                                                                                                                        |
-| BAR-F7-04 | Posturas e Fúria como alternáveis com estado                                  | REQ-BAR-094, REQ-BAR-097                                                                                                           |
-| BAR-F7-05 | Aba Reações com disponibilidade                                               | REQ-BAR-095, REQ-BAR-097                                                                                                           |
-| BAR-F7-06 | Recursos de classe genéricos na faixa de estado                               | REQ-BAR-096, REQ-BAR-097                                                                                                           |
-| BAR-F8-01 | Anel de alcance                                                               | REQ-BAR-098                                                                                                                        |
-| BAR-F8-02 | Modo mira                                                                     | REQ-BAR-099                                                                                                                        |
-| BAR-F8-03 | Tablet, toque e navegação por Tab                                             | REQ-BAR-100                                                                                                                        |
-| BAR-F8-04 | SF2e: munição, cargas e recarga                                               | REQ-BAR-101                                                                                                                        |
+| Tarefa    | Entrega                                                                       | Requisitos                                                                                                                                      |
+| --------- | ----------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------- |
+| BAR-F0-01 | Protótipo fiel (T1–T7), revisado pelo Alexandre                               | —                                                                                                                                               |
+| BAR-F0-02 | Esta spec e as emendas nas specs 11, 14, 20, 23, 28, 40 e 41                  | REQ-BAR-024, REQ-BAR-075, REQ-BAR-102                                                                                                           |
+| BAR-F0-03 | `tasks.md` no formato das frentes, `frentes.json` e a skill `/barra-de-acoes` | —                                                                                                                                               |
+| BAR-F1-01 | Store de ator ativo e gate de posse                                           | REQ-BAR-001..005, REQ-BAR-007..010                                                                                                              |
+| BAR-F1-02 | `actionBarRegistry` e tipos, com provedor stub                                | REQ-BAR-011..014, REQ-BAR-016..020                                                                                                              |
+| BAR-F1-03 | Tooltip, popover e menu de contexto genéricos                                 | REQ-BAR-020, REQ-BAR-039, REQ-BAR-043..045                                                                                                      |
+| BAR-F1-04 | Componente `ActionBar`: faixa de estado, abas, slots, recolher                | REQ-BAR-010, REQ-BAR-011, REQ-BAR-022, REQ-BAR-023, REQ-BAR-025..027, REQ-BAR-029..033, REQ-BAR-035..037, REQ-BAR-040, REQ-BAR-102, REQ-BAR-104 |
+| BAR-F1-05 | Registro mínimo de atalhos e guard                                            | REQ-BAR-048..051, REQ-BAR-102                                                                                                                   |
+| BAR-F2-01 | Extração da lógica da ficha, sem mudança de comportamento                     | REQ-BAR-052                                                                                                                                     |
+| BAR-F2-02 | Provedor de Golpes                                                            | REQ-BAR-015, REQ-BAR-021, REQ-BAR-037..039, REQ-BAR-041, REQ-BAR-042, REQ-BAR-044, REQ-BAR-053                                                  |
+| BAR-F2-03 | Provedor de Magias                                                            | REQ-BAR-015, REQ-BAR-021, REQ-BAR-037, REQ-BAR-041, REQ-BAR-044, REQ-BAR-054                                                                    |
+| BAR-F2-04 | Provedor de Ações                                                             | REQ-BAR-015, REQ-BAR-021, REQ-BAR-030..032, REQ-BAR-037, REQ-BAR-041, REQ-BAR-042, REQ-BAR-044, REQ-BAR-055..057, REQ-BAR-104                   |
+| BAR-F2-05 | Provedor de Testes                                                            | REQ-BAR-021, REQ-BAR-058                                                                                                                        |
+| BAR-F2-06 | Faixa de estado do PF2e                                                       | REQ-BAR-006, REQ-BAR-019, REQ-BAR-027, REQ-BAR-028, REQ-BAR-035, REQ-BAR-036, REQ-BAR-038, REQ-BAR-040, REQ-BAR-059                             |
+| BAR-F2-07 | Registro em `registerPf2eSheets`, tag, pin e roteiro `tutorial-e2e`           | REQ-BAR-005, REQ-BAR-012, REQ-BAR-060                                                                                                           |
+| BAR-F3-01 | Favoritos no ator, semente e entrada órfã                                     | REQ-BAR-016, REQ-BAR-017, REQ-BAR-061..066                                                                                                      |
+| BAR-F3-02 | Menu de contexto completo e seletor de variantes                              | REQ-BAR-045, REQ-BAR-046                                                                                                                        |
+| BAR-F3-03 | Arrastar e soltar dentro da barra                                             | REQ-BAR-047                                                                                                                                     |
+| BAR-F3-04 | Preferências do dispositivo                                                   | REQ-BAR-033, REQ-BAR-034                                                                                                                        |
+| BAR-F3-05 | Ícone customizado, galeria compartilhada e envio de imagem                    | REQ-BAR-016, REQ-BAR-029, REQ-BAR-067..081, REQ-BAR-103                                                                                         |
+| BAR-F4-01 | Rolagens da ficha de NPC                                                      | REQ-BAR-084, REQ-BAR-085                                                                                                                        |
+| BAR-F4-02 | Provedor de NPC, só para o Mestre                                             | REQ-BAR-082, REQ-BAR-083                                                                                                                        |
+| BAR-F4-03 | Seleção múltipla do Mestre e barra-resumo                                     | REQ-BAR-086                                                                                                                                     |
+| BAR-F5-01 | `item:consume` na aba Itens e no inventário                                   | REQ-BAR-087                                                                                                                                     |
+| BAR-F5-02 | Bomba consome a unidade; munição baixa no disparo                             | REQ-BAR-088                                                                                                                                     |
+| BAR-F6-01 | Barra do companheiro, do eidolon e do servo                                   | REQ-BAR-089, REQ-BAR-090                                                                                                                        |
+| BAR-F7-01 | Desmoralizar, Fintar, Rememorar Conhecimento e Esconder executáveis           | REQ-BAR-091                                                                                                                                     |
+| BAR-F7-02 | Desarmar, Reposicionar e Escapar                                              | REQ-BAR-092                                                                                                                                     |
+| BAR-F7-03 | Erguer um Escudo com estado e Bloqueio com Escudo                             | REQ-BAR-093                                                                                                                                     |
+| BAR-F7-04 | Posturas e Fúria como alternáveis com estado                                  | REQ-BAR-094, REQ-BAR-097                                                                                                                        |
+| BAR-F7-05 | Aba Reações com disponibilidade                                               | REQ-BAR-095, REQ-BAR-097                                                                                                                        |
+| BAR-F7-06 | Recursos de classe genéricos na faixa de estado                               | REQ-BAR-096, REQ-BAR-097                                                                                                                        |
+| BAR-F8-01 | Anel de alcance                                                               | REQ-BAR-098                                                                                                                                     |
+| BAR-F8-02 | Modo mira                                                                     | REQ-BAR-099                                                                                                                                     |
+| BAR-F8-03 | Tablet, toque e navegação por Tab                                             | REQ-BAR-100                                                                                                                                     |
+| BAR-F8-04 | SF2e: munição, cargas e recarga                                               | REQ-BAR-101                                                                                                                                     |
 
 ## 6. Requisitos não-funcionais
 
@@ -780,8 +808,8 @@ entregam. BAR-F0-01 (o protótipo) é a fonte visual, e BAR-F0-03 (o `tasks.md`,
   Mestre e como jogador.
 - **RNF-BAR-06** Código de produção da barra nasce com teste antes. A extração de REQ-BAR-052
   mantém a suíte da ficha e a catraca `pathbuilder-parity` verdes antes do primeiro conteúdo.
-- **RNF-BAR-07** Sem arte nem ícone da Paizo: ícones livres (REQ-AST-048) e rótulos do pack
-  pt-BR.
+- **RNF-BAR-07** Sem arte nem ícone da Paizo: ícones livres, do tipo dos placeholders livres do
+  bundle (REQ-AST-048), e rótulos do pack pt-BR.
 - **RNF-BAR-08** Todo recorte absorvido de outra frente (DEC-BAR-12) confere o código atual antes
   de virar código: os planos de 16/09 citam linhas que já mudaram.
 
@@ -887,30 +915,30 @@ interface ActionBarDevicePrefs {
 
 ## 8. Dependências
 
-| Spec | O que esta spec consome / não pode contrariar                                                                                                                      |
-| ---- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| `02` | `flags.<namespace>.<key>` (REQ-DOC-009). O campo `hotbar` do usuário fica sem consumidor (Q-BAR-09).                                                               |
-| `04` | `doc:update` com `expectedVersion` (REQ-NET-026): único caminho de escrita dos favoritos e dos ícones.                                                             |
-| `05` | Escala de ownership (REQ-USR-012, REQ-USR-013) e checagem no servidor (REQ-USR-014).                                                                               |
-| `06` | Mira por botão direito (REQ-CNV-039); nome e barras da peça conforme conhecimento e posse (REQ-CNV-031).                                                           |
-| `09` | O resultado sai no card de chat que a ficha já posta (DEC-CHT-03).                                                                                                 |
-| `10` | Alvos (REQ-CBT-053..056) e MAP contado no servidor (REQ-CBT-069). A mira é por usuário e some no fim do turno (REQ-CBT-055).                                       |
-| `11` | Shell, escala de z (REQ-UIF-008), registro de ficha (REQ-UIF-018, REQ-UIF-019), preferências de dispositivo (DEC-UIF-10). Emendada em REQ-UIF-001 e REQ-UIF-006.   |
-| `14` | A hotbar substituída (REQ-MAC-012..018, DEC-MAC-06). A macro e a QuickAction voltam como `kind`, a cargo desta spec.                                               |
-| `17` | O conteúdo PF2e: MAP (REQ-PF2-031, REQ-PF2-035) e as regras que o provedor chama.                                                                                  |
-| `18` | O SF2e e o `consumeCharge` (BAR-F8-04).                                                                                                                            |
-| `20` | Envio, listagem e apagar de imagem (REQ-AST-011, REQ-AST-029..031), `AssetRef` (REQ-AST-043) e o catálogo de ícones livres (REQ-AST-048). Emendada em REQ-AST-011. |
-| `21` | Redação por papel (REQ-SEC-020) e upload (REQ-SEC-040..045). Emenda registrada para a BAR-F3-05 (§12).                                                             |
-| `23` | Atalhos e guard (REQ-A11-020, REQ-A11-023), toque e tablet (REQ-A11-043..049). Emendada.                                                                           |
-| `28` | A barra de comando do rodapé (REQ-HUB-007), que só existe em código na `build/app`. Emendada.                                                                      |
-| `29` | O vínculo do companheiro com o dono (`masterActorId`), que a F6 usa.                                                                                               |
-| `36` | A gaveta: 44 px de trilho e 300 px de painel, sobreposta ao canvas (REQ-GAV-012, REQ-GAV-013), e o breakpoint de 900 px (REQ-GAV-040).                             |
-| `40` | De quem é a vez e Encerrar turno (REQ-CBA-072, REQ-CBA-081), redação do participante oculto (REQ-CBA-082), Q-CBA-01. Emendada.                                     |
-| `41` | Posse (REQ-TOK-032, REQ-TOK-034) e o espaço de condições fora da peça (DEC-TOK-19, REQ-TOK-083). Emendada.                                                         |
-| `45` | O que é um ator e a posse do companheiro, forçada à do dono.                                                                                                       |
-| `47` | O recurso de classe genérico que a F7 espera (BAR-F7-06).                                                                                                          |
-| `49` | Reservada (`REQ-ACO-`): o lugar do contador de ações, se um dia voltar. Esta spec não a escreve.                                                                   |
-| `52` | As linhas executáveis do Bhrotto (Caçar Presa, Comandar, Montar, Apoio) e os padrões de card e de estado compacto (REQ-BHR-064..066, REQ-BHR-092).                 |
+| Spec | O que esta spec consome / não pode contrariar                                                                                                                            |
+| ---- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `02` | `flags.<namespace>.<key>` (REQ-DOC-009). O campo `hotbar` do usuário fica sem consumidor (Q-BAR-09).                                                                     |
+| `04` | `doc:update` com `expectedVersion` (REQ-NET-026): único caminho de escrita dos favoritos e dos ícones.                                                                   |
+| `05` | Escala de ownership (REQ-USR-012, REQ-USR-013) e checagem no servidor (REQ-USR-014).                                                                                     |
+| `06` | Marcar alvo, distinto de selecionar (REQ-CNV-039), com o botão direito no token (REQ-BHR-081); nome e barras da peça conforme conhecimento e posse (REQ-CNV-031).        |
+| `09` | O resultado sai no card de chat que a ficha já posta (DEC-CHT-03).                                                                                                       |
+| `10` | Alvos (REQ-CBT-053..056) e MAP contado no servidor (REQ-CBT-069). A mira é por usuário (REQ-CBT-056) e é limpa no fim do turno (REQ-CBT-055).                            |
+| `11` | Shell, escala de z (REQ-UIF-008), registro de ficha (REQ-UIF-018, REQ-UIF-019), preferências de dispositivo (DEC-UIF-10). Emendada em REQ-UIF-001 e REQ-UIF-006.         |
+| `14` | A hotbar substituída (REQ-MAC-012..018, DEC-MAC-06). A macro e a QuickAction voltam como `kind`, a cargo da própria spec `14`.                                           |
+| `17` | O conteúdo PF2e: MAP (REQ-PF2-031, REQ-PF2-035) e as regras que o provedor chama.                                                                                        |
+| `18` | O SF2e e o `consumeCharge` (BAR-F8-04).                                                                                                                                  |
+| `20` | Envio, listagem e apagar de imagem (REQ-AST-011, REQ-AST-029..031), `AssetRef` (REQ-AST-043) e o catálogo de placeholders livres (REQ-AST-048). Emendada em REQ-AST-011. |
+| `21` | Redação por papel (REQ-SEC-020) e upload (REQ-SEC-040..045). Emenda registrada para a BAR-F3-05 (§12).                                                                   |
+| `23` | Atalhos e guard (REQ-A11-020, REQ-A11-023), toque e tablet (REQ-A11-043..049). Emendada.                                                                                 |
+| `28` | A barra de comando do rodapé (REQ-HUB-007), que só existe em código na `build/app`. Emendada.                                                                            |
+| `29` | O vínculo do companheiro com o dono (`masterActorId`), que a F6 usa.                                                                                                     |
+| `36` | A gaveta: 44 px de trilho e 300 px de painel, sobreposta ao canvas (REQ-GAV-012, REQ-GAV-013), e o breakpoint de 900 px (REQ-GAV-040).                                   |
+| `40` | De quem é a vez e Encerrar turno (REQ-CBA-072, REQ-CBA-081), redação do participante oculto (REQ-CBA-082), Q-CBA-01. Emendada.                                           |
+| `41` | Posse (REQ-TOK-032, REQ-TOK-034) e o espaço de condições fora da peça (DEC-TOK-19, REQ-TOK-083). Emendada.                                                               |
+| `45` | O que é um ator e a posse do companheiro, que nasce copiada da do dono (DEC-ATR-18, DEC-ATR-19).                                                                         |
+| `47` | O recurso de classe genérico que a F7 espera (BAR-F7-06).                                                                                                                |
+| `49` | Reservada (`REQ-ACO-`): o lugar do contador de ações, se um dia voltar. Esta spec não a escreve.                                                                         |
+| `52` | As linhas executáveis do Bhrotto (Caçar Presa, Comandar, Montar, Apoio) e os padrões de card e de estado compacto (REQ-BHR-064..066, REQ-BHR-092).                       |
 
 **Outras frentes** (plano §7). "Absorve" segue o precedente do Bhrotto (D-B08): a peça entra neste plano
 com o contrato que o plano de origem fixou, e a ficha de origem é marcada como absorvida (DEC-BAR-12).
@@ -941,9 +969,9 @@ com o contrato que o plano de origem fixou, e a ficha de origem é marcada como 
 - **CA-BAR-03** O jogador faz um golpe pela barra com um alvo marcado: o card de chat sai com o grau
   decidido pelo servidor contra a CA do alvo; a faixa de estado mostra o MAP do próximo ataque; no
   início do turno dele o MAP volta a zero. (REQ-BAR-041, REQ-BAR-038, REQ-BAR-053)
-- **CA-BAR-04** Depois de quatro golpes e três magias no mesmo turno, nenhuma entrada está
-  bloqueada por custo, e a faixa de estado mostra só o MAP do próximo ataque. Não há pips de ações.
-  (REQ-BAR-036, REQ-BAR-032)
+- **CA-BAR-04** Depois de quatro golpes no mesmo turno, o quinto ainda executa, com o MAP já
+  no máximo, e nenhuma entrada fica bloqueada por custo ou por MAP; a faixa de estado mostra só o MAP
+  do próximo ataque. Não há pips de ações. (REQ-BAR-036, REQ-BAR-032)
 - **CA-BAR-05** Um personagem sem `flags.fusion.actionBar` abre a barra e recebe a semente. Ele
   fixa uma magia, desafixa um golpe e reordena; ao recarregar em outro dispositivo, a ordem é a mesma.
   Uma magia nova que ele aprende vai para a aba Magias e não entra nos favoritos.
@@ -953,8 +981,8 @@ com o contrato que o plano de origem fixou, e a ficha de origem é marcada como 
 - **CA-BAR-07** A tecla 1 executa o favorito 1. Com o foco no chat, num diálogo ou num botão, a tecla
   não executa nada. (REQ-BAR-048, REQ-BAR-049, REQ-BAR-051)
 - **CA-BAR-08** O jogador troca o ícone de uma entrada do próprio personagem por uma imagem enviada
-  por ele, e outro jogador vê a imagem. A escrita do mapa de ícones num ator alheio é recusada pelo
-  servidor; o Mestre troca o ícone de qualquer ator. (REQ-BAR-067..073)
+  por ele, e o Mestre, ao selecionar o ator, vê a imagem no slot. A escrita do mapa de ícones num ator
+  alheio é recusada pelo servidor; o Mestre troca o ícone de qualquer ator. (REQ-BAR-067..073)
 - **CA-BAR-09** O servidor recusa um mapa de ícones com URL externa, com valor que não seja um
   caminho `/assets/…` inteiro e com mais entradas que o teto. (REQ-BAR-068,
   REQ-BAR-069, REQ-BAR-071)
@@ -974,6 +1002,8 @@ com o contrato que o plano de origem fixou, e a ficha de origem é marcada como 
 - **CA-BAR-16** A barra recolhida mostra só a faixa de estado, e o estado persiste no dispositivo;
   com a área livre abaixo do limiar, a barra recolhe sozinha. (REQ-BAR-033,
   REQ-BAR-025, REQ-BAR-034)
+- **CA-BAR-17** O Comandar um Animal esmaecido por já ter sido usado no turno ainda recebe o
+  clique, que chega à função da ficha: a barra não o bloqueia. (REQ-BAR-104)
 
 ## 10. Questões em aberto
 
@@ -996,9 +1026,12 @@ com o contrato que o plano de origem fixou, e a ficha de origem é marcada como 
   imagem —, a resposta revelaria o nome de um arquivo que a galeria esconde (REQ-BAR-079). O
   envio deduplicado do jogador marca o existente como ícone, ou devolve um caminho novo? A revisão
   adversarial da BAR-F3-05 decide.
-- **Q-BAR-06** `ActionCost` tem dono no plano do Alquimista (ALQ-F7-02, §2.11), parado em
-  33/125 e sem o tipo entregue, e a barra precisa dele agora (DEC-BAR-14). Quem o declara primeiro — a
-  BAR-F1-02, com a forma de §2.11, ou a ALQ-F7-02 — e como o outro passa a importá-lo?
+- **Q-BAR-06** `ActionCost` existe com duas formas. O plano do Alquimista (ALQ-F7-02,
+  §2.11) o declara como união discriminada — ação, reação, livre, atividade, passivo, nenhum —, e a
+  frente está parada em 33/125, sem esse tipo entregue. O cliente já tem outro `ActionCost`, de
+  formatação (`{ icons, label, isText }`), em `packages/client/src/lib/compendium/documentDetails.ts`.
+  A barra precisa do custo agora (DEC-BAR-14). Qual forma o `cost` da entrada usa, e como as duas
+  deixam de dividir o mesmo nome?
 - **Q-BAR-07** Clicar num slot com o mouse deixa o foco no botão, e o guard (REQ-BAR-049)
   suspende as teclas com botão em foco: quem clica e em seguida aperta uma tecla não vê nada
   acontecer. A BAR-F1-04 e a BAR-F1-05 devolvem o foco ao canvas depois do clique, ou há outra saída
@@ -1006,12 +1039,18 @@ com o contrato que o plano de origem fixou, e a ficha de origem é marcada como 
 - **Q-BAR-08** O Encerrar turno do Mestre aparece só no turno do ator selecionado, ou em
   qualquer turno em andamento? O plano diz "só aparece no seu turno, ou para o Mestre"
   (REQ-BAR-035); o protótipo mostra o botão no turno do NPC selecionado (T6).
-- **Q-BAR-09** `UserDocument.hotbar` e `MacroSchema` (spec `02`) ficam sem consumidor com a
-  hotbar aposentada. Remover o campo, ou mantê-lo até a macro voltar como `kind` (spec `14`)?
+- **Q-BAR-09** `UserDocument.hotbar` e `MacroSchema` (spec `02`), e os tipos e endpoints de
+  hotbar da spec `14`, ficam sem consumidor com a hotbar aposentada. Remover, ou manter até a macro voltar
+  como `kind` (spec `14`)? O mesmo vale para REQ-MAC-021, REQ-MAC-024 e REQ-MAC-028 e para CA-MAC-01,
+  CA-MAC-03 e CA-MAC-10, que dependem da hotbar e seguem [MVP]: reclassificá-los é decisão da spec `14`.
 - **Q-BAR-10** Quando a lista de jogadores (REQ-UIF-007, canto inferior esquerdo) e o avatar (spec
   `35`, canto inferior direito) existirem na linha, a barra os cobre em área livre estreita? O plano
   resolve pelo recolher abaixo de cerca de 1000 px (REQ-BAR-025); a BAR-F1-04 confere com
   cada um.
+- **Q-BAR-11** A entrada esmaecida executa ao clique? A D-15 pede que a barra não bloqueie nada, e
+  REQ-BAR-104 adota essa leitura para estado de turno e de uso; o plano não diz isso com todas
+  as letras (§4.2 item 5 esmaece o Comandar sem dizer se o clique é recusado). Posição atual: a barra não
+  bloqueia, e a mesa confirma depois de jogar com ela.
 
 ## 11. Referências
 
@@ -1028,16 +1067,18 @@ com o contrato que o plano de origem fixou, e a ficha de origem é marcada como 
 
 Registradas aqui para que nenhuma spec fique contrariada em silêncio (`CONVENCOES.md` §2). Nenhum id é
 renumerado. As emendas de `11`, `14`, `20`, `23`, `28`, `40` e `41` foram aplicadas nos próprios
-arquivos em 2026-10-11, pela BAR-F0-02, e cada uma aponta de volta para esta spec.
+arquivos em 2026-10-11, pela BAR-F0-02, e cada uma aponta de volta para esta spec. As de `21` e `27`
+ficam registradas e não aplicadas.
 
-| Spec        | O que muda                                                                                                                                                                                                                                                                                                                                      |
-| ----------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `README.md` | A linha `REQ-BAR-` entra no registro de prefixos, a 53 entra no índice e o parágrafo dos números reservados registra que a 53 também nasceu nesta faixa. Sem isso o `spec-lint` reprova a definição de qualquer id desta spec.                                                                                                                  |
-| `11`        | **REQ-UIF-001** troca "a hotbar centralizada na parte inferior" pela barra de ações na área livre (DEC-BAR-04, DEC-BAR-09). **REQ-UIF-006** é aposentado e passa de [MVP] a [V2]; as menções que sobram à hotbar (o conceito de Shell, REQ-UIF-046 (d) e `hotbarPage`) leem-se como a barra.                                                    |
-| `14`        | **REQ-MAC-012..018** são aposentados e passam de [MVP] a [V2]; DEC-MAC-06 ganha a nota do que a substitui (DEC-BAR-07); as menções à hotbar em REQ-MAC-005, REQ-MAC-021, REQ-MAC-024, REQ-MAC-028, REQ-MAC-NF-003 e CA-MAC-01, CA-MAC-03 e CA-MAC-10 leem-se conforme a nota; a questão 2 de "Questões em Aberto" é respondida por REQ-BAR-066. |
-| `20`        | **REQ-AST-011** passa a permitir o envio de imagem a todo jogador (DEC-BAR-03); a listagem do jogador mostra só os envios marcados como ícone (REQ-BAR-079); apagar segue só do GM (REQ-AST-029).                                                                                                                                               |
-| `21`        | **Registrada, não aplicada nesta passagem.** **REQ-SEC-043** (diretórios por papel) precisa da exceção do destino do envio de ícone (REQ-BAR-076), e **REQ-SEC-044** (cota por usuário configurável) fica desligada para esse envio (REQ-BAR-077). A emenda é aplicada no PR da BAR-F3-05, junto com a revisão adversarial do grant.            |
-| `23`        | **REQ-A11-020** recebe as ações nomeadas da barra (REQ-BAR-048) e o registro mínimo da BAR-F1-05 como começo do `KeybindingRegistry`; **REQ-A11-023** passa a cobrir também o botão em foco nos atalhos da barra (REQ-BAR-049); REQ-A11-044, REQ-A11-046 e REQ-A11-049 valem para a barra em modo tablet (REQ-BAR-100).                         |
-| `28`        | **REQ-HUB-007**: o rodapé central é da barra de ações; a barra de comando do Hub vira grupo compacto na ponta quando as linhas convergirem (REQ-BAR-024).                                                                                                                                                                                       |
-| `40`        | **Q-CBA-01** respondida em parte: a faixa de estado mostra de quem é a vez fora da gaveta (REQ-BAR-040). O título da janela do navegador segue em aberto.                                                                                                                                                                                       |
-| `41`        | **DEC-TOK-19**: a faixa de estado da barra é, para o ator ativo, o espaço dedicado de condições fora da peça (REQ-BAR-028). REQ-TOK-083 não muda.                                                                                                                                                                                               |
+| Spec        | O que muda                                                                                                                                                                                                                                                                                                                                                                   |
+| ----------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `README.md` | A linha `REQ-BAR-` entra no registro de prefixos, a 53 entra no índice e o parágrafo dos números reservados registra que a 53 também nasceu nesta faixa. Sem isso o `spec-lint` reprova a definição de qualquer id desta spec.                                                                                                                                               |
+| `11`        | **REQ-UIF-001** troca "a hotbar centralizada na parte inferior" pela barra de ações na área livre (DEC-BAR-04, DEC-BAR-09). **REQ-UIF-006** é aposentado e passa de [MVP] a [V2]; as menções que sobram à hotbar (o conceito de Shell, REQ-UIF-046 (d) e `hotbarPage`) leem-se como a barra.                                                                                 |
+| `14`        | **REQ-MAC-012..018** são aposentados e passam de [MVP] a [V2]; DEC-MAC-06 ganha a nota do que a substitui (DEC-BAR-07); as menções à hotbar em REQ-MAC-005, REQ-MAC-021, REQ-MAC-024, REQ-MAC-028, REQ-MAC-NF-003 e CA-MAC-01, CA-MAC-03 e CA-MAC-10 leem-se conforme a nota, sem mudar de tag (Q-BAR-09); a questão 2 de "Questões em Aberto" é respondida por REQ-BAR-066. |
+| `20`        | **REQ-AST-011** passa a permitir o envio de imagem a todo jogador (DEC-BAR-03); a listagem do jogador mostra só os envios marcados como ícone (REQ-BAR-079); apagar segue só do GM (REQ-AST-029).                                                                                                                                                                            |
+| `21`        | **Registrada, não aplicada nesta passagem.** **REQ-SEC-043** (diretórios por papel) precisa da exceção do destino do envio de ícone (REQ-BAR-076), e **REQ-SEC-044** (cota por usuário configurável) fica desligada para esse envio (REQ-BAR-077). A emenda é aplicada no PR da BAR-F3-05, junto com a revisão adversarial do grant.                                         |
+| `23`        | **REQ-A11-020** recebe as ações nomeadas da barra (REQ-BAR-048) e o registro mínimo da BAR-F1-05 como começo do `KeybindingRegistry`; **REQ-A11-023** passa a cobrir também o botão em foco nos atalhos da barra (REQ-BAR-049); REQ-A11-044, REQ-A11-046 e REQ-A11-049 valem para a barra em modo tablet (REQ-BAR-100).                                                      |
+| `27`        | **Registrada, não aplicada nesta passagem.** A linha de `14` na tabela de marcos ("M4 (hotbar básico)"), a nota de M4 sobre "macros de hotbar" e a Q-ROD-06 falam de uma hotbar que a barra substitui (DEC-BAR-04). Em que marco cai a barra de ações é decisão do roadmap; o que sobra de `14` em M4 são as macros de chat, executadas por `/macro` e pelo botão Executar.  |
+| `28`        | **REQ-HUB-007**: o rodapé central é da barra de ações; a barra de comando do Hub vira grupo compacto na ponta quando as linhas convergirem (REQ-BAR-024).                                                                                                                                                                                                                    |
+| `40`        | **Q-CBA-01** respondida em parte: a faixa de estado mostra de quem é a vez fora da gaveta (REQ-BAR-040). O título da janela do navegador segue em aberto.                                                                                                                                                                                                                    |
+| `41`        | **DEC-TOK-19**: a faixa de estado da barra é, para o ator ativo, o espaço dedicado de condições fora da peça (REQ-BAR-028). REQ-TOK-083 não muda.                                                                                                                                                                                                                            |

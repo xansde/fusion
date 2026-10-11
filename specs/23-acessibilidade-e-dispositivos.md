@@ -319,7 +319,9 @@ A detecção é feita via `MediaQuery` reativa do Svelte 5 (`import { MediaQuery
 > **Emenda obrigada pela spec 53** (`53-barra-de-acoes.md`, REQ-BAR-100 e §12, 2026-10-11): "macros
 > da hotbar" lê-se como os **slots da barra de ações**. No modo tablet, os slots têm 44×44 px, o
 > tooltip deles vale sem hover (REQ-A11-046) e a barra respeita `env(safe-area-inset-bottom)`
-> (REQ-A11-049); a "bottom bar (hotbar)" do item 7 de "Questões em Aberto" é a barra de ações.
+> (REQ-A11-049); a "bottom bar (hotbar)" do item 7 de "Questões em Aberto" é a barra de ações. As
+> demais menções à hotbar nesta spec (REQ-A11-005 e as listas de regiões do shell) leem-se como a
+> barra de ações.
 
 **REQ-A11-045** [MVP] A sidebar em modo tablet deve ser colapsável/expansível via: swipe from the right edge (gesto de pan a partir de ≤ 24px da borda direita), toque no FAB, e botão dedicado no topo. O estado (colapsada/expandida) é persistido por sessão.
 

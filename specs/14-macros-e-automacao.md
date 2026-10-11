@@ -191,9 +191,11 @@ Especificar o sistema de macros, hotbar do usuário, ações rápidas data-drive
 > - REQ-MAC-017: menu de contexto da entrada (REQ-BAR-045).
 > - REQ-MAC-018: o Mestre vê os favoritos no ator (REQ-BAR-061).
 >
-> As menções à hotbar em REQ-MAC-005 (a) e (b), REQ-MAC-021, REQ-MAC-024, REQ-MAC-028,
-> REQ-MAC-NF-003, CA-MAC-01, CA-MAC-03 e CA-MAC-10 leem-se à luz desta nota: macro e QuickAction
-> no slot ficam suspensas até voltarem como `kind`, e as macros seguem executáveis por
+> Os tipos `HotbarSlotContent` e `HotbarState` e os endpoints `GET` e `PUT /api/hotbar` ficam sem
+> consumidor. As menções à hotbar em REQ-MAC-005 (a) e (b), REQ-MAC-021, REQ-MAC-024,
+> REQ-MAC-028, REQ-MAC-NF-003, CA-MAC-01, CA-MAC-03 e CA-MAC-10 não têm onde se cumprir até a
+> macro e a QuickAction voltarem como `kind`: as tags delas não mudam nesta passagem, o destino
+> delas é desta spec, e a spec 53 o registra em Q-BAR-09. As macros seguem executáveis por
 > `/macro` e pelo botão Executar (REQ-MAC-005 (c) e (d)). A questão 2 de "Questões em Aberto" é
 > respondida por REQ-BAR-066; a questão 9 perde o objeto, porque a barra não tem páginas.
 
