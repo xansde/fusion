@@ -22,7 +22,8 @@
   Falta a **casca** e a **ponte core ↔ sistema**: a lógica da ficha está presa dentro dos componentes Svelte e o
   core não tem como pedir ao sistema "quais as ações deste ator".
 - **O que ela não faz**: não conta ações nem bloqueia nada (D-15 continua valendo, §5.4). Não é o Token HUD da
-  spec 11 e não cria regra nova. Tudo executa pelos mesmos caminhos da ficha.
+  spec 11 e não cria regra nova. Tudo executa pelos mesmos caminhos da ficha. E **nunca** mostra a um jogador a
+  barra de um ator que não é dele (D-BA01, §4.2).
 - **Tamanho**: 35 tarefas em 9 fases (F0–F8). A **primeira entrega jogável** é F1 + F2. Nela, cada jogador
   de A Queda usa a barra do próprio PJ para golpe, magia, ações executáveis e testes.
 - **Achado urgente, fora da barra**: as rolagens da **ficha de NPC estão quebradas** na `alfa/app` (§3.2). Isso
@@ -169,7 +170,8 @@ abaixo das janelas e da gaveta.
   - retrato, nome, classes e PV (com temporário);
   - os recursos que importam no turno: foco, herói e os slots do patamar em foco;
   - condições ativas como chips **só com o nome**, e o efeito aparece ao clicar (padrão D-B23);
-  - o alvo marcado;
+  - o alvo marcado, com o nome que o jogador já vê no token (a mesma redação), nunca o nome real de um NPC
+    oculto ou desconhecido;
   - à direita, de quem é a vez e o MAP do próximo ataque.
 - **Abas**: Favoritos é a linha principal, com 12 slots e teclas 1–0, − e =. As outras são:
   - **Golpes**;
@@ -188,14 +190,22 @@ abaixo das janelas e da gaveta.
 
 ### 4.2 De quem é a barra
 
-1. Se o usuário controla exatamente um token, a barra é do ator desse token.
-2. Se nenhum token está controlado e o usuário tem personagem, a barra é dele, mesmo sem token na cena. Com mais
-   de um personagem, vale o último usado.
+**Regra de posse (D-BA01, decidida pelo Alexandre em 11/10):** a barra só mostra ator de que o usuário é
+**dono** (OWNER do ator efetivo do token). O Mestre vê a de qualquer ator. Hoje qualquer clique seleciona qualquer
+token, inclusive o de um NPC. Por isso o jogador que seleciona o token de um NPC, ou de outro jogador, **não** vê
+a barra dele: a barra continua no personagem do próprio jogador, e nenhum dado do ator selecionado chega ao
+provedor. O teste de posse é o que o client já usa (`ownedActorIdsOf`, spec 41 REQ-TOK-032); nada de predicado
+novo.
+
+1. Se o usuário selecionou exatamente um token cujo ator é dele (ou se é o Mestre), a barra é desse ator.
+2. Fora isso, se o usuário tem personagem, a barra é dele, mesmo sem token na cena e mesmo que ele tenha
+   selecionado um token alheio. Com mais de um personagem, vale o último usado.
 3. Mestre sem seleção: a barra fica oculta.
 4. Seleção múltipla (só Mestre) mostra uma barra-resumo ("3 tokens") com testes em grupo: salvamentos,
    Percepção e iniciativa.
-5. Com um companheiro, eidolon ou servo selecionado, a barra é a dele. A do dono mostra Comandar ou Agir Juntos,
-   esmaecido com motivo quando já foi usado no turno (o `commandMark` já existe).
+5. Com um companheiro, eidolon ou servo selecionado, a barra é a dele **se ele for do jogador** (a posse do
+   companheiro já é forçada à do dono). A do dono mostra Comandar ou Agir Juntos, esmaecido com motivo quando
+   já foi usado no turno (o `commandMark` já existe).
 
 ### 4.3 Interação
 
@@ -285,6 +295,10 @@ O core ganha um store reativo novo, alimentado pelo `TokenInteractionManager`. O
 seleção em vez de guardá-la num `Set` privado, e a seleção sobrevive à troca de cena. As regras de quem é a
 barra estão na §4.2.
 
+O **gate de posse** (D-BA01) mora nesse store, antes do provedor. O store só publica ator de que o usuário é dono,
+ou qualquer ator para o Mestre. A seleção de um token alheio não muda o ator ativo do jogador. O provedor nunca é
+chamado com ator alheio, e isso tem teste negativo.
+
 ### 5.4 Turno e custo de ação, dentro da D-15
 
 A **D-15** foi decidida pelo Alexandre na frente do Alquimista. Ela tirou do escopo o contador de ações por
@@ -331,25 +345,25 @@ script como nas outras frentes, sai no `tasks.md` (BAR-F0-03), depois das decis�
 
 ### F1: Fundação no core (sem conteúdo de sistema)
 
-| ID        | Repo | Entrega                                                                                                                                                                                                     | Depende de | Tam. |
-| --------- | ---- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------- | ---- |
-| BAR-F1-01 | core | Store reativo de **ator ativo**. A seleção é publicada pelo `TokenInteractionManager` e sobrevive à troca de cena. Implementa as regras da §4.2 (seleção múltipla fica para a F4).                          | F0-02      | M    |
-| BAR-F1-02 | core | `actionBarRegistry` e tipos (`ActionBarEntry`, `ActionBarStatus`…), com um provedor stub de teste. Fronteira (`dependency-cruiser`, `boundary-test`) verde.                                                 | F0-02      | P    |
-| BAR-F1-03 | core | Tooltip/popover e menu de contexto **genéricos** em `components/common/`, com clique fora, Esc, foco e aria. Ficam reutilizáveis pelo resto do app.                                                         | F0-02      | M    |
-| BAR-F1-04 | core | Componente `ActionBar` com faixa de estado, abas, slots e recolher. Posição na área livre (o estado aberto da gaveta passa a ser exportado), convivência com o `ScenePrepareNotice` e lugar na escala de z. | F1-01..03  | G    |
-| BAR-F1-05 | core | Registro mínimo de atalhos (spec 23 REQ-A11-020/023) com as teclas da barra e Esc. O guard cobre input, textarea, contenteditable, diálogo e botão focado.                                                  | F1-04      | P    |
+| ID        | Repo | Entrega                                                                                                                                                                                                                                                                                                                                | Depende de | Tam. |
+| --------- | ---- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------- | ---- |
+| BAR-F1-01 | core | Store reativo de **ator ativo**. A seleção é publicada pelo `TokenInteractionManager` e sobrevive à troca de cena. Implementa as regras da §4.2 (seleção múltipla fica para a F4) com o **gate de posse** (D-BA01): teste negativo em que o jogador seleciona um NPC e a barra segue no personagem dele, sem o provedor receber o NPC. | F0-02      | M    |
+| BAR-F1-02 | core | `actionBarRegistry` e tipos (`ActionBarEntry`, `ActionBarStatus`…), com um provedor stub de teste. Fronteira (`dependency-cruiser`, `boundary-test`) verde.                                                                                                                                                                            | F0-02      | P    |
+| BAR-F1-03 | core | Tooltip/popover e menu de contexto **genéricos** em `components/common/`, com clique fora, Esc, foco e aria. Ficam reutilizáveis pelo resto do app.                                                                                                                                                                                    | F0-02      | M    |
+| BAR-F1-04 | core | Componente `ActionBar` com faixa de estado, abas, slots e recolher. Posição na área livre (o estado aberto da gaveta passa a ser exportado), convivência com o `ScenePrepareNotice` e lugar na escala de z.                                                                                                                            | F1-01..03  | G    |
+| BAR-F1-05 | core | Registro mínimo de atalhos (spec 23 REQ-A11-020/023) com as teclas da barra e Esc. O guard cobre input, textarea, contenteditable, diálogo e botão focado.                                                                                                                                                                             | F1-04      | P    |
 
 ### F2: Conteúdo PF2e do personagem (primeira entrega jogável)
 
-| ID        | Repo     | Entrega                                                                                                                                                                                                | Depende de           | Tam. |
-| --------- | -------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | -------------------- | ---- |
-| BAR-F2-01 | satélite | **Extração sem mudança de comportamento**: `CharacterSheetVM` headless; `useExecutable`, `emitAbility` e `emitCast` em `lib/`; a ficha chama o extraído. Suíte da ficha e `pathbuilder-parity` verdes. | —                    | G    |
-| BAR-F2-02 | satélite | Provedor de **Golpes**: MAP corrente por `attacksThisTurn`, variantes, munição exibida, bombas.                                                                                                        | F1-02, F2-01         | M    |
-| BAR-F2-03 | satélite | Provedor de **Magias**: truques, patamares com slots, foco, preparada e espontânea, elevação que já existe.                                                                                            | F1-02, F2-01         | M    |
-| BAR-F2-04 | satélite | Provedor de **Ações**: lista relevante; "Usar" nas executáveis; as outras postam o card da ação. Inclui Impulsos e Rajada (custo variável) e os alternáveis de `flags.fusion.toggles`.                 | F1-02, F2-01         | M    |
-| BAR-F2-05 | satélite | Provedor de **Testes**: Percepção, salvamentos, perícias e saberes.                                                                                                                                    | F1-02                | P    |
-| BAR-F2-06 | satélite | **Faixa de estado**: PV, temporário, foco, herói, condições compactas, alvo e MAP do próximo ataque.                                                                                                   | F1-02                | P    |
-| BAR-F2-07 | ambos    | Registro em `registerPf2eSheets`, tag do satélite e bump do pin. Roteiro `tutorial-e2e` com os 4 PJs de A Queda (jogador e Mestre) e relatório protótipo × tela (PROCESSO-UI P1–P4).                   | F1-04..05, F2-02..06 | M    |
+| ID        | Repo     | Entrega                                                                                                                                                                                                                                         | Depende de           | Tam. |
+| --------- | -------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------- | ---- |
+| BAR-F2-01 | satélite | **Extração sem mudança de comportamento**: `CharacterSheetVM` headless; `useExecutable`, `emitAbility` e `emitCast` em `lib/`; a ficha chama o extraído. Suíte da ficha e `pathbuilder-parity` verdes.                                          | —                    | G    |
+| BAR-F2-02 | satélite | Provedor de **Golpes**: MAP corrente por `attacksThisTurn`, variantes, munição exibida, bombas.                                                                                                                                                 | F1-02, F2-01         | M    |
+| BAR-F2-03 | satélite | Provedor de **Magias**: truques, patamares com slots, foco, preparada e espontânea, elevação que já existe.                                                                                                                                     | F1-02, F2-01         | M    |
+| BAR-F2-04 | satélite | Provedor de **Ações**: lista relevante; "Usar" nas executáveis; as outras postam o card da ação. Inclui Impulsos e Rajada (custo variável) e os alternáveis de `flags.fusion.toggles`.                                                          | F1-02, F2-01         | M    |
+| BAR-F2-05 | satélite | Provedor de **Testes**: Percepção, salvamentos, perícias e saberes.                                                                                                                                                                             | F1-02                | P    |
+| BAR-F2-06 | satélite | **Faixa de estado**: PV, temporário, foco, herói, condições compactas, alvo e MAP do próximo ataque.                                                                                                                                            | F1-02                | P    |
+| BAR-F2-07 | ambos    | Registro em `registerPf2eSheets`, tag do satélite e bump do pin. Roteiro `tutorial-e2e` com os 4 PJs de A Queda (jogador e Mestre, incluindo o jogador clicando num NPC sem ver a barra dele) e relatório protótipo × tela (PROCESSO-UI P1–P4). | F1-04..05, F2-02..06 | M    |
 
 ### F3: Favoritos e personalização
 
@@ -365,7 +379,7 @@ script como nas outras frentes, sai no `tasks.md` (BAR-F0-03), depois das decis�
 | ID        | Repo     | Entrega                                                                                                                                                                                              | Depende de   | Tam. |
 | --------- | -------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------ | ---- |
 | BAR-F4-01 | satélite | **Conserta as rolagens da ficha de NPC**: troca `roll:check` pelo caminho de chat da ficha de personagem, com golpe com MAP, alvo e grau. É recorte da GUE-F1-06 e pode sair **já, avulso** (DC-10). | —            | M    |
-| BAR-F4-02 | satélite | Provedor de **NPC**: golpes, ações, reações e magias inatas com CD. O Mestre vê CA e PV.                                                                                                             | F2-07, F4-01 | M    |
+| BAR-F4-02 | satélite | Provedor de **NPC**, só para o Mestre (D-BA01): golpes, ações, reações e magias inatas com CD, com CA e PV.                                                                                          | F2-07, F4-01 | M    |
 | BAR-F4-03 | core     | Seleção múltipla do Mestre (hoje a seleção é única) e barra-resumo com testes em grupo (salvamentos, Percepção, iniciativa).                                                                         | F2-07        | M    |
 
 ### F5: Itens e consumíveis
@@ -432,9 +446,17 @@ A F1 e a F2-01 andam em paralelo, porque os arquivos são disjuntos: a F1 mexe n
 fixou, e a ficha de origem é marcada como absorvida. Antes de virar código, cada recorte confere o código
 atual, porque os planos de 16/09 citam linhas que já mudaram.
 
-## 8. Decisões a fechar
+## 8. Decisões
 
-Cada linha traz a recomendação. Basta responder "como recomendado" e apontar as exceções. Elas viram `D-BA01…`
+### 8.1 Já decididas
+
+| ID     | Tema                 | Decidido                                                                                                                                                                                                                                                                                                      | Tarefas                         |
+| ------ | -------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------- |
+| D-BA01 | Barra de ator alheio | O jogador **nunca** vê a barra de um ator que não é dele. Selecionar o token de um NPC, ou de outro jogador, não muda a barra, que continua no personagem do jogador. Só o Mestre vê a barra de NPC (Alexandre, 11/10: "não será aceitável que um player veja a barra de ações de um NPC ao selecionar ele"). | BAR-F1-01, BAR-F2-06, BAR-F4-02 |
+
+### 8.2 A fechar
+
+Cada linha traz a recomendação. Basta responder "como recomendado" e apontar as exceções. Elas viram `D-BA02…`
 em `decisoes.md` e `DEC-BAR-…` na spec 53.
 
 | ID    | Tema                     | Recomendação                                                                                                                                                                                                        | Alternativa                                                              |
@@ -453,16 +475,17 @@ em `decisoes.md` e `DEC-BAR-…` na spec 53.
 
 ## 9. Riscos
 
-| Risco                                                                                                                                                                                                | Efeito                                       | Mitigação                                                                                                                                |
-| ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------- |
-| A extração da lógica da ficha (BAR-F2-01) quebra a ficha.                                                                                                                                            | Regressão na ficha em uso na mesa.           | Tarefa isolada e sem mudança de comportamento, com suíte da ficha e `pathbuilder-parity` verdes **antes** de qualquer conteúdo da barra. |
-| O rodapé é disputado com a barra de comando do Hub, que só existe na `build/app`.                                                                                                                    | Conflito se as linhas convergirem.           | DC-06 e emenda na spec 28 desde já.                                                                                                      |
-| Gaveta de 344 px à direita, aberta por padrão, com janelas por cima.                                                                                                                                 | Barra espremida em tela estreita.            | Posição relativa à área livre; abaixo de ~1000 px de área livre a barra recolhe; o estado da gaveta passa a ser exportado.               |
-| Teclas 1–0 disparando com foco em campo de texto ou botão.                                                                                                                                           | Rolagem pública indesejada.                  | Registro de atalhos com guard completo (input, textarea, contenteditable, diálogo, botão focado), com teste.                             |
-| **Anti-cheat herdado**: bônus e MAP vêm da fórmula do client; o `chat:send` genérico não confere se o `speakerActorId` é do usuário; slot e foco são gastos por `doc:update` sem validação de regra. | A barra facilita um caminho que já é frouxo. | A barra não piora nada. O endurecimento fica numa frente própria (§10).                                                                  |
-| Os planos de 16/09 envelheceram.                                                                                                                                                                     | Recorte absorvido com evidência errada.      | Cada recorte confere o código atual antes de virar código (lição do Guerreiro).                                                          |
-| A barra polui a mesa.                                                                                                                                                                                | Crítica comum aos HUDs de PF2e.              | Começa enxuta, pode ser recolhida e fica oculta para o Mestre sem seleção.                                                               |
-| Recalcular entradas a cada mudança.                                                                                                                                                                  | Engasgo com muitos NPCs.                     | Memo por versão do doc do ator, só para o ator ativo.                                                                                    |
+| Risco                                                                                                                                                                                                | Efeito                                       | Mitigação                                                                                                                                                                                   |
+| ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Jogador vendo dados de NPC pela barra: hoje qualquer clique seleciona qualquer token.                                                                                                                | Vazam golpes, CA, PV e magias do NPC.        | Gate de posse no store do ator ativo (D-BA01); o provedor nunca é chamado com ator alheio; o chip de alvo usa o nome redigido; há teste negativo e o caso entra no smoke como jogador (P4). |
+| A extração da lógica da ficha (BAR-F2-01) quebra a ficha.                                                                                                                                            | Regressão na ficha em uso na mesa.           | Tarefa isolada e sem mudança de comportamento, com suíte da ficha e `pathbuilder-parity` verdes **antes** de qualquer conteúdo da barra.                                                    |
+| O rodapé é disputado com a barra de comando do Hub, que só existe na `build/app`.                                                                                                                    | Conflito se as linhas convergirem.           | DC-06 e emenda na spec 28 desde já.                                                                                                                                                         |
+| Gaveta de 344 px à direita, aberta por padrão, com janelas por cima.                                                                                                                                 | Barra espremida em tela estreita.            | Posição relativa à área livre; abaixo de ~1000 px de área livre a barra recolhe; o estado da gaveta passa a ser exportado.                                                                  |
+| Teclas 1–0 disparando com foco em campo de texto ou botão.                                                                                                                                           | Rolagem pública indesejada.                  | Registro de atalhos com guard completo (input, textarea, contenteditable, diálogo, botão focado), com teste.                                                                                |
+| **Anti-cheat herdado**: bônus e MAP vêm da fórmula do client; o `chat:send` genérico não confere se o `speakerActorId` é do usuário; slot e foco são gastos por `doc:update` sem validação de regra. | A barra facilita um caminho que já é frouxo. | A barra não piora nada. O endurecimento fica numa frente própria (§10).                                                                                                                     |
+| Os planos de 16/09 envelheceram.                                                                                                                                                                     | Recorte absorvido com evidência errada.      | Cada recorte confere o código atual antes de virar código (lição do Guerreiro).                                                                                                             |
+| A barra polui a mesa.                                                                                                                                                                                | Crítica comum aos HUDs de PF2e.              | Começa enxuta, pode ser recolhida e fica oculta para o Mestre sem seleção.                                                                                                                  |
+| Recalcular entradas a cada mudança.                                                                                                                                                                  | Engasgo com muitos NPCs.                     | Memo por versão do doc do ator, só para o ator ativo.                                                                                                                                       |
 
 ## 10. Fora do escopo
 
@@ -480,7 +503,7 @@ em `decisoes.md` e `DEC-BAR-…` na spec 53.
 ## 11. Próximos passos
 
 1. O Alexandre responde as DCs (pode ser "como recomendado" com exceções) e revisa o protótipo, telas T1–T7.
-2. As respostas viram `decisoes.md` (D-BA01…) e o protótipo é ajustado se alguma mudar o desenho.
+2. As respostas viram `decisoes.md` (D-BA02…, junto com a D-BA01 já decidida) e o protótipo é ajustado se alguma mudar o desenho.
 3. Vêm a spec 53 com as emendas (BAR-F0-02) e o `tasks.md` no formato das frentes (BAR-F0-03), com a skill
    `/barra-de-acoes`.
 4. Se a DC-10 for aceita, o fix das rolagens de NPC sai antes de tudo.
