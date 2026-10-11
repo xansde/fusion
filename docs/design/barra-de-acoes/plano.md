@@ -90,20 +90,20 @@ ou não tem chamador, ❌ não existe. Prefixos de caminho: `client/` = `package
 
 ### 3.1 O que a barra pode chamar direto (a ficha já faz)
 
-| Peça                       | Status | Onde                                                                                                                                                                                                            |
-| -------------------------- | ------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Golpe com MAP e alvo       | ✅     | `vm.strikeCard(id, mapIndex, getMyTargets())` (`pf2e-sheet/characterSheetVM.ts:3360`). O servidor decide o grau contra a CA do alvo lida no banco (`server/chat/chat-handler.ts:2110`).                         |
-| MAP corrente               | ✅     | O servidor conta (`server/combat/map-counter.ts:278`) e publica `combat.attackCount` (`shared/combat/schemas.ts:157`). A ficha lê com `attacksThisTurn(actorId)` (`pf2e-sheet/strikeMapCount.svelte.ts:40`).    |
-| Magia (slot, foco, truque) | ✅     | `vm.castSpell` (`characterSheetVM.ts:2608`), com gasto por `toggleSlotExpended`, `expendKnownSlot` ou `setFocusPoints`. O salvamento é graduado pelo servidor.                                                  |
-| Impulso e Rajada           | ✅     | `buildImpulseCard`, `buildElementalBlastCard` (`pf2e-sheet/actionsVM.ts:894,1149`), `vm.blastCard`.                                                                                                             |
-| Lista de ações relevante   | ✅     | `loadActionEntries` → `mergeActionRows` → `filterRelevantRows` → `sortActionRows` (`actionsVM.ts:1433,511,1356,1408`), 538 ações do `actions-core`.                                                             |
-| Ações executáveis          | ✅     | Agarrar, Empurrar e Derrubar (CD do alvo lida no banco, limite de tamanho, MAP), Procurar, Rastrear, Tratar Ferimentos, Caçar Presa, Comandar, Apoio e Montar (`pf2e-sheet/actions/executableRows.ts:208-278`). |
-| Alvo do usuário            | ✅     | O botão direito no token marca e desmarca, e Esc limpa (`client/lib/canvas/tokens/TokenInteractionManager.ts:555,798`). `getMyTargets()` é reativo (`client/lib/combat/combatStore.svelte.ts:118`).             |
-| Encerrar turno             | ✅     | `combatActions.nextTurn` → `combat:nextTurn`. O dono do combatente ativo pode encerrar (`server/combat/combat-handlers.ts:1395`).                                                                               |
-| É o meu turno?             | ✅     | `activeCombatantIsOwnedBy` e `combatBadgeTone()==="amber"` (`client/lib/combat/combatBadge.svelte.ts:94,164`).                                                                                                  |
-| Alternáveis da ficha       | ✅     | `flags.fusion.toggles.*` (Panache, Estratagema, alvo desprevenido, Finalizador), Atunamento Estelar, modo da arma combinada.                                                                                    |
-| Usar consumível            | 🟡     | `item:consume` está pronto no servidor (OWNER, `expectedVersion`, baixa quantidade e usos, aplica efeito, rola cura e dano) e **não tem chamador no client**.                                                   |
-| Abrir a ficha              | ✅     | `openActorSheet(actorId, actorDoc, opts)` (`client/lib/sheets/openActorSheet.ts:30`).                                                                                                                           |
+| Peça                       | Status | Onde                                                                                                                                                                                                              |
+| -------------------------- | ------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Golpe com MAP e alvo       | ✅     | `vm.strikeCard(id, mapIndex, getMyTargets())` (`pf2e-sheet/characterSheetVM.ts:3360`). O servidor decide o grau contra a CA do alvo lida no banco (`server/chat/chat-handler.ts:2110`).                           |
+| MAP corrente               | ✅     | O servidor conta (`server/combat/map-counter.ts:278`) e publica `combat.attackCount` (`shared/combat/schemas.ts:157`). A ficha lê com `attacksThisTurn(actorId)` (`pf2e-sheet/strikeMapCount.svelte.ts:40`).      |
+| Magia (slot, foco, truque) | ✅     | `vm.castSpell` (`characterSheetVM.ts:2608`), com gasto por `toggleSlotExpended`, `expendKnownSlot` ou `setFocusPoints`. O salvamento é graduado pelo servidor.                                                    |
+| Impulso e Rajada           | ✅     | `buildImpulseCard`, `buildElementalBlastCard` (`pf2e-sheet/actionsVM.ts:894,1149`), `vm.blastCard`.                                                                                                               |
+| Lista de ações relevante   | ✅     | `loadActionEntries` → `mergeActionRows` → `filterRelevantRows` → `sortActionRows` (`actionsVM.ts:1433,511,1356,1408`), 538 ações do `actions-core`.                                                               |
+| Ações executáveis          | ✅     | Agarrar, Empurrar e Derrubar (CD do alvo lida no banco, limite de tamanho, MAP), Investigar, Rastrear, Tratar Ferimentos, Caçar Presa, Comandar, Apoio e Montar (`pf2e-sheet/actions/executableRows.ts:208-278`). |
+| Alvo do usuário            | ✅     | O botão direito no token marca e desmarca, e Esc limpa (`client/lib/canvas/tokens/TokenInteractionManager.ts:555,798`). `getMyTargets()` é reativo (`client/lib/combat/combatStore.svelte.ts:118`).               |
+| Encerrar turno             | ✅     | `combatActions.nextTurn` → `combat:nextTurn`. O dono do combatente ativo pode encerrar (`server/combat/combat-handlers.ts:1395`).                                                                                 |
+| É o meu turno?             | ✅     | `activeCombatantIsOwnedBy` e `combatBadgeTone()==="amber"` (`client/lib/combat/combatBadge.svelte.ts:94,164`).                                                                                                    |
+| Alternáveis da ficha       | ✅     | `flags.fusion.toggles.*` (Panache, Estratagema, alvo desprevenido, Finalizador), Atunamento Estelar, modo da arma combinada.                                                                                      |
+| Usar consumível            | 🟡     | `item:consume` está pronto no servidor (OWNER, `expectedVersion`, baixa quantidade e usos, aplica efeito, rola cura e dano) e **não tem chamador no client**.                                                     |
+| Abrir a ficha              | ✅     | `openActorSheet(actorId, actorDoc, opts)` (`client/lib/sheets/openActorSheet.ts:30`).                                                                                                                             |
 
 ### 3.2 O que falta para a barra existir
 
@@ -116,7 +116,7 @@ ou não tem chamador, ❌ não existe. Prefixos de caminho: `client/` = `package
 | Tooltip, popover, menu de contexto | ❌     | O core não tem componente genérico para isso. O botão direito no canvas é a mira.                                                                                                                                                                                                                    |
 | Arrastar e soltar                  | ❌     | O framework da spec 11 (DEC-UIF-09) não existe; só há HTML5 nativo ad hoc.                                                                                                                                                                                                                           |
 | Hotbar e macros (spec 14)          | 🟡     | `UserSchema.hotbar` e `MacroSchema` existem no servidor sem UI, sem rota e sem execução. 34 requisitos [MVP] da spec 14 têm zero citações.                                                                                                                                                           |
-| Ações sem execução                 | ❌     | Desmoralizar, Fintar, Desarmar, Reposicionar, Escapar, Recordar Conhecimento, Esconder, Levantar Escudo, Passo/Andar e Recarregar.                                                                                                                                                                   |
+| Ações sem execução                 | ❌     | Desmoralizar, Fintar, Desarmar, Reposicionar, Escapar, Rememorar Conhecimento, Esconder, Erguer um Escudo, Passo/Deslocar e Recarregar.                                                                                                                                                              |
 | Recurso de classe genérico         | ❌     | Só existe na spec 47 (`SpecialResource`).                                                                                                                                                                                                                                                            |
 | **Rolagens da ficha de NPC**       | ❌     | **Quebradas**: `npcSheetVM.ts:514` emite `roll:check`, que não existe no protocolo, e o servidor descarta como "Malformed envelope" (`server/net/socket-manager.ts:1045`). É o mesmo defeito que o r9 corrigiu na ficha de personagem.                                                               |
 
@@ -144,7 +144,10 @@ ou não tem chamador, ❌ não existe. Prefixos de caminho: `client/` = `package
 
 ## 4. Desenho proposto
 
-O protótipo fiel (telas T1–T7) é a fonte visual. Esta seção é a fonte do comportamento.
+O protótipo fiel (telas T1–T7) é a fonte visual. Esta seção é a fonte do comportamento. Os rótulos são os do
+pack pt-BR, os mesmos da ficha: Investigar, Deslocar, Esgueirar, Rememorar Conhecimento, Arquitetar uma
+Estratégia, Golpe Reativo, Erguer um Escudo, Comandar um Animal. A barra lê os dados de onde a ficha lê, então
+não tem nomes próprios.
 
 ### 4.1 Anatomia
 
@@ -397,14 +400,14 @@ script como nas outras frentes, sai no `tasks.md` (BAR-F0-03), depois das decis�
 
 ### F7: Ações e estados que faltam (motor; recortes de outras frentes)
 
-| ID        | Repo     | Entrega                                                                                                                            | Depende de                     | Tam. |
-| --------- | -------- | ---------------------------------------------------------------------------------------------------------------------------------- | ------------------------------ | ---- |
-| BAR-F7-01 | satélite | Desmoralizar, Fintar, Recordar Conhecimento e Esconder executáveis: teste contra Vontade ou Percepção do alvo, **sem** contar MAP. | F2-04                          | M    |
-| BAR-F7-02 | ambos    | Desarmar, Reposicionar e Escapar (traço ataque, contam MAP). Recorte da GUE-F5-03.                                                 | F2-04                          | M    |
-| BAR-F7-03 | ambos    | Levantar Escudo com estado (+CA até o próximo turno) e Bloqueio com Escudo. Recorte da GUE-F5-01/02.                               | F2-04                          | M    |
-| BAR-F7-04 | ambos    | Posturas e Fúria como alternáveis com estado.                                                                                      | **ANI-F3-03** ou **GUE-F6-01** | G    |
-| BAR-F7-05 | core     | Aba Reações com disponibilidade.                                                                                                   | **GUE-F4-01** (pool de reação) | P    |
-| BAR-F7-06 | ambos    | Recursos de classe genéricos na faixa de estado.                                                                                   | **ALQ-F3-02/04**               | P    |
+| ID        | Repo     | Entrega                                                                                                                             | Depende de                     | Tam. |
+| --------- | -------- | ----------------------------------------------------------------------------------------------------------------------------------- | ------------------------------ | ---- |
+| BAR-F7-01 | satélite | Desmoralizar, Fintar, Rememorar Conhecimento e Esconder executáveis: teste contra Vontade ou Percepção do alvo, **sem** contar MAP. | F2-04                          | M    |
+| BAR-F7-02 | ambos    | Desarmar, Reposicionar e Escapar (traço ataque, contam MAP). Recorte da GUE-F5-03.                                                  | F2-04                          | M    |
+| BAR-F7-03 | ambos    | Erguer um Escudo com estado (+CA até o próximo turno) e Bloqueio com Escudo. Recorte da GUE-F5-01/02.                               | F2-04                          | M    |
+| BAR-F7-04 | ambos    | Posturas e Fúria como alternáveis com estado.                                                                                       | **ANI-F3-03** ou **GUE-F6-01** | G    |
+| BAR-F7-05 | core     | Aba Reações com disponibilidade.                                                                                                    | **GUE-F4-01** (pool de reação) | P    |
+| BAR-F7-06 | ambos    | Recursos de classe genéricos na faixa de estado.                                                                                    | **ALQ-F3-02/04**               | P    |
 
 ### F8: Alcance, tablet e acabamento
 
