@@ -28,7 +28,7 @@
       "tentativas": 0,
       "onda": 0,
       "modelo": "sonnet/medium",
-      "resumo": "FORA da frente (D-BA13): corrigida avulsa em fix/npc-rolagens, com PRs próprios para a main do satélite e a alfa/app. Marcada integrada só para o plan.mjs não escalá-la numa rodada nem travar o fechamento do L2; a espera real é a porteira da BAR-F4-02 (tasks.md §3)",
+      "resumo": "FORA da frente (D-BA13): a corrigir avulsa em fix/npc-rolagens (no dia do plano a branch e os PRs ainda não existiam), com PRs próprios para a main do satélite e a alfa/app. Marcada integrada só para o plan.mjs não escalá-la numa rodada nem travar o fechamento do L2; a espera real é a porteira da BAR-F4-02 (tasks.md §3)",
       "foraDaFrente": true
     }
   },
