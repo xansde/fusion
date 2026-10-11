@@ -69,6 +69,7 @@ Estas specs foram geradas a partir da pesquisa em [`docs/research/`](../docs/res
 | 45  | [Atores](45-atores.md)                                                  | O que é um ator, facetas, ciclo de vida, posse   |
 | 47  | [Fabricação e Alquimia](47-fabricacao-e-alquimia.md)                    | Recurso de classe, preparação diária, fabricação |
 | 52  | [Caçador, Companheiro e Montaria](52-cacador-companheiro-e-montaria.md) | Presa no token, efeito em outro ator, montado    |
+| 53  | [Barra de Ações](53-barra-de-acoes.md)                                  | Barra do personagem: posse, favoritos, ícones    |
 
 ## Níveis
 
@@ -137,6 +138,7 @@ pelo `tools/spec-lint`; alterá-la sem mover os requisitos correspondentes quebr
 | `REQ-ATR-`  | [45](45-atores.md)                         | Atores (conceito, facetas, posse)    |
 | `REQ-FAB-`  | [47](47-fabricacao-e-alquimia.md)          | Fabricação e alquimia                |
 | `REQ-BHR-`  | [52](52-cacador-companheiro-e-montaria.md) | Caçador, companheiro e montaria      |
+| `REQ-BAR-`  | [53](53-barra-de-acoes.md)                 | Barra de ações                       |
 
 <!-- prefixos:end -->
 
@@ -153,9 +155,9 @@ Números reservados e ainda não escritos:
 - **50** — **Animista e conjuração dupla** (`REQ-ANI-`). Reservada pelo plano do Animista (ANI-F0-01).
 - **51** — **Combate marcial** (`REQ-GUE-`). Reservada pelo plano do Guerreiro (GUE-F0-01).
 
-A **52** (Caçador, Companheiro e Montaria) nasceu nesta faixa e já está no índice. Até 50–51
-serem escritas, as reservas vivem só aqui e nos planos de cada frente — o `spec-lint` não as
-enxerga.
+A **52** (Caçador, Companheiro e Montaria) e a **53** (Barra de Ações) nasceram nesta faixa e já
+estão no índice. Até 50–51 serem escritas, as reservas vivem só aqui e nos planos de cada frente —
+o `spec-lint` não as enxerga.
 
 ## Stack fixada
 
