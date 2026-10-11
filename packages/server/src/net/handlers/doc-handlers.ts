@@ -2231,6 +2231,54 @@ export function buildDocDeleteHandler(deps: DocHandlerDeps): HandlerFn {
 // Embedded document operations (tokens inside scenes)
 // ---------------------------------------------------------------------------
 
+// ---------------------------------------------------------------------------
+// Owner drops their own character on the active scene (REQ-TOK-030a)
+// ---------------------------------------------------------------------------
+
+/**
+ * REQ-TOK-030a: besides the privileged-role rule of REQ-TOK-030, a player may
+ * put a token on the scene when EVERY token of the batch manifests an Actor the
+ * player holds at OWNER (3) — the same ownership test as moving (REQ-TOK-032,
+ * `testOwnership`, never a second predicate, REQ-TOK-034) — AND is not hidden
+ * AND the scene is the one on air. Anything else keeps falling to the role rule.
+ *
+ * The scene itself is not owned by the player, so a true result also stands in
+ * for the "OWNER of the parent scene" check of the generic path; nothing else
+ * about the create is relaxed (derived/refused fields, mount flag, schema).
+ */
+function isOwnerTokenDrop(
+  deps: DocHandlerDeps,
+  ctx: HandlerContext,
+  embeddedType: string,
+  data: unknown[],
+  parent: { type: string; id: string },
+): boolean {
+  if (embeddedType !== "Token" || parent.type !== "Scene" || data.length === 0) return false;
+  let sceneDoc: Record<string, unknown>;
+  try {
+    sceneDoc = deps.store.getRaw("scenes", parent.id);
+  } catch {
+    return false;
+  }
+  if (!sceneIsOnAir(sceneDoc)) return false;
+  for (const item of data) {
+    if (item === null || typeof item !== "object" || Array.isArray(item)) return false;
+    const raw = item as Record<string, unknown>;
+    if (raw["hidden"] === true) return false;
+    const actorId = raw["actorId"];
+    if (typeof actorId !== "string" || actorId.length === 0) return false;
+    try {
+      const actor = deps.store.getRaw("actors", actorId);
+      if (!testOwnership(getOwnershipFromDoc(actor), ctx.userId, ctx.role, OwnershipLevel.OWNER)) {
+        return false;
+      }
+    } catch {
+      return false;
+    }
+  }
+  return true;
+}
+
 function handleEmbeddedCreate(
   deps: DocHandlerDeps,
   ctx: HandlerContext,
@@ -2259,7 +2307,11 @@ function handleEmbeddedCreate(
   // `role === GAMEMASTER` is the one unconditional pass, everyone else is
   // measured against the resolved floor (fixed TRUSTED for Combatant, so this
   // changes nothing for that type).
-  if (parent.type !== "Actor") {
+  //
+  // REQ-TOK-030a: the owner of the manifested Actor dropping a non-hidden token on
+  // the scene on air is the one other way in (see `isOwnerTokenDrop`).
+  const ownerTokenDrop = isOwnerTokenDrop(deps, ctx, embeddedType, data, parent);
+  if (parent.type !== "Actor" && !ownerTokenDrop) {
     const minRole =
       embeddedType === "Token"
         ? resolvePermissionMinRole(deps.store, "TOKEN_CREATE")
@@ -2294,7 +2346,7 @@ function handleEmbeddedCreate(
   }
 
   // Check parent ownership (must be able to edit the parent scene)
-  if (!isPrivileged(ctx.role)) {
+  if (!isPrivileged(ctx.role) && !ownerTokenDrop) {
     const ownership = getOwnershipFromDoc(parentDoc);
     const level = resolveOwnership(ownership, ctx.userId, ctx.role);
     if (level < OwnershipLevel.OWNER) {

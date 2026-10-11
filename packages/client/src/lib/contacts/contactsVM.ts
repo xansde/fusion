@@ -136,6 +136,8 @@ export interface SubContactCard {
   readonly kind: string;
   /** Whether the viewer may open this companion's own sheet: the GM or its owner. */
   readonly canOpenSheet: boolean;
+  /** The sub-character itself (not its master) may be dragged onto the canvas (REQ-CTT-028). */
+  readonly draggable: boolean;
   readonly conditions: readonly ConditionView[];
 }
 
@@ -305,11 +307,14 @@ export function canEditContactTitle(
 }
 
 /**
- * Dragging a card onto the canvas to create a token belongs to the GM alone
- * (REQ-CTT-028, DEC-CTT-12) — the player's card is not draggable at all.
+ * Dragging a card onto the canvas to create a token (REQ-CTT-028, DEC-CTT-12): the
+ * Master drags any card; a player drags only the card of an actor he owns
+ * (REQ-TOK-030a) — his character and the sub-characters nested in it. The cards of
+ * the Conhecidos section pass `ownsActor = false` and so stay the Master's alone.
+ * Hiding the gesture is ergonomics: the server refuses anyone else on its own.
  */
-export function canDragContactToCanvas(isPrivileged: boolean): boolean {
-  return isPrivileged;
+export function canDragContactToCanvas(isPrivileged: boolean, ownsActor = false): boolean {
+  return isPrivileged || ownsActor;
 }
 
 // ---------------------------------------------------------------------------
@@ -482,6 +487,7 @@ function buildSubCard(
     img: doc.img ?? null,
     kind,
     canOpenSheet: isPrivileged || ownsContact(doc, userId),
+    draggable: canDragContactToCanvas(isPrivileged, ownsContact(doc, userId)),
     conditions: buildContactConditions(doc, declarations),
   };
 }
@@ -537,7 +543,7 @@ export function buildTableSection(input: TableSectionInput): TableSection {
       present: isContactPresent(doc, online),
       title: resolveTitleLine(doc),
       canEditTitle: canEditContactTitle(doc, input.userId, input.isPrivileged),
-      draggable: canDragContactToCanvas(input.isPrivileged),
+      draggable: canDragContactToCanvas(input.isPrivileged, isMine),
       conditions: buildContactConditions(doc, declarations),
       subCharacters: [...subs]
         .map((sub) => buildSubCard(sub, declarations, input.userId, input.isPrivileged))

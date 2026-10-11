@@ -368,8 +368,9 @@
   }
 
   function handleCanvasDragOver(event: DragEvent): void {
-    // Only accept actor drags; only GMs can create tokens (permission gate).
-    if (!isGm()) return;
+    // Only accept actor drags. The Master may drop anything the canvas understands; a
+    // player may only drop an actor card, and only the ones he owns (REQ-TOK-030a) —
+    // `dragover` cannot read the payload, so the ownership check runs on `drop`.
     // The drop lands on the scene the Master is LOOKING at — the prepared one while a
     // prepare lasts (REQ-CEN-050), never the one on air behind his back.
     if (!canvasScene) return;
@@ -380,7 +381,10 @@
     // `preventDefault()` never ran, and the browser refused to ever fire `drop`. The
     // types-only predicates live in `canvasDragTypes.ts` so the rule is exercised
     // directly (canvasDragTypes.test.ts) instead of only through this component.
-    if (!hasActorDragType(event.dataTransfer) && !hasCompendiumDragType(event.dataTransfer)) {
+    if (
+      !hasActorDragType(event.dataTransfer) &&
+      !(isGm() && hasCompendiumDragType(event.dataTransfer))
+    ) {
       return;
     }
     event.preventDefault();
@@ -391,7 +395,7 @@
   }
 
   function handleCanvasDrop(event: DragEvent): void {
-    if (!isGm()) return;
+    const gm = isGm();
     const scene = canvasScene;
     if (!scene) return;
     const canvas = fusionCanvas;
@@ -409,6 +413,16 @@
     if (!sock) return;
 
     const actorPayload = _getActorDragPayload(event);
+    if (!gm) {
+      // REQ-TOK-030a: a player creates the token of an actor he owns on the scene on air,
+      // never hidden, and nothing else (no compendium entry). The server re-checks all of it.
+      if (!actorPayload) return;
+      const owned = ownedActorIdsOf(
+        worldMirror.getByType<Record<string, unknown>>("Actor"),
+        session.user?.id ?? null,
+      );
+      if (!owned.has(actorPayload._id)) return;
+    }
     if (actorPayload) {
       event.preventDefault();
       const gridSize = effectiveGridSize(scene);

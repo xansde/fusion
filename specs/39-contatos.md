@@ -234,7 +234,13 @@ a aba Configurações faz com a seção Mundo (REQ-SYS-047).
 - **Emenda que isso obriga:** `ConditionDefinition` (REQ-SYS-043) ganhou `tone`, `help` e
   `critical`, aplicados em `15-api-de-sistemas.md` em 2026-08-16 — ver §12.
 
-### DEC-CTT-12 — Só o Mestre arrasta um contato para o mapa
+### DEC-CTT-12 — O Mestre arrasta qualquer contato para o mapa; o jogador, só os seus
+
+> **Emenda de 2026-10-11 (pedido do Alexandre):** o jogador também arrasta o cartão do
+> próprio personagem e os sub-personagens dele (companheiros, eidolon, servo) para a cena
+> ativa, criando o token (REQ-CTT-028, REQ-TOK-030a). O texto abaixo é o histórico da decisão
+> original; o cartão de NPC/Conhecidos segue exclusivo do Mestre.
+
 
 Arrastar um cartão para o canvas, criando token (REQ-UIF-044), é gesto exclusivo do Mestre.
 O cartão do jogador não oferece o gesto — não o oferece e falha.
@@ -309,8 +315,11 @@ botão de ficha alcançável por teclado e por toque.
   visível ao usuário, o sub-personagem também não é.
 - **REQ-CTT-027** [MVP] O duplo-clique no cartão DEVE abrir a ficha em janela flutuante
   (REQ-UIF-009), e cada cartão DEVE oferecer um botão de ficha alcançável por teclado.
-- **REQ-CTT-028** [MVP] Arrastar um cartão para o canvas DEVE criar token (REQ-UIF-044)
-  apenas para papel privilegiado; para os demais o cartão NÃO DEVE ser arrastável.
+- **REQ-CTT-028** [MVP] Arrastar um cartão para o canvas DEVE criar token (REQ-UIF-044).
+  Papel privilegiado arrasta qualquer cartão; os demais arrastam apenas o cartão de um ator
+  do qual são OWNER, e cada sub-personagem aninhado arrasta o próprio ator (nunca o do cartão
+  que o contém) — o servidor recusa o resto (REQ-TOK-030a, `41-token.md`). O cartão de quem
+  não é dono NÃO DEVE ser arrastável. _(Emenda de 2026-10-11, pedido do Alexandre.)_
 
 ### 5.4 Condições
 
