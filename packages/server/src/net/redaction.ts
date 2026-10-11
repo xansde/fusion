@@ -114,7 +114,12 @@ import type {
   Ownership,
   RollTarget,
 } from "@fusion/shared";
-import { OwnershipLevel, isRolePrivileged, resolveOwnership } from "../documents/ownership.js";
+import {
+  OwnershipLevel,
+  UserRole,
+  isRolePrivileged,
+  resolveOwnership,
+} from "../documents/ownership.js";
 import {
   PLAYER_CHARACTER_SUBTYPES,
   isCharacterActor,
@@ -425,6 +430,15 @@ export interface TargetSnapshotEntry {
  */
 export interface TokenLookupSource {
   findToken(tokenId: string): Record<string, unknown> | undefined;
+  /**
+   * The actor a chat message speaks as — what {@link redactChatSpeakerForNonPrivileged} reads to learn whether
+   * the speaker is a contact the viewer does not know yet. `undefined` when the actor is gone or its row cannot be
+   * read, and the cut then takes the speaker for a stranger. Optional, with {@link contacts}: a source built for
+   * tokens alone keeps working, and without them a speaker is left as it was sent.
+   */
+  findActor?(actorId: string): Record<string, unknown> | undefined;
+  /** The world's player characters, to tell what the viewer's characters know (spec 39). */
+  contacts?: ContactKnowledgeSource;
 }
 
 /**
@@ -438,6 +452,10 @@ export interface TokenLookupSource {
  * `hidden`/`seenBy` here).
  */
 export function tokenLookupSourceFromStore(store: DocumentStore): TokenLookupSource {
+  // Nothing is remembered here: this source lives as long as the handler that built it — the whole world — and
+  // a socket hands the server every frame of one chunk in the same task, so a memo of any lifetime would answer
+  // a chat:send with what it read before an actor:setKnowledge that ran a frame earlier. The memo that saves the
+  // re-reads of one pass is {@link lookupSourceForOnePass}, built per broadcast and per page.
   return {
     findToken(tokenId: string): Record<string, unknown> | undefined {
       for (const scene of store.getAll("scenes")) {
@@ -449,7 +467,55 @@ export function tokenLookupSourceFromStore(store: DocumentStore): TokenLookupSou
       }
       return undefined;
     },
+    findActor(actorId: string): Record<string, unknown> | undefined {
+      try {
+        return store.get("actors", actorId);
+      } catch {
+        // Gone (DocumentNotFoundError) or a row that does not parse: no actor to answer for the speaker either
+        // way, and the speaker cut takes that for a stranger (fail closed).
+        return undefined;
+      }
+    },
+    contacts: contactKnowledgeSourceFromStore(store),
   };
+}
+
+/**
+ * `source`, remembering what ONE pass re-reads for the chat speaker cut: a broadcast hands the same message to
+ * every socket, a page of history re-reads the same few speakers, and every read of an actor parses a whole
+ * document (a character's is hundreds of kilobytes). Each actor and the list of characters are read once for the
+ * life of the returned object — so build one per pass (one broadcast, one page, one join snapshot) and let it go
+ * with the pass: nothing it remembers may answer for a write made after the pass began. Tokens and the hidden-token
+ * list are not remembered; they pass straight through.
+ */
+export function lookupSourceForOnePass(source: TokenLookupSource): TokenLookupSource;
+export function lookupSourceForOnePass(
+  source: TokenLookupSource | undefined,
+): TokenLookupSource | undefined;
+export function lookupSourceForOnePass(
+  source: TokenLookupSource | undefined,
+): TokenLookupSource | undefined {
+  if (source === undefined) return undefined;
+  const pass: TokenLookupSource = { findToken: (tokenId) => source.findToken(tokenId) };
+  if (source.findActor !== undefined) {
+    const actors = new Map<string, Record<string, unknown> | undefined>();
+    pass.findActor = (actorId) => {
+      if (!actors.has(actorId)) actors.set(actorId, source.findActor?.(actorId));
+      return actors.get(actorId);
+    };
+  }
+  const contacts = source.contacts;
+  if (contacts !== undefined) {
+    let characters: readonly CharacterOwnershipRow[] | undefined;
+    const remembered: ContactKnowledgeSource = {
+      listCharacterOwnership: () => (characters ??= contacts.listCharacterOwnership()),
+    };
+    if (contacts.listHiddenTokens !== undefined) {
+      remembered.listHiddenTokens = () => contacts.listHiddenTokens?.() ?? [];
+    }
+    pass.contacts = remembered;
+  }
+  return pass;
 }
 
 /**
@@ -547,6 +613,74 @@ export function redactChatTargetSnapshotForNonPrivileged(
   return {
     ...msg,
     flags: { ...flags, [CHAT_FUSION_FLAG_NAMESPACE]: { ...fusionFlags, ...patch } },
+  };
+}
+
+// ---------------------------------------------------------------------------
+// Chat speaker redaction (BAR-F4-01 — spec 39, REQ-CTT-081/082)
+//
+// A sheet speaks as the actor it shows, and the server writes the speaker's alias from that actor's REAL name.
+// For a character or a companion that is the table's own business. For a contact (an NPC) it is exactly what
+// the Mestre has not told the players yet: a contact the viewer's characters have only glimpsed carries no name
+// (REQ-CTT-081), and a hidden one is not delivered at all (REQ-CTT-082). The message must not be the way around
+// it, so the alias answers to the SAME rule the actor does — on every chat emission path, because it rides the
+// same chain as the target and the snapshot cuts.
+// ---------------------------------------------------------------------------
+
+/**
+ * What a player reads as the speaker of a message when his characters do not know the contact: the wording the
+ * action cards already use for a creature the viewer's mirror cannot name (`UNKNOWN_TARGET_NAME_PT`).
+ */
+export const UNKNOWN_SPEAKER_ALIAS = "Criatura desconhecida";
+
+/**
+ * The alias the server's own messages are written under (combat, effects, damage lines). They carry the actor they
+ * are ABOUT in `speaker.actorId`, but the alias is not that actor's name: there is no name to hide, so the cut
+ * keeps it and only drops the ids.
+ */
+const SYSTEM_SPEAKER_ALIAS = "Sistema";
+
+/**
+ * The ChatMessage a NON-PRIVILEGED viewer may receive, with the speaker redacted when the message speaks as a
+ * contact the viewer does not know (BAR-F4-01): `alias` becomes {@link UNKNOWN_SPEAKER_ALIAS} and the speaker
+ * loses its actor and token ids. Three things leave the speaker alone:
+ *   - a speaker that is not a contact — a player character, a companion, a chest — answers to `ownership`, not
+ *     to knowledge (REQ-CTT-074), and the table knows its characters;
+ *   - a contact the viewer OWNS (a hireling the Mestre handed over): nobody is a stranger to what they own;
+ *   - a contact the viewer's characters know (the highest state among them, REQ-CTT-071).
+ * Like every cut here it re-resolves the CURRENT state on each call — the Mestre revealing the contact later
+ * changes what the same stored message shows — and it returns the SAME reference when there is nothing to cut.
+ * A viewer with no identity is a stranger to every contact, and an actor that is gone or cannot be read is a
+ * stranger to every viewer (fail closed, both). Without a source that can resolve actors the speaker is left as
+ * sent (a chat-only harness).
+ */
+export function redactChatSpeakerForNonPrivileged(
+  msg: ChatMessage,
+  userId: string | undefined,
+  source: TokenLookupSource | undefined,
+): ChatMessage {
+  const actorId = msg.speaker.actorId;
+  if (actorId === undefined || source?.findActor === undefined) return msg;
+
+  const actor = source.findActor(actorId);
+  // An actor that is gone (deleted since the message was written) or whose row cannot be read leaves nobody to
+  // say the viewer knows it, while the stored alias is still its real name: a stranger, cut (fail closed). Only
+  // an actor that is there answers to the rules below.
+  if (actor !== undefined) {
+    // Not a contact: no knowledge to answer to.
+    if (!isNonPlayableActor(actor)) return msg;
+    const viewer = buildContactViewer(source.contacts, userId ?? "", UserRole.PLAYER);
+    if (!actorIsSubjectToKnowledge(actor, viewer)) return msg;
+    if (resolveUserKnowledge(actor, viewer.ownedCharacterIds) === KnowledgeState.Known) return msg;
+  }
+
+  const { actorId: _actorId, tokenId: _tokenId, ...speaker } = msg.speaker;
+  return {
+    ...msg,
+    speaker:
+      msg.speaker.alias === SYSTEM_SPEAKER_ALIAS
+        ? speaker
+        : { ...speaker, alias: UNKNOWN_SPEAKER_ALIAS },
   };
 }
 

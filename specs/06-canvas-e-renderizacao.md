@@ -293,7 +293,8 @@ sabe representar, em vez de entregar as quatro superfícies pela metade.
     serve (ajustar o HP de um monstro específico) para proteger um caso raro.
 - **Consequências conhecidas, registradas em vez de escondidas:**
   - **Rolagens** disparadas da ficha de um token unlinked ainda resolvem contra o `Actor`
-    base no servidor: `roll:check` endereça `actorId`, e o TokenActor não tem um. Enquanto
+    base no servidor: a rolagem (`chat:send`, que nomeia o ator em `speakerActorId`) endereça um
+    `actorId`, e o TokenActor não tem um. Enquanto
     o delta só carrega HP isso não muda resultado nenhum; passará a mudar no dia em que um
     delta alterar um modificador, e aí a rolagem também precisa aceitar o par
     cena+token.
