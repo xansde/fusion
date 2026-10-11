@@ -176,6 +176,10 @@ button{font-family:inherit;color:inherit}
 .slot:focus-visible{outline:2px solid var(--fusion-accent);outline-offset:2px}
 .slot__ic{position:absolute;left:50%;top:10px;width:24px;height:24px;margin-left:-12px}
 .slot__ic svg{width:24px;height:24px;display:block}
+.slot__img{position:absolute;inset:2px;border-radius:5px;overflow:hidden}
+.slot__img img{width:100%;height:100%;object-fit:cover;display:block}
+.slot__img::after{content:'';position:absolute;inset:0;background:linear-gradient(to bottom,rgba(0,0,0,.55),rgba(0,0,0,0) 34%,rgba(0,0,0,0) 52%,rgba(0,0,0,.78))}
+.slot.has-img .slot__c,.slot.has-img .slot__k,.slot.has-img .slot__v,.slot.has-img .slot__seal{z-index:1;text-shadow:0 1px 2px #000}
 .slot__tx{position:absolute;left:0;right:0;top:15px;text-align:center;font:700 13px/1 var(--fusion-font);letter-spacing:.02em}
 .slot i{font-style:normal}
 .slot__c{position:absolute;left:4px;top:3px;font-size:9px;line-height:1;color:var(--fusion-text);letter-spacing:-.4px;white-space:nowrap}
@@ -230,7 +234,7 @@ button{font-family:inherit;color:inherit}
     <h1>Barra de ações · protótipo fiel</h1>
     <nav class="pt-sw" id="sw" aria-label="Telas"></nav>
   </div>
-  <p class="pt-top__foot">Protótipo v1 (11/10/2026) — reflete as recomendações do plano; muda com as decisões. Dados das fichas: dossiê de A Queda; NPC fictício.</p>
+  <p class="pt-top__foot">Protótipo v1.1 (11/10/2026) — reflete as recomendações do plano; muda com as decisões. Dados das fichas: dossiê de A Queda; NPC fictício.</p>
 </header>
 <main class="stage"><div class="app" id="app"></div></main>
 
@@ -286,6 +290,9 @@ const svg=n=>'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-
 /* ===================== dados (números do dossiê de A Queda; o que não está lá leva mk = mock) ===================== */
 const x=(id,n,ic,c,v,o)=>Object.assign({id,n,ic,c,v},o||{});
 const MS='−'; // sinal de menos tipográfico
+// D-BA02: imagem customizada por entrada (amostras desenhadas para o protótipo, sem arte da Paizo)
+const IMG={hanabi:"data:image/svg+xml;utf8,%3Csvg%20xmlns%3D'http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg'%20viewBox%3D'0%200%2064%2064'%3E%3Cdefs%3E%3CradialGradient%20id%3D'g'%20cx%3D'35%25'%20cy%3D'30%25'%20r%3D'80%25'%3E%3Cstop%20offset%3D'0'%20stop-color%3D'%23ffd27a'%2F%3E%3Cstop%20offset%3D'.45'%20stop-color%3D'%23e2572b'%2F%3E%3Cstop%20offset%3D'1'%20stop-color%3D'%233a0d12'%2F%3E%3C%2FradialGradient%3E%3C%2Fdefs%3E%3Crect%20width%3D'64'%20height%3D'64'%20fill%3D'url(%23g)'%2F%3E%3Cpath%20d%3D'M14%2050%20L44%2012%20Q52%208%2050%2018%20L22%2054%20Z'%20fill%3D'%23f4efe6'%20opacity%3D'.92'%2F%3E%3Cpath%20d%3D'M18%2046%20L46%2014'%20stroke%3D'%237a2a12'%20stroke-width%3D'1.5'%2F%3E%3Ccircle%20cx%3D'17'%20cy%3D'52'%20r%3D'5'%20fill%3D'%232a1a10'%20stroke%3D'%23d9a441'%20stroke-width%3D'2'%2F%3E%3C%2Fsvg%3E",arco:"data:image/svg+xml;utf8,%3Csvg%20xmlns%3D'http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg'%20viewBox%3D'0%200%2064%2064'%3E%3Cdefs%3E%3CradialGradient%20id%3D'g'%20cx%3D'50%25'%20cy%3D'40%25'%20r%3D'75%25'%3E%3Cstop%20offset%3D'0'%20stop-color%3D'%23bfe8ff'%2F%3E%3Cstop%20offset%3D'.4'%20stop-color%3D'%233b6fd8'%2F%3E%3Cstop%20offset%3D'1'%20stop-color%3D'%230b1036'%2F%3E%3C%2FradialGradient%3E%3C%2Fdefs%3E%3Crect%20width%3D'64'%20height%3D'64'%20fill%3D'url(%23g)'%2F%3E%3Cpath%20d%3D'M36%206%20L18%2036%20H30%20L24%2058%20L46%2026%20H34%20L40%206%20Z'%20fill%3D'%23fff7c2'%20stroke%3D'%23ffe066'%20stroke-width%3D'1.5'%2F%3E%3C%2Fsvg%3E"};
+const SAMPLES=["data:image/svg+xml;utf8,%3Csvg%20xmlns%3D'http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg'%20viewBox%3D'0%200%2064%2064'%3E%3Cdefs%3E%3ClinearGradient%20id%3D'g'%20x1%3D'0'%20y1%3D'0'%20x2%3D'1'%20y2%3D'1'%3E%3Cstop%20offset%3D'0'%20stop-color%3D'%231f6f5c'%2F%3E%3Cstop%20offset%3D'1'%20stop-color%3D'%230c2321'%2F%3E%3C%2FlinearGradient%3E%3C%2Fdefs%3E%3Crect%20width%3D'64'%20height%3D'64'%20fill%3D'url(%23g)'%2F%3E%3Ccircle%20cx%3D'32'%20cy%3D'32'%20r%3D'16'%20fill%3D'none'%20stroke%3D'%238ff0c8'%20stroke-width%3D'3'%2F%3E%3Cpath%20d%3D'M32%2014%20V50%20M14%2032%20H50'%20stroke%3D'%238ff0c8'%20stroke-width%3D'2'%20opacity%3D'.6'%2F%3E%3Ccircle%20cx%3D'32'%20cy%3D'32'%20r%3D'5'%20fill%3D'%23d6fff0'%2F%3E%3C%2Fsvg%3E","data:image/svg+xml;utf8,%3Csvg%20xmlns%3D'http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg'%20viewBox%3D'0%200%2064%2064'%3E%3Cdefs%3E%3CradialGradient%20id%3D'g'%20cx%3D'50%25'%20cy%3D'60%25'%20r%3D'70%25'%3E%3Cstop%20offset%3D'0'%20stop-color%3D'%23f0b6ff'%2F%3E%3Cstop%20offset%3D'.5'%20stop-color%3D'%237a3fb8'%2F%3E%3Cstop%20offset%3D'1'%20stop-color%3D'%231d0b30'%2F%3E%3C%2FradialGradient%3E%3C%2Fdefs%3E%3Crect%20width%3D'64'%20height%3D'64'%20fill%3D'url(%23g)'%2F%3E%3Cpath%20d%3D'M32%2010%20L37%2027%20L54%2032%20L37%2037%20L32%2054%20L27%2037%20L10%2032%20L27%2027%20Z'%20fill%3D'%23fff2ff'%20opacity%3D'.9'%2F%3E%3C%2Fsvg%3E"];let sampleIdx=0;
 const fmt=n=>(n>=0?'+':MS)+Math.abs(n);
 const pen=(m,ag)=>m<=0?0:(ag?(m===1?-4:-8):(m===1?-5:-10));
 const GLY={'1':'◆','2':'◆◆','3':'◆◆◆','r':'⟳','f':'◇','v':'◆–◆◆◆'};
@@ -305,10 +312,10 @@ const CHARS={
   lead:{b:9,ag:true},
   fav:['hanabi','fintar','esconder','furt','arco','estrat','recordar','procurar','passo','andar','interagir','heroi'],
   golpes:[
-   {h:'Golpes',s:[x('hanabi','Hanabi (corpo a corpo)','sword','1','',{st:{b:9,ag:true},sub:'Golpe · corpo a corpo · alcance 5 pés',tr:['Ágil'],nm:'Dano 1d4+4 cortante',fx:'Crítico: dano em dobro e mais 1d6, conforme a ficha.',tg:1,vs:true}),
+   {h:'Golpes',s:[x('hanabi','Hanabi (corpo a corpo)','sword','1','',{img:IMG.hanabi,st:{b:9,ag:true},sub:'Golpe · corpo a corpo · alcance 5 pés',tr:['Ágil'],nm:'Dano 1d4+4 cortante',fx:'Crítico: dano em dobro e mais 1d6, conforme a ficha.',tg:1,vs:true}),
      x('tiro','Hanabi (disparo)','gun','1','',{st:{b:9,ag:true},q:'×10',sub:'Golpe · à distância · alcance 30 pés (mock)',tr:['Ágil'],nm:'Dano 1d4 perfurante',fx:'Munição: 10 balas por 1 pp, anotadas à mão. O app ainda não conta (mock).',tg:1,mk:1,vs:true}),
      x('punho','Punho','fist','1','',{st:{b:9,ag:true},sub:'Golpe · corpo a corpo · alcance 5 pés',tr:['Ágil','Sutil'],nm:'Dano 1d4 contundente',fx:'Sempre disponível. Bônus de ataque derivado da Destreza (mock).',tg:1,mk:1,vs:true})]}],
-  magias:[{h:'Truques inatos · primal',s:[x('arco','Arco Elétrico','bolt','2','CD 18',{r:'2',sub:'Truque inato primal · alcance 30 pés · 1 ou 2 alvos',tr:['Truque','Eletricidade','Primal'],nm:'CD 18 <i>(Reflexos básico)</i> · ataque de magia +8',fx:'Descarga que salta de um alvo ao outro: dano de eletricidade com salvamento básico de Reflexos.',tg:1})]}],
+  magias:[{h:'Truques inatos · primal',s:[x('arco','Arco Elétrico','bolt','2','CD 18',{img:IMG.arco,r:'2',sub:'Truque inato primal · alcance 30 pés · 1 ou 2 alvos',tr:['Truque','Eletricidade','Primal'],nm:'CD 18 <i>(Reflexos básico)</i> · ataque de magia +8',fx:'Descarga que salta de um alvo ao outro: dano de eletricidade com salvamento básico de Reflexos.',tg:1})]}],
   acoes:[
    {h:'Básicas',s:[x('andar','Deslocar','feet','1','30 pés',{sub:'Ação básica · movimento',fx:'Move até o seu deslocamento (30 pés).'}),
      x('passo','Passo','foot','1','5 pés',{sub:'Ação básica · movimento',fx:'Move 5 pés sem provocar reações ativadas por movimento.'}),
@@ -399,7 +406,7 @@ const TABS=[['fav','Favoritos','star'],['golpes','Golpes','sword'],['magias','Ma
 const SCREENS={
  t1:{lb:'T1 · Fora de combate',skin:'pl',who:'huo',user:['Huo Jinwu','Jogador','#d86910'],tab:'fav',turn:{k:'out'},target:null,map:0,conds:[],
   tokens:[['HJ',430,330,'pc','Huo Jinwu'],['CB',840,330,'npc','Capitão Bandido']],
-  notes:['Favoritos: 12 slots com as teclas 1–9, 0, − e =. A tecla é só o selo; os atalhos não estão ligados neste protótipo.','Fora de combate: só o custo no canto de cada slot (◆, ◆◆, ◇). Não existe contador de ações por turno (D-15).','Esgueirar aparece como alternável ligado: borda de destaque e um ponto aceso no canto.','Arco Elétrico leva o selo ② (patamar do truque) e a CD 18. Sem alvo marcado, o clique entraria no modo mira (T7).','Passe o mouse num slot para o tooltip curto e use o botão direito para as opções.']},
+  notes:['Favoritos: 12 slots com as teclas 1–9, 0, − e =. A tecla é só o selo; os atalhos não estão ligados neste protótipo.','Fora de combate: só o custo no canto de cada slot (◆, ◆◆, ◇). Não existe contador de ações por turno (D-15).','Esgueirar aparece como alternável ligado: borda de destaque e um ponto aceso no canto.','Arco Elétrico leva o selo ② (patamar do truque) e a CD 18. Sem alvo marcado, o clique entraria no modo mira (T7).','Passe o mouse num slot para o tooltip curto e use o botão direito para as opções.','Hanabi e Arco Elétrico com imagem customizada (D-BA02): a imagem preenche o slot e custo, tecla e bônus continuam legíveis. Botão direito → Trocar ícone… (no app, o seletor de imagens do acervo, o mesmo do retrato) ou Restaurar ícone padrão.']},
  t2:{lb:'T2 · Seu turno',skin:'pl',who:'huo',user:['Huo Jinwu','Jogador','#d86910'],tab:'golpes',turn:{k:'mine',round:2},target:'Capitão Bandido',map:1,conds:['escondido','amedrontado'],
   tokens:[['HJ',430,330,'pc','Huo Jinwu'],['CB',840,330,'npc','Capitão Bandido','mk']],init:{tip:'hanabi'},hp:[27,33,0],
   notes:['Seu turno · Rodada 2, em âmbar, com o botão Encerrar turno à direita dos slots. Sem contador de ações.','O MAP vem do servidor: já houve 1 ataque, então o próximo é +5 (MAP −4, ágil). O slot mostra +5; o tooltip mostra a base +9.','Ao passar o mouse num golpe, a faixa de estado mostra o que muda: "depois deste golpe: +1 (MAP −8)".','Munição do disparo (×10) é anotação do dossiê; o app ainda não a conta (mock).','Clique, Alt e MAP avançando no clique não estão ligados neste protótipo.']},
@@ -428,12 +435,12 @@ function lookup(ch,id){for(const t of ['golpes','magias','acoes','itens','reacoe
 function strikeVal(s,sc){const st=s.st;if(!st)return null;const p=st.noMap?0:pen(sc.map,st.ag);return {p,v:st.b+p,base:st.b};}
 function slotHTML(s,i,fav,sc){
   const sv=strikeVal(s,sc);const val=sv&&!s.mp?fmt(sv.v):(sv&&s.mp?fmt(sv.v):s.v);
-  const cls='slot'+(s.why?' is-off':'')+(s.on?' is-on':'');
+  const cls='slot'+(s.why?' is-off':'')+(s.on?' is-on':'')+(s.img?' has-img':'');
   const seal=s.r?'<i class="slot__seal slot__seal--r">'+s.r+'</i>':s.rk?'<i class="slot__seal slot__seal--'+s.rk+'">'+s.rk.toUpperCase()+'</i>':s.mp?'<i class="slot__seal slot__seal--map">MAP</i>':s.q?'<i class="slot__seal">'+s.q+'</i>':'';
   const KEYS=['1','2','3','4','5','6','7','8','9','0',MS,'='];
   return '<button class="'+cls+'" data-id="'+s.id+'" aria-label="'+s.n.replace(/"/g,'')+'"'+(s.why?' aria-disabled="true"':'')+'>'+
     (s.c!==undefined&&s.c!==''?'<i class="slot__c">'+GLY[s.c]+'</i>':'')+seal+
-    (s.tx?'<span class="slot__tx">'+s.tx+'</span>':'<span class="slot__ic">'+svg(s.ic)+'</span>')+
+    (s.img?'<span class="slot__img"><img alt="" src="'+s.img+'"></span>':s.tx?'<span class="slot__tx">'+s.tx+'</span>':'<span class="slot__ic">'+svg(s.ic)+'</span>')+
     (fav?'<i class="slot__k">'+KEYS[i]+'</i>':'')+(val?'<i class="slot__v">'+val+'</i>':'')+'</button>';
 }
 function slotsHTML(sc,ch){
@@ -526,6 +533,7 @@ function preview(el){
   else if(s&&s.st&&!s.mp){t.classList.remove('is-pv');}
   else {t.classList.remove('is-pv');}
 }
+function iconItems(s){return '<div class="ctx__sep"></div><button class="ctx__i" data-act="seticon" data-id="'+s.id+'"><span>Trocar ícone…</span><span>imagem</span></button>'+(s.img?'<button class="ctx__i" data-act="reseticon" data-id="'+s.id+'"><span>Restaurar ícone padrão</span><span></span></button>':'')+'<div class="ctx__sep"></div>';}
 function openCtx(el,cx,cy){
   const sc=SCREENS[cur],ch=CHARS[sc.who],s=lookup(ch,el.dataset.id);if(!s)return;
   clearLayer();const l=layer();el.classList.add('is-hot');ctxId=s.id;
@@ -533,7 +541,7 @@ function openCtx(el,cx,cy){
   if(s.st&&!s.st.noMap){const ag=s.st.ag,b=s.st.b;items+='<div class="ctx__h">Variantes</div>'+[0,1,2].map(m=>{const p=pen(m,ag);return '<button class="ctx__i"><span>'+(m+1)+'º ataque</span><span>'+fmt(b+p)+(p?' (MAP '+fmt(p)+')':'')+'</span></button>';}).join('')+'<div class="ctx__sep"></div>';}
   else if(s.vs&&Array.isArray(s.vs)){items+='<div class="ctx__h">Perícia</div>'+s.vs.map(v=>{const q=v.split('|');return '<button class="ctx__i"><span>'+q[0]+'</span><span>'+q[1]+'</span></button>';}).join('')+'<div class="ctx__sep"></div>';}
   const isFav=ch.fav.includes(s.id);
-  items+='<button class="ctx__i"><span>'+(isFav?'Desafixar dos favoritos':'Fixar nos favoritos')+'</span><span></span></button><button class="ctx__i"><span>Ver detalhes</span><span>Alt</span></button><button class="ctx__i"><span>Abrir na ficha</span><span></span></button>';
+  items+='<button class="ctx__i"><span>'+(isFav?'Desafixar dos favoritos':'Fixar nos favoritos')+'</span><span></span></button>'+iconItems(s)+'<button class="ctx__i"><span>Ver detalhes</span><span>Alt</span></button><button class="ctx__i"><span>Abrir na ficha</span><span></span></button>';
   const d=document.createElement('div');d.className='ctx';d.innerHTML='<div class="ctx__t">'+s.n+'</div>'+items;l.appendChild(d);
   const a=app.getBoundingClientRect(),r=el.getBoundingClientRect();let L=(cx!==undefined?cx-a.left:r.left-a.left+r.width/2-110);L=Math.max(8,Math.min(a.width-344-232,L));
   const bt=$('#abar').getBoundingClientRect();d.style.left=L+'px';d.style.bottom=(a.bottom-bt.top+6)+'px';
@@ -568,6 +576,7 @@ app.addEventListener('click',e=>{
     if(a==='expand'){collapsed=false;$('#abar').classList.remove('is-collapsed');return;}
     if(a==='notes'){$('#notes').classList.toggle('is-closed');return;}
     if(a==='aim'){aim=!aim;syncAim();return;}
+    if(a==='seticon'||a==='reseticon'){const sc=SCREENS[cur],ch=CHARS[sc.who],s=lookup(ch,act.dataset.id);if(s){if(a==='seticon'){s.img=SAMPLES[sampleIdx++%SAMPLES.length];toast('Ícone trocado (simulado: no app abre o seletor de imagens do acervo)');}else{delete s.img;toast('Ícone padrão restaurado');}}clearLayer();$('#abar').innerHTML=barHTML(sc,ch);return;}
     if(a==='end'){toast('Turno encerrado (simulado)');return;}}
   const chip=t.closest('[data-cond]');
   if(chip){const was=chip.classList.contains('is-open');clearLayer();if(!was)chipTip(chip);return;}
