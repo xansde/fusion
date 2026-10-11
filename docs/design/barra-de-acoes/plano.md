@@ -5,7 +5,7 @@
 > **Base conferida**: código em `alfa/app` `ff15043d` com o satélite no pin `2015ff7c`, benchmark de
 > comportamento público (§12), specs 11/14/23/28/36/40/41 e planos das frentes Alquimista, Animista, Guerreiro
 > e Bhrotto.
-> **Estado**: aprovado em 11/10. As decisões da §8 estão todas fechadas, com o texto final em
+> **Estado**: aprovado em 11/10; escopo enxuto pela D-BA16 (15 tarefas, ver `decisoes.md`). As decisões da §8 estão todas fechadas, com o texto final em
 > [`decisoes.md`](decisoes.md) (D-BA01..D-BA15). As telas-alvo estão no protótipo fiel
 > [`prototipo-barra-fiel.html`](prototipo-barra-fiel.html).
 > **Linha**: pessoal **alfa**. Toda branch parte de `alfa/app` (core) e de `main` (satélite) e volta por PR de
