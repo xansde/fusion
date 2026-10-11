@@ -5,7 +5,8 @@
 > **Base conferida**: código em `alfa/app` `ff15043d` com o satélite no pin `2015ff7c`, benchmark de
 > comportamento público (§12), specs 11/14/23/28/36/40/41 e planos das frentes Alquimista, Animista, Guerreiro
 > e Bhrotto.
-> **Estado**: proposta. As decisões da §8 estão abertas. As telas-alvo estão no protótipo fiel
+> **Estado**: aprovado em 11/10. As decisões da §8 estão todas fechadas, com o texto final em
+> [`decisoes.md`](decisoes.md) (D-BA01..D-BA15). As telas-alvo estão no protótipo fiel
 > [`prototipo-barra-fiel.html`](prototipo-barra-fiel.html).
 > **Linha**: pessoal **alfa**. Toda branch parte de `alfa/app` (core) e de `main` (satélite) e volta por PR de
 > lote. Promoção é ato humano.
@@ -335,7 +336,7 @@ Se esse contador um dia voltar, o lugar dele é a spec 49 (REQ-ACO), já reserva
 
 A spec 14 pede uma hotbar **por usuário** com 5 páginas de 10 slots de macro, e o servidor já tem
 `UserSchema.hotbar` e `MacroSchema` sem uso. A barra de ações é a versão contextual disso: segue o
-**personagem**, não o usuário. A proposta (DC-01) é que a spec 53 **substitua** a hotbar (REQ-MAC-012..018 e
+**personagem**, não o usuário. A decisão (D-BA04) é que a spec 53 **substitua** a hotbar (REQ-MAC-012..018 e
 REQ-UIF-006) e que a macro vire, no futuro, mais um `kind` de entrada fixável. Assim não convivem dois modelos de
 barra.
 
@@ -427,7 +428,7 @@ script como nas outras frentes, sai no `tasks.md` (BAR-F0-03), depois das decis�
 
 ### Ordem de entrega
 
-1. **Já, avulso**: BAR-F4-01, o fix das rolagens de NPC (se a DC-10 for aceita).
+1. **Já, avulso**: BAR-F4-01, o fix das rolagens de NPC (D-BA13).
 2. **Primeira entrega jogável**: F1 + F2. Cada jogador usa a barra do próprio PJ e o Mestre continua na ficha.
 3. **Segunda**: F3 + F4. Entram Favoritos de verdade e a barra do Mestre para os NPCs.
 4. **Terceira**: F5 + F6, com itens e companheiros.
@@ -466,10 +467,12 @@ atual, porque os planos de 16/09 citam linhas que já mudaram.
 | D-BA02 | Ícone customizado    | Cada entrada da barra aceita uma **imagem customizada**, se o usuário quiser; sem imagem, vale o ícone genérico (Alexandre, 11/10: "quero que tenha como adicionar imagem customizada para cada ícone, se eu quiser").                                                                                                                                                                                                                                                                                             | BAR-F3-05                       |
 | D-BA03 | Quem troca o ícone   | O jogador **só altera os ícones do próprio personagem** (atores de que é dono); o Mestre altera em qualquer um. Para escolher, ele **envia imagem** (sem exigir Confiável; muda a REQ-AST-011 da spec 20) **ou usa os ícones que outros já enviaram**, numa galeria compartilhada (Alexandre, 11/10: "Não vamos limitar o upload dos jogadores" e "Deixa o player escolher ícones que outros já enviaram também. A questão que eu demandei ali é que ele só consiga alterar os ícones do seu próprio personagem"). | BAR-F0-02, BAR-F3-05            |
 
-### 8.2 A fechar
+### 8.2 Fechadas em 11/10 (D-BA04..D-BA15)
 
-Cada linha traz a recomendação. Basta responder "como recomendado" e apontar as exceções. Elas viram `D-BA04…`
-em `decisoes.md` e `DEC-BAR-…` na spec 53.
+O Alexandre aceitou todas como recomendadas: "Concordo com os DCs ditos e pode seguir para a execução!". Na ordem,
+DC-01..DC-12 viraram D-BA04..D-BA15 em `decisoes.md` e viram `DEC-BAR-…` na spec 53. A tabela abaixo fica como
+histórico. O texto que vale é o de `decisoes.md`, que também esclarece a DC-09: o que espera a frente Alquimista é
+só o contador de recurso de classe. Ação de classe que já funciona na ficha, como Caçar Presa, entra na F2.
 
 | ID    | Tema                     | Recomendação                                                                                                                                                                                                        | Alternativa                                                              |
 | ----- | ------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------ |
@@ -517,12 +520,12 @@ em `decisoes.md` e `DEC-BAR-…` na spec 53.
 
 ## 11. Próximos passos
 
-1. O Alexandre responde as DCs (pode ser "como recomendado" com exceções) e revisa o protótipo, telas T1–T7.
-2. As respostas viram `decisoes.md` (D-BA04…, junto com as D-BA01 a D-BA03 já decididas) e o protótipo é ajustado se alguma mudar o desenho.
-3. Vêm a spec 53 com as emendas (BAR-F0-02) e o `tasks.md` no formato das frentes (BAR-F0-03), com a skill
+Feito em 11/10: protótipo aprovado e decisões fechadas em `decisoes.md` (D-BA01..D-BA15), sem mudança no desenho.
+
+1. O fix das rolagens de NPC (BAR-F4-01, D-BA13) sai antes de tudo, em PR próprio.
+2. Vêm a spec 53 com as emendas (BAR-F0-02) e o `tasks.md` no formato das frentes (BAR-F0-03), com a skill
    `/barra-de-acoes`.
-4. Se a DC-10 for aceita, o fix das rolagens de NPC sai antes de tudo.
-5. A execução segue por ondas, com a primeira entrega jogável em F1 + F2.
+3. A execução segue por ondas, com a primeira entrega jogável em F1 + F2.
 
 ## 12. Fontes do benchmark
 
