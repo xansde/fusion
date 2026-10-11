@@ -30,8 +30,58 @@
       "modelo": "sonnet/medium",
       "resumo": "FORA da frente (D-BA13): a corrigir avulsa em fix/npc-rolagens (no dia do plano a branch e os PRs ainda não existiam), com PRs próprios para a main do satélite e a alfa/app. Marcada integrada só para o plan.mjs não escalá-la numa rodada nem travar o fechamento do L2; a espera real é a porteira da BAR-F4-02 (tasks.md §3)",
       "foraDaFrente": true
+    },
+    "BAR-F1-01": {
+      "status": "integrada",
+      "tentativas": 1,
+      "onda": 1,
+      "modelo": "opus/high",
+      "resumo": "store de ator ativo + gate de posse (D-BA01/D-BA10), 57 testes, 5 mutações mortas; core 49e0cb2a",
+      "core_sha": "f3c0e977e4794babfe9d5f7076b4be5f33a3a7b3",
+      "sat_sha": "a65403f744e8c576e747d1be076a49459e1acda2"
+    },
+    "BAR-F1-02": {
+      "status": "integrada",
+      "tentativas": 1,
+      "onda": 1,
+      "modelo": "sonnet/medium",
+      "resumo": "actionBarRegistry, tipos (ActionBarCost, execute com ctx) e provedor stub; depcruise 0 violações; core 3f5e5e8d",
+      "core_sha": "f3c0e977e4794babfe9d5f7076b4be5f33a3a7b3",
+      "sat_sha": "a65403f744e8c576e747d1be076a49459e1acda2"
+    },
+    "BAR-F2-01": {
+      "status": "integrada",
+      "tentativas": 1,
+      "onda": 1,
+      "modelo": "sonnet/high",
+      "resumo": "extração headless (createCharacterVM, characterVMFor, useExecutable, emitAbility, emitCast) sem mudança de comportamento; ficha 4145→4248 testes, pathbuilder-parity 16/16; satélite c837335b",
+      "core_sha": "f3c0e977e4794babfe9d5f7076b4be5f33a3a7b3",
+      "sat_sha": "a65403f744e8c576e747d1be076a49459e1acda2"
     }
   },
-  "rodadas": [],
+  "rodadas": [
+    {
+      "onda": 1,
+      "tarefas": [
+        "BAR-F1-01",
+        "BAR-F1-02",
+        "BAR-F2-01"
+      ],
+      "integradas": [
+        "BAR-F1-01",
+        "BAR-F1-02",
+        "BAR-F2-01"
+      ],
+      "gate": true,
+      "revisao": {
+        "achados": 0,
+        "abertos": [
+          "revisão adversarial única no fechamento do lote (calibragem de 11/10)"
+        ]
+      },
+      "core_sha": "f3c0e977e4794babfe9d5f7076b4be5f33a3a7b3",
+      "sat_sha": "a65403f744e8c576e747d1be076a49459e1acda2"
+    }
+  ],
   "lotes": {}
 }
