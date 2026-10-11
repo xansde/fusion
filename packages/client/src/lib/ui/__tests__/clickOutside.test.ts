@@ -150,6 +150,32 @@ describe("clickOutside action", () => {
     }
   });
 
+  it("hands the originating event to the callback, so a layer can look at the target (BAR-F1-03)", () => {
+    // A floating layer decides "is this really outside?" with more than the node it
+    // owns: the trigger and any nested layer count as inside. That needs the event.
+    const { doc, listeners } = fakeDocument();
+    const originalDocument = globalThis.document;
+    Object.defineProperty(globalThis, "document", { value: doc, configurable: true });
+    try {
+      const node = fakeElement();
+      const outsideEl = fakeElement();
+      const callback = vi.fn();
+      const handle = clickOutside(node, callback);
+
+      fireHandler(listeners, outsideEl);
+      expect(callback).toHaveBeenCalledTimes(1);
+      const received = callback.mock.calls[0]?.[0] as { target: unknown } | undefined;
+      expect(received?.target).toBe(outsideEl);
+
+      handle.destroy();
+    } finally {
+      Object.defineProperty(globalThis, "document", {
+        value: originalDocument,
+        configurable: true,
+      });
+    }
+  });
+
   it("does NOT invoke the callback when the event target is inside the node (e.g. a menu item click)", () => {
     const { doc, listeners } = fakeDocument();
     const originalDocument = globalThis.document;
