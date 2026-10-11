@@ -8,17 +8,17 @@ Isso mede *reivindicação de cobertura*, não correção: um teste que nomeia o
 requisito afirma cobri-lo, e essa afirmação é auditável. Requisito sem citação
 nenhuma não afirma nada — é a spec pedindo algo que ninguém foi conferir.
 
-Escopo: os **2262 requisitos [MVP]** definidos nas 47 specs. Os [V2] ficam de fora
+Escopo: os **2342 requisitos [MVP]** definidos nas 48 specs. Os [V2] ficam de fora
 porque ainda não foram prometidos para nenhum marco.
 
 ## Total
 
 | Situação | Requisitos | Fatia |
 | --- | ---: | ---: |
-| Citados por algum teste | 852 | 38% |
-| Citados só por código de produção | 333 | 15% |
-| Sem nenhuma citação | 1077 | 48% |
-| **Total [MVP]** | **2262** | |
+| Citados por algum teste | 852 | 36% |
+| Citados só por código de produção | 333 | 14% |
+| Sem nenhuma citação | 1157 | 49% |
+| **Total [MVP]** | **2342** | |
 
 ## Por spec
 
@@ -35,10 +35,10 @@ porque ainda não foram prometidos para nenhum marco.
 | [08](08-motor-de-rolagens.md) | 49 | 14 | 12 | 23 | 29% |
 | [09](09-chat-e-mensagens.md) | 55 | 19 | 10 | 26 | 35% |
 | [10](10-combate-e-iniciativa.md) | 54 | 22 | 29 | 3 | 41% |
-| [11](11-ui-framework-e-fichas.md) | 62 | 10 | 16 | 36 | 16% |
+| [11](11-ui-framework-e-fichas.md) | 61 | 10 | 16 | 35 | 16% |
 | [12](12-journal-tabelas-cartas.md) | 34 | 0 | 0 | 34 | 0% |
 | [13](13-audio-e-playlists.md) | 49 | 0 | 3 | 46 | 0% |
-| [14](14-macros-e-automacao.md) | 34 | 0 | 0 | 34 | 0% |
+| [14](14-macros-e-automacao.md) | 27 | 0 | 0 | 27 | 0% |
 | [15](15-api-de-sistemas.md) | 81 | 29 | 31 | 21 | 36% |
 | [16](16-compendiums-e-importacao.md) | 58 | 20 | 16 | 22 | 34% |
 | [17](17-sistema-pf2e.md) | 109 | 68 | 16 | 25 | 62% |
@@ -70,3 +70,4 @@ porque ainda não foram prometidos para nenhum marco.
 | [45](45-atores.md) | 50 | 2 | 0 | 48 | 4% |
 | [47](47-fabricacao-e-alquimia.md) | 40 | 0 | 0 | 40 | 0% |
 | [52](52-cacador-companheiro-e-montaria.md) | 121 | 45 | 10 | 66 | 37% |
+| [53](53-barra-de-acoes.md) | 88 | 0 | 0 | 88 | 0% |
