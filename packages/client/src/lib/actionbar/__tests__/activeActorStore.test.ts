@@ -474,4 +474,12 @@ describe("activeActorStore — ligação na mesa e o predicado único", () => {
     // The privileged role — the same threshold `canMoveToken` uses — not `role === 4`.
     expect(table).toMatch(/isGm:\s*[^,}\n]*>=\s*ROLE_ASSISTANT/);
   });
+
+  it("ao desmontar, a TableScreen tira o viewer do store (o logout pode nem passar pelo efeito)", () => {
+    const table = source("../../../components/TableScreen.svelte");
+    const start = table.indexOf("onDestroy(() => {");
+    expect(start).toBeGreaterThan(-1);
+    const body = table.slice(start, table.indexOf("\n  });", start));
+    expect(body).toContain("setActiveActorViewer(null)");
+  });
 });

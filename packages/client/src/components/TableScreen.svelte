@@ -336,6 +336,11 @@
     // the side effect (invalidation) matters here.
     sceneLoadGuard.begin();
     _teardownOrchestrator();
+    // BAR-F1-01: the table is gone, and nobody is seated at it any more. Logout changes the
+    // user and the screen in the same tick, so the viewer `$effect` above may never run with
+    // `null`; clearing here keeps the active-actor store from holding the old seat's viewer and
+    // last uses until the next login.
+    setActiveActorViewer(null);
     cleanupScene?.();
     cleanupCombatSync?.();
     cleanupChatSync?.();
