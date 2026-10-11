@@ -41,3 +41,13 @@ personagem".
 
 Sobre a D-BA12, ele perguntou se o "recurso de classe" deixava de fora o Caçar Presa do protótipo. Não deixa: o que
 espera a frente Alquimista é só o contador. Depois da explicação: "ah entendi. Beleza então."
+
+## Corte de escopo (11/10, à noite)
+
+| ID     | Tema          | Decidido                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  | Tarefas           |
+| ------ | ------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------- |
+| D-BA16 | Escopo enxuto | O escopo é **a barra de ações do jogador com as ações comuns**, mais as decisões dele: posse (D-BA01) e ícone customizado (D-BA02, D-BA03). **Ficam 15 tarefas**: F1-01..F1-05, F2-01..F2-07, F3-01, F3-05 e F5-01. A F0 já está feita e a F4-01 segue avulsa. **Saem** F3-02, F3-03, F3-04, F4-02, F4-03, F5-02, F6-01, F7-01..F7-06 e F8-01..F8-04, todas sem efeito na ficha, que segue como hoje. O menu mínimo (fixar ou desafixar, trocar ou restaurar ícone) vai para a F3-01 e a F3-05. As ações sem motor seguem postando o card (D-BA11). Da D-BA12 sobra só o consumo (F5-01). | todas as listadas |
+
+Frases dele: "Aqui eu vejo coisas desnecessárias que foi uma proatividade sua que não pedi. onda 7 é desnecessaria ao
+meu ver. Parece ter muito rodeio aqui nas outras ondas também". Sobre o plano enxuto: "agr sim faz bem mais sentido
+com o meu objetivo". A sessão de 12/10 é para assumir "o antes possível": a frente fecha hoje.

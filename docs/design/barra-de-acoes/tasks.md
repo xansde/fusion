@@ -15,6 +15,14 @@
 
 **Estado inicial deste plano** (`estado.json`): BAR-F0-01 feita (protótipo aprovado em 11/10); BAR-F0-02 (spec 53, chega pela branch `docs/barra-spec-53`, que o orquestrador integra) e BAR-F0-03 (este plano) marcadas como feitas na mesma hora — se a spec falhar, o orquestrador corrige o estado; BAR-F4-01 fora da frente. Detalhes no `Situação` de cada cartão e na tabela de porteiras do §3.
 
+> **Corte de escopo (D-BA16, 11/10).** Ficam 15 tarefas: F1-01..F1-05, F2-01..F2-07, F3-01, F3-05 e F5-01.
+> Os cartões de F3-02, F3-03, F3-04, F4-02, F4-03, F5-02, F6-01, F7-01..F7-06 e F8-01..F8-04 ficam aqui só como
+> registro: estão **cortados** e saíram do `tasks-resumo.json`.
+>
+> - A F3-01 leva o menu mínimo de fixar e desafixar, sem arrastar e soltar.
+> - A F3-05 leva o trocar e restaurar ícone.
+> - As ações sem motor seguem postando o card (D-BA11).
+
 ## 1. Decisões
 
 O texto integral e as frases do Alexandre estão em [`decisoes.md`](decisoes.md). Aqui, o resumo e a quais tarefas cada decisão pesa.
