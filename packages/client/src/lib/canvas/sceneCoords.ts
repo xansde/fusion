@@ -58,7 +58,7 @@ export function effectiveGridSize(scene: GridSizeInput | null | undefined): numb
 }
 
 /** The minimal shape `sceneContentOffset` needs. */
-export interface SceneDimensionsInput {
+export interface SceneDimensionsInput extends GridSizeInput {
   readonly width: number;
   readonly height: number;
   readonly padding: number;
@@ -75,8 +75,14 @@ export interface SceneContentOffset {
  * `padY` formula exactly — one definition, not three.
  */
 export function sceneContentOffset(scene: SceneDimensionsInput): SceneContentOffset {
+  // The padding is rounded UP to whole grid cells (as Foundry does). The grid
+  // is drawn from (padX, padY) while token snapping, drops and arrow moves are
+  // anchored at the scene origin; with a padding that is not a multiple of the
+  // cell size the two lattices drifted apart and tokens snapped between lines.
+  const size = effectiveGridSize(scene);
+  const toCells = (raw: number): number => Math.ceil(raw / size) * size;
   return {
-    padX: Math.round(scene.width * scene.padding),
-    padY: Math.round(scene.height * scene.padding),
+    padX: toCells(scene.width * scene.padding),
+    padY: toCells(scene.height * scene.padding),
   };
 }
