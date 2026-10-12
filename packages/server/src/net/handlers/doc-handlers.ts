@@ -1752,6 +1752,24 @@ export function buildDocUpdateHandler(deps: DocHandlerDeps): HandlerFn {
       return ackError("NOT_FOUND", `Document not found: ${documentType}/${probed}`);
     }
 
+    // A primary batch names each document ONCE. The pre-flight below judges every
+    // entry against the same stored snapshot, and the write loop checks every
+    // `expectedVersion` against that same snapshot, so two entries for one `_id`
+    // were each validated alone and then both written: three entries of 64 icons
+    // stored 192 past a schema capped at 64 (BAR-F3-05 adversarial review), and
+    // the same hole weakens every merged-document check here (build, currency).
+    // Refused whole, before any document is read — so it says nothing about ids.
+    const batchIds = new Set<string>();
+    for (const upd of updates) {
+      if (batchIds.has(upd._id)) {
+        return ackError(
+          "VALIDATION_FAILED",
+          `doc:update batch names ${documentType}/${upd._id} more than once — send one entry per document`,
+        );
+      }
+      batchIds.add(upd._id);
+    }
+
     // Pre-flight: judge the whole batch before writing anything. The loop below
     // persists as it goes, so a rejection fired mid-loop would leave the
     // earlier entries written, skip the broadcast, and still ack ok:false —

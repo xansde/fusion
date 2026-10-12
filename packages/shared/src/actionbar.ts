@@ -80,11 +80,22 @@ const ICON_FILE_NAME_PATTERN = /^[A-Za-z0-9][A-Za-z0-9._-]{0,250}\.(?:png|jpe?g|
 const ICON_PATH_PATTERN = /^\/assets\/actionbar-icons\/([^/]*)$/;
 
 /**
+ * The names Windows reserves for devices, whatever the extension (`CON.png` is the console). The
+ * GM's server runs on Windows; the slug can never produce one (it always ends in `-<8 hex>`), so
+ * only a file dropped into the area by hand could carry it.
+ */
+const WINDOWS_DEVICE_NAME_PATTERN = /^(?:con|prn|aux|nul|com\d|lpt\d)$/i;
+
+/**
  * True for a file name that may live directly inside the icon area: what the server's slug
  * produces (`<slug>-<8 hex>.<ext>`), or anything else made of the same safe characters.
  */
 export function isActionBarIconFileName(name: string): boolean {
-  return ICON_FILE_NAME_PATTERN.test(name) && !name.includes("..");
+  return (
+    ICON_FILE_NAME_PATTERN.test(name) &&
+    !name.includes("..") &&
+    !WINDOWS_DEVICE_NAME_PATTERN.test(name.slice(0, name.indexOf(".")))
+  );
 }
 
 /** True for a whole `/assets/actionbar-icons/<file>` path — the only value an icon may hold. */

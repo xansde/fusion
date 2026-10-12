@@ -71,6 +71,24 @@ describe("isActionBarIconFileName", () => {
     }
   });
 
+  it("refuses the names Windows reserves for devices, in any case (the GM's server runs on Windows)", () => {
+    for (const name of [
+      "CON.png",
+      "con.png",
+      "Nul.webp",
+      "PRN.jpg",
+      "aux.svg",
+      "COM1.png",
+      "lpt9.png",
+    ]) {
+      expect(isActionBarIconFileName(name), name).toBe(false);
+    }
+    // …but a name merely starting with those letters is an ordinary file.
+    for (const name of ["console-1a2b3c4d.png", "com-1a2b3c4d.png", "nulo-00000000.webp"]) {
+      expect(isActionBarIconFileName(name), name).toBe(true);
+    }
+  });
+
   it("refuses separators, dot segments, percent escapes, spaces and non-images", () => {
     for (const name of [
       "",

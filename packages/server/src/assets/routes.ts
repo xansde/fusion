@@ -588,7 +588,7 @@ async function assetPlugin(
     // never consulted, so this answer can neither name it nor reveal that it exists.
     const existing =
       purpose === "icon"
-        ? findExistingIconByDigest(assetsDir, digest)
+        ? findExistingIconByDigest(assetsDir, digest, detected.ext)
         : findExistingByDigest(assetsDir, digest);
     if (existing) {
       // Backfill a row for the matched file if it has none — a previous upload
@@ -613,22 +613,46 @@ async function assetPlugin(
       });
     }
 
-    // The icon area is created on the first icon, by the server.
-    if (purpose === "icon") mkdirSync(joinPath(assetsDir, ICON_ASSET_AREA), { recursive: true });
-
     // Write file (REQ-SEC-040: new safe name, never original)
-    writeFileSync(targetPath, finalBuf);
+    let writtenName = storageName;
+    if (purpose === "icon") {
+      // The icon area is created on the first icon, by the server.
+      mkdirSync(joinPath(assetsDir, ICON_ASSET_AREA), { recursive: true });
+      // An icon never lands on top of another file. The dedup above already proved that a file
+      // holding this name has OTHER bytes (an 8-hex collision, crafted or not), so the newcomer
+      // moves to a 16-hex name; if even that is taken, the upload is refused, never written over.
+      const longName = `${storageName.slice(0, -(8 + detected.ext.length))}${digest.slice(0, 16)}${detected.ext}`;
+      let written: string | null;
+      try {
+        written = writeExclusively(assetsDir, [storageName, longName], finalBuf);
+      } catch (err) {
+        if (err instanceof PathTraversalError) {
+          return reply.code(400).send({ ok: false, code: "PATH_TRAVERSAL", message: err.message });
+        }
+        throw err;
+      }
+      if (written === null) {
+        return reply.code(409).send({
+          ok: false,
+          code: "CONFLICT",
+          message: "An icon with this name already exists with different content.",
+        });
+      }
+      writtenName = written;
+    } else {
+      writeFileSync(targetPath, finalBuf);
+    }
 
     // T020/T021: register the row after the file is safely on disk — never
     // before (see registerUpload's doc comment for why a registry failure
     // must not turn into a reported upload failure). For an icon the row's
     // name carries the area: that IS the icon mark (REQ-BAR-078, asset-store.ts).
-    registerUpload(request, storageName, digest, finalBuf.length, detected.mime);
+    registerUpload(request, writtenName, digest, finalBuf.length, detected.mime);
 
     return reply.code(201).send({
       ok: true,
       deduplicated: false,
-      path: storageName,
+      path: writtenName,
       digest,
       mime_type: detected.mime,
       file_size: finalBuf.length,
@@ -1584,12 +1608,19 @@ function parseUploadPurpose(query: unknown): "generic" | "icon" | null {
 }
 
 /**
- * The icon already stored with this digest, as its storage name
+ * The icon already stored with EXACTLY these bytes, as its storage name
  * (`actionbar-icons/<file>`), or null. Looks ONLY inside the icon area, and only
  * at names the gallery would list — see the Q-BAR-05 note in the module doc.
+ *
+ * A candidate is a name ENDING in this digest's `-<8 hex>.<ext>` (or the 16-hex
+ * name a collision moves to), and it is reused only when the full SHA-256 of the
+ * file on disk matches. The generic upload's substring test is not enough here: the
+ * slug keeps what the uploader typed, so a player could name a file after the hash
+ * of an image someone else will send, and capture that upload (adversarial review,
+ * finding 1). A name match with other bytes is a collision, never a duplicate.
  */
-function findExistingIconByDigest(assetsDir: string, digest: string): string | null {
-  const hashMarker = `-${digest.slice(0, 8)}`;
+function findExistingIconByDigest(assetsDir: string, digest: string, ext: string): string | null {
+  const suffixes = [`-${digest.slice(0, 8)}${ext}`, `-${digest.slice(0, 16)}${ext}`];
   const iconDir = joinPath(assetsDir, ICON_ASSET_AREA);
   let entries: string[];
   try {
@@ -1598,11 +1629,37 @@ function findExistingIconByDigest(assetsDir: string, digest: string): string | n
     return null; // no icon uploaded yet
   }
   for (const entry of entries) {
-    if (!entry.includes(hashMarker) || !isActionBarIconFileName(entry)) continue;
+    if (!suffixes.some((suffix) => entry.endsWith(suffix))) continue;
+    if (!isActionBarIconFileName(entry)) continue;
+    const filePath = joinPath(iconDir, entry);
     try {
-      if (lstatSync(joinPath(iconDir, entry)).isFile()) return `${ICON_ASSET_AREA}/${entry}`;
+      if (!lstatSync(filePath).isFile()) continue;
+      if (sha256Hex(readFileSync(filePath)) === digest) return `${ICON_ASSET_AREA}/${entry}`;
     } catch {
-      // vanished between the listing and the stat — not a match
+      // vanished between the listing and the read — not a match
+    }
+  }
+  return null;
+}
+
+/**
+ * Write `bytes` under the first of `names` that does not exist yet, and return it;
+ * `null` when every name is taken. Exclusive create (`wx`): never truncates or
+ * follows anything already there, a symlink included.
+ */
+function writeExclusively(
+  assetsDir: string,
+  names: readonly string[],
+  bytes: Buffer,
+): string | null {
+  for (const name of names) {
+    const target = guardPath(assetsDir, name);
+    try {
+      writeFileSync(target, bytes, { flag: "wx" });
+      return name;
+    } catch (err) {
+      if ((err as NodeJS.ErrnoException).code === "EEXIST") continue;
+      throw err;
     }
   }
   return null;

@@ -1055,8 +1055,9 @@ com o contrato que o plano de origem fixou, e a ficha de origem é marcada como 
   _Respondida pela BAR-F3-05 (2026-10-11):_ **devolve um caminho novo**. O envio de ícone deduplica só
   contra a própria área de ícones; um arquivo fora dela com os mesmos bytes nem é consultado, então a
   resposta não o nomeia, não o marca e não revela que ele existe. Marcar o existente levaria o
-  handout, com o nome dele, para a galeria de todos. Um gêmeo que já é ícone é reaproveitado, porque
-  a galeria já o mostra.
+  handout, com o nome dele, para a galeria de todos. Um gêmeo que já é ícone — os mesmos bytes,
+  conferidos pelo SHA-256 inteiro — é reaproveitado, porque a galeria já o mostra; um nome que só
+  coincide nos 8 hex nunca é, e o envio novo ganha um nome mais longo em vez de gravar por cima.
 - **Q-BAR-06** `ActionCost` existe com duas formas. O plano do Alquimista (ALQ-F7-02,
   §2.11) o declara como união discriminada — ação, reação, livre, atividade, passivo, nenhum —, e a
   frente está parada em 33/125, sem esse tipo entregue. O cliente já tem outro `ActionCost`, de

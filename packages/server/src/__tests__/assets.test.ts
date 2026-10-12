@@ -11,7 +11,8 @@
  */
 
 import { describe, it, expect, beforeEach, afterEach } from "vitest";
-import { mkdirSync, rmSync, existsSync, readdirSync, readFileSync } from "node:fs";
+import { mkdirSync, rmSync, existsSync, readdirSync, readFileSync, writeFileSync } from "node:fs";
+import { createHash } from "node:crypto";
 import { join } from "node:path";
 import { tmpdir } from "node:os";
 import Fastify from "fastify";
@@ -883,8 +884,12 @@ describe("POST /api/assets/upload?purpose=icon — open to every player (REQ-BAR
     expect(pngResp.headers["content-security-policy"]).toBeUndefined();
   });
 
-  it("has no per-user quota: one player uploads many icons in a row (REQ-BAR-077)", async () => {
-    for (let i = 0; i < 12; i++) {
+  it("a player's icons are never refused for how many he sent (REQ-BAR-077: no per-user quota)", async () => {
+    // A finite test cannot prove that no quota exists at any count; it pins that a burst well past
+    // anything a table would send in a session goes through, and the spec 21 amendment records that
+    // the server implements no per-user quota at all.
+    const burst = 40;
+    for (let i = 0; i < burst; i++) {
       const resp = await uploadIcon(
         ctx.fastify,
         ctx.playerToken,
@@ -893,7 +898,7 @@ describe("POST /api/assets/upload?purpose=icon — open to every player (REQ-BAR
       );
       expect(resp.statusCode, String(i)).toBe(201);
     }
-    expect(readdirSync(join(ctx.assetsDir, ICON_AREA))).toHaveLength(12);
+    expect(readdirSync(join(ctx.assetsDir, ICON_AREA))).toHaveLength(burst);
   });
 });
 
@@ -935,6 +940,50 @@ describe("the icon upload never reveals a file the gallery hides (Q-BAR-05, REQ-
     const body = again.json<{ path: string; deduplicated: boolean }>();
     expect(body.deduplicated).toBe(true);
     expect(body.path).toBe(first.json<{ path: string }>().path);
+  });
+
+  it("a file NAMED after another image's hash does not capture that image's upload (dedup poisoning)", async () => {
+    // Adversarial review, finding 1: the dedup matched `-<8 hex>` anywhere in a name, and the
+    // slug keeps whatever the uploader typed. P1 sends bytes X named `troll-<hash8 of Y>.png`; when
+    // P2 later sends Y, the server answered "deduplicated" with P1's file — P2's icon became X, and
+    // nobody could ever store Y again.
+    const bytesY = distinctPng(901);
+    const hashY = createHash("sha256").update(bytesY).digest("hex").slice(0, 8);
+    const trap = await uploadIcon(
+      ctx.fastify,
+      ctx.playerToken,
+      distinctPng(900),
+      `troll-${hashY}.png`,
+    );
+    expect(trap.statusCode).toBe(201);
+    const trapPath = trap.json<{ path: string }>().path;
+
+    const honest = await uploadIcon(ctx.fastify, ctx.trustedToken, bytesY, "honesto.png");
+    expect(honest.statusCode).toBe(201);
+    const body = honest.json<{ path: string; deduplicated: boolean }>();
+    expect(body.deduplicated).toBe(false);
+    expect(body.path).not.toBe(trapPath);
+    expect(readFileSync(join(ctx.assetsDir, ...body.path.split("/"))).equals(bytesY)).toBe(true);
+  });
+
+  it("an 8-hex name collision never overwrites an icon: the newcomer gets a longer name", async () => {
+    // Same slug, same 8-hex prefix, different bytes (a crafted collision costs ~2^32 hashes). The
+    // dedup must not hand back the other file, and the write must not land on top of it.
+    const bytesY = distinctPng(902);
+    const hashY = createHash("sha256").update(bytesY).digest("hex");
+    const iconDir = join(ctx.assetsDir, ICON_AREA);
+    mkdirSync(iconDir, { recursive: true });
+    const occupied = join(iconDir, `colide-${hashY.slice(0, 8)}.png`);
+    const original = distinctPng(903);
+    writeFileSync(occupied, original);
+
+    const resp = await uploadIcon(ctx.fastify, ctx.playerToken, bytesY, "colide.png");
+    expect(resp.statusCode).toBe(201);
+    const body = resp.json<{ path: string; deduplicated: boolean }>();
+    expect(body.deduplicated).toBe(false);
+    expect(body.path).toBe(`${ICON_AREA}/colide-${hashY.slice(0, 16)}.png`);
+    expect(readFileSync(occupied).equals(original)).toBe(true);
+    expect(readFileSync(join(ctx.assetsDir, ...body.path.split("/"))).equals(bytesY)).toBe(true);
   });
 
   it("no client route turns an existing asset into an icon (REQ-BAR-103)", async () => {

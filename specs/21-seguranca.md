@@ -422,8 +422,13 @@ Function()` (`ver 08-motor-de-rolagens.md`; DEC-SEC-03).
   > (`GET /api/assets/icons`, REQ-BAR-079/080): todo jogador lista os arquivos dela e recebe o grant
   > de leitura de cada um; mapas, retratos e handouts, fora dela, seguem fora da lista do jogador.
   > Apagar segue só do GM (REQ-AST-029, REQ-BAR-081; `DELETE /api/assets/icons/:name`). O envio
-  > deduplicado de ícone compara só com a própria área, de modo que a resposta nunca revela um
-  > arquivo que a galeria esconde (Q-BAR-05).
+  > deduplicado de ícone compara só com a própria área, e só reaproveita um arquivo com os mesmos
+  > bytes (SHA-256 inteiro), de modo que a resposta nunca revela um arquivo que a galeria esconde
+  > (Q-BAR-05) e nenhum envio grava por cima de outro arquivo. **Tudo o que está nessa área é
+  > visível a todo jogador**: o envio de ícone do próprio Mestre entra na galeria com o nome do
+  > arquivo que ele mandou, e um arquivo que o Mestre largue ali à mão também — a área não é lugar
+  > de segredo. Risco residual aceito: a listagem da galeria não é paginada, e o custo dela cresce
+  > com o número de ícones, que não tem cota.
 
   | Diretório                             | Quem pode escrever                                      | Notas                                  |
   | ------------------------------------- | ------------------------------------------------------- | -------------------------------------- |

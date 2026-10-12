@@ -40,6 +40,7 @@ import { reserveFreePort, listeningPort } from "./helpers/ports.js";
 const OWN_ID = "ownActor00000001";
 const OTHER_ID = "otherActor000001";
 const LEGACY_ID = "legacyActor00001";
+const NPC_ID = "npcLimited000001";
 
 const ICON_A = `/assets/${ACTION_BAR_ICON_AREA}/hanabi-1a2b3c4d.png`;
 const ICON_B = `/assets/${ACTION_BAR_ICON_AREA}/arco-eletrico-5e6f7a8b.webp`;
@@ -55,6 +56,7 @@ interface Ctx {
   gmToken: string;
   p1Token: string;
   p2Token: string;
+  trustedToken: string;
   p1Id: string;
 }
 
@@ -81,6 +83,11 @@ async function buildCtx(): Promise<Ctx> {
     role: Role.PLAYER,
     password: "player2-pass",
   });
+  const { user: t1 } = await authService.createUser({
+    name: "Trusted1",
+    role: Role.TRUSTED,
+    password: "trusted1-pass",
+  });
   const login = async (userId: string, password: string): Promise<string> =>
     (await authService.login({ userId, password, ip: "127.0.0.1" })).accessToken;
 
@@ -95,6 +102,12 @@ async function buildCtx(): Promise<Ctx> {
   store.create(
     "actors",
     { _id: OTHER_ID, name: "Outro", type: "character", ownership: { default: 2, [p2.id]: 3 } },
+    author,
+  );
+  // An NPC every player can see as LIMITED, and nobody owns.
+  store.create(
+    "actors",
+    { _id: NPC_ID, name: "Vilao", type: "npc", ownership: { default: 1 } },
     author,
   );
   // An actor whose STORED bar state predates the schema (hand-edited or legacy): 70 icons.
@@ -138,6 +151,7 @@ async function buildCtx(): Promise<Ctx> {
     gmToken: await login(gm.id, gmPw),
     p1Token: await login(p1.id, "player1-pass"),
     p2Token: await login(p2.id, "player2-pass"),
+    trustedToken: await login(t1.id, "trusted1-pass"),
     p1Id: p1.id,
   };
 }
@@ -266,6 +280,32 @@ describe("flags.fusion.actionBar on doc:update and doc:create (BAR-F3-05)", () =
     expect(storedIcons(OWN_ID)).toEqual({ "action:grapple": ICON_A });
   });
 
+  it("ownership is the gate for every non-privileged role: LIMITED NPC and a TRUSTED player (negative)", async () => {
+    const trusted = await connect(ctx.port, ctx.worldId, ctx.trustedToken);
+    try {
+      const cases: Array<[ClientSocket, string]> = [
+        [p1, NPC_ID],
+        [trusted, OWN_ID],
+        [trusted, NPC_ID],
+      ];
+      for (const [socket, actorId] of cases) {
+        for (const diff of [
+          actionBarIconPatch("strike:claw", ICON_A),
+          { flags: { fusion: { actionBar: { icons: { "strike:claw": ICON_A } } } } },
+        ]) {
+          const ack = await update(socket, actorId, diff);
+          expect(ack, `${actorId} ${JSON.stringify(diff)}`).toMatchObject({
+            ok: false,
+            code: "PERMISSION_DENIED",
+          });
+        }
+        expect(storedIcons(actorId), actorId).toBeUndefined();
+      }
+    } finally {
+      trusted.disconnect();
+    }
+  });
+
   it("the other player keeps writing his own, and is refused on p1's", async () => {
     const own = await update(p2, OTHER_ID, actionBarIconPatch("strike:bow", ICON_B));
     expect(own["ok"], JSON.stringify(own)).toBe(true);
@@ -308,6 +348,38 @@ describe("flags.fusion.actionBar on doc:update and doc:create (BAR-F3-05)", () =
     // Replacing one entry keeps the count, and is fine.
     const swap = await update(p1, OWN_ID, actionBarIconPatch("strike:golpe-0", ICON_B));
     expect(swap["ok"], JSON.stringify(swap)).toBe(true);
+  });
+
+  it("a batch naming the same actor twice is refused whole: the cap cannot be split across entries", async () => {
+    // Adversarial review, finding 2: the pre-flight judged every entry against the same stored
+    // snapshot, so three entries of 64 icons each for ONE actor passed one by one and stored 192.
+    const version = (ctx.store.get("actors", OWN_ID)["_stats"] as { version: number }).version;
+    const entry = (prefix: string) => ({
+      _id: OWN_ID,
+      diff: { "flags.fusion.actionBar.icons": iconMap(ACTION_BAR_ICON_CAP, prefix) },
+      expectedVersion: version,
+    });
+    for (const socket of [p1, gm]) {
+      const ack = await sendOp(socket, "doc:update", {
+        documentType: "Actor",
+        updates: [entry("a"), entry("b"), entry("c")],
+      });
+      expect(ack).toMatchObject({ ok: false, code: "VALIDATION_FAILED" });
+    }
+    expect(storedIcons(OWN_ID)).toBeUndefined();
+
+    // Control: one entry per document is still a batch the server takes.
+    const other = (ctx.store.get("actors", OTHER_ID)["_stats"] as { version: number }).version;
+    const ok = await sendOp(gm, "doc:update", {
+      documentType: "Actor",
+      updates: [
+        { _id: OWN_ID, diff: actionBarIconPatch("strike:a", ICON_A), expectedVersion: version },
+        { _id: OTHER_ID, diff: actionBarIconPatch("strike:b", ICON_B), expectedVersion: other },
+      ],
+    });
+    expect(ok["ok"], JSON.stringify(ok)).toBe(true);
+    expect(storedIcons(OWN_ID)).toEqual({ "strike:a": ICON_A });
+    expect(storedIcons(OTHER_ID)).toEqual({ "strike:b": ICON_B });
   });
 
   it("refuses 5000 icons in one write, from the owner and from the Mestre", async () => {

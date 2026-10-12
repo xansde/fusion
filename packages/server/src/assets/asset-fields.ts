@@ -94,10 +94,12 @@
  *      `flags.*`, not `system.*`, not the same keys on another table. Pinned by
  *      the "map exception is pinned" tests in asset-grant.test.ts.
  *   2. THE CAP AT SIGNING TIME, NOT ONLY IN THE SCHEMA. A map with more than
- *      `ACTION_BAR_ICON_CAP` (64) entries projects NOTHING. Every write door
- *      refuses such a map (`documents/action-bar-flags.ts`), so one can only be
- *      legacy or hand-edited data, and the mint does not trust the schema to have
- *      been the only writer: fail closed, never "the first 64".
+ *      `ACTION_BAR_ICON_CAP` (64) entries projects NOTHING. The write doors refuse
+ *      such a map (`documents/action-bar-flags.ts`: `doc:update` judged on the
+ *      result, with one entry per document in a batch; `doc:create`; the
+ *      compendium import drops it), so one can only be legacy or hand-edited
+ *      data — and the mint does not trust the schema to have been the only
+ *      writer: fail closed, never "the first 64".
  *   3. A CLOSED VALUE DOMAIN. A value is projected only when it is one file
  *      directly inside the reserved icon area (`isActionBarIconPath`, @fusion/
  *      shared — the same predicate the write schema uses): safe ASCII, no
