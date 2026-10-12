@@ -8,6 +8,8 @@
  * `asset-grant.test.ts`.
  */
 
+import { readFileSync } from "node:fs";
+import { fileURLToPath } from "node:url";
 import { describe, expect, it } from "vitest";
 import { render } from "svelte/server";
 
@@ -48,5 +50,23 @@ describe("FilePicker — icon mode", () => {
     expect(body).toContain("Asset Browser");
     expect(body).toContain('type="url"');
     expect(body).not.toContain("Ícones da barra");
+  });
+});
+
+describe("FilePicker — the icon mode's two decisions are the pure ones (lib/assets/iconPicker.ts)", () => {
+  // The decisions are tested in iconPicker.test.ts; this pins that the component still calls them —
+  // dropping the purpose would make every player's "Trocar ícone…" upload answer 403.
+  const source = readFileSync(
+    fileURLToPath(new URL("../FilePicker.svelte", import.meta.url)),
+    "utf8",
+  );
+
+  it("every upload goes out with pickerUploadOptions(mode)", () => {
+    expect(source).toMatch(/assetStore\.startUpload\([\s\S]*?pickerUploadOptions\(mode\),?\s*\)/);
+  });
+
+  it("the delete button is offered through canDeleteGalleryIcons", () => {
+    expect(source).toContain("canDeleteGalleryIcons(session.user?.role)");
+    expect(source).toMatch(/\{#if canDeleteIcons\}/);
   });
 });
