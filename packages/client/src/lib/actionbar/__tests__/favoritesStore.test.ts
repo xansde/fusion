@@ -27,6 +27,7 @@ import {
   FAVORITES_MAX_ATTEMPTS,
   createFavoritesShared,
   createFavoritesStore,
+  type FavoritesSharedState,
   type FavoritesStore,
 } from "../favoritesStore.svelte.js";
 
@@ -161,6 +162,8 @@ interface Rig {
   server: FakeServer;
   mirror: FakeMirror;
   store: FavoritesStore;
+  /** What the store shares with the other stores of this device: the chain of queued writes, the acked documents. */
+  shared: FavoritesSharedState;
   notices: string[];
   /** The ids the provider's seed would give right now. */
   seed: { ids: string[] };
@@ -181,7 +184,8 @@ function rig(options: RigOptions = {}): Rig {
   const notices: string[] = [];
   const delays: number[] = [];
   const seed = { ids: options.seed ?? [] };
-  const result = { server, mirror, notices, seed, delays } as Rig;
+  const shared = createFavoritesShared();
+  const result = { server, mirror, notices, seed, delays, shared } as Rig;
   result.store = createFavoritesStore({
     actorId: ACTOR,
     readActor: () => mirror.doc,
@@ -196,7 +200,7 @@ function rig(options: RigOptions = {}): Rig {
       else options.onDelay(result);
       return Promise.resolve();
     },
-    shared: createFavoritesShared(),
+    shared,
   });
   return result;
 }
@@ -316,6 +320,37 @@ describe("the first-opening seed", () => {
 
     expect(r.server.accepted).toHaveLength(1);
     expect(r.server.attempts).toHaveLength(1);
+  });
+
+  it("a seed that FAILED is not asked again every time the entries change: one failure, one notice", async () => {
+    const r = rig({ server: new FakeServer({}), seed: ["strike:a"] });
+    r.server.failWith = Object.assign(new Error("No OWNER access"), { code: "PERMISSION_DENIED" });
+
+    r.store.ensureSeeded();
+    await r.store.settled();
+    // The shell asks again whenever the provider's list changes.
+    r.seed.ids = ["strike:a", "strike:b"];
+    r.store.ensureSeeded();
+    r.store.ensureSeeded();
+    await r.store.settled();
+
+    expect(r.server.attempts).toHaveLength(1);
+    expect(r.notices).toEqual([SAVE_FAILED]);
+    // …and the row the player sees is the one the document has, not a seed that was never written.
+    expect(r.store.slots()).toEqual(row("strike:a", "strike:b"));
+  });
+
+  it("for an actor that is already seeded, asking queues NOTHING — it is the common case, on every change of the list", async () => {
+    const r = rig({
+      server: new FakeServer({ favorites: row("strike:a"), seeded: true }),
+      seed: ["strike:a", "strike:novo"],
+    });
+
+    r.store.ensureSeeded();
+
+    expect(r.shared.chains.size).toBe(0);
+    await r.store.settled();
+    expect(r.server.attempts).toHaveLength(0);
   });
 
   it("with nothing to seed yet (the provider has not loaded) it writes nothing and waits for the next ask", async () => {
@@ -470,8 +505,9 @@ describe("pin, unpin and move", () => {
     });
 
     expect(r.store.pin("strike:b")).toBe(true);
-    await r.store.settled();
 
+    expect(r.shared.chains.size).toBe(0);
+    await r.store.settled();
     expect(r.server.attempts).toHaveLength(0);
     expect(r.store.slots()).toEqual(row("strike:a", "strike:b"));
   });
@@ -514,12 +550,13 @@ describe("pin, unpin and move", () => {
     expect(r.store.isPinned("strike:b")).toBe(false);
   });
 
-  it("unpinning what is not pinned writes nothing", async () => {
+  it("unpinning what is not pinned writes nothing — and does not even queue", async () => {
     const r = rig({ server: new FakeServer({ favorites: row("strike:a"), seeded: true }) });
 
     r.store.unpin("strike:zzz");
-    await r.store.settled();
 
+    expect(r.shared.chains.size).toBe(0);
+    await r.store.settled();
     expect(r.server.attempts).toHaveLength(0);
   });
 
@@ -544,8 +581,9 @@ describe("pin, unpin and move", () => {
     r.store.move(-1, 3);
     r.store.move(0, 12);
     r.store.move(4, 7);
-    await r.store.settled();
 
+    expect(r.shared.chains.size).toBe(0);
+    await r.store.settled();
     expect(r.server.attempts).toHaveLength(0);
   });
 
