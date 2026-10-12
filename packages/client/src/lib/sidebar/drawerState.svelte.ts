@@ -15,7 +15,8 @@
  *    module at all (RNF-GAV-02) — the registry keeps loaders, never constructors.
  *
  * `open` and `activeTab` are persisted locally after every gesture (REQ-GAV-014) via
- * `./preferences`, which also decides where a fresh seat opens (REQ-GAV-015/016).
+ * `./preferences`, which also decides where a fresh seat opens (REQ-GAV-015/016). `open` is also
+ * published to `./drawerLayout`, read-only, for whoever must stay clear of the overlay.
  *
  * Living outside the component is deliberate: the client's Vitest has no DOM, so
  * behaviour that hides inside a `.svelte` file is behaviour that cannot be tested.
@@ -24,6 +25,7 @@
 
 import { loadSidebarPanel } from "./registry.js";
 import type { SidebarPanelComponent } from "./registry.js";
+import { publishDrawerOpen } from "./drawerLayout.svelte.js";
 import { resolveInitialSidebarState, saveSidebarPreferences } from "./preferences.js";
 
 /** What the drawer needs to know about the seat it is rendering for. */
@@ -139,6 +141,10 @@ export class SidebarDrawerState {
       open: this.#open,
       activeTab: this.#activeTabId,
     });
+    // The drawer is an overlay, so nothing else knows how much of the screen it covers; whoever
+    // stays clear of it (the action bar, REQ-BAR-022) reads it from `drawerLayout`. Published at the
+    // same moments the preference is written: when the seat is resolved and after every gesture.
+    publishDrawerOpen(this.#open);
   }
 
   /**
