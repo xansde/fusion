@@ -1030,16 +1030,33 @@ com o contrato que o plano de origem fixou, e a ficha de origem é marcada como 
 - **Q-BAR-03** Qual é o teto de entradas do mapa de ícones? O plano exige o teto (DEC-BAR-02) e não
   fixa o valor. Ele precisa cobrir as entradas que um jogador de fato customiza sem reabrir o vetor de
   amplificação de grants. A BAR-F3-05 fixa o número, com teste de borda.
+  _Respondida pela BAR-F3-05 (2026-10-11):_ **64** (`ACTION_BAR_ICON_CAP`, `@fusion/shared`). O teste de
+  borda passa 64 entradas e recusa a 65ª, no schema, na escrita por `doc:update` sobre o objeto
+  resultante e na hora de assinar o grant (um mapa acima do teto não gera grant nenhum).
 - **Q-BAR-04** Como estender `asset-fields.ts` para um campo em `flags.*` cujo valor é um mapa?
   O arquivo só aceita os caminhos `campo` e `lista[].campo` e proíbe `flags.*` e `system.*` (regra de
   manutenção 2), porque são registros livres que o dono do ator escreve. O mapa de ícones é o primeiro
   caso. A BAR-F3-05 decide a gramática nova e documenta a exceção no arquivo; a revisão adversarial
   confere (REQ-BAR-071).
+  _Respondida pela BAR-F3-05 (2026-10-11):_ uma terceira forma de caminho — os **valores de um mapa** —
+  numa tabela própria (`ASSET_MAP_FIELDS`), com **uma única entrada**: `actors` →
+  `flags.fusion.actionBar.icons`. A tabela de duas formas fica intacta. A exceção tem três limites,
+  documentados no cabeçalho do arquivo: só esse caminho e só essa tabela; o teto vale na assinatura
+  (acima de 64 entradas, nenhum grant); e o valor só é assinado se for **um arquivo da área de ícones**
+  (`/assets/actionbar-icons/<nome seguro>`), o mesmo critério do schema de escrita. Com isso o mapa
+  nunca carrega um nome que quem vê o ator já não pudesse ler pela galeria (REQ-BAR-080): um mapa ou um
+  handout cujo nome o dono conheça não é assinado por ele. É mais estrito que a letra da REQ-BAR-068
+  (qualquer `/assets/…` do acervo) e cabe nela.
 - **Q-BAR-05** O envio deduplicado de um jogador devolve o caminho do asset que já existe
   (REQ-AST-009). Se o existente não for um ícone — por exemplo, um handout do Mestre com a mesma
   imagem —, a resposta revelaria o nome de um arquivo que a galeria esconde (REQ-BAR-079). O
   envio deduplicado do jogador marca o existente como ícone, ou devolve um caminho novo? A revisão
   adversarial da BAR-F3-05 decide.
+  _Respondida pela BAR-F3-05 (2026-10-11):_ **devolve um caminho novo**. O envio de ícone deduplica só
+  contra a própria área de ícones; um arquivo fora dela com os mesmos bytes nem é consultado, então a
+  resposta não o nomeia, não o marca e não revela que ele existe. Marcar o existente levaria o
+  handout, com o nome dele, para a galeria de todos. Um gêmeo que já é ícone é reaproveitado, porque
+  a galeria já o mostra.
 - **Q-BAR-06** `ActionCost` existe com duas formas. O plano do Alquimista (ALQ-F7-02,
   §2.11) o declara como união discriminada — ação, reação, livre, atividade, passivo, nenhum —, e a
   frente está parada em 33/125, sem esse tipo entregue. O cliente já tem outro `ActionCost`, de
@@ -1082,18 +1099,19 @@ com o contrato que o plano de origem fixou, e a ficha de origem é marcada como 
 
 Registradas aqui para que nenhuma spec fique contrariada em silêncio (`CONVENCOES.md` §2). Nenhum id é
 renumerado. As emendas de `11`, `14`, `20`, `23`, `28`, `40` e `41` foram aplicadas nos próprios
-arquivos em 2026-10-11, pela BAR-F0-02, e cada uma aponta de volta para esta spec. As de `21` e `27`
-ficam registradas e não aplicadas.
+arquivos em 2026-10-11, pela BAR-F0-02, e cada uma aponta de volta para esta spec. A de `21` foi
+aplicada pela BAR-F3-05 (2026-10-11), no mesmo PR da exceção do `asset-fields.ts`. A de `27` fica
+registrada e não aplicada.
 
-| Spec        | O que muda                                                                                                                                                                                                                                                                                                                                                                   |
-| ----------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `README.md` | A linha `REQ-BAR-` entra no registro de prefixos, a 53 entra no índice e o parágrafo dos números reservados registra que a 53 também nasceu nesta faixa. Sem isso o `spec-lint` reprova a definição de qualquer id desta spec.                                                                                                                                               |
-| `11`        | **REQ-UIF-001** troca "a hotbar centralizada na parte inferior" pela barra de ações na área livre (DEC-BAR-04, DEC-BAR-09). **REQ-UIF-006** é aposentado e passa de [MVP] a [V2]; as menções que sobram à hotbar (o conceito de Shell, REQ-UIF-046 (d) e `hotbarPage`) leem-se como a barra.                                                                                 |
-| `14`        | **REQ-MAC-012..018** são aposentados e passam de [MVP] a [V2]; DEC-MAC-06 ganha a nota do que a substitui (DEC-BAR-07); as menções à hotbar em REQ-MAC-005, REQ-MAC-021, REQ-MAC-024, REQ-MAC-028, REQ-MAC-NF-003 e CA-MAC-01, CA-MAC-03 e CA-MAC-10 leem-se conforme a nota, sem mudar de tag (Q-BAR-09); a questão 2 de "Questões em Aberto" é respondida por REQ-BAR-066. |
-| `20`        | **REQ-AST-011** passa a permitir o envio de imagem a todo jogador (DEC-BAR-03); a listagem do jogador mostra só os envios marcados como ícone (REQ-BAR-079); apagar segue só do GM (REQ-AST-029).                                                                                                                                                                            |
-| `21`        | **Registrada, não aplicada nesta passagem.** **REQ-SEC-043** (diretórios por papel) precisa da exceção do destino do envio de ícone (REQ-BAR-076), e **REQ-SEC-044** (cota por usuário configurável) fica desligada para esse envio (REQ-BAR-077). A emenda é aplicada no PR da BAR-F3-05, junto com a revisão adversarial do grant.                                         |
-| `23`        | **REQ-A11-020** recebe as ações nomeadas da barra (REQ-BAR-048) e o registro mínimo da BAR-F1-05 como começo do `KeybindingRegistry`; **REQ-A11-023** passa a cobrir também o botão em foco nos atalhos da barra (REQ-BAR-049); REQ-A11-044, REQ-A11-046 e REQ-A11-049 valem para a barra em modo tablet (REQ-BAR-100).                                                      |
-| `27`        | **Registrada, não aplicada nesta passagem.** A linha de `14` na tabela de marcos ("M4 (hotbar básico)"), a nota de M4 sobre "macros de hotbar" e a Q-ROD-06 falam de uma hotbar que a barra substitui (DEC-BAR-04). Em que marco cai a barra de ações é decisão do roadmap; o que sobra de `14` em M4 são as macros de chat, executadas por `/macro` e pelo botão Executar.  |
-| `28`        | **REQ-HUB-007**: o rodapé central é da barra de ações; a barra de comando do Hub vira grupo compacto na ponta quando as linhas convergirem (REQ-BAR-024).                                                                                                                                                                                                                    |
-| `40`        | **Q-CBA-01** respondida em parte: a faixa de estado mostra de quem é a vez fora da gaveta (REQ-BAR-040). O título da janela do navegador segue em aberto.                                                                                                                                                                                                                    |
-| `41`        | **DEC-TOK-19**: a faixa de estado da barra é, para o ator ativo, o espaço dedicado de condições fora da peça (REQ-BAR-028). REQ-TOK-083 não muda.                                                                                                                                                                                                                            |
+| Spec        | O que muda                                                                                                                                                                                                                                                                                                                                                                            |
+| ----------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `README.md` | A linha `REQ-BAR-` entra no registro de prefixos, a 53 entra no índice e o parágrafo dos números reservados registra que a 53 também nasceu nesta faixa. Sem isso o `spec-lint` reprova a definição de qualquer id desta spec.                                                                                                                                                        |
+| `11`        | **REQ-UIF-001** troca "a hotbar centralizada na parte inferior" pela barra de ações na área livre (DEC-BAR-04, DEC-BAR-09). **REQ-UIF-006** é aposentado e passa de [MVP] a [V2]; as menções que sobram à hotbar (o conceito de Shell, REQ-UIF-046 (d) e `hotbarPage`) leem-se como a barra.                                                                                          |
+| `14`        | **REQ-MAC-012..018** são aposentados e passam de [MVP] a [V2]; DEC-MAC-06 ganha a nota do que a substitui (DEC-BAR-07); as menções à hotbar em REQ-MAC-005, REQ-MAC-021, REQ-MAC-024, REQ-MAC-028, REQ-MAC-NF-003 e CA-MAC-01, CA-MAC-03 e CA-MAC-10 leem-se conforme a nota, sem mudar de tag (Q-BAR-09); a questão 2 de "Questões em Aberto" é respondida por REQ-BAR-066.          |
+| `20`        | **REQ-AST-011** passa a permitir o envio de imagem a todo jogador (DEC-BAR-03); a listagem do jogador mostra só os envios marcados como ícone (REQ-BAR-079); apagar segue só do GM (REQ-AST-029).                                                                                                                                                                                     |
+| `21`        | **Aplicada pela BAR-F3-05 (2026-10-11).** **REQ-SEC-043** (diretórios por papel) ganha a área reservada `worlds/<id>/assets/actionbar-icons/`, onde só o servidor escreve, pelo envio de ícone, com destino decidido por ele (REQ-BAR-076); **REQ-SEC-044** (cota por usuário configurável) fica desligada para esse envio, e o limite de tamanho por arquivo continua (REQ-BAR-077). |
+| `23`        | **REQ-A11-020** recebe as ações nomeadas da barra (REQ-BAR-048) e o registro mínimo da BAR-F1-05 como começo do `KeybindingRegistry`; **REQ-A11-023** passa a cobrir também o botão em foco nos atalhos da barra (REQ-BAR-049); REQ-A11-044, REQ-A11-046 e REQ-A11-049 valem para a barra em modo tablet (REQ-BAR-100).                                                               |
+| `27`        | **Registrada, não aplicada nesta passagem.** A linha de `14` na tabela de marcos ("M4 (hotbar básico)"), a nota de M4 sobre "macros de hotbar" e a Q-ROD-06 falam de uma hotbar que a barra substitui (DEC-BAR-04). Em que marco cai a barra de ações é decisão do roadmap; o que sobra de `14` em M4 são as macros de chat, executadas por `/macro` e pelo botão Executar.           |
+| `28`        | **REQ-HUB-007**: o rodapé central é da barra de ações; a barra de comando do Hub vira grupo compacto na ponta quando as linhas convergirem (REQ-BAR-024).                                                                                                                                                                                                                             |
+| `40`        | **Q-CBA-01** respondida em parte: a faixa de estado mostra de quem é a vez fora da gaveta (REQ-BAR-040). O título da janela do navegador segue em aberto.                                                                                                                                                                                                                             |
+| `41`        | **DEC-TOK-19**: a faixa de estado da barra é, para o ator ativo, o espaço dedicado de condições fora da peça (REQ-BAR-028). REQ-TOK-083 não muda.                                                                                                                                                                                                                                     |
