@@ -8,17 +8,17 @@ Isso mede *reivindicação de cobertura*, não correção: um teste que nomeia o
 requisito afirma cobri-lo, e essa afirmação é auditável. Requisito sem citação
 nenhuma não afirma nada — é a spec pedindo algo que ninguém foi conferir.
 
-Escopo: os **2342 requisitos [MVP]** definidos nas 48 specs. Os [V2] ficam de fora
+Escopo: os **2343 requisitos [MVP]** definidos nas 48 specs. Os [V2] ficam de fora
 porque ainda não foram prometidos para nenhum marco.
 
 ## Total
 
 | Situação | Requisitos | Fatia |
 | --- | ---: | ---: |
-| Citados por algum teste | 906 | 39% |
-| Citados só por código de produção | 336 | 14% |
-| Sem nenhuma citação | 1100 | 47% |
-| **Total [MVP]** | **2342** | |
+| Citados por algum teste | 930 | 40% |
+| Citados só por código de produção | 337 | 14% |
+| Sem nenhuma citação | 1076 | 46% |
+| **Total [MVP]** | **2343** | |
 
 ## Por spec
 
@@ -29,7 +29,7 @@ porque ainda não foram prometidos para nenhum marco.
 | [02](02-modelo-de-dados.md) | 59 | 18 | 13 | 28 | 31% |
 | [03](03-persistencia-e-mundos.md) | 36 | 3 | 19 | 14 | 8% |
 | [04](04-rede-e-sincronizacao.md) | 48 | 10 | 21 | 17 | 21% |
-| [05](05-usuarios-e-permissoes.md) | 43 | 18 | 12 | 13 | 42% |
+| [05](05-usuarios-e-permissoes.md) | 43 | 18 | 13 | 12 | 42% |
 | [06](06-canvas-e-renderizacao.md) | 89 | 16 | 29 | 44 | 18% |
 | [07](07-visao-iluminacao-fog.md) | 56 | 8 | 22 | 26 | 14% |
 | [08](08-motor-de-rolagens.md) | 49 | 14 | 12 | 23 | 29% |
@@ -45,7 +45,7 @@ porque ainda não foram prometidos para nenhum marco.
 | [18](18-sistema-sf2e.md) | 46 | 22 | 8 | 16 | 48% |
 | [19](19-sistema-etmos.md) | 46 | 0 | 2 | 44 | 0% |
 | [20](20-assets-e-midia.md) | 50 | 5 | 13 | 32 | 10% |
-| [21](21-seguranca.md) | 44 | 9 | 12 | 23 | 20% |
+| [21](21-seguranca.md) | 44 | 11 | 11 | 22 | 25% |
 | [22](22-instalacao-e-distribuicao.md) | 41 | 19 | 8 | 14 | 46% |
 | [23](23-acessibilidade-e-dispositivos.md) | 45 | 6 | 1 | 38 | 13% |
 | [24](24-operacao-backups-telemetria.md) | 41 | 0 | 0 | 41 | 0% |
@@ -63,11 +63,11 @@ porque ainda não foram prometidos para nenhum marco.
 | [38](38-aba-chat.md) | 56 | 55 | 0 | 1 | 98% |
 | [39](39-contatos.md) | 68 | 68 | 0 | 0 | 100% |
 | [40](40-aba-combate.md) | 59 | 52 | 2 | 5 | 88% |
-| [41](41-token.md) | 71 | 48 | 6 | 17 | 68% |
+| [41](41-token.md) | 72 | 49 | 6 | 17 | 68% |
 | [42](42-aba-npcs.md) | 59 | 56 | 1 | 2 | 95% |
 | [43](43-aba-compendio.md) | 61 | 59 | 1 | 1 | 97% |
 | [44](44-aba-cenas.md) | 58 | 51 | 1 | 6 | 88% |
 | [45](45-atores.md) | 50 | 2 | 0 | 48 | 4% |
 | [47](47-fabricacao-e-alquimia.md) | 40 | 0 | 0 | 40 | 0% |
 | [52](52-cacador-companheiro-e-montaria.md) | 121 | 45 | 11 | 65 | 37% |
-| [53](53-barra-de-acoes.md) | 88 | 48 | 3 | 37 | 55% |
+| [53](53-barra-de-acoes.md) | 88 | 69 | 4 | 15 | 78% |
