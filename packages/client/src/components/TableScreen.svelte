@@ -316,21 +316,12 @@
       initTokenDisplayPrefs(session.worldInfo?.id ?? "", session.user?.id ?? "");
     }
 
-    // Register PF2e sheets once, after the Svelte runtime is ready (REQ-UIF-018..019).
-    // Errors are non-fatal — the sheets simply won't be available for resolution.
+    // Register PF2e sheets once, after the Svelte runtime is ready (REQ-UIF-018..019). The same
+    // call registers the system's Barra de Ações provider (BAR-F2-07): without one an actor has no
+    // bar. Errors are non-fatal — the sheets and the bar simply won't be available for resolution.
     registerPf2eSheets().catch((err) => {
       console.warn("[TableScreen] registerPf2eSheets failed:", err);
     });
-
-    // SCAFFOLDING (BAR-F1-04; BAR-F2-07 removes it): a provider of made-up content, so the action bar
-    // can be seen in the real app before any system registers its own. Development builds only —
-    // `import.meta.env.DEV` is `false` in a production build, so this import is dead code and its
-    // chunk is never emitted. It never replaces a provider that is already registered.
-    if (import.meta.env.DEV) {
-      void import("../lib/actionbar/devStubProvider.js").then((stub) => {
-        stub.registerDevStubProvider();
-      });
-    }
   });
 
   onDestroy(() => {
