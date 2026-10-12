@@ -29,6 +29,7 @@ import {
   deleteIconAsset,
 } from "../assetApi.js";
 import { clearAssetGrantCache, type AssetDocRef } from "../assetGrants.svelte.js";
+import { assetStore } from "../assetStore.svelte.js";
 import { ASSET_NAME_CANONICALIZATION_CASES } from "@fusion/shared";
 
 const SCENE: AssetDocRef = { table: "scenes", id: "scene-1" };
@@ -538,5 +539,43 @@ describe("deleteIconAsset — the GM removes an icon (REQ-BAR-081)", () => {
     await expect(deleteIconAsset("p-tok", "actionbar-icons/x-00000000.png")).rejects.toThrow(
       "Minimum role required: GAMEMASTER.",
     );
+  });
+});
+
+describe("assetStore.startUpload — the icon picker's upload (BAR-F3-05)", () => {
+  const originalXhr = globalThis.XMLHttpRequest;
+  const originalFetch = global.fetch;
+  beforeEach(() => {
+    FakeXhr.last = null;
+    globalThis.XMLHttpRequest = FakeXhr as unknown as typeof XMLHttpRequest;
+  });
+  afterEach(() => {
+    globalThis.XMLHttpRequest = originalXhr;
+    global.fetch = originalFetch;
+    vi.restoreAllMocks();
+  });
+
+  const png = (): File => new File([new Uint8Array([0x89, 0x50, 0x4e, 0x47])], "Hanabi.png");
+
+  it("sends with the icon purpose and does NOT refresh the generic list a player may not read", async () => {
+    const fetchMock = vi.fn().mockResolvedValue({ ok: true, json: async () => ({ assets: [] }) });
+    global.fetch = fetchMock as unknown as typeof fetch;
+    const done = vi.fn();
+
+    await assetStore.startUpload("tok", png(), done, { purpose: "icon" });
+
+    expect(FakeXhr.last?.url).toBe("/api/assets/upload?purpose=icon");
+    expect(done).toHaveBeenCalledWith("actionbar-icons/hanabi-1a2b3c4d.png");
+    expect(fetchMock).not.toHaveBeenCalled();
+  });
+
+  it("the generic upload still refreshes the generic list, as before", async () => {
+    const fetchMock = vi.fn().mockResolvedValue({ ok: true, json: async () => ({ assets: [] }) });
+    global.fetch = fetchMock as unknown as typeof fetch;
+
+    await assetStore.startUpload("tok", png());
+
+    expect(FakeXhr.last?.url).toBe("/api/assets/upload");
+    expect(fetchMock).toHaveBeenCalledWith("/api/assets", expect.anything());
   });
 });
