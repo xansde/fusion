@@ -13,6 +13,9 @@
    *   token     string    — Bearer token for API calls.
    *   onSelect  (path: string) => void — called with the /assets/<name> URL path.
    *   onClose   () => void             — called when the user dismisses the modal.
+   *   mode      "assets" (default) | "actionbar-icons" — the action bar's icon gallery (BAR-F3-05):
+   *             lists only the shared icons (any role), uploads with the "icon" purpose, offers no
+   *             external URL, and lets the GM delete an icon. Every other caller is unchanged.
    *
    * Features:
    *   - Grid of existing world assets with <img> preview.
@@ -27,7 +30,15 @@
 
   import { onMount } from "svelte";
   import { assetStore } from "$lib/assets/assetStore.svelte.js";
-  import { assetUrl, fetchAssetToken, type AssetQueryToken } from "$lib/assets/assetApi.js";
+  import {
+    assetUrl,
+    fetchAssetToken,
+    listIconGallery,
+    iconGalleryUrl,
+    deleteIconAsset,
+    type AssetQueryToken,
+    type IconGallery,
+  } from "$lib/assets/assetApi.js";
   import { isImageExtension, formatBytes } from "$lib/assets/clientValidation.js";
   import { session } from "$lib/session.svelte.js";
 
@@ -37,11 +48,65 @@
     token,
     onSelect,
     onClose,
+    mode = "assets",
   }: {
     token: string;
     onSelect: (path: string) => void;
     onClose: () => void;
+    mode?: "assets" | "actionbar-icons";
   } = $props();
+
+  // ---- Icon mode (BAR-F3-05) ----
+  //
+  // The gallery is the server's: `GET /api/assets/icons` lists only the reserved icon area, for any
+  // role, with the caller's read grant for each icon. Maps, portraits and handouts never reach it.
+
+  /** Deleting stays STORAGE_DELETE — the GM only (REQ-BAR-081); the server refuses anyone else. */
+  const GAMEMASTER_ROLE = 4;
+
+  const iconMode = $derived(mode === "actionbar-icons");
+  const canDeleteIcons = $derived((session.user?.role ?? 0) === GAMEMASTER_ROLE);
+  let gallery = $state<IconGallery>({ assets: [], exp: 0, grants: {} });
+  let galleryLoading = $state(false);
+  let galleryError = $state<string | null>(null);
+  let iconQuery = $state("");
+
+  async function loadGallery(): Promise<void> {
+    galleryLoading = true;
+    galleryError = null;
+    try {
+      gallery = await listIconGallery(token);
+    } catch (err) {
+      galleryError = err instanceof Error ? err.message : "Não foi possível carregar os ícones.";
+    } finally {
+      galleryLoading = false;
+    }
+  }
+
+  /** The file name of an icon, without the area in front of it. */
+  function iconFileName(name: string): string {
+    return name.slice(name.lastIndexOf("/") + 1);
+  }
+
+  async function handleDeleteIcon(name: string): Promise<void> {
+    const ok = window.confirm(
+      `Apagar "${iconFileName(name)}" da galeria? Quem usa este ícone volta ao ícone padrão.`,
+    );
+    if (!ok) return;
+    try {
+      await deleteIconAsset(token, name);
+    } catch (err) {
+      galleryError = err instanceof Error ? err.message : "Não foi possível apagar o ícone.";
+      return;
+    }
+    await loadGallery();
+  }
+
+  const filteredIcons = $derived.by(() => {
+    const q = iconQuery.trim().toLowerCase();
+    if (!q) return gallery.assets;
+    return gallery.assets.filter((a) => iconFileName(a.name).toLowerCase().includes(q));
+  });
 
   // ---- Local state ----
 
@@ -61,6 +126,10 @@
   // ---- Lifecycle ----
 
   onMount(() => {
+    if (mode === "actionbar-icons") {
+      void loadGallery();
+      return;
+    }
     void assetStore.loadAssets(token);
     const userId = session.user?.id;
     if (userId) {
@@ -106,17 +175,7 @@
     const files = e.dataTransfer?.files;
     if (!files || files.length === 0) return;
 
-    const fileList = Array.from(files);
-    // BUG #5a FIX: a single dropped file is auto-selected once the upload
-    // finishes (mirrors handleSelectAsset's assetUrl(name) + onClose()).
-    // Multiple files are left for the user to pick manually from the grid.
-    const onDone = fileList.length === 1
-      ? (path: string) => { onSelect(assetUrl(path)); onClose(); }
-      : undefined;
-
-    for (const file of fileList) {
-      void assetStore.startUpload(token, file, onDone);
-    }
+    startUploads(Array.from(files));
   }
 
   async function handleFileInput(e: Event): Promise<void> {
@@ -124,18 +183,34 @@
     const files = input.files;
     if (!files || files.length === 0) return;
 
-    const fileList = Array.from(files);
-    // BUG #5a FIX: same auto-select-on-single-upload behavior as handleDrop.
-    const onDone = fileList.length === 1
-      ? (path: string) => { onSelect(assetUrl(path)); onClose(); }
-      : undefined;
-
-    for (const file of fileList) {
-      void assetStore.startUpload(token, file, onDone);
-    }
+    startUploads(Array.from(files));
 
     // Reset so the same file can be re-selected after an error
     input.value = "";
+  }
+
+  /**
+   * BUG #5a FIX: a single file is auto-selected once its upload finishes (mirrors
+   * handleSelectAsset's assetUrl(name) + onClose()); several files are left for the user to pick.
+   * In icon mode every upload declares the "icon" purpose and refreshes the gallery.
+   */
+  function startUploads(fileList: File[]): void {
+    const single = fileList.length === 1;
+    const onDone = (path: string): void => {
+      if (iconMode) void loadGallery();
+      if (single) {
+        onSelect(assetUrl(path));
+        onClose();
+      }
+    };
+    for (const file of fileList) {
+      void assetStore.startUpload(
+        token,
+        file,
+        single || iconMode ? onDone : undefined,
+        iconMode ? { purpose: "icon" } : {},
+      );
+    }
   }
 
   function handleKeydown(e: KeyboardEvent): void {
@@ -167,12 +242,12 @@
 <dialog
   class="picker-dialog"
   open
-  aria-label="Pick an asset"
+  aria-label={iconMode ? "Escolher ícone" : "Pick an asset"}
   onkeydown={handleKeydown}
 >
   <!-- Header -->
   <header class="picker__header">
-    <h2 class="picker__title">Asset Browser</h2>
+    <h2 class="picker__title">{iconMode ? "Ícones da barra" : "Asset Browser"}</h2>
     <button class="picker__close btn btn--icon" onclick={onClose} aria-label="Close">
       &#x2715;
     </button>
@@ -180,14 +255,27 @@
 
   <!-- Search -->
   <div class="picker__search-row">
-    <input
-      class="picker__search field__input"
-      type="search"
-      placeholder="Search by name…"
-      value={assetStore.searchQuery}
-      oninput={handleSearch}
-      aria-label="Search assets"
-    />
+    {#if iconMode}
+      <input
+        class="picker__search field__input"
+        type="search"
+        placeholder="Buscar ícone…"
+        bind:value={iconQuery}
+        aria-label="Buscar ícones"
+      />
+      <p class="picker__notice">
+        O que você enviar aqui entra na galeria e fica visível para todos os jogadores.
+      </p>
+    {:else}
+      <input
+        class="picker__search field__input"
+        type="search"
+        placeholder="Search by name…"
+        value={assetStore.searchQuery}
+        oninput={handleSearch}
+        aria-label="Search assets"
+      />
+    {/if}
   </div>
 
   <!-- Upload zone -->
@@ -198,17 +286,17 @@
     ondragleave={handleDragLeave}
     ondrop={handleDrop}
     role="region"
-    aria-label="Drop files here to upload"
+    aria-label={iconMode ? "Solte uma imagem aqui para enviar" : "Drop files here to upload"}
   >
     <span class="picker__drop-icon" aria-hidden="true">&#8679;</span>
-    <span class="picker__drop-text">Drop image files here</span>
-    <span class="picker__drop-sep">or</span>
+    <span class="picker__drop-text">{iconMode ? "Solte uma imagem aqui" : "Drop image files here"}</span>
+    <span class="picker__drop-sep">{iconMode ? "ou" : "or"}</span>
     <button
       class="btn btn--ghost btn--sm"
       onclick={() => fileInput?.click()}
       type="button"
     >
-      Browse files
+      {iconMode ? "Escolher arquivo" : "Browse files"}
     </button>
     <!-- Hidden file input -->
     <input
@@ -258,7 +346,55 @@
 
   <!-- Asset grid -->
   <div class="picker__grid-wrap">
-    {#if assetStore.loading}
+    {#if iconMode}
+      {#if galleryLoading}
+        <div class="picker__empty">Carregando ícones…</div>
+      {:else if galleryError}
+        <div class="picker__empty picker__empty--error" role="alert">
+          {galleryError}
+          <button class="btn btn--ghost btn--sm" onclick={() => void loadGallery()} type="button"
+            >Tentar de novo</button
+          >
+        </div>
+      {:else if filteredIcons.length === 0}
+        <div class="picker__empty">
+          {gallery.assets.length === 0
+            ? "Nenhum ícone enviado ainda. Solte uma imagem acima."
+            : "Nenhum ícone com esse nome."}
+        </div>
+      {:else}
+        <ul class="picker__grid" role="list" aria-label="Ícones da galeria">
+          {#each filteredIcons as icon (icon.name)}
+            <li class="icon-cell">
+              <button
+                class="asset-card"
+                type="button"
+                onclick={() => handleSelectAsset(icon.name)}
+                title={iconFileName(icon.name)}
+                aria-label={`Usar ${iconFileName(icon.name)}`}
+              >
+                <img
+                  class="asset-card__img"
+                  src={iconGalleryUrl(gallery, icon.name, session.user?.id ?? "")}
+                  alt=""
+                  loading="lazy"
+                />
+                <span class="asset-card__name">{iconFileName(icon.name)}</span>
+              </button>
+              {#if canDeleteIcons}
+                <button
+                  class="icon-cell__delete"
+                  type="button"
+                  onclick={() => void handleDeleteIcon(icon.name)}
+                  aria-label={`Apagar ${iconFileName(icon.name)} da galeria`}
+                  title="Apagar da galeria"
+                >&#x2715;</button>
+              {/if}
+            </li>
+          {/each}
+        </ul>
+      {/if}
+    {:else if assetStore.loading}
       <div class="picker__empty">Loading assets…</div>
 
     {:else if assetStore.fetchError}
@@ -317,7 +453,8 @@
     {/if}
   </div>
 
-  <!-- External URL fallback -->
+  <!-- External URL fallback — never in icon mode: an icon is always a file of the icon area -->
+  {#if !iconMode}
   <div class="picker__external">
     <label class="picker__ext-label" for="picker-external-url">
       Or paste an external URL
@@ -341,6 +478,7 @@
       </button>
     </div>
   </div>
+  {/if}
 </dialog>
 
 <style>
@@ -623,6 +761,38 @@
     color: var(--fusion-text-subtle);
     font-size: 0.625rem;
     line-height: 1;
+  }
+
+  /* ---- Icon mode (BAR-F3-05) ---- */
+  .picker__notice {
+    color: var(--fusion-text-subtle);
+    font-size: 0.75rem;
+    margin: 0.4rem 0 0;
+  }
+
+  .icon-cell {
+    position: relative;
+  }
+
+  .icon-cell__delete {
+    background: var(--fusion-surface);
+    border: 1px solid var(--fusion-border);
+    border-radius: var(--fusion-radius-sm);
+    color: var(--fusion-text-muted);
+    cursor: pointer;
+    font-size: 0.7rem;
+    line-height: 1;
+    padding: 0.2rem 0.3rem;
+    position: absolute;
+    right: 0.25rem;
+    top: 0.25rem;
+  }
+
+  .icon-cell__delete:hover,
+  .icon-cell__delete:focus-visible {
+    border-color: var(--fusion-danger);
+    color: var(--fusion-danger);
+    outline: none;
   }
 
   /* ---- External URL ---- */

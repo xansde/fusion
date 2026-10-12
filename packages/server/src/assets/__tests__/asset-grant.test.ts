@@ -51,9 +51,19 @@ import {
   SCOPE_TAG,
   ASSET_GRANT_TTL_MS,
 } from "../asset-grant.js";
-import { ASSET_FIELD_PATHS, projectAssetFields, projectedAssetRefs } from "../asset-fields.js";
+import {
+  ASSET_FIELD_PATHS,
+  ASSET_MAP_FIELDS,
+  projectAssetFields,
+  projectedAssetRefs,
+} from "../asset-fields.js";
 import { assetRefToStorageName } from "../reconcile.js";
-import { ASSET_NAME_CANONICALIZATION_CASES, KnowledgeState } from "@fusion/shared";
+import {
+  ASSET_NAME_CANONICALIZATION_CASES,
+  KnowledgeState,
+  ACTION_BAR_ICON_AREA,
+  ACTION_BAR_ICON_CAP,
+} from "@fusion/shared";
 
 // ---------------------------------------------------------------------------
 // Fixtures
@@ -85,6 +95,12 @@ const DISK_FILES = [
   "fundo-da-cena.png",
   "retrato.png",
   "taverna-demo.jpg",
+  // BAR-F3-05: the reserved icon area. Two icons the gallery shows, plus two files that live in
+  // the area but are not icons it may list: a nested folder and a name outside the safe charset.
+  "actionbar-icons/hanabi-1a2b3c4d.png",
+  "actionbar-icons/arco-eletrico-5e6f7a8b.webp",
+  "actionbar-icons/sub/aninhado-00000000.png",
+  "actionbar-icons/com espaço.png",
 ] as const;
 
 // ---------------------------------------------------------------------------
@@ -1513,5 +1529,366 @@ describe("the field table and the allowlist agree", () => {
     expect(Role.TRUSTED as number).toBe(UserRole.TRUSTED as number);
     expect(Role.ASSISTANT as number).toBe(UserRole.ASSISTANT as number);
     expect(Role.GAMEMASTER as number).toBe(UserRole.GAMEMASTER as number);
+  });
+});
+
+// ===========================================================================
+// BAR-F3-05 — the icon map: the ONE exception under `flags.*` (REQ-BAR-070/071, Q-BAR-04)
+// ===========================================================================
+
+/** `/assets/actionbar-icons/<leaf>` — an icon path, exactly as the client stores it. */
+function iconPath(leaf: string): string {
+  return `/assets/${ACTION_BAR_ICON_AREA}/${leaf}`;
+}
+
+/** An icon map of `count` DISTINCT names (`i-0.png`, `i-1.png`…) so every entry is a distinct grant. */
+function distinctIcons(count: number): Record<string, string> {
+  const map: Record<string, string> = {};
+  for (let i = 0; i < count; i++) map[`strike:golpe-${String(i)}`] = iconPath(`i-${String(i)}.png`);
+  return map;
+}
+
+describe("grant — the icon map on the Actor (BAR-F3-05)", () => {
+  it("1 icon -> 1 grant, next to the portrait", async () => {
+    insertDoc(ctx.db, "actors", "barOneIcon001", {
+      name: "Hanabi",
+      type: "character",
+      img: "/assets/retrato.png",
+      ownership: { [ctx.player.id]: OwnershipLevel.OWNER },
+      flags: {
+        fusion: { actionBar: { icons: { "strike:katana": iconPath("hanabi-1a2b3c4d.png") } } },
+      },
+    });
+    const { status, body } = await mint(ctx, ctx.player.token, "actors", "barOneIcon001");
+    expect(status).toBe(200);
+    expect(Object.keys(body.grants).sort()).toEqual(
+      ["retrato.png", `${ACTION_BAR_ICON_AREA}/hanabi-1a2b3c4d.png`].sort(),
+    );
+  });
+
+  it("5000 icons written on his own sheet yield ZERO grants: over the cap the map projects nothing", async () => {
+    // The amplification REQ-BAR-071 forbids. The schema refuses this write on every door, so a map
+    // like this can only be legacy or hand-edited data — and the mint must not trust the schema to
+    // have been the only writer. One request must never turn into thousands of signed names.
+    insertDoc(ctx.db, "actors", "barAmplify001", {
+      name: "Ganancioso",
+      type: "character",
+      ownership: { [ctx.player.id]: OwnershipLevel.OWNER },
+      flags: { fusion: { actionBar: { icons: distinctIcons(5000) } } },
+    });
+    const { status, body } = await mint(ctx, ctx.player.token, "actors", "barAmplify001");
+    expect(status).toBe(200);
+    expect(Object.keys(body.grants)).toEqual([]);
+  });
+
+  it("border of the cap at signing time: 64 icons -> 64 grants, 65 -> none", async () => {
+    insertDoc(ctx.db, "actors", "barCap064", {
+      name: "No teto",
+      type: "character",
+      ownership: { [ctx.player.id]: OwnershipLevel.OWNER },
+      flags: { fusion: { actionBar: { icons: distinctIcons(ACTION_BAR_ICON_CAP) } } },
+    });
+    insertDoc(ctx.db, "actors", "barCap065", {
+      name: "Acima do teto",
+      type: "character",
+      ownership: { [ctx.player.id]: OwnershipLevel.OWNER },
+      flags: { fusion: { actionBar: { icons: distinctIcons(ACTION_BAR_ICON_CAP + 1) } } },
+    });
+    const atCap = await mint(ctx, ctx.player.token, "actors", "barCap064");
+    expect(Object.keys(atCap.body.grants)).toHaveLength(ACTION_BAR_ICON_CAP);
+    const overCap = await mint(ctx, ctx.player.token, "actors", "barCap065");
+    expect(Object.keys(overCap.body.grants)).toEqual([]);
+  });
+
+  it("a value outside the icon area is never signed, even once it is stored", async () => {
+    // The exception is for gallery images only. A filename the owner happens to know — a GM map, a
+    // handout — must not become readable by writing it into his icon map, by any spelling.
+    insertDoc(ctx.db, "actors", "barForged001", {
+      name: "Forjador",
+      type: "character",
+      ownership: { [ctx.player.id]: OwnershipLevel.OWNER },
+      flags: {
+        fusion: {
+          actionBar: {
+            icons: {
+              "strike:a": "/assets/segredo.jpg",
+              "strike:b": iconPath("../segredo.jpg"),
+              "strike:c": iconPath("..%2fsegredo.jpg"),
+              "strike:d": iconPath("%2e%2e/segredo.jpg"),
+              "strike:e": "/assets/maps/segredo.jpg",
+              "strike:f": iconPath("sub/aninhado-00000000.png"),
+              "strike:g": "/assets/ActionBar-Icons/hanabi-1a2b3c4d.png",
+              "strike:h": "https://evil.example/x.png",
+              "strike:i": `${iconPath("hanabi-1a2b3c4d.png")} /assets/segredo.jpg`,
+              "strike:j": iconPath("com%20espa%C3%A7o.png"),
+              "strike:k": { nested: iconPath("hanabi-1a2b3c4d.png") },
+            },
+          },
+        },
+      },
+    });
+    const { status, body } = await mint(ctx, ctx.player.token, "actors", "barForged001");
+    expect(status).toBe(200);
+    expect(Object.keys(body.grants)).toEqual([]);
+  });
+
+  it("the exception is NARROW: favourites, another flag, system and other tables carry nothing", async () => {
+    const icon = iconPath("hanabi-1a2b3c4d.png");
+    insertDoc(ctx.db, "actors", "barNarrow001", {
+      name: "Estreito",
+      type: "character",
+      ownership: { [ctx.player.id]: OwnershipLevel.OWNER },
+      system: { actionBar: { icons: { "strike:a": icon } } },
+      flags: {
+        fusion: {
+          actionBar: { favorites: [icon], seeded: true, outra: { "strike:a": icon } },
+          outra: { icons: { "strike:a": icon } },
+          assetSubstitutions: [{ original: icon }],
+        },
+        outroModulo: { actionBar: { icons: { "strike:a": icon } } },
+      },
+    });
+    const actor = await mint(ctx, ctx.player.token, "actors", "barNarrow001");
+    expect(actor.status).toBe(200);
+    expect(Object.keys(actor.body.grants)).toEqual([]);
+
+    // Same map on an Item: only the `actors` table has the exception.
+    insertDoc(ctx.db, "items", "barNarrowItem001", {
+      name: "Espada",
+      type: "weapon",
+      ownership: { default: OwnershipLevel.OBSERVER },
+      flags: { fusion: { actionBar: { icons: { "strike:a": icon } } } },
+    });
+    const item = await mint(ctx, ctx.player.token, "items", "barNarrowItem001");
+    expect(item.status).toBe(200);
+    expect(Object.keys(item.body.grants)).toEqual([]);
+  });
+
+  it("whoever sees the actor gets the icon grant; whoever cannot see it gets the uniform 404", async () => {
+    const icons = { "strike:arco": iconPath("arco-eletrico-5e6f7a8b.webp") };
+    // Another player's character: visible to every player (REQ-CTT-014/020).
+    insertDoc(ctx.db, "actors", "barSeen001", {
+      name: "Personagem do Outro",
+      type: "character",
+      ownership: { [ctx.otherPlayer.id]: OwnershipLevel.OWNER, default: OwnershipLevel.NONE },
+      flags: { fusion: { actionBar: { icons } } },
+    });
+    const seen = await mint(ctx, ctx.player.token, "actors", "barSeen001");
+    expect(seen.status).toBe(200);
+    expect(Object.keys(seen.body.grants)).toEqual([
+      `${ACTION_BAR_ICON_AREA}/arco-eletrico-5e6f7a8b.webp`,
+    ]);
+
+    // A hidden NPC: nothing, and the same 404 a missing id gets.
+    insertDoc(ctx.db, "actors", "barHidden001", {
+      name: "Vilão escondido",
+      type: "npc",
+      ownership: { default: OwnershipLevel.OBSERVER },
+      flags: { fusion: { actionBar: { icons } } },
+    });
+    const hidden = await mint(ctx, ctx.player.token, "actors", "barHidden001");
+    expect(hidden.status).toBe(404);
+
+    // A glimpsed contact: the anonymous view carries the portrait and never the bar.
+    insertDoc(ctx.db, "actors", "barGlimpsed001", {
+      name: "Vulto",
+      type: "npc",
+      img: "/assets/retrato.png",
+      ownership: { default: OwnershipLevel.OBSERVER },
+      flags: {
+        fusion: {
+          actionBar: { icons },
+          knowledge: { general: KnowledgeState.Glimpsed, exceptions: {} },
+        },
+      },
+    });
+    const glimpsed = await mint(ctx, ctx.player.token, "actors", "barGlimpsed001");
+    expect(glimpsed.status).toBe(200);
+    expect(Object.keys(glimpsed.body.grants)).toEqual(["retrato.png"]);
+
+    // The GM sees all three.
+    for (const id of ["barSeen001", "barHidden001", "barGlimpsed001"]) {
+      const gm = await mint(ctx, ctx.gm.token, "actors", id);
+      expect(Object.keys(gm.body.grants), id).toContain(
+        `${ACTION_BAR_ICON_AREA}/arco-eletrico-5e6f7a8b.webp`,
+      );
+    }
+  });
+
+  it("the icon grant opens that icon and nothing beside it", async () => {
+    insertDoc(ctx.db, "actors", "barServe001", {
+      name: "Serve",
+      type: "character",
+      ownership: { [ctx.player.id]: OwnershipLevel.OWNER },
+      flags: { fusion: { actionBar: { icons: { "strike:a": iconPath("hanabi-1a2b3c4d.png") } } } },
+    });
+    const { body } = await mint(ctx, ctx.player.token, "actors", "barServe001");
+    const name = `${ACTION_BAR_ICON_AREA}/hanabi-1a2b3c4d.png`;
+    const grant = body.grants[name];
+    expect(grant).toBeDefined();
+
+    const ok = await serve(ctx, name, { at: grant, ae: body.exp, au: ctx.player.id });
+    expect(ok.statusCode).toBe(200);
+    for (const other of [
+      `${ACTION_BAR_ICON_AREA}/arco-eletrico-5e6f7a8b.webp`,
+      "segredo.jpg",
+      "hanabi-1a2b3c4d.png",
+    ]) {
+      // With no other credential the grant vouches for nobody on another name: 401…
+      const bare = await serve(ctx, other, { at: grant, ae: body.exp, au: ctx.player.id });
+      expect(bare.statusCode, other).toBe(401);
+      // …and with the player's bearer it is the uniform 404, bytes withheld.
+      const withBearer = await serve(ctx, other, {
+        bearer: ctx.player.token,
+        at: grant,
+        ae: body.exp,
+        au: ctx.player.id,
+      });
+      expect(withBearer.statusCode, other).toBe(404);
+      expect(withBearer.rawPayload.equals(PNG_BYTES), other).toBe(false);
+    }
+  });
+});
+
+describe("the map exception is pinned (Q-BAR-04)", () => {
+  it("exactly one map path exists: actors -> flags.fusion.actionBar.icons, capped at 64", () => {
+    expect(Object.keys(ASSET_MAP_FIELDS)).toEqual(["actors"]);
+    const fields = ASSET_MAP_FIELDS["actors"] ?? [];
+    expect(fields.map((f) => [f.path, f.cap])).toEqual([
+      ["flags.fusion.actionBar.icons", ACTION_BAR_ICON_CAP],
+    ]);
+  });
+
+  it("the two-form table still holds nothing under system or flags", () => {
+    for (const [table, paths] of Object.entries(ASSET_FIELD_PATHS)) {
+      for (const path of paths) {
+        expect(path, `${table}.${path}`).not.toMatch(/^(system|flags)(\.|\[|$)/);
+      }
+    }
+  });
+
+  it("projects the icon map value by value, and only what passes the area check", () => {
+    const projected = projectAssetFields("actors", {
+      img: "/assets/retrato.png",
+      flags: {
+        fusion: {
+          actionBar: {
+            favorites: [iconPath("x.png")],
+            icons: {
+              "strike:a": iconPath("hanabi-1a2b3c4d.png"),
+              "strike:b": "/assets/segredo.jpg",
+            },
+          },
+        },
+      },
+    });
+    expect(projectedAssetRefs(projected)).toEqual([
+      "/assets/retrato.png",
+      iconPath("hanabi-1a2b3c4d.png"),
+    ]);
+  });
+});
+
+// ===========================================================================
+// BAR-F3-05 — the shared icon gallery (REQ-BAR-079/080, Q-BAR-05)
+// ===========================================================================
+
+interface GalleryResponse {
+  ok: boolean;
+  assets: Array<{ name: string; size: number; mime_type: string }>;
+  exp: number;
+  grants: Record<string, string>;
+}
+
+async function listGallery(
+  token: string | undefined,
+): Promise<{ status: number; body: GalleryResponse }> {
+  const resp = await ctx.fastify.inject({
+    method: "GET",
+    url: "/api/assets/icons",
+    ...(token !== undefined ? { headers: { authorization: `Bearer ${token}` } } : {}),
+  });
+  return { status: resp.statusCode, body: resp.json() as GalleryResponse };
+}
+
+describe("gallery — a player lists ONLY the icon area, and gets a grant for each icon", () => {
+  const ICONS = [
+    `${ACTION_BAR_ICON_AREA}/arco-eletrico-5e6f7a8b.webp`,
+    `${ACTION_BAR_ICON_AREA}/hanabi-1a2b3c4d.png`,
+  ];
+
+  it("lists the icon files, never a map, a portrait, a handout, a nested file or an unsafe name", async () => {
+    const { status, body } = await listGallery(ctx.player.token);
+    expect(status).toBe(200);
+    expect(body.assets.map((a) => a.name).sort()).toEqual(ICONS);
+    const text = JSON.stringify(body);
+    for (const hidden of [
+      "mapa",
+      "segredo",
+      "retrato",
+      "taverna",
+      "fundo-da-cena",
+      "aninhado",
+      "espa",
+    ]) {
+      expect(text, hidden).not.toContain(hidden);
+    }
+  });
+
+  it("signs exactly the listed icons for the caller — no browse role needed (REQ-BAR-080)", async () => {
+    const { body } = await listGallery(ctx.player.token);
+    expect(Object.keys(body.grants).sort()).toEqual(ICONS);
+    for (const name of ICONS) {
+      const resp = await serve(ctx, name, {
+        at: body.grants[name],
+        ae: body.exp,
+        au: ctx.player.id,
+      });
+      expect(resp.statusCode, name).toBe(200);
+    }
+  });
+
+  it("a gallery grant opens no file outside the gallery", async () => {
+    const { body } = await listGallery(ctx.player.token);
+    const grant = body.grants[ICONS[0] ?? ""];
+    for (const other of [
+      "mapa.png",
+      "segredo.jpg",
+      "retrato.png",
+      `${ACTION_BAR_ICON_AREA}/sub/aninhado-00000000.png`,
+    ]) {
+      const bare = await serve(ctx, other, { at: grant, ae: body.exp, au: ctx.player.id });
+      expect(bare.statusCode, other).toBe(401);
+      const withBearer = await serve(ctx, other, {
+        bearer: ctx.player.token,
+        at: grant,
+        ae: body.exp,
+        au: ctx.player.id,
+      });
+      expect(withBearer.statusCode, other).toBe(404);
+      expect(withBearer.rawPayload.equals(PNG_BYTES), other).toBe(false);
+    }
+  });
+
+  it("the grants are the caller's: another player cannot present them", async () => {
+    const { body } = await listGallery(ctx.player.token);
+    const name = ICONS[0] ?? "";
+    const resp = await serve(ctx, name, {
+      at: body.grants[name],
+      ae: body.exp,
+      au: ctx.otherPlayer.id,
+    });
+    expect(resp.statusCode).toBe(401);
+  });
+
+  it("the full browse list stays closed to a player, and the gallery to the anonymous", async () => {
+    const browse = await ctx.fastify.inject({
+      method: "GET",
+      url: "/api/assets",
+      headers: { authorization: `Bearer ${ctx.player.token}` },
+    });
+    expect(browse.statusCode).toBe(403);
+    const anonymous = await listGallery(undefined);
+    expect(anonymous.status).toBe(401);
   });
 });
