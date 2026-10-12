@@ -424,6 +424,40 @@ describe("tooltipView — o tooltip curto (REQ-BAR-044, REQ-BAR-039)", () => {
     );
   });
 
+  describe("o grupo que só repete o nome da aba não entra no subtítulo (T2 do protótipo)", () => {
+    // O protótipo cabeça a aba Golpes com "GOLPES" e o tooltip do golpe diz "Golpe · corpo a corpo · alcance 5 pés".
+    // O provedor do PF2e dá o cabeçalho pelo `group` ("Golpes"); sem esta regra o tooltip dizia "Golpe · Golpes · …".
+    const subtitleOf = (entry: ActionBarEntry): string =>
+      tooltipView(entry, "pt-BR", { hasDetails: false }).subtitle;
+
+    it("um golpe sob o cabeçalho 'Golpes' da própria aba diz só o que é e o alcance", () => {
+      const strike = makeEntry("strike:a", {
+        group: "Golpes",
+        range: { kind: "reach", feet: 5 },
+      });
+
+      expect(subtitleOf(strike)).toBe("Golpe · corpo a corpo · alcance 5 pés");
+    });
+
+    it("vale para toda aba, com o nome que a TabBar escreve", () => {
+      expect(subtitleOf(makeEntry("spell:m:a", { group: "Magias" }))).toBe("Magia");
+      expect(subtitleOf(makeEntry("action:a", { group: "Ações" }))).toBe("Ação");
+      expect(subtitleOf(makeEntry("check:a", { group: "Testes" }))).toBe("Teste");
+    });
+
+    it("um grupo que diz algo continua no subtítulo ('Classe', 'Truques', '1º patamar')", () => {
+      expect(subtitleOf(makeEntry("action:a", { group: "Classe" }))).toBe("Ação · Classe");
+      expect(subtitleOf(makeEntry("spell:m:a", { group: "Truques" }))).toBe("Magia · Truques");
+      expect(subtitleOf(makeEntry("spell:m:b", { group: "1º patamar" }))).toBe(
+        "Magia · 1º patamar",
+      );
+    });
+
+    it("só conta o nome da aba da PRÓPRIA entrada: 'Golpes' num teste é um grupo como outro qualquer", () => {
+      expect(subtitleOf(makeEntry("check:a", { group: "Golpes" }))).toBe("Teste · Golpes");
+    });
+  });
+
   it("o rótulo 'Bônus' vale para o sinal de mais, para o menos tipográfico e para o hífen; a CD não ganha rótulo", () => {
     const label = (badge: string) =>
       tooltipView(makeEntry("check:a", { badge }), "pt-BR", { hasDetails: false }).numbers?.label;
