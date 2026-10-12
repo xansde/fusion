@@ -29,6 +29,7 @@
    */
 
   import type { Component } from "svelte";
+  import { getContext } from "svelte";
 
   import Tooltip from "../common/Tooltip.svelte";
   import { isEscapeForSomethingElse } from "../../lib/canvas/tokens/token-interaction.js";
@@ -39,6 +40,13 @@
   import type { ActionBarEntry } from "../../lib/actionbar/types.js";
   import { isKeyboardFocus } from "../../lib/ui/triggerWiring.js";
   import { iconKeyFor, iconSvg } from "./icons.js";
+  import {
+    SLOT_ICON_SOURCE,
+    resolveSlotIconUrl,
+    type SlotIconSource,
+  } from "../../lib/actionbar/actionBarIcons.js";
+  import { fusionApi } from "../../lib/api.js";
+  import { session } from "../../lib/session.svelte.js";
 
   interface Props {
     entry: ActionBarEntry;
@@ -93,6 +101,42 @@
   const tip = $derived(tooltipView(entry, i18n.locale, { hasDetails: Details !== undefined }));
   const iconMarkup = $derived(iconSvg(iconKeyFor(entry.icon, entry.kind)));
   const faded = $derived(view.state === "unavailable" || view.state === "spent");
+
+  // BAR-F3-05: the entry's custom image (REQ-BAR-029, D-BA02). The bar hands every slot its icon
+  // source by context, so SlotGrid stays as it is. The assets route answers 401 to a bare src, so the
+  // image is painted only through the actor's read grant, as the portrait does (`ActorPortrait`);
+  // the generic icon stays until it arrives, and comes back if it fails.
+  const iconSource = getContext<SlotIconSource | undefined>(SLOT_ICON_SOURCE);
+  const customIcon = $derived(iconSource?.iconOf(entry.id) ?? null);
+  const iconActorId = $derived(iconSource?.actorId ?? null);
+  let imageSrc = $state<string | null>(null);
+  let imageFailed = $state(false);
+
+  $effect(() => {
+    imageFailed = false;
+    imageSrc = null;
+    const path = customIcon;
+    const actorId = iconActorId;
+    if (path === null || actorId === null) return;
+    let cancelled = false;
+    void resolveSlotIconUrl(path, actorId, {
+      token: fusionApi.getToken(),
+      userId: session.user?.id,
+    })
+      .then((url) => {
+        if (cancelled) return;
+        if (url === null) imageFailed = true;
+        else imageSrc = url;
+      })
+      .catch(() => {
+        if (!cancelled) imageFailed = true;
+      });
+    return () => {
+      cancelled = true;
+    };
+  });
+
+  const showImage = $derived(customIcon !== null && imageSrc !== null && !imageFailed);
 
   function click(event: MouseEvent): void {
     releaseFocusAfterPointer(event, document);
@@ -163,6 +207,7 @@
   class:slot--spent={view.state === "spent"}
   class:slot--on={view.state === "active"}
   class:slot--busy={busy}
+  class:slot--img={showImage}
   data-entry-id={entry.id}
   data-kind={entry.kind}
   data-state={view.state}
@@ -185,7 +230,20 @@
   {#if view.seal !== null}
     <i class="slot__seal slot__seal--{view.seal.kind}" aria-hidden="true">{view.seal.text}</i>
   {/if}
-  <span class="slot__ic" aria-hidden="true">{@html iconMarkup}</span>
+  {#if showImage}
+    <span class="slot__img" aria-hidden="true"
+      ><img
+        alt=""
+        decoding="async"
+        src={imageSrc}
+        onerror={() => {
+          imageFailed = true;
+        }}
+      /></span
+    >
+  {:else}
+    <span class="slot__ic" aria-hidden="true">{@html iconMarkup}</span>
+  {/if}
   <span class="slot__name" aria-hidden="true">{view.shortLabel}</span>
   {#if keyLabel !== undefined}
     <i class="slot__k" aria-hidden="true">{keyLabel}</i>
@@ -307,6 +365,51 @@
     display: block;
     width: 22px;
     height: 22px;
+  }
+
+  /* BAR-F3-05: the entry's custom image fills the slot under a gradient that darkens its top and its
+     base (prototype T1); the marks stay above it, with a shadow, so the cost, the key, the bonus, the
+     seal and the name read on any picture. */
+  .slot__img {
+    position: absolute;
+    inset: 2px;
+    overflow: hidden;
+    border-radius: 5px;
+  }
+
+  .slot__img img {
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  .slot__img::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    /* The prototype's slot (52 px) has no name; here the short name sits at 55–73% of 64 px, so the
+       base ramp starts earlier (38%) and is already dark under the name. */
+    background: linear-gradient(
+      to bottom,
+      rgba(0, 0, 0, 0.55),
+      rgba(0, 0, 0, 0) 30%,
+      rgba(0, 0, 0, 0) 38%,
+      rgba(0, 0, 0, 0.8) 72%
+    );
+  }
+
+  .slot--img .slot__c,
+  .slot--img .slot__k,
+  .slot--img .slot__v,
+  .slot--img .slot__seal,
+  .slot--img .slot__name {
+    z-index: 1;
+    text-shadow: 0 1px 2px #000;
+  }
+
+  .slot--img .slot__name {
+    color: var(--fusion-text);
   }
 
   .slot__name {

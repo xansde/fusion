@@ -1338,3 +1338,81 @@ describe("os textos da barra estão nos dois idiomas", () => {
     }
   });
 });
+
+// ---------------------------------------------------------------------------
+// BAR-F3-05 — the entry's custom image (REQ-BAR-029, REQ-BAR-074, D-BA02)
+// ---------------------------------------------------------------------------
+
+describe("ActionBar — o ícone customizado da entrada (BAR-F3-05)", () => {
+  const ICON = "/assets/actionbar-icons/hanabi-1a2b3c4d.png";
+
+  beforeEach(() => {
+    actionBarRegistry.register("Actor", "character", createStubProvider().provider);
+    setActiveActorViewer(PLAYER_SEAT);
+    feed("doc:update", {
+      documentType: "Actor",
+      documents: [
+        {
+          ...actor(PC, "character", "Huo Jinwu", {
+            default: OwnershipLevel.NONE,
+            [PLAYER]: OwnershipLevel.OWNER,
+          }),
+          flags: { fusion: { actionBar: { icons: { "strike:stub-sword": ICON } } } },
+        },
+      ],
+    });
+  });
+
+  it("um ícone guardado (/assets/...) NUNCA vira src cru: até o grant chegar, o slot desenha o ícone genérico", () => {
+    const html = bar();
+    const tag = slotTag(html, "strike:stub-sword");
+    const slot = html.slice(html.indexOf(tag), html.indexOf("</button>", html.indexOf(tag)));
+
+    expect(html).not.toContain(ICON);
+    expect(html).not.toMatch(/<img[^>]*\ssrc=/);
+    expect(slot).toMatch(/class="slot__ic[ "]/);
+  });
+
+  const slotSource = (): string =>
+    readFileSync(fileURLToPath(new URL("../Slot.svelte", import.meta.url)), "utf8");
+
+  it("o slot resolve a imagem com o grant do ATOR da barra, como o ActorPortrait — nunca um src montado à mão", () => {
+    const source = slotSource();
+
+    expect(source).toContain("getContext");
+    expect(source).toContain("SLOT_ICON_SOURCE");
+    expect(source).toMatch(/resolveSlotIconUrl\(path, actorId, \{/);
+    // …and the actor is the bar's, read from the icon source the bar hands every slot.
+    expect(source).toMatch(/const iconActorId = \$derived\(iconSource\?\.actorId \?\? null\);/);
+    expect(source).toMatch(/const actorId = iconActorId;/);
+    // A imagem só entra quando há URL resolvida; erro de carga volta ao genérico.
+    expect(source).toMatch(/onerror=\{/);
+    expect(source).not.toMatch(/src=\{customIcon\}/);
+  });
+
+  it("custo, tecla, bônus, selo e nome continuam legíveis sobre a imagem (protótipo T1)", () => {
+    const css = slotSource();
+
+    // A imagem preenche o slot, sob um degradê que escurece o alto e a base.
+    expect(css).toMatch(/\.slot__img\s*\{[^}]*position:\s*absolute;[^}]*inset:\s*2px;/);
+    expect(css).toMatch(/\.slot__img::after\s*\{[^}]*linear-gradient\(/);
+    // Por cima dela, cada marca ganha camada e sombra.
+    for (const mark of ["slot__c", "slot__k", "slot__v", "slot__seal", "slot__name"]) {
+      expect(css, mark).toMatch(new RegExp(`\\.slot--img \\.${mark}`));
+    }
+    expect(css).toMatch(/\.slot--img [^{]*\{[^}]*z-index:\s*1;[^}]*text-shadow:/);
+  });
+
+  it("a barra entrega a cada slot a fonte do ícone e abre o seletor no modo de ícones", () => {
+    const source = readFileSync(
+      fileURLToPath(new URL("../ActionBar.svelte", import.meta.url)),
+      "utf8",
+    );
+
+    expect(source).toMatch(/setContext\(SLOT_ICON_SOURCE,/);
+    expect(source).toContain('mode="actionbar-icons"');
+    // Os itens do ícone recebem o estado do ícone da entrada e as ações dela.
+    expect(source).toMatch(/slotMenuItems\(menu\.entry, /);
+    expect(source).toMatch(/icon:[\s\S]*?iconMenuActions\(/);
+  });
+});

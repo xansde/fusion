@@ -3,10 +3,13 @@
  *
  * Wraps the server routes from packages/server/src/assets/routes.ts:
  *   GET    /api/assets           — list assets
- *   POST   /api/assets/upload    — multipart upload (with XHR for progress)
+ *   POST   /api/assets/upload    — multipart upload (with XHR for progress);
+ *                                  `?purpose=icon` = the action bar's icon upload (BAR-F3-05)
  *   POST   /api/assets/token     — short-lived BROWSE-scope query token
  *   POST   /api/assets/grant     — DOC-scope grants for one document (T025)
+ *   GET    /api/assets/icons     — the shared icon gallery, with a grant per icon (BAR-F3-05)
  *   DELETE /api/assets/:name     — delete asset (GM only)
+ *   DELETE /api/assets/icons/:name — delete an icon from the gallery (GM only, BAR-F3-05)
  *   GET    /assets/*             — static serving (used directly by <img> / PIXI)
  *
  * Spec refs: 20-assets-e-midia.md REQ-AST-006..011, REQ-AST-019
@@ -31,11 +34,36 @@ export interface AssetEntry {
 export interface UploadResult {
   ok: boolean;
   deduplicated: boolean;
-  /** Filename (safe slug + 8-char hash + ext). Used to build /assets/<name> URL. */
+  /**
+   * Storage name (safe slug + 8-char hash + ext). Used to build /assets/<name> URL.
+   * For an icon it carries the reserved area: "actionbar-icons/<file>".
+   */
   path: string;
   digest: string;
   mime_type: string;
   file_size: number;
+  /** Echoed back for an icon upload (BAR-F3-05). */
+  purpose?: UploadPurpose;
+}
+
+/**
+ * The declared purpose of an upload (REQ-BAR-103). The only one is "icon": the action bar's
+ * "Trocar ícone…", open to every player, which the SERVER stores in the reserved icon area.
+ */
+export type UploadPurpose = "icon";
+
+export interface UploadOptions {
+  purpose?: UploadPurpose;
+}
+
+/** The shared icon gallery, as `GET /api/assets/icons` answers it (BAR-F3-05). */
+export interface IconGallery {
+  /** The icons, newest first; `name` is the storage name ("actionbar-icons/<file>"). */
+  assets: AssetEntry[];
+  /** Expiry shared by every grant in `grants`, epoch ms (0 = nothing usable). */
+  exp: number;
+  /** canonical name → the caller's DOC-scope grant for that icon. */
+  grants: Record<string, string>;
 }
 
 export interface UploadProgress {
@@ -90,16 +118,23 @@ export async function listAssets(token: string): Promise<AssetEntry[]> {
  * @param token      Bearer token for Authorization header.
  * @param file       File object from a drag-drop or input[type=file].
  * @param onProgress Optional callback for progress reporting.
+ * @param options    `purpose: "icon"` declares the action bar's icon upload (BAR-F3-05): open to
+ *                   every player, image only, stored by the server in the icon area. The request
+ *                   never names a folder — the server decides (REQ-BAR-076).
  * @returns          UploadResult with the safe filename / digest.
  */
 export function uploadAsset(
   token: string,
   file: File,
   onProgress?: UploadProgressCallback,
+  options: UploadOptions = {},
 ): Promise<UploadResult> {
   return new Promise<UploadResult>((resolve, reject) => {
     const xhr = new XMLHttpRequest();
-    xhr.open("POST", "/api/assets/upload");
+    xhr.open(
+      "POST",
+      options.purpose === "icon" ? "/api/assets/upload?purpose=icon" : "/api/assets/upload",
+    );
     xhr.setRequestHeader("Authorization", `Bearer ${token}`);
 
     // Report progress
@@ -170,6 +205,64 @@ export async function deleteAsset(token: string, name: string): Promise<void> {
   if (!response.ok) {
     const body = (await response.json().catch(() => ({}))) as { message?: string };
     throw new Error(body.message ?? `Failed to delete asset (HTTP ${String(response.status)})`);
+  }
+}
+
+/**
+ * The shared icon gallery (BAR-F3-05, REQ-BAR-079/080): every icon anyone sent through
+ * "Trocar ícone…", for any role, each with the caller's read grant. Maps, portraits and
+ * handouts never appear here — the server lists only the icon area.
+ */
+export async function listIconGallery(token: string): Promise<IconGallery> {
+  const response = await fetch("/api/assets/icons", {
+    method: "GET",
+    headers: authHeader(token),
+    credentials: "include",
+  });
+
+  if (!response.ok) {
+    const body = (await response.json().catch(() => ({}))) as { message?: string };
+    throw new Error(body.message ?? `Failed to list icons (HTTP ${String(response.status)})`);
+  }
+
+  // `| null` on purpose: `typeof null === "object"`, and a malformed body must paint nothing
+  // rather than crash the picker.
+  const data = (await response.json()) as {
+    assets?: AssetEntry[] | null;
+    exp?: number;
+    grants?: Record<string, string> | null;
+  };
+  return {
+    assets: Array.isArray(data.assets) ? data.assets : [],
+    exp: typeof data.exp === "number" ? data.exp : 0,
+    grants: typeof data.grants === "object" && data.grants !== null ? data.grants : {},
+  };
+}
+
+/**
+ * The URL that paints one icon of a gallery listing, with the caller's own grant for it. An icon the
+ * listing did not sign gets the bare path (which the server answers with the uniform 404 for a
+ * player) — never a signature that belongs to another name.
+ */
+export function iconGalleryUrl(gallery: IconGallery, name: string, userId: string): string {
+  const grant = gallery.grants[assetNameFromPath(assetUrl(name))];
+  return grant === undefined
+    ? assetUrl(name)
+    : assetUrl(name, { token: grant, exp: gallery.exp, userId });
+}
+
+/** The GM removes an icon from the gallery (REQ-BAR-081). `name` may carry the area prefix. */
+export async function deleteIconAsset(token: string, name: string): Promise<void> {
+  const fileName = name.slice(name.lastIndexOf("/") + 1);
+  const response = await fetch(`/api/assets/icons/${encodeURIComponent(fileName)}`, {
+    method: "DELETE",
+    headers: authHeader(token),
+    credentials: "include",
+  });
+
+  if (!response.ok) {
+    const body = (await response.json().catch(() => ({}))) as { message?: string };
+    throw new Error(body.message ?? `Failed to delete icon (HTTP ${String(response.status)})`);
   }
 }
 
