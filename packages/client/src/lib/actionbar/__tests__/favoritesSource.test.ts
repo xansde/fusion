@@ -11,7 +11,7 @@
  */
 
 import { ACTION_BAR_SLOT_COUNT } from "@fusion/shared";
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 
 import {
   FAVORITE_SLOT_COUNT,
@@ -21,6 +21,7 @@ import {
   moveWithin,
   needsSeed,
   pinInto,
+  resolveSeedIds,
   rowFromIds,
   sameRow,
   seedFromEntries,
@@ -28,7 +29,7 @@ import {
   unpinFrom,
 } from "../favoritesSource.js";
 import type { ActionBarEntry } from "../types.js";
-import { makeEntry } from "./stubProvider.js";
+import { makeContext, makeEntry } from "./stubProvider.js";
 
 /** A row of 12 with the given ids from the first slot on. */
 function row(...ids: Array<string | null>): Array<string | null> {
@@ -372,5 +373,52 @@ describe("seedFromEntries — the shell's seed for a system that gives none (Q-B
 
   it("no entries, no seed", () => {
     expect(seedFromEntries([])).toEqual([]);
+  });
+});
+
+describe("resolveSeedIds — whose seed the bar asks for (REQ-BAR-064)", () => {
+  const entries = [makeEntry("strike:a"), makeEntry("spell:m:b"), makeEntry("action:c")];
+  const ctx = makeContext();
+
+  it("a provider that declares no seed gets the shell's, taken from its entries", () => {
+    const ids = resolveSeedIds({}, ctx, entries, () => undefined);
+
+    expect(ids).toEqual(seedFromEntries(entries));
+    expect(ids).toEqual(["strike:a", "spell:m:b", "action:c"]);
+  });
+
+  it("a provider that declares one is asked with the bar's context, and its answer is taken as it is", () => {
+    const seed = vi.fn(() => ["action:c", "strike:a"]);
+
+    const ids = resolveSeedIds({ seed }, ctx, entries, () => undefined);
+
+    expect(seed).toHaveBeenCalledExactlyOnceWith(ctx);
+    expect(ids).toEqual(["action:c", "strike:a"]);
+  });
+
+  it("its EMPTY answer stays empty — 'nothing yet' or 'already seeded' is not an invitation for the shell's pick", () => {
+    const onError = vi.fn();
+
+    expect(resolveSeedIds({ seed: () => [] }, ctx, entries, onError)).toEqual([]);
+    expect(onError).not.toHaveBeenCalled();
+  });
+
+  it("a provider that throws does not stop the bar: the error is reported and the shell's seed is used", () => {
+    const failure = new Error("pack index missing");
+    const onError = vi.fn();
+
+    const ids = resolveSeedIds(
+      {
+        seed: () => {
+          throw failure;
+        },
+      },
+      ctx,
+      entries,
+      onError,
+    );
+
+    expect(onError).toHaveBeenCalledExactlyOnceWith(failure);
+    expect(ids).toEqual(["strike:a", "spell:m:b", "action:c"]);
   });
 });

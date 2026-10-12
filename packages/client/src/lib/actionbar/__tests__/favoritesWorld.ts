@@ -51,6 +51,12 @@ export class FakeServer {
   beforeWrite: ((attemptNumber: number) => void) | null = null;
   /** While set, a write waits here before it is judged. */
   gate: Promise<void> | null = null;
+  /** The write with this ordinal (0 = the first the server receives) waits at the returned promise before it is judged. */
+  gateFor: ((ordinal: number) => Promise<void> | null) | null = null;
+  /** Other documents the ack carries BEFORE the actor's own: a companion re-derived in the same update. */
+  extraDocsInAck: Json[] = [];
+  /** How many writes the server has received. */
+  received = 0;
   /** While set, every write is refused with this error (a permission refusal, a dead socket). */
   failWith: Error | null = null;
   inFlight = 0;
@@ -90,9 +96,13 @@ export class FakeServer {
   async write(payload: unknown): Promise<unknown> {
     this.inFlight += 1;
     this.maxInFlight = Math.max(this.maxInFlight, this.inFlight);
+    const ordinal = this.received;
+    this.received += 1;
     try {
       this.beforeWrite?.(this.attempts.length);
       if (this.gate !== null) await this.gate;
+      const held = this.gateFor?.(ordinal) ?? null;
+      if (held !== null) await held;
 
       const body = payload as {
         documentType?: unknown;
@@ -131,7 +141,7 @@ export class FakeServer {
       this.seeded = patch["flags.fusion.actionBar.seeded"];
       this.version += 1;
       record("ok");
-      return { documentType: "Actor", documents: [this.doc()] };
+      return { documentType: "Actor", documents: [...this.extraDocsInAck, this.doc()] };
     } finally {
       this.inFlight -= 1;
     }
@@ -160,13 +170,35 @@ export interface Rig {
   seed: { ids: string[] };
   /** The waits the store asked for, in ms. */
   delays: number[];
+  /** The actor ids the store passed when it read a document and when it asked for the seed. */
+  asked: { readActor: string[]; seedIds: string[] };
 }
+
+/**
+ * Another character's document, with a version far ahead and a row of its own: what a reader that
+ * followed "the actor on screen" instead of the store's own actor would hand back.
+ */
+export const OTHER_ACTOR_DOC: Json = {
+  _id: "other-actor-id",
+  type: "character",
+  flags: {
+    fusion: {
+      actionBar: {
+        favorites: ["strike:de-outro", ...new Array<null>(11).fill(null)],
+        seeded: true,
+      },
+    },
+  },
+  _stats: { version: 900 },
+};
 
 export interface RigOptions {
   server?: FakeServer;
   /** What a wait does. Default: time passes and the broadcast arrives. */
   onDelay?: (rig: Rig) => void;
   seed?: string[];
+  /** Runs after the message is recorded, and may throw: the strip is gone. */
+  onNotify?: (message: string) => void;
 }
 
 export function rig(options: RigOptions = {}): Rig {
@@ -175,15 +207,23 @@ export function rig(options: RigOptions = {}): Rig {
   const notices: string[] = [];
   const delays: number[] = [];
   const seed = { ids: options.seed ?? [] };
+  const asked = { readActor: [] as string[], seedIds: [] as string[] };
   const shared = createFavoritesShared();
-  const result = { server, mirror, notices, seed, delays, shared } as Rig;
+  const result = { server, mirror, notices, seed, delays, shared, asked } as Rig;
   result.store = createFavoritesStore({
     actorId: ACTOR,
-    readActor: () => mirror.doc,
+    readActor: (actorId) => {
+      asked.readActor.push(actorId);
+      return actorId === ACTOR ? mirror.doc : OTHER_ACTOR_DOC;
+    },
     write: (payload) => server.write(payload),
-    seedIds: () => seed.ids,
+    seedIds: (actorId) => {
+      asked.seedIds.push(actorId);
+      return actorId === ACTOR ? seed.ids : ["strike:de-outro"];
+    },
     notify: (message) => {
       notices.push(message);
+      options.onNotify?.(message);
     },
     delay: (ms) => {
       delays.push(ms);

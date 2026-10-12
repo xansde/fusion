@@ -8,6 +8,9 @@
  * gets it, a failed write goes away — is a property of the client runtime. So the fixture is bundled
  * the way `vite build` does (client compile, client runtime) and run, as `actionBarRegistry.test.ts`
  * does for the registry.
+ *
+ * The second block does the same for the effects around the store in `ActionBar.svelte`: that the seed
+ * waits for the sheet after a change of actor is a matter of the ORDER the effects run in.
  */
 
 import { fileURLToPath } from "node:url";
@@ -16,10 +19,12 @@ import { build } from "vite";
 import type { Rollup } from "vite";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
+import type { createEffectsProbe } from "./actionBarEffectsProbe.svelte.js";
 import type { observeStore } from "./favoritesStoreReactivityProbe.svelte.js";
 
 const CLIENT_ROOT = fileURLToPath(new URL("../../../../", import.meta.url));
 const PROBE = fileURLToPath(new URL("./favoritesStoreReactivityProbe.svelte.ts", import.meta.url));
+const EFFECTS_PROBE = fileURLToPath(new URL("./actionBarEffectsProbe.svelte.ts", import.meta.url));
 
 async function bundle(entry: string): Promise<string> {
   const result = (await build({
@@ -49,6 +54,7 @@ function evaluate<T>(code: string): T {
 }
 
 afterEach(() => {
+  vi.useRealTimers();
   vi.unstubAllEnvs();
   vi.restoreAllMocks();
 });
@@ -76,5 +82,64 @@ describe("built by Vite — the favourites row is reactive", () => {
     expect(seen.notices).toEqual(["FUSION.ActionBar.Favorites.SaveFailed"]);
     // The effect really re-ran for each of them (the first run is the initial draw).
     expect(seen.all.length).toBeGreaterThanOrEqual(6);
+  }, 90_000);
+});
+
+describe("built by Vite — the effects around the store keep the seed waiting for the sheet", () => {
+  it("after a change of actor the seed is asked only once the new sheet has settled; a quick pass through other actors settles nothing early; a late list asks again without rebuilding the store", async () => {
+    vi.stubEnv("NODE_ENV", "production");
+    const code = await bundle(EFFECTS_PROBE);
+    const { createEffectsProbe: make } = evaluate<{
+      createEffectsProbe: typeof createEffectsProbe;
+    }>(code);
+    const actorsAsked = (probe: { asks: ReadonlyArray<{ actor: string }> }): string[] =>
+      probe.asks.map((ask) => ask.actor);
+
+    vi.useFakeTimers(); // after the build, which needs the real ones
+    const probe = make(1500);
+    try {
+      // Opening: the sheet has not settled, so the store is not asked yet…
+      expect(probe.asks).toEqual([]);
+      vi.advanceTimersByTime(1499);
+      probe.flush();
+      expect(probe.asks).toEqual([]);
+      // …and is asked, once, the moment it has.
+      vi.advanceTimersByTime(1);
+      probe.flush();
+      expect(probe.asks).toEqual([{ actor: "A", settled: true }]);
+
+      // Another actor on screen: the flag goes back to false BEFORE the new store could be asked
+      // (the order of the two effects), so the previous actor's `true` is never read for it.
+      probe.switchActor("B");
+      expect(probe.storesCreated()).toBe(2);
+      expect(actorsAsked(probe)).toEqual(["A"]);
+      vi.advanceTimersByTime(1500);
+      probe.flush();
+      expect(actorsAsked(probe)).toEqual(["A", "B"]);
+
+      // A quick pass through C and then D: C's timer is cleared when D takes over, so it cannot
+      // settle D early; only D's own full wait does.
+      probe.switchActor("C");
+      vi.advanceTimersByTime(1000);
+      probe.switchActor("D");
+      vi.advanceTimersByTime(1000);
+      probe.flush();
+      expect(actorsAsked(probe)).toEqual(["A", "B"]);
+      vi.advanceTimersByTime(500);
+      probe.flush();
+      expect(actorsAsked(probe)).toEqual(["A", "B", "D"]);
+
+      // A late pack changes the list: the shell asks again (the store decides whether there is
+      // anything to write) and the store is the same one.
+      const built = probe.storesCreated();
+      probe.touchEntries();
+      probe.touchEntries();
+      expect(actorsAsked(probe)).toEqual(["A", "B", "D", "D", "D"]);
+      expect(probe.storesCreated()).toBe(built);
+      // Never once before the sheet had settled.
+      expect(probe.asks.every((ask) => ask.settled)).toBe(true);
+    } finally {
+      probe.stop();
+    }
   }, 90_000);
 });

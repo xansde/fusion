@@ -18,13 +18,17 @@ import { FAVORITE_SLOT_COUNT } from "./favoritesSource.js";
 import type { ActionBarEntry, ActionBarEntryKind } from "./types.js";
 
 /**
- * After the active actor changes the bar waits this long before it draws a favourite as an orphan.
- * The provider's list is not complete at once — the packs that give the basic actions arrive from the
- * server a moment after the sheet's own data — and a favourite that is only late would flash as
- * "Ausente" at every load. Past the wait, a missing entry is an orphan; a real one (a sale made
+ * After the active actor changes the bar waits this long before it takes the sheet for loaded. The
+ * provider's list is not complete at once — the packs that give the basic actions arrive from the
+ * server a moment after the sheet's own data — and acting on the first, partial list would be wrong
+ * twice over:
+ *  - a favourite that is only late would flash as "Ausente" at every load (REQ-BAR-066);
+ *  - the first-opening seed would be taken from the partial list and written once and for all
+ *    (REQ-BAR-064, D-BA08): the same character would get fewer actions on a slower connection.
+ * Past the wait a missing entry is an orphan and the seed is written. A real orphan (a sale made
  * during the session) shows at once, because the wait is for the LOAD, not for every change.
  */
-export const ORPHAN_ARM_MS = 1500;
+export const SHEET_SETTLE_MS = 1500;
 
 const KINDS: readonly ActionBarEntryKind[] = [
   "strike",
@@ -78,8 +82,8 @@ export type FavoriteCell =
  * ORPHAN when none does, or an empty box.
  *
  * A missing entry is an orphan only when two things are true, because "missing" is not yet "gone":
- *  - the bar is `armed` — the load window after the active actor changed has passed (see
- *    {@link ORPHAN_ARM_MS});
+ *  - the sheet is `settled` — the load window after the active actor changed has passed (see
+ *    {@link SHEET_SETTLE_MS});
  *  - the provider gave SOMETHING. A provider that failed, or has not loaded, gives nothing, and a list
  *    that is not there says nothing about the row. (Every character has at least the fist strike, so
  *    a loaded sheet is never empty.)
@@ -88,10 +92,10 @@ export type FavoriteCell =
 export function favoriteCells(
   row: ReadonlyArray<string | null>,
   entries: readonly ActionBarEntry[],
-  armed: boolean,
+  settled: boolean,
 ): FavoriteCell[] {
   const byId = new Map(entries.map((entry) => [entry.id, entry] as const));
-  const judge = armed && entries.length > 0;
+  const judge = settled && entries.length > 0;
   return Array.from({ length: FAVORITE_SLOT_COUNT }, (_, index): FavoriteCell => {
     const id = row[index] ?? null;
     if (id === null) return { kind: "empty" };
@@ -99,17 +103,4 @@ export function favoriteCells(
     if (entry !== undefined) return { kind: "entry", entry };
     return judge ? { kind: "orphan", entry: orphanEntry(id) } : { kind: "empty" };
   });
-}
-
-/** The pinned ids no entry answers to, in slot order, each once. */
-export function orphanIds(
-  row: ReadonlyArray<string | null>,
-  entries: readonly ActionBarEntry[],
-): string[] {
-  const known = new Set(entries.map((entry) => entry.id));
-  const orphans: string[] = [];
-  for (const id of row) {
-    if (id !== null && !known.has(id) && !orphans.includes(id)) orphans.push(id);
-  }
-  return orphans;
 }

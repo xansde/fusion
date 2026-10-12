@@ -23,7 +23,12 @@
 
 import { ACTION_BAR_SLOT_COUNT, ActionBarEntryIdSchema, readActionBarFlags } from "@fusion/shared";
 
-import type { ActionBarEntry, ActionBarEntryKind } from "./types.js";
+import type {
+  ActionBarContext,
+  ActionBarEntry,
+  ActionBarEntryKind,
+  ActionBarProvider,
+} from "./types.js";
 
 /** The row has twelve positions, the keys 1–9, 0, − and = (DEC-BAR-07). */
 export const FAVORITE_SLOT_COUNT = ACTION_BAR_SLOT_COUNT;
@@ -193,4 +198,28 @@ export function seedFromEntries(entries: readonly ActionBarEntry[]): string[] {
     }
   }
   return ids;
+}
+
+/**
+ * The ids the first-opening seed would pin RIGHT NOW (REQ-BAR-064): the system's own when its
+ * provider declares one, else the shell's (`seedFromEntries`).
+ *
+ * The provider's answer is taken as it is, EMPTY INCLUDED: `[]` is its word for "nothing to seed
+ * (yet)" — the provider has not loaded — or "already seeded", and the shell must not fill that
+ * silence with a pick of its own. Only a provider with no `seed`, or one that throws (the bar must
+ * still open), gets the shell's.
+ */
+export function resolveSeedIds(
+  provider: Pick<ActionBarProvider, "seed">,
+  ctx: ActionBarContext,
+  entries: readonly ActionBarEntry[],
+  onError: (error: unknown) => void,
+): readonly string[] {
+  if (provider.seed === undefined) return seedFromEntries(entries);
+  try {
+    return provider.seed(ctx);
+  } catch (error) {
+    onError(error);
+    return seedFromEntries(entries);
+  }
 }

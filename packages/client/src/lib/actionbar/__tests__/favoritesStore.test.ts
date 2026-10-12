@@ -159,8 +159,25 @@ describe("the first-opening seed", () => {
 
     expect(r.server.attempts).toHaveLength(1);
     expect(r.notices).toEqual([SAVE_FAILED]);
-    // …and the row the player sees is the one the document has, not a seed that was never written.
+    // Nothing was written, so nothing is frozen: the row on screen still follows the provider's seed
+    // (REQ-BAR-065 is about what the DOCUMENT holds, and the document holds nothing yet).
     expect(r.store.slots()).toEqual(row("strike:a", "strike:b"));
+    expect(r.server.seeded).toBeUndefined();
+  });
+
+  it("…and the next pin after a failed seed writes the row WHOLE — the seed the screen showed, the pin, and the flag", async () => {
+    const r = rig({ server: new FakeServer({}), seed: ["strike:a", "spell:m:b"] });
+    r.server.failWith = new Error("sem conexão");
+
+    r.store.ensureSeeded();
+    await r.store.settled();
+    r.server.failWith = null;
+
+    expect(r.store.pin("action:c")).toBe(true);
+    await r.store.settled();
+
+    expect(seededOn(r.server)).toEqual(row("strike:a", "spell:m:b", "action:c"));
+    expect(r.server.seeded).toBe(true);
   });
 
   it("for an actor that is already seeded, asking queues NOTHING — it is the common case, on every change of the list", async () => {
@@ -641,6 +658,50 @@ describe("concurrent writes — STALE_WRITE is redone on the fresh document", ()
     expect(r.store.isPinned("strike:a")).toBe(false);
   });
 
+  it("the first retry is immediate; from the second refusal on it waits a random short time, so two devices refusing each other in lockstep stop doing it", async () => {
+    const random = vi.spyOn(Math, "random").mockReturnValue(0.5);
+    try {
+      const r = rig({ server: new FakeServer({ version: 1, favorites: row(), seeded: true }) });
+      r.server.beforeWrite = () => {
+        r.server.external(r.server.favorites ?? row());
+        r.mirror.sync(); // the other device's broadcast has always arrived: no wait for it
+      };
+
+      r.store.pin("strike:a");
+      await r.store.settled();
+
+      // Attempts 1 and 2 go back to back; the waits come before attempts 3 to 6, half of the 80 ms jitter each.
+      expect(r.server.attempts).toHaveLength(FAVORITES_MAX_ATTEMPTS);
+      expect(r.delays).toEqual(new Array<number>(FAVORITES_MAX_ATTEMPTS - 2).fill(40));
+    } finally {
+      random.mockRestore();
+    }
+  });
+
+  it("a hot actor that refuses five times in a row still gets the pin through, on the sixth try (the real two-device burst needed that many)", async () => {
+    const r = rig({ server: new FakeServer({ version: 1, favorites: row(), seeded: true }) });
+    r.server.beforeWrite = (attempts) => {
+      if (attempts < 5) {
+        r.server.external(r.server.favorites ?? row());
+        r.mirror.sync();
+      }
+    };
+
+    r.store.pin("strike:a");
+    await r.store.settled();
+
+    expect(r.server.attempts.map((a) => a.outcome)).toEqual([
+      "stale",
+      "stale",
+      "stale",
+      "stale",
+      "stale",
+      "ok",
+    ]);
+    expect(r.notices).toEqual([]);
+    expect(seededOn(r.server)).toEqual(row("strike:a"));
+  });
+
   it("when nothing newer ever arrives it gives up without resending the stale write", async () => {
     const r = rig({
       server: new FakeServer({ version: 1, favorites: row(), seeded: true }),
@@ -704,5 +765,176 @@ describe("a write that fails", () => {
     await r.store.settled();
 
     expect(seededOn(r.server)).toEqual(row("strike:b"));
+  });
+});
+
+// ---------------------------------------------------------------------------
+// Several edits in flight, and the corners of the seed
+// (found by hand-made mutation of the store: the logic held, but nothing said so)
+// ---------------------------------------------------------------------------
+
+/** Macrotasks until `condition` holds (a write that is on its way takes a few). */
+async function until(condition: () => boolean): Promise<void> {
+  for (let turn = 0; turn < 100 && !condition(); turn += 1) await flush();
+  expect(condition()).toBe(true);
+}
+
+describe("the store asks for ITS actor", () => {
+  it("reads the document and the seed by its own actor id, never through whichever actor the bar shows now", async () => {
+    // Any other id gets another character's document (a row of its own, a version far ahead) and another seed.
+    const r = rig({ server: new FakeServer({}), seed: ["strike:a"] });
+
+    r.store.ensureSeeded();
+    await r.store.settled();
+    r.server.beforeWrite = (attempts) => {
+      if (attempts === 1) r.server.external(r.server.favorites ?? row());
+    };
+    r.store.pin("action:c"); // refused once (a stale version), then redone from the fresh document
+    await r.store.settled();
+
+    expect(r.asked.readActor.length).toBeGreaterThan(3);
+    expect(new Set(r.asked.readActor)).toEqual(new Set([ACTOR]));
+    expect(r.asked.seedIds.length).toBeGreaterThan(0);
+    expect(new Set(r.asked.seedIds)).toEqual(new Set([ACTOR]));
+    expect(seededOn(r.server)).toEqual(row("strike:a", "action:c"));
+    expect(r.server.attempts.map((a) => a.outcome)).toEqual(["ok", "stale", "ok"]);
+  });
+});
+
+describe("several edits in flight", () => {
+  /** A rig whose SECOND write waits at a gate the test opens. */
+  function withSecondWriteHeld() {
+    const r = rig({ server: new FakeServer({ version: 1 }), onDelay: () => undefined });
+    let release!: () => void;
+    const held = new Promise<void>((resolve) => {
+      release = resolve;
+    });
+    r.server.gateFor = (ordinal) => (ordinal === 1 ? held : null);
+    return { r, release: () => release() };
+  }
+
+  it("when the first of two queued edits is answered, the second stays on the display until its OWN answer", async () => {
+    const { r, release } = withSecondWriteHeld();
+
+    r.store.pin("strike:a");
+    r.store.pin("strike:b");
+    await until(() => r.server.accepted.length === 1);
+    await flush();
+
+    expect(r.store.slots()).toEqual(row("strike:a", "strike:b"));
+    expect(r.store.isPinned("strike:b")).toBe(true);
+    release();
+    await r.store.settled();
+    expect(seededOn(r.server)).toEqual(row("strike:a", "strike:b"));
+  });
+
+  it("a write queued while an earlier one is in flight waits for the LAST in line, not only for the first to finish", async () => {
+    const { r, release } = withSecondWriteHeld();
+
+    r.store.pin("strike:a");
+    r.store.pin("strike:b");
+    await until(() => r.server.accepted.length === 1); // A answered, B held at its gate
+    r.store.pin("strike:c");
+    await flush();
+    await flush();
+
+    expect(r.server.attempts).toHaveLength(1); // C did not go ahead of B
+    release();
+    await r.store.settled();
+    expect(r.server.maxInFlight).toBe(1);
+    expect(r.server.attempts.map((a) => [a.outcome, a.expectedVersion])).toEqual([
+      ["ok", 1],
+      ["ok", 2],
+      ["ok", 3],
+    ]);
+    expect(seededOn(r.server)).toEqual(row("strike:a", "strike:b", "strike:c"));
+  });
+
+  it("an ack that carries several documents is read for THE ACTOR's own, wherever it sits (a companion re-derived in the same update)", async () => {
+    const server = new FakeServer({ version: 1 });
+    server.extraDocsInAck = [
+      { _id: "companion-1", type: "familiar", name: "Urso", flags: {}, _stats: { version: 99 } },
+    ];
+    const r = rig({ server, onDelay: () => undefined });
+
+    r.store.pin("strike:a");
+    r.store.pin("strike:b");
+    await r.store.settled();
+
+    expect(r.server.attempts.map((a) => [a.outcome, a.expectedVersion])).toEqual([
+      ["ok", 1],
+      ["ok", 2],
+    ]);
+    expect(seededOn(r.server)).toEqual(row("strike:a", "strike:b"));
+  });
+});
+
+describe("a pin that no longer fits", () => {
+  it("another device filled the row while our pin was on its way: the pin is refused WITH the row-is-full notice, not dropped in silence", async () => {
+    const r = rig({
+      server: new FakeServer({ version: 5, favorites: row("strike:a"), seeded: true }),
+    });
+    const full = Array.from({ length: 12 }, (_, index) => `action:n${String(index)}`);
+    let first = true;
+    r.server.beforeWrite = () => {
+      if (!first) return;
+      first = false;
+      r.server.external(full);
+    };
+
+    expect(r.store.pin("strike:b")).toBe(true); // it fitted when the player asked
+    await r.store.settled();
+
+    expect(r.server.attempts.map((a) => a.outcome)).toEqual(["stale"]);
+    expect(r.notices).toEqual(["Favoritos cheios (12 de 12). Desafixe um para abrir lugar."]);
+    expect(r.store.isPinned("strike:b")).toBe(false);
+    expect(seededOn(r.server)).toEqual(full);
+  });
+});
+
+describe("a failure the strip cannot show", () => {
+  it("a message that cannot be shown (notify throws) does not stop the writes queued behind the failed one", async () => {
+    const r = rig({
+      server: new FakeServer({ version: 1 }),
+      onDelay: () => undefined,
+      onNotify: () => {
+        throw new Error("the strip is gone");
+      },
+    });
+    r.server.failWith = new Error("sem conexão");
+    r.server.beforeWrite = (attempts) => {
+      if (attempts >= 1) r.server.failWith = null; // only the first write fails
+    };
+
+    r.store.pin("strike:a");
+    r.store.pin("strike:b"); // queued behind the one that fails
+    await r.store.settled();
+
+    expect(r.notices).toEqual([SAVE_FAILED]);
+    expect(seededOn(r.server)).toEqual(row("strike:b"));
+    expect(r.store.slots()).toEqual(row("strike:b"));
+  });
+});
+
+describe("the corners of the seed", () => {
+  it("a seed asked for and then emptied before the queued write runs (the provider reloaded) writes nothing: an empty seed would burn the flag for good", async () => {
+    const r = rig({ server: new FakeServer({}), seed: ["strike:a"] });
+
+    r.store.ensureSeeded();
+    r.seed.ids = []; // the list went away before the write got its turn
+    await r.store.settled();
+
+    expect(r.server.attempts).toHaveLength(0);
+    expect(r.server.seeded).toBeUndefined();
+    expect(r.store.slots()).toEqual(row());
+  });
+
+  it("an actor flagged seeded whose row is missing from the document shows an EMPTY row: the seed does not come back", async () => {
+    const r = rig({ server: new FakeServer({ seeded: true }), seed: ["strike:a", "spell:m:b"] });
+
+    expect(r.store.slots()).toEqual(row());
+    r.store.ensureSeeded();
+    await r.store.settled();
+    expect(r.server.attempts).toHaveLength(0);
   });
 });

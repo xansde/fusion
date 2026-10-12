@@ -49,11 +49,18 @@ function favoritesItems(
   ];
 }
 
-/** The items of the menu of one entry. Without a favourites source there is nothing to pin into. */
-export function slotMenuItems(
-  entry: ActionBarEntry,
-  favorites?: Pick<FavoritesSource, "isPinned" | "slots">,
-): MenuEntry[] {
+/**
+ * What the menu of one entry may add to "Abrir na ficha": one optional field per task, so each task
+ * adds its own field and its own items without touching the others' (BAR-F3-05 adds `icon`).
+ */
+export interface SlotMenuOptions {
+  /** BAR-F3-01: the favourites row. Absent, there is nothing to pin into and no pin items. */
+  favorites?: Pick<FavoritesSource, "isPinned" | "slots"> | undefined;
+}
+
+/** The items of the menu of one entry. */
+export function slotMenuItems(entry: ActionBarEntry, options: SlotMenuOptions = {}): MenuEntry[] {
+  const { favorites } = options;
   return [
     { id: OPEN_SHEET_ITEM, label: t("FUSION.ActionBar.Menu.OpenSheet") },
     ...(favorites === undefined ? [] : favoritesItems(entry, favorites)),

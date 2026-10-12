@@ -243,7 +243,9 @@ export class ActionBarControllerImpl implements ActionBarController {
 
     const entryId = favorites.slots()[index];
     if (entryId === null || entryId === undefined) return undefined;
-    // A favourite whose entry left the sheet (BAR-F3-01 draws it faded) runs nothing.
+    // A favourite whose entry left the sheet (BAR-F3-01 draws it faded) runs nothing, and its key is
+    // left alone: the controller cannot tell "gone" from "not loaded yet" (the grid knows, once the
+    // sheet has settled), and a late entry must not be announced as gone. The click says it.
     return bar.entries.find((candidate) => candidate.id === entryId);
   }
 

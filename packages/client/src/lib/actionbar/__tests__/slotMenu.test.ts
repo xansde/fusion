@@ -47,7 +47,7 @@ describe("slotMenuItems — Fixar e Desafixar (BAR-F3-01)", () => {
   it("uma entrada de aba que não está nos Favoritos oferece 'Fixar nos Favoritos', depois de Abrir na ficha", () => {
     const source = favoritesOver(emptyRow());
 
-    const items = flattenMenu(slotMenuItems(makeEntry("strike:a"), source));
+    const items = flattenMenu(slotMenuItems(makeEntry("strike:a"), { favorites: source }));
 
     expect(items.map((item) => item.id)).toEqual([OPEN_SHEET_ITEM, PIN_ITEM]);
     expect(items[1]?.label).toBe("Fixar nos Favoritos");
@@ -57,7 +57,7 @@ describe("slotMenuItems — Fixar e Desafixar (BAR-F3-01)", () => {
   it("uma entrada que já está nos Favoritos oferece 'Desafixar' (na linha de Favoritos e na aba, é o mesmo menu)", () => {
     const source = favoritesOver(["strike:a", ...emptyRow().slice(1)]);
 
-    const items = flattenMenu(slotMenuItems(makeEntry("strike:a"), source));
+    const items = flattenMenu(slotMenuItems(makeEntry("strike:a"), { favorites: source }));
 
     expect(items.map((item) => item.id)).toEqual([OPEN_SHEET_ITEM, UNPIN_ITEM]);
     expect(items[1]?.label).toBe("Desafixar");
@@ -66,7 +66,7 @@ describe("slotMenuItems — Fixar e Desafixar (BAR-F3-01)", () => {
   it("um favorito órfão oferece Desafixar — é a única saída dele (REQ-BAR-066)", () => {
     const source = favoritesOver(["item:vendido", ...emptyRow().slice(1)]);
 
-    const items = flattenMenu(slotMenuItems(orphanEntry("item:vendido"), source));
+    const items = flattenMenu(slotMenuItems(orphanEntry("item:vendido"), { favorites: source }));
 
     expect(items.map((item) => item.id)).toContain(UNPIN_ITEM);
     expect(items.map((item) => item.id)).not.toContain(PIN_ITEM);
@@ -75,8 +75,8 @@ describe("slotMenuItems — Fixar e Desafixar (BAR-F3-01)", () => {
   it("12 de 12: 'Fixar' fica na tela, esmaecido, com o motivo — e Desafixar de quem está na linha segue livre", () => {
     const source = favoritesOver(fullRow());
 
-    const notPinned = flattenMenu(slotMenuItems(makeEntry("strike:novo"), source));
-    const pinned = flattenMenu(slotMenuItems(makeEntry("action:n3"), source));
+    const notPinned = flattenMenu(slotMenuItems(makeEntry("strike:novo"), { favorites: source }));
+    const pinned = flattenMenu(slotMenuItems(makeEntry("action:n3"), { favorites: source }));
 
     const pin = notPinned.find((item) => item.id === PIN_ITEM);
     expect(pin?.disabled).toBe(true);
@@ -92,7 +92,9 @@ describe("slotMenuItems — Fixar e Desafixar (BAR-F3-01)", () => {
 
   it("os ids dos itens são únicos no menu", () => {
     const source = favoritesOver(emptyRow());
-    const ids = flattenMenu(slotMenuItems(makeEntry("strike:a"), source)).map((item) => item.id);
+    const ids = flattenMenu(slotMenuItems(makeEntry("strike:a"), { favorites: source })).map(
+      (item) => item.id,
+    );
 
     expect(new Set(ids).size).toBe(ids.length);
   });

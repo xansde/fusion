@@ -57,7 +57,17 @@ import {
 type Json = Record<string, unknown>;
 
 /** Writes tried before giving up on a document that keeps moving under us (a hot actor in combat). */
-export const FAVORITES_MAX_ATTEMPTS = 4;
+export const FAVORITES_MAX_ATTEMPTS = 6;
+
+/**
+ * From the second refusal of the same edit on, the next try waits a short random time first. Two
+ * devices that keep refusing each other's writes do it in lockstep — the broadcast of one write
+ * reaches both at the same instant and both try again at once — and one of them can starve (found
+ * with two devices pinning ten entries as fast as they could). The first retry stays immediate:
+ * almost always the only one needed. Random on purpose; the seed, which must be deterministic, has
+ * nothing to do with this.
+ */
+const RETRY_JITTER_MS = 80;
 
 /** After a refused write: how long one wait for the newer document is, and how many of them. */
 const WAIT_STEP_MS = 60;
@@ -77,6 +87,17 @@ interface Pending {
   readonly token: number;
   readonly mutation: Mutation;
 }
+
+/** What an edit comes to on the document it is about to be written to. */
+type Plan =
+  | { readonly kind: "write"; readonly row: (string | null)[] }
+  /** Nothing to write: the document already says it (another device did it), or the edit changes nothing. */
+  | { readonly kind: "nothing" }
+  /** A pin that no longer fits: another device filled the row while this one was on its way. */
+  | { readonly kind: "full" };
+
+const NOTHING: Plan = { kind: "nothing" };
+const FULL: Plan = { kind: "full" };
 
 /** One edit applied to a row. The seed is not an edit of the row: it IS the base row while it is due. */
 function applyMutation(row: FavoriteRow, mutation: Mutation): (string | null)[] {
@@ -119,12 +140,20 @@ const liveShared = createFavoritesShared();
 
 export interface FavoritesStoreDeps {
   readonly actorId: string;
-  /** The actor document in the mirror, right now. Reactive when read inside a `$derived` (`readActorDoc`). */
-  readActor(): Json | undefined;
+  /**
+   * The document of actor `actorId` in the mirror, right now (reactive when read inside a `$derived`).
+   * The store always asks for ITS actor, by id: a store whose actor is no longer the one on screen
+   * can still have a write to finish, and it must finish it on its own document — a reader that
+   * closed over "the active actor" would hand it another character's row.
+   */
+  readActor(actorId: string): Json | undefined;
   /** `doc:update` with an answer: resolves with the ack's result, rejects with an error that carries `code`. */
   write(payload: Json): Promise<unknown>;
-  /** The ids the first-opening seed would pin right now (`provider.seed` or the shell's own). */
-  seedIds(): readonly string[];
+  /**
+   * The ids the first-opening seed would pin right now for actor `actorId` (`provider.seed` or the
+   * shell's own); nothing once the bar shows another actor. `[]` is "nothing to seed (yet)".
+   */
+  seedIds(actorId: string): readonly string[];
   /** A short message on the bar's strip. */
   notify(message: string): void;
   /** A wait of `ms`; injectable so a test does not sleep. */
@@ -193,7 +222,7 @@ class FavoritesStoreImpl implements FavoritesStore {
 
   /** The newest document this client knows: the mirror's, or the one an ack carried when it is newer. */
   #latestDoc(): Json | undefined {
-    const mirrored = this.#deps.readActor();
+    const mirrored = this.#deps.readActor(this.#deps.actorId);
     const acked = this.#shared.acked.get(this.#deps.actorId);
     if (acked === undefined) return mirrored;
     if (mirrored === undefined) return acked;
@@ -202,7 +231,9 @@ class FavoritesStoreImpl implements FavoritesStore {
 
   /** The row of a document: the stored one, or — while the seed is due — the seed the provider gives. */
   #baseRow(doc: Json | undefined): (string | null)[] {
-    return needsSeed(doc) ? rowFromIds(this.#deps.seedIds()) : (storedRowOf(doc) ?? emptyRow());
+    return needsSeed(doc)
+      ? rowFromIds(this.#deps.seedIds(this.#deps.actorId))
+      : (storedRowOf(doc) ?? emptyRow());
   }
 
   slots(): ReadonlyArray<string | null> {
@@ -242,7 +273,7 @@ class FavoritesStoreImpl implements FavoritesStore {
     const doc = this.#latestDoc();
     if (!needsSeed(doc)) return;
     // Nothing to seed yet (the provider has not loaded): not asked, so the next call tries again.
-    if (rowFromIds(this.#deps.seedIds()).every((id) => id === null)) return;
+    if (rowFromIds(this.#deps.seedIds(this.#deps.actorId)).every((id) => id === null)) return;
     this.#seedAsked = true;
     this.#enqueue({ kind: "seed" });
   }
@@ -280,10 +311,22 @@ class FavoritesStoreImpl implements FavoritesStore {
       await this.#commit(mutation);
     } catch (error) {
       console.error("[actionbar] could not save the favourites", error);
-      this.#deps.notify(t("FUSION.ActionBar.Favorites.SaveFailed"));
+      this.#say(t("FUSION.ActionBar.Favorites.SaveFailed"));
     } finally {
       // After the ack was remembered (inside #commit): the display never has a gap between "pending" and "stored".
       this.#pending = this.#pending.filter((candidate) => candidate.token !== token);
+    }
+  }
+
+  /**
+   * The strip is a courtesy: a message that cannot be shown must not stop the writes queued behind
+   * it. This run's promise is what the next one waits on, and a rejected one would be waited on for ever.
+   */
+  #say(message: string): void {
+    try {
+      this.#deps.notify(message);
+    } catch (error) {
+      console.error("[actionbar] could not tell the player", error);
     }
   }
 
@@ -291,6 +334,7 @@ class FavoritesStoreImpl implements FavoritesStore {
     const { actorId } = this.#deps;
     // The version of the last write this edit saw refused. -1: none yet.
     let refusedAt = -1;
+    let refusals = 0;
 
     for (let attempt = 1; attempt <= FAVORITES_MAX_ATTEMPTS; attempt += 1) {
       let doc = this.#latestDoc();
@@ -304,14 +348,19 @@ class FavoritesStoreImpl implements FavoritesStore {
       }
       const version = versionOf(doc);
 
-      const next = this.#plan(mutation, doc);
-      if (next === null) return; // nothing to change on the fresh document
+      const plan = this.#plan(mutation, doc);
+      if (plan.kind === "full") {
+        // Not dropped in silence: the player saw this pin on the display and it did not fit.
+        this.#say(t("FUSION.ActionBar.Favorites.Full"));
+        return;
+      }
+      if (plan.kind === "nothing") return; // nothing to change on the fresh document
 
       try {
         const result = await this.#deps.write({
           documentType: "Actor",
           updates: [
-            { _id: actorId, diff: actionBarFavoritesPatch(next), expectedVersion: version },
+            { _id: actorId, diff: actionBarFavoritesPatch(plan.row), expectedVersion: version },
           ],
         });
         this.#remember(result);
@@ -319,26 +368,31 @@ class FavoritesStoreImpl implements FavoritesStore {
       } catch (error) {
         if (!isStaleWrite(error)) throw error;
         refusedAt = version;
+        refusals += 1;
+        if (refusals >= 2 && attempt < FAVORITES_MAX_ATTEMPTS) {
+          await this.#delay(Math.random() * RETRY_JITTER_MS);
+        }
       }
     }
     throw new Error(`the document kept moving: ${String(FAVORITES_MAX_ATTEMPTS)} writes refused`);
   }
 
   /**
-   * The row to write for this edit on THIS document, or `null` when there is nothing to write. The
-   * edit is judged on the fresh document, not on the one it was made on: a seed another device
-   * already wrote is not written again, and a pin another device already made is not pinned twice.
+   * What this edit comes to on THIS document. The edit is judged on the fresh document, not on the
+   * one it was made on: a seed another device already wrote is not written again, a pin another
+   * device already made is not pinned twice, and a pin the row no longer has room for says so.
    */
-  #plan(mutation: Mutation, doc: Json | undefined): (string | null)[] | null {
+  #plan(mutation: Mutation, doc: Json | undefined): Plan {
     const seedDue = needsSeed(doc);
     const base = this.#baseRow(doc);
     if (mutation.kind === "seed") {
-      return seedDue && base.some((id) => id !== null) ? base : null;
+      return seedDue && base.some((id) => id !== null) ? { kind: "write", row: base } : NOTHING;
     }
+    if (mutation.kind === "pin" && pinInto(base, mutation.id).outcome === "full") return FULL;
     const next = applyMutation(base, mutation);
     // Same row on a document that already carries the flag: not a write.
-    if (!seedDue && isSeeded(doc) && sameRow(next, base)) return null;
-    return next;
+    if (!seedDue && isSeeded(doc) && sameRow(next, base)) return NOTHING;
+    return { kind: "write", row: next };
   }
 
   /** Waits, in steps, until the newest known document is newer than `version`; returns the newest either way. */

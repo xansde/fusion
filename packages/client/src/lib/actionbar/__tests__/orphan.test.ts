@@ -14,7 +14,7 @@ import { describe, expect, it } from "vitest";
 
 import "../../i18n/index.js";
 import { assertValidEntries } from "../actionBarRegistry.js";
-import { ORPHAN_ARM_MS, favoriteCells, kindOfEntryId, orphanEntry, orphanIds } from "../orphan.js";
+import { SHEET_SETTLE_MS, favoriteCells, kindOfEntryId, orphanEntry } from "../orphan.js";
 import { slotView } from "../slotModel.js";
 import { makeEntry } from "./stubProvider.js";
 
@@ -88,29 +88,6 @@ describe("orphanEntry — the stand-in the faded slot is drawn from", () => {
   });
 });
 
-describe("orphanIds — the favourites no entry answers to", () => {
-  const entries = [makeEntry("strike:a"), makeEntry("spell:m:b")];
-
-  it("lists the pinned ids that are not on the sheet, in slot order", () => {
-    const row = ["strike:a", "item:vendido", null, "spell:m:b", "action:sumiu"];
-
-    expect(orphanIds(row, entries)).toEqual(["item:vendido", "action:sumiu"]);
-  });
-
-  it("nothing is an orphan while every pinned id is on the sheet, and empty positions are not orphans", () => {
-    expect(orphanIds(["strike:a", null, "spell:m:b"], entries)).toEqual([]);
-    expect(orphanIds([null, null], entries)).toEqual([]);
-  });
-
-  it("an id pinned twice is listed once", () => {
-    expect(orphanIds(["item:x", "item:x"], entries)).toEqual(["item:x"]);
-  });
-
-  it("while the sheet has not loaded (no entries), every pinned id would look like an orphan — the caller decides", () => {
-    expect(orphanIds(["strike:a"], [])).toEqual(["strike:a"]);
-  });
-});
-
 describe("favoriteCells — what each of the twelve positions draws", () => {
   const strike = makeEntry("strike:a");
   const spell = makeEntry("spell:m:b");
@@ -140,14 +117,14 @@ describe("favoriteCells — what each of the twelve positions draws", () => {
     expect(cells.filter((cell) => cell.kind === "orphan")).toHaveLength(1);
   });
 
-  it("before the bar is armed a missing entry is still just an empty position — it may only be late", () => {
+  it("before the sheet has settled a missing entry is still just an empty position — it may only be late", () => {
     const cells = favoriteCells(row("strike:a", "action:seek"), entries, false);
 
     expect(cells[0]).toEqual({ kind: "entry", entry: strike });
     expect(cells[1]).toEqual({ kind: "empty" });
   });
 
-  it("an entry that has arrived is drawn even when the bar is not armed yet", () => {
+  it("an entry that has arrived is drawn even when the bar is not settled yet", () => {
     expect(favoriteCells(row("spell:m:b"), entries, false)[0]).toEqual({
       kind: "entry",
       entry: spell,
@@ -166,8 +143,8 @@ describe("favoriteCells — what each of the twelve positions draws", () => {
     expect(cells.slice(0, 2).map((cell) => cell.kind)).toEqual(["orphan", "orphan"]);
   });
 
-  it("ORPHAN_ARM_MS is a wait long enough for a pack to arrive and short enough to be noticed only once", () => {
-    expect(ORPHAN_ARM_MS).toBeGreaterThanOrEqual(500);
-    expect(ORPHAN_ARM_MS).toBeLessThanOrEqual(5000);
+  it("SHEET_SETTLE_MS is a wait long enough for a pack to arrive and short enough to be noticed only once", () => {
+    expect(SHEET_SETTLE_MS).toBeGreaterThanOrEqual(500);
+    expect(SHEET_SETTLE_MS).toBeLessThanOrEqual(5000);
   });
 });

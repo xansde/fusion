@@ -47,7 +47,13 @@ export interface ActionBarProvider {
   ): Promise<void>;
   /** The system's detail panel (the same one the sheet shows), opened with Alt on the tooltip. */
   details?: Component<{ entry: ActionBarEntry }>;
-  /** Ids that seed the favourites the first time the bar opens (BAR-F3-01): up to 12, in slot order. */
+  /**
+   * Ids that seed the favourites the first time the bar opens (BAR-F3-01): up to 12, in slot order,
+   * each the id of an entry this provider lists. `[]` means "nothing to seed (yet)": the shell asks
+   * again when the entries change, and writes only a non-empty answer. For an actor that was already
+   * seeded (`flags.fusion.actionBar.seeded`) it answers `[]` — after the seed nothing enters by
+   * itself (D-BA08).
+   */
   seed?(ctx: ActionBarContext): string[];
 }
 

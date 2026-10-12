@@ -30,8 +30,9 @@
    * **Favourites** are in the ACTOR (BAR-F3-01, REQ-BAR-061): `createFavoritesStore` reads the row off
    * the actor document and writes it back with the version lock; the first time the bar opens for an
    * actor that has none, the system's seed is written once (REQ-BAR-064). A favourite whose entry left
-   * the sheet is drawn faded as an orphan (REQ-BAR-066) — after the load window, so a late pack does
-   * not make a real favourite flash as "Ausente".
+   * the sheet is drawn faded as an orphan (REQ-BAR-066). Both wait for the sheet to settle (see
+   * `SHEET_SETTLE_MS`): a late pack must neither make a real favourite flash as "Ausente" nor leave
+   * the seed written from a partial list.
    *
    * Not here (D-BA16): remembering the tab or the fold on the device, drag and drop, aim mode, the
    * full slot menu (only open, pin and unpin), the NPC and group bars.
@@ -56,9 +57,9 @@
   import { buildActionBarContext } from "../../lib/actionbar/barContext.js";
   import { publishBarHeight } from "../../lib/actionbar/barFootprint.svelte.js";
   import { createFavoritesStore } from "../../lib/actionbar/favoritesStore.svelte.js";
-  import { seedFromEntries } from "../../lib/actionbar/favoritesSource.js";
+  import { resolveSeedIds } from "../../lib/actionbar/favoritesSource.js";
   import { computeBarLayout, menuOriginAboveBar } from "../../lib/actionbar/layout.js";
-  import { ORPHAN_ARM_MS, orphanEntry } from "../../lib/actionbar/orphan.js";
+  import { SHEET_SETTLE_MS, orphanEntry } from "../../lib/actionbar/orphan.js";
   import { releaseFocusAfterPointer } from "../../lib/actionbar/slotFocus.js";
   import { mapHint } from "../../lib/actionbar/slotModel.js";
   import { runSlotMenuItem, slotMenuItems } from "../../lib/actionbar/slotMenu.js";
@@ -154,28 +155,36 @@
   // -------------------------------------------------------------------------
 
   /**
-   * The ids the first-opening seed would pin RIGHT NOW: the system's own when its provider declares
-   * one, else the shell's (`seedFromEntries`). An empty answer is "nothing to seed yet" (the provider
-   * has not loaded), and the seed waits; a provider that throws falls back to the shell's.
+   * The ids the first-opening seed would pin RIGHT NOW for the active actor (`resolveSeedIds`): the
+   * system's own, else the shell's. An empty answer is "nothing to seed yet" (the provider has not
+   * loaded), and the seed waits. Worked out once per change of the bar, not once per redraw: the
+   * system's seed goes through the entries again.
    */
-  function seedIds(): readonly string[] {
-    if (bar === null) return [];
-    const { provider, ctx } = bar;
-    return guarded<readonly string[]>("seed", seedFromEntries(entries), () =>
-      provider.seed !== undefined ? provider.seed(ctx) : seedFromEntries(entries),
-    );
+  const seedOfBar = $derived(
+    bar === null
+      ? []
+      : resolveSeedIds(bar.provider, bar.ctx, entries, (error) => {
+          console.error("[actionbar] provider.seed failed", error);
+        }),
+  );
+
+  /** A store asks for ITS actor's seed: once the bar shows another actor, the answer is "nothing". */
+  function seedIdsFor(forActorId: string): readonly string[] {
+    return bar !== null && bar.ctx.actorId === forActorId ? seedOfBar : [];
   }
 
   // The favourites live in the actor. The store follows the actor, not every redraw: it is rebuilt
-  // only when the active actor changes, and its writes queue behind any still on the wire for the same actor.
+  // only when the active actor changes, and its writes queue behind any still on the wire for the same
+  // actor. It reads and seeds by ITS OWN actor id (`readActorDoc`, `seedIdsFor`), never through "the
+  // actor on screen": a store that outlives a change of actor may still have a write to finish.
   const favorites = $derived(
     actorId === null
       ? null
       : createFavoritesStore({
           actorId,
-          readActor: () => readActorDoc(actorId),
+          readActor: readActorDoc,
           write: (payload) => services.request("doc:update", payload),
-          seedIds,
+          seedIds: seedIdsFor,
           notify: (message) => {
             controller.notify(message);
           },
@@ -219,29 +228,32 @@
     });
   });
 
-  // The first-opening seed (REQ-BAR-064): written once, by whoever may write the actor. Asked again
-  // whenever the provider's list changes — a seed with nothing in it waits for the list.
+  // The sheet is taken for loaded a moment after the active actor changes: the packs that give the
+  // basic actions arrive from the server after the actor's own data, and until then the provider's
+  // list is partial. A favourite that is only late is not an orphan yet, and the seed — written once
+  // and for all — is not taken from a partial list.
+  let sheetSettled = $state(false);
+  $effect(() => {
+    void actorId;
+    sheetSettled = false;
+    const timer = setTimeout(() => {
+      sheetSettled = true;
+    }, SHEET_SETTLE_MS);
+    return () => {
+      clearTimeout(timer);
+    };
+  });
+
+  // The first-opening seed (REQ-BAR-064): written once, by whoever may write the actor, once the
+  // sheet has settled (until then the row already SHOWS the seed). Asked again whenever the
+  // provider's list changes — a seed with nothing in it waits for the list.
   $effect(() => {
     const store = favorites;
-    if (store === null || resolved === null) return;
+    if (store === null || resolved === null || !sheetSettled) return;
     void entries;
     untrack(() => {
       store.ensureSeeded();
     });
-  });
-
-  // A favourite whose entry is missing is an orphan only after the sheet had time to load (the packs
-  // that give the basic actions arrive a moment after the actor's own data).
-  let orphansArmed = $state(false);
-  $effect(() => {
-    void actorId;
-    orphansArmed = false;
-    const timer = setTimeout(() => {
-      orphansArmed = true;
-    }, ORPHAN_ARM_MS);
-    return () => {
-      clearTimeout(timer);
-    };
   });
 
   // The keys 1–9, 0, − and = run the favourites, Esc cancels a menu (BAR-F1-05).
@@ -407,7 +419,7 @@
           tab={controller.tab}
           {entries}
           favorites={favorites?.slots() ?? []}
-          showOrphans={orphansArmed}
+          showOrphans={sheetSettled}
           isBusy={(entryId) => controller.isBusy(entryId)}
           {altHeld}
           {Details}
@@ -446,7 +458,7 @@
   {#if menu !== null}
     <ContextMenu
       open={true}
-      items={slotMenuItems(menu.entry, favorites ?? undefined)}
+      items={slotMenuItems(menu.entry, { favorites: favorites ?? undefined })}
       label={menu.entry.label}
       showLabel
       point={{ x: menu.open.x, y: menu.open.y }}

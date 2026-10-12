@@ -1048,13 +1048,22 @@ describe("SlotGrid — abas, grupos e o estado vazio (REQ-BAR-026)", () => {
       expect(textOf(html)).not.toContain("Nenhum favorito fixado");
     });
 
-    it("o menu aberto no órfão marca o slot dele, como o de qualquer entrada", () => {
-      const html = grid("favorites", makeStubEntries(), {
+    it("o órfão com o menu aberto sai o mesmo slot (um só snippet atende a entrada e o órfão, e é ele que recebe o menuOpen)", () => {
+      const closed = grid("favorites", makeStubEntries(), { favorites: withOrphan });
+      const open = grid("favorites", makeStubEntries(), {
         favorites: withOrphan,
         menuEntryId: "item:vendido",
       });
+      const source = readFileSync(
+        fileURLToPath(new URL("../SlotGrid.svelte", import.meta.url)),
+        "utf8",
+      );
 
-      expect(slotTag(html, "item:vendido")).toBeTruthy();
+      // `menuOpen` only silences the tooltip, which the server render does not draw: the markup must not move.
+      expect(slotTag(open, "item:vendido")).toBe(slotTag(closed, "item:vendido"));
+      // …and the flag reaches the orphan because there is ONE place that hands it to a Slot.
+      expect(source.match(/menuOpen=\{menuEntryId === entry\.id\}/g)).toHaveLength(1);
+      expect(source).toMatch(/\{@render slotOf\(cell\.entry, index, cell\.kind === "orphan"/);
     });
 
     it("o órfão não tem arrastar nem nada que um clique rodasse: o slot é o de sempre e o clique vai para o aviso", () => {
@@ -1397,7 +1406,12 @@ describe("ActionBar — a fiação que o SSR não roda (lida do fonte)", () => {
     const source = code("../ActionBar.svelte");
 
     expect(source).toContain("createFavoritesStore({");
-    expect(source).toContain("readActor: () => readActorDoc(actorId)");
+    // `readActorDoc` goes in as it is and the store passes its own id: a closure over `actorId` would
+    // follow the actor ON SCREEN, and a store that outlives a change of actor would read (and write
+    // back) another character's row.
+    expect(source).toContain("readActor: readActorDoc,");
+    expect(source).not.toMatch(/readActor:\s*\(\)/);
+    expect(source).toContain("seedIds: seedIdsFor,");
     expect(source).toContain('write: (payload) => services.request("doc:update", payload)');
     // A fonte em memória da primeira entrega saiu.
     expect(source).not.toContain("createFavoritesSource");
@@ -1406,24 +1420,28 @@ describe("ActionBar — a fiação que o SSR não roda (lida do fonte)", () => {
     expect(code("../../../lib/actionbar/favoritesStore.svelte.ts")).not.toContain("makeSendOpFn");
   });
 
-  it("BAR-F3-01: a semente é gravada por um $effect que só pergunta; a da casca só vale quando o provedor não declara a dele", () => {
+  it("BAR-F3-01: a semente é gravada por um $effect que só pergunta, e só depois de a ficha assentar; a da casca só vale quando o provedor não declara a dele", () => {
     const source = code("../ActionBar.svelte");
 
     expect(source).toMatch(
-      /\$effect\(\(\) => \{\s*const store = favorites;\s*if \(store === null \|\| resolved === null\) return;\s*void entries;\s*untrack\(\(\) => \{\s*store\.ensureSeeded\(\);/,
+      /\$effect\(\(\) => \{\s*const store = favorites;\s*if \(store === null \|\| resolved === null \|\| !sheetSettled\) return;\s*void entries;\s*untrack\(\(\) => \{\s*store\.ensureSeeded\(\);/,
     );
-    expect(source).toContain(
-      "provider.seed !== undefined ? provider.seed(ctx) : seedFromEntries(entries)",
+    // What the seed IS (the provider's, else the shell's; `[]` stays `[]`) is `resolveSeedIds`, tested as
+    // behaviour in favoritesSource.test.ts. Here only: the bar asks it once per change of the bar, and a store
+    // gets the seed of its own actor only.
+    expect(source).toContain("resolveSeedIds(bar.provider, bar.ctx, entries,");
+    expect(source).toMatch(
+      /function seedIdsFor\(forActorId: string\): readonly string\[\] \{\s*return bar !== null && bar\.ctx\.actorId === forActorId \? seedOfBar : \[\];/,
     );
   });
 
-  it("BAR-F3-01: o órfão só vale depois da janela de carga do ator — um efeito arma, a grade recebe, e o clique vira aviso", () => {
+  it("BAR-F3-01: a ficha só assenta depois da janela de carga do ator — um efeito arma, a grade recebe (órfãos), e o clique vira aviso", () => {
     const source = code("../ActionBar.svelte");
 
     expect(source).toMatch(
-      /\$effect\(\(\) => \{\s*void actorId;\s*orphansArmed = false;\s*const timer = setTimeout\(\(\) => \{\s*orphansArmed = true;\s*\}, ORPHAN_ARM_MS\);\s*return \(\) => \{\s*clearTimeout\(timer\);/,
+      /\$effect\(\(\) => \{\s*void actorId;\s*sheetSettled = false;\s*const timer = setTimeout\(\(\) => \{\s*sheetSettled = true;\s*\}, SHEET_SETTLE_MS\);\s*return \(\) => \{\s*clearTimeout\(timer\);/,
     );
-    expect(source).toContain("showOrphans={orphansArmed}");
+    expect(source).toContain("showOrphans={sheetSettled}");
     expect(source).toContain('controller.notify(t("FUSION.ActionBar.Favorites.Orphan.Click"))');
   });
 
@@ -1431,9 +1449,12 @@ describe("ActionBar — a fiação que o SSR não roda (lida do fonte)", () => {
     const source = code("../ActionBar.svelte");
 
     expect(source).toContain("orphanEntry(open.entryId)");
-    expect(source).toContain("items={slotMenuItems(menu.entry, favorites ?? undefined)}");
+    // Another task's field (the icon) sits beside `favorites` in both calls, in no fixed order.
     expect(source).toMatch(
-      /runSlotMenuItem\(itemId, \{\s*actorId,\s*services,\s*entry: menu\.entry,\s*favorites: favorites \?\? undefined,\s*\}\)/,
+      /items=\{slotMenuItems\(menu\.entry, \{[^}]*favorites: favorites \?\? undefined[^}]*\}\)\}/,
+    );
+    expect(source).toMatch(
+      /runSlotMenuItem\(itemId, \{[^}]*entry: menu\.entry,[^}]*favorites: favorites \?\? undefined,?[^}]*\}\)/,
     );
   });
 
