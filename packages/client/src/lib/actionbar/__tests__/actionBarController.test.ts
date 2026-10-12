@@ -21,7 +21,8 @@ import {
   type ControllerDeps,
   type ResolvedBar,
 } from "../actionBarController.svelte.js";
-import { seedFromEntries } from "../favoritesSource.js";
+import { seedFromEntries, type FavoritesSource } from "../favoritesSource.js";
+import { FakeServer, rig, row } from "./favoritesWorld.js";
 import type { ActionBarEntry } from "../types.js";
 import { memoryFavoritesOfIds } from "./memoryFavorites.js";
 import {
@@ -53,6 +54,8 @@ function setup(
     onExecute?: (call: StubExecuteCall) => Promise<void>;
     actorId?: string;
     withFavorites?: boolean;
+    /** The row to use instead of the in-memory double (the persisted store, in the tests that need it). */
+    favoritesSource?: FavoritesSource;
   } = {},
 ): Setup {
   const stub = createStubProvider({
@@ -72,7 +75,8 @@ function setup(
     current: () => bar.current,
     services: () => services,
     targets: () => targets.value,
-    favorites: () => (options.withFavorites === false ? null : favorites),
+    favorites: () =>
+      options.withFavorites === false ? null : (options.favoritesSource ?? favorites),
     noteUsed: (actorId) => {
       noted.push(actorId);
     },
@@ -464,6 +468,96 @@ describe("runFavorite — as teclas (REQ-BAR-048)", () => {
     expect(s.stub.calls.execute).toHaveLength(1);
     gate.resolve();
     await first;
+  });
+});
+
+describe("runFavorite — com o store PERSISTIDO no ator (BAR-F3-01, BAR-F1-05, CA-BAR-07)", () => {
+  /** A controller whose twelve keys read the row of the persisted store, over a fake server holding `stored`. */
+  function persisted(stored: Array<string | null>) {
+    const world = rig({ server: new FakeServer({ favorites: stored, seeded: true }) });
+    const s = setup({ favoritesSource: world.store });
+    const executed = (): string[] => s.stub.calls.execute.map((call) => call.entry.id);
+    return { ...s, world, executed };
+  }
+
+  it("a tecla N executa a entrada que o ator tem no slot N — o buraco entre duas não vira outra coisa", async () => {
+    const s = persisted(row("strike:stub-bow", "strike:stub-sword", null, "spell:stub-main:heal"));
+
+    for (const index of [0, 1, 2, 3]) await s.controller.runFavorite(index);
+
+    expect(s.executed()).toEqual(["strike:stub-bow", "strike:stub-sword", "spell:stub-main:heal"]);
+    expect(s.controller.canRunFavorite(2)).toBe(false);
+    expect(s.stub.calls.execute.every((call) => call.choice.via === "key")).toBe(true);
+  });
+
+  it("um fixar ainda SEM resposta do servidor já responde à tecla do slot em que vai ficar", async () => {
+    const s = persisted(row("strike:stub-bow", "strike:stub-sword"));
+    s.world.server.gate = new Promise<void>(() => {
+      // never released: the write stays in flight
+    });
+
+    s.world.store.pin("action:stub-seek");
+    await Promise.resolve();
+
+    expect(s.controller.canRunFavorite(2)).toBe(true);
+    await s.controller.runFavorite(2);
+    expect(s.executed()).toEqual(["action:stub-seek"]);
+  });
+
+  it("um desafixar ainda sem resposta silencia a tecla na hora — a tecla não executa o que o jogador acabou de tirar", async () => {
+    const s = persisted(row("strike:stub-bow", "strike:stub-sword"));
+    s.world.server.gate = new Promise<void>(() => {
+      // never released
+    });
+
+    s.world.store.unpin("strike:stub-bow");
+
+    expect(s.controller.canRunFavorite(0)).toBe(false);
+    await s.controller.runFavorite(0);
+    expect(s.executed()).toEqual([]);
+    // O outro slot não andou: a tecla 2 segue sendo a espada.
+    await s.controller.runFavorite(1);
+    expect(s.executed()).toEqual(["strike:stub-sword"]);
+  });
+
+  it("se a escrita FALHA, a tecla volta ao que o documento diz", async () => {
+    const logged = vi.spyOn(console, "error").mockImplementation(() => undefined);
+    try {
+      const s = persisted(row("strike:stub-bow", "strike:stub-sword"));
+      s.world.server.failWith = new Error("sem conexão");
+
+      s.world.store.unpin("strike:stub-bow");
+      expect(s.controller.canRunFavorite(0)).toBe(false);
+      await s.world.store.settled();
+
+      expect(s.controller.canRunFavorite(0)).toBe(true);
+      await s.controller.runFavorite(0);
+      expect(s.executed()).toEqual(["strike:stub-bow"]);
+    } finally {
+      logged.mockRestore();
+    }
+  });
+
+  it("o desafixar de OUTRO aparelho chega pelo documento e a tecla acompanha, sem puxar as outras", async () => {
+    const s = persisted(row("strike:stub-bow", "strike:stub-sword", "spell:stub-main:heal"));
+
+    s.world.server.external(row(null, "strike:stub-sword", "spell:stub-main:heal"));
+    s.world.mirror.sync();
+
+    expect(s.controller.canRunFavorite(0)).toBe(false);
+    await s.controller.runFavorite(2);
+    expect(s.executed()).toEqual(["spell:stub-main:heal"]);
+  });
+
+  it("um favorito que o ator tem mas que saiu da ficha (órfão) não executa nada e a tecla não é consumida", async () => {
+    const s = persisted(row("item:vendido", "strike:stub-sword"));
+
+    expect(s.controller.canRunFavorite(0)).toBe(false);
+    await s.controller.runFavorite(0);
+
+    expect(s.executed()).toEqual([]);
+    // O órfão continua fixado: só o Desafixar o tira (REQ-BAR-066).
+    expect(s.world.store.isPinned("item:vendido")).toBe(true);
   });
 });
 
