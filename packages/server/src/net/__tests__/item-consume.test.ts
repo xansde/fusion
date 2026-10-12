@@ -70,6 +70,15 @@ const HOOK_ITEM_ID = "hookItem00000000";
 const HEAL_MAX_HP = 20;
 const HEAL_STARTING_HP = 10;
 
+// BAR-F5-01 fixtures — the refusals the Barra de Ações and the sheet's "Usar" lean on.
+// ZERO: an item that is still on the sheet with no unit left (quantity 0). It also carries a heal and an effect, so a
+// refusal that let any of them through would show: HP moves, an Effect item appears.
+const ZERO_ACTOR_ID = "zeroActor0000000";
+const ZERO_ITEM_ID = "zeroItem00000000";
+// OBS: an actor the second player can SEE (OBSERVER by default) but does not own.
+const OBS_ACTOR_ID = "obsActor00000000";
+const OBS_ITEM_ID = "obsItem000000000";
+
 // I4 fix fixtures (onda-5 adversarial review) — an item whose plan() plans
 // an effect living in a pack with `audience: "gm"`.
 const EFFECT_ACTOR_ID = "effectActor00000";
@@ -146,6 +155,12 @@ function makeFakeConsumeItemDefinition(): ConsumeItemDefinition {
         // `getDocumentBySourceRef` call, since `effects: []` always before.
         effectRef?: { packName: string; sourceId: string };
       };
+      // BAR-F5-01: no unit on hand, nothing to spend — whatever the charge count says. The PF2e plan
+      // (`systems/pf2e/src/actions/consume.ts`) carries the same refusal and its own unit test; this fake only has to
+      // refuse so the suite can prove what the CORE does with a refusal (VALIDATION_FAILED, nothing left behind).
+      if (system.quantity < 1) {
+        throw new ConsumePlanValidationError(`item "${itemId}" has no units left`);
+      }
       if (system.uses.value < 1) {
         throw new ConsumePlanValidationError(`item "${itemId}" has no charges left`);
       }
@@ -325,6 +340,27 @@ function seedActors(db: FusionDatabase, ownerId: string): void {
         effectRef: { packName: GM_PACK_NAME, sourceId: GM_EFFECT_SOURCE_ID },
       }),
     ]),
+    // BAR-F5-01: the unit count is 0 but the charge count is not, and the item would heal AND copy an effect.
+    makeActor(
+      ZERO_ACTOR_ID,
+      "Alquimista Zero",
+      ownership,
+      [
+        consumableItem(ZERO_ITEM_ID, {
+          quantity: 0,
+          damage: { formula: "100", kind: "healing", type: "untyped" },
+          effectRef: { packName: GM_PACK_NAME, sourceId: GM_EFFECT_SOURCE_ID },
+        }),
+      ],
+      { value: HEAL_STARTING_HP, max: HEAL_MAX_HP },
+    ),
+    // BAR-F5-01: the owner is `ownerId`; everybody else is OBSERVER (can open the sheet, may not spend anything).
+    makeActor(
+      OBS_ACTOR_ID,
+      "Alquimista Observada",
+      { default: OwnershipLevel.OBSERVER, [ownerId]: OwnershipLevel.OWNER },
+      [consumableItem(OBS_ITEM_ID, { quantity: 2 })],
+    ),
   ];
 
   for (const actor of fixtures) {
@@ -748,6 +784,129 @@ describe("item:consume — I4 fix: effect resolution must not depend on the call
       expect(result.appliedEffectIds).toHaveLength(1);
       const after = readActorRaw(ctx.fusionDb, EFFECT_ACTOR_ID);
       expect(embeddedEffectFrom(after)).toBeDefined();
+    } finally {
+      socket.disconnect();
+    }
+  });
+});
+
+// ---------------------------------------------------------------------------
+// BAR-F5-01 — the refusals the UI leans on.
+//
+// The Barra de Ações (tab Itens) and the sheet's inventory "Usar" both call `item:consume` and keep no copy of the
+// quantity: they dim an item that has no unit left and let the SERVER say no when it must. So the "no" has to be
+// real, and it has to leave nothing behind — a refusal that still healed, copied an effect, posted a card or bumped the
+// version would be a worse bug than one that never refused.
+//
+// Own describe: it needs the `audience: "gm"` pack so that, if the handler DID let the ZERO item through, its effect
+// would actually be copied (without the pack the planned effect is skipped with only a warning, and the assertion
+// "no effect appeared" would pass for the wrong reason).
+// ---------------------------------------------------------------------------
+
+describe("item:consume — recusas em que a UI se apoia (BAR-F5-01)", () => {
+  let ctx: TestContext;
+  let packRoot: string;
+
+  beforeEach(async () => {
+    const { compendium, packRoot: root } = buildGmAudiencePackCompendium();
+    packRoot = root;
+    ctx = await buildTestContext({ compendiumService: compendium });
+  });
+
+  afterEach(async () => {
+    await teardown(ctx);
+    rmSync(packRoot, { recursive: true, force: true });
+  });
+
+  const chatCount = (): number =>
+    (ctx.fusionDb.raw.prepare(`SELECT COUNT(*) AS n FROM chat_messages`).get() as { n: number }).n;
+
+  const consumePayload = (actorId: string, itemId: string) => ({
+    actorId,
+    itemId,
+    mode: "use",
+    expectedVersion: 1,
+  });
+
+  /** Nothing the op could have changed has changed: item, HP, effects, version, chat, hooks. */
+  function expectNoTrace(actorId: string, itemId: string, chatBefore: number): void {
+    const actor = readActorRaw(ctx.fusionDb, actorId);
+    const item = actor.items?.find((i) => i["_id"] === itemId) as
+      | { system: { quantity: number; uses: { value: number } } }
+      | undefined;
+    expect(item, "the item is still on the sheet").toBeDefined();
+    expect(item?.system.uses.value, "no charge was spent").toBe(1);
+    expect(actor.items?.filter((i) => i["name"] === "Efeito de Teste (GM)")).toHaveLength(0);
+    expect(actor._stats?.version, "no write: the version did not move").toBe(1);
+    expect(actor.system?.attributes?.hp?.value, "no heal").toBe(HEAL_STARTING_HP);
+    expect(chatCount(), "no card").toBe(chatBefore);
+    expect(ctx.hookLog, "no onConsumed hook").toEqual([]);
+  }
+
+  it("quantity:0 é recusado com VALIDATION_FAILED, mesmo sobrando carga, e a recusa não deixa rastro", async () => {
+    const socket = await connectSocket(ctx.port, ctx.worldId, ctx.playerToken);
+    try {
+      const chatBefore = chatCount();
+      const ack = await sendOp(socket, "item:consume", consumePayload(ZERO_ACTOR_ID, ZERO_ITEM_ID));
+
+      expect(ack["ok"], JSON.stringify(ack)).toBe(false);
+      expect(ack["code"]).toBe("VALIDATION_FAILED");
+      expectNoTrace(ZERO_ACTOR_ID, ZERO_ITEM_ID, chatBefore);
+      const item = readActorRaw(ctx.fusionDb, ZERO_ACTOR_ID).items?.find(
+        (i) => i["_id"] === ZERO_ITEM_ID,
+      ) as { system: { quantity: number } };
+      expect(item.system.quantity, "the zero is still a zero, not -1").toBe(0);
+    } finally {
+      socket.disconnect();
+    }
+  });
+
+  it("quantity:0 vale para o Mestre também: a regra é do item, não de quem pede", async () => {
+    const socket = await connectSocket(ctx.port, ctx.worldId, ctx.gmToken);
+    try {
+      const chatBefore = chatCount();
+      const ack = await sendOp(socket, "item:consume", consumePayload(ZERO_ACTOR_ID, ZERO_ITEM_ID));
+
+      expect(ack["ok"], JSON.stringify(ack)).toBe(false);
+      expect(ack["code"]).toBe("VALIDATION_FAILED");
+      expectNoTrace(ZERO_ACTOR_ID, ZERO_ITEM_ID, chatBefore);
+    } finally {
+      socket.disconnect();
+    }
+  });
+
+  it("jogador que só OBSERVA a ficha (vê, não é dono) → PERMISSION_DENIED, sem rastro", async () => {
+    const socket = await connectSocket(ctx.port, ctx.worldId, ctx.player2Token);
+    try {
+      const chatBefore = chatCount();
+      const ack = await sendOp(socket, "item:consume", consumePayload(OBS_ACTOR_ID, OBS_ITEM_ID));
+
+      expect(ack["ok"], JSON.stringify(ack)).toBe(false);
+      expect(ack["code"]).toBe("PERMISSION_DENIED");
+      const actor = readActorRaw(ctx.fusionDb, OBS_ACTOR_ID);
+      const item = actor.items?.find((i) => i["_id"] === OBS_ITEM_ID) as
+        | { system: { quantity: number; uses: { value: number } } }
+        | undefined;
+      expect(item?.system.quantity).toBe(2);
+      expect(item?.system.uses.value).toBe(1);
+      expect(actor._stats?.version).toBe(1);
+      expect(chatCount()).toBe(chatBefore);
+      expect(ctx.hookLog).toEqual([]);
+    } finally {
+      socket.disconnect();
+    }
+  });
+
+  it("o dono da MESMA ficha consome normalmente (o OBSERVER é recusado pela posse, não por outro motivo)", async () => {
+    const socket = await connectSocket(ctx.port, ctx.worldId, ctx.playerToken);
+    try {
+      const ack = await sendOp(socket, "item:consume", consumePayload(OBS_ACTOR_ID, OBS_ITEM_ID));
+
+      expect(ack["ok"], JSON.stringify(ack)).toBe(true);
+      const item = readActorRaw(ctx.fusionDb, OBS_ACTOR_ID).items?.find(
+        (i) => i["_id"] === OBS_ITEM_ID,
+      ) as { system: { quantity: number } };
+      expect(item.system.quantity).toBe(1);
     } finally {
       socket.disconnect();
     }
