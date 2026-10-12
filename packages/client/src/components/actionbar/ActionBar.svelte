@@ -35,6 +35,21 @@
   import { untrack } from "svelte";
 
   import ContextMenu from "../common/ContextMenu.svelte";
+  // BAR-F3-05: the entry's custom image — the slots' icon source and the icon picker.
+  import { setContext } from "svelte";
+  import FilePicker from "../../lib/components/assets/FilePicker.svelte";
+  import { fusionApi } from "../../lib/api.js";
+  import {
+    SLOT_ICON_SOURCE,
+    canEditActorIcons,
+    createSlotIconSource,
+    customIconCount,
+    customIconOf,
+    iconChoiceOp,
+    iconMenuActions,
+    type IconPickTarget,
+  } from "../../lib/actionbar/actionBarIcons.js";
+  import type { SlotMenuIconState } from "../../lib/actionbar/slotMenu.js";
   import SlotGrid from "./SlotGrid.svelte";
   import StatusStrip from "./StatusStrip.svelte";
   import TabBar from "./TabBar.svelte";
@@ -171,6 +186,10 @@
     noteUsed: noteActorUsed,
   });
 
+  // BAR-F3-05: every slot reads its entry's custom image from here (Slot.svelte), so the grid in
+  // between needs no new prop.
+  setContext(SLOT_ICON_SOURCE, createSlotIconSource(() => bar?.ctx.actor));
+
   // What was open belonged to the other actor.
   $effect(() => {
     void actorId;
@@ -285,7 +304,50 @@
 
   function chooseMenuItem(itemId: string): void {
     if (actorId === null) return;
-    runSlotMenuItem(itemId, { actorId, services });
+    const entryId = menu?.entry.id;
+    runSlotMenuItem(itemId, {
+      actorId,
+      services,
+      icon:
+        entryId === undefined
+          ? undefined
+          : iconMenuActions({
+              actorId,
+              entryId,
+              openPicker: (target) => {
+                iconPick = target;
+              },
+              sendOp: (op) => {
+                services.sendOp(op);
+              },
+            }),
+    });
+  }
+
+  // -------------------------------------------------------------------------
+  // BAR-F3-05: the custom icon — the menu's icon items and the picker they open
+  // -------------------------------------------------------------------------
+
+  /** What the icon items of the menu need: may this seat write the actor, the image, the count. */
+  function iconMenuState(entry: ActionBarEntry): SlotMenuIconState {
+    const actorDoc = bar?.ctx.actor;
+    return {
+      canEdit: canEditActorIcons(actorDoc, userId, isGm),
+      current: customIconOf(actorDoc, entry.id),
+      count: customIconCount(actorDoc),
+    };
+  }
+
+  /** The entry whose image the icon picker is choosing; null while it is closed. */
+  let iconPick = $state<IconPickTarget | null>(null);
+
+  /** The picker chose: write it on the actor the menu was opened for (the server re-checks who). */
+  function chooseIcon(path: string): void {
+    const target = iconPick;
+    iconPick = null;
+    if (target === null) return;
+    const op = iconChoiceOp(target.actorId, target.entryId, path);
+    if (op !== null) services.sendOp(op);
   }
 
   function endTurn(event: MouseEvent): void {
@@ -378,7 +440,7 @@
   {#if menu !== null}
     <ContextMenu
       open={true}
-      items={slotMenuItems(menu.entry)}
+      items={slotMenuItems(menu.entry, iconMenuState(menu.entry))}
       label={menu.entry.label}
       showLabel
       point={{ x: menu.open.x, y: menu.open.y }}
@@ -392,6 +454,19 @@
       }}
     />
   {/if}
+{/if}
+
+<!-- BAR-F3-05: "Trocar ícone…" opens the asset picker in its icon mode — the shared gallery and the
+     icon upload, never the GM's maps (REQ-BAR-074, REQ-BAR-079). -->
+{#if iconPick !== null}
+  <FilePicker
+    token={fusionApi.getToken() ?? ""}
+    mode="actionbar-icons"
+    onSelect={chooseIcon}
+    onClose={() => {
+      iconPick = null;
+    }}
+  />
 {/if}
 
 <style>

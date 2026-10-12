@@ -1409,6 +1409,9 @@
   "FUSION.ActionBar.Tooltip.Spent": "Gasto até recarregar",
   "FUSION.ActionBar.Tooltip.Footer.Menu": "Botão direito: opções",
   "FUSION.ActionBar.Tooltip.Footer.AltAndMenu": "Alt: detalhes · Botão direito: opções",
+  "FUSION.ActionBar.Menu.ChangeIcon": "Trocar ícone…",
+  "FUSION.ActionBar.Menu.RestoreIcon": "Restaurar ícone padrão",
+  "FUSION.ActionBar.Menu.IconCap": "Este personagem já tem {{cap}} ícones customizados.",
   "FUSION.ActionBar.Error.NoConnection": "Sem conexão com o servidor.",
   "FUSION.ActionBar.Error.Generic": "Não foi possível executar."
 }

@@ -1409,6 +1409,9 @@
   "FUSION.ActionBar.Tooltip.Spent": "Spent until it recharges",
   "FUSION.ActionBar.Tooltip.Footer.Menu": "Right click: options",
   "FUSION.ActionBar.Tooltip.Footer.AltAndMenu": "Alt: details · Right click: options",
+  "FUSION.ActionBar.Menu.ChangeIcon": "Change icon…",
+  "FUSION.ActionBar.Menu.RestoreIcon": "Restore default icon",
+  "FUSION.ActionBar.Menu.IconCap": "This character already has {{cap}} custom icons.",
   "FUSION.ActionBar.Error.NoConnection": "No connection to the server.",
   "FUSION.ActionBar.Error.Generic": "Could not run it."
 }
