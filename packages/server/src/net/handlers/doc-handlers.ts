@@ -109,6 +109,10 @@ import {
   isCharacterActor,
 } from "../../documents/knowledge.js";
 import { stripGmExceptionsOnCreate } from "../../documents/gm-exceptions.js";
+import {
+  actionBarFlagsCreateProblem,
+  actionBarFlagsWriteProblem,
+} from "../../documents/action-bar-flags.js";
 import { rejectAttitudeWrite, sanitizeAttitudeOnCreate } from "../../documents/attitude.js";
 import { applyMountMovement } from "../../combat/mount-follow.js";
 import {
@@ -1496,6 +1500,16 @@ export function buildDocCreateHandler(deps: DocHandlerDeps): HandlerFn {
       }
     }
 
+    // BAR-F3-05 / BAR-F3-01 (tasks.md §2.5): an Actor born with an invalid action bar is refused, for
+    // every role, and BEFORE the loop below writes anything — the loop persists as it goes, so a
+    // refusal inside it would leave the earlier items of the batch written and unannounced.
+    if (documentType === "Actor") {
+      for (const rawItem of data) {
+        const actionBarProblem = actionBarFlagsCreateProblem(rawItem as Record<string, unknown>);
+        if (actionBarProblem) return ackError("VALIDATION_FAILED", actionBarProblem);
+      }
+    }
+
     const authorCtx = { userId: ctx.userId };
     const created: Record<string, unknown>[] = [];
 
@@ -1847,6 +1861,12 @@ export function buildDocUpdateHandler(deps: DocHandlerDeps): HandlerFn {
         if (!currencyValidation.ok) {
           return ackError("VALIDATION_FAILED", currencyValidation.message);
         }
+
+        // BAR-F3-05 / BAR-F3-01 (tasks.md §2.5): the action bar's state is judged on the RESULT,
+        // for every role — the ownership check above already decided WHO (REQ-BAR-072/073); this
+        // closes WHAT: one icon-area path per icon, at most ACTION_BAR_ICON_CAP of them.
+        const actionBarProblem = actionBarFlagsWriteProblem(existing, merged);
+        if (actionBarProblem) return ackError("VALIDATION_FAILED", actionBarProblem);
       }
     }
 
