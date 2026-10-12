@@ -170,22 +170,12 @@
   "rodadas": [
     {
       "onda": 1,
-      "tarefas": [
-        "BAR-F1-01",
-        "BAR-F1-02",
-        "BAR-F2-01"
-      ],
-      "integradas": [
-        "BAR-F1-01",
-        "BAR-F1-02",
-        "BAR-F2-01"
-      ],
+      "tarefas": ["BAR-F1-01", "BAR-F1-02", "BAR-F2-01"],
+      "integradas": ["BAR-F1-01", "BAR-F1-02", "BAR-F2-01"],
       "gate": true,
       "revisao": {
         "achados": 0,
-        "abertos": [
-          "revisão adversarial única no fechamento do lote (calibragem de 11/10)"
-        ]
+        "abertos": ["revisão adversarial única no fechamento do lote (calibragem de 11/10)"]
       },
       "core_sha": "f3c0e977e4794babfe9d5f7076b4be5f33a3a7b3",
       "sat_sha": "a65403f744e8c576e747d1be076a49459e1acda2"
@@ -215,27 +205,15 @@
       "gate": true,
       "revisao": {
         "achados": 0,
-        "abertos": [
-          "revisão adversarial única no fechamento do lote (calibragem de 11/10)"
-        ]
+        "abertos": ["revisão adversarial única no fechamento do lote (calibragem de 11/10)"]
       },
       "core_sha": "00220e6d8d1800c3bc8db3bb40005e9dcd1488b8",
       "sat_sha": "7e07d5666bb746de67f8de12a2b1a36c03b8b3b8"
     },
     {
       "onda": 3,
-      "tarefas": [
-        "BAR-F2-07",
-        "BAR-F3-01",
-        "BAR-F3-05",
-        "BAR-F5-01"
-      ],
-      "integradas": [
-        "BAR-F2-07",
-        "BAR-F3-01",
-        "BAR-F3-05",
-        "BAR-F5-01"
-      ],
+      "tarefas": ["BAR-F2-07", "BAR-F3-01", "BAR-F3-05", "BAR-F5-01"],
+      "integradas": ["BAR-F2-07", "BAR-F3-01", "BAR-F3-05", "BAR-F5-01"],
       "gate": true,
       "revisao": {
         "achados": 0,
