@@ -64,7 +64,7 @@
 
        canvas
        < scene notice               60  literal in ScenePrepareNotice.svelte
-       < action bar                 70  --fusion-z-actionbar, declared by BAR-F1-04
+       < action bar                 70  --fusion-z-actionbar
        < side drawer                90  literal in Sidebar.svelte
        < header                    100  literal in TableScreen.svelte
        < floating windows         101+  counted up by the window manager, inside the host
@@ -79,6 +79,7 @@
      picker 300/301), so a tooltip or menu opened from inside one stays visible. REQ-UIF-008
      wants modals above menus and tooltips; that is for the day modals get tokens of their own
      (above 410) — a native <dialog> is already above everything, in the top layer. */
+  --fusion-z-actionbar: 70;
   --fusion-z-windows: 200;
   --fusion-z-tooltip: 400;
   --fusion-z-menu: 410;

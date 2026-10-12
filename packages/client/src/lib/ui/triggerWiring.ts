@@ -104,6 +104,12 @@ export function tooltipEscape(input: {
   target: unknown;
   anchor: { contains(other: Node | null): boolean } | null | undefined;
   anotherLayerOpen: boolean;
+  /**
+   * The caller wants this Escape kept from the rest of the app even though it is not aimed at the
+   * trigger (BAR-F1-04): the action bar does, or one Escape would close the tooltip AND drop the
+   * selected token. Decided per key by the caller; never overrides a layer that owns the key.
+   */
+  consumeElsewhere?: boolean | undefined;
 }): TooltipEscapeDecision {
   if (input.anotherLayerOpen) return "ignore";
   const aimedAtTrigger =
@@ -111,26 +117,32 @@ export function tooltipEscape(input: {
     input.target !== undefined &&
     input.anchor != null &&
     input.anchor.contains(input.target as Node);
-  return aimedAtTrigger ? "dismiss-and-consume" : "dismiss";
+  return aimedAtTrigger || input.consumeElsewhere === true ? "dismiss-and-consume" : "dismiss";
 }
 
 /**
  * Makes Escape dismiss a showing tooltip, on the document in the capture phase so it runs
  * before the window's own handlers. The trigger is looked up when the key arrives, so a
  * trigger that changed is the one that counts.
+ *
+ * `consumesEscape` is optional and asked once per Escape that no other layer owns: when it says
+ * yes, the Escape is consumed even though it is not aimed at the trigger (see `tooltipEscape`).
  */
 export function bindTooltipEscape(
   doc: Pick<Document, "addEventListener" | "removeEventListener">,
   intent: Pick<HoverIntent, "escape">,
   getAnchor: () => { contains(other: Node | null): boolean } | null | undefined,
   anotherLayerOpen: () => boolean = isAnyLayerOpen,
+  consumesEscape?: (event: KeyboardEvent) => boolean,
 ): () => void {
   const onKeyDown = (event: KeyboardEvent): void => {
     if (!isEscapeKey(event)) return;
+    const layerOpen = anotherLayerOpen();
     const decision = tooltipEscape({
       target: event.target,
       anchor: getAnchor(),
-      anotherLayerOpen: anotherLayerOpen(),
+      anotherLayerOpen: layerOpen,
+      consumeElsewhere: !layerOpen && consumesEscape?.(event) === true,
     });
     if (decision === "ignore") return;
     if (decision === "dismiss-and-consume") {

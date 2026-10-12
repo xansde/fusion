@@ -23,6 +23,14 @@ import Sidebar from "../Sidebar.svelte";
 import { sidebarIcons } from "../icons.js";
 import { clearSidebarTabs, registerSidebarTab } from "../../../lib/sidebar/registry.js";
 import { sidebarPreferencesKey } from "../../../lib/sidebar/preferences.js";
+import {
+  DRAWER_NARROW_BREAKPOINT,
+  DRAWER_PANEL_WIDTH,
+  DRAWER_RAIL_WIDTH,
+  drawerWidth,
+  isDrawerOpen,
+  publishDrawerOpen,
+} from "../../../lib/sidebar/drawerLayout.svelte.js";
 import "../../../lib/i18n/index.js";
 
 // ---------------------------------------------------------------------------
@@ -290,5 +298,51 @@ describe("sidebar on a narrow screen and from the keyboard", () => {
         expect(code).not.toMatch(/accesskey/i);
       }
     });
+  });
+});
+
+// ---------------------------------------------------------------------------
+// BAR-F1-04 — the action bar reads how much of the screen the drawer covers
+// ---------------------------------------------------------------------------
+
+describe("the narrow rule is the one the action bar's layout follows (BAR-F1-04, REQ-BAR-022)", () => {
+  beforeEach(() => {
+    localStorage.clear();
+    clearSidebarTabs();
+    registerCoreTabs();
+    publishDrawerOpen(false);
+  });
+
+  it("the open drawer covers the whole viewport exactly where the media query says it does", () => {
+    const [block] = mediaBlocks("Sidebar.svelte");
+    expect(block?.condition).toBe(`(max-width: ${String(DRAWER_NARROW_BREAKPOINT - 0.02)}px)`);
+    expect(block?.body).toMatch(/left:\s*0/);
+
+    // Just under the breakpoint: everything left of the rail is the panel — the drawer covers it all.
+    expect(drawerWidth(true, DRAWER_NARROW_BREAKPOINT - 0.02)).toBe(
+      DRAWER_NARROW_BREAKPOINT - 0.02,
+    );
+    // At the breakpoint and above: rail plus the fixed panel.
+    expect(drawerWidth(true, DRAWER_NARROW_BREAKPOINT)).toBe(
+      DRAWER_RAIL_WIDTH + DRAWER_PANEL_WIDTH,
+    );
+  });
+
+  it("a collapsed drawer covers only its rail, however narrow the screen", () => {
+    expect(drawerWidth(false, 320)).toBe(DRAWER_RAIL_WIDTH);
+    expect(drawerWidth(false, 1920)).toBe(DRAWER_RAIL_WIDTH);
+  });
+
+  it("rendering the sidebar publishes what it rendered: the layout state follows the markup", () => {
+    seedPreferences(true, "chat");
+    const open = renderSidebar();
+    expect(open).toContain("fusion-sidebar--open");
+    expect(isDrawerOpen()).toBe(true);
+
+    localStorage.clear();
+    seedPreferences(false, "chat");
+    const collapsed = renderSidebar();
+    expect(collapsed).not.toContain("fusion-sidebar--open");
+    expect(isDrawerOpen()).toBe(false);
   });
 });

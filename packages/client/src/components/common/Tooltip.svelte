@@ -18,7 +18,9 @@
    *    trigger, the key stops here, or it would also close the window the trigger sits in. A
    *    tooltip that is merely under the mouse closes quietly and lets the key go on to whoever it
    *    was for (a search field to clear, a token to deselect); and with a popover or menu open,
-   *    the key is theirs and the tooltip does nothing (`tooltipEscape`).
+   *    the key is theirs and the tooltip does nothing (`tooltipEscape`). A caller may ask for more
+   *    through `consumeEscape` — the action bar does, so its tooltip's Escape never drops the
+   *    selected token — but that never beats a layer that owns the key.
    *  - **`role="tooltip"` and `aria-describedby`**: while it is open the trigger is described
    *    by it (an id is added to any `aria-describedby` the trigger already has, and removed
    *    again). Only while open, because the content is not even rendered before then.
@@ -68,6 +70,13 @@
     /** Open state. Bindable: read it, or drive it (a long-press) from outside. */
     open?: boolean | undefined;
     placement?: Placement | undefined;
+    /**
+     * Gap between the tooltip and its anchor, in px. 6 by default. A caller that wants the tooltip to
+     * clear more than the anchor itself raises it: the action bar puts its tooltips ABOVE the whole
+     * bar, not over its status strip (BAR-F1-04, prototype T1), so it passes the distance from the
+     * slot to the top of the bar.
+     */
+    offset?: number | undefined;
     /** Milliseconds before a hover or a keyboard focus opens it. */
     openDelay?: number | undefined;
     /** Milliseconds before leaving closes it — the time to cross onto the tooltip. */
@@ -76,6 +85,13 @@
     disabled?: boolean | undefined;
     /** Element id, for callers that need to reference it. Generated when omitted. */
     id?: string | undefined;
+    /**
+     * Asked once per Escape that is not aimed at the trigger (and that no popover or menu owns):
+     * answer true to have the tooltip take the key — close, and keep it from the rest of the app
+     * (BAR-F1-04: the action bar uses it so the Escape that closes a slot's tooltip does not also
+     * drop the selected token). Absent, the key goes on to whoever it was for (BAR-F1-03).
+     */
+    consumeEscape?: ((event: KeyboardEvent) => boolean) | undefined;
   }
 
   let {
@@ -86,10 +102,12 @@
     expanded = false,
     open = $bindable(false),
     placement = "top",
+    offset = 6,
     openDelay = 300,
     closeDelay = 100,
     disabled = false,
     id,
+    consumeEscape,
   }: Props = $props();
 
   const generatedId = nextLayerId("fusion-tooltip");
@@ -125,7 +143,13 @@
   // popover or menu when one is open (`tooltipEscape` has the rule).
   $effect(() => {
     if (!visible) return;
-    return bindTooltipEscape(document, intent, () => anchor);
+    return bindTooltipEscape(
+      document,
+      intent,
+      () => anchor,
+      undefined,
+      (event) => consumeEscape?.(event) === true,
+    );
   });
 
   // While it is showing, it describes the trigger. Added to what is already there.
@@ -143,7 +167,7 @@
     id={tipId}
     role="tooltip"
     data-level={showExpanded ? "expanded" : "short"}
-    use:floatingLayer={{ anchor, placement, offset: 6 }}
+    use:floatingLayer={{ anchor, placement, offset }}
     onpointerenter={() => intent.layerIn()}
     onpointerleave={() => intent.layerOut()}
   >

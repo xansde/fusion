@@ -339,6 +339,130 @@ describe("bindTooltipEscape — Escape dismisses a showing tooltip", () => {
 });
 
 // ---------------------------------------------------------------------------
+// BAR-F1-04 — a caller that wants the Escape of its tooltip kept from the rest of the app
+// ---------------------------------------------------------------------------
+//
+// BAR-F1-03 left an Escape pressed away from the trigger to go on to "whoever it was for". For the
+// action bar that is the TokenInteractionManager: with the mouse resting on a slot, one Escape both
+// closed the tooltip AND dropped the token selection — and for the Mestre, whose bar exists only
+// while a token is selected, the bar vanished with it. So a caller can now say, per key, that the
+// tooltip should take the Escape (`consumesEscape`). The default is unchanged.
+
+describe("tooltipEscape — a caller can take the Escape that is not aimed at the trigger", () => {
+  const anchor = { contains: (other: unknown) => other === "the-trigger" };
+
+  it("consumeElsewhere: an Escape aimed elsewhere closes the tooltip AND stops there", () => {
+    expect(
+      tooltipEscape({
+        target: "the-canvas",
+        anchor,
+        anotherLayerOpen: false,
+        consumeElsewhere: true,
+      }),
+    ).toBe("dismiss-and-consume");
+  });
+
+  it("the default stays: without it, an Escape aimed elsewhere goes on", () => {
+    expect(tooltipEscape({ target: "the-canvas", anchor, anotherLayerOpen: false })).toBe(
+      "dismiss",
+    );
+    expect(
+      tooltipEscape({
+        target: "the-canvas",
+        anchor,
+        anotherLayerOpen: false,
+        consumeElsewhere: false,
+      }),
+    ).toBe("dismiss");
+  });
+
+  it("a menu or popover that is open still owns the Escape: consuming never beats the layer on top", () => {
+    expect(
+      tooltipEscape({
+        target: "the-canvas",
+        anchor,
+        anotherLayerOpen: true,
+        consumeElsewhere: true,
+      }),
+    ).toBe("ignore");
+  });
+});
+
+describe("bindTooltipEscape — consumesEscape decides, per key, whether the tooltip takes it", () => {
+  const trigger = { contains: (other: unknown) => other === trigger };
+
+  function bound(consumesEscape?: (event: KeyboardEvent) => boolean) {
+    const doc = fakeSource();
+    const intent = fakeIntent();
+    bindTooltipEscape(doc as unknown as Document, intent, () => trigger, undefined, consumesEscape);
+    return { doc, intent };
+  }
+
+  it("true: an Escape aimed at the canvas closes the tooltip and does not reach the token manager", () => {
+    const { doc, intent } = bound(() => true);
+    const escape = keyEvent({ target: { the: "canvas" } });
+
+    doc.fire("keydown", escape);
+
+    expect(intent.calls).toEqual(["escape"]);
+    // `defaultPrevented` is what the manager respects (I6); stopping propagation is what keeps the
+    // window's own handlers (`Window.svelte` closes the whole window on any Escape) from seeing it.
+    expect(escape.preventDefault).toHaveBeenCalled();
+    expect(escape.stopPropagation).toHaveBeenCalled();
+  });
+
+  it("false: the tooltip still closes, but the key goes on to whoever it was for", () => {
+    const { doc, intent } = bound(() => false);
+    const escape = keyEvent({ target: { the: "chat-search" } });
+
+    doc.fire("keydown", escape);
+
+    expect(intent.calls).toEqual(["escape"]);
+    expect(escape.preventDefault).not.toHaveBeenCalled();
+    expect(escape.stopPropagation).not.toHaveBeenCalled();
+  });
+
+  it("the caller is asked with the event itself, once per Escape", () => {
+    const asked: unknown[] = [];
+    const { doc } = bound((event) => {
+      asked.push(event);
+      return true;
+    });
+    const escape = keyEvent({ target: { the: "canvas" } });
+
+    doc.fire("keydown", escape);
+
+    expect(asked).toEqual([escape]);
+  });
+
+  it("it is not asked about other keys, an IME Escape, or when another layer owns the key", () => {
+    const asked: unknown[] = [];
+    const { doc, intent } = bound((event) => {
+      asked.push(event);
+      return true;
+    });
+
+    doc.fire("keydown", keyEvent({ key: "Enter" }));
+    doc.fire("keydown", keyEvent({ isComposing: true }));
+    const layer = pushLayer();
+    doc.fire("keydown", keyEvent({ target: { the: "canvas" } }));
+    releaseLayer(layer);
+
+    expect(asked).toEqual([]);
+    expect(intent.calls).toEqual([]);
+  });
+
+  it("on the trigger itself it is consumed whatever the caller says (that part never changed)", () => {
+    const { doc } = bound(() => false);
+    const escape = keyEvent({ target: trigger });
+
+    doc.fire("keydown", escape);
+
+    expect(escape.stopPropagation).toHaveBeenCalled();
+  });
+});
+
+// ---------------------------------------------------------------------------
 // describeTrigger
 // ---------------------------------------------------------------------------
 

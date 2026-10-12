@@ -195,8 +195,13 @@ describe("the tooltip is wired to its timing machine and to its trigger (WCAG 1.
 
   it("it is placed beside its trigger by the shared placement action, with the gap the design uses", () => {
     expect(attributeOf(tip, "floatingLayer", "UseDirective")).toBe(
-      "use:floatingLayer={{ anchor, placement, offset: 6 }}",
+      "use:floatingLayer={{ anchor, placement, offset }}",
     );
+  });
+
+  it("the gap defaults to the design's 6 px, and a caller can raise it (BAR-F1-04: above the whole bar)", () => {
+    expect(code).toMatch(/offset\?: number \| undefined;/);
+    expect(code).toMatch(/offset = 6,/);
   });
 
   it("the trigger's hover, focus and press feed the timing machine, while the tooltip is enabled", () => {
@@ -207,8 +212,15 @@ describe("the tooltip is wired to its timing machine and to its trigger (WCAG 1.
 
   it("Escape is wired only while the tooltip shows, and to the same timing machine", () => {
     expect(code).toMatch(
-      /if \(!visible\) return;\s*return bindTooltipEscape\(document, intent, \(\) => anchor\);/,
+      /if \(!visible\) return;\s*return bindTooltipEscape\(\s*document,\s*intent,\s*\(\) => anchor,/,
     );
+  });
+
+  it("BAR-F1-04: a caller's consumeEscape is asked live, and its absence means 'let the key go on'", () => {
+    expect(code).toMatch(/consumeEscape\?: \(\(event: KeyboardEvent\) => boolean\) \| undefined;/);
+    // Read when the key arrives, so a changed callback is the one that runs; `=== true`, so a
+    // missing callback (undefined) is a no.
+    expect(code).toMatch(/\(event\) => consumeEscape\?\.\(event\) === true/);
   });
 
   it("while it shows, it describes its trigger", () => {
