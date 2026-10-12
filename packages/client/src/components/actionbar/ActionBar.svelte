@@ -27,8 +27,15 @@
    * The behaviour — what a click does, the busy slot, errors, the tab, the fold, the strip's message —
    * is `actionBarController.svelte.ts`; the decisions about what a slot or the strip say are pure
    * modules (`slotModel`, `statusModel`, `turn`), tested without a DOM (§2.10). This file wires them.
+   * **Favourites** are in the ACTOR (BAR-F3-01, REQ-BAR-061): `createFavoritesStore` reads the row off
+   * the actor document and writes it back with the version lock; the first time the bar opens for an
+   * actor that has none, the system's seed is written once (REQ-BAR-064). A favourite whose entry left
+   * the sheet is drawn faded as an orphan (REQ-BAR-066). Both wait for the sheet to settle (see
+   * `SHEET_SETTLE_MS`): a late pack must neither make a real favourite flash as "Ausente" nor leave
+   * the seed written from a partial list.
+   *
    * Not here (D-BA16): remembering the tab or the fold on the device, drag and drop, aim mode, the
-   * full slot menu, the NPC and group bars.
+   * full slot menu (only open, pin and unpin), the NPC and group bars.
    */
 
   import type { Socket } from "socket.io-client";
@@ -64,8 +71,10 @@
   import { readActorDoc } from "../../lib/actionbar/actorDocReader.svelte.js";
   import { buildActionBarContext } from "../../lib/actionbar/barContext.js";
   import { publishBarHeight } from "../../lib/actionbar/barFootprint.svelte.js";
-  import { createFavoritesSource } from "../../lib/actionbar/favoritesSource.js";
+  import { createFavoritesStore } from "../../lib/actionbar/favoritesStore.svelte.js";
+  import { resolveSeedIds } from "../../lib/actionbar/favoritesSource.js";
   import { computeBarLayout, menuOriginAboveBar } from "../../lib/actionbar/layout.js";
+  import { SHEET_SETTLE_MS, orphanEntry } from "../../lib/actionbar/orphan.js";
   import { releaseFocusAfterPointer } from "../../lib/actionbar/slotFocus.js";
   import { mapHint } from "../../lib/actionbar/slotModel.js";
   import { runSlotMenuItem, slotMenuItems } from "../../lib/actionbar/slotMenu.js";
@@ -160,10 +169,41 @@
   // What it does
   // -------------------------------------------------------------------------
 
-  // Until BAR-F3-01 keeps the favourites in the actor, an in-memory row seeded from the entries
-  // (SCAFFOLDING). It follows the actor, not every redraw: the row is rebuilt only when the actor changes.
+  /**
+   * The ids the first-opening seed would pin RIGHT NOW for the active actor (`resolveSeedIds`): the
+   * system's own, else the shell's. An empty answer is "nothing to seed yet" (the provider has not
+   * loaded), and the seed waits. Worked out once per change of the bar, not once per redraw: the
+   * system's seed goes through the entries again.
+   */
+  const seedOfBar = $derived(
+    bar === null
+      ? []
+      : resolveSeedIds(bar.provider, bar.ctx, entries, (error) => {
+          console.error("[actionbar] provider.seed failed", error);
+        }),
+  );
+
+  /** A store asks for ITS actor's seed: once the bar shows another actor, the answer is "nothing". */
+  function seedIdsFor(forActorId: string): readonly string[] {
+    return bar !== null && bar.ctx.actorId === forActorId ? seedOfBar : [];
+  }
+
+  // The favourites live in the actor. The store follows the actor, not every redraw: it is rebuilt
+  // only when the active actor changes, and its writes queue behind any still on the wire for the same
+  // actor. It reads and seeds by ITS OWN actor id (`readActorDoc`, `seedIdsFor`), never through "the
+  // actor on screen": a store that outlives a change of actor may still have a write to finish.
   const favorites = $derived(
-    actorId === null ? null : createFavoritesSource(actorId, () => entries),
+    actorId === null
+      ? null
+      : createFavoritesStore({
+          actorId,
+          readActor: readActorDoc,
+          write: (payload) => services.request("doc:update", payload),
+          seedIds: seedIdsFor,
+          notify: (message) => {
+            controller.notify(message);
+          },
+        }),
   );
 
   const services = $derived(
@@ -204,6 +244,34 @@
     void resolved;
     untrack(() => {
       controller.reconcile();
+    });
+  });
+
+  // The sheet is taken for loaded a moment after the active actor changes: the packs that give the
+  // basic actions arrive from the server after the actor's own data, and until then the provider's
+  // list is partial. A favourite that is only late is not an orphan yet, and the seed — written once
+  // and for all — is not taken from a partial list.
+  let sheetSettled = $state(false);
+  $effect(() => {
+    void actorId;
+    sheetSettled = false;
+    const timer = setTimeout(() => {
+      sheetSettled = true;
+    }, SHEET_SETTLE_MS);
+    return () => {
+      clearTimeout(timer);
+    };
+  });
+
+  // The first-opening seed (REQ-BAR-064): written once, by whoever may write the actor, once the
+  // sheet has settled (until then the row already SHOWS the seed). Asked again whenever the
+  // provider's list changes — a seed with nothing in it waits for the list.
+  $effect(() => {
+    const store = favorites;
+    if (store === null || resolved === null || !sheetSettled) return;
+    void entries;
+    untrack(() => {
+      store.ensureSeeded();
     });
   });
 
@@ -298,29 +366,35 @@
   const menu = $derived.by(() => {
     const open = controller.menu;
     if (open === null) return null;
-    const entry = entries.find((candidate) => candidate.id === open.entryId);
-    return entry === undefined ? null : { entry, open };
+    const listed = entries.find((candidate) => candidate.id === open.entryId);
+    // An orphan is not in the provider's list, but it is pinned: its menu is "Desafixar".
+    const entry =
+      listed ??
+      (favorites?.isPinned(open.entryId) === true ? orphanEntry(open.entryId) : undefined);
+    return entry === undefined ? null : { entry, open, orphan: listed === undefined };
   });
 
   function chooseMenuItem(itemId: string): void {
-    if (actorId === null) return;
-    const entryId = menu?.entry.id;
+    if (actorId === null || menu === null) return;
+    const entryId = menu.entry.id;
     runSlotMenuItem(itemId, {
       actorId,
       services,
-      icon:
-        entryId === undefined
-          ? undefined
-          : iconMenuActions({
-              actorId,
-              entryId,
-              openPicker: (target) => {
-                iconPick = target;
-              },
-              sendOp: (op) => {
-                services.sendOp(op);
-              },
-            }),
+      entry: menu.entry,
+      favorites: favorites ?? undefined,
+      // An orphan gets no icon actions: its stand-in has no image and nothing to change (BAR-F3-05).
+      icon: menu.orphan
+        ? undefined
+        : iconMenuActions({
+            actorId,
+            entryId,
+            openPicker: (target) => {
+              iconPick = target;
+            },
+            sendOp: (op) => {
+              services.sendOp(op);
+            },
+          }),
     });
   }
 
@@ -405,12 +479,16 @@
           tab={controller.tab}
           {entries}
           favorites={favorites?.slots() ?? []}
+          showOrphans={sheetSettled}
           isBusy={(entryId) => controller.isBusy(entryId)}
           {altHeld}
           {Details}
           menuEntryId={controller.menu?.entryId ?? null}
           onrun={(entry) => {
             void controller.runEntry(entry);
+          }}
+          onorphan={() => {
+            controller.notify(t("FUSION.ActionBar.Favorites.Orphan.Click"));
           }}
           oncontext={openMenu}
           onhover={(entry) => {
@@ -440,7 +518,10 @@
   {#if menu !== null}
     <ContextMenu
       open={true}
-      items={slotMenuItems(menu.entry, { icon: iconMenuState(menu.entry) })}
+      items={slotMenuItems(menu.entry, {
+        favorites: favorites ?? undefined,
+        icon: menu.orphan ? undefined : iconMenuState(menu.entry),
+      })}
       label={menu.entry.label}
       showLabel
       point={{ x: menu.open.x, y: menu.open.y }}

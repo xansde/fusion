@@ -14,13 +14,16 @@ import {
   ACTION_BAR_ICON_CAP,
   ACTION_BAR_ICON_AREA,
   ACTION_BAR_FLAG_PATH,
+  ACTION_BAR_FAVORITES_FLAG_PATH,
   ACTION_BAR_ICONS_FLAG_PATH,
+  ACTION_BAR_SEEDED_FLAG_PATH,
   ActionBarEntryIdSchema,
   ActionBarAssetPathSchema,
   ActionBarFlagsSchema,
   isActionBarIconFileName,
   isActionBarIconPath,
   readActionBarFlags,
+  actionBarFavoritesPatch,
   actionBarIconPatch,
 } from "../actionbar.js";
 
@@ -196,6 +199,93 @@ describe("ActionBarFlagsSchema — favourites (BAR-F3-01)", () => {
 
   it("accepts the empty object (nothing chosen yet)", () => {
     expect(ActionBarFlagsSchema.safeParse({}).success).toBe(true);
+  });
+
+  it("accepts a row of 12 empty positions: the player cleared every favourite (seeded stays true)", () => {
+    expect(ActionBarFlagsSchema.safeParse({ favorites: twelve(null), seeded: true }).success).toBe(
+      true,
+    );
+  });
+
+  it("refuses favourites that are not a list of 12 ids-or-null — an object, null, a number, a nested list", () => {
+    // An object is what a dot-path diff on an INDEX ("favorites.3") makes of the array once merged.
+    const asObject = Object.fromEntries(twelve(null).map((value, index) => [String(index), value]));
+    const withNumber: unknown[] = twelve(null);
+    withNumber[4] = 7;
+    const withList: unknown[] = twelve(null);
+    withList[4] = ["strike:a"];
+    for (const favorites of [asObject, null, "strike:a", withNumber, withList, []]) {
+      expect(ActionBarFlagsSchema.safeParse({ favorites }).success, JSON.stringify(favorites)).toBe(
+        false,
+      );
+    }
+  });
+
+  it("refuses an id with the right kind but a malformed origin, in any one of the 12 positions", () => {
+    for (let slot = 0; slot < ACTION_BAR_SLOT_COUNT; slot++) {
+      for (const bad of ["strike:", "strike:a b", "macro:x", `spell:${"a".repeat(121)}`, ""]) {
+        const favorites = twelve(null);
+        favorites[slot] = bad;
+        expect(
+          ActionBarFlagsSchema.safeParse({ favorites }).success,
+          `${String(slot)}: ${bad.slice(0, 20)}`,
+        ).toBe(false);
+      }
+    }
+  });
+});
+
+describe("actionBarFavoritesPatch — the diff the client sends (BAR-F3-01)", () => {
+  const row = (): Array<string | null> => {
+    const favorites = Array.from({ length: ACTION_BAR_SLOT_COUNT }, () => null) as Array<
+      string | null
+    >;
+    favorites[0] = "strike:longsword";
+    favorites[5] = "spell:main:heal";
+    return favorites;
+  };
+
+  it("names the two paths of the bar's flags", () => {
+    expect(ACTION_BAR_FAVORITES_FLAG_PATH).toBe("flags.fusion.actionBar.favorites");
+    expect(ACTION_BAR_SEEDED_FLAG_PATH).toBe("flags.fusion.actionBar.seeded");
+    expect(ACTION_BAR_FAVORITES_FLAG_PATH.startsWith(`${ACTION_BAR_FLAG_PATH}.`)).toBe(true);
+    expect(ACTION_BAR_SEEDED_FLAG_PATH.startsWith(`${ACTION_BAR_FLAG_PATH}.`)).toBe(true);
+  });
+
+  it("writes the whole row and marks it as seeded — always together, so a touched row is never re-seeded", () => {
+    const patch = actionBarFavoritesPatch(row());
+
+    expect(Object.keys(patch).sort()).toEqual(
+      [ACTION_BAR_FAVORITES_FLAG_PATH, ACTION_BAR_SEEDED_FLAG_PATH].sort(),
+    );
+    expect(patch[ACTION_BAR_FAVORITES_FLAG_PATH]).toEqual(row());
+    expect(patch[ACTION_BAR_SEEDED_FLAG_PATH]).toBe(true);
+  });
+
+  it("the two values form a bar the schema accepts", () => {
+    const patch = actionBarFavoritesPatch(row());
+
+    const parsed = ActionBarFlagsSchema.safeParse({
+      favorites: patch[ACTION_BAR_FAVORITES_FLAG_PATH],
+      seeded: patch[ACTION_BAR_SEEDED_FLAG_PATH],
+    });
+    expect(parsed.success).toBe(true);
+  });
+
+  it("copies the row: changing the caller's array afterwards does not change the patch", () => {
+    const source = row();
+    const patch = actionBarFavoritesPatch(source);
+    source[0] = "strike:changed";
+
+    expect((patch[ACTION_BAR_FAVORITES_FLAG_PATH] as Array<string | null>)[0]).toBe(
+      "strike:longsword",
+    );
+  });
+
+  it("does not touch the icons: the patch has no `icons` key, so the deep merge keeps the map", () => {
+    const patch = actionBarFavoritesPatch(row());
+
+    expect(Object.keys(patch).some((key) => key.includes("icons"))).toBe(false);
   });
 });
 

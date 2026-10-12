@@ -242,9 +242,10 @@ describe("ActionBar — a faixa, as abas e os 12 slots (T1)", () => {
     expect(seals).toEqual(["1", "2", "3", "4", "5", "6", "7", "8", "9", "0", "−", "="]);
   });
 
-  it("a semente do L1: golpes, magias e ações do provedor, até quatro de cada, nos primeiros slots", () => {
+  it("a semente do ator que ainda não tem favoritos: golpes, magias e ações do provedor, até quatro de cada, nos primeiros slots", () => {
     const html = bar();
 
+    // Os alternáveis (`toggle:*`) moram na aba Ações mas não são ações: a semente é por TIPO, não por aba.
     expect(slotIds(html)).toEqual([
       "strike:stub-sword",
       "strike:stub-bow",
@@ -253,7 +254,6 @@ describe("ActionBar — a faixa, as abas e os 12 slots (T1)", () => {
       "action:stub-seek",
       "action:stub-stride",
       "action:stub-command",
-      "toggle:stub-guard",
     ]);
   });
 
@@ -270,17 +270,36 @@ describe("ActionBar — a faixa, as abas e os 12 slots (T1)", () => {
     const html = bar();
 
     expect(slotTag(html, "strike:stub-sword")).toContain('aria-keyshortcuts="1"');
-    expect(slotTag(html, "toggle:stub-guard")).toContain('aria-keyshortcuts="8"');
+    expect(slotTag(html, "action:stub-command")).toContain('aria-keyshortcuts="7"');
   });
 
-  it("custo no canto, selo de patamar, bônus e alternável ligado", () => {
+  it("custo no canto, selo de patamar e bônus", () => {
     const html = bar();
 
     expect(html).toMatch(/<i class="slot__c[^"]*"[^>]*>◆<\/i>/);
     expect(html).toMatch(/<i class="slot__seal slot__seal--rank[^"]*"[^>]*>1<\/i>/);
     expect(html).toMatch(/<i class="slot__v[^"]*"[^>]*>\+9<\/i>/);
+  });
+
+  it("alternável ligado: o botão diz que está pressionado (ele vive na aba Ações, não entra na semente)", () => {
+    const html = render(SlotGrid, {
+      props: {
+        tab: "actions",
+        entries: makeStubEntries(),
+        favorites: [],
+        isBusy: () => false,
+        altHeld: false,
+        menuEntryId: null,
+        onrun: () => undefined,
+        oncontext: () => undefined,
+        onhover: () => undefined,
+        onleave: () => undefined,
+      },
+    }).body;
+
     expect(slotTag(html, "toggle:stub-guard")).toContain('data-state="active"');
     expect(slotTag(html, "toggle:stub-guard")).toContain('aria-pressed="true"');
+    expect(slotIds(bar())).not.toContain("toggle:stub-guard");
   });
 
   it("o botão de recolher existe e a barra não vem recolhida", () => {
@@ -450,6 +469,103 @@ describe("ActionBar — de quem é a barra", () => {
 // ---------------------------------------------------------------------------
 // The status strip
 // ---------------------------------------------------------------------------
+
+// ---------------------------------------------------------------------------
+// The favourites live in the ACTOR (BAR-F3-01, REQ-BAR-061..066)
+// ---------------------------------------------------------------------------
+
+describe("ActionBar — os favoritos gravados no ator (BAR-F3-01)", () => {
+  /** The player's character with a bar already saved in it. */
+  function saveBar(actionBar: Record<string, unknown>, version = 7): void {
+    feed("doc:update", {
+      documentType: "Actor",
+      documents: [
+        {
+          ...actor(PC, "character", "Huo Jinwu", {
+            default: OwnershipLevel.NONE,
+            [PLAYER]: OwnershipLevel.OWNER,
+          }),
+          flags: { fusion: { actionBar } },
+          _stats: { version },
+        },
+      ],
+    });
+  }
+
+  const row = (...ids: Array<string | null>): Array<string | null> =>
+    Array.from({ length: 12 }, (_, index) => ids[index] ?? null);
+
+  beforeEach(() => {
+    actionBarRegistry.register("Actor", "character", createStubProvider().provider);
+    setActiveActorViewer(PLAYER_SEAT);
+  });
+
+  it("as posições são as gravadas, com os buracos — a posição É a tecla", () => {
+    saveBar({
+      favorites: row("strike:stub-bow", null, "action:stub-seek"),
+      seeded: true,
+    });
+
+    const html = bar();
+
+    expect(slotIds(html)).toEqual(["strike:stub-bow", "action:stub-seek"]);
+    expect(slotTag(html, "strike:stub-bow")).toContain('aria-keyshortcuts="1"');
+    expect(slotTag(html, "action:stub-seek")).toContain('aria-keyshortcuts="3"');
+    expect(html.match(/<div class="slot-empty /g)).toHaveLength(10);
+  });
+
+  it("D-BA08: depois da semente, o que o provedor tem de novo ou de outro tipo NÃO entra na linha — fica na aba", () => {
+    saveBar({ favorites: row("strike:stub-bow"), seeded: true });
+
+    const html = bar();
+
+    // A espada, as magias e as ações existem no provedor, mas a linha é só o que o jogador fixou.
+    expect(slotIds(html)).toEqual(["strike:stub-bow"]);
+    expect(html).not.toContain("strike:stub-sword");
+    expect(html).not.toContain("spell:stub-main:burst");
+  });
+
+  it("o jogador esvaziou a linha toda: ela fica vazia, a semente não volta (REQ-BAR-065)", () => {
+    saveBar({ favorites: row(), seeded: true });
+
+    const html = bar();
+
+    expect(textOf(html)).toContain("Nenhum favorito fixado ainda.");
+    expect(slotIds(html)).toEqual([]);
+  });
+
+  it("um favorito gravado cuja entrada não existe mais não aparece como órfão na primeira pintura: a carga do ator ainda não passou", () => {
+    saveBar({ favorites: row("strike:stub-bow", "item:vendido"), seeded: true });
+
+    const html = bar();
+
+    expect(slotIds(html)).toEqual(["strike:stub-bow"]);
+    expect(html).not.toContain("item:vendido");
+  });
+
+  it("o Mestre que seleciona o personagem vê a MESMA linha que o jogador (os favoritos estão no ator, REQ-BAR-061)", () => {
+    saveBar({ favorites: row("action:stub-seek", "strike:stub-bow"), seeded: true });
+    setActiveActorViewer(GM_SEAT);
+    publishTokenSelection({ sceneId: SCENE, tokenIds: [TOK_PC] });
+
+    const asGm = bar(GM_SEAT);
+    setActiveActorViewer(PLAYER_SEAT);
+    publishTokenSelection({ sceneId: SCENE, tokenIds: [] });
+    const asPlayer = bar();
+
+    expect(slotIds(asGm)).toEqual(["action:stub-seek", "strike:stub-bow"]);
+    expect(slotIds(asPlayer)).toEqual(slotIds(asGm));
+  });
+
+  it("uma linha gravada com lixo (tamanho errado, id inválido) não derruba a barra: o que não é id é posição vazia", () => {
+    saveBar({ favorites: ["strike:stub-bow", 7, "isto não é um id", null], seeded: true });
+
+    const html = bar();
+
+    expect(slotIds(html)).toEqual(["strike:stub-bow"]);
+    expect(html.match(/<div class="slot-empty /g)).toHaveLength(11);
+  });
+});
 
 describe("ActionBar — a faixa de estado (REQ-BAR-027, REQ-BAR-036..040)", () => {
   beforeEach(() => {
@@ -787,6 +903,7 @@ describe("SlotGrid — abas, grupos e o estado vazio (REQ-BAR-026)", () => {
       favorites?: Array<string | null>;
       isBusy?: (id: string) => boolean;
       menuEntryId?: string | null;
+      showOrphans?: boolean;
     } = {},
   ): string {
     return render(SlotGrid, {
@@ -794,10 +911,12 @@ describe("SlotGrid — abas, grupos e o estado vazio (REQ-BAR-026)", () => {
         tab,
         entries,
         favorites: extra.favorites ?? [],
+        showOrphans: extra.showOrphans ?? true,
         isBusy: extra.isBusy ?? (() => false),
         altHeld: false,
         menuEntryId: extra.menuEntryId ?? null,
         onrun: () => undefined,
+        onorphan: () => undefined,
         oncontext: () => undefined,
         onhover: () => undefined,
         onleave: () => undefined,
@@ -846,13 +965,21 @@ describe("SlotGrid — abas, grupos e o estado vazio (REQ-BAR-026)", () => {
     expect(grid("actions", many.slice(0, 7))).toContain("--rows: 1");
   });
 
-  it("favoritos vazios: a linha some e dá lugar à mensagem; favoritos que sobraram da ficha não aparecem", () => {
+  it("nada fixado: a linha some e dá lugar à mensagem", () => {
     expect(textOf(grid("favorites", makeStubEntries(), { favorites: [] }))).toBe(
       "Nenhum favorito fixado ainda.",
     );
-    expect(textOf(grid("favorites", [], { favorites: ["strike:saiu-da-ficha", null] }))).toBe(
-      "Nenhum favorito fixado ainda.",
-    );
+    expect(
+      textOf(grid("favorites", makeStubEntries(), { favorites: new Array(12).fill(null) })),
+    ).toBe("Nenhum favorito fixado ainda.");
+  });
+
+  it("há favoritos fixados mas o provedor ainda não entregou nada: as 12 posições ficam, e a mensagem de vazio não mente", () => {
+    const html = grid("favorites", [], { favorites: ["strike:ainda-nao-chegou", null] });
+
+    expect(textOf(html)).not.toContain("Nenhum favorito fixado");
+    expect(html.match(/<div class="slot-empty /g)).toHaveLength(12);
+    expect(slotIds(html)).toEqual([]);
   });
 
   it("favoritos: o slot ocupa a posição da tecla, e o vazio entre dois fica visível", () => {
@@ -863,6 +990,93 @@ describe("SlotGrid — abas, grupos e o estado vazio (REQ-BAR-026)", () => {
     expect(slotIds(html)).toEqual(["strike:stub-sword", "action:stub-seek"]);
     expect(html.match(/<div class="slot-empty /g)).toHaveLength(10);
     expect(slotTag(html, "action:stub-seek")).toContain('aria-keyshortcuts="3"');
+  });
+
+  describe("o favorito órfão — a entrada saiu da ficha (REQ-BAR-066, CA-BAR-06)", () => {
+    const withOrphan = ["strike:stub-sword", "item:vendido", "action:stub-seek"];
+
+    it("fica na posição da tecla dele, esmaecido, dizendo que não está mais na ficha", () => {
+      const html = grid("favorites", makeStubEntries(), { favorites: withOrphan });
+
+      expect(slotIds(html)).toEqual(["strike:stub-sword", "item:vendido", "action:stub-seek"]);
+      const tag = slotTag(html, "item:vendido");
+      expect(tag).toContain('data-state="unavailable"');
+      expect(tag).toContain('aria-disabled="true"');
+      expect(tag).toContain('aria-keyshortcuts="2"');
+      expect(tag).toMatch(/aria-label="Não está mais na ficha\./);
+      expect(tag).toContain("Desafixe");
+      // As entradas que continuam na ficha seguem como eram.
+      expect(slotTag(html, "strike:stub-sword")).not.toContain("aria-disabled");
+      expect(slotTag(html, "action:stub-seek")).not.toContain("aria-disabled");
+    });
+
+    it("o nome embaixo do ícone é curto e legível, e o id cru não aparece em lugar nenhum", () => {
+      const html = grid("favorites", makeStubEntries(), { favorites: ["item:a1b2c3d4e5"] });
+
+      expect(html).toMatch(/<span class="slot__name[^"]*"[^>]*>Ausente<\/span>/);
+      expect(textOf(html)).not.toContain("a1b2c3d4e5");
+    });
+
+    it("é um botão que recebe o clique (esmaecer é sinal, não trava) e usa o selo da tecla", () => {
+      const html = grid("favorites", makeStubEntries(), { favorites: withOrphan });
+
+      expect(slotTag(html, "item:vendido")).not.toMatch(/\sdisabled(\s|>|=)/);
+      expect(html).toMatch(/<i class="slot__k[^"]*"[^>]*>2<\/i>/);
+    });
+
+    it("antes de a barra estar armada (a carga do ator) um favorito que falta é só uma caixa vazia", () => {
+      const html = grid("favorites", makeStubEntries(), {
+        favorites: withOrphan,
+        showOrphans: false,
+      });
+
+      expect(slotIds(html)).toEqual(["strike:stub-sword", "action:stub-seek"]);
+      expect(html.match(/<div class="slot-empty /g)).toHaveLength(10);
+    });
+
+    it("se o provedor não entregou nada, nenhum favorito vira órfão", () => {
+      const html = grid("favorites", [], { favorites: withOrphan });
+
+      expect(slotIds(html)).toEqual([]);
+      expect(html.match(/<div class="slot-empty /g)).toHaveLength(12);
+    });
+
+    it("só pinos órfãos também desenham a linha (não é o 'nenhum favorito')", () => {
+      const html = grid("favorites", makeStubEntries(), { favorites: ["item:vendido"] });
+
+      expect(slotIds(html)).toEqual(["item:vendido"]);
+      expect(textOf(html)).not.toContain("Nenhum favorito fixado");
+    });
+
+    it("o órfão com o menu aberto sai o mesmo slot (um só snippet atende a entrada e o órfão, e é ele que recebe o menuOpen)", () => {
+      const closed = grid("favorites", makeStubEntries(), { favorites: withOrphan });
+      const open = grid("favorites", makeStubEntries(), {
+        favorites: withOrphan,
+        menuEntryId: "item:vendido",
+      });
+      const source = readFileSync(
+        fileURLToPath(new URL("../SlotGrid.svelte", import.meta.url)),
+        "utf8",
+      );
+
+      // `menuOpen` only silences the tooltip, which the server render does not draw: the markup must not move.
+      expect(slotTag(open, "item:vendido")).toBe(slotTag(closed, "item:vendido"));
+      // …and the flag reaches the orphan because there is ONE place that hands it to a Slot.
+      expect(source.match(/menuOpen=\{menuEntryId === entry\.id\}/g)).toHaveLength(1);
+      expect(source).toMatch(/\{@render slotOf\(cell\.entry, index, cell\.kind === "orphan"/);
+    });
+
+    it("o órfão não tem arrastar nem nada que um clique rodasse: o slot é o de sempre e o clique vai para o aviso", () => {
+      const source = readFileSync(
+        fileURLToPath(new URL("../SlotGrid.svelte", import.meta.url)),
+        "utf8",
+      );
+
+      expect(source).toMatch(
+        /\{@render slotOf\(cell\.entry, index, cell\.kind === "orphan" \? onorphan : onrun\)\}/,
+      );
+      expect(source).not.toMatch(/draggable/);
+    });
   });
 
   it("o slot ocupado diz que está ocupado (sem rolagem em dobro)", () => {
@@ -1188,6 +1402,74 @@ describe("ActionBar — a fiação que o SSR não roda (lida do fonte)", () => {
     );
   });
 
+  it("BAR-F3-01: os favoritos são o store persistido no ator — lê o ator por readActorDoc e escreve por services.request, que devolve o ack", () => {
+    const source = code("../ActionBar.svelte");
+
+    expect(source).toContain("createFavoritesStore({");
+    // `readActorDoc` goes in as it is and the store passes its own id: a closure over `actorId` would
+    // follow the actor ON SCREEN, and a store that outlives a change of actor would read (and write
+    // back) another character's row.
+    expect(source).toContain("readActor: readActorDoc,");
+    expect(source).not.toMatch(/readActor:\s*\(\)/);
+    expect(source).toContain("seedIds: seedIdsFor,");
+    expect(source).toContain('write: (payload) => services.request("doc:update", payload)');
+    // A fonte em memória da primeira entrega saiu.
+    expect(source).not.toContain("createFavoritesSource");
+    // E o store NÃO escreve pelo `makeSendOpFn`: ele reenviaria o array velho depois de um STALE_WRITE
+    // e levaria o fixar de outro aparelho junto (REQ-BAR-063).
+    expect(code("../../../lib/actionbar/favoritesStore.svelte.ts")).not.toContain("makeSendOpFn");
+  });
+
+  it("BAR-F3-01: a semente é gravada por um $effect que só pergunta, e só depois de a ficha assentar; a da casca só vale quando o provedor não declara a dele", () => {
+    const source = code("../ActionBar.svelte");
+
+    expect(source).toMatch(
+      /\$effect\(\(\) => \{\s*const store = favorites;\s*if \(store === null \|\| resolved === null \|\| !sheetSettled\) return;\s*void entries;\s*untrack\(\(\) => \{\s*store\.ensureSeeded\(\);/,
+    );
+    // The flag is reset BEFORE the seed is asked: after a change of actor the effect that asks would otherwise
+    // read the `true` the previous actor left, and ask from a partial list. Run time proof of why the order
+    // matters: favoritesStoreReactivity.test.ts (the effects fixture); here the component is held to it.
+    const reset = source.indexOf("sheetSettled = false;");
+    expect(reset).toBeGreaterThan(-1);
+    expect(reset).toBeLessThan(source.indexOf("store.ensureSeeded()"));
+    // What the seed IS (the provider's, else the shell's; `[]` stays `[]`) is `resolveSeedIds`, tested as
+    // behaviour in favoritesSource.test.ts. Here only: the bar asks it once per change of the bar, a store
+    // gets the seed of its own actor only, and the shell has no pick of its own to fill a provider's `[]` with.
+    expect(source).not.toContain("seedFromEntries");
+    expect(source).toContain("resolveSeedIds(bar.provider, bar.ctx, entries,");
+    expect(source).toMatch(
+      /function seedIdsFor\(forActorId: string\): readonly string\[\] \{\s*return bar !== null && bar\.ctx\.actorId === forActorId \? seedOfBar : \[\];/,
+    );
+  });
+
+  it("BAR-F3-01: a ficha só assenta depois da janela de carga do ator — um efeito arma, a grade recebe (órfãos), e o clique vira aviso", () => {
+    const source = code("../ActionBar.svelte");
+
+    expect(source).toMatch(
+      /\$effect\(\(\) => \{\s*void actorId;\s*sheetSettled = false;\s*const timer = setTimeout\(\(\) => \{\s*sheetSettled = true;\s*\}, SHEET_SETTLE_MS\);\s*return \(\) => \{\s*clearTimeout\(timer\);/,
+    );
+    expect(source).toContain("showOrphans={sheetSettled}");
+    expect(source).toContain('controller.notify(t("FUSION.ActionBar.Favorites.Orphan.Click"))');
+  });
+
+  it("BAR-F3-01: o menu do slot conhece os favoritos — o órfão tem menu, e escolher um item age sobre a entrada do menu", () => {
+    const source = code("../ActionBar.svelte");
+
+    expect(source).toContain("orphanEntry(open.entryId)");
+    // Another task's field (the icon) sits beside `favorites` in both calls, in no fixed order.
+    expect(source).toMatch(
+      /items=\{slotMenuItems\(menu\.entry, \{[^}]*favorites: favorites \?\? undefined[^}]*\}\)\}/,
+    );
+    // The body of `chooseMenuItem`: another task's field (the icon actions, with braces of their own) may
+    // sit next to these two in the call, so the call is not matched as a whole.
+    const choose =
+      /function chooseMenuItem\(itemId: string\): void \{([\s\S]*?)\n {2}\}/.exec(source)?.[1] ??
+      "";
+    expect(choose).toContain("runSlotMenuItem(itemId, {");
+    expect(choose).toMatch(/\bentry: menu\.entry,/);
+    expect(choose).toMatch(/\bfavorites: favorites \?\? undefined,/);
+  });
+
   it("a área livre estreita recolhe a barra (syncNarrow); a altura dela é publicada e zerada ao sair", () => {
     const source = code("../ActionBar.svelte");
 
@@ -1299,6 +1581,8 @@ describe("os textos da barra estão nos dois idiomas", () => {
       "../TabBar.svelte",
       "../../../lib/actionbar/slotModel.ts",
       "../../../lib/actionbar/slotMenu.ts",
+      "../../../lib/actionbar/favoritesStore.svelte.ts",
+      "../../../lib/actionbar/orphan.ts",
       "../../../lib/actionbar/actionBarController.svelte.ts",
       "../../../lib/actionbar/actionBarServices.ts",
     ].map(read);
@@ -1326,6 +1610,8 @@ describe("os textos da barra estão nos dois idiomas", () => {
       "../TabBar.svelte",
       "../../../lib/actionbar/slotModel.ts",
       "../../../lib/actionbar/slotMenu.ts",
+      "../../../lib/actionbar/favoritesStore.svelte.ts",
+      "../../../lib/actionbar/orphan.ts",
       "../../../lib/actionbar/actionBarController.svelte.ts",
       "../../../lib/actionbar/actionBarServices.ts",
     ]
