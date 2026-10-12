@@ -1426,9 +1426,16 @@ describe("ActionBar — a fiação que o SSR não roda (lida do fonte)", () => {
     expect(source).toMatch(
       /\$effect\(\(\) => \{\s*const store = favorites;\s*if \(store === null \|\| resolved === null \|\| !sheetSettled\) return;\s*void entries;\s*untrack\(\(\) => \{\s*store\.ensureSeeded\(\);/,
     );
+    // The flag is reset BEFORE the seed is asked: after a change of actor the effect that asks would otherwise
+    // read the `true` the previous actor left, and ask from a partial list. Run time proof of why the order
+    // matters: favoritesStoreReactivity.test.ts (the effects fixture); here the component is held to it.
+    const reset = source.indexOf("sheetSettled = false;");
+    expect(reset).toBeGreaterThan(-1);
+    expect(reset).toBeLessThan(source.indexOf("store.ensureSeeded()"));
     // What the seed IS (the provider's, else the shell's; `[]` stays `[]`) is `resolveSeedIds`, tested as
-    // behaviour in favoritesSource.test.ts. Here only: the bar asks it once per change of the bar, and a store
-    // gets the seed of its own actor only.
+    // behaviour in favoritesSource.test.ts. Here only: the bar asks it once per change of the bar, a store
+    // gets the seed of its own actor only, and the shell has no pick of its own to fill a provider's `[]` with.
+    expect(source).not.toContain("seedFromEntries");
     expect(source).toContain("resolveSeedIds(bar.provider, bar.ctx, entries,");
     expect(source).toMatch(
       /function seedIdsFor\(forActorId: string\): readonly string\[\] \{\s*return bar !== null && bar\.ctx\.actorId === forActorId \? seedOfBar : \[\];/,

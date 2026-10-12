@@ -229,11 +229,22 @@ class FavoritesStoreImpl implements FavoritesStore {
     return versionOf(acked) > versionOf(mirrored) ? acked : mirrored;
   }
 
-  /** The row of a document: the stored one, or — while the seed is due — the seed the provider gives. */
-  #baseRow(doc: Json | undefined): (string | null)[] {
-    return needsSeed(doc)
-      ? rowFromIds(this.#deps.seedIds(this.#deps.actorId))
-      : (storedRowOf(doc) ?? emptyRow());
+  /**
+   * The row of a document: the stored one, or — while the seed is due — the seed the provider gives.
+   * `shown` is the seed the player was looking at when he made the edit that is being written now. It
+   * counts only when the provider has nothing to say any more — the bar went to another actor while a
+   * refused write waited to be redone — so the edit is applied over THAT row, not over an empty one,
+   * which would burn the flag on a row without the seed.
+   */
+  #baseRow(doc: Json | undefined, shown: readonly string[] = []): (string | null)[] {
+    if (!needsSeed(doc)) return storedRowOf(doc) ?? emptyRow();
+    const live = this.#deps.seedIds(this.#deps.actorId);
+    return rowFromIds(live.length > 0 ? live : shown);
+  }
+
+  /** The seed on screen right now, when the seed is due (an edit made now is made over it); else nothing. */
+  #seedOnScreen(): readonly string[] {
+    return needsSeed(this.#latestDoc()) ? [...this.#deps.seedIds(this.#deps.actorId)] : [];
   }
 
   slots(): ReadonlyArray<string | null> {
@@ -297,8 +308,10 @@ class FavoritesStoreImpl implements FavoritesStore {
 
     const { chains } = this.#shared;
     const { actorId } = this.#deps;
+    // The seed is not an edit over a row: it is the row. Only the edits carry the seed they were made over.
+    const shown = mutation.kind === "seed" ? [] : this.#seedOnScreen();
     const previous = chains.get(actorId) ?? Promise.resolve();
-    const run = previous.then(() => this.#run(token, mutation));
+    const run = previous.then(() => this.#run(token, mutation, shown));
     chains.set(actorId, run);
     void run.then(() => {
       if (chains.get(actorId) === run) chains.delete(actorId);
@@ -306,9 +319,9 @@ class FavoritesStoreImpl implements FavoritesStore {
   }
 
   /** Never rejects: a failed write is a message on the strip, and the display goes back to the document. */
-  async #run(token: number, mutation: Mutation): Promise<void> {
+  async #run(token: number, mutation: Mutation, shown: readonly string[]): Promise<void> {
     try {
-      await this.#commit(mutation);
+      await this.#commit(mutation, shown);
     } catch (error) {
       console.error("[actionbar] could not save the favourites", error);
       this.#say(t("FUSION.ActionBar.Favorites.SaveFailed"));
@@ -330,7 +343,7 @@ class FavoritesStoreImpl implements FavoritesStore {
     }
   }
 
-  async #commit(mutation: Mutation): Promise<void> {
+  async #commit(mutation: Mutation, shown: readonly string[]): Promise<void> {
     const { actorId } = this.#deps;
     // The version of the last write this edit saw refused. -1: none yet.
     let refusedAt = -1;
@@ -343,12 +356,16 @@ class FavoritesStoreImpl implements FavoritesStore {
         // first has a broadcast on its way. Wait for it — never resend a write known to be stale.
         doc = await this.#waitForNewerThan(refusedAt);
         if (versionOf(doc) <= refusedAt) {
+          // Nothing newer came. What an ack carried may be AHEAD of the server (a world restored from an
+          // older backup): forget it, so the next edit starts from the mirror's document instead of
+          // failing the same way until the page is reloaded.
+          this.#shared.acked.delete(actorId);
           throw new Error("the document did not move after a refused write");
         }
       }
       const version = versionOf(doc);
 
-      const plan = this.#plan(mutation, doc);
+      const plan = this.#plan(mutation, doc, shown);
       if (plan.kind === "full") {
         // Not dropped in silence: the player saw this pin on the display and it did not fit.
         this.#say(t("FUSION.ActionBar.Favorites.Full"));
@@ -382,9 +399,9 @@ class FavoritesStoreImpl implements FavoritesStore {
    * one it was made on: a seed another device already wrote is not written again, a pin another
    * device already made is not pinned twice, and a pin the row no longer has room for says so.
    */
-  #plan(mutation: Mutation, doc: Json | undefined): Plan {
+  #plan(mutation: Mutation, doc: Json | undefined, shown: readonly string[]): Plan {
     const seedDue = needsSeed(doc);
-    const base = this.#baseRow(doc);
+    const base = this.#baseRow(doc, shown);
     if (mutation.kind === "seed") {
       return seedDue && base.some((id) => id !== null) ? { kind: "write", row: base } : NOTHING;
     }

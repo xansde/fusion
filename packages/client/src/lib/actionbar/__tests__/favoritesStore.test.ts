@@ -659,7 +659,13 @@ describe("concurrent writes — STALE_WRITE is redone on the fresh document", ()
   });
 
   it("the first retry is immediate; from the second refusal on it waits a random short time, so two devices refusing each other in lockstep stop doing it", async () => {
-    const random = vi.spyOn(Math, "random").mockReturnValue(0.5);
+    // Four different draws: a constant wait would pass a test that drew the same number every time.
+    const random = vi
+      .spyOn(Math, "random")
+      .mockReturnValueOnce(0.25)
+      .mockReturnValueOnce(0.5)
+      .mockReturnValueOnce(0.75)
+      .mockReturnValue(1);
     try {
       const r = rig({ server: new FakeServer({ version: 1, favorites: row(), seeded: true }) });
       r.server.beforeWrite = () => {
@@ -670,9 +676,9 @@ describe("concurrent writes — STALE_WRITE is redone on the fresh document", ()
       r.store.pin("strike:a");
       await r.store.settled();
 
-      // Attempts 1 and 2 go back to back; the waits come before attempts 3 to 6, half of the 80 ms jitter each.
+      // Attempts 1 and 2 go back to back; the waits come before attempts 3 to 6, each a draw of the 80 ms jitter.
       expect(r.server.attempts).toHaveLength(FAVORITES_MAX_ATTEMPTS);
-      expect(r.delays).toEqual(new Array<number>(FAVORITES_MAX_ATTEMPTS - 2).fill(40));
+      expect(r.delays).toEqual([20, 40, 60, 80]);
     } finally {
       random.mockRestore();
     }
@@ -913,6 +919,90 @@ describe("a failure the strip cannot show", () => {
     expect(r.notices).toEqual([SAVE_FAILED]);
     expect(seededOn(r.server)).toEqual(row("strike:b"));
     expect(r.store.slots()).toEqual(row("strike:b"));
+  });
+});
+
+describe("an edit made while the seed is due", () => {
+  it("keeps the seed the player was looking at: a refused write redone after the bar moved to another actor (the provider answers nothing for this one now) still writes the row WITH the seed", async () => {
+    const r = rig({ server: new FakeServer({ version: 3 }), seed: ["strike:a", "strike:b"] });
+    expect(r.store.slots()).toEqual(row("strike:a", "strike:b"));
+    r.server.beforeWrite = (attempts) => {
+      if (attempts !== 0) return;
+      r.server.version += 1; // another device wrote something unrelated: this write is refused…
+      r.seed.ids = []; // …and before it is redone the bar goes to another actor
+    };
+
+    r.store.pin("item:x");
+    await r.store.settled();
+
+    expect(r.server.attempts.map((a) => a.outcome)).toEqual(["stale", "ok"]);
+    expect(seededOn(r.server)).toEqual(row("strike:a", "strike:b", "item:x"));
+    expect(r.server.seeded).toBe(true);
+  });
+
+  it("…but while the provider still answers, the row written is the one on screen at that moment (a pack that arrived meanwhile is in it)", async () => {
+    const r = rig({ server: new FakeServer({ version: 3 }), seed: ["strike:a"] });
+    r.server.beforeWrite = (attempts) => {
+      if (attempts !== 0) return;
+      r.server.version += 1;
+      r.seed.ids = ["strike:a", "action:basic"]; // the pack arrived while the first write was refused
+    };
+
+    r.store.pin("item:x");
+    await r.store.settled();
+
+    expect(seededOn(r.server)).toEqual(row("strike:a", "action:basic", "item:x"));
+  });
+
+  it("an unpin and a move keep it too", async () => {
+    const r = rig({
+      server: new FakeServer({ version: 3 }),
+      seed: ["strike:a", "strike:b", "spell:m:c"],
+    });
+    r.server.beforeWrite = (attempts) => {
+      if (attempts !== 0) return;
+      r.server.version += 1;
+      r.seed.ids = [];
+    };
+
+    r.store.unpin("strike:a");
+    r.store.move(1, 2); // queued behind the unpin: written on the document the unpin left, seeded by then
+    await r.store.settled();
+
+    expect(seededOn(r.server)).toEqual(row(null, "spell:m:c", "strike:b"));
+    expect(r.server.seeded).toBe(true);
+  });
+});
+
+describe("an ack that is ahead of the server", () => {
+  it("(a world restored from an older backup) is forgotten when a write on it is refused for good: the edit after that starts from the mirror and goes through", async () => {
+    const r = rig({
+      server: new FakeServer({ version: 5, favorites: row("strike:a"), seeded: true }),
+      onDelay: () => undefined,
+    });
+    r.store.pin("strike:b"); // the ack carries version 6
+    await r.store.settled();
+    expect(r.server.version).toBe(6);
+
+    // The world comes back from an older backup: the server is at version 2 and the mirror was re-synced from it.
+    r.server.version = 2;
+    r.server.favorites = row("strike:a");
+    r.mirror.sync();
+
+    r.store.pin("strike:c"); // sent with the remembered version 6: refused, and nothing newer ever comes
+    await r.store.settled();
+    expect(r.notices).toEqual([SAVE_FAILED]);
+
+    r.store.pin("strike:c"); // now from the mirror's document
+    await r.store.settled();
+
+    expect(r.server.attempts.map((a) => `${a.outcome}@${String(a.expectedVersion)}`)).toEqual([
+      "ok@5",
+      "stale@6",
+      "ok@2",
+    ]);
+    expect(seededOn(r.server)).toEqual(row("strike:a", "strike:c"));
+    expect(r.notices).toEqual([SAVE_FAILED]);
   });
 });
 
