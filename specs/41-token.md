@@ -367,6 +367,11 @@ decisão é de quem for dono dessa tela.
   o que muda é **onde** isso aparece, não que exista.
 - **O que motivou tirar:** uma peça de 1×1 com nome, duas barras, indicador de elevação, borda de
   disposição e até seis ícones de condição não é legível em nenhum zoom de mesa.
+- **Primeiro espaço dedicado (emenda da spec 53, 2026-10-11):** a faixa de estado da barra de
+  ações (`53-barra-de-acoes.md`, REQ-BAR-028) mostra as condições do ator ativo como
+  chips só com o nome, e o efeito aparece ao clicar. Ela decide só o que aparece para o ator
+  ativo: a peça continua sem ícones de condição (REQ-TOK-083), e o espaço dedicado das demais
+  peças segue por decidir.
 
 ### DEC-TOK-20 — O sistema estende a peça por `flags` namespaced, e a engine não lê
 

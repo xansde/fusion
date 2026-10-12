@@ -31,6 +31,7 @@
   import { setCombatBadgeViewer } from "../lib/combat/combatBadge.svelte.js";
   import { attachChatSync, attachChatMessageSync } from "../lib/chat/chatStore.svelte.js";
   import Sidebar from "./sidebar/Sidebar.svelte";
+  import ActionBar from "./actionbar/ActionBar.svelte";
   import { registerCoreSidebarTabs } from "../lib/sidebar/registerCoreTabs.js";
   import { registerCoreChatCardExtensions } from "../lib/chat/registerCoreChatCardExtensions.js";
   import ActiveSceneBadge from "./scenes/ActiveSceneBadge.svelte";
@@ -50,7 +51,14 @@
   import { ensureFootprintRegistry } from "../lib/canvas/tokens/footprintRegistry.svelte.js";
   import { initTokenDisplayPrefs } from "../lib/canvas/tokens/tokenDisplayPrefsStore.svelte.js";
   import { TokenInteractionManager } from "../lib/canvas/tokens/TokenInteractionManager.js";
+  import { ROLE_ASSISTANT } from "../lib/canvas/tokens/token-interaction.js";
   import { ownedActorIdsOf } from "../lib/combat/combatBadge.svelte.js";
+  import {
+    publishTokenSelection,
+    setActiveActorViewer,
+  } from "../lib/actionbar/activeActorStore.svelte.js";
+  import { barHeight as actionBarHeight } from "../lib/actionbar/barFootprint.svelte.js";
+  import { clearanceAboveBar } from "../lib/actionbar/layout.js";
   import { CombatCanvasController } from "../lib/canvas/combat/combatCanvasController.js";
   import { worldMirror } from "../lib/docs/worldSync.js";
   import { registerPf2eSheets } from "@fusion/sheets-pf2e";
@@ -96,6 +104,17 @@
   // place session meets the combat store for it.
   $effect(() => {
     setTargetingViewer(session.user?.id ?? null);
+  });
+
+  // BAR-F1-01 (D-BA01, REQ-BAR-001): whose seat the action bar is for. `isGm` is the
+  // privileged role — the threshold `canMoveToken` uses and the server's `isRolePrivileged`
+  // (role ≥ ASSISTANT) — because the privileged seat may see any actor's bar; a player only
+  // ever gets an actor they own, decided in the store's gate.
+  $effect(() => {
+    const user = session.user;
+    setActiveActorViewer(
+      user ? { userId: user.id, isGm: user.role >= ROLE_ASSISTANT } : null,
+    );
   });
 
   let loggingOut = $state(false);
@@ -302,6 +321,16 @@
     registerPf2eSheets().catch((err) => {
       console.warn("[TableScreen] registerPf2eSheets failed:", err);
     });
+
+    // SCAFFOLDING (BAR-F1-04; BAR-F2-07 removes it): a provider of made-up content, so the action bar
+    // can be seen in the real app before any system registers its own. Development builds only —
+    // `import.meta.env.DEV` is `false` in a production build, so this import is dead code and its
+    // chunk is never emitted. It never replaces a provider that is already registered.
+    if (import.meta.env.DEV) {
+      void import("../lib/actionbar/devStubProvider.js").then((stub) => {
+        stub.registerDevStubProvider();
+      });
+    }
   });
 
   onDestroy(() => {
@@ -320,6 +349,11 @@
     // the side effect (invalidation) matters here.
     sceneLoadGuard.begin();
     _teardownOrchestrator();
+    // BAR-F1-01: the table is gone, and nobody is seated at it any more. Logout changes the
+    // user and the screen in the same tick, so the viewer `$effect` above may never run with
+    // `null`; clearing here keeps the active-actor store from holding the old seat's viewer and
+    // last uses until the next login.
+    setActiveActorViewer(null);
     cleanupScene?.();
     cleanupCombatSync?.();
     cleanupChatSync?.();
@@ -672,6 +706,13 @@
         // have accepted the move.
         getOwnedActorIds: () =>
           ownedActorIdsOf(worldMirror.getByType<Record<string, unknown>>("Actor"), userId),
+        // BAR-F1-01 (REQ-BAR-007): the selection goes to the active-actor store, tagged with
+        // THIS manager's scene. The store only listens to the scene the canvas draws, so the
+        // empty selection this manager publishes when torn down on the way to another scene
+        // does not drop the actor — the selection is kept by actor and crosses the change.
+        onSelectionChange: (tokenIds) => {
+          publishTokenSelection({ sceneId: scene._id, tokenIds: [...tokenIds] });
+        },
         gridConfig: { size: gridSize, offsetX: 0, offsetY: 0 },
         // TK110 (REQ-TOK-110): two clicks on a token open its sheet. The
         // manager already decided the gesture happened and that this user may
@@ -798,7 +839,7 @@
   <!-- REQ-CEN-052: while a prepare lasts, the canvas keeps a persistent notice naming
        the scene the TABLE is watching, with the two ways out. -->
   {#if prepareNotice}
-    <ScenePrepareNotice notice={prepareNotice} socket={getSocket()} />
+    <ScenePrepareNotice notice={prepareNotice} socket={getSocket()} bottomOffset={clearanceAboveBar(actionBarHeight())} />
   {/if}
 
   <!-- -------------------------------------------------------------------- -->
@@ -866,6 +907,18 @@
       isGm={isGm()}
       userId={session.user?.id ?? ""}
     />
+
+    <!-- The action bar (spec 53): the centre-bottom of the table, always of the character (or NPC)
+         in hand. It draws nothing at all for a Mestre with nothing selected, or for an actor
+         whose type has no provider; the ownership gate lives in the active-actor store. -->
+    {#if session.user}
+      <ActionBar
+        socket={sock}
+        worldId={session.worldInfo?.id ?? ""}
+        userId={session.user.id}
+        isGm={session.user.role >= ROLE_ASSISTANT}
+      />
+    {/if}
   {/if}
 
   <!-- -------------------------------------------------------------------- -->

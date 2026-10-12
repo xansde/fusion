@@ -8,17 +8,17 @@ Isso mede *reivindicação de cobertura*, não correção: um teste que nomeia o
 requisito afirma cobri-lo, e essa afirmação é auditável. Requisito sem citação
 nenhuma não afirma nada — é a spec pedindo algo que ninguém foi conferir.
 
-Escopo: os **2262 requisitos [MVP]** definidos nas 47 specs. Os [V2] ficam de fora
+Escopo: os **2342 requisitos [MVP]** definidos nas 48 specs. Os [V2] ficam de fora
 porque ainda não foram prometidos para nenhum marco.
 
 ## Total
 
 | Situação | Requisitos | Fatia |
 | --- | ---: | ---: |
-| Citados por algum teste | 852 | 38% |
-| Citados só por código de produção | 333 | 15% |
-| Sem nenhuma citação | 1077 | 48% |
-| **Total [MVP]** | **2262** | |
+| Citados por algum teste | 906 | 39% |
+| Citados só por código de produção | 336 | 14% |
+| Sem nenhuma citação | 1100 | 47% |
+| **Total [MVP]** | **2342** | |
 
 ## Por spec
 
@@ -34,11 +34,11 @@ porque ainda não foram prometidos para nenhum marco.
 | [07](07-visao-iluminacao-fog.md) | 56 | 8 | 22 | 26 | 14% |
 | [08](08-motor-de-rolagens.md) | 49 | 14 | 12 | 23 | 29% |
 | [09](09-chat-e-mensagens.md) | 55 | 19 | 10 | 26 | 35% |
-| [10](10-combate-e-iniciativa.md) | 54 | 22 | 29 | 3 | 41% |
-| [11](11-ui-framework-e-fichas.md) | 62 | 10 | 16 | 36 | 16% |
+| [10](10-combate-e-iniciativa.md) | 54 | 23 | 28 | 3 | 43% |
+| [11](11-ui-framework-e-fichas.md) | 61 | 11 | 15 | 35 | 18% |
 | [12](12-journal-tabelas-cartas.md) | 34 | 0 | 0 | 34 | 0% |
 | [13](13-audio-e-playlists.md) | 49 | 0 | 3 | 46 | 0% |
-| [14](14-macros-e-automacao.md) | 34 | 0 | 0 | 34 | 0% |
+| [14](14-macros-e-automacao.md) | 27 | 0 | 0 | 27 | 0% |
 | [15](15-api-de-sistemas.md) | 81 | 29 | 31 | 21 | 36% |
 | [16](16-compendiums-e-importacao.md) | 58 | 20 | 16 | 22 | 34% |
 | [17](17-sistema-pf2e.md) | 109 | 68 | 16 | 25 | 62% |
@@ -47,7 +47,7 @@ porque ainda não foram prometidos para nenhum marco.
 | [20](20-assets-e-midia.md) | 50 | 5 | 13 | 32 | 10% |
 | [21](21-seguranca.md) | 44 | 9 | 12 | 23 | 20% |
 | [22](22-instalacao-e-distribuicao.md) | 41 | 19 | 8 | 14 | 46% |
-| [23](23-acessibilidade-e-dispositivos.md) | 45 | 2 | 0 | 43 | 4% |
+| [23](23-acessibilidade-e-dispositivos.md) | 45 | 6 | 1 | 38 | 13% |
 | [24](24-operacao-backups-telemetria.md) | 41 | 0 | 0 | 41 | 0% |
 | [25](25-testes-e-qualidade.md) | 42 | 0 | 0 | 42 | 0% |
 | [26](26-licencas-e-legal.md) | 23 | 3 | 0 | 20 | 13% |
@@ -69,4 +69,5 @@ porque ainda não foram prometidos para nenhum marco.
 | [44](44-aba-cenas.md) | 58 | 51 | 1 | 6 | 88% |
 | [45](45-atores.md) | 50 | 2 | 0 | 48 | 4% |
 | [47](47-fabricacao-e-alquimia.md) | 40 | 0 | 0 | 40 | 0% |
-| [52](52-cacador-companheiro-e-montaria.md) | 121 | 45 | 10 | 66 | 37% |
+| [52](52-cacador-companheiro-e-montaria.md) | 121 | 45 | 11 | 65 | 37% |
+| [53](53-barra-de-acoes.md) | 88 | 48 | 3 | 37 | 55% |
