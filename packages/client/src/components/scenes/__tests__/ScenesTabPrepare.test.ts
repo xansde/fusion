@@ -174,6 +174,23 @@ describe("ScenePrepareNotice — the persistent canvas warning (REQ-CEN-052)", (
     }
   });
 
+  it("spec 53 REQ-BAR-022: without the action bar the notice stays where it always was; with it, it rises by what the bar measures", () => {
+    const notice = buildScenePrepareNoticeVM({
+      scenes: sceneListState.scenes,
+      activeSceneId: ON_AIR._id,
+      prepareSceneId: OTHER._id,
+    });
+    expect(notice).not.toBeNull();
+
+    const alone = render(ScenePrepareNotice, { props: { notice: notice!, socket: null } }).body;
+    const raised = render(ScenePrepareNotice, {
+      props: { notice: notice!, socket: null, bottomOffset: 132 },
+    }).body;
+
+    expect(alone).not.toMatch(/style="[^"]*bottom/);
+    expect(raised).toMatch(/style="[^"]*bottom:\s*132px/);
+  });
+
   it("REQ-CEN-053 / RNF-CEN-03: leaving the prepare is the socket-free call", () => {
     const source = sourceOf("ScenePrepareNotice.svelte");
 

@@ -31,6 +31,7 @@
   import { setCombatBadgeViewer } from "../lib/combat/combatBadge.svelte.js";
   import { attachChatSync, attachChatMessageSync } from "../lib/chat/chatStore.svelte.js";
   import Sidebar from "./sidebar/Sidebar.svelte";
+  import ActionBar from "./actionbar/ActionBar.svelte";
   import { registerCoreSidebarTabs } from "../lib/sidebar/registerCoreTabs.js";
   import { registerCoreChatCardExtensions } from "../lib/chat/registerCoreChatCardExtensions.js";
   import ActiveSceneBadge from "./scenes/ActiveSceneBadge.svelte";
@@ -56,6 +57,8 @@
     publishTokenSelection,
     setActiveActorViewer,
   } from "../lib/actionbar/activeActorStore.svelte.js";
+  import { barHeight as actionBarHeight } from "../lib/actionbar/barFootprint.svelte.js";
+  import { clearanceAboveBar } from "../lib/actionbar/layout.js";
   import { CombatCanvasController } from "../lib/canvas/combat/combatCanvasController.js";
   import { worldMirror } from "../lib/docs/worldSync.js";
   import { registerPf2eSheets } from "@fusion/sheets-pf2e";
@@ -318,6 +321,16 @@
     registerPf2eSheets().catch((err) => {
       console.warn("[TableScreen] registerPf2eSheets failed:", err);
     });
+
+    // SCAFFOLDING (BAR-F1-04; BAR-F2-07 removes it): a provider of made-up content, so the action bar
+    // can be seen in the real app before any system registers its own. Development builds only —
+    // `import.meta.env.DEV` is `false` in a production build, so this import is dead code and its
+    // chunk is never emitted. It never replaces a provider that is already registered.
+    if (import.meta.env.DEV) {
+      void import("../lib/actionbar/devStubProvider.js").then((stub) => {
+        stub.registerDevStubProvider();
+      });
+    }
   });
 
   onDestroy(() => {
@@ -810,7 +823,7 @@
   <!-- REQ-CEN-052: while a prepare lasts, the canvas keeps a persistent notice naming
        the scene the TABLE is watching, with the two ways out. -->
   {#if prepareNotice}
-    <ScenePrepareNotice notice={prepareNotice} socket={getSocket()} />
+    <ScenePrepareNotice notice={prepareNotice} socket={getSocket()} bottomOffset={clearanceAboveBar(actionBarHeight())} />
   {/if}
 
   <!-- -------------------------------------------------------------------- -->
@@ -878,6 +891,18 @@
       isGm={isGm()}
       userId={session.user?.id ?? ""}
     />
+
+    <!-- The action bar (spec 53): the centre-bottom of the table, always of the character (or NPC)
+         in hand. It draws nothing at all for a Mestre with nothing selected, or for an actor
+         whose type has no provider; the ownership gate lives in the active-actor store. -->
+    {#if session.user}
+      <ActionBar
+        socket={sock}
+        worldId={session.worldInfo?.id ?? ""}
+        userId={session.user.id}
+        isGm={session.user.role >= ROLE_ASSISTANT}
+      />
+    {/if}
   {/if}
 
   <!-- -------------------------------------------------------------------- -->
