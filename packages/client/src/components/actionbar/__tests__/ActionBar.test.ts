@@ -1453,9 +1453,14 @@ describe("ActionBar — a fiação que o SSR não roda (lida do fonte)", () => {
     expect(source).toMatch(
       /items=\{slotMenuItems\(menu\.entry, \{[^}]*favorites: favorites \?\? undefined[^}]*\}\)\}/,
     );
-    expect(source).toMatch(
-      /runSlotMenuItem\(itemId, \{[^}]*entry: menu\.entry,[^}]*favorites: favorites \?\? undefined,?[^}]*\}\)/,
-    );
+    // The body of `chooseMenuItem`: another task's field (the icon actions, with braces of their own) may
+    // sit next to these two in the call, so the call is not matched as a whole.
+    const choose =
+      /function chooseMenuItem\(itemId: string\): void \{([\s\S]*?)\n {2}\}/.exec(source)?.[1] ??
+      "";
+    expect(choose).toContain("runSlotMenuItem(itemId, {");
+    expect(choose).toMatch(/\bentry: menu\.entry,/);
+    expect(choose).toMatch(/\bfavorites: favorites \?\? undefined,/);
   });
 
   it("a área livre estreita recolhe a barra (syncNarrow); a altura dela é publicada e zerada ao sair", () => {
