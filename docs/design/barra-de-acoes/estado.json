@@ -57,20 +57,134 @@
       "resumo": "extração headless (createCharacterVM, characterVMFor, useExecutable, emitAbility, emitCast) sem mudança de comportamento; ficha 4145→4248 testes, pathbuilder-parity 16/16; satélite c837335b",
       "core_sha": "f3c0e977e4794babfe9d5f7076b4be5f33a3a7b3",
       "sat_sha": "a65403f744e8c576e747d1be076a49459e1acda2"
+    },
+    "BAR-F1-03": {
+      "status": "integrada",
+      "tentativas": 1,
+      "onda": 2,
+      "modelo": "sonnet/medium",
+      "resumo": "Tooltip, Popover e ContextMenu genéricos sobre camadas flutuantes (posição, fechamento, foco, tempo), 333 testes novos, 55 mutantes mortos; core 481830d3 (empilhada sob a F1-04)",
+      "core_sha": "00220e6d8d1800c3bc8db3bb40005e9dcd1488b8",
+      "sat_sha": "7e07d5666bb746de67f8de12a2b1a36c03b8b3b8"
+    },
+    "BAR-F1-04": {
+      "status": "integrada",
+      "tentativas": 1,
+      "onda": 2,
+      "modelo": "sonnet/high",
+      "resumo": "casca ActionBar (faixa de estado, abas, slots, lugar na tela) montada no TableScreen, gate de posse no shell, sem contador de ações (D-15); 14 arquivos de teste novos, 407 testes; core 3e5f2ada",
+      "core_sha": "00220e6d8d1800c3bc8db3bb40005e9dcd1488b8",
+      "sat_sha": "7e07d5666bb746de67f8de12a2b1a36c03b8b3b8"
+    },
+    "BAR-F1-05": {
+      "status": "integrada",
+      "tentativas": 1,
+      "onda": 2,
+      "modelo": "sonnet/medium",
+      "resumo": "registro mínimo de atalhos (guard próprio de suspensão) e as 12 teclas dos Favoritos mais Esc; Q-BAR-07 provado (tecla continua valendo depois do clique); core 8f1d71de",
+      "core_sha": "00220e6d8d1800c3bc8db3bb40005e9dcd1488b8",
+      "sat_sha": "7e07d5666bb746de67f8de12a2b1a36c03b8b3b8"
+    },
+    "BAR-F2-02": {
+      "status": "integrada",
+      "tentativas": 1,
+      "onda": 2,
+      "modelo": "sonnet/high",
+      "resumo": "provedor de Golpes com MAP corrente, variantes, bombas e carga exibida; 128 testes novos (120 da fatia + 8 no strikeMapButton); satélite 1cc84f71",
+      "core_sha": "00220e6d8d1800c3bc8db3bb40005e9dcd1488b8",
+      "sat_sha": "7e07d5666bb746de67f8de12a2b1a36c03b8b3b8"
+    },
+    "BAR-F2-03": {
+      "status": "integrada",
+      "tentativas": 1,
+      "onda": 2,
+      "modelo": "sonnet/high",
+      "resumo": "provedor de Magias (patamares, truques, foco, inata) com reatividade provada no runtime do Svelte; 174 testes novos; satélite 955693cd",
+      "core_sha": "00220e6d8d1800c3bc8db3bb40005e9dcd1488b8",
+      "sat_sha": "7e07d5666bb746de67f8de12a2b1a36c03b8b3b8"
+    },
+    "BAR-F2-04": {
+      "status": "integrada",
+      "tentativas": 1,
+      "onda": 2,
+      "modelo": "sonnet/high",
+      "resumo": "provedor de Ações (lista relevante, Usar das executáveis, Impulsos, Rajada, alternáveis); 160 testes novos; satélite 546c2c27 (cabeça que entrou)",
+      "core_sha": "00220e6d8d1800c3bc8db3bb40005e9dcd1488b8",
+      "sat_sha": "7e07d5666bb746de67f8de12a2b1a36c03b8b3b8"
+    },
+    "BAR-F2-05": {
+      "status": "integrada",
+      "tentativas": 1,
+      "onda": 2,
+      "modelo": "sonnet/medium",
+      "resumo": "provedor de Testes (Percepção, salvaguardas, perícias, saberes) com nome pt-BR de toda perícia dos motores; 66 testes novos; satélite d613167c",
+      "core_sha": "00220e6d8d1800c3bc8db3bb40005e9dcd1488b8",
+      "sat_sha": "7e07d5666bb746de67f8de12a2b1a36c03b8b3b8"
+    },
+    "BAR-F2-06": {
+      "status": "integrada",
+      "tentativas": 1,
+      "onda": 2,
+      "modelo": "sonnet/medium",
+      "resumo": "faixa de estado do PF2e (PV, foco, herói, condições, alvo, MAP) igual à da ficha chip a chip; 86 testes novos; satélite 3466cff7",
+      "core_sha": "00220e6d8d1800c3bc8db3bb40005e9dcd1488b8",
+      "sat_sha": "7e07d5666bb746de67f8de12a2b1a36c03b8b3b8"
     }
   },
   "rodadas": [
     {
       "onda": 1,
-      "tarefas": ["BAR-F1-01", "BAR-F1-02", "BAR-F2-01"],
-      "integradas": ["BAR-F1-01", "BAR-F1-02", "BAR-F2-01"],
+      "tarefas": [
+        "BAR-F1-01",
+        "BAR-F1-02",
+        "BAR-F2-01"
+      ],
+      "integradas": [
+        "BAR-F1-01",
+        "BAR-F1-02",
+        "BAR-F2-01"
+      ],
       "gate": true,
       "revisao": {
         "achados": 0,
-        "abertos": ["revisão adversarial única no fechamento do lote (calibragem de 11/10)"]
+        "abertos": [
+          "revisão adversarial única no fechamento do lote (calibragem de 11/10)"
+        ]
       },
       "core_sha": "f3c0e977e4794babfe9d5f7076b4be5f33a3a7b3",
       "sat_sha": "a65403f744e8c576e747d1be076a49459e1acda2"
+    },
+    {
+      "onda": 2,
+      "tarefas": [
+        "BAR-F1-03",
+        "BAR-F1-04",
+        "BAR-F1-05",
+        "BAR-F2-02",
+        "BAR-F2-03",
+        "BAR-F2-04",
+        "BAR-F2-05",
+        "BAR-F2-06"
+      ],
+      "integradas": [
+        "BAR-F1-03",
+        "BAR-F1-04",
+        "BAR-F1-05",
+        "BAR-F2-02",
+        "BAR-F2-03",
+        "BAR-F2-04",
+        "BAR-F2-05",
+        "BAR-F2-06"
+      ],
+      "gate": true,
+      "revisao": {
+        "achados": 0,
+        "abertos": [
+          "revisão adversarial única no fechamento do lote (calibragem de 11/10)"
+        ]
+      },
+      "core_sha": "00220e6d8d1800c3bc8db3bb40005e9dcd1488b8",
+      "sat_sha": "7e07d5666bb746de67f8de12a2b1a36c03b8b3b8"
     }
   ],
   "lotes": {}
