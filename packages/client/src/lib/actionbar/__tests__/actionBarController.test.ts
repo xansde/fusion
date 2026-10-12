@@ -21,8 +21,9 @@ import {
   type ControllerDeps,
   type ResolvedBar,
 } from "../actionBarController.svelte.js";
-import { createFavoritesSource } from "../favoritesSource.js";
+import { seedFromEntries } from "../favoritesSource.js";
 import type { ActionBarEntry } from "../types.js";
+import { memoryFavoritesOfIds } from "./memoryFavorites.js";
 import {
   createStubProvider,
   makeContext,
@@ -38,6 +39,7 @@ import {
 
 interface Setup {
   controller: ReturnType<typeof createActionBarController>;
+  favorites: ReturnType<typeof memoryFavoritesOfIds>;
   stub: ReturnType<typeof createStubProvider>;
   services: ReturnType<typeof makeServices>;
   noted: string[];
@@ -64,7 +66,8 @@ function setup(
   const services = makeServices();
   const noted: string[] = [];
   const targets = { value: [] as string[] };
-  const favorites = createFavoritesSource(ctx.actorId, () => stub.entries);
+  // The row the seed would give: the keys 1–9… run the first strikes, spells and actions.
+  const favorites = memoryFavoritesOfIds(seedFromEntries(stub.entries));
   const deps: ControllerDeps = {
     current: () => bar.current,
     services: () => services,
@@ -82,7 +85,7 @@ function setup(
     recordNotice(message);
     controller.notify(message);
   };
-  return { controller, stub, services, noted, targets, bar };
+  return { controller, favorites, stub, services, noted, targets, bar };
 }
 
 /** A promise settled by hand — a slow `execute`. */
@@ -394,6 +397,43 @@ describe("runFavorite — as teclas (REQ-BAR-048)", () => {
     expect(s.stub.calls.execute).toEqual([]);
   });
 
+  it("as teclas seguem a POSIÇÃO gravada: desafixar o slot 1 não puxa os outros — a tecla 3 continua sendo o terceiro favorito", async () => {
+    const s = setup();
+
+    s.favorites.unpin("strike:stub-sword");
+    await s.controller.runFavorite(2);
+
+    expect(s.favorites.slots().slice(0, 3)).toEqual([
+      null,
+      "strike:stub-bow",
+      "spell:stub-main:burst",
+    ]);
+    expect(s.stub.calls.execute.map((call) => call.entry.id)).toEqual(["spell:stub-main:burst"]);
+    expect(s.controller.canRunFavorite(0)).toBe(false);
+  });
+
+  it("fixar entra no primeiro buraco, e a tecla daquela posição executa o que foi fixado", async () => {
+    const s = setup({ entries: [sword(), makeEntry("item:stub-potion", { tab: "items" })] });
+    s.favorites.pin("item:stub-potion");
+
+    await s.controller.runFavorite(1);
+
+    expect(s.stub.calls.execute.map((call) => call.entry.id)).toEqual(["item:stub-potion"]);
+  });
+
+  it("trocar dois favoritos de lugar troca as teclas: a que era de um passa a ser do outro", async () => {
+    const s = setup();
+
+    s.favorites.move(0, 1);
+    await s.controller.runFavorite(0);
+    await s.controller.runFavorite(1);
+
+    expect(s.stub.calls.execute.map((call) => call.entry.id)).toEqual([
+      "strike:stub-bow",
+      "strike:stub-sword",
+    ]);
+  });
+
   it("favorito que não está mais na ficha não executa nada", async () => {
     const s = setup({ entries: [sword()] });
     s.bar.current = { ...s.bar.current!, entries: [] };
@@ -697,8 +737,8 @@ describe("menu de contexto e efeito da condição", () => {
     expect(s.controller.openCondition).toBeNull();
   });
 
-  it("reconcile: o menu de uma entrada que saiu da ficha fecha de vez, e o Esc volta a seguir para o canvas", () => {
-    const s = setup();
+  it("reconcile: o menu de uma entrada que saiu da ficha (e não está fixada) fecha de vez, e o Esc volta a seguir para o canvas", () => {
+    const s = setup({ withFavorites: false });
     s.controller.openMenu("strike:stub-sword", { x: 1, y: 1 }, "pointer");
     s.bar.current = {
       ...s.bar.current!,
@@ -723,7 +763,7 @@ describe("menu de contexto e efeito da condição", () => {
   });
 
   it("reconcile: fechado de vez, o menu não reabre sozinho quando a entrada volta", () => {
-    const s = setup();
+    const s = setup({ withFavorites: false });
     s.controller.openMenu("strike:stub-sword", { x: 1, y: 1 }, "pointer");
     s.bar.current = { ...s.bar.current!, entries: [] };
     s.controller.reconcile();
@@ -732,6 +772,35 @@ describe("menu de contexto e efeito da condição", () => {
     s.controller.reconcile();
 
     expect(s.controller.menu).toBeNull();
+  });
+
+  it("reconcile: o menu de um favorito ÓRFÃO (fora da ficha, mas fixado) segue aberto — o Desafixar dele é a única saída", () => {
+    const s = setup();
+    s.controller.openMenu("strike:stub-sword", { x: 1, y: 1 }, "pointer");
+    s.bar.current = {
+      ...s.bar.current!,
+      entries: s.stub.entries.filter((entry) => entry.id !== "strike:stub-sword"),
+    };
+
+    s.controller.reconcile();
+
+    expect(s.controller.menu?.entryId).toBe("strike:stub-sword");
+    expect(s.controller.canCancel).toBe(true);
+  });
+
+  it("reconcile: …e fecha de vez quando o órfão é desafixado", () => {
+    const s = setup();
+    s.controller.openMenu("strike:stub-sword", { x: 1, y: 1 }, "pointer");
+    s.bar.current = {
+      ...s.bar.current!,
+      entries: s.stub.entries.filter((entry) => entry.id !== "strike:stub-sword"),
+    };
+    s.favorites.unpin("strike:stub-sword");
+
+    s.controller.reconcile();
+
+    expect(s.controller.menu).toBeNull();
+    expect(s.controller.canCancel).toBe(false);
   });
 
   it("reconcile: o efeito de uma condição que passou (saiu da faixa) fecha de vez", () => {

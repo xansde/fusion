@@ -350,7 +350,16 @@ export class ActionBarControllerImpl implements ActionBarController {
   reconcile(): void {
     const bar = this.#deps.current();
     const entryIds = new Set(bar === null ? [] : bar.entries.map((entry) => entry.id));
-    if (this.#menu !== null && !entryIds.has(this.#menu.entryId)) this.#menu = null;
+    // A favourite whose entry left the sheet is an ORPHAN (BAR-F3-01): not in the list, but pinned,
+    // and its menu — "Desafixar" — is the only way out of it. It stays until it is unpinned.
+    const pinned = bar === null ? [] : (this.#deps.favorites()?.slots() ?? []);
+    if (
+      this.#menu !== null &&
+      !entryIds.has(this.#menu.entryId) &&
+      !pinned.includes(this.#menu.entryId)
+    ) {
+      this.#menu = null;
+    }
     if (this.#hoveredId !== null && !entryIds.has(this.#hoveredId)) this.#hoveredId = null;
 
     const open = this.#openCondition;

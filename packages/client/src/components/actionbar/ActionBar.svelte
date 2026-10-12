@@ -27,8 +27,14 @@
    * The behaviour — what a click does, the busy slot, errors, the tab, the fold, the strip's message —
    * is `actionBarController.svelte.ts`; the decisions about what a slot or the strip say are pure
    * modules (`slotModel`, `statusModel`, `turn`), tested without a DOM (§2.10). This file wires them.
+   * **Favourites** are in the ACTOR (BAR-F3-01, REQ-BAR-061): `createFavoritesStore` reads the row off
+   * the actor document and writes it back with the version lock; the first time the bar opens for an
+   * actor that has none, the system's seed is written once (REQ-BAR-064). A favourite whose entry left
+   * the sheet is drawn faded as an orphan (REQ-BAR-066) — after the load window, so a late pack does
+   * not make a real favourite flash as "Ausente".
+   *
    * Not here (D-BA16): remembering the tab or the fold on the device, drag and drop, aim mode, the
-   * full slot menu, the NPC and group bars.
+   * full slot menu (only open, pin and unpin), the NPC and group bars.
    */
 
   import type { Socket } from "socket.io-client";
@@ -49,8 +55,10 @@
   import { readActorDoc } from "../../lib/actionbar/actorDocReader.svelte.js";
   import { buildActionBarContext } from "../../lib/actionbar/barContext.js";
   import { publishBarHeight } from "../../lib/actionbar/barFootprint.svelte.js";
-  import { createFavoritesSource } from "../../lib/actionbar/favoritesSource.js";
+  import { createFavoritesStore } from "../../lib/actionbar/favoritesStore.svelte.js";
+  import { seedFromEntries } from "../../lib/actionbar/favoritesSource.js";
   import { computeBarLayout, menuOriginAboveBar } from "../../lib/actionbar/layout.js";
+  import { ORPHAN_ARM_MS, orphanEntry } from "../../lib/actionbar/orphan.js";
   import { releaseFocusAfterPointer } from "../../lib/actionbar/slotFocus.js";
   import { mapHint } from "../../lib/actionbar/slotModel.js";
   import { runSlotMenuItem, slotMenuItems } from "../../lib/actionbar/slotMenu.js";
@@ -145,10 +153,33 @@
   // What it does
   // -------------------------------------------------------------------------
 
-  // Until BAR-F3-01 keeps the favourites in the actor, an in-memory row seeded from the entries
-  // (SCAFFOLDING). It follows the actor, not every redraw: the row is rebuilt only when the actor changes.
+  /**
+   * The ids the first-opening seed would pin RIGHT NOW: the system's own when its provider declares
+   * one, else the shell's (`seedFromEntries`). An empty answer is "nothing to seed yet" (the provider
+   * has not loaded), and the seed waits; a provider that throws falls back to the shell's.
+   */
+  function seedIds(): readonly string[] {
+    if (bar === null) return [];
+    const { provider, ctx } = bar;
+    return guarded<readonly string[]>("seed", seedFromEntries(entries), () =>
+      provider.seed !== undefined ? provider.seed(ctx) : seedFromEntries(entries),
+    );
+  }
+
+  // The favourites live in the actor. The store follows the actor, not every redraw: it is rebuilt
+  // only when the active actor changes, and its writes queue behind any still on the wire for the same actor.
   const favorites = $derived(
-    actorId === null ? null : createFavoritesSource(actorId, () => entries),
+    actorId === null
+      ? null
+      : createFavoritesStore({
+          actorId,
+          readActor: () => readActorDoc(actorId),
+          write: (payload) => services.request("doc:update", payload),
+          seedIds,
+          notify: (message) => {
+            controller.notify(message);
+          },
+        }),
   );
 
   const services = $derived(
@@ -186,6 +217,31 @@
     untrack(() => {
       controller.reconcile();
     });
+  });
+
+  // The first-opening seed (REQ-BAR-064): written once, by whoever may write the actor. Asked again
+  // whenever the provider's list changes — a seed with nothing in it waits for the list.
+  $effect(() => {
+    const store = favorites;
+    if (store === null || resolved === null) return;
+    void entries;
+    untrack(() => {
+      store.ensureSeeded();
+    });
+  });
+
+  // A favourite whose entry is missing is an orphan only after the sheet had time to load (the packs
+  // that give the basic actions arrive a moment after the actor's own data).
+  let orphansArmed = $state(false);
+  $effect(() => {
+    void actorId;
+    orphansArmed = false;
+    const timer = setTimeout(() => {
+      orphansArmed = true;
+    }, ORPHAN_ARM_MS);
+    return () => {
+      clearTimeout(timer);
+    };
   });
 
   // The keys 1–9, 0, − and = run the favourites, Esc cancels a menu (BAR-F1-05).
@@ -279,13 +335,21 @@
   const menu = $derived.by(() => {
     const open = controller.menu;
     if (open === null) return null;
-    const entry = entries.find((candidate) => candidate.id === open.entryId);
+    // An orphan is not in the provider's list, but it is pinned: its menu is "Desafixar".
+    const entry =
+      entries.find((candidate) => candidate.id === open.entryId) ??
+      (favorites?.isPinned(open.entryId) === true ? orphanEntry(open.entryId) : undefined);
     return entry === undefined ? null : { entry, open };
   });
 
   function chooseMenuItem(itemId: string): void {
-    if (actorId === null) return;
-    runSlotMenuItem(itemId, { actorId, services });
+    if (actorId === null || menu === null) return;
+    runSlotMenuItem(itemId, {
+      actorId,
+      services,
+      entry: menu.entry,
+      favorites: favorites ?? undefined,
+    });
   }
 
   function endTurn(event: MouseEvent): void {
@@ -343,12 +407,16 @@
           tab={controller.tab}
           {entries}
           favorites={favorites?.slots() ?? []}
+          showOrphans={orphansArmed}
           isBusy={(entryId) => controller.isBusy(entryId)}
           {altHeld}
           {Details}
           menuEntryId={controller.menu?.entryId ?? null}
           onrun={(entry) => {
             void controller.runEntry(entry);
+          }}
+          onorphan={() => {
+            controller.notify(t("FUSION.ActionBar.Favorites.Orphan.Click"));
           }}
           oncontext={openMenu}
           onhover={(entry) => {
@@ -378,7 +446,7 @@
   {#if menu !== null}
     <ContextMenu
       open={true}
-      items={slotMenuItems(menu.entry)}
+      items={slotMenuItems(menu.entry, favorites ?? undefined)}
       label={menu.entry.label}
       showLabel
       point={{ x: menu.open.x, y: menu.open.y }}
