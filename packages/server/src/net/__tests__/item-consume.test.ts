@@ -50,6 +50,7 @@ import type {
   ItemSnapshot,
 } from "@fusion/system-api";
 import type { ActorApplyDamagePayload } from "@fusion/shared";
+import { pf2eSystem } from "@fusion/system-pf2e";
 
 // ---------------------------------------------------------------------------
 // Fixture ids
@@ -78,6 +79,12 @@ const ZERO_ITEM_ID = "zeroItem00000000";
 // OBS: an actor the second player can SEE (OBSERVER by default) but does not own.
 const OBS_ACTOR_ID = "obsActor00000000";
 const OBS_ITEM_ID = "obsItem000000000";
+// REAL: the same two cases, run against the REAL PF2e system module instead of the fake one (a hand-built elixir with
+// the shape the packs ship: `uses: { value, max, autoDestroy }` and a `quantity`).
+const REAL_ZERO_ACTOR_ID = "realZeroActor000";
+const REAL_ZERO_ITEM_ID = "realZeroItem0000";
+const REAL_TWO_ACTOR_ID = "realTwoActor0000";
+const REAL_TWO_ITEM_ID = "realTwoItem00000";
 
 // I4 fix fixtures (onda-5 adversarial review) — an item whose plan() plans
 // an effect living in a pack with `audience: "gm"`.
@@ -361,6 +368,13 @@ function seedActors(db: FusionDatabase, ownerId: string): void {
       { default: OwnershipLevel.OBSERVER, [ownerId]: OwnershipLevel.OWNER },
       [consumableItem(OBS_ITEM_ID, { quantity: 2 })],
     ),
+    // BAR-F5-01 (real PF2e plan): no unit on hand, and two units on hand.
+    makeActor(REAL_ZERO_ACTOR_ID, "Alquimista Real Zero", ownership, [
+      consumableItem(REAL_ZERO_ITEM_ID, { quantity: 0 }),
+    ]),
+    makeActor(REAL_TWO_ACTOR_ID, "Alquimista Real Dois", ownership, [
+      consumableItem(REAL_TWO_ITEM_ID, { quantity: 2 }),
+    ]),
   ];
 
   for (const actor of fixtures) {
@@ -421,7 +435,12 @@ function buildGmAudiencePackCompendium(): { compendium: CompendiumService; packR
 }
 
 async function buildTestContext(
-  opts: { compendiumService?: CompendiumService } = {},
+  opts: {
+    compendiumService?: CompendiumService;
+    /** Run the world on this system module (default: the fake, game-rule-free one). */
+    systemModule?: SystemModule;
+    systemId?: string;
+  } = {},
 ): Promise<TestContext> {
   const dataDir = makeTempDir();
   const dbPath = join(dataDir, "world.db");
@@ -478,8 +497,8 @@ async function buildTestContext(
     db: fusionDb.raw,
     secret,
     authService,
-    systemId: "test-system",
-    systemModule: makeSystemModule(hookLog),
+    systemId: opts.systemId ?? "test-system",
+    systemModule: opts.systemModule ?? makeSystemModule(hookLog),
     compendiumService: opts.compendiumService,
   });
 
@@ -909,6 +928,107 @@ describe("item:consume — recusas em que a UI se apoia (BAR-F5-01)", () => {
       expect(item.system.quantity).toBe(1);
     } finally {
       socket.disconnect();
+    }
+  });
+});
+
+// ---------------------------------------------------------------------------
+// BAR-F5-01 — the handler and the REAL PF2e plan, together.
+//
+// Everything above runs the handler against a fake, game-rule-free system, on purpose (the r22 "#48" lesson: a suite
+// that asserts a rule against the data the rule came from proves nothing). That leaves one thing nobody ran end to end:
+// the zero-quantity refusal lives in the PF2e plan (`systems/pf2e/src/actions/consume.ts`, with its own unit test) and
+// the fake plan above only mirrors it. This block boots the same world on the real `pf2eSystem` and sends the same ops
+// over the same socket, so the combination — the handler's mapping of a refusal and the plan's rule — is exercised once
+// for real. The items are hand-built (no pack is read); the expected numbers are the rule's: you cannot spend a unit
+// you do not have, and spending one of two leaves one.
+// ---------------------------------------------------------------------------
+
+describe("item:consume — handler real + plano REAL do PF2e (BAR-F5-01)", () => {
+  let ctx: TestContext;
+
+  beforeEach(async () => {
+    ctx = await buildTestContext({ systemModule: pf2eSystem, systemId: "pf2e" });
+  });
+
+  afterEach(async () => {
+    await teardown(ctx);
+  });
+
+  const chatCount = (): number =>
+    (ctx.fusionDb.raw.prepare(`SELECT COUNT(*) AS n FROM chat_messages`).get() as { n: number }).n;
+  const versionOf = (actorId: string): number | undefined =>
+    readActorRaw(ctx.fusionDb, actorId)._stats?.version;
+  const quantityOf = (actorId: string, itemId: string): number | undefined =>
+    (
+      readActorRaw(ctx.fusionDb, actorId).items?.find((i) => i["_id"] === itemId) as
+        | { system: { quantity: number } }
+        | undefined
+    )?.system.quantity;
+
+  it("quantity:0 → VALIDATION_FAILED pelo plano real, e nada é escrito: nem o item, nem a versão, nem o chat", async () => {
+    const socket = await connectSocket(ctx.port, ctx.worldId, ctx.playerToken);
+    try {
+      const version = versionOf(REAL_ZERO_ACTOR_ID);
+      const chatBefore = chatCount();
+
+      const ack = await sendOp(socket, "item:consume", {
+        actorId: REAL_ZERO_ACTOR_ID,
+        itemId: REAL_ZERO_ITEM_ID,
+        mode: "use",
+        expectedVersion: version,
+      });
+
+      expect(ack["ok"], JSON.stringify(ack)).toBe(false);
+      expect(ack["code"]).toBe("VALIDATION_FAILED");
+      // The words are the real plan's: the refusal came from the rule, not from some other check.
+      expect(String(ack["message"])).toContain("has no units left");
+      expect(quantityOf(REAL_ZERO_ACTOR_ID, REAL_ZERO_ITEM_ID)).toBe(0);
+      expect(versionOf(REAL_ZERO_ACTOR_ID)).toBe(version);
+      expect(chatCount()).toBe(chatBefore);
+    } finally {
+      socket.disconnect();
+    }
+  });
+
+  it("controle: com duas unidades o plano real gasta uma (sem isso, o teste acima passaria com o sistema fora do ar)", async () => {
+    const socket = await connectSocket(ctx.port, ctx.worldId, ctx.playerToken);
+    try {
+      const ack = await sendOp(socket, "item:consume", {
+        actorId: REAL_TWO_ACTOR_ID,
+        itemId: REAL_TWO_ITEM_ID,
+        mode: "use",
+        expectedVersion: versionOf(REAL_TWO_ACTOR_ID),
+      });
+
+      expect(ack["ok"], JSON.stringify(ack)).toBe(true);
+      const result = ack["result"] as { consumed: { quantityLeft: number; destroyed: boolean } };
+      expect(result.consumed).toMatchObject({ quantityLeft: 1, destroyed: false });
+      expect(quantityOf(REAL_TWO_ACTOR_ID, REAL_TWO_ITEM_ID)).toBe(1);
+    } finally {
+      socket.disconnect();
+    }
+  });
+
+  it("a recusa vale para o Mestre também, e o jogador de fora continua sem posse (PERMISSION_DENIED vem antes da regra)", async () => {
+    const gm = await connectSocket(ctx.port, ctx.worldId, ctx.gmToken);
+    const stranger = await connectSocket(ctx.port, ctx.worldId, ctx.player2Token);
+    try {
+      const payload = {
+        actorId: REAL_ZERO_ACTOR_ID,
+        itemId: REAL_ZERO_ITEM_ID,
+        mode: "use",
+        expectedVersion: versionOf(REAL_ZERO_ACTOR_ID),
+      };
+
+      const gmAck = await sendOp(gm, "item:consume", payload);
+      const strangerAck = await sendOp(stranger, "item:consume", payload);
+
+      expect(gmAck["code"]).toBe("VALIDATION_FAILED");
+      expect(strangerAck["code"]).toBe("PERMISSION_DENIED");
+    } finally {
+      gm.disconnect();
+      stranger.disconnect();
     }
   });
 });
