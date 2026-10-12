@@ -24,7 +24,7 @@
  * the canvas — is in the Edge run of the task (the prints) and in the lote's roteiro (BAR-F2-07).
  */
 
-import { readdirSync, readFileSync } from "node:fs";
+import { existsSync, readdirSync, readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import { render } from "svelte/server";
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
@@ -1297,6 +1297,17 @@ describe("TableScreen — monta a barra (REQ-BAR-010)", () => {
     const source = tableScreen();
 
     expect(source).toContain("bottomOffset={clearanceAboveBar(actionBarHeight())}");
+  });
+
+  it("não carrega o andaime de desenvolvimento da BAR-F1-04: o provedor de teste saiu na BAR-F2-07", () => {
+    const source = tableScreen();
+
+    // Nenhum provedor inventado entra na mesa, nem em desenvolvimento: quem registra é o sistema.
+    expect(source).not.toMatch(/devStub|registerDevStubProvider/);
+    expect(source).not.toContain("import.meta.env.DEV");
+    for (const gone of ["../../../lib/actionbar/devStubProvider.ts", "../DevDetails.svelte"]) {
+      expect(existsSync(fileURLToPath(new URL(gone, import.meta.url))), gone).toBe(false);
+    }
   });
 });
 
