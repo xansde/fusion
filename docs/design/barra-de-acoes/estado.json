@@ -129,17 +129,63 @@
       "resumo": "faixa de estado do PF2e (PV, foco, herói, condições, alvo, MAP) igual à da ficha chip a chip; 86 testes novos; satélite 3466cff7",
       "core_sha": "00220e6d8d1800c3bc8db3bb40005e9dcd1488b8",
       "sat_sha": "7e07d5666bb746de67f8de12a2b1a36c03b8b3b8"
+    },
+    "BAR-F2-07": {
+      "status": "integrada",
+      "tentativas": 1,
+      "onda": 3,
+      "modelo": "sonnet/high",
+      "resumo": "provedor composto do personagem PF2e (Golpes, Magias, Ações, Testes, faixa de estado e painel de detalhes) registrado no registerPf2eSheets; a fatia que lança fica isolada no composeActionBarProvider; andaime de desenvolvimento removido; traz a correção final da F2-04; ligado aqui com a fatia de Itens e a semente, e provado sobre os quatro personagens reais; core a9529f51, satélite faf07d9 (cabeça 79356a7f)",
+      "core_sha": "29534158d419bbd703096a2efe39fa98d9e130ed",
+      "sat_sha": "516579756f15959185d977726d1462d659122fb4"
+    },
+    "BAR-F3-01": {
+      "status": "integrada",
+      "tentativas": 1,
+      "onda": 3,
+      "modelo": "sonnet/high",
+      "resumo": "favoritos no ator (store persistido com expectedVersion e edição refeita sobre o documento novo, semente da primeira abertura, entrada órfã, Fixar e Desafixar no menu do slot), 18 testes de socket real; união com a F3-05 em 3 arquivos e 6 trechos resolvida, com o órfão sem itens de ícone; core 51741533, satélite 0f8ddf4 (cabeça e913ba69)",
+      "core_sha": "29534158d419bbd703096a2efe39fa98d9e130ed",
+      "sat_sha": "516579756f15959185d977726d1462d659122fb4"
+    },
+    "BAR-F3-05": {
+      "status": "integrada",
+      "tentativas": 1,
+      "onda": 3,
+      "modelo": "opus/high",
+      "resumo": "ícone customizado por entrada e galeria compartilhada (schema do §2.5 no shared, envio de ícone aberto ao jogador, grant estreito, backup da área, modo de ícones do FilePicker, Trocar ícone e Restaurar no menu do slot, imagem do slot pelo grant do ator); só core 37b84bd9 (cabeça a6c534c5)",
+      "core_sha": "29534158d419bbd703096a2efe39fa98d9e130ed",
+      "sat_sha": "516579756f15959185d977726d1462d659122fb4"
+    },
+    "BAR-F5-01": {
+      "status": "integrada",
+      "tentativas": 1,
+      "onda": 3,
+      "modelo": "sonnet/high",
+      "resumo": "consumíveis: aba Itens (itemsSlice), consumeItem e botão Usar na ficha, guarda de quantity < 1 no plano do PF2e, loader de nomes pt-BR com os packs de equipamento; 118 testes novos no satélite e 7 no servidor; core 730b9a2f, satélite 9330f56 (cabeça 5db58297)",
+      "core_sha": "29534158d419bbd703096a2efe39fa98d9e130ed",
+      "sat_sha": "516579756f15959185d977726d1462d659122fb4"
     }
   },
   "rodadas": [
     {
       "onda": 1,
-      "tarefas": ["BAR-F1-01", "BAR-F1-02", "BAR-F2-01"],
-      "integradas": ["BAR-F1-01", "BAR-F1-02", "BAR-F2-01"],
+      "tarefas": [
+        "BAR-F1-01",
+        "BAR-F1-02",
+        "BAR-F2-01"
+      ],
+      "integradas": [
+        "BAR-F1-01",
+        "BAR-F1-02",
+        "BAR-F2-01"
+      ],
       "gate": true,
       "revisao": {
         "achados": 0,
-        "abertos": ["revisão adversarial única no fechamento do lote (calibragem de 11/10)"]
+        "abertos": [
+          "revisão adversarial única no fechamento do lote (calibragem de 11/10)"
+        ]
       },
       "core_sha": "f3c0e977e4794babfe9d5f7076b4be5f33a3a7b3",
       "sat_sha": "a65403f744e8c576e747d1be076a49459e1acda2"
@@ -169,11 +215,55 @@
       "gate": true,
       "revisao": {
         "achados": 0,
-        "abertos": ["revisão adversarial única no fechamento do lote (calibragem de 11/10)"]
+        "abertos": [
+          "revisão adversarial única no fechamento do lote (calibragem de 11/10)"
+        ]
       },
       "core_sha": "00220e6d8d1800c3bc8db3bb40005e9dcd1488b8",
       "sat_sha": "7e07d5666bb746de67f8de12a2b1a36c03b8b3b8"
+    },
+    {
+      "onda": 3,
+      "tarefas": [
+        "BAR-F2-07",
+        "BAR-F3-01",
+        "BAR-F3-05",
+        "BAR-F5-01"
+      ],
+      "integradas": [
+        "BAR-F2-07",
+        "BAR-F3-01",
+        "BAR-F3-05",
+        "BAR-F5-01"
+      ],
+      "gate": true,
+      "revisao": {
+        "achados": 0,
+        "abertos": [
+          "revisão adversarial única no fechamento do lote (calibragem de 11/10)",
+          "suíte inteira do servidor sem saída 0 por timeout de infra, repetida só nos arquivos da onda",
+          "nada visto num navegador: smoke como GM e como player e prints T1 a T5 ficam para o roteiro de fechamento"
+        ]
+      },
+      "core_sha": "29534158d419bbd703096a2efe39fa98d9e130ed",
+      "sat_sha": "516579756f15959185d977726d1462d659122fb4"
     }
   ],
-  "lotes": {}
+  "lotes": {
+    "L1": {
+      "fechado": true,
+      "core_sha": "29534158d419bbd703096a2efe39fa98d9e130ed",
+      "sat_sha": "516579756f15959185d977726d1462d659122fb4"
+    },
+    "L2": {
+      "fechado": true,
+      "core_sha": "29534158d419bbd703096a2efe39fa98d9e130ed",
+      "sat_sha": "516579756f15959185d977726d1462d659122fb4"
+    },
+    "L3": {
+      "fechado": true,
+      "core_sha": "29534158d419bbd703096a2efe39fa98d9e130ed",
+      "sat_sha": "516579756f15959185d977726d1462d659122fb4"
+    }
+  }
 }
