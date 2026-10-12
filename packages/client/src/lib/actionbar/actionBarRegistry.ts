@@ -210,6 +210,12 @@ export function assertValidEntries(
  *    them through {@link assertValidEntries}. A slice that returns a kind it does not declare is
  *    a contract error too (its `execute` would never be routed to it). Nothing is cached: the
  *    shell calls it inside a `$derived` and any reactive read in a slice must re-run the bar.
+ *  - A slice whose `entries(ctx)` THROWS is isolated: it is logged (`console.error`, naming the
+ *    kinds it declares) and contributes an empty list, and the other slices carry on. The shell
+ *    answers a throwing provider with no bar at all, so without this one odd document (a spell
+ *    list that one slice cannot read) would take the whole bar away from its owner. Only the
+ *    slice's own computation is isolated: the contract check on what the slices returned stays
+ *    loud outside production, and `execute` is not touched (its refusals are the shell's notice).
  *  - `execute(entry, choice, services, ctx)` routes by `entry.kind` to the slice that declares
  *    it, passing `ctx` (the owner's context) through; a kind without a slice REJECTS.
  *  - `status`, `details` and `seed` are the system's own and pass through untouched.
@@ -237,7 +243,17 @@ export function composeActionBarProvider(parts: {
       const policy = defaultInvalidPolicy();
       const collected: ActionBarEntry[] = [];
       for (const slice of slices) {
-        for (const entry of slice.entries(ctx)) {
+        let produced: readonly ActionBarEntry[];
+        try {
+          produced = slice.entries(ctx);
+        } catch (error) {
+          console.error(
+            `[actionbar] slice "${slice.kinds.join(",")}" failed to list its entries`,
+            error,
+          );
+          continue;
+        }
+        for (const entry of produced) {
           if (sliceByKind.get(entry.kind) !== slice) {
             rejectEntry(
               policy,

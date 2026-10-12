@@ -87,6 +87,22 @@ function silenceWarn() {
   return vi.spyOn(console, "warn").mockImplementation(() => undefined);
 }
 
+function silenceError() {
+  return vi.spyOn(console, "error").mockImplementation(() => undefined);
+}
+
+/** A slice whose `entries` throws; `execute` stays healthy so only the listing is under test. */
+function throwingSlice(kinds: ActionBarEntryKind[], error: unknown) {
+  const slice: ActionBarSlice = {
+    kinds,
+    entries: () => {
+      throw error;
+    },
+    execute: () => Promise.resolve(),
+  };
+  return slice;
+}
+
 afterEach(() => {
   vi.restoreAllMocks();
   vi.unstubAllEnvs();
@@ -260,6 +276,145 @@ describe("composeActionBarProvider.entries", () => {
 
   it("returns an empty list for no slices", () => {
     expect(composeActionBarProvider({ slices: [], status }).entries(makeContext())).toEqual([]);
+  });
+});
+
+describe("composeActionBarProvider.entries — a slice that throws is isolated", () => {
+  // One odd document (a spell list the Spells slice cannot read) must not wipe the whole bar: the shell
+  // answers a throwing provider with NO bar at all, so the isolation has to happen here, per slice.
+
+  it("serves the other slices and logs the failure when one slice throws", () => {
+    const error = silenceError();
+    const boom = new Error("spell list is odd");
+    const provider = composeActionBarProvider({
+      slices: [
+        spySlice(["strike"], [makeEntry("strike:a")]).slice,
+        throwingSlice(["spell"], boom),
+        spySlice(["action"], [makeEntry("action:b")]).slice,
+      ],
+      status,
+    });
+
+    const ids = provider.entries(makeContext()).map((e) => e.id);
+
+    expect(ids).toEqual(["strike:a", "action:b"]);
+    expect(error).toHaveBeenCalledTimes(1);
+    // The log names the slice (by the kinds it declares) and carries the very error, for the stack.
+    expect(String(error.mock.calls[0]?.[0])).toContain("spell");
+    expect(error.mock.calls[0]?.slice(1)).toContain(boom);
+  });
+
+  it("isolates a slice that throws in first position, keeping the order of the rest", () => {
+    silenceError();
+    const provider = composeActionBarProvider({
+      slices: [
+        throwingSlice(["strike"], new Error("boom")),
+        spySlice(["spell"], [makeEntry("spell:main:x")]).slice,
+        spySlice(["check"], [makeEntry("check:perception")]).slice,
+      ],
+      status,
+    });
+
+    expect(provider.entries(makeContext()).map((e) => e.id)).toEqual([
+      "spell:main:x",
+      "check:perception",
+    ]);
+  });
+
+  it("gives an empty list, not a throw, when every slice fails", () => {
+    const error = silenceError();
+    const provider = composeActionBarProvider({
+      slices: [throwingSlice(["strike"], new Error("a")), throwingSlice(["spell"], new Error("b"))],
+      status,
+    });
+
+    expect(provider.entries(makeContext())).toEqual([]);
+    expect(error).toHaveBeenCalledTimes(2);
+  });
+
+  it("isolates a thrown value that is not an Error (a slice can throw a string)", () => {
+    silenceError();
+    const provider = composeActionBarProvider({
+      slices: [
+        throwingSlice(["strike"], "just a string"),
+        spySlice(["spell"], [makeEntry("spell:main:x")]).slice,
+      ],
+      status,
+    });
+
+    expect(provider.entries(makeContext()).map((e) => e.id)).toEqual(["spell:main:x"]);
+  });
+
+  it("isolates the same way in a production build", () => {
+    vi.stubEnv("PROD", true);
+    const error = silenceError();
+    const provider = composeActionBarProvider({
+      slices: [
+        throwingSlice(["strike"], new Error("boom")),
+        spySlice(["spell"], [makeEntry("spell:main:x")]).slice,
+      ],
+      status,
+    });
+
+    expect(provider.entries(makeContext()).map((e) => e.id)).toEqual(["spell:main:x"]);
+    expect(error).toHaveBeenCalledTimes(1);
+  });
+
+  it("keeps no memory of the failure: the slice is read again and serves its entries once it recovers", () => {
+    const error = silenceError();
+    let broken = true;
+    const flaky: ActionBarSlice = {
+      kinds: ["spell"],
+      entries: () => {
+        if (broken) throw new Error("not loaded yet");
+        return [makeEntry("spell:main:x")];
+      },
+      execute: () => Promise.resolve(),
+    };
+    const provider = composeActionBarProvider({
+      slices: [spySlice(["strike"], [makeEntry("strike:a")]).slice, flaky],
+      status,
+    });
+    const ctx = makeContext();
+
+    expect(provider.entries(ctx).map((e) => e.id)).toEqual(["strike:a"]);
+    broken = false;
+    expect(provider.entries(ctx).map((e) => e.id)).toEqual(["strike:a", "spell:main:x"]);
+    expect(error).toHaveBeenCalledTimes(1);
+  });
+
+  it("does not swallow the contract check: an invalid entry of a healthy slice still throws outside production", () => {
+    silenceError();
+    const provider = composeActionBarProvider({
+      slices: [
+        throwingSlice(["strike"], new Error("boom")),
+        spySlice(["action"], [makeEntry("action:a", { state: "unavailable" })]).slice,
+      ],
+      status,
+    });
+
+    expect(() => provider.entries(makeContext())).toThrow(/reason/);
+  });
+
+  it("leaves execute alone: a slice whose listing throws still executes its entries", async () => {
+    silenceError();
+    const executeCalls: string[] = [];
+    const slice: ActionBarSlice = {
+      kinds: ["spell"],
+      entries: () => {
+        throw new Error("boom");
+      },
+      execute: (entry) => {
+        executeCalls.push(entry.id);
+        return Promise.resolve();
+      },
+    };
+    const provider = composeActionBarProvider({ slices: [slice], status });
+
+    expect(provider.entries(makeContext())).toEqual([]);
+    await provider.execute(makeEntry("spell:main:x"), makeChoice(), makeServices(), makeContext());
+
+    expect(executeCalls).toEqual(["spell:main:x"]);
   });
 });
 
