@@ -31,6 +31,7 @@ import {
   AmbientLightDocumentSchema,
   CombatDocumentSchema,
   FolderDocumentSchema,
+  GridConfigSchema,
   InitialViewSchema,
 } from "@fusion/shared";
 import type { DocumentTable } from "@fusion/shared";
@@ -121,6 +122,20 @@ export const SceneSchema = BaseDocumentSchema.extend({
   padding: z.number().nonnegative().default(0.25),
   background: z.string().nullable().optional(),
   backgroundColor: z.string().default("#999999"),
+  /**
+   * Grid config (REQ-CNV-067). Optional so scenes saved without one keep the
+   * client default; a partial grid (e.g. a size-only patch from the scene
+   * dialog) is completed with the shared defaults before validation.
+   */
+  grid: z
+    .preprocess(
+      (g) =>
+        g !== null && typeof g === "object"
+          ? { type: "square", size: 100, distance: 5, units: "ft", color: "#000000", alpha: 0.2, ...g }
+          : g,
+      GridConfigSchema,
+    )
+    .optional(),
   /** Token vision enabled (spec 07 REQ-VIS-085). */
   tokenVision: z.boolean().default(false),
   /** Fog of war enabled (spec 07 REQ-VIS-085). */

@@ -194,8 +194,10 @@ describe("createScene / updateSceneConfig (spec 44 §5.7)", () => {
     const updates = sent[0]?.payload["updates"] as { diff: Record<string, unknown> }[];
     const diff = updates[0]?.diff ?? {};
     expect(Object.keys(diff).sort()).toEqual(
-      ["background", "backgroundColor", "folder", "grid.size", "height", "name", "width"].sort(),
+      ["background", "backgroundColor", "folder", "grid", "height", "name", "width"].sort(),
     );
+    // The grid goes as a nested object: the server drops unknown dotted keys.
+    expect(diff["grid"]).toEqual({ size: 120 });
     // REQ-CEN-042: `active` is refused by the server anyway; it is not even sent.
     expect(diff["active"]).toBeUndefined();
   });

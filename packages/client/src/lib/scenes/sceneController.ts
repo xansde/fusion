@@ -215,7 +215,7 @@ export async function updateSceneConfig(
             folder: data.folder,
             width: data.width,
             height: data.height,
-            "grid.size": data.gridSize,
+            grid: { size: data.gridSize },
             backgroundColor: data.backgroundColor.trim(),
             background: data.background.trim() || null,
           },

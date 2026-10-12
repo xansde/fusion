@@ -1032,3 +1032,46 @@ describe("_stats server-side authority (REQ-DOC-008, D9)", () => {
     expect(stats["lastModifiedBy"]).toBe("serverUserId"); // server sets from context
   });
 });
+
+describe("Scene grid persistence", () => {
+  it("keeps the grid supplied on create", () => {
+    const { store } = createStore();
+    const scene = store.create("scenes", {
+      name: "Deck",
+      grid: { type: "square", size: 84, distance: 5, units: "ft", color: "#000000", alpha: 0.2 },
+    });
+    const grid = store.get("scenes", scene["_id"] as string)["grid"] as Record<string, unknown>;
+    expect(grid["size"]).toBe(84);
+    expect(grid["type"]).toBe("square");
+  });
+
+  it("persists a partial grid patch on a scene that has no grid yet", () => {
+    const { store } = createStore();
+    const scene = store.create("scenes", { name: "Hold" });
+    const id = scene["_id"] as string;
+
+    store.update("scenes", id, { grid: { size: 84 } });
+
+    const grid = store.get("scenes", id)["grid"] as Record<string, unknown>;
+    expect(grid["size"]).toBe(84);
+    expect(grid["type"]).toBe("square");
+    expect(grid["distance"]).toBe(5);
+    expect(grid["units"]).toBe("ft");
+  });
+
+  it("changes only the grid size and keeps the other grid fields", () => {
+    const { store } = createStore();
+    const scene = store.create("scenes", {
+      name: "Deck",
+      grid: { type: "square", size: 84, distance: 5, units: "ft", color: "#ff0000", alpha: 0.5 },
+    });
+    const id = scene["_id"] as string;
+
+    store.update("scenes", id, { grid: { size: 120 } });
+
+    const grid = store.get("scenes", id)["grid"] as Record<string, unknown>;
+    expect(grid["size"]).toBe(120);
+    expect(grid["color"]).toBe("#ff0000");
+    expect(grid["alpha"]).toBe(0.5);
+  });
+});
