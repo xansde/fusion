@@ -56,6 +56,12 @@ export const ACTION_BAR_FLAG_PATH = "flags.fusion.actionBar";
 /** The icon map, as a `doc:update` dot-path key. */
 export const ACTION_BAR_ICONS_FLAG_PATH = "flags.fusion.actionBar.icons";
 
+/** The favourites row, as a `doc:update` dot-path key (BAR-F3-01). */
+export const ACTION_BAR_FAVORITES_FLAG_PATH = "flags.fusion.actionBar.favorites";
+
+/** The "seed already applied" flag, as a `doc:update` dot-path key (BAR-F3-01). */
+export const ACTION_BAR_SEEDED_FLAG_PATH = "flags.fusion.actionBar.seeded";
+
 // ---------------------------------------------------------------------------
 // Entry ids
 // ---------------------------------------------------------------------------
@@ -162,4 +168,26 @@ export function actionBarIconPatch(
   path: string | null,
 ): Record<string, Record<string, string | null>> {
   return { [ACTION_BAR_ICONS_FLAG_PATH]: { [entryId]: path } };
+}
+
+/**
+ * The `doc:update` diff that writes the whole favourites row (BAR-F3-01).
+ *
+ * The row travels WHOLE: the store merges arrays by replacement (REQ-DOC-037), so there is no
+ * partial write of one slot — a dot-path on an index would turn the array into an object and the
+ * schema would refuse it. That is why the writer MUST send `expectedVersion` with this diff and
+ * redo it from the fresh document on `STALE_WRITE` (REQ-BAR-063): the version is the only thing
+ * standing between two devices and a lost pin.
+ *
+ * `seeded: true` goes in the same diff, always: a row the player has touched must never be seeded
+ * again (D-BA08), and a seed is a row. `icons` is a sibling key and is left alone by the merge.
+ */
+export function actionBarFavoritesPatch(favorites: ReadonlyArray<string | null>): {
+  [ACTION_BAR_FAVORITES_FLAG_PATH]: Array<string | null>;
+  [ACTION_BAR_SEEDED_FLAG_PATH]: true;
+} {
+  return {
+    [ACTION_BAR_FAVORITES_FLAG_PATH]: [...favorites],
+    [ACTION_BAR_SEEDED_FLAG_PATH]: true,
+  };
 }

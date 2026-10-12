@@ -31,8 +31,12 @@ import { DocumentStore } from "../documents/store.js";
 import { PERMISSIONS_SETTING_KEY } from "../documents/world-permissions.js";
 import {
   PROTOCOL_VERSION,
+  ACTION_BAR_FAVORITES_FLAG_PATH,
   ACTION_BAR_ICON_AREA,
   ACTION_BAR_ICON_CAP,
+  ACTION_BAR_SEEDED_FLAG_PATH,
+  ACTION_BAR_SLOT_COUNT,
+  actionBarFavoritesPatch,
   actionBarIconPatch,
 } from "@fusion/shared";
 import { reserveFreePort, listeningPort } from "./helpers/ports.js";
@@ -486,5 +490,368 @@ describe("flags.fusion.actionBar on doc:update and doc:create (BAR-F3-05)", () =
       data: [{ name: "Do jogador ok", type: "character" }],
     });
     expect(good["ok"], JSON.stringify(good)).toBe(true);
+  });
+});
+
+// ---------------------------------------------------------------------------------------------------
+// BAR-F3-01 — the favourites row and the seeded flag, on the same two doors
+// ---------------------------------------------------------------------------------------------------
+
+describe("flags.fusion.actionBar favourites on doc:update and doc:create (BAR-F3-01)", () => {
+  let ctx: Ctx;
+  let gm: ClientSocket;
+  let p1: ClientSocket;
+  let p2: ClientSocket;
+
+  beforeEach(async () => {
+    ctx = await buildCtx();
+    [gm, p1, p2] = await Promise.all([
+      connect(ctx.port, ctx.worldId, ctx.gmToken),
+      connect(ctx.port, ctx.worldId, ctx.p1Token),
+      connect(ctx.port, ctx.worldId, ctx.p2Token),
+    ]);
+  }, 20_000);
+
+  afterEach(async () => {
+    gm.disconnect();
+    p1.disconnect();
+    p2.disconnect();
+    await teardown(ctx);
+  });
+
+  const versionOf = (actorId: string): number =>
+    (ctx.store.get("actors", actorId)["_stats"] as { version: number }).version;
+
+  /** `expectedVersion` defaults to the stored one at the moment of the call; `null` leaves it out. */
+  const write = (
+    socket: ClientSocket,
+    actorId: string,
+    diff: Record<string, unknown>,
+    expectedVersion: number | null = versionOf(actorId),
+  ) =>
+    sendOp(socket, "doc:update", {
+      documentType: "Actor",
+      updates: [
+        {
+          _id: actorId,
+          diff,
+          ...(expectedVersion === null ? {} : { expectedVersion }),
+        },
+      ],
+    });
+
+  const storedBar = (actorId: string): Record<string, unknown> | undefined => {
+    const doc = ctx.store.get("actors", actorId) as {
+      flags?: { fusion?: { actionBar?: Record<string, unknown> } };
+    };
+    return doc.flags?.fusion?.actionBar;
+  };
+
+  /** A row of 12: the given ids from the first slot on, `null` for the rest. */
+  const row = (...ids: Array<string | null>): Array<string | null> =>
+    Array.from({ length: ACTION_BAR_SLOT_COUNT }, (_, index) => ids[index] ?? null);
+
+  // ----------------------------------------------------------- who may write (REQ-BAR-061, D-BA01)
+
+  it("the owner writes the row and the seeded flag of his own character, exactly as the client sends them", async () => {
+    const favorites = row("strike:longsword", "spell:main:heal", null, "action:seek");
+
+    const ack = await write(p1, OWN_ID, actionBarFavoritesPatch(favorites));
+
+    expect(ack["ok"], JSON.stringify(ack)).toBe(true);
+    expect(storedBar(OWN_ID)).toEqual({ favorites, seeded: true });
+  });
+
+  it("the Mestre writes the row of any actor, and a later write replaces the row whole (arrays are replaced, not merged)", async () => {
+    const first = await write(gm, OTHER_ID, actionBarFavoritesPatch(row("strike:a", "strike:b")));
+    expect(first["ok"], JSON.stringify(first)).toBe(true);
+
+    const second = await write(gm, OTHER_ID, actionBarFavoritesPatch(row(null, null, "strike:c")));
+
+    expect(second["ok"], JSON.stringify(second)).toBe(true);
+    expect(storedBar(OTHER_ID)).toEqual({ favorites: row(null, null, "strike:c"), seeded: true });
+  });
+
+  it("the row and the icons are siblings: writing the row keeps the icon map, and the other way round", async () => {
+    await write(p1, OWN_ID, actionBarIconPatch("strike:longsword", ICON_A));
+
+    await write(p1, OWN_ID, actionBarFavoritesPatch(row("strike:longsword")));
+    expect(storedBar(OWN_ID)).toEqual({
+      favorites: row("strike:longsword"),
+      seeded: true,
+      icons: { "strike:longsword": ICON_A },
+    });
+
+    await write(p1, OWN_ID, actionBarIconPatch("spell:heal", ICON_B));
+    expect(storedBar(OWN_ID)).toEqual({
+      favorites: row("strike:longsword"),
+      seeded: true,
+      icons: { "strike:longsword": ICON_A, "spell:heal": ICON_B },
+    });
+  });
+
+  it("a player cannot write favourites or the seeded flag on a character he only observes — by any diff shape (negative, D-BA01)", async () => {
+    const diffs: Record<string, unknown>[] = [
+      actionBarFavoritesPatch(row("strike:roubado")),
+      { [ACTION_BAR_FAVORITES_FLAG_PATH]: row("strike:roubado") },
+      { [ACTION_BAR_SEEDED_FLAG_PATH]: true },
+      {
+        "flags.fusion.actionBar": { favorites: row("strike:roubado"), seeded: true },
+      },
+      { flags: { fusion: { actionBar: { favorites: row("strike:roubado"), seeded: true } } } },
+      { [ACTION_BAR_FAVORITES_FLAG_PATH]: null },
+    ];
+    for (const diff of diffs) {
+      const ack = await write(p1, OTHER_ID, diff);
+      expect(ack, JSON.stringify(diff)).toMatchObject({ ok: false, code: "PERMISSION_DENIED" });
+    }
+    expect(storedBar(OTHER_ID)).toBeUndefined();
+  });
+
+  it("…and cannot wipe or un-seed a row the owner already has: the other player's favourites stand", async () => {
+    const mine = row("strike:do-p2", "spell:do-p2");
+    const seeded = await write(p2, OTHER_ID, actionBarFavoritesPatch(mine));
+    expect(seeded["ok"], JSON.stringify(seeded)).toBe(true);
+
+    const wipe = await write(p1, OTHER_ID, actionBarFavoritesPatch(row()));
+    const unseed = await write(p1, OTHER_ID, { [ACTION_BAR_SEEDED_FLAG_PATH]: false });
+
+    expect(wipe).toMatchObject({ ok: false, code: "PERMISSION_DENIED" });
+    expect(unseed).toMatchObject({ ok: false, code: "PERMISSION_DENIED" });
+    expect(storedBar(OTHER_ID)).toEqual({ favorites: mine, seeded: true });
+  });
+
+  it("ownership is the gate for every non-privileged role: a LIMITED NPC and a TRUSTED player (negative)", async () => {
+    const trusted = await connect(ctx.port, ctx.worldId, ctx.trustedToken);
+    try {
+      const cases: Array<[ClientSocket, string]> = [
+        [p1, NPC_ID],
+        [trusted, OWN_ID],
+        [trusted, NPC_ID],
+      ];
+      for (const [socket, actorId] of cases) {
+        const ack = await write(socket, actorId, actionBarFavoritesPatch(row("strike:claw")));
+        expect(ack, actorId).toMatchObject({ ok: false, code: "PERMISSION_DENIED" });
+        expect(storedBar(actorId), actorId).toBeUndefined();
+      }
+    } finally {
+      trusted.disconnect();
+    }
+  });
+
+  it("a player's batch with his own actor AND someone else's is refused whole: his own row is not written either", async () => {
+    const ack = await sendOp(p1, "doc:update", {
+      documentType: "Actor",
+      updates: [
+        {
+          _id: OWN_ID,
+          diff: actionBarFavoritesPatch(row("strike:meu")),
+          expectedVersion: versionOf(OWN_ID),
+        },
+        {
+          _id: OTHER_ID,
+          diff: actionBarFavoritesPatch(row("strike:dele")),
+          expectedVersion: versionOf(OTHER_ID),
+        },
+      ],
+    });
+
+    expect(ack).toMatchObject({ ok: false, code: "PERMISSION_DENIED" });
+    expect(storedBar(OWN_ID)).toBeUndefined();
+    expect(storedBar(OTHER_ID)).toBeUndefined();
+  });
+
+  // --------------------------------------------------- what may be written (REQ-BAR-062, CA-BAR-09)
+
+  it("refuses a row that is not 12 positions of ids-or-null, for the owner AND for the Mestre", async () => {
+    const bad: Array<[string, unknown]> = [
+      ["11 positions", row().slice(1)],
+      ["13 positions", [...row(), null]],
+      ["empty list", []],
+      ["malformed id", row("strike:ok", "isto não é um id")],
+      ["unknown kind", row("macro:x")],
+      ["origin too long", row(`spell:${"a".repeat(121)}`)],
+      ["a number in a slot", row("strike:ok", 7 as unknown as string)],
+      ["not a list", "strike:x"],
+      ["an object", { "0": "strike:x" }],
+    ];
+    for (const [what, favorites] of bad) {
+      for (const socket of [p1, gm]) {
+        const ack = await write(socket, OWN_ID, {
+          [ACTION_BAR_FAVORITES_FLAG_PATH]: favorites,
+          [ACTION_BAR_SEEDED_FLAG_PATH]: true,
+        });
+        expect(ack, what).toMatchObject({ ok: false, code: "VALIDATION_FAILED" });
+      }
+    }
+    expect(storedBar(OWN_ID)).toBeUndefined();
+  });
+
+  it("refuses a seeded flag that is not a boolean, and a field the bar does not have", async () => {
+    for (const diff of [
+      { [ACTION_BAR_SEEDED_FLAG_PATH]: "sim" },
+      { [ACTION_BAR_SEEDED_FLAG_PATH]: 1 },
+      { "flags.fusion.actionBar.hotbar": row("strike:x") },
+      { "flags.fusion.actionBar.favourites": row("strike:x") },
+    ]) {
+      const ack = await write(p1, OWN_ID, diff);
+      expect(ack, JSON.stringify(diff)).toMatchObject({ ok: false, code: "VALIDATION_FAILED" });
+    }
+    expect(storedBar(OWN_ID)).toBeUndefined();
+  });
+
+  it("a diff on one INDEX of the row turns the array into an object once merged: the RESULT is invalid, so it is refused and the stored row stays", async () => {
+    const stored = row("strike:a", "strike:b", "strike:c");
+    await write(p1, OWN_ID, actionBarFavoritesPatch(stored));
+
+    const ack = await write(p1, OWN_ID, { "flags.fusion.actionBar.favorites.3": "strike:novo" });
+
+    expect(ack).toMatchObject({ ok: false, code: "VALIDATION_FAILED" });
+    expect(storedBar(OWN_ID)).toEqual({ favorites: stored, seeded: true });
+  });
+
+  it("a partial diff that is fine alone but makes the RESULT invalid is refused (the bar is judged whole)", async () => {
+    // The stored bar has icons; a diff that only adds a 13-position row makes the resulting object
+    // invalid even though `icons` itself is untouched and valid.
+    await write(p1, OWN_ID, actionBarIconPatch("strike:longsword", ICON_A));
+
+    const ack = await write(p1, OWN_ID, {
+      [ACTION_BAR_FAVORITES_FLAG_PATH]: [...row("strike:x"), null],
+    });
+
+    expect(ack).toMatchObject({ ok: false, code: "VALIDATION_FAILED" });
+    expect(storedBar(OWN_ID)).toEqual({ icons: { "strike:longsword": ICON_A } });
+  });
+
+  it("a stored bar that predates the schema (here: an 11-position row) does not freeze the actor, and a good row heals it", async () => {
+    ctx.store.update(
+      "actors",
+      OWN_ID,
+      { flags: { fusion: { actionBar: { favorites: row().slice(1), seeded: true } } } },
+      { userId: ctx.p1Id },
+    );
+
+    const unrelated = await write(p1, OWN_ID, { name: "Heroi renomeado" });
+    expect(unrelated["ok"], JSON.stringify(unrelated)).toBe(true);
+
+    const healed = await write(p1, OWN_ID, actionBarFavoritesPatch(row("strike:a")));
+    expect(healed["ok"], JSON.stringify(healed)).toBe(true);
+    expect(storedBar(OWN_ID)).toEqual({ favorites: row("strike:a"), seeded: true });
+  });
+
+  // -------------------------------------------------- the version lock (REQ-BAR-063, DEC-NET-05)
+
+  it("a player's write without expectedVersion is refused: the lock cannot be skipped by the one who needs it", async () => {
+    const ack = await write(p1, OWN_ID, actionBarFavoritesPatch(row("strike:a")), null);
+
+    expect(ack).toMatchObject({ ok: false, code: "VALIDATION_FAILED" });
+    expect(storedBar(OWN_ID)).toBeUndefined();
+  });
+
+  it("a write on an old version is STALE_WRITE and changes nothing — not even for the Mestre, when he sends the version", async () => {
+    const seen = versionOf(OWN_ID);
+    await write(p1, OWN_ID, actionBarFavoritesPatch(row("strike:do-outro-aparelho")));
+
+    const stalePlayer = await write(p1, OWN_ID, actionBarFavoritesPatch(row("strike:velho")), seen);
+    const staleGm = await write(gm, OWN_ID, actionBarFavoritesPatch(row("strike:velho")), seen);
+
+    expect(stalePlayer).toMatchObject({ ok: false, code: "STALE_WRITE" });
+    expect(staleGm).toMatchObject({ ok: false, code: "STALE_WRITE" });
+    expect(storedBar(OWN_ID)).toEqual({
+      favorites: row("strike:do-outro-aparelho"),
+      seeded: true,
+    });
+  });
+
+  it("redoing a stale pin on the FRESH document keeps the other device's pin (nothing is overwritten)", async () => {
+    // Device A and device B both saw version V of an empty row. A pins X.
+    const seenByBoth = versionOf(OWN_ID);
+    const a = await write(p1, OWN_ID, actionBarFavoritesPatch(row("strike:x")), seenByBoth);
+    expect(a["ok"], JSON.stringify(a)).toBe(true);
+
+    // B pins Y on the old version: refused. B re-reads the document and redoes the pin on it.
+    const b = await write(gm, OWN_ID, actionBarFavoritesPatch(row("strike:y")), seenByBoth);
+    expect(b).toMatchObject({ ok: false, code: "STALE_WRITE" });
+    const fresh = storedBar(OWN_ID)?.["favorites"] as Array<string | null>;
+    const redone = [...fresh];
+    redone[redone.indexOf(null)] = "strike:y";
+    const again = await write(gm, OWN_ID, actionBarFavoritesPatch(redone));
+
+    expect(again["ok"], JSON.stringify(again)).toBe(true);
+    expect(storedBar(OWN_ID)).toEqual({ favorites: row("strike:x", "strike:y"), seeded: true });
+  });
+
+  it("two devices seeding the same actor at the same instant (player and Mestre): exactly one seed is stored, the other gets STALE_WRITE", async () => {
+    const seen = versionOf(OWN_ID);
+    const playerSeed = row("strike:do-jogador", "spell:main:heal");
+    const gmSeed = row("strike:do-mestre", "action:seek");
+
+    const [byPlayer, byGm] = await Promise.all([
+      write(p1, OWN_ID, actionBarFavoritesPatch(playerSeed), seen),
+      write(gm, OWN_ID, actionBarFavoritesPatch(gmSeed), seen),
+    ]);
+
+    const winners = [byPlayer, byGm].filter((ack) => ack["ok"] === true);
+    const losers = [byPlayer, byGm].filter((ack) => ack["ok"] !== true);
+    expect(winners).toHaveLength(1);
+    expect(losers).toHaveLength(1);
+    expect(losers[0]).toMatchObject({ ok: false, code: "STALE_WRITE" });
+    const winnerSeed = byPlayer["ok"] === true ? playerSeed : gmSeed;
+    expect(storedBar(OWN_ID)).toEqual({ favorites: winnerSeed, seeded: true });
+    expect(versionOf(OWN_ID)).toBe(seen + 1);
+  });
+
+  // ------------------------------------------------------------------------------- the create door
+
+  it("doc:create refuses an Actor born with a bad row or a bad seeded flag, and accepts a good one", async () => {
+    for (const actionBar of [
+      { favorites: [...row(), null] },
+      { favorites: row("não é id") },
+      { seeded: "sim" },
+    ]) {
+      const bad = await sendOp(gm, "doc:create", {
+        documentType: "Actor",
+        data: [{ name: "Nascido torto", type: "character", flags: { fusion: { actionBar } } }],
+      });
+      expect(bad, JSON.stringify(actionBar)).toMatchObject({
+        ok: false,
+        code: "VALIDATION_FAILED",
+      });
+    }
+    expect(ctx.store.getAll("actors").some((a) => a["name"] === "Nascido torto")).toBe(false);
+
+    const good = await sendOp(gm, "doc:create", {
+      documentType: "Actor",
+      data: [
+        {
+          name: "Nascido certo",
+          type: "character",
+          flags: { fusion: { actionBar: { favorites: row("strike:a"), seeded: true } } },
+        },
+      ],
+    });
+    expect(good["ok"], JSON.stringify(good)).toBe(true);
+  });
+
+  it("when the Mestre opens Actor creation to players, a player cannot create an Actor with a bad row either", async () => {
+    ctx.store.create(
+      "settings",
+      { key: PERMISSIONS_SETTING_KEY, value: { ACTOR_CREATE: Role.PLAYER } },
+      { userId: ctx.p1Id },
+    );
+
+    const bad = await sendOp(p1, "doc:create", {
+      documentType: "Actor",
+      data: [
+        {
+          name: "Do jogador torto",
+          type: "character",
+          flags: { fusion: { actionBar: { favorites: [...row(), "strike:a"] } } },
+        },
+      ],
+    });
+
+    expect(bad).toMatchObject({ ok: false, code: "VALIDATION_FAILED" });
+    expect(ctx.store.getAll("actors").some((a) => a["name"] === "Do jogador torto")).toBe(false);
   });
 });
