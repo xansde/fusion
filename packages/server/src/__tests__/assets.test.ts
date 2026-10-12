@@ -26,6 +26,7 @@ import { Role } from "../auth/user-store.js";
 import { loadOrCreateSecret } from "../auth/crypto.js";
 import { registerAuthRoutes } from "../auth/routes.js";
 import { registerAssetRoutes } from "../assets/routes.js";
+import { isActionBarIconPath } from "@fusion/shared";
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -855,6 +856,65 @@ describe("POST /api/assets/upload?purpose=icon — open to every player (REQ-BAR
     const path = resp.json<{ path: string }>().path;
     const stored = readFileSync(join(ctx.assetsDir, ...path.split("/")), "utf8");
     expect(stored).not.toContain("<script");
+  });
+
+  it("a dotted name that starts like a Windows device still yields a USABLE icon", async () => {
+    // Adversarial review round 2: the slug keeps dots, so "aux.ataque.png" became
+    // `aux.ataque-<hash>.png` — stored, but refused by the icon-name rule (the part before the first
+    // dot is a device name), so it could be set nowhere and the gallery never showed it.
+    const originals = ["aux.ataque.png", "con.v2.png", "Com1.Icone.png", "nul.png"];
+    for (const [index, original] of originals.entries()) {
+      const resp = await uploadIcon(
+        ctx.fastify,
+        ctx.playerToken,
+        distinctPng(910 + index),
+        original,
+      );
+      expect(resp.statusCode, original).toBe(201);
+      const path = resp.json<{ path: string }>().path;
+      const stem = path.slice(path.indexOf("/") + 1, path.lastIndexOf("."));
+      expect(stem, original).not.toContain(".");
+      expect(isActionBarIconPath(`/assets/${path}`), path).toBe(true);
+    }
+    const gallery = await ctx.fastify.inject({
+      method: "GET",
+      url: "/api/assets/icons",
+      headers: { authorization: `Bearer ${ctx.playerToken}` },
+    });
+    expect(gallery.json<{ assets: unknown[] }>().assets).toHaveLength(4);
+  });
+
+  it("the dedup recognises a twin whatever the case of its name (a file the GM dropped by hand)", async () => {
+    const bytes = distinctPng(904);
+    const digest = createHash("sha256").update(bytes).digest("hex");
+    const iconDir = join(ctx.assetsDir, ICON_AREA);
+    mkdirSync(iconDir, { recursive: true });
+    const twin = `CAIXA-${digest.slice(0, 8).toUpperCase()}.PNG`;
+    writeFileSync(join(iconDir, twin), bytes);
+
+    const resp = await uploadIcon(ctx.fastify, ctx.playerToken, bytes, "caixa.png");
+    expect(resp.statusCode).toBe(200);
+    const body = resp.json<{ path: string; deduplicated: boolean }>();
+    expect(body.deduplicated).toBe(true);
+    expect(body.path).toBe(`${ICON_AREA}/${twin}`);
+  });
+
+  it("a 16-hex icon keeps the long cache of a content-addressed name", async () => {
+    const bytes = distinctPng(905);
+    const hash = createHash("sha256").update(bytes).digest("hex");
+    const iconDir = join(ctx.assetsDir, ICON_AREA);
+    mkdirSync(iconDir, { recursive: true });
+    writeFileSync(join(iconDir, `longo-${hash.slice(0, 8)}.png`), distinctPng(906));
+    const resp = await uploadIcon(ctx.fastify, ctx.playerToken, bytes, "longo.png");
+    const path = resp.json<{ path: string }>().path;
+    expect(path).toBe(`${ICON_AREA}/longo-${hash.slice(0, 16)}.png`);
+    const served = await ctx.fastify.inject({
+      method: "GET",
+      url: `/assets/${path}`,
+      headers: { authorization: `Bearer ${ctx.gmToken}` },
+    });
+    expect(served.statusCode).toBe(200);
+    expect(served.headers["cache-control"]).toContain("immutable");
   });
 
   it("an SVG is served sandboxed, so a sanitiser miss still runs no script (REQ-SEC-035)", async () => {

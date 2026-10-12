@@ -81,8 +81,9 @@ const ICON_PATH_PATTERN = /^\/assets\/actionbar-icons\/([^/]*)$/;
 
 /**
  * The names Windows reserves for devices, whatever the extension (`CON.png` is the console). The
- * GM's server runs on Windows; the slug can never produce one (it always ends in `-<8 hex>`), so
- * only a file dropped into the area by hand could carry it.
+ * GM's server runs on Windows. The icon upload never produces one: it takes the dots out of the
+ * slug, so the part before the first dot is `<slug>-<8 hex>`. Only a file dropped into the area by
+ * hand could carry one, and it is not an icon.
  */
 const WINDOWS_DEVICE_NAME_PATTERN = /^(?:con|prn|aux|nul|com\d|lpt\d)$/i;
 

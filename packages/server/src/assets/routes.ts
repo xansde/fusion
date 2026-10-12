@@ -563,7 +563,14 @@ async function assetPlugin(
     // REQ-BAR-076 / REQ-SEC-043 (amended): the SERVER picks the folder. An icon goes to the
     // reserved area and nowhere else; nothing in the request (filename, fields) names a folder —
     // `buildSafeFilename` keeps only `[a-z0-9._-]` of the original name.
-    const storageName = purpose === "icon" ? `${ICON_ASSET_AREA}/${safeFilename}` : safeFilename;
+    //
+    // An icon's slug also loses its dots: the part of the name before the first dot is then always
+    // `<slug>-<8 hex>`, never a Windows device name the icon-name rule refuses (`aux.ataque.png`
+    // used to land as an icon nothing could use — adversarial review, round 2).
+    const storageName =
+      purpose === "icon"
+        ? `${ICON_ASSET_AREA}/${safeFilename.slice(0, -detected.ext.length).replace(/\./g, "-")}${detected.ext}`
+        : safeFilename;
 
     // REQ-SEC-042 / REQ-AST-003: guard the target path
     let targetPath: string;
@@ -1629,7 +1636,9 @@ function findExistingIconByDigest(assetsDir: string, digest: string, ext: string
     return null; // no icon uploaded yet
   }
   for (const entry of entries) {
-    if (!suffixes.some((suffix) => entry.endsWith(suffix))) continue;
+    // Case-blind: a twin the GM dropped by hand may be `CAIXA-1A2B3C4D.PNG`; the bytes decide.
+    const lowerEntry = entry.toLowerCase();
+    if (!suffixes.some((suffix) => lowerEntry.endsWith(suffix))) continue;
     if (!isActionBarIconFileName(entry)) continue;
     const filePath = joinPath(iconDir, entry);
     try {
@@ -1740,7 +1749,8 @@ function guessMime(filename: string): string {
  * `<slug>-<8hexchars>.<ext>`
  */
 function isContentAddressed(filename: string): boolean {
-  return /^.+-[0-9a-f]{8}\.[a-z0-9]+$/i.test(filename);
+  // 8 hex, or the 16 hex an icon moves to after a name collision (BAR-F3-05).
+  return /^.+-(?:[0-9a-f]{8}|[0-9a-f]{16})\.[a-z0-9]+$/i.test(filename);
 }
 
 /**
