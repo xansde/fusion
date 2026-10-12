@@ -5,9 +5,42 @@
  * `worlds/<slug>/assets/`, describing the file — never which documents
  * reference it. See `db/migrations/009_assets.ts` for the full rationale
  * and `assets/routes.ts` (T021) for the only writer in the upload path.
+ *
+ * ---------------------------------------------------------------------------
+ * THE ICON MARK (BAR-F3-05, REQ-BAR-078, REQ-BAR-103)
+ * ---------------------------------------------------------------------------
+ *
+ * An asset sent by "Trocar ícone…" is marked as an icon by WHERE the server puts
+ * it: the reserved area `actionbar-icons/` ({@link ICON_ASSET_AREA}), which is
+ * part of the row's `name` — so the registry carries the mark in the same column
+ * that is the row's identity, written in the same act as the file. There is
+ * deliberately no `purpose` column:
+ *
+ *   - the mark cannot drift from the file: a row says "icon" exactly when the
+ *     bytes sit in the area the gallery lists and the grant exception accepts;
+ *   - nothing can mark an EXISTING asset: no route moves, copies or relabels a
+ *     file into the area — the icon upload is its only writer (REQ-BAR-103);
+ *   - a registry write is best-effort (see `registerUpload` in routes.ts) and the
+ *     reconciliation backfills rows from the disk with their relative path, so a
+ *     lost row comes back still marked — a column would come back unmarked;
+ *   - no migration: an older build opening the world still reads every row.
  */
 
 import type { Database } from "better-sqlite3";
+import { ACTION_BAR_ICON_AREA, isActionBarIconFileName } from "@fusion/shared";
+
+/** The reserved area every icon upload lands in — the icon mark itself. */
+export const ICON_ASSET_AREA = ACTION_BAR_ICON_AREA;
+
+const ICON_PREFIX = `${ICON_ASSET_AREA}/`;
+
+/**
+ * True for an asset name that is an icon: one file directly inside the icon
+ * area, with a name the gallery may list and the grant exception may sign.
+ */
+export function isIconAssetName(name: string): boolean {
+  return name.startsWith(ICON_PREFIX) && isActionBarIconFileName(name.slice(ICON_PREFIX.length));
+}
 
 // ---------------------------------------------------------------------------
 // Types
@@ -126,4 +159,13 @@ export function getAssetRecord(db: Database, name: string): AssetRecord | undefi
 export function listAssetRecords(db: Database): AssetRecord[] {
   const rows = db.prepare(`SELECT * FROM assets ORDER BY name`).all() as AssetTableRow[];
   return rows.map(fromRow);
+}
+
+/** The registered assets marked as icons ({@link isIconAssetName}), ordered by name. */
+export function listIconAssetRecords(db: Database): AssetRecord[] {
+  // `substr` rather than LIKE: `_` is a LIKE wildcard and the area name is not escaped here.
+  const rows = db
+    .prepare(`SELECT * FROM assets WHERE substr(name, 1, ?) = ? ORDER BY name`)
+    .all(ICON_PREFIX.length, ICON_PREFIX) as AssetTableRow[];
+  return rows.map(fromRow).filter((record) => isIconAssetName(record.name));
 }

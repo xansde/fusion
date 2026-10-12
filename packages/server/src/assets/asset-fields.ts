@@ -71,7 +71,64 @@
  * Full evidence per line, including the four disjoint surveys behind it
  * (schemas, client, packs/importer, real world data), lives in the task's
  * `campos-portadores.md`.
+ *
+ * ---------------------------------------------------------------------------
+ * THE ONE EXCEPTION TO RULE 2 — `actors.flags.fusion.actionBar.icons`
+ * (BAR-F3-05, REQ-BAR-070/071, Q-BAR-04, D-BA02/D-BA03)
+ * ---------------------------------------------------------------------------
+ *
+ * The action bar lets a player give any entry of his own character a custom
+ * image, stored on the actor as a MAP `entryId -> "/assets/…"`. The image must
+ * load for whoever sees the bar without having chosen it (the GM, a co-owner),
+ * so the map has to be a bearer — and it lives under `flags.*`, which rule 2
+ * closes for the reason stated there: the owner writes it freely.
+ *
+ * So the exception is a THIRD path form, kept out of {@link ASSET_FIELD_PATHS}
+ * on purpose (that table and its two-form grammar are unchanged): the values of
+ * a map, in its own table {@link ASSET_MAP_FIELDS}, holding exactly ONE entry.
+ * It keeps "one path per value, matched whole" and adds three bounds, each of
+ * which closes the amplification on its own:
+ *
+ *   1. ONE PATH, ONE TABLE. Only `flags.fusion.actionBar.icons`, only on
+ *      `actors`. Not `favorites`/`seeded` (they carry no image), not any other
+ *      `flags.*`, not `system.*`, not the same keys on another table. Pinned by
+ *      the "map exception is pinned" tests in asset-grant.test.ts.
+ *   2. THE CAP AT SIGNING TIME, NOT ONLY IN THE SCHEMA. A map with more than
+ *      `ACTION_BAR_ICON_CAP` (64) entries projects NOTHING. Every write door
+ *      refuses such a map (`documents/action-bar-flags.ts`), so one can only be
+ *      legacy or hand-edited data, and the mint does not trust the schema to have
+ *      been the only writer: fail closed, never "the first 64".
+ *   3. A CLOSED VALUE DOMAIN. A value is projected only when it is one file
+ *      directly inside the reserved icon area (`isActionBarIconPath`, @fusion/
+ *      shared — the same predicate the write schema uses): safe ASCII, no
+ *      percent escape, no separator, no dot segment. The area holds only what the
+ *      icon upload wrote, and the shared gallery already signs every file of it
+ *      for every player (REQ-BAR-080). So the map can never carry a name the
+ *      viewer could not already read: a GM map or a handout whose filename the
+ *      owner happens to know is NOT signed through it — unlike `actors.img`,
+ *      whose residual (a known name, one write, one grant) stays as documented
+ *      below.
+ *
+ * Measured against the real route (asset-grant.test.ts, "the icon map on the
+ * Actor"), on a player's own character:
+ *
+ *   1 icon                                  -> 1 grant (+ the portrait's)
+ *   64 icons, 64 distinct names (the cap)   -> 64 grants
+ *   65 icons                                -> 0 grants (over the cap)
+ *   5000 icons in one map                   -> 0 grants
+ *   a value outside the area, any spelling  -> 0 grants
+ *
+ * So one mint of one actor signs at most 1 + 64 names, all but one of them from
+ * the public gallery. The viewer gate is the actor's, unchanged: whoever may see
+ * the document gets its icons; the glimpsed view carries no `flags.fusion.
+ * actionBar` and a hidden actor is the uniform 404.
  */
+
+import {
+  ACTION_BAR_ICON_CAP,
+  ACTION_BAR_ICONS_FLAG_PATH,
+  isActionBarIconPath,
+} from "@fusion/shared";
 
 // ---------------------------------------------------------------------------
 // The table
@@ -206,6 +263,33 @@ export const ASSET_FIELD_PATHS: Readonly<Record<string, readonly string[]>> = {
   playlists: [],
 };
 
+/**
+ * The third path form: the VALUES of a plain-object map at a dotted path
+ * (see "THE ONE EXCEPTION TO RULE 2" in the module doc).
+ */
+export interface AssetMapField {
+  /** Dotted path from the document root to the map, through plain objects only. */
+  readonly path: string;
+  /** Most entries the map may have; a map with MORE projects nothing at all. */
+  readonly cap: number;
+  /** What a value must be, on top of being one whole `/assets/…` reference. */
+  readonly accepts: (value: string) => boolean;
+}
+
+/**
+ * Map-valued bearer fields, by document table. ONE entry, by design: a second
+ * one is a new exception to rule 2 and needs its own adversarial review.
+ */
+export const ASSET_MAP_FIELDS: Readonly<Record<string, readonly AssetMapField[]>> = {
+  // Writer: the action bar's "Trocar ícone…", through `doc:update` with the diff of
+  // `actionBarIconPatch` (shared/src/actionbar.ts), validated on every write door by
+  // `documents/action-bar-flags.ts`. Reader: the bar's slot, through `resolveAssetUrl` with the
+  // actor as the document (REQ-BAR-029/070).
+  actors: [
+    { path: ACTION_BAR_ICONS_FLAG_PATH, cap: ACTION_BAR_ICON_CAP, accepts: isActionBarIconPath },
+  ],
+};
+
 // ---------------------------------------------------------------------------
 // Projection
 // ---------------------------------------------------------------------------
@@ -271,7 +355,45 @@ export function projectAssetFields(
       : elements;
   }
 
+  for (const field of ASSET_MAP_FIELDS[table] ?? []) {
+    const elements = projectMapValues(doc, field);
+    if (elements.length > 0) projection[field.path] = elements;
+  }
+
   return projection;
+}
+
+/** The value at a dotted path, walking plain objects only; `undefined` when any hop is not one. */
+function readDottedPath(doc: Record<string, unknown>, path: string): unknown {
+  let current: unknown = doc;
+  for (const key of path.split(".")) {
+    if (!isPlainObject(current)) return undefined;
+    current = current[key];
+  }
+  return current;
+}
+
+/**
+ * The accepted values of one map field, as one-key objects (`{ [entryId]: path }`) — the same
+ * element shape an `array[].field` path projects, so {@link projectedAssetRefs} reads them without
+ * a third branch. Over the cap the map yields nothing; a value that is not a string or that the
+ * field does not accept is skipped.
+ */
+function projectMapValues(
+  doc: Record<string, unknown>,
+  field: AssetMapField,
+): Array<Record<string, string>> {
+  const map = readDottedPath(doc, field.path);
+  if (!isPlainObject(map)) return [];
+  const keys = Object.keys(map);
+  if (keys.length > field.cap) return [];
+
+  const elements: Array<Record<string, string>> = [];
+  for (const key of keys) {
+    const value = map[key];
+    if (typeof value === "string" && field.accepts(value)) elements.push({ [key]: value });
+  }
+  return elements;
 }
 
 /**

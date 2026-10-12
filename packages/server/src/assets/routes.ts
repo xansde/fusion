@@ -6,20 +6,41 @@
  *
  * Routes mounted by this module:
  *
- *   POST   /api/assets/upload     — multipart upload (REQ-AST-006/007/008/011)
+ *   POST   /api/assets/upload     — multipart upload (REQ-AST-006/007/008/011);
+ *                                   `?purpose=icon` = the action bar's icon upload (BAR-F3-05)
  *   POST   /api/assets/token      — issue short-lived BROWSE-scope grant
  *   POST   /api/assets/grant      — issue DOC-scope grants for one document (T025)
  *   GET    /api/assets            — list assets in world scope (REQ-AST-029)
+ *   GET    /api/assets/icons      — the shared icon gallery, with a grant per icon (BAR-F3-05)
  *   DELETE /api/assets/:name      — delete asset by filename (GM only)
+ *   DELETE /api/assets/icons/:name — delete an icon from the gallery (GM only, BAR-F3-05)
  *   GET    /assets/*              — static serving with path-traversal guard
  *
  * Permissions:
- *   upload  → role >= TRUSTED  (REQ-AST-011 / REQ-AST-029)
+ *   upload  → role >= TRUSTED  (REQ-AST-011 / REQ-AST-029); with `purpose=icon`,
+ *             role >= PLAYER, images only, into the icon area (REQ-BAR-075/076)
  *   token   → role >= PLAYER   (any authenticated user)
  *   grant   → role >= PLAYER, then per-document visibility (see below)
  *   list    → role >= TRUSTED  (STORAGE_BROWSE)
- *   delete  → role == GAMEMASTER only (STORAGE_DELETE)
+ *   icons   → role >= PLAYER: the icon area only, never the rest (REQ-BAR-079/080)
+ *   delete  → role == GAMEMASTER only (STORAGE_DELETE), for both delete routes
  *   serve   → a DOC grant for this exact name, OR role >= TRUSTED
+ *
+ * ---------------------------------------------------------------------------
+ * BAR-F3-05 — THE ICON AREA (REQ-SEC-043/044 as amended, Q-BAR-05)
+ * ---------------------------------------------------------------------------
+ *
+ * Every player may upload an IMAGE when the request declares the purpose "icon"
+ * (`?purpose=icon`, REQ-BAR-103). The server, never the client, decides where it
+ * goes: `actionbar-icons/<slug>-<8 hex>.<ext>` under the world's assets — the
+ * reserved area that IS the icon mark (see asset-store.ts). The same pipeline
+ * runs (size, magic bytes, SVG sanitising, renaming); there is no per-user quota.
+ *
+ * Deduplication for an icon looks ONLY inside the area. A GM handout with the
+ * same bytes is never consulted, so the answer cannot name it, mark it, or reveal
+ * that it exists: the icon gets a new file of its own (Q-BAR-05 — "devolve um
+ * caminho novo"; marking the existing file would move a spoiler into the shared
+ * gallery). A twin that is already an icon is public anyway and is reused.
  *
  * ---------------------------------------------------------------------------
  * T025 — WHAT `GET /assets/*` USED TO BE, AND WHY IT CHANGED
@@ -90,6 +111,7 @@ import {
   unlinkSync,
   readdirSync,
   statSync,
+  lstatSync,
   existsSync,
   readFileSync,
 } from "node:fs";
@@ -103,7 +125,14 @@ import { detectType, ALLOWED_TYPES } from "./magic-bytes.js";
 import { sanitizeSvg } from "./svg-sanitize.js";
 import { buildSafeFilename, sha256Hex } from "./slug.js";
 import { guardPath, guardFilename, PathTraversalError } from "./path-guard.js";
-import { recordAsset, deleteAssetRecord, getAssetRecord } from "./asset-store.js";
+import {
+  recordAsset,
+  deleteAssetRecord,
+  getAssetRecord,
+  ICON_ASSET_AREA,
+  isIconAssetName,
+} from "./asset-store.js";
+import { isActionBarIconFileName } from "@fusion/shared";
 import { canonicalizeAssetName } from "./asset-name.js";
 import { ASSET_GRANT_TTL_MS, issueBrowseGrant, signDocGrant, verifyGrant } from "./asset-grant.js";
 import { projectAssetFields, projectedAssetRefs } from "./asset-fields.js";
@@ -449,8 +478,22 @@ async function assetPlugin(
   // --------------------------------------------------------------------------
 
   fastify.post("/api/assets/upload", { preHandler: requireAuth }, async (request, reply) => {
-    // REQ-AST-011: role >= TRUSTED can upload (STORAGE_UPLOAD perm)
-    if (!requireRole(Role.TRUSTED, request, reply)) return;
+    // BAR-F3-05 (REQ-BAR-103): the purpose is DECLARED in the query string, read before a byte
+    // of the body. Anything but absent or exactly "icon" is refused — never a silent fallback to
+    // the generic upload, so a typo cannot land a file outside the area the caller meant.
+    const purpose = parseUploadPurpose(request.query);
+    if (purpose === null) {
+      return reply.code(400).send({
+        ok: false,
+        code: "VALIDATION_FAILED",
+        message: 'Unknown upload purpose (the only one is "icon").',
+      });
+    }
+
+    // REQ-AST-011: role >= TRUSTED can upload (STORAGE_UPLOAD perm) — amended by REQ-BAR-075:
+    // an IMAGE sent through "Trocar ícone…" is open to every player.
+    const minRole = purpose === "icon" ? Role.PLAYER : Role.TRUSTED;
+    if (!requireRole(minRole, request, reply)) return;
 
     let data: multipart.MultipartFile | undefined;
     let buf: Buffer;
@@ -493,9 +536,10 @@ async function assetPlugin(
       });
     }
 
-    // REQ-AST-007 / REQ-SEC-041: validate by magic bytes
+    // REQ-AST-007 / REQ-SEC-041: validate by magic bytes. An icon must be an IMAGE (REQ-BAR-075):
+    // today every allowed type is one, and this keeps it so if audio or video are ever allowed.
     const detected = detectType(buf);
-    if (!detected) {
+    if (!detected || (purpose === "icon" && !detected.mime.startsWith("image/"))) {
       return reply.code(415).send({
         ok: false,
         code: "UNSUPPORTED_MEDIA_TYPE",
@@ -516,10 +560,15 @@ async function assetPlugin(
     const originalName = data.filename || "upload";
     const safeFilename = buildSafeFilename(originalName, detected.ext, digest);
 
+    // REQ-BAR-076 / REQ-SEC-043 (amended): the SERVER picks the folder. An icon goes to the
+    // reserved area and nowhere else; nothing in the request (filename, fields) names a folder —
+    // `buildSafeFilename` keeps only `[a-z0-9._-]` of the original name.
+    const storageName = purpose === "icon" ? `${ICON_ASSET_AREA}/${safeFilename}` : safeFilename;
+
     // REQ-SEC-042 / REQ-AST-003: guard the target path
     let targetPath: string;
     try {
-      targetPath = guardPath(assetsDir, safeFilename);
+      targetPath = guardPath(assetsDir, storageName);
     } catch (err) {
       if (err instanceof PathTraversalError) {
         return reply.code(400).send({
@@ -534,7 +583,13 @@ async function assetPlugin(
     // REQ-AST-009: deduplication by digest — check if a file with this
     // digest already exists by scanning the directory.
     // For MVP we scan by digest suffix in filename (first 8 chars of hash).
-    const existing = findExistingByDigest(assetsDir, digest);
+    //
+    // BAR-F3-05 (Q-BAR-05): an icon dedups ONLY against icons. A GM handout with the same bytes is
+    // never consulted, so this answer can neither name it nor reveal that it exists.
+    const existing =
+      purpose === "icon"
+        ? findExistingIconByDigest(assetsDir, digest)
+        : findExistingByDigest(assetsDir, digest);
     if (existing) {
       // Backfill a row for the matched file if it has none — a previous upload
       // whose registration failed, or a file that predates the registry.
@@ -554,24 +609,30 @@ async function assetPlugin(
         digest,
         mime_type: detected.mime,
         file_size: finalBuf.length,
+        ...(purpose === "icon" ? { purpose } : {}),
       });
     }
+
+    // The icon area is created on the first icon, by the server.
+    if (purpose === "icon") mkdirSync(joinPath(assetsDir, ICON_ASSET_AREA), { recursive: true });
 
     // Write file (REQ-SEC-040: new safe name, never original)
     writeFileSync(targetPath, finalBuf);
 
     // T020/T021: register the row after the file is safely on disk — never
     // before (see registerUpload's doc comment for why a registry failure
-    // must not turn into a reported upload failure).
-    registerUpload(request, safeFilename, digest, finalBuf.length, detected.mime);
+    // must not turn into a reported upload failure). For an icon the row's
+    // name carries the area: that IS the icon mark (REQ-BAR-078, asset-store.ts).
+    registerUpload(request, storageName, digest, finalBuf.length, detected.mime);
 
     return reply.code(201).send({
       ok: true,
       deduplicated: false,
-      path: safeFilename,
+      path: storageName,
       digest,
       mime_type: detected.mime,
       file_size: finalBuf.length,
+      ...(purpose === "icon" ? { purpose } : {}),
     });
   });
 
@@ -739,6 +800,101 @@ async function assetPlugin(
   });
 
   // --------------------------------------------------------------------------
+  // GET /api/assets/icons                                            (BAR-F3-05)
+  //
+  // The shared icon gallery (REQ-BAR-079/080): every file the icon upload put in
+  // the reserved area, for ANY authenticated role — and nothing else. Maps,
+  // portraits and handouts live outside the area and never reach this list,
+  // because a filename can be a spoiler. It reads one directory, not the
+  // registry: what is listed is exactly what is on disk and servable.
+  //
+  // Each listed icon comes with a DOC-scope grant for the caller (the same HMAC
+  // `POST /api/assets/grant` signs), so a player without STORAGE_BROWSE can paint
+  // the gallery. Not an amplification: the names are the server's own (read from
+  // the area, filtered by the icon-name rule), never anything the caller sent.
+  // --------------------------------------------------------------------------
+
+  fastify.get("/api/assets/icons", { preHandler: requireAuth }, async (request, reply) => {
+    if (!requireRole(Role.PLAYER, request, reply)) return;
+    const user = request.authUser;
+    if (!user) return;
+
+    const icons = listIconAssets(assetsDir);
+    const exp = Date.now() + ASSET_GRANT_TTL_MS;
+    const grants: Record<string, string> = {};
+    if (secret) {
+      for (const icon of icons) {
+        const name = canonicalizeAssetName(icon.name);
+        if (assetNameRefusalReason(name) !== null) continue;
+        grants[name] = signDocGrant(user.id, exp, name, secret);
+      }
+    }
+    return reply.send({ ok: true, assets: icons, exp, grants });
+  });
+
+  // --------------------------------------------------------------------------
+  // DELETE /api/assets/icons/:name                                   (BAR-F3-05)
+  //
+  // The GM removes an icon from the gallery (REQ-BAR-081: deleting stays
+  // STORAGE_DELETE, GM only). `:name` is the file name INSIDE the area; the
+  // generic delete above refuses any `/`, so it cannot reach the area at all.
+  // --------------------------------------------------------------------------
+
+  fastify.delete("/api/assets/icons/:name", { preHandler: requireAuth }, async (request, reply) => {
+    if (!requireRole(Role.GAMEMASTER, request, reply)) return;
+
+    const { name } = request.params as { name: string };
+    try {
+      guardFilename(name);
+    } catch (err) {
+      if (err instanceof PathTraversalError) {
+        return reply.code(400).send({ ok: false, code: "PATH_TRAVERSAL", message: err.message });
+      }
+      throw err;
+    }
+
+    const storageName = `${ICON_ASSET_AREA}/${name}`;
+    const notFound = (): FastifyReply =>
+      reply.code(404).send({
+        ok: false,
+        code: "ASSET_NOT_FOUND",
+        message: `Icon not found: ${name}`,
+      });
+    if (!isIconAssetName(storageName)) return notFound();
+
+    let targetPath: string;
+    try {
+      targetPath = guardPath(assetsDir, storageName);
+    } catch (err) {
+      if (err instanceof PathTraversalError) {
+        return reply.code(400).send({ ok: false, code: "PATH_TRAVERSAL", message: err.message });
+      }
+      throw err;
+    }
+
+    let isFile = false;
+    try {
+      isFile = lstatSync(targetPath).isFile();
+    } catch {
+      isFile = false;
+    }
+    if (!isFile) return notFound();
+
+    unlinkSync(targetPath);
+    if (db) {
+      try {
+        deleteAssetRecord(db, storageName);
+      } catch (err) {
+        request.log.warn(
+          { err, name: storageName },
+          "Failed to remove asset registry row after deleting the icon from disk.",
+        );
+      }
+    }
+    return reply.send({ ok: true });
+  });
+
+  // --------------------------------------------------------------------------
   // DELETE /api/assets/:name
   // GM only (STORAGE_DELETE, REQ-AST-029)
   // TODO: verify usage in documents before deletion (REQ-AST-038)
@@ -777,7 +933,16 @@ async function assetPlugin(
       throw err;
     }
 
-    if (!existsSync(targetPath)) {
+    // Only a regular FILE is an asset. Since BAR-F3-05 the top level always holds a folder (the icon
+    // area); asking to delete it — or the root itself, which `/api/assets/icons/..` normalises into
+    // — used to reach `unlinkSync` on a directory and answer 500. Not found is the right answer.
+    let isFile = false;
+    try {
+      isFile = existsSync(targetPath) && lstatSync(targetPath).isFile();
+    } catch {
+      isFile = false;
+    }
+    if (!isFile) {
       return reply.code(404).send({
         ok: false,
         code: "ASSET_NOT_FOUND",
@@ -1003,6 +1168,17 @@ async function assetPlugin(
 
     // REQ-AST-024: X-Content-Type-Options: nosniff
     void reply.header("X-Content-Type-Options", "nosniff");
+
+    // REQ-SEC-035, second half ("OU servidos com cabeçalho que impeça execução"), on top of the
+    // sanitiser: since BAR-F3-05 every player may upload an SVG icon, so an SVG opened as a
+    // DOCUMENT runs sandboxed, with nothing to load and no script, even if the sanitiser ever
+    // misses something. An <img> or a PIXI texture never runs SVG script and ignores this header.
+    if (mime === "image/svg+xml") {
+      void reply.header(
+        "Content-Security-Policy",
+        "default-src 'none'; style-src 'unsafe-inline'; sandbox",
+      );
+    }
 
     // REQ-AST-019 / DEC-AST-06: aggressive cache when hash is in filename
     // The filename format is <slug>-<8hexchars>.<ext> — if the 8-char
@@ -1393,6 +1569,76 @@ function findExistingByDigest(dir: string, digest: string): string | null {
     // Dir may not exist yet
   }
   return null;
+}
+
+/**
+ * The upload's declared purpose (BAR-F3-05, REQ-BAR-103): `"generic"` when the
+ * query string says nothing, `"icon"` for exactly `?purpose=icon`, `null` for
+ * anything else — an unknown value, an empty one, a repeated parameter.
+ */
+function parseUploadPurpose(query: unknown): "generic" | "icon" | null {
+  if (typeof query !== "object" || query === null) return "generic";
+  const raw = (query as Record<string, unknown>)["purpose"];
+  if (raw === undefined) return "generic";
+  return raw === "icon" ? "icon" : null;
+}
+
+/**
+ * The icon already stored with this digest, as its storage name
+ * (`actionbar-icons/<file>`), or null. Looks ONLY inside the icon area, and only
+ * at names the gallery would list — see the Q-BAR-05 note in the module doc.
+ */
+function findExistingIconByDigest(assetsDir: string, digest: string): string | null {
+  const hashMarker = `-${digest.slice(0, 8)}`;
+  const iconDir = joinPath(assetsDir, ICON_ASSET_AREA);
+  let entries: string[];
+  try {
+    entries = readdirSync(iconDir);
+  } catch {
+    return null; // no icon uploaded yet
+  }
+  for (const entry of entries) {
+    if (!entry.includes(hashMarker) || !isActionBarIconFileName(entry)) continue;
+    try {
+      if (lstatSync(joinPath(iconDir, entry)).isFile()) return `${ICON_ASSET_AREA}/${entry}`;
+    } catch {
+      // vanished between the listing and the stat — not a match
+    }
+  }
+  return null;
+}
+
+/**
+ * The shared icon gallery: the image files directly inside the icon area whose
+ * names pass the icon-name rule, newest first. Never recursive, never a symlink
+ * (`lstat`), never a name the grant exception would refuse to sign.
+ */
+function listIconAssets(
+  assetsDir: string,
+): Array<{ name: string; size: number; mime_type: string }> {
+  const iconDir = joinPath(assetsDir, ICON_ASSET_AREA);
+  let entries: string[];
+  try {
+    entries = readdirSync(iconDir);
+  } catch {
+    return [];
+  }
+  const icons: Array<{ name: string; size: number; mime_type: string; mtimeMs: number }> = [];
+  for (const entry of entries) {
+    const name = `${ICON_ASSET_AREA}/${entry}`;
+    if (!isIconAssetName(name)) continue;
+    const mimeType = guessMime(entry);
+    if (!mimeType.startsWith("image/")) continue;
+    try {
+      const stat = lstatSync(joinPath(iconDir, entry));
+      if (!stat.isFile()) continue;
+      icons.push({ name, size: stat.size, mime_type: mimeType, mtimeMs: stat.mtimeMs });
+    } catch {
+      // vanished between the listing and the stat
+    }
+  }
+  icons.sort((a, b) => b.mtimeMs - a.mtimeMs || a.name.localeCompare(b.name));
+  return icons.map(({ name, size, mime_type }) => ({ name, size, mime_type }));
 }
 
 /**
