@@ -558,7 +558,8 @@ const CHAT_APPLIED_CONDITIONS_FLAG_KEY = "appliedConditions";
 
 /**
  * The ChatMessage a NON-PRIVILEGED viewer may receive, with
- * `flags.fusion.targetSnapshot` redacted (B1 fix, REQ-CBT-056).
+ * `flags.fusion.targetSnapshot` redacted (B1 fix, REQ-CBT-056) and the token an `action` card names by reference
+ * (`flags.pf2e.abilityCard.targetTokenId`) cut when it is hidden from him (closing review, I-1).
  *
  * Composes with {@link redactChatTargetsForNonPrivileged} /
  * {@link redactBlindRollForNonPrivileged}: together they are everything this
@@ -571,6 +572,19 @@ const CHAT_APPLIED_CONDITIONS_FLAG_KEY = "appliedConditions";
  * callers can cheaply detect "unchanged".
  */
 export function redactChatTargetSnapshotForNonPrivileged(
+  msg: ChatMessage,
+  userId: string | undefined,
+  source: TokenLookupSource | undefined,
+): ChatMessage {
+  return redactAbilityCardTargetForNonPrivileged(
+    redactFusionTargetFlagsForNonPrivileged(msg, userId, source),
+    userId,
+    source,
+  );
+}
+
+/** `flags.fusion.targetSnapshot` and `flags.fusion.appliedConditions`: the tokens a roll message names by id. */
+function redactFusionTargetFlagsForNonPrivileged(
   msg: ChatMessage,
   userId: string | undefined,
   source: TokenLookupSource | undefined,
@@ -613,6 +627,56 @@ export function redactChatTargetSnapshotForNonPrivileged(
   return {
     ...msg,
     flags: { ...flags, [CHAT_FUSION_FLAG_NAMESPACE]: { ...fusionFlags, ...patch } },
+  };
+}
+
+/** Namespace/key `flags.pf2e.abilityCard` is stored under (chat-handler.ts). */
+const CHAT_PF2E_FLAG_NAMESPACE = "pf2e";
+const CHAT_ABILITY_CARD_FLAG_KEY = "abilityCard";
+
+/**
+ * The card a NON-PRIVILEGED viewer may read, with the reference to the creature an `action` card was used on cut
+ * when that token is hidden from him (closing review, I-1).
+ *
+ * The card names its target by `targetTokenId`/`targetActorId` and never by a name frozen by the sender: the
+ * sender may be the Mestre, who reads every name, and each viewer resolves the name from his own mirror, already
+ * redacted by the Actor and Scene cuts above. That moves the thing to guard from the name to the ids — and a hidden
+ * token's identity must not reach a non-privileged socket by ANY emission path, a card included. The hidden token
+ * loses the whole reference, `targetName` too in case an older sender put one beside it, and the card reads as an
+ * action with no target.
+ *
+ * Like {@link redactChatDamageAppliedForNonPrivileged}, and unlike the snapshot cut, a token that cannot be resolved
+ * keeps its reference: it is a token that is gone, not one this function can prove hidden, and what the viewer's
+ * mirror cannot name reads as an unknown creature anyway. Without a lookup source (a chat-only harness) nothing
+ * looks hidden. Re-resolves the token's CURRENT state on every call, and returns the SAME reference when there is
+ * nothing to cut.
+ */
+function redactAbilityCardTargetForNonPrivileged(
+  msg: ChatMessage,
+  userId: string | undefined,
+  source: TokenLookupSource | undefined,
+): ChatMessage {
+  const flags = msg.flags as Record<string, Record<string, unknown>> | undefined;
+  const pf2eFlags = flags?.[CHAT_PF2E_FLAG_NAMESPACE];
+  const card = pf2eFlags?.[CHAT_ABILITY_CARD_FLAG_KEY];
+  if (!isPlainObject(card)) return msg;
+  const tokenId = card["targetTokenId"];
+  if (typeof tokenId !== "string") return msg;
+  const token = source?.findToken(tokenId);
+  if (token === undefined || !tokenIsHiddenFromViewer(token, userId)) return msg;
+
+  const {
+    targetTokenId: _targetTokenId,
+    targetActorId: _targetActorId,
+    targetName: _targetName,
+    ...rest
+  } = card;
+  return {
+    ...msg,
+    flags: {
+      ...flags,
+      [CHAT_PF2E_FLAG_NAMESPACE]: { ...pf2eFlags, [CHAT_ABILITY_CARD_FLAG_KEY]: rest },
+    },
   };
 }
 

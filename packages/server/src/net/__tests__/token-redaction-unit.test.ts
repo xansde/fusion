@@ -27,6 +27,7 @@ import {
   type ContactViewer,
   redactChatEffectExpiryForNonPrivileged,
   redactChatSpeakerForNonPrivileged,
+  redactChatTargetSnapshotForNonPrivileged,
   tokenLookupSourceFromStore,
   lookupSourceForOnePass,
   UNKNOWN_SPEAKER_ALIAS,
@@ -672,5 +673,133 @@ describe("lookupSourceForOnePass — one pass (a broadcast, a page) reads each s
     expect(page.contacts).toBeUndefined();
     const msg = spokenBy();
     expect(redactChatSpeakerForNonPrivileged(msg, "viewer", page)).toBe(msg);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// Closing review, I-1 — the creature an `action` card names by REFERENCE
+// ---------------------------------------------------------------------------
+//
+// The card never freezes a name any more (the sender's mirror may be the Mestre's, which reads every name): it
+// carries the token and the actor ids and each viewer resolves the name from his own, already redacted, mirror.
+// That makes the ids the thing to guard — a hidden token's identity must not reach a non-privileged socket by any
+// emission path, and a card is one more path.
+
+describe("redactChatTargetSnapshotForNonPrivileged — the target an action card names by reference (I-1)", () => {
+  const VIEWER = "viewerUser";
+  const REAL_NAME = "Goblin Chefe da Emboscada";
+
+  const announced = (card: Record<string, unknown>): ChatMessage =>
+    ({
+      _id: "m1",
+      type: "text",
+      content: "Usa Derrubar",
+      speaker: { userId: "gm", alias: "Huo", actorId: "pc-1" },
+      whisper: [],
+      flags: {
+        pf2e: {
+          abilityCard: { kind: "action", casterActorId: "pc-1", name: "Derrubar", ...card },
+        },
+      },
+    }) as unknown as ChatMessage;
+
+  const sourceOf = (tokens: Record<string, Record<string, unknown>>): TokenLookupSource => ({
+    findToken: (id) => tokens[id],
+  });
+
+  const cardOf = (msg: ChatMessage): Record<string, unknown> =>
+    (msg.flags as { pf2e: { abilityCard: Record<string, unknown> } }).pf2e.abilityCard;
+
+  it("cuts the reference to a token hidden from the viewer: no token id, no actor id, no name", () => {
+    const msg = announced({
+      targetTokenId: "tok-ambush",
+      targetActorId: "act-ambush",
+      targetName: REAL_NAME,
+    });
+    const out = redactChatTargetSnapshotForNonPrivileged(
+      msg,
+      VIEWER,
+      sourceOf({ "tok-ambush": { _id: "tok-ambush", actorId: "act-ambush", hidden: true } }),
+    );
+    expect(cardOf(out)).toEqual({ kind: "action", casterActorId: "pc-1", name: "Derrubar" });
+    const wire = JSON.stringify(out);
+    expect(wire).not.toContain("tok-ambush");
+    expect(wire).not.toContain("act-ambush");
+    expect(wire).not.toContain(REAL_NAME);
+    // The announcement itself is still the viewer's to read: only the identity of the hidden creature is cut.
+    expect(out.content).toBe("Usa Derrubar");
+  });
+
+  it("keeps the reference for a hidden token the viewer is in `seenBy` for (REQ-TOK-050)", () => {
+    const msg = announced({ targetTokenId: "tok-ambush", targetActorId: "act-ambush" });
+    const source = sourceOf({
+      "tok-ambush": { _id: "tok-ambush", actorId: "act-ambush", hidden: true, seenBy: [VIEWER] },
+    });
+    expect(redactChatTargetSnapshotForNonPrivileged(msg, VIEWER, source)).toBe(msg);
+    // ...and cuts it for everyone else, in the same message.
+    expect(cardOf(redactChatTargetSnapshotForNonPrivileged(msg, "someoneElse", source))).toEqual({
+      kind: "action",
+      casterActorId: "pc-1",
+      name: "Derrubar",
+    });
+  });
+
+  it("leaves a visible token's reference alone: the SAME message comes back (the viewer names it from his mirror)", () => {
+    const msg = announced({ targetTokenId: "tok-wolf", targetActorId: "act-wolf" });
+    const out = redactChatTargetSnapshotForNonPrivileged(
+      msg,
+      VIEWER,
+      sourceOf({ "tok-wolf": { _id: "tok-wolf", actorId: "act-wolf", hidden: false } }),
+    );
+    expect(out).toBe(msg);
+    expect(cardOf(out)).toMatchObject({ targetTokenId: "tok-wolf", targetActorId: "act-wolf" });
+  });
+
+  it("a token that is gone names nobody who could be hidden: the reference stays, and so does a harness with no source", () => {
+    const msg = announced({ targetTokenId: "tok-gone", targetActorId: "act-gone" });
+    expect(redactChatTargetSnapshotForNonPrivileged(msg, VIEWER, sourceOf({}))).toBe(msg);
+    expect(redactChatTargetSnapshotForNonPrivileged(msg, VIEWER, undefined)).toBe(msg);
+  });
+
+  it("does not touch a card with no reference: the owner's companion on the Command an Animal card keeps its name", () => {
+    const msg = announced({ name: "Comandar um Animal", targetName: "Urso jovem" });
+    expect(
+      redactChatTargetSnapshotForNonPrivileged(
+        msg,
+        VIEWER,
+        sourceOf({ "tok-ambush": { _id: "tok-ambush", hidden: true } }),
+      ),
+    ).toBe(msg);
+  });
+
+  it("composes with the `flags.fusion` cuts of the same message", () => {
+    const msg = announced({ targetTokenId: "tok-ambush", targetActorId: "act-ambush" });
+    const withSnapshot = {
+      ...msg,
+      flags: {
+        ...(msg.flags as object),
+        fusion: {
+          targetSnapshot: [
+            { tokenId: "tok-ambush", actorId: "act-ambush", sceneId: "scene-1" },
+            { tokenId: "tok-wolf", actorId: "act-wolf", sceneId: "scene-1" },
+          ],
+        },
+      },
+    } as unknown as ChatMessage;
+    const out = redactChatTargetSnapshotForNonPrivileged(
+      withSnapshot,
+      VIEWER,
+      sourceOf({
+        "tok-ambush": { _id: "tok-ambush", actorId: "act-ambush", hidden: true },
+        "tok-wolf": { _id: "tok-wolf", actorId: "act-wolf", hidden: false },
+      }),
+    );
+    const flags = out.flags as {
+      fusion: { targetSnapshot: Array<{ tokenId: string }> };
+      pf2e: { abilityCard: Record<string, unknown> };
+    };
+    expect(flags.fusion.targetSnapshot.map((e) => e.tokenId)).toEqual(["tok-wolf"]);
+    expect(flags.pf2e.abilityCard["targetTokenId"]).toBeUndefined();
+    expect(JSON.stringify(out)).not.toContain("tok-ambush");
   });
 });
