@@ -23,8 +23,13 @@ import {
   resolveAssetUrl,
   resolveBrowseAssetUrl,
   fetchAssetToken,
+  uploadAsset,
+  listIconGallery,
+  iconGalleryUrl,
+  deleteIconAsset,
 } from "../assetApi.js";
 import { clearAssetGrantCache, type AssetDocRef } from "../assetGrants.svelte.js";
+import { assetStore } from "../assetStore.svelte.js";
 import { ASSET_NAME_CANONICALIZATION_CASES } from "@fusion/shared";
 
 const SCENE: AssetDocRef = { table: "scenes", id: "scene-1" };
@@ -364,5 +369,213 @@ describe("docRef is a compile-time gate, not a runtime check", () => {
       // @ts-expect-error -- resolveAssetUrl requires a docRef; 3 args must not compile.
       resolveAssetUrl("/assets/x.png", "tok", "user-1");
     expect(typeof call).toBe("function");
+  });
+});
+
+// ---------------------------------------------------------------------------
+// BAR-F3-05 — the icon upload, the shared gallery and the GM's delete
+// ---------------------------------------------------------------------------
+
+/** The smallest XMLHttpRequest the upload path touches; records what was opened and sent. */
+class FakeXhr {
+  static last: FakeXhr | null = null;
+  method = "";
+  url = "";
+  headers: Record<string, string> = {};
+  body: unknown = null;
+  status = 0;
+  responseText = "";
+  private readonly listeners = new Map<string, () => void>();
+  readonly upload = { addEventListener: (): void => {} };
+
+  constructor() {
+    FakeXhr.last = this;
+  }
+  open(method: string, url: string): void {
+    this.method = method;
+    this.url = url;
+  }
+  setRequestHeader(name: string, value: string): void {
+    this.headers[name] = value;
+  }
+  addEventListener(type: string, listener: () => void): void {
+    this.listeners.set(type, listener);
+  }
+  send(body: unknown): void {
+    this.body = body;
+    this.status = 201;
+    this.responseText = JSON.stringify({
+      ok: true,
+      deduplicated: false,
+      path: "actionbar-icons/hanabi-1a2b3c4d.png",
+      digest: "d",
+      mime_type: "image/png",
+      file_size: 1,
+      purpose: "icon",
+    });
+    queueMicrotask(() => this.listeners.get("load")?.());
+  }
+}
+
+describe("uploadAsset — the icon purpose (BAR-F3-05, REQ-BAR-103)", () => {
+  const originalXhr = globalThis.XMLHttpRequest;
+  beforeEach(() => {
+    FakeXhr.last = null;
+    globalThis.XMLHttpRequest = FakeXhr as unknown as typeof XMLHttpRequest;
+  });
+  afterEach(() => {
+    globalThis.XMLHttpRequest = originalXhr;
+  });
+
+  const file = (): File => new File([new Uint8Array([0x89, 0x50, 0x4e, 0x47])], "Hanabi.png");
+
+  it("declares the purpose in the query string, and nothing else names a folder", async () => {
+    const result = await uploadAsset("tok", file(), undefined, { purpose: "icon" });
+    expect(FakeXhr.last?.method).toBe("POST");
+    expect(FakeXhr.last?.url).toBe("/api/assets/upload?purpose=icon");
+    expect(FakeXhr.last?.headers["Authorization"]).toBe("Bearer tok");
+    const form = FakeXhr.last?.body as FormData;
+    expect([...form.keys()]).toEqual(["file"]);
+    expect(result.path).toBe("actionbar-icons/hanabi-1a2b3c4d.png");
+  });
+
+  it("without a purpose it is the generic upload, exactly as before", async () => {
+    await uploadAsset("tok", file());
+    expect(FakeXhr.last?.url).toBe("/api/assets/upload");
+  });
+});
+
+describe("listIconGallery — the shared gallery (REQ-BAR-079/080)", () => {
+  const originalFetch = global.fetch;
+  afterEach(() => {
+    global.fetch = originalFetch;
+    vi.restoreAllMocks();
+  });
+
+  it("GETs /api/assets/icons with the bearer and returns icons, expiry and grants", async () => {
+    const body = {
+      ok: true,
+      assets: [{ name: "actionbar-icons/a-1a2b3c4d.png", size: 10, mime_type: "image/png" }],
+      exp: 1_700_000_300_000,
+      grants: { "actionbar-icons/a-1a2b3c4d.png": "sig-a" },
+    };
+    const fetchMock = vi.fn().mockResolvedValue({ ok: true, json: async () => body });
+    global.fetch = fetchMock as unknown as typeof fetch;
+
+    const gallery = await listIconGallery("tok");
+    expect(fetchMock).toHaveBeenCalledWith(
+      "/api/assets/icons",
+      expect.objectContaining({ method: "GET", headers: { Authorization: "Bearer tok" } }),
+    );
+    expect(gallery).toEqual({ assets: body.assets, exp: body.exp, grants: body.grants });
+  });
+
+  it("a body without grants is a gallery that paints nothing, not a crash", async () => {
+    global.fetch = vi.fn().mockResolvedValue({
+      ok: true,
+      json: async () => ({ ok: true, assets: [] }),
+    }) as unknown as typeof fetch;
+    expect(await listIconGallery("tok")).toEqual({ assets: [], exp: 0, grants: {} });
+  });
+
+  it("throws the server message on a refusal", async () => {
+    global.fetch = vi.fn().mockResolvedValue({
+      ok: false,
+      status: 401,
+      json: async () => ({ message: "Missing token." }),
+    }) as unknown as typeof fetch;
+    await expect(listIconGallery("")).rejects.toThrow("Missing token.");
+  });
+});
+
+describe("iconGalleryUrl — painting one icon of the gallery", () => {
+  const gallery = {
+    assets: [],
+    exp: 1_700_000_300_000,
+    grants: { "actionbar-icons/a b-1a2b3c4d.png": "sig-a" },
+  };
+
+  it("attaches the icon's own grant, keyed by the canonical name", () => {
+    const url = new URL(
+      iconGalleryUrl(gallery, "actionbar-icons/a b-1a2b3c4d.png", "user-1"),
+      "http://localhost",
+    );
+    expect(url.pathname).toBe("/assets/actionbar-icons/a%20b-1a2b3c4d.png");
+    expect(url.searchParams.get("at")).toBe("sig-a");
+    expect(url.searchParams.get("ae")).toBe(String(gallery.exp));
+    expect(url.searchParams.get("au")).toBe("user-1");
+  });
+
+  it("an icon without a grant gets a bare path — never someone else's signature", () => {
+    expect(iconGalleryUrl(gallery, "actionbar-icons/b-00000000.png", "user-1")).toBe(
+      "/assets/actionbar-icons/b-00000000.png",
+    );
+  });
+});
+
+describe("deleteIconAsset — the GM removes an icon (REQ-BAR-081)", () => {
+  const originalFetch = global.fetch;
+  afterEach(() => {
+    global.fetch = originalFetch;
+    vi.restoreAllMocks();
+  });
+
+  it("DELETEs the file name inside the area, encoded", async () => {
+    const fetchMock = vi.fn().mockResolvedValue({ ok: true, json: async () => ({ ok: true }) });
+    global.fetch = fetchMock as unknown as typeof fetch;
+    await deleteIconAsset("gm-tok", "actionbar-icons/a b-1a2b3c4d.png");
+    expect(fetchMock).toHaveBeenCalledWith(
+      "/api/assets/icons/a%20b-1a2b3c4d.png",
+      expect.objectContaining({ method: "DELETE", headers: { Authorization: "Bearer gm-tok" } }),
+    );
+  });
+
+  it("throws the server message on a refusal", async () => {
+    global.fetch = vi.fn().mockResolvedValue({
+      ok: false,
+      status: 403,
+      json: async () => ({ message: "Minimum role required: GAMEMASTER." }),
+    }) as unknown as typeof fetch;
+    await expect(deleteIconAsset("p-tok", "actionbar-icons/x-00000000.png")).rejects.toThrow(
+      "Minimum role required: GAMEMASTER.",
+    );
+  });
+});
+
+describe("assetStore.startUpload — the icon picker's upload (BAR-F3-05)", () => {
+  const originalXhr = globalThis.XMLHttpRequest;
+  const originalFetch = global.fetch;
+  beforeEach(() => {
+    FakeXhr.last = null;
+    globalThis.XMLHttpRequest = FakeXhr as unknown as typeof XMLHttpRequest;
+  });
+  afterEach(() => {
+    globalThis.XMLHttpRequest = originalXhr;
+    global.fetch = originalFetch;
+    vi.restoreAllMocks();
+  });
+
+  const png = (): File => new File([new Uint8Array([0x89, 0x50, 0x4e, 0x47])], "Hanabi.png");
+
+  it("sends with the icon purpose and does NOT refresh the generic list a player may not read", async () => {
+    const fetchMock = vi.fn().mockResolvedValue({ ok: true, json: async () => ({ assets: [] }) });
+    global.fetch = fetchMock as unknown as typeof fetch;
+    const done = vi.fn();
+
+    await assetStore.startUpload("tok", png(), done, { purpose: "icon" });
+
+    expect(FakeXhr.last?.url).toBe("/api/assets/upload?purpose=icon");
+    expect(done).toHaveBeenCalledWith("actionbar-icons/hanabi-1a2b3c4d.png");
+    expect(fetchMock).not.toHaveBeenCalled();
+  });
+
+  it("the generic upload still refreshes the generic list, as before", async () => {
+    const fetchMock = vi.fn().mockResolvedValue({ ok: true, json: async () => ({ assets: [] }) });
+    global.fetch = fetchMock as unknown as typeof fetch;
+
+    await assetStore.startUpload("tok", png());
+
+    expect(FakeXhr.last?.url).toBe("/api/assets/upload");
+    expect(fetchMock).toHaveBeenCalledWith("/api/assets", expect.anything());
   });
 });

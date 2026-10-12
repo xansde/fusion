@@ -30,3 +30,4 @@ export * from "./mechanics.js";
 export * from "./asset-name-contract.js";
 export * from "./token/effectiveActor.js";
 export * from "./token/actorSize.js";
+export * from "./actionbar.js";

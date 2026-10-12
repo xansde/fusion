@@ -12,6 +12,9 @@ export {
   resolveAssetUrl,
   resolveBrowseAssetUrl,
   needsAssetQueryToken,
+  listIconGallery,
+  iconGalleryUrl,
+  deleteIconAsset,
 } from "./assetApi.js";
 export type {
   AssetEntry,
@@ -19,6 +22,9 @@ export type {
   UploadResult,
   UploadProgress,
   UploadProgressCallback,
+  UploadPurpose,
+  UploadOptions,
+  IconGallery,
 } from "./assetApi.js";
 
 export {

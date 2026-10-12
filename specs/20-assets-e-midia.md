@@ -312,7 +312,11 @@ fusion-data/                 → raiz do data dir (ver 03-persistencia-e-mundos.
 > ícones (REQ-BAR-079): mapas, retratos e handouts do GM seguem fora da lista do jogador,
 > porque o nome do arquivo pode ser spoiler. Carregar a imagem de ícone obedece ao grant de leitura
 > do servidor (REQ-BAR-080). REQ-SEC-043 e REQ-SEC-044 (spec 21) recebem a exceção
-> correspondente quando a BAR-F3-05 for entregue (`53` §12).
+> correspondente quando a BAR-F3-05 for entregue (`53` §12). _Entregue em 2026-10-11 pela
+> BAR-F3-05:_ os ícones vivem na área reservada `actionbar-icons/` do acervo do mundo, e estar nela
+> é a marca de ícone; o envio é `POST /api/assets/upload?purpose=icon`, a galeria é
+> `GET /api/assets/icons`, que devolve com cada ícone o grant de leitura dele, e o GM apaga por
+> `DELETE /api/assets/icons/:name`.
 
 **REQ-AST-030** [MVP] O GM DEVE poder marcar pastas individuais como `upload_allowed` para estender o direito de upload a usuários com role `TRUSTED` naquela pasta específica. A marcação é feita via endpoint `PATCH /api/storage/folder` e persiste em `asset_meta` (registro de tipo `folder`).
 

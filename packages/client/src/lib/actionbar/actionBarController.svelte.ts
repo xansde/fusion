@@ -243,7 +243,9 @@ export class ActionBarControllerImpl implements ActionBarController {
 
     const entryId = favorites.slots()[index];
     if (entryId === null || entryId === undefined) return undefined;
-    // A favourite whose entry left the sheet (BAR-F3-01 draws it faded) runs nothing.
+    // A favourite whose entry left the sheet (BAR-F3-01 draws it faded) runs nothing, and its key is
+    // left alone: the controller cannot tell "gone" from "not loaded yet" (the grid knows, once the
+    // sheet has settled), and a late entry must not be announced as gone. The click says it.
     return bar.entries.find((candidate) => candidate.id === entryId);
   }
 
@@ -350,7 +352,16 @@ export class ActionBarControllerImpl implements ActionBarController {
   reconcile(): void {
     const bar = this.#deps.current();
     const entryIds = new Set(bar === null ? [] : bar.entries.map((entry) => entry.id));
-    if (this.#menu !== null && !entryIds.has(this.#menu.entryId)) this.#menu = null;
+    // A favourite whose entry left the sheet is an ORPHAN (BAR-F3-01): not in the list, but pinned,
+    // and its menu — "Desafixar" — is the only way out of it. It stays until it is unpinned.
+    const pinned = bar === null ? [] : (this.#deps.favorites()?.slots() ?? []);
+    if (
+      this.#menu !== null &&
+      !entryIds.has(this.#menu.entryId) &&
+      !pinned.includes(this.#menu.entryId)
+    ) {
+      this.#menu = null;
+    }
     if (this.#hoveredId !== null && !entryIds.has(this.#hoveredId)) this.#hoveredId = null;
 
     const open = this.#openCondition;

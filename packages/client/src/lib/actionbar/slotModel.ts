@@ -314,6 +314,20 @@ const KIND_KEY: Record<ActionBarEntryKind, string> = {
   check: "FUSION.ActionBar.Kind.Check",
 };
 
+/**
+ * The name each tab wears on the TabBar. A provider that heads its tab with the tab's own name (the
+ * prototype's T2 reads "GOLPES" over the strikes, which have no group of their own) writes this very
+ * string into `group`, so the tooltip can tell a heading that only repeats the tab from a group.
+ */
+const TAB_KEY: Record<ActionBarTab, string> = {
+  strikes: "FUSION.ActionBar.Tabs.Strikes",
+  spells: "FUSION.ActionBar.Tabs.Spells",
+  actions: "FUSION.ActionBar.Tabs.Actions",
+  items: "FUSION.ActionBar.Tabs.Items",
+  reactions: "FUSION.ActionBar.Tabs.Reactions",
+  checks: "FUSION.ActionBar.Tabs.Checks",
+};
+
 /** A bonus ("+9", "−1") gets the word "Bônus"; a DC ("CD 18") says what it is by itself. */
 const SIGNED_BONUS = /^[+−-]\s?\d/;
 
@@ -353,7 +367,10 @@ export function tooltipView(
             : "FUSION.ActionBar.Range.Ranged",
         );
 
-  const subtitle = [t(KIND_KEY[entry.kind]), entry.group, rangeKind, feet]
+  // A group that only repeats the name of the tab the entry sits on says nothing here: "Golpe · Golpes · corpo a
+  // corpo" for a strike under the "Golpes" heading. A group that says something ("Classe", "Truques") stays.
+  const group = entry.group === t(TAB_KEY[entry.tab]) ? undefined : entry.group;
+  const subtitle = [t(KIND_KEY[entry.kind]), group, rangeKind, feet]
     .filter((part): part is string => part !== undefined && part !== null && part !== "")
     .join(" · ");
 

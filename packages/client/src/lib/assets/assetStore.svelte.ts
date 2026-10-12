@@ -17,7 +17,7 @@
  *   assetStore.setSearch(q)    — update search query
  */
 
-import { listAssets, uploadAsset, type AssetEntry } from "./assetApi.js";
+import { listAssets, uploadAsset, type AssetEntry, type UploadOptions } from "./assetApi.js";
 import { validateFileForUpload } from "./clientValidation.js";
 import {
   createUploadState,
@@ -79,11 +79,15 @@ async function loadAssets(token: string): Promise<void> {
  * @param file     File from input or drag-drop.
  * @param onDone   Called with the path of the uploaded asset on success.
  *                 The path is the safe filename (e.g. "goblin-a3b4c5d6.webp").
+ * @param options  `purpose: "icon"` sends it as an action bar icon (BAR-F3-05): open to every
+ *                 player, and the generic list is NOT refreshed — a player may not list it, and
+ *                 the icon picker refreshes its own gallery in `onDone`.
  */
 async function startUpload(
   token: string,
   file: File,
   onDone?: (path: string) => void,
+  options: UploadOptions = {},
 ): Promise<void> {
   // Client-side validation (UX anticipation — not security)
   const validation = validateFileForUpload(file);
@@ -99,18 +103,23 @@ async function startUpload(
   _uploadsVersion++;
 
   try {
-    const result = await uploadAsset(token, file, (progress) => {
-      const current = _uploadsMap.get(file) ?? createUploadState();
-      _uploadsMap.set(file, withProgress(current, progress.percent ?? 0));
-      _uploadsVersion++;
-    });
+    const result = await uploadAsset(
+      token,
+      file,
+      (progress) => {
+        const current = _uploadsMap.get(file) ?? createUploadState();
+        _uploadsMap.set(file, withProgress(current, progress.percent ?? 0));
+        _uploadsVersion++;
+      },
+      options,
+    );
 
     const current = _uploadsMap.get(file) ?? createUploadState();
     _uploadsMap.set(file, toDone(current, result));
     _uploadsVersion++;
 
-    // Refresh the asset list
-    await loadAssets(token);
+    // Refresh the asset list (not for an icon: see `options` above)
+    if (options.purpose !== "icon") await loadAssets(token);
 
     onDone?.(result.path);
 

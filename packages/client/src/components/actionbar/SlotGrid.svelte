@@ -5,20 +5,25 @@
    *
    * **Favorites** is the main row: twelve positions, the keys 1–9, 0, − and = as the seal of each
    * (the key only labels the slot; the shortcuts are BAR-F1-05's). An empty position is drawn as an
-   * empty box with its key, so the twelve bindings stay readable.
+   * empty box with its key, so the twelve bindings stay readable. A favourite whose entry left the
+   * sheet — an item sold, a spell swapped — is drawn FADED as "não está mais na ficha", in its own
+   * position, with "Desafixar" in its menu (BAR-F3-01, REQ-BAR-066); `favoriteCells` decides which
+   * positions are which, and when a missing entry is an orphan rather than just late.
    *
    * **A tab** lists its entries in groups ("Truques", "1º patamar", "Atletismo"…) with the counter
    * of the group in the header (the slots of a rank "2/3", the pips of focus). A tab with nothing in
    * it does NOT disappear or break: it says it is empty (REQ-BAR-026).
    *
    * Only draws; the slot decides how an entry looks (`Slot.svelte`) and the controller what a click
-   * does. Drag and drop is not here (D-BA16).
+   * does. The orphan is the ordinary slot fed a stand-in entry; its click is NOT a run — it goes to
+   * `onorphan`, because there is nothing on the sheet to run. Drag and drop is not here (D-BA16).
    */
 
   import type { Component } from "svelte";
 
   import { t } from "../../lib/i18n/i18n.js";
   import { FAVORITE_KEYS } from "../../lib/actionbar/favoriteKeys.js";
+  import { favoriteCells } from "../../lib/actionbar/orphan.js";
   import { entriesForTab, groupEntries } from "../../lib/actionbar/slotModel.js";
   import type { ActionBarEntry, ActionBarTab } from "../../lib/actionbar/types.js";
   import Slot from "./Slot.svelte";
@@ -28,12 +33,16 @@
     entries: readonly ActionBarEntry[];
     /** The twelve favourite ids in key order, `null` for an empty position. */
     favorites: ReadonlyArray<string | null>;
+    /** The load window has passed: a pinned entry that is missing is an orphan, not just late. */
+    showOrphans?: boolean | undefined;
     isBusy: (entryId: string) => boolean;
     altHeld: boolean;
     Details?: Component<{ entry: ActionBarEntry }> | undefined;
     /** Entry whose slot menu is open, if any. */
     menuEntryId: string | null;
     onrun: (entry: ActionBarEntry) => void;
+    /** A click on an orphan: it runs nothing, there is nothing on the sheet to run. */
+    onorphan?: ((entry: ActionBarEntry) => void) | undefined;
     oncontext: (
       entry: ActionBarEntry,
       at: { x: number; y: number },
@@ -48,32 +57,29 @@
     tab,
     entries,
     favorites,
+    showOrphans = true,
     isBusy,
     altHeld,
     Details,
     menuEntryId,
     onrun,
+    onorphan = () => undefined,
     oncontext,
     onhover,
     onleave,
   }: Props = $props();
 
-  const byId = $derived(new Map(entries.map((entry) => [entry.id, entry] as const)));
-  /** The favourite at a position, when its entry is still on the sheet. */
-  const favoriteEntries = $derived(
-    FAVORITE_KEYS.map((_, index) => {
-      const id = favorites[index];
-      return id === null || id === undefined ? undefined : byId.get(id);
-    }),
-  );
-  const hasFavorites = $derived(favoriteEntries.some((entry) => entry !== undefined));
+  /** What each of the twelve positions draws: its entry, an orphan, or an empty box. */
+  const cells = $derived(favoriteCells(favorites, entries, showOrphans));
+  /** Something is pinned — even if nothing has resolved yet, the row is not "empty". */
+  const hasFavorites = $derived(favorites.some((id) => id !== null));
 
   const groups = $derived(tab === "favorites" ? [] : groupEntries(entriesForTab(entries, tab)));
   /** Long groups wrap to a second row of slots, like the prototype's tabs with many entries. */
   const rows = $derived(Math.max(0, ...groups.map((group) => group.entries.length)) > 7 ? 2 : 1);
 </script>
 
-{#snippet slotOf(entry: ActionBarEntry, keyIndex: number | undefined)}
+{#snippet slotOf(entry: ActionBarEntry, keyIndex: number | undefined, run: (entry: ActionBarEntry) => void)}
   <Slot
     {entry}
     keyLabel={keyIndex === undefined ? undefined : FAVORITE_KEYS[keyIndex]?.label}
@@ -82,7 +88,7 @@
     {altHeld}
     {Details}
     menuOpen={menuEntryId === entry.id}
-    {onrun}
+    onrun={run}
     {oncontext}
     {onhover}
     {onleave}
@@ -92,9 +98,9 @@
 {#if tab === "favorites"}
   {#if hasFavorites}
     <div class="fav" role="group" aria-label={t("FUSION.ActionBar.Tabs.Favorites")}>
-      {#each favoriteEntries as entry, index (index)}
-        {#if entry !== undefined}
-          {@render slotOf(entry, index)}
+      {#each cells as cell, index (index)}
+        {#if cell.kind !== "empty"}
+          {@render slotOf(cell.entry, index, cell.kind === "orphan" ? onorphan : onrun)}
         {:else}
           <div class="slot-empty" aria-hidden="true">
             <i class="slot-empty__k">{FAVORITE_KEYS[index]?.label}</i>
@@ -127,7 +133,7 @@
       {/if}
       <div class="grp__g" style:--rows={rows}>
         {#each group.entries as entry (entry.id)}
-          {@render slotOf(entry, undefined)}
+          {@render slotOf(entry, undefined, onrun)}
         {/each}
       </div>
     </div>
