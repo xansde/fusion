@@ -192,6 +192,45 @@ describe("resolveSlotIconUrl — never a bare /assets/ URL (it would answer 401)
     expect(parsed.searchParams.get("au")).toBe("u1");
   });
 
+  it("three icons set in a row each paint with their OWN grant — the cached bundle never leaves one on a browse token", async () => {
+    // Phase 2 review, finding 1: the actor's bundle is re-minted on a missing name at most once per
+    // 10 s. The 2nd icon forced that re-mint; the 3rd, seconds later, fell back to the browse token,
+    // which opens nothing for a player under enforcement — the slot stayed generic until a reload.
+    const names: string[] = [];
+    const fetchMock = vi.fn().mockImplementation(async (url: string) => {
+      if (url === "/api/assets/grant") {
+        const grants = Object.fromEntries(names.map((n) => [n, `sig-${n.slice(-5, -4)}`]));
+        return {
+          ok: true,
+          status: 200,
+          json: async () => ({ ok: true, exp: Date.now() + 300_000, grants }),
+        };
+      }
+      if (url === "/api/assets/token") {
+        return {
+          ok: true,
+          status: 200,
+          json: async () => ({ ok: true, token: "BROWSE", exp: Date.now() + 300_000 }),
+        };
+      }
+      throw new Error(`unexpected fetch: ${url}`);
+    });
+    global.fetch = fetchMock as unknown as typeof fetch;
+
+    for (const letter of ["a", "b", "c"]) {
+      const name = `${ACTION_BAR_ICON_AREA}/icone-${letter}.png`;
+      names.push(name); // the actor's map gained this icon (the server signs what the doc carries)
+      const url = await resolveSlotIconUrl(`/assets/${name}`, "actor-9", {
+        token: "tok",
+        userId: "u1",
+      });
+      expect(new URL(url ?? "", "http://localhost").searchParams.get("at"), letter).toBe(
+        `sig-${letter}`,
+      );
+    }
+    expect(fetchMock).not.toHaveBeenCalledWith("/api/assets/token", expect.anything());
+  });
+
   it("without a session there is nothing to ask a grant with: null, and the generic icon stays", async () => {
     const fetchMock = vi.fn();
     global.fetch = fetchMock as unknown as typeof fetch;

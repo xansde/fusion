@@ -234,6 +234,7 @@
     <span class="slot__img" aria-hidden="true"
       ><img
         alt=""
+        decoding="async"
         src={imageSrc}
         onerror={() => {
           imageFailed = true;
@@ -387,12 +388,14 @@
     content: "";
     position: absolute;
     inset: 0;
+    /* The prototype's slot (52 px) has no name; here the short name sits at 55–73% of 64 px, so the
+       base ramp starts earlier (38%) and is already dark under the name. */
     background: linear-gradient(
       to bottom,
       rgba(0, 0, 0, 0.55),
-      rgba(0, 0, 0, 0) 34%,
-      rgba(0, 0, 0, 0) 52%,
-      rgba(0, 0, 0, 0.78)
+      rgba(0, 0, 0, 0) 30%,
+      rgba(0, 0, 0, 0) 38%,
+      rgba(0, 0, 0, 0.8) 72%
     );
   }
 

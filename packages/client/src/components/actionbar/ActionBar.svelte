@@ -440,7 +440,7 @@
   {#if menu !== null}
     <ContextMenu
       open={true}
-      items={slotMenuItems(menu.entry, iconMenuState(menu.entry))}
+      items={slotMenuItems(menu.entry, { icon: iconMenuState(menu.entry) })}
       label={menu.entry.label}
       showLabel
       point={{ x: menu.open.x, y: menu.open.y }}

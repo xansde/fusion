@@ -40,6 +40,8 @@
     type IconGallery,
   } from "$lib/assets/assetApi.js";
   import { isImageExtension, formatBytes } from "$lib/assets/clientValidation.js";
+  import { canDeleteGalleryIcons, pickerUploadOptions } from "$lib/assets/iconPicker.js";
+  import { t } from "$lib/i18n/i18n.js";
   import { session } from "$lib/session.svelte.js";
 
   // ---- Props ----
@@ -61,11 +63,9 @@
   // The gallery is the server's: `GET /api/assets/icons` lists only the reserved icon area, for any
   // role, with the caller's read grant for each icon. Maps, portraits and handouts never reach it.
 
-  /** Deleting stays STORAGE_DELETE — the GM only (REQ-BAR-081); the server refuses anyone else. */
-  const GAMEMASTER_ROLE = 4;
-
   const iconMode = $derived(mode === "actionbar-icons");
-  const canDeleteIcons = $derived((session.user?.role ?? 0) === GAMEMASTER_ROLE);
+  // Deleting stays STORAGE_DELETE — the GM only (REQ-BAR-081); the server refuses anyone else.
+  const canDeleteIcons = $derived(canDeleteGalleryIcons(session.user?.role));
   let gallery = $state<IconGallery>({ assets: [], exp: 0, grants: {} });
   let galleryLoading = $state(false);
   let galleryError = $state<string | null>(null);
@@ -77,7 +77,7 @@
     try {
       gallery = await listIconGallery(token);
     } catch (err) {
-      galleryError = err instanceof Error ? err.message : "Não foi possível carregar os ícones.";
+      galleryError = err instanceof Error ? err.message : t("FUSION.IconPicker.LoadFailed");
     } finally {
       galleryLoading = false;
     }
@@ -89,14 +89,12 @@
   }
 
   async function handleDeleteIcon(name: string): Promise<void> {
-    const ok = window.confirm(
-      `Apagar "${iconFileName(name)}" da galeria? Quem usa este ícone volta ao ícone padrão.`,
-    );
+    const ok = window.confirm(t("FUSION.IconPicker.DeleteConfirm", { name: iconFileName(name) }));
     if (!ok) return;
     try {
       await deleteIconAsset(token, name);
     } catch (err) {
-      galleryError = err instanceof Error ? err.message : "Não foi possível apagar o ícone.";
+      galleryError = err instanceof Error ? err.message : t("FUSION.IconPicker.DeleteFailed");
       return;
     }
     await loadGallery();
@@ -208,7 +206,7 @@
         token,
         file,
         single || iconMode ? onDone : undefined,
-        iconMode ? { purpose: "icon" } : {},
+        pickerUploadOptions(mode),
       );
     }
   }
@@ -242,12 +240,12 @@
 <dialog
   class="picker-dialog"
   open
-  aria-label={iconMode ? "Escolher ícone" : "Pick an asset"}
+  aria-label={iconMode ? t("FUSION.IconPicker.DialogLabel") : "Pick an asset"}
   onkeydown={handleKeydown}
 >
   <!-- Header -->
   <header class="picker__header">
-    <h2 class="picker__title">{iconMode ? "Ícones da barra" : "Asset Browser"}</h2>
+    <h2 class="picker__title">{iconMode ? t("FUSION.IconPicker.Title") : "Asset Browser"}</h2>
     <button class="picker__close btn btn--icon" onclick={onClose} aria-label="Close">
       &#x2715;
     </button>
@@ -259,12 +257,12 @@
       <input
         class="picker__search field__input"
         type="search"
-        placeholder="Buscar ícone…"
+        placeholder={t("FUSION.IconPicker.Search")}
         bind:value={iconQuery}
-        aria-label="Buscar ícones"
+        aria-label={t("FUSION.IconPicker.SearchLabel")}
       />
       <p class="picker__notice">
-        O que você enviar aqui entra na galeria e fica visível para todos os jogadores.
+        {t("FUSION.IconPicker.Notice")}
       </p>
     {:else}
       <input
@@ -286,17 +284,17 @@
     ondragleave={handleDragLeave}
     ondrop={handleDrop}
     role="region"
-    aria-label={iconMode ? "Solte uma imagem aqui para enviar" : "Drop files here to upload"}
+    aria-label={iconMode ? t("FUSION.IconPicker.DropLabel") : "Drop files here to upload"}
   >
     <span class="picker__drop-icon" aria-hidden="true">&#8679;</span>
-    <span class="picker__drop-text">{iconMode ? "Solte uma imagem aqui" : "Drop image files here"}</span>
-    <span class="picker__drop-sep">{iconMode ? "ou" : "or"}</span>
+    <span class="picker__drop-text">{iconMode ? t("FUSION.IconPicker.Drop") : "Drop image files here"}</span>
+    <span class="picker__drop-sep">{iconMode ? t("FUSION.IconPicker.Or") : "or"}</span>
     <button
       class="btn btn--ghost btn--sm"
       onclick={() => fileInput?.click()}
       type="button"
     >
-      {iconMode ? "Escolher arquivo" : "Browse files"}
+      {iconMode ? t("FUSION.IconPicker.Browse") : "Browse files"}
     </button>
     <!-- Hidden file input -->
     <input
@@ -348,22 +346,22 @@
   <div class="picker__grid-wrap">
     {#if iconMode}
       {#if galleryLoading}
-        <div class="picker__empty">Carregando ícones…</div>
+        <div class="picker__empty">{t("FUSION.IconPicker.Loading")}</div>
       {:else if galleryError}
         <div class="picker__empty picker__empty--error" role="alert">
           {galleryError}
           <button class="btn btn--ghost btn--sm" onclick={() => void loadGallery()} type="button"
-            >Tentar de novo</button
+            >{t("FUSION.IconPicker.Retry")}</button
           >
         </div>
       {:else if filteredIcons.length === 0}
         <div class="picker__empty">
           {gallery.assets.length === 0
-            ? "Nenhum ícone enviado ainda. Solte uma imagem acima."
-            : "Nenhum ícone com esse nome."}
+            ? t("FUSION.IconPicker.EmptyGallery")
+            : t("FUSION.IconPicker.NoMatch")}
         </div>
       {:else}
-        <ul class="picker__grid" role="list" aria-label="Ícones da galeria">
+        <ul class="picker__grid" role="list" aria-label={t("FUSION.IconPicker.GalleryLabel")}>
           {#each filteredIcons as icon (icon.name)}
             <li class="icon-cell">
               <button
@@ -371,7 +369,7 @@
                 type="button"
                 onclick={() => handleSelectAsset(icon.name)}
                 title={iconFileName(icon.name)}
-                aria-label={`Usar ${iconFileName(icon.name)}`}
+                aria-label={t("FUSION.IconPicker.Use", { name: iconFileName(icon.name) })}
               >
                 <img
                   class="asset-card__img"
@@ -386,8 +384,8 @@
                   class="icon-cell__delete"
                   type="button"
                   onclick={() => void handleDeleteIcon(icon.name)}
-                  aria-label={`Apagar ${iconFileName(icon.name)} da galeria`}
-                  title="Apagar da galeria"
+                  aria-label={t("FUSION.IconPicker.Delete", { name: iconFileName(icon.name) })}
+                  title={t("FUSION.IconPicker.DeleteTitle")}
                 >&#x2715;</button>
               {/if}
             </li>

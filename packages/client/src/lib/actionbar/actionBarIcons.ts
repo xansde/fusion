@@ -29,7 +29,12 @@ import {
   type Ownership,
 } from "@fusion/shared";
 
-import { resolveAssetUrl } from "../assets/assetApi.js";
+import { assetNameFromPath, resolveAssetUrl } from "../assets/assetApi.js";
+import {
+  assetGrantsCovering,
+  assetGrantsFor,
+  invalidateAssetGrants,
+} from "../assets/assetGrants.svelte.js";
 
 function isPlainObject(value: unknown): value is Record<string, unknown> {
   return typeof value === "object" && value !== null && !Array.isArray(value);
@@ -156,6 +161,12 @@ export function createSlotIconSource(
  * The URL that paints an entry's image: the actor's read grant for it (`POST /api/assets/grant`
  * with `{ table: "actors", id }`), the same road the portrait takes. `null` when there is nothing to
  * ask with (no session) or the value is not an icon path — the slot then keeps the generic icon.
+ *
+ * An icon is usually NEWER than the actor's cached grant bundle: it was just chosen. The grant cache
+ * re-mints a document on a missing name at most once per 10 s, so a second icon set within seconds
+ * came back on the browse token, which opens nothing for a player — the slot stayed generic until a
+ * reload (Phase 2 review). When the bundle still has no signature for this name, the cache of THIS
+ * actor is dropped and the grant asked once more.
  */
 export async function resolveSlotIconUrl(
   path: string,
@@ -167,5 +178,12 @@ export async function resolveSlotIconUrl(
   if (token === null || token === "" || userId === null || userId === undefined || userId === "") {
     return null;
   }
-  return resolveAssetUrl(path, token, userId, { table: "actors", id: actorId });
+  const ref = { table: "actors", id: actorId } as const;
+  const name = assetNameFromPath(path);
+  const bundle = await assetGrantsCovering(ref, name, token);
+  if (bundle.grants[name] === undefined) {
+    invalidateAssetGrants(ref);
+    await assetGrantsFor(ref, token);
+  }
+  return resolveAssetUrl(path, token, userId, ref);
 }

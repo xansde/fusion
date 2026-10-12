@@ -11,6 +11,7 @@
 import { describe, expect, it } from "vitest";
 import { render } from "svelte/server";
 
+import "../../../i18n/index.js";
 import FilePicker from "../FilePicker.svelte";
 
 const noop = (): void => {};
@@ -23,6 +24,15 @@ describe("FilePicker — icon mode", () => {
     expect(body).toContain("Ícones da barra");
     expect(body).toContain("Solte uma imagem aqui");
     expect(body).toContain('accept=".png,.jpg,.jpeg,.webp,.svg"');
+  });
+
+  it("warns that whatever is uploaded joins the gallery every player sees (D-BA03)", () => {
+    const icon = render(FilePicker, {
+      props: { token: "t", onSelect: noop, onClose: noop, mode: "actionbar-icons" },
+    }).body;
+    expect(icon).toContain("fica visível para todos os jogadores");
+    const plain = render(FilePicker, { props: { token: "t", onSelect: noop, onClose: noop } }).body;
+    expect(plain).not.toContain("fica visível para todos os jogadores");
   });
 
   it("offers NO external URL: an icon is always an image of the world's icon area (REQ-BAR-068)", () => {

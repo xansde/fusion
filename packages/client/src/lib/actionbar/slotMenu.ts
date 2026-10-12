@@ -36,13 +36,23 @@ export interface SlotMenuIconState {
 }
 
 /**
+ * What the menu of one entry may add to "Abrir na ficha", one optional field per task, so each task
+ * adds its own field and its own items without touching the others' (BAR-F3-01 adds its own).
+ */
+export interface SlotMenuOptions {
+  /** BAR-F3-05: the entry's custom icon; absent, no icon items. */
+  icon?: SlotMenuIconState | undefined;
+}
+
+/**
  * The items of the menu of one entry. BAR-F3-05 adds the icon items at the END, after a separator:
  * "Trocar ícone…" always (disabled with the reason when the actor is at the cap and this entry has
  * no image yet) and "Restaurar ícone padrão" only when it has one — none of them for whoever may not
  * write the actor.
  */
-export function slotMenuItems(entry: ActionBarEntry, icon?: SlotMenuIconState): MenuEntry[] {
+export function slotMenuItems(entry: ActionBarEntry, options: SlotMenuOptions = {}): MenuEntry[] {
   void entry;
+  const { icon } = options;
   const items: MenuEntry[] = [{ id: OPEN_SHEET_ITEM, label: t("FUSION.ActionBar.Menu.OpenSheet") }];
   if (icon !== undefined && icon.canEdit) {
     const atCap = icon.current === null && icon.count >= ACTION_BAR_ICON_CAP;

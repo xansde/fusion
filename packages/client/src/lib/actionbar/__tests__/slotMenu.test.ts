@@ -62,9 +62,11 @@ describe("slotMenuItems — o ícone customizado (BAR-F3-05, REQ-BAR-074)", () =
 
   it("quem pode trocar vê Trocar ícone… no fim, depois de um separador; Abrir na ficha segue primeiro", () => {
     const entries = slotMenuItems(makeEntry("strike:a"), {
-      canEdit: true,
-      current: null,
-      count: 0,
+      icon: {
+        canEdit: true,
+        current: null,
+        count: 0,
+      },
     });
     const items = flattenMenu(entries);
 
@@ -75,7 +77,7 @@ describe("slotMenuItems — o ícone customizado (BAR-F3-05, REQ-BAR-074)", () =
 
   it("com imagem, Restaurar ícone padrão vem logo depois", () => {
     const items = flattenMenu(
-      slotMenuItems(makeEntry("strike:a"), { canEdit: true, current: ICON, count: 1 }),
+      slotMenuItems(makeEntry("strike:a"), { icon: { canEdit: true, current: ICON, count: 1 } }),
     );
 
     expect(items.map((item) => item.id)).toEqual([
@@ -88,9 +90,11 @@ describe("slotMenuItems — o ícone customizado (BAR-F3-05, REQ-BAR-074)", () =
 
   it("quem não pode escrever no ator não vê os itens do ícone (nem o separador)", () => {
     const entries = slotMenuItems(makeEntry("strike:a"), {
-      canEdit: false,
-      current: ICON,
-      count: 1,
+      icon: {
+        canEdit: false,
+        current: ICON,
+        count: 1,
+      },
     });
 
     expect(flattenMenu(entries).map((item) => item.id)).toEqual([OPEN_SHEET_ITEM]);
@@ -100,9 +104,11 @@ describe("slotMenuItems — o ícone customizado (BAR-F3-05, REQ-BAR-074)", () =
   it("no teto (64), um ícone NOVO vem desabilitado com o motivo; trocar um que já existe segue valendo", () => {
     const atCap = flattenMenu(
       slotMenuItems(makeEntry("strike:a"), {
-        canEdit: true,
-        current: null,
-        count: ACTION_BAR_ICON_CAP,
+        icon: {
+          canEdit: true,
+          current: null,
+          count: ACTION_BAR_ICON_CAP,
+        },
       }),
     ).find((item) => item.id === CHANGE_ICON_ITEM);
     expect(atCap?.disabled).toBe(true);
@@ -110,9 +116,11 @@ describe("slotMenuItems — o ícone customizado (BAR-F3-05, REQ-BAR-074)", () =
 
     const replace = flattenMenu(
       slotMenuItems(makeEntry("strike:a"), {
-        canEdit: true,
-        current: ICON,
-        count: ACTION_BAR_ICON_CAP,
+        icon: {
+          canEdit: true,
+          current: ICON,
+          count: ACTION_BAR_ICON_CAP,
+        },
       }),
     ).find((item) => item.id === CHANGE_ICON_ITEM);
     expect(replace?.disabled).not.toBe(true);

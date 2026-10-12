@@ -1381,7 +1381,10 @@ describe("ActionBar — o ícone customizado da entrada (BAR-F3-05)", () => {
 
     expect(source).toContain("getContext");
     expect(source).toContain("SLOT_ICON_SOURCE");
-    expect(source).toMatch(/resolveSlotIconUrl\(/);
+    expect(source).toMatch(/resolveSlotIconUrl\(path, actorId, \{/);
+    // …and the actor is the bar's, read from the icon source the bar hands every slot.
+    expect(source).toMatch(/const iconActorId = \$derived\(iconSource\?\.actorId \?\? null\);/);
+    expect(source).toMatch(/const actorId = iconActorId;/);
     // A imagem só entra quando há URL resolvida; erro de carga volta ao genérico.
     expect(source).toMatch(/onerror=\{/);
     expect(source).not.toMatch(/src=\{customIcon\}/);
