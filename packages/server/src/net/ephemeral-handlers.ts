@@ -58,6 +58,70 @@ export const RulerUpdatePayloadSchema = z.object({
 });
 export type RulerUpdatePayload = z.infer<typeof RulerUpdatePayloadSchema>;
 
+// ---------------------------------------------------------------------------
+// Area templates (burst / cone / line / emanation)
+// ---------------------------------------------------------------------------
+
+const AreaTemplateSchema = z.object({
+  kind: z.enum(["burst", "cone", "line", "emanation"]),
+  sizeFt: z.number().finite().min(5).max(500),
+  origin: z.object({ x: z.number().finite(), y: z.number().finite() }),
+  direction: z.number().finite(),
+  footprint: z
+    .object({
+      i: z.number().int(),
+      j: z.number().int(),
+      width: z.number().int().min(1).max(20),
+      height: z.number().int().min(1).max(20),
+    })
+    .optional(),
+});
+
+export const TemplateUpdatePayloadSchema = z.object({ template: AreaTemplateSchema });
+export const TemplatePinPayloadSchema = z.object({
+  id: z.string().min(1).max(64),
+  sceneId: z.string().min(1).max(64),
+  template: AreaTemplateSchema,
+});
+export const TemplateRefPayloadSchema = z.object({
+  id: z.string().min(1).max(64),
+  sceneId: z.string().min(1).max(64),
+});
+export const TemplateSyncPayloadSchema = z.object({ sceneId: z.string().min(1).max(64) });
+
+interface PinnedTemplate {
+  id: string;
+  userId: string;
+  userName?: string;
+  template: z.infer<typeof AreaTemplateSchema>;
+}
+
+/** Most pinned templates kept per scene (guards server memory). */
+const MAX_PINNED_PER_SCENE = 50;
+
+/**
+ * Pinned templates, in server MEMORY only (no migration): they live until
+ * removed or until the server restarts. Keyed by world, then scene.
+ */
+const pinnedTemplates = new Map<string, Map<string, Map<string, PinnedTemplate>>>();
+
+function pinnedFor(worldId: string, sceneId: string): Map<string, PinnedTemplate> {
+  let world = pinnedTemplates.get(worldId);
+  if (!world) {
+    world = new Map();
+    pinnedTemplates.set(worldId, world);
+  }
+  let scene = world.get(sceneId);
+  if (!scene) {
+    scene = new Map();
+    world.set(sceneId, scene);
+  }
+  return scene;
+}
+
+/** Role value from which a user may remove templates they did not author (ASSISTANT). */
+const TEMPLATE_MODERATOR_ROLE = 3;
+
 export const RulerClearPayloadSchema = z.object({}).optional();
 export type RulerClearPayload = z.infer<typeof RulerClearPayloadSchema>;
 
@@ -347,6 +411,93 @@ export function handleEphemeralEnvelope(
       } else {
         ns.emit("ephemeral", broadcast);
       }
+      return true;
+    }
+
+    case "presence:template": {
+      const parsed = TemplateUpdatePayloadSchema.safeParse(envelope.payload);
+      if (!parsed.success) {
+        logger.debug({ userId: ctx.userId, type: "presence:template" }, "Invalid template payload");
+        return false;
+      }
+      const broadcast: Envelope = {
+        type: "presence:template",
+        ts: now,
+        payload: {
+          template: parsed.data.template,
+          userId: ctx.userId,
+          ...(ctx.userName !== undefined ? { userName: ctx.userName } : {}),
+        },
+      };
+      if (sceneRoom !== undefined) ns.to(sceneRoom).emit("ephemeral", broadcast);
+      else ns.emit("ephemeral", broadcast);
+      return true;
+    }
+
+    case "presence:template:clear": {
+      const broadcast: Envelope = {
+        type: "presence:template:clear",
+        ts: now,
+        payload: { userId: ctx.userId },
+      };
+      if (sceneRoom !== undefined) ns.to(sceneRoom).emit("ephemeral", broadcast);
+      else ns.emit("ephemeral", broadcast);
+      return true;
+    }
+
+    case "presence:template:pin": {
+      const parsed = TemplatePinPayloadSchema.safeParse(envelope.payload);
+      if (!parsed.success) return false;
+      const { id, sceneId, template } = parsed.data;
+      const scene = pinnedFor(ctx.worldId, sceneId);
+      if (!scene.has(id) && scene.size >= MAX_PINNED_PER_SCENE) return false;
+      const entry: PinnedTemplate = {
+        id,
+        userId: ctx.userId,
+        ...(ctx.userName !== undefined ? { userName: ctx.userName } : {}),
+        template,
+      };
+      scene.set(id, entry);
+      // Whole namespace: clients filter by sceneId, so a pin reaches players whose
+      // scene room the server does not know yet.
+      ns.emit("ephemeral", {
+        type: "presence:template:pin",
+        ts: now,
+        payload: { ...entry, sceneId },
+      } satisfies Envelope);
+      return true;
+    }
+
+    case "presence:template:unpin": {
+      const parsed = TemplateRefPayloadSchema.safeParse(envelope.payload);
+      if (!parsed.success) return false;
+      const { id, sceneId } = parsed.data;
+      const scene = pinnedFor(ctx.worldId, sceneId);
+      const entry = scene.get(id);
+      if (!entry) return false;
+      if (entry.userId !== ctx.userId && ctx.role < TEMPLATE_MODERATOR_ROLE) {
+        logger.debug({ userId: ctx.userId, id }, "Unpin refused: not author nor GM");
+        return false;
+      }
+      scene.delete(id);
+      ns.emit("ephemeral", {
+        type: "presence:template:unpin",
+        ts: now,
+        payload: { id, sceneId },
+      } satisfies Envelope);
+      return true;
+    }
+
+    case "presence:template:sync": {
+      const parsed = TemplateSyncPayloadSchema.safeParse(envelope.payload);
+      if (!parsed.success) return false;
+      const { sceneId } = parsed.data;
+      // Reply to the asker only.
+      socket.emit("ephemeral", {
+        type: "presence:template:pinned",
+        ts: now,
+        payload: { sceneId, templates: [...pinnedFor(ctx.worldId, sceneId).values()] },
+      } satisfies Envelope);
       return true;
     }
 

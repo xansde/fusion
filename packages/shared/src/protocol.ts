@@ -40,6 +40,13 @@ export const EnvelopeTypeSchema = z.union([
   // M1-E ephemeral presence — ruler tool
   z.literal("presence:ruler"),
   z.literal("presence:ruler:clear"),
+  // Area templates (burst/cone/line/emanation): live preview + pinned set
+  z.literal("presence:template"),
+  z.literal("presence:template:clear"),
+  z.literal("presence:template:pin"),
+  z.literal("presence:template:unpin"),
+  z.literal("presence:template:sync"),
+  z.literal("presence:template:pinned"),
   z.literal("system"),
   // Built-in system handlers (M0-C)
   z.literal("system:ping"),

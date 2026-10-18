@@ -388,6 +388,115 @@ describe("Ephemeral handlers — presence:ruler", () => {
   });
 });
 
+describe("Ephemeral handlers — presence:template", () => {
+  let ctx: TestContext;
+  let gmSocket: ClientSocket;
+  let playerSocket: ClientSocket;
+
+  const template = {
+    kind: "cone",
+    sizeFt: 15,
+    origin: { x: 500, y: 500 },
+    direction: 45,
+  };
+
+  beforeEach(async () => {
+    ctx = await buildTestContext();
+    gmSocket = connectClient(ctx.port, ctx.worldId, ctx.gmToken);
+    playerSocket = connectClient(ctx.port, ctx.worldId, ctx.playerToken);
+    gmSocket.connect();
+    playerSocket.connect();
+    await Promise.all([waitForConnect(gmSocket), waitForConnect(playerSocket)]);
+  });
+
+  afterEach(async () => {
+    gmSocket.disconnect();
+    playerSocket.disconnect();
+    await teardown(ctx);
+  });
+
+  it("rebroadcasts a live template with the author id", async () => {
+    const got = waitForEphemeral(playerSocket, "presence:template", 2000);
+    gmSocket.emit("ephemeral", {
+      type: "presence:template",
+      ts: Date.now(),
+      payload: { template },
+    });
+    const env = await got;
+    const p = env.payload as Record<string, unknown>;
+    expect(typeof p.userId).toBe("string");
+    expect((p.template as Record<string, unknown>).kind).toBe("cone");
+  });
+
+  it("drops a malformed template (unknown kind)", async () => {
+    let seen = false;
+    playerSocket.on("ephemeral", (e: Envelope<unknown>) => {
+      if (e.type === "presence:template") seen = true;
+    });
+    gmSocket.emit("ephemeral", {
+      type: "presence:template",
+      ts: Date.now(),
+      payload: { template: { ...template, kind: "spiral" } },
+    });
+    await new Promise((r) => setTimeout(r, 200));
+    expect(seen).toBe(false);
+  });
+
+  it("a pinned template reaches everyone and is replayed on sync", async () => {
+    const pinned = waitForEphemeral(playerSocket, "presence:template:pin", 2000);
+    gmSocket.emit("ephemeral", {
+      type: "presence:template:pin",
+      ts: Date.now(),
+      payload: { id: "t1", sceneId: "sceneA", template },
+    });
+    const pin = await pinned;
+    expect((pin.payload as Record<string, unknown>).id).toBe("t1");
+
+    const replay = waitForEphemeral(playerSocket, "presence:template:pinned", 2000);
+    playerSocket.emit("ephemeral", {
+      type: "presence:template:sync",
+      ts: Date.now(),
+      payload: { sceneId: "sceneA" },
+    });
+    const env = await replay;
+    const list = (env.payload as { templates: Array<{ id: string }> }).templates;
+    expect(list.map((t) => t.id)).toEqual(["t1"]);
+  });
+
+  it("only the author or a GM may remove a pinned template", async () => {
+    gmSocket.emit("ephemeral", {
+      type: "presence:template:pin",
+      ts: Date.now(),
+      payload: { id: "t2", sceneId: "sceneB", template },
+    });
+    await waitForEphemeral(playerSocket, "presence:template:pin", 2000);
+
+    // The player is neither author nor GM: refused, template stays.
+    playerSocket.emit("ephemeral", {
+      type: "presence:template:unpin",
+      ts: Date.now(),
+      payload: { id: "t2", sceneId: "sceneB" },
+    });
+    await new Promise((r) => setTimeout(r, 200));
+    const replay = waitForEphemeral(gmSocket, "presence:template:pinned", 2000);
+    gmSocket.emit("ephemeral", {
+      type: "presence:template:sync",
+      ts: Date.now(),
+      payload: { sceneId: "sceneB" },
+    });
+    expect(((await replay).payload as { templates: unknown[] }).templates).toHaveLength(1);
+
+    // The author removes it.
+    const gone = waitForEphemeral(playerSocket, "presence:template:unpin", 2000);
+    gmSocket.emit("ephemeral", {
+      type: "presence:template:unpin",
+      ts: Date.now(),
+      payload: { id: "t2", sceneId: "sceneB" },
+    });
+    expect(((await gone).payload as Record<string, unknown>).id).toBe("t2");
+  });
+});
+
 describe("Ephemeral handlers — rate limiting", () => {
   let ctx: TestContext;
   let gmSocket: ClientSocket;
