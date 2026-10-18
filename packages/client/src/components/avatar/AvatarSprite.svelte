@@ -36,6 +36,11 @@
     animando?: boolean;
     /** Accessible description; omit inside a labelled button. */
     rotulo?: string;
+    /**
+     * Displayed side in CSS px. The canvas is drawn at the integer `zoom` that
+     * covers it and scaled down by CSS with `pixelated` — never smoothed up.
+     */
+    tamanhoCss?: number;
   }
 
   let {
@@ -46,6 +51,7 @@
     zoom = 3,
     animando = true,
     rotulo = "",
+    tamanhoCss = undefined,
   }: Props = $props();
 
   let tela: HTMLCanvasElement | null = $state(null);
@@ -120,6 +126,8 @@
   height={lado * zoom}
   role={rotulo === "" ? "presentation" : "img"}
   aria-label={rotulo === "" ? undefined : rotulo}
+  style:width={tamanhoCss === undefined ? undefined : `${String(tamanhoCss)}px`}
+  style:height={tamanhoCss === undefined ? undefined : `${String(tamanhoCss)}px`}
 ></canvas>
 
 <style>

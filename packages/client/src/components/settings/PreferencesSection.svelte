@@ -28,6 +28,7 @@
     type VolumeChannel,
   } from "../../lib/settings/clientPrefs.js";
   import { setTokenDisplayPref } from "../../lib/canvas/tokens/tokenDisplayPrefsStore.svelte.js";
+  import AvatarOverlayControles from "../avatar/AvatarOverlayControles.svelte";
 
   interface Props {
     worldId: string;
@@ -142,6 +143,12 @@
       />
       <span>{t("FUSION.Settings.Preferences.TokenDisplay.ShowBars")}</span>
     </label>
+  </fieldset>
+
+  <!-- The avatar overlay (spec 35): where a viewer who hid it brings it back. -->
+  <fieldset class="section">
+    <legend class="section__title">{t("FUSION.Avatar.Overlay.Title")}</legend>
+    <AvatarOverlayControles />
   </fieldset>
 </div>
 
