@@ -32,6 +32,18 @@ export interface AreaDraw {
   readonly axisTo?: ScenePoint;
 }
 
+/** Label height in screen pixels: the same at any zoom. */
+export const LABEL_FONT_PX = 16;
+
+/**
+ * Scale to apply to a label container living inside the camera-scaled stage so
+ * it renders at a constant size on screen (the stage multiplies by `cameraScale`).
+ * Guards against a zero/NaN scale from a not-yet-laid-out canvas.
+ */
+export function labelCounterScale(cameraScale: number): number {
+  return Number.isFinite(cameraScale) && cameraScale > 0 ? 1 / cameraScale : 1;
+}
+
 export const AREA_COLORS = { local: LOCAL_COLOR, remote: REMOTE_COLOR, pinned: PINNED_COLOR };
 
 export class RulerLayer {
@@ -40,6 +52,7 @@ export class RulerLayer {
   private _labels: Container;
   private _destroyed = false;
   private _grid: GridStrategy;
+  private _viewScale = 1;
 
   constructor(parent: Container, grid: GridStrategy) {
     this._grid = grid;
@@ -67,8 +80,10 @@ export class RulerLayer {
     remotes: Iterable<RulerState> = [],
     areas: Iterable<AreaDraw> = [],
     drag: DragRulerView | null = null,
+    viewScale = 1,
   ): void {
     if (this._destroyed) return;
+    this._viewScale = viewScale;
 
     this._graphics.clear();
     this._labels.removeChildren().forEach((c) => {
@@ -151,20 +166,40 @@ export class RulerLayer {
     }
   }
 
+  /**
+   * A label with a dark plate, drawn at constant screen size: the container is
+   * counter-scaled against the camera, so "fit the scene" zoom does not shrink it.
+   */
   private _drawLabel(text: string, at: { x: number; y: number }, color: number): void {
+    const box = new Container();
+    box.eventMode = "none";
     const label = new Text({
       text,
       style: new TextStyle({
         fontFamily: "sans-serif",
-        fontSize: 20,
+        fontSize: LABEL_FONT_PX,
+        fontWeight: "bold",
         fill: color,
-        stroke: { color: 0x000000, width: 4 },
       }),
     });
     label.eventMode = "none";
-    label.x = at.x + WAYPOINT_RADIUS * 2;
-    label.y = at.y - WAYPOINT_RADIUS * 3;
-    this._labels.addChild(label);
+    const padX = 6;
+    const padY = 3;
+    label.x = padX;
+    label.y = padY;
+    const plate = new Graphics();
+    plate.eventMode = "none";
+    plate
+      .roundRect(0, 0, label.width + padX * 2, label.height + padY * 2, 5)
+      .fill({ color: 0x000000, alpha: 0.78 })
+      .stroke({ width: 1, color, alpha: 0.8 });
+    box.addChild(plate, label);
+    const k = labelCounterScale(this._viewScale);
+    box.scale.set(k);
+    // Offset of 12 px right / 34 px up in screen units, whatever the zoom.
+    box.x = at.x + 12 * k;
+    box.y = at.y - 34 * k;
+    this._labels.addChild(box);
   }
 
   destroy(): void {

@@ -119,6 +119,7 @@ export function attachRuler(opts: AttachRulerOptions): RulerHandle {
   let lastBroadcast = 0;
   let dirty = true;
   let hadAny = false;
+  let lastViewScale = canvas.camera.scale;
 
   // Area template being aimed by the local user.
   let tplPress: ScenePoint | null = null;
@@ -394,6 +395,12 @@ export function attachRuler(opts: AttachRulerOptions): RulerHandle {
       pinned.length > 0 ||
       remoteTpls.length > 0 ||
       remoteRulers.length > 0;
+    // Labels are counter-scaled against the zoom, so a zoom change redraws them.
+    const viewScale = canvas.camera.scale;
+    if (viewScale !== lastViewScale) {
+      lastViewScale = viewScale;
+      dirty = true;
+    }
     // Something that just disappeared still has to be erased once.
     if (!dirty && !hasAny && !hadAny) return;
     hadAny = hasAny;
@@ -404,7 +411,7 @@ export function attachRuler(opts: AttachRulerOptions): RulerHandle {
     if (tpl) areas.push(areaDraw(tpl, AREA_COLORS.local));
 
     const snapshot = measuring ? ruler.snapshot() : null;
-    rulerLayer.render(snapshot, remoteRulers, areas, dragView());
+    rulerLayer.render(snapshot, remoteRulers, areas, dragView(), viewScale);
     dirty = false;
 
     const now = Date.now();
