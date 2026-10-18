@@ -646,6 +646,97 @@ describe("Ephemeral handlers — presence:template", () => {
   });
 });
 
+describe("Ephemeral handlers — anchored and styled templates", () => {
+  let ctx: TestContext;
+  let gmSocket: ClientSocket;
+  let playerSocket: ClientSocket;
+
+  const template = {
+    kind: "emanation",
+    sizeFt: 10,
+    origin: { x: 150, y: 150 },
+    direction: 0,
+    footprint: { i: 1, j: 1, width: 1, height: 1 },
+    tokenId: "tok-a",
+    style: { color: "#ff3b30", border: "thick", fill: 0.5 },
+  };
+
+  beforeEach(async () => {
+    ctx = await buildTestContext();
+    gmSocket = connectClient(ctx.port, ctx.worldId, ctx.gmToken);
+    playerSocket = connectClient(ctx.port, ctx.worldId, ctx.playerToken);
+    gmSocket.connect();
+    playerSocket.connect();
+    await Promise.all([waitForConnect(gmSocket), waitForConnect(playerSocket)]);
+  });
+
+  afterEach(async () => {
+    gmSocket.disconnect();
+    playerSocket.disconnect();
+    await teardown(ctx);
+  });
+
+  it("keeps the token link and the style of a pinned template", async () => {
+    const pinned = waitForEphemeral(playerSocket, "presence:template:pin", 2000);
+    gmSocket.emit("ephemeral", {
+      type: "presence:template:pin",
+      ts: Date.now(),
+      payload: { id: "a1", sceneId: "sceneS", template },
+    });
+    const t = ((await pinned).payload as { template: Record<string, unknown> }).template;
+    expect(t.tokenId).toBe("tok-a");
+    expect(t.style).toEqual(template.style);
+  });
+
+  it("the author restyles a pinned template and everyone gets the new style", async () => {
+    gmSocket.emit("ephemeral", {
+      type: "presence:template:pin",
+      ts: Date.now(),
+      payload: { id: "a2", sceneId: "sceneS2", template },
+    });
+    await waitForEphemeral(playerSocket, "presence:template:pin", 2000);
+    const again = waitForEphemeral(playerSocket, "presence:template:pin", 2000);
+    gmSocket.emit("ephemeral", {
+      type: "presence:template:style",
+      ts: Date.now(),
+      payload: { id: "a2", sceneId: "sceneS2", style: { color: "#0a84ff", border: "thin", fill: 0.2 } },
+    });
+    const t = ((await again).payload as { template: Record<string, unknown> }).template;
+    expect(t.style).toEqual({ color: "#0a84ff", border: "thin", fill: 0.2 });
+    expect(t.tokenId).toBe("tok-a");
+  });
+
+  it("a player who is not the author cannot restyle", async () => {
+    gmSocket.emit("ephemeral", {
+      type: "presence:template:pin",
+      ts: Date.now(),
+      payload: { id: "a3", sceneId: "sceneS3", template },
+    });
+    await waitForEphemeral(playerSocket, "presence:template:pin", 2000);
+    let seen = false;
+    gmSocket.on("ephemeral", (e: { type: string }) => {
+      if (e.type === "presence:template:pin") seen = true;
+    });
+    playerSocket.emit("ephemeral", {
+      type: "presence:template:style",
+      ts: Date.now(),
+      payload: { id: "a3", sceneId: "sceneS3", style: { color: "#0a84ff", border: "thin", fill: 0.2 } },
+    });
+    await new Promise((r) => setTimeout(r, 250));
+    expect(seen).toBe(false);
+  });
+
+  it("relays the tokenId of a ping", async () => {
+    const got = waitForEphemeral(gmSocket, "presence:ping", 2000);
+    playerSocket.emit("ephemeral", {
+      type: "presence:ping",
+      ts: Date.now(),
+      payload: { x: 10, y: 20, tokenId: "tok-a" },
+    });
+    expect(((await got).payload as Record<string, unknown>).tokenId).toBe("tok-a");
+  });
+});
+
 describe("Ephemeral handlers — rate limiting", () => {
   let ctx: TestContext;
   let gmSocket: ClientSocket;

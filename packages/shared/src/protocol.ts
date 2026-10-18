@@ -46,6 +46,7 @@ export const EnvelopeTypeSchema = z.union([
   z.literal("presence:template:clear"),
   z.literal("presence:template:pin"),
   z.literal("presence:template:unpin"),
+  z.literal("presence:template:style"),
   z.literal("presence:template:sync"),
   z.literal("presence:template:pinned"),
   // GM "Show Players": a picture and/or a note popped open on every screen

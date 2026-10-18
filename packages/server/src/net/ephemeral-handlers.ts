@@ -53,6 +53,8 @@ export const MapPingPayloadSchema = z.object({
   color: z.string().optional(),
   /** GM "Shift+ping": ask every client to centre the camera here. Ignored for players. */
   pull: z.boolean().optional(),
+  /** Ping held on a token: receivers highlight it and name it. */
+  tokenId: z.string().min(1).max(64).optional(),
 });
 export type MapPingPayload = z.infer<typeof MapPingPayloadSchema>;
 
@@ -65,6 +67,12 @@ export type RulerUpdatePayload = z.infer<typeof RulerUpdatePayloadSchema>;
 // ---------------------------------------------------------------------------
 // Area templates (burst / cone / line / emanation)
 // ---------------------------------------------------------------------------
+
+const AreaStyleSchema = z.object({
+  color: z.string().regex(/^#[0-9a-fA-F]{6}$/),
+  border: z.enum(["thin", "medium", "thick"]),
+  fill: z.number().finite().min(0.1).max(0.7),
+});
 
 const AreaTemplateSchema = z.object({
   kind: z.enum(["burst", "cone", "line", "emanation"]),
@@ -79,6 +87,15 @@ const AreaTemplateSchema = z.object({
       height: z.number().int().min(1).max(20),
     })
     .optional(),
+  /** Emanation anchored to a token: clients recompute the area from the token. */
+  tokenId: z.string().min(1).max(64).optional(),
+  style: AreaStyleSchema.optional(),
+});
+
+export const TemplateStylePayloadSchema = z.object({
+  id: z.string().min(1).max(64),
+  sceneId: z.string().min(1).max(64),
+  style: AreaStyleSchema,
 });
 
 export const TemplateUpdatePayloadSchema = z.object({ template: AreaTemplateSchema });
@@ -360,6 +377,7 @@ export function handleEphemeralEnvelope(
           ? { color: ctx.userColor ?? parsed.data.color }
           : {}),
         ...(parsed.data.pull === true && isRolePrivileged(ctx.role) ? { pull: true } : {}),
+        ...(parsed.data.tokenId !== undefined ? { tokenId: parsed.data.tokenId } : {}),
         userId: ctx.userId,
         ...(ctx.userName !== undefined ? { userName: ctx.userName } : {}),
       };
@@ -504,6 +522,26 @@ export function handleEphemeralEnvelope(
       scene.set(id, entry);
       // Whole namespace: clients filter by sceneId, so a pin reaches players whose
       // scene room the server does not know yet.
+      ns.emit("ephemeral", {
+        type: "presence:template:pin",
+        ts: now,
+        payload: { ...entry, sceneId },
+      } satisfies Envelope);
+      return true;
+    }
+
+    case "presence:template:style": {
+      const parsed = TemplateStylePayloadSchema.safeParse(envelope.payload);
+      if (!parsed.success) return false;
+      const { id, sceneId, style } = parsed.data;
+      const entry = pinnedFor(ctx.worldId, sceneId).get(id);
+      if (!entry) return false;
+      if (entry.userId !== ctx.userId && ctx.role < TEMPLATE_MODERATOR_ROLE) {
+        logger.debug({ userId: ctx.userId, id }, "Restyle refused: not author nor GM");
+        return false;
+      }
+      entry.template = { ...entry.template, style };
+      // Same envelope as a pin: clients upsert by id, no new client case needed.
       ns.emit("ephemeral", {
         type: "presence:template:pin",
         ts: now,
