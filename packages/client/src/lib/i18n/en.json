@@ -1481,5 +1481,18 @@
   "FUSION.Fog.CoverAll": "Cover all",
   "FUSION.Fog.Undo": "Undo",
   "FUSION.Fog.TooComplex": "Fog too complex. Use Reveal all or Cover all to start over.",
-  "FUSION.Fog.SaveFailed": "Could not save the fog."
+  "FUSION.Fog.SaveFailed": "Could not save the fog.",
+  "FUSION.AssetTabs.all": "All",
+  "FUSION.AssetTabs.maps": "Maps",
+  "FUSION.AssetTabs.tokens": "Tokens & portraits",
+  "FUSION.AssetTabs.items": "Items & loot",
+  "FUSION.AssetTabs.icons": "Icons",
+  "FUSION.AssetTabs.audio": "Music & sound",
+  "FUSION.AssetTabs.handouts": "Handouts",
+  "FUSION.AssetTabs.other": "Other",
+  "FUSION.AssetTabs.Label": "Asset categories",
+  "FUSION.AssetTabs.MoveTo": "Move to…",
+  "FUSION.AssetTabs.MoveLabel": "Move {{name}} to another tab",
+  "FUSION.AssetTabs.MoveFailed": "Could not move: {{message}}",
+  "FUSION.AssetTabs.EmptyTab": "Nothing in this tab."
 }

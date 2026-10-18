@@ -123,6 +123,7 @@
 
 {#if picking}
   <FilePicker
+    category="handouts"
     token={fusionApi.getToken() ?? ""}
     onSelect={(path) => {
       imagePath = path;
