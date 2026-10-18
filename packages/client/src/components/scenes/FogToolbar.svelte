@@ -182,7 +182,8 @@
 <style>
   .fog-dock {
     position: absolute;
-    top: calc(var(--fusion-header-height, 48px) + 0.6rem);
+    /* Below the ruler / show-players / note buttons row, which share the top-left corner. */
+    top: calc(var(--fusion-header-height, 48px) + 3.4rem);
     left: 0.75rem;
     z-index: 90;
     display: flex;
