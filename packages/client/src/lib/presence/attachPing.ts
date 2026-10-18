@@ -18,7 +18,7 @@
 import type { Container } from "pixi.js";
 import type { Socket } from "socket.io-client";
 import type { FusionCanvas } from "../canvas/FusionCanvas.js";
-import { PingLayer } from "../canvas/PingLayer.js";
+import { PingLayer, type PingedToken } from "../canvas/PingLayer.js";
 import { screenToWorld } from "../canvas/camera-math.js";
 import { PingGesture } from "./pingGesture.js";
 import { emitPing } from "./attachPresenceSync.js";
@@ -40,6 +40,10 @@ export interface AttachPingOptions {
    * A press that starts while busy never becomes a ping.
    */
   isBusy?: (e: PointerEvent) => boolean;
+  /** Id of the token under a scene point, or null. Lets a held press ping a token. */
+  getTokenIdAt?: (p: { x: number; y: number }) => string | null;
+  /** Where a pinged token is now and what it is called, or null if it is gone. */
+  resolveToken?: (tokenId: string) => PingedToken | null;
 }
 
 /**
@@ -48,7 +52,7 @@ export interface AttachPingOptions {
  * @returns A disposer that removes every listener and destroys the drawing.
  */
 export function attachPing(opts: AttachPingOptions): () => void {
-  const { canvas, layer, socket, cellPx, userId, isBusy } = opts;
+  const { canvas, layer, socket, cellPx, userId, isBusy, getTokenIdAt, resolveToken } = opts;
   // A pull that was already on record when we attached is history, not an order.
   let lastPullSeq = presenceState.pullView?.seq ?? 0;
 
@@ -77,32 +81,43 @@ export function attachPing(opts: AttachPingOptions): () => void {
     });
   }
 
-  function fire(point: { x: number; y: number }, pull: boolean): void {
+  function fire(point: { x: number; y: number }, pull: boolean, tokenId?: string): void {
     if (socket?.connected) {
       // The server echoes the ping back to its sender (ephemeral-handlers
       // broadcasts to the room INCLUDING the socket that sent it), so adding
       // it locally as well would draw the same ripple twice.
-      emitPing(socket, point.x, point.y, undefined, pull);
+      emitPing(socket, point.x, point.y, undefined, pull, tokenId);
     } else if (userId != null) {
-      addPing({ userId, x: point.x, y: point.y });
+      addPing({ userId, x: point.x, y: point.y, ...(tokenId !== undefined ? { tokenId } : {}) });
     }
   }
 
   // ---- DOM listeners ----
 
   const onPointerDown = (e: PointerEvent): void => {
-    // Only an empty spot pings: a press on a token selects/drags it, and a tool
-    // in use owns the button.
-    if (isBusy?.(e) || canvas.isOverToken(e.clientX, e.clientY)) {
+    // A tool in use owns the button. A press on a token still starts a hold: if the
+    // pointer stays put it is a ping ON the token; if it moves, the token drag wins
+    // (the gesture gives up past the tolerance), and a plain click still selects.
+    if (isBusy?.(e)) {
       gesture.handle({ kind: "cancel" });
       return;
     }
+    const point = toScene(e);
+    let tokenId: string | undefined;
+    if (canvas.isOverToken(e.clientX, e.clientY)) {
+      tokenId = getTokenIdAt?.(point) ?? undefined;
+      if (tokenId === undefined) {
+        gesture.handle({ kind: "cancel" });
+        return;
+      }
+    }
     gesture.handle({
       kind: "pointer-down",
-      point: toScene(e),
+      point,
       button: e.button,
       time: Date.now(),
       shift: e.shiftKey,
+      ...(tokenId !== undefined ? { tokenId } : {}),
     });
   };
 
@@ -133,7 +148,7 @@ export function attachPing(opts: AttachPingOptions): () => void {
   const disposeTicker = canvas.addTicker(() => {
     if (gesture.isActive) {
       const effect = gesture.handle({ kind: "tick", time: Date.now() });
-      if (effect.kind === "ping") fire(effect.point, effect.pull === true);
+      if (effect.kind === "ping") fire(effect.point, effect.pull === true, effect.tokenId);
     }
 
     // GM Shift+ping: bring the camera to the marked point.
@@ -146,7 +161,11 @@ export function attachPing(opts: AttachPingOptions): () => void {
     // Skip the redraw only when there is nothing live AND nothing left over
     // from the previous frame to clear.
     if (presenceState.pings.length === 0 && pingLayer.isEmpty) return;
-    pingLayer.render(presenceState.pings, Date.now());
+    pingLayer.render(
+      presenceState.pings,
+      Date.now(),
+      resolveToken ? { resolve: resolveToken, viewScale: canvas.camera.scale } : undefined,
+    );
   });
 
   return () => {

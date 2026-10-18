@@ -65,7 +65,9 @@
   import { attachRuler, type RulerHandle } from "../lib/presence/attachRuler.js";
   import { attachPing } from "../lib/presence/attachPing.js";
   import { actorSpeedFt } from "../lib/presence/dragRuler.js";
+import { presenceState } from "../lib/presence/presenceStore.svelte.js";
   import RulerToolButton from "./RulerToolButton.svelte";
+  import TemplateMenu from "./TemplateMenu.svelte";
   import ShowPlayersButton from "./ShowPlayersButton.svelte";
   import ShowPlayersWindow from "./ShowPlayersWindow.svelte";
   import MapNoteButton from "./MapNoteButton.svelte";
@@ -742,13 +744,72 @@
     return { i: cell.i, j: cell.j, width: fp.width, height: fp.height };
   }
 
-  /** The squares of the (first) selected token on this scene, or null. */
-  function selectedTokenFootprint(sceneId: string, _size: number) {
-    const grid = fusionCanvas?.gridStrategy;
-    if (!grid) return null;
+  /** Token being dragged by THIS user right now (top-left, scene px): areas anchored to it follow live. */
+  let _liveDrag: { tokenId: string; x: number; y: number } | null = null;
+
+  /**
+   * Where a token is NOW: the local drag, else another user's drag preview, else the
+   * document. Null when the token is not on the scene (deleted).
+   */
+  function liveToken(
+    sceneId: string,
+    tokenId: string,
+  ): { x: number; y: number; actorId: string; name: string } | null {
     const scene = worldMirror.getDoc<SceneDocument>("Scene", sceneId);
-    const token = scene?.tokens?.find((t) => _selectedTokenIds.has(t._id));
-    return token ? tokenCells(token, grid) : null;
+    const token = scene?.tokens?.find((t) => t._id === tokenId);
+    if (!token) return null;
+    const preview = presenceState.remoteTokenPreviews.get(tokenId);
+    const pos =
+      _liveDrag?.tokenId === tokenId
+        ? _liveDrag
+        : preview && preview.sceneId === sceneId
+          ? preview
+          : token;
+    const actor = worldMirror.getDoc<Record<string, unknown>>("Actor", token.actorId);
+    const name = token.name ?? (typeof actor?.["name"] === "string" ? actor["name"] : "");
+    return { x: pos.x, y: pos.y, actorId: token.actorId, name };
+  }
+
+  /** Current squares of a token, or null if it is gone. */
+  function liveTokenCells(sceneId: string, tokenId: string) {
+    const grid = fusionCanvas?.gridStrategy;
+    const t = grid ? liveToken(sceneId, tokenId) : null;
+    return grid && t ? tokenCells({ x: t.x, y: t.y, actorId: t.actorId }, grid) : null;
+  }
+
+  /** The (first) selected token on this scene with its squares, or null. */
+  function selectedTokenRef(sceneId: string) {
+    const id = [..._selectedTokenIds].find((tid) => liveToken(sceneId, tid) !== null);
+    const footprint = id ? liveTokenCells(sceneId, id) : null;
+    return id && footprint ? { id, footprint } : null;
+  }
+
+  /** The topmost token whose squares contain a scene point. */
+  function tokenRefAt(sceneId: string, p: { x: number; y: number }) {
+    const grid = fusionCanvas?.gridStrategy;
+    const scene = worldMirror.getDoc<SceneDocument>("Scene", sceneId);
+    if (!grid || !scene) return null;
+    const cell = grid.pixelToCell(p);
+    const tokens = scene.tokens ?? [];
+    for (let k = tokens.length - 1; k >= 0; k--) {
+      const t = tokens[k];
+      if (!t) continue;
+      const fp = liveTokenCells(sceneId, t._id);
+      if (fp && cell.i >= fp.i && cell.i < fp.i + fp.width && cell.j >= fp.j && cell.j < fp.j + fp.height) {
+        return { id: t._id, footprint: fp };
+      }
+    }
+    return null;
+  }
+
+  /** Box and name of a token for the ping highlight. */
+  function pingedToken(sceneId: string, tokenId: string) {
+    const grid = fusionCanvas?.gridStrategy;
+    const t = grid ? liveToken(sceneId, tokenId) : null;
+    const fp = liveTokenCells(sceneId, tokenId);
+    if (!grid || !t || !fp) return null;
+    const size = grid.config.size;
+    return { x: t.x, y: t.y, width: fp.width * size, height: fp.height * size, name: t.name };
   }
 
   /** Every token of the scene as a named target, for "who is inside the area". */
@@ -820,9 +881,11 @@
         // Movement ruler: path, distance and the colour against the actor's Speed.
         onDrag: (info) => {
           if (!info) {
+            _liveDrag = null;
             _ruler?.showDrag(null);
             return;
           }
+          _liveDrag = { tokenId: info.tokenId, x: info.to.x, y: info.to.y };
           const dragged = worldMirror
             .getDoc<SceneDocument>("Scene", scene._id)
             ?.tokens?.find((candidate) => candidate._id === info.tokenId);
@@ -897,7 +960,10 @@
         socket: sock,
         sceneId: scene._id,
         selfUserId: userId,
-        getSource: () => selectedTokenFootprint(scene._id, rulerGrid.config.size),
+        getSelectedToken: () => selectedTokenRef(scene._id),
+        getTokenAt: (p) => tokenRefAt(scene._id, p),
+        getTokenFootprint: (id) => liveTokenCells(scene._id, id),
+        isModerator: currentIsGm,
         getTargets: () => sceneTargets(scene._id, rulerGrid),
       });
       // --- Map ping (hold the left button on empty map; GM Shift+hold pulls the camera) ---
@@ -907,6 +973,8 @@
         socket: sock,
         cellPx: rulerGrid.config.size,
         userId,
+        getTokenIdAt: (p) => tokenRefAt(scene._id, p)?.id ?? null,
+        resolveToken: (id) => pingedToken(scene._id, id),
         isBusy: (e) =>
           (_ruler?.isBusy() ?? false) || noteUi.placing || _notes?.pinAt(e.clientX, e.clientY) != null,
       });
@@ -1000,6 +1068,7 @@
   {/if}
 
   <RulerToolButton />
+  <TemplateMenu />
   {#if isGm()}
     <ShowPlayersButton />
     <MapNoteButton />

@@ -101,7 +101,7 @@ describe("resolvePinned", () => {
     expect(resolvePinned(tpl, () => null, grid)).toBeNull();
   });
   it("leaves a template without a token untouched", () => {
-    const loose = { ...tpl, tokenId: undefined };
+    const { tokenId: _unused, ...loose } = tpl;
     expect(resolvePinned(loose, () => null, grid)).toBe(loose);
   });
 });

@@ -37,7 +37,13 @@ import {
   type RulerEffect,
   type RulerInput,
 } from "./rulerGesture.js";
-import { rulerTool, setRulerTool, stepAreaSize } from "./rulerToolStore.svelte.js";
+import {
+  rulerTool,
+  setRulerTool,
+  stepAreaSize,
+  openTemplateMenu,
+  closeTemplateMenu,
+} from "./rulerToolStore.svelte.js";
 import {
   emitRulerUpdate,
   emitRulerClear,
@@ -49,7 +55,13 @@ import {
 } from "./attachPresenceSync.js";
 import { presenceState } from "./presenceStore.svelte.js";
 import { noteUi } from "../notes/noteUi.svelte.js";
-import { areaLabel, buildAreaTemplate, isAreaMode } from "./templateTool.js";
+import {
+  areaLabel,
+  buildAreaTemplate,
+  emanationForToken,
+  isAreaMode,
+  resolvePinned,
+} from "./templateTool.js";
 import { buildDragRuler, type DragRulerView } from "./dragRuler.js";
 
 /** How often ruler waypoints and templates are broadcast while dragging (ms). */
@@ -65,6 +77,21 @@ export interface TokenDragInfo {
   readonly speedFt: number;
 }
 
+/** A token as the emanation tool sees it. */
+export interface TokenRef {
+  readonly id: string;
+  readonly footprint: AreaFootprint;
+}
+
+/** How long a pinned template may point at a missing token before it is dropped (ms). */
+const ORPHAN_GRACE_MS = 3000;
+
+function cssToNumber(css: string | undefined, fallback: number): number {
+  if (css === undefined) return fallback;
+  const n = Number.parseInt(css.replace(/^#/, ""), 16);
+  return Number.isFinite(n) ? n : fallback;
+}
+
 export interface AttachRulerOptions {
   /** The canvas — supplies the camera, the DOM element and the ticker. */
   canvas: FusionCanvas;
@@ -78,8 +105,14 @@ export interface AttachRulerOptions {
   sceneId: string;
   /** The local user: their own broadcasts echo back and must not be drawn twice. */
   selfUserId: string;
-  /** The squares of the selected token (the source of an emanation), or null. */
-  getSource?: () => AreaFootprint | null;
+  /** The selected token (the source of an emanation), or null. */
+  getSelectedToken?: () => TokenRef | null;
+  /** The token under a scene point, or null. */
+  getTokenAt?: (p: ScenePoint) => TokenRef | null;
+  /** Current squares of a token (live: drag, remote preview, document), null if it is gone. */
+  getTokenFootprint?: (tokenId: string) => AreaFootprint | null;
+  /** True for a GM/assistant: may restyle and remove templates of others. */
+  isModerator?: boolean;
   /** Every token on the scene, to name who a template touches. */
   getTargets?: () => AreaTarget[];
 }
@@ -126,6 +159,8 @@ export function attachRuler(opts: AttachRulerOptions): RulerHandle {
   let tplPress: ScenePoint | null = null;
   let tpl: AreaTemplate | null = null;
   let tplBroadcast = 0;
+  /** Pinned templates whose token is missing: id -> when it was first seen missing. */
+  const orphans = new Map<string, number>();
 
   // Token drag ruler.
   let dragInfo: TokenDragInfo | null = null;
@@ -180,15 +215,34 @@ export function attachRuler(opts: AttachRulerOptions): RulerHandle {
 
   function rebuildTemplate(): void {
     if (!square || !tplPress || !rawCursor || !isAreaMode(rulerTool.mode)) return;
-    tpl = buildAreaTemplate(
+    const selected = opts.getSelectedToken?.() ?? null;
+    const built = buildAreaTemplate(
       rulerTool.mode,
       rulerTool.sizeFt,
       tplPress,
       rawCursor,
       square,
-      opts.getSource?.() ?? null,
+      selected?.footprint ?? null,
     );
+    tpl = built
+      ? {
+          ...built,
+          style: { ...rulerTool.style },
+          ...(built.kind === "emanation" && selected ? { tokenId: selected.id } : {}),
+        }
+      : null;
     dirty = true;
+  }
+
+  /** One click (or Enter) on a token: its emanation, pinned and anchored to it. */
+  function pinEmanationOf(token: TokenRef): void {
+    if (!square) return;
+    emitTemplatePin(
+      socket,
+      newId(),
+      sceneId,
+      emanationForToken(rulerTool.sizeFt, token.id, token.footprint, square, { ...rulerTool.style }),
+    );
   }
 
   function endTemplate(pin: boolean): void {
@@ -212,6 +266,36 @@ export function attachRuler(opts: AttachRulerOptions): RulerHandle {
     return cells;
   }
 
+  /** Pinned templates of this scene as they must be drawn NOW (anchored ones follow their token). */
+  function livePinned(): Array<{ id: string; userId: string; userName?: string; template: AreaTemplate }> {
+    const out: Array<{ id: string; userId: string; userName?: string; template: AreaTemplate }> = [];
+    const now = Date.now();
+    for (const pin of presenceState.pinnedTemplates.values()) {
+      if (pin.sceneId !== sceneId) continue;
+      const resolved = square
+        ? resolvePinned(pin.template, (id) => opts.getTokenFootprint?.(id) ?? null, square)
+        : pin.template;
+      if (!resolved) {
+        const since = orphans.get(pin.id) ?? now;
+        orphans.set(pin.id, since);
+        // The token is gone: the area goes with it. Its author (or the GM) tells the server.
+        if (now - since > ORPHAN_GRACE_MS && (pin.userId === selfUserId || opts.isModerator === true)) {
+          orphans.delete(pin.id);
+          emitTemplateUnpin(socket, pin.id, sceneId);
+        }
+        continue;
+      }
+      orphans.delete(pin.id);
+      out.push({
+        id: pin.id,
+        userId: pin.userId,
+        ...(pin.userName !== undefined ? { userName: pin.userName } : {}),
+        template: resolved,
+      });
+    }
+    return out;
+  }
+
   function areaDraw(t: AreaTemplate, color: number, owner?: string): AreaDraw {
     const cells = cellsOf(t);
     const names = targetsInCells(cells, opts.getTargets?.() ?? []);
@@ -227,6 +311,7 @@ export function attachRuler(opts: AttachRulerOptions): RulerHandle {
       color,
       label: owner ? `${owner} · ${title}` : title,
       origin: t.origin,
+      ...(t.style ? { style: t.style } : {}),
       ...(axis ? { axisTo: axis } : {}),
     };
   }
@@ -235,11 +320,14 @@ export function attachRuler(opts: AttachRulerOptions): RulerHandle {
   function pinnedUnderCursor(): string | null {
     if (!rawCursor) return null;
     const cell = grid.pixelToCell(rawCursor);
-    for (const pin of presenceState.pinnedTemplates.values()) {
-      if (pin.sceneId !== sceneId) continue;
+    for (const pin of livePinned()) {
       if (cellsOf(pin.template).some((c) => c.i === cell.i && c.j === cell.j)) return pin.id;
     }
     return null;
+  }
+
+  function pinOwnerOf(id: string): string | undefined {
+    return presenceState.pinnedTemplates.get(id)?.userId;
   }
 
   function removePinnedAtCursor(): boolean {
@@ -270,11 +358,20 @@ export function attachRuler(opts: AttachRulerOptions): RulerHandle {
 
   const onKeyDown = (e: KeyboardEvent): void => {
     if (e.key === "Escape") {
+      closeTemplateMenu();
       if (tplPress) endTemplate(false);
       else if (!measuring && rulerTool.mode !== null) setRulerTool(null);
     }
     if ((e.key === "Delete" || e.key === "Backspace") && !editable(e) && removePinnedAtCursor()) {
       e.preventDefault();
+    }
+    // Enter with the emanation tool: the emanation of the selected token, no dragging.
+    if (e.key === "Enter" && !e.repeat && !editable(e) && rulerTool.mode === "emanation" && !tplPress) {
+      const selected = opts.getSelectedToken?.() ?? null;
+      if (selected) {
+        e.preventDefault();
+        pinEmanationOf(selected);
+      }
     }
     // Ctrl during a token drag commits a waypoint of the movement path.
     if (e.key === "Control" && !e.repeat && dragInfo) {
@@ -308,6 +405,17 @@ export function attachRuler(opts: AttachRulerOptions): RulerHandle {
     if (isAreaMode(rulerTool.mode) && e.button === 0 && !measuring && !tplPress) {
       e.preventDefault();
       e.stopPropagation();
+      closeTemplateMenu();
+      if (rulerTool.mode === "emanation") {
+        // A click on a token is the whole gesture: its emanation, pinned to it.
+        const hit = opts.getTokenAt?.(rawCursor) ?? null;
+        if (hit) {
+          pinEmanationOf(hit);
+          return;
+        }
+        // Nothing selected and nothing hit: there is nothing to aim from.
+        if (!opts.getSelectedToken?.()) return;
+      }
       tplPress = rawCursor;
       rebuildTemplate();
       return;
@@ -352,7 +460,13 @@ export function attachRuler(opts: AttachRulerOptions): RulerHandle {
 
   const onContextMenu = (e: MouseEvent): void => {
     rawCursor = toRaw(e);
-    if (removePinnedAtCursor()) e.preventDefault();
+    const id = pinnedUnderCursor();
+    if (!id) return;
+    e.preventDefault();
+    // Only the author or a GM can change it; for anyone else the menu is just noise.
+    if (pinOwnerOf(id) === selfUserId || opts.isModerator === true) {
+      openTemplateMenu(id, e.clientX, e.clientY);
+    }
   };
 
   const onBlur = (): void => {
@@ -382,7 +496,7 @@ export function attachRuler(opts: AttachRulerOptions): RulerHandle {
       el.style.cursor = wanted;
     }
 
-    const pinned = [...presenceState.pinnedTemplates.values()].filter((p) => p.sceneId === sceneId);
+    const pinned = livePinned();
     const remoteTpls = [...presenceState.remoteTemplates.values()].filter(
       (r) => r.userId !== selfUserId,
     );
@@ -390,6 +504,7 @@ export function attachRuler(opts: AttachRulerOptions): RulerHandle {
       (r) => r.userId !== selfUserId,
     );
     const hasAny =
+      rulerTool.mode === "emanation" ||
       measuring ||
       tpl !== null ||
       dragInfo !== null ||
@@ -407,12 +522,29 @@ export function attachRuler(opts: AttachRulerOptions): RulerHandle {
     hadAny = hasAny;
 
     const areas: AreaDraw[] = [];
-    for (const p of pinned) areas.push(areaDraw(p.template, AREA_COLORS.pinned, p.userName));
-    for (const r of remoteTpls) areas.push(areaDraw(r.template, AREA_COLORS.remote, r.userName));
-    if (tpl) areas.push(areaDraw(tpl, AREA_COLORS.local));
+    for (const p of pinned) {
+      areas.push(
+        areaDraw(p.template, cssToNumber(p.template.style?.color, AREA_COLORS.pinned), p.userName),
+      );
+    }
+    for (const r of remoteTpls) {
+      areas.push(
+        areaDraw(r.template, cssToNumber(r.template.style?.color, AREA_COLORS.remote), r.userName),
+      );
+    }
+    if (tpl) areas.push(areaDraw(tpl, cssToNumber(tpl.style?.color, AREA_COLORS.local)));
+
+    // "Clique num token": a hint at the cursor while the emanation tool has nothing to grow from.
+    let hint: { text: string; at: ScenePoint } | null = null;
+    if (rulerTool.mode === "emanation" && !tplPress && rawCursor) {
+      hint = {
+        text: opts.getSelectedToken?.() ? "Clique num token ou Enter" : "Clique num token",
+        at: rawCursor,
+      };
+    }
 
     const snapshot = measuring ? ruler.snapshot() : null;
-    rulerLayer.render(snapshot, remoteRulers, areas, dragView(), viewScale);
+    rulerLayer.render(snapshot, remoteRulers, areas, dragView(), viewScale, hint);
     dirty = false;
 
     const now = Date.now();

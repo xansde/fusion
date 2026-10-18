@@ -6,13 +6,40 @@
  * not touch this: it works with the tool off.
  */
 
-import { normalizeAreaSize } from "@fusion/shared";
+import {
+  DEFAULT_AREA_STYLE,
+  normalizeAreaSize,
+  normalizeAreaStyle,
+  type AreaStyle,
+} from "@fusion/shared";
 import type { ToolMode } from "./templateTool.js";
 
-export const rulerTool: { mode: ToolMode | null; sizeFt: number } = $state({
+export const rulerTool: { mode: ToolMode | null; sizeFt: number; style: AreaStyle } = $state({
   mode: null,
   sizeFt: 15,
+  style: { ...DEFAULT_AREA_STYLE },
 });
+
+/** Change the style the NEXT placed area gets (colour, border, fill). */
+export function setAreaStyle(patch: Partial<AreaStyle>): void {
+  rulerTool.style = normalizeAreaStyle({ ...rulerTool.style, ...patch });
+}
+
+/**
+ * The right-click menu of a pinned template: which one, and where on screen.
+ * Null when closed.
+ */
+export const templateMenu: { open: { id: string; x: number; y: number } | null } = $state({
+  open: null,
+});
+
+export function openTemplateMenu(id: string, x: number, y: number): void {
+  templateMenu.open = { id, x, y };
+}
+
+export function closeTemplateMenu(): void {
+  templateMenu.open = null;
+}
 
 /** Switch to `mode`; choosing the active mode again switches the tool off. */
 export function selectRulerMode(mode: ToolMode): void {

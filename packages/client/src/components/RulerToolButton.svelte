@@ -11,9 +11,11 @@
     rulerTool,
     selectRulerMode,
     setAreaSize,
+    setAreaStyle,
     setRulerTool,
   } from "../lib/presence/rulerToolStore.svelte.js";
   import { TOOL_MODES, isAreaMode } from "../lib/presence/templateTool.js";
+  import AreaStyleControls from "./AreaStyleControls.svelte";
 
   let open = $state(false);
 
@@ -36,7 +38,7 @@
 
   const hint = $derived(
     rulerTool.mode === "emanation"
-      ? "Selecione um token e clique no mapa."
+      ? "Clique num token (ou Enter com um selecionado) para fixar a emanação nele."
       : isAreaMode(rulerTool.mode)
         ? "Arraste no mapa. Roda = tamanho. Shift ao soltar fixa."
         : rulerTool.mode === "ruler"
@@ -96,6 +98,9 @@
           />
           <span>pés</span>
         </label>
+      {/if}
+      {#if isAreaMode(rulerTool.mode)}
+        <AreaStyleControls style={rulerTool.style} onchange={setAreaStyle} />
       {/if}
       {#if hint}
         <p class="ruler-tool__hint">{hint}</p>
@@ -160,7 +165,7 @@
     flex-direction: column;
     gap: 0.25rem;
     padding: 0.35rem;
-    min-width: 9.5rem;
+    min-width: 11rem;
   }
 
   .ruler-tool__mode {
