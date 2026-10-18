@@ -40,6 +40,88 @@ export interface AreaTemplate {
   readonly direction: number;
   /** Emanations only. */
   readonly footprint?: AreaFootprint;
+  /** Emanations only: the token this area is anchored to; it follows the token. */
+  readonly tokenId?: string;
+  /** How the area is drawn. Absent = defaults. */
+  readonly style?: AreaStyle;
+}
+
+export type AreaBorder = "thin" | "medium" | "thick";
+
+export interface AreaStyle {
+  /** CSS hex, `#rrggbb`. */
+  readonly color: string;
+  readonly border: AreaBorder;
+  /** Fill opacity, 0.1..0.7. */
+  readonly fill: number;
+}
+
+/** Short palette, legible over dark and light maps. */
+export const AREA_PALETTE: ReadonlyArray<string> = [
+  "#ff3b30", // red
+  "#ff9500", // orange
+  "#ffd60a", // yellow
+  "#34c759", // green
+  "#0a84ff", // blue
+  "#bf5af2", // violet
+];
+
+export const AREA_FILL_MIN = 0.1;
+export const AREA_FILL_MAX = 0.7;
+
+export const DEFAULT_AREA_STYLE: AreaStyle = {
+  color: "#bf5af2",
+  border: "medium",
+  fill: 0.3,
+};
+
+/** Border width in SCREEN pixels. */
+export const AREA_BORDER_PX: Readonly<Record<AreaBorder, number>> = {
+  thin: 2,
+  medium: 4,
+  thick: 8,
+};
+
+const HEX = /^#[0-9a-fA-F]{6}$/;
+
+/** Clean an untrusted style: unknown fields fall back to the defaults, fill is clamped. */
+export function normalizeAreaStyle(raw: unknown): AreaStyle {
+  const r = typeof raw === "object" && raw !== null ? (raw as Record<string, unknown>) : {};
+  const color = typeof r["color"] === "string" && HEX.test(r["color"]) ? r["color"] : DEFAULT_AREA_STYLE.color;
+  const b = r["border"];
+  const border: AreaBorder = b === "thin" || b === "medium" || b === "thick" ? b : DEFAULT_AREA_STYLE.border;
+  const f = typeof r["fill"] === "number" && Number.isFinite(r["fill"]) ? r["fill"] : DEFAULT_AREA_STYLE.fill;
+  return { color, border, fill: Math.min(AREA_FILL_MAX, Math.max(AREA_FILL_MIN, f)) };
+}
+
+/** Squares of a token from its top-left scene position and size in cells. */
+export function footprintFromAnchor(
+  topLeft: ScenePoint,
+  size: { width: number; height: number },
+  grid: { size: number; ox: number; oy: number },
+): AreaFootprint {
+  return {
+    i: Math.round((topLeft.x - grid.ox) / grid.size),
+    j: Math.round((topLeft.y - grid.oy) / grid.size),
+    width: size.width,
+    height: size.height,
+  };
+}
+
+/** The same emanation, re-anchored on the token's current squares. */
+export function anchoredTemplate(
+  t: AreaTemplate,
+  footprint: AreaFootprint,
+  grid: { size: number; ox: number; oy: number },
+): AreaTemplate {
+  return {
+    ...t,
+    footprint,
+    origin: {
+      x: grid.ox + (footprint.i + footprint.width / 2) * grid.size,
+      y: grid.oy + (footprint.j + footprint.height / 2) * grid.size,
+    },
+  };
 }
 
 export const AREA_LABELS: Readonly<Record<AreaKind, string>> = {
@@ -224,7 +306,15 @@ export function parseAreaTemplate(raw: unknown): AreaTemplate | null {
   if (sizeFt === undefined || direction === undefined || ox === undefined || oy === undefined) {
     return null;
   }
-  const base = { kind: kind as AreaKind, sizeFt, origin: { x: ox, y: oy }, direction };
+  const tokenId = typeof r["tokenId"] === "string" && r["tokenId"] !== "" ? r["tokenId"] : undefined;
+  const base = {
+    kind: kind as AreaKind,
+    sizeFt,
+    origin: { x: ox, y: oy },
+    direction,
+    ...(tokenId !== undefined ? { tokenId } : {}),
+    ...(r["style"] !== undefined ? { style: normalizeAreaStyle(r["style"]) } : {}),
+  };
   const fp = r["footprint"] as Record<string, unknown> | undefined;
   if (fp) {
     const i = num(fp["i"]);
