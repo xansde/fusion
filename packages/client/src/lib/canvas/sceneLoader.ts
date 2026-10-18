@@ -49,7 +49,11 @@ export async function loadSceneDocument(
   // ---- Background ----
   if (scene.background) {
     try {
-      const accessToken = fusionApi.getToken();
+      // getFreshToken, not getToken: the in-memory JWT lives 15 min and nothing renews it
+      // in the background, so a player who only listened to the socket holds a dead one
+      // when the GM changes scene. The grant mint below is a raw fetch (no auto-refresh);
+      // with the stale token it 401s, the catch paints the empty fill, and only F5 fixed it.
+      const accessToken = await fusionApi.getFreshToken();
       const userId = session.user?.id;
       const loadUrl =
         accessToken && userId
