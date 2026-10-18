@@ -48,6 +48,7 @@ import {
   emitTemplateSync,
 } from "./attachPresenceSync.js";
 import { presenceState } from "./presenceStore.svelte.js";
+import { noteUi } from "../notes/noteUi.svelte.js";
 import { areaLabel, buildAreaTemplate, isAreaMode } from "./templateTool.js";
 import { buildDragRuler, type DragRulerView } from "./dragRuler.js";
 
@@ -376,7 +377,7 @@ export function attachRuler(opts: AttachRulerOptions): RulerHandle {
 
   const disposeTicker = canvas.addTicker(() => {
     // Crosshair while a tool is on; FusionCanvas only touches this style while panning.
-    const wanted = rulerTool.mode !== null ? "crosshair" : "";
+    const wanted = rulerTool.mode !== null || noteUi.placing ? "crosshair" : "";
     if (el.style.cursor !== wanted && (wanted !== "" || el.style.cursor === "crosshair")) {
       el.style.cursor = wanted;
     }

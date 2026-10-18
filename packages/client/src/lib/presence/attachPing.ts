@@ -39,7 +39,7 @@ export interface AttachPingOptions {
    * True while another tool owns the left button (ruler, template, token drag).
    * A press that starts while busy never becomes a ping.
    */
-  isBusy?: () => boolean;
+  isBusy?: (e: PointerEvent) => boolean;
 }
 
 /**
@@ -93,7 +93,7 @@ export function attachPing(opts: AttachPingOptions): () => void {
   const onPointerDown = (e: PointerEvent): void => {
     // Only an empty spot pings: a press on a token selects/drags it, and a tool
     // in use owns the button.
-    if (isBusy?.() || canvas.isOverToken(e.clientX, e.clientY)) {
+    if (isBusy?.(e) || canvas.isOverToken(e.clientX, e.clientY)) {
       gesture.handle({ kind: "cancel" });
       return;
     }

@@ -57,6 +57,10 @@
   import RulerToolButton from "./RulerToolButton.svelte";
   import ShowPlayersButton from "./ShowPlayersButton.svelte";
   import ShowPlayersWindow from "./ShowPlayersWindow.svelte";
+  import MapNoteButton from "./MapNoteButton.svelte";
+  import MapNotePopup from "./MapNotePopup.svelte";
+  import { attachNotes, type NotesHandle } from "../lib/notes/attachNotes.js";
+  import { noteUi } from "../lib/notes/noteUi.svelte.js";
   import { TokenInteractionManager } from "../lib/canvas/tokens/TokenInteractionManager.js";
   import { ROLE_ASSISTANT } from "../lib/canvas/tokens/token-interaction.js";
   import { ownedActorIdsOf } from "../lib/combat/combatBadge.svelte.js";
@@ -205,6 +209,7 @@
   /** Handle of the ruler adapter (listeners, drawing, drag ruler) for the loaded scene. */
   let _ruler: RulerHandle | null = null;
   let _disposePing: (() => void) | null = null;
+  let _notes: NotesHandle | null = null;
   /** Tokens selected on the canvas (ids), for the emanation source. */
   let _selectedTokenIds: ReadonlySet<string> = new Set();
   /**
@@ -837,7 +842,16 @@
         socket: sock,
         cellPx: rulerGrid.config.size,
         userId,
-        isBusy: () => _ruler?.isBusy() ?? false,
+        isBusy: (e) =>
+          (_ruler?.isBusy() ?? false) || noteUi.placing || _notes?.pinAt(e.clientX, e.clientY) != null,
+      });
+      // --- Map pins (Scene.notes): drawn from the mirror, clicked on the canvas ---
+      _notes = attachNotes({
+        canvas,
+        layer: canvas.getLayer("controls"),
+        mirror: worldMirror,
+        sceneId: scene._id,
+        isGm: currentIsGm,
       });
     }
 
@@ -886,6 +900,8 @@
     _ruler = null;
     _disposePing?.();
     _disposePing = null;
+    _notes?.dispose();
+    _notes = null;
 
     if (sceneOrchestrator) {
       sceneOrchestrator.teardown();
@@ -921,7 +937,9 @@
   <RulerToolButton />
   {#if isGm()}
     <ShowPlayersButton />
+    <MapNoteButton />
   {/if}
+  <MapNotePopup />
   <ShowPlayersWindow />
 
   <!-- REQ-CPD-063: a compendium drop the map has no place for says so. -->

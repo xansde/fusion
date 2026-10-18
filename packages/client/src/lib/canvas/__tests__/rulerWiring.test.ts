@@ -72,14 +72,31 @@ describe("sceneLoader hands the grid geometry to the canvas", () => {
 describe("TableScreen wires the map ping", () => {
   it("attaches the ping on the controls layer, yielding to the ruler tools", () => {
     expect(table).toMatch(/attachPing\(\{/);
-    expect(table).toMatch(/isBusy: \(\) => _ruler\?\.isBusy\(\)/);
+    expect(table).toMatch(/_ruler\?\.isBusy\(\)/);
     expect(table).toMatch(/_disposePing\?\.\(\)/);
   });
 });
 
 describe("TableScreen wires Show Players", () => {
   it("offers the button to the GM only and the window to everyone", () => {
-    expect(table).toMatch(/\{#if isGm\(\)\}\s*<ShowPlayersButton \/>\s*\{\/if\}/);
+    expect(table).toMatch(/\{#if isGm\(\)\}\s*<ShowPlayersButton \/>/);
     expect(table).toMatch(/<ShowPlayersWindow \/>/);
+  });
+});
+
+describe("TableScreen wires the map pins", () => {
+  it("attaches the pins on the controls layer and disposes them with the scene", () => {
+    expect(table).toMatch(/attachNotes\(\{/);
+    expect(table).toMatch(/_notes\?\.dispose\(\)/);
+  });
+
+  it("offers the pin tool to the GM and the window to everyone", () => {
+    expect(table).toMatch(/<MapNoteButton \/>/);
+    expect(table).toMatch(/<MapNotePopup \/>/);
+  });
+
+  it("keeps the ping off a pin and off the placing click", () => {
+    expect(table).toMatch(/noteUi\.placing/);
+    expect(table).toMatch(/_notes\?\.pinAt\(/);
   });
 });
