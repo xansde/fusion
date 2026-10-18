@@ -18,6 +18,7 @@
  * The PIXI shell is intentionally thin — all math lives in camera-math.ts.
  */
 
+import { fadeIn } from "./sceneFade.js";
 import { Application, Container, Text, TextStyle } from "pixi.js";
 
 import { squarePixelToCell } from "@fusion/shared";
@@ -228,6 +229,20 @@ export class FusionCanvas {
   // ---------------------------------------------------------------------------
   // Ticker API (public — avoids callers accessing private _app via bracket-hack)
   // ---------------------------------------------------------------------------
+
+  /**
+   * Fade the whole stage from transparent to opaque (the short fade that follows a scene swap).
+   * Returns a canceller that snaps the stage back to fully visible. No-op before `init()`.
+   */
+  fadeInStage(): () => void {
+    const app = this._app;
+    if (!app) {
+      return () => {
+        /* no-op — canvas not yet initialised */
+      };
+    }
+    return fadeIn(app.stage, (cb) => this.addTicker(cb));
+  }
 
   /**
    * Add a per-frame callback to the PIXI ticker.

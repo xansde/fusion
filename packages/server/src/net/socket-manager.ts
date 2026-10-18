@@ -112,6 +112,7 @@ import { MapCounter, registerMapCounterReset } from "../combat/map-counter.js";
 import {
   buildResyncRequestHandler,
   buildActiveSceneHandler,
+  buildScenePreloadHandler,
   sendJoinSnapshot,
 } from "./handlers/sync-handlers.js";
 import { buildSoundPlayHandler, buildSoundStopHandler } from "./handlers/sound-handlers.js";
@@ -464,6 +465,7 @@ export class SocketManager {
     // Register M1-B sync handlers
     registry.register("resync:request", buildResyncRequestHandler(syncDeps));
     registry.register("world:activeScene", buildActiveSceneHandler(syncDeps));
+    registry.register("scene:preload", buildScenePreloadHandler(syncDeps));
 
     // Ambient table track (sound:play / sound:stop). assetExists is wired only
     // when assetsDir was supplied (see boot.ts).

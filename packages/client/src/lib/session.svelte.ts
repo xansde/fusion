@@ -71,7 +71,10 @@ export const session: {
 // Socket manager singleton
 // ---------------------------------------------------------------------------
 
-const socketManager = new SocketManager(() => fusionApi.getToken());
+const socketManager = new SocketManager(
+  () => fusionApi.getToken(),
+  () => fusionApi.getFreshToken(),
+);
 
 // Subscribe to socket state changes and feed them into reactive state
 socketManager.subscribe((state: ConnectionState, rttMs?: number) => {

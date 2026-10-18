@@ -462,3 +462,31 @@ describe("worldSync: Setting envelopes update the world-settings registry (HJ-09
     expect(reg.worldSettingsRegistry.rows[0]).toMatchObject({ id: "s-1", value: true });
   });
 });
+
+describe("worldSync — scene:preload on 'op' channel", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  it("hands the hint to the preload listener and does NOT touch the mirror or the active scene", async () => {
+    const { attachWorldSync, worldMirror } = await importWorldSync();
+    const { setScenePreloadListener } = await import("../../canvas/scenePreloadBus.js");
+    const listener = vi.fn();
+    setScenePreloadListener(listener);
+    const socket = makeMockSocket(false);
+    worldMirror.applySnapshot(makeSnapshot(0));
+    attachWorldSync(socket as unknown as Socket);
+    const seqBefore = worldMirror.seq;
+
+    // Ephemeral: no seq (the server sends none).
+    socket.receive(
+      "op",
+      makeEnvelope("scene:preload", { sceneId: "abcdefghij012345", background: "/assets/m.png" }),
+    );
+
+    expect(listener).toHaveBeenCalledWith({ sceneId: "abcdefghij012345", background: "/assets/m.png" });
+    expect(mockSetActiveSceneId).not.toHaveBeenCalled();
+    expect(worldMirror.seq).toBe(seqBefore);
+    setScenePreloadListener(null);
+  });
+});

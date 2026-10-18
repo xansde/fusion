@@ -29,6 +29,7 @@ import type {
   WorldResyncRequestPayload,
 } from "@fusion/shared";
 import { createDocumentId } from "@fusion/shared";
+import { dispatchScenePreload } from "../canvas/scenePreloadBus.js";
 import { DocumentMirror } from "./DocumentMirror.js";
 import { setActiveSceneId, syncActiveSceneFromMirror } from "./activeScene.svelte.js";
 import { applyAmbientTrackSnapshot, applySoundState } from "../sound/soundStore.svelte.js";
@@ -56,6 +57,13 @@ export const worldMirror = new DocumentMirror();
  * whether it arrives live or as part of a delta catch-up.
  */
 function _applyIncomingOp(op: Envelope): void {
+  // Ephemeral hint (no seq): the GM asked every client to warm a scene's art. Not world state —
+  // the mirror must not see it.
+  if (op.type === "scene:preload") {
+    dispatchScenePreload(op.payload);
+    return;
+  }
+
   if (op.type === "world:activeScene") {
     // Advance the mirror seq first, then update the active scene state.
     worldMirror.feedOp(op);

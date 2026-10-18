@@ -649,7 +649,8 @@ export class TokenSprite {
         // is the ACTOR, because the art IS the actor's `img` (its effective
         // value, once TK021's delta applies). This replaces the old T025 scene
         // grant (a token no longer carries its own `texture`).
-        const accessToken = fusionApi.getToken();
+        // Fresh, not the snapshot: see sceneLoader.ts — the 15-min JWT may have lapsed.
+        const accessToken = await fusionApi.getFreshToken();
         const userId = session.user?.id;
         const loadUrl =
           accessToken && userId
