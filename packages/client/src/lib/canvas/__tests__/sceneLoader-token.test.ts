@@ -103,3 +103,26 @@ describe("loadSceneDocument — access token", () => {
     expect(child.label).toBe("scene:background");
   });
 });
+
+describe("loadSceneDocument — scene persisted without a grid block", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    getFreshToken.mockResolvedValue("fresh-jwt");
+    resolveAssetUrl.mockResolvedValue("/assets/deck.webp?token=ok");
+    assetsLoad.mockResolvedValue({ texture: true });
+  });
+
+  // Three of the five A Queda scenes have no `grid` block: the ruler and the area
+  // templates silently vanished there because no measuring strategy was installed.
+  it("still installs the fallback measuring grid so the ruler and areas work", async () => {
+    const { canvas } = fakeCanvas();
+    const noGrid = { ...scene, grid: undefined } as unknown as SceneDocument;
+
+    await loadSceneDocument(canvas, noGrid);
+
+    const setGridStrategy = (canvas as unknown as { setGridStrategy: ReturnType<typeof vi.fn> })
+      .setGridStrategy;
+    const strategy = setGridStrategy.mock.calls[0]?.[0] as { size?: number } | null;
+    expect(strategy).not.toBeNull();
+  });
+});

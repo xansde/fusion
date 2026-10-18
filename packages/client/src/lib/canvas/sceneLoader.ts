@@ -120,12 +120,16 @@ export async function loadSceneDocument(
   // The grid GEOMETRY (snap, measure) for this scene, built from the same size
   // and origin the renderer just drew with, so a measurement lands on the lines.
   const sceneGrid = (scene.grid ?? null) as unknown as GridConfig | null;
-  const gridStrategy =
-    gridCfg && sceneGrid
-      ? createGridStrategy({ ...sceneGrid, size: gridCfg.size }, { x: padX, y: padY }, (reason) => {
-          console.warn("[sceneLoader]", reason);
-        })
-      : null;
+  // A scene persisted without a grid block still gets a measuring grid (the
+  // factory's default square, the same size tokens already snap to), otherwise
+  // the ruler and the area templates silently do nothing on it.
+  const gridStrategy = createGridStrategy(
+    sceneGrid ? { ...sceneGrid, size: gridCfg?.size ?? sceneGrid.size } : null,
+    { x: padX, y: padY },
+    (reason) => {
+      console.warn("[sceneLoader]", reason);
+    },
+  );
   canvas.setGridStrategy(gridStrategy);
   cleanupFns.push(() => {
     if (canvas.gridStrategy === gridStrategy) canvas.setGridStrategy(null);
