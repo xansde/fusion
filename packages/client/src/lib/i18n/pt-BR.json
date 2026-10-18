@@ -522,6 +522,8 @@
   "FUSION.Scene.Dialog.UnexpectedError": "Ocorreu um erro inesperado.",
   "FUSION.Scene.Dialog.ActivateScene": "Ativar cena",
   "FUSION.Scene.Dialog.PreloadForAll": "Pré-carregar para todos",
+  "FUSION.Scene.Dialog.Preloading": "Pré-carregando…",
+  "FUSION.Scene.Dialog.Preloaded": "Pré-carregado",
   "FUSION.Scene.Loading": "Carregando cena…",
   "FUSION.Scene.Dialog.EditScene": "Editar cena",
   "FUSION.Scene.Dialog.DeleteScene": "Excluir cena",
