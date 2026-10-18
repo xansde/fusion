@@ -327,6 +327,18 @@ describe("sanitizeDescriptionHtml", () => {
     expect(sanitizeDescriptionHtml("")).toBe("");
   });
 
+  // "Artista virtuoso está estranho" (Alexandre, 18/10/2026): the vendor's specialty table (Virtuosic Performer,
+  // and 30 other pack documents) lost every table tag and read as one run-on line
+  // ("EspecialidadeExemplosAtuaçãoDrama, pantomima…"). Table structure is kept, bare like every allowed tag.
+  it("keeps a vendor table's structure, attributes stripped", () => {
+    const html =
+      '<table class="pf2e remaster"><thead><tr><th>Specialty</th><th>Examples</th></tr></thead>' +
+      '<tbody><tr><td style="x">Acting</td><td>Drama</td></tr></tbody></table>';
+    expect(sanitizeDescriptionHtml(html)).toBe(
+      "<table><thead><tr><th>Specialty</th><th>Examples</th></tr></thead><tbody><tr><td>Acting</td><td>Drama</td></tr></tbody></table>",
+    );
+  });
+
   it("keeps allow-listed tags bare (no attributes)", () => {
     const html = '<p class="foo" onclick="alert(1)">Hello</p>';
     expect(sanitizeDescriptionHtml(html)).toBe("<p>Hello</p>");
