@@ -167,4 +167,10 @@ describe("asset categories over HTTP", () => {
     expect((await upload(ctx.gm, "?category=bogus")).status).toBe(400);
     expect((await upload(ctx.gm, "?category=icons")).status).toBe(400);
   });
+
+  it("purpose=avatar lets a PLAYER publish and files it under the tokens tab", async () => {
+    const up = await upload(ctx.player, "?purpose=avatar");
+    expect(up.status).toBe(201);
+    expect((await list(ctx.gm)).find((a) => a.name === up.path)?.category).toBe("tokens");
+  });
 });

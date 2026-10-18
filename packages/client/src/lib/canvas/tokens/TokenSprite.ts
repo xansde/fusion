@@ -25,6 +25,7 @@
  * REQ-CNV-037: remote updates animate; local drag does not re-animate.
  */
 
+import { ehArteDeAvatar } from "../../avatar/arteDeAvatar.js";
 import {
   Container,
   Graphics,
@@ -660,6 +661,8 @@ export class TokenSprite {
               })
             : rawImg;
         const texture = await Assets.load<Texture>(loadUrl);
+        // Avatar pixel art (avatar creator's "Usar como token") is drawn without smoothing.
+        if (ehArteDeAvatar(rawImg)) texture.source.scaleMode = "nearest";
         const sprite = new Sprite(texture);
         // The size NOW, not the one the load started with: the creature may have grown or shrunk
         // while the texture was on its way (REQ-TOK-017).

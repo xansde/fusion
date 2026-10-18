@@ -43,6 +43,19 @@ export interface WindowGeometry {
   height: number;
 }
 
+/**
+ * A text button the window chrome draws in the title bar, next to minimize and
+ * close. The extension point for "open something related to this window's
+ * subject" (e.g. a character sheet's Avatar creator) without the sheet — a
+ * system-owned component — having to know about the feature.
+ */
+export interface WindowHeaderAction {
+  id: string;
+  label: string;
+  title?: string;
+  onclick: () => void;
+}
+
 export interface WindowEntry {
   readonly id: WindowId;
   /** Singleton key — if set, only one window per key is allowed (REQ-UIF-014). */
@@ -68,6 +81,8 @@ export interface WindowEntry {
   component?: any;
   /** Props forwarded to the dynamic component. */
   componentProps?: Record<string, unknown>;
+  /** Extra title-bar buttons (see {@link WindowHeaderAction}). */
+  headerActions?: readonly WindowHeaderAction[];
 }
 
 export interface WindowOpenOptions {
@@ -89,6 +104,8 @@ export interface WindowOpenOptions {
   component?: any;
   /** Props forwarded to the dynamic component. */
   componentProps?: Record<string, unknown>;
+  /** Extra title-bar buttons (see {@link WindowHeaderAction}). */
+  headerActions?: readonly WindowHeaderAction[];
 }
 
 export interface WindowHandle {
@@ -319,6 +336,7 @@ export class WindowManager {
       // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
       ...(opts.component !== undefined ? { component: opts.component } : {}),
       ...(opts.componentProps !== undefined ? { componentProps: opts.componentProps } : {}),
+      ...(opts.headerActions !== undefined ? { headerActions: opts.headerActions } : {}),
     };
 
     this.windows.set(id, entry);

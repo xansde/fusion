@@ -40,6 +40,7 @@
   import { attachChatSync, attachChatMessageSync } from "../lib/chat/chatStore.svelte.js";
   import Sidebar from "./sidebar/Sidebar.svelte";
   import ActionBar from "./actionbar/ActionBar.svelte";
+  import AvatarCorner from "./avatar/AvatarCorner.svelte";
   import { registerCoreSidebarTabs } from "../lib/sidebar/registerCoreTabs.js";
   import { registerCoreChatCardExtensions } from "../lib/chat/registerCoreChatCardExtensions.js";
   import ActiveSceneBadge from "./scenes/ActiveSceneBadge.svelte";
@@ -94,6 +95,7 @@ import { presenceState } from "../lib/presence/presenceStore.svelte.js";
   import { worldMirror } from "../lib/docs/worldSync.js";
   import { registerPf2eSheets } from "@fusion/sheets-pf2e";
   import { openTokenSheet } from "../lib/sheets/openTokenSheet.js";
+  import { openActorSheet } from "../lib/sheets/openActorSheet.js";
   import {
     buildActorDropTokenOp,
     buildTokenFromActorFields,
@@ -441,6 +443,29 @@ import { presenceState } from "../lib/presence/presenceStore.svelte.js";
   });
 
   // ---- Canvas drag-and-drop (REQ-UIF-046 [MVP]) ----
+
+  /**
+   * Open the sheet of the actor whose avatar sits in the corner.
+   * Real per-user ownership (never a hardcoded OWNER) and a LAZY socket
+   * accessor: componentProps are captured once at open time.
+   */
+  function abrirFichaDoAvatar(actorId: string): void {
+    const doc = worldMirror
+      .getByType<Record<string, unknown>>("Actor")
+      .find((a) => a["_id"] === actorId);
+    if (doc === undefined) return;
+
+    const userId = session.user?.id ?? "";
+    const souGm = isGm();
+    const ownership = doc["ownership"] as Record<string, number> | undefined;
+    openActorSheet(actorId, doc, {
+      userId,
+      ownership: souGm ? 3 : (ownership?.[userId] ?? ownership?.["default"] ?? 0),
+      isGm: souGm,
+      worldId: session.worldInfo?.id ?? "",
+      sendOpFn: makeSendOpFn(() => getSocket()),
+    });
+  }
 
   /**
    * Validate and extract the ActorDragPayload from a DragEvent.
@@ -1225,6 +1250,10 @@ import { presenceState } from "../lib/presence/presenceStore.svelte.js";
   {/if}
 
   <!-- -------------------------------------------------------------------- -->
+  <!-- Avatar corner: the viewer's own character, bottom-right. Fixed-regions z band, so any -->
+  <!-- floating window covers it; it steps left of the sidebar and clear of the action bar. -->
+  <AvatarCorner onAbrirFicha={abrirFichaDoAvatar} />
+
   <!-- Window Host — floating windows and dialogs (M3-C)                    -->
   <!-- REQ-UIF-009..016: window manager registry mounted here once.          -->
   <!-- pointer-events: none on the host; individual windows restore them.    -->

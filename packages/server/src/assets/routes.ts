@@ -522,7 +522,7 @@ async function assetPlugin(
       return reply.code(400).send({
         ok: false,
         code: "VALIDATION_FAILED",
-        message: 'Unknown upload purpose (the only one is "icon").',
+        message: 'Unknown upload purpose (the only ones are "icon" and "avatar").',
       });
     }
 
@@ -539,7 +539,9 @@ async function assetPlugin(
 
     // REQ-AST-011: role >= TRUSTED can upload (STORAGE_UPLOAD perm) — amended by REQ-BAR-075:
     // an IMAGE sent through "Trocar ícone…" is open to every player.
-    const minRole = purpose === "icon" ? Role.PLAYER : Role.TRUSTED;
+    // `purpose=avatar` (the avatar creator's "Usar como token / retrato") is open to every player
+    // too, but narrower than a generic upload: PNG only, a small cap, always the tokens tab.
+    const minRole = purpose === "icon" || purpose === "avatar" ? Role.PLAYER : Role.TRUSTED;
     if (!requireRole(minRole, request, reply)) return;
 
     let data: multipart.MultipartFile | undefined;
@@ -601,6 +603,21 @@ async function assetPlugin(
     // identified. `kind` is null only if ALLOWED_TYPES and kindOfMime ever drift
     // apart; treating that as unsupported keeps an unknown type from inheriting
     // somebody else's cap.
+    if (purpose === "avatar" && detected.mime !== "image/png") {
+      return reply.code(415).send({
+        ok: false,
+        code: "UNSUPPORTED_MEDIA_TYPE",
+        message: "An avatar upload must be a PNG.",
+      });
+    }
+    if (purpose === "avatar" && buf.length > AVATAR_UPLOAD_MAX_BYTES) {
+      return reply.code(413).send({
+        ok: false,
+        code: "FILE_TOO_LARGE",
+        message: `An avatar upload may not exceed ${String(AVATAR_UPLOAD_MAX_BYTES)} bytes.`,
+      });
+    }
+
     const kind = kindOfMime(detected.mime);
     if (!kind) {
       return reply.code(415).send({
@@ -732,7 +749,13 @@ async function assetPlugin(
       digest,
       finalBuf.length,
       detected.mime,
-      purpose === "icon" || category === "none" ? undefined : category,
+      purpose === "icon"
+        ? undefined
+        : purpose === "avatar"
+          ? "tokens"
+          : category === "none"
+            ? undefined
+            : category,
     );
 
     return reply.code(201).send({
@@ -1782,12 +1805,19 @@ function findExistingByDigest(dir: string, digest: string): string | null {
  * query string says nothing, `"icon"` for exactly `?purpose=icon`, `null` for
  * anything else — an unknown value, an empty one, a repeated parameter.
  */
-function parseUploadPurpose(query: unknown): "generic" | "icon" | null {
+function parseUploadPurpose(query: unknown): "generic" | "icon" | "avatar" | null {
   if (typeof query !== "object" || query === null) return "generic";
   const raw = (query as Record<string, unknown>)["purpose"];
   if (raw === undefined) return "generic";
-  return raw === "icon" ? "icon" : null;
+  return raw === "icon" || raw === "avatar" ? raw : null;
 }
+
+/**
+ * The most a `purpose=avatar` upload may weigh. The avatar creator sends a 256x256 pixel-art PNG
+ * (a few KB); the cap is generous for that and tiny next to the generic limit, because this
+ * purpose is open to every player.
+ */
+const AVATAR_UPLOAD_MAX_BYTES = 512 * 1024;
 
 /**
  * The category an upload declares in `?category=`: `"none"` when absent, a category for a valid

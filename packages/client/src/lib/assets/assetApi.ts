@@ -53,7 +53,7 @@ export interface UploadResult {
  * The declared purpose of an upload (REQ-BAR-103). The only one is "icon": the action bar's
  * "Trocar ícone…", open to every player, which the SERVER stores in the reserved icon area.
  */
-export type UploadPurpose = "icon";
+export type UploadPurpose = "icon" | "avatar";
 
 export interface UploadOptions {
   purpose?: UploadPurpose;
@@ -137,8 +137,8 @@ export function uploadAsset(
   return new Promise<UploadResult>((resolve, reject) => {
     const xhr = new XMLHttpRequest();
     const query =
-      options.purpose === "icon"
-        ? "?purpose=icon"
+      options.purpose !== undefined
+        ? `?purpose=${options.purpose}`
         : options.category !== undefined
           ? `?category=${encodeURIComponent(options.category)}`
           : "";
