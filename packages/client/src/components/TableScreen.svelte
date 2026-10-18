@@ -55,6 +55,8 @@
   import { attachPing } from "../lib/presence/attachPing.js";
   import { actorSpeedFt } from "../lib/presence/dragRuler.js";
   import RulerToolButton from "./RulerToolButton.svelte";
+  import ShowPlayersButton from "./ShowPlayersButton.svelte";
+  import ShowPlayersWindow from "./ShowPlayersWindow.svelte";
   import { TokenInteractionManager } from "../lib/canvas/tokens/TokenInteractionManager.js";
   import { ROLE_ASSISTANT } from "../lib/canvas/tokens/token-interaction.js";
   import { ownedActorIdsOf } from "../lib/combat/combatBadge.svelte.js";
@@ -917,6 +919,10 @@
   {/if}
 
   <RulerToolButton />
+  {#if isGm()}
+    <ShowPlayersButton />
+  {/if}
+  <ShowPlayersWindow />
 
   <!-- REQ-CPD-063: a compendium drop the map has no place for says so. -->
   {#if dropRefusal}

@@ -221,7 +221,7 @@ const BROWSE_MIN_ROLE: Role = Role.TRUSTED;
  * needs repairing is never signed, and the second line of defence was the only
  * line. The GM's server runs on Windows, where `\` IS the separator.
  */
-function assetNameRefusalReason(storageName: string): string | null {
+export function assetNameRefusalReason(storageName: string): string | null {
   if (storageName.length === 0) return "empty";
   if (/[\u0000-\u001f]/.test(storageName)) return "control_character";
   // Refused outright, exactly like `guardPath` (path-guard.ts:79) — a stored

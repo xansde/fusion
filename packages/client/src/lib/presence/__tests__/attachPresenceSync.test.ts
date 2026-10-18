@@ -197,3 +197,24 @@ describe("attachPresenceSync — presence:ping pull", () => {
     detach();
   });
 });
+
+describe("attachPresenceSync - presence:show", () => {
+  it("opens the shown item with the image URL and dismiss hides it locally", async () => {
+    const { dismissShown } = await import("../presenceStore.svelte.js");
+    const socket = new FakeSocket();
+    const detach = attachPresenceSync(socket as unknown as Socket);
+    socket.emit({
+      type: "presence:show",
+      ts: 1,
+      payload: {
+        title: "Mapa",
+        image: { name: "a.webp", token: "t", exp: 5, userId: "u" },
+      },
+    } as unknown as Envelope);
+    expect(presenceState.shown?.title).toBe("Mapa");
+    expect(presenceState.shown?.imageUrl).toBe("/assets/a.webp?at=t&ae=5&au=u");
+    dismissShown();
+    expect(presenceState.shown).toBeNull();
+    detach();
+  });
+});

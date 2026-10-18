@@ -76,3 +76,10 @@ describe("TableScreen wires the map ping", () => {
     expect(table).toMatch(/_disposePing\?\.\(\)/);
   });
 });
+
+describe("TableScreen wires Show Players", () => {
+  it("offers the button to the GM only and the window to everyone", () => {
+    expect(table).toMatch(/\{#if isGm\(\)\}\s*<ShowPlayersButton \/>\s*\{\/if\}/);
+    expect(table).toMatch(/<ShowPlayersWindow \/>/);
+  });
+});

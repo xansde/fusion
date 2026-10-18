@@ -858,6 +858,7 @@ export class SocketManager {
         pingRateLimiter,
         previewRateLimiter,
         sceneRooms,
+        ...(secret ? { assetSecret: secret } : {}),
         userIdentity: (id: string) => {
           const u = userStore.findById(id);
           return u ? { name: u.name, color: u.color } : undefined;
@@ -1007,6 +1008,8 @@ export class SocketManager {
       /** REQ-NET-005: shared scene room tracking map for this namespace. */
       sceneRooms: Map<string, string>;
       /** Display name/colour of a user, stamped server-side on ephemeral broadcasts. */
+      /** World HMAC secret, to sign the image grant of "Show Players". */
+      assetSecret?: Uint8Array;
       userIdentity: (userId: string) => { name: string; color: string } | undefined;
     },
   ): void {
@@ -1176,6 +1179,7 @@ export class SocketManager {
           pingRateLimiter: rateLimiters.pingRateLimiter,
           previewRateLimiter: rateLimiters.previewRateLimiter,
           sceneRooms: rateLimiters.sceneRooms,
+          ...(rateLimiters.assetSecret ? { assetSecret: rateLimiters.assetSecret } : {}),
         },
       );
     });

@@ -31,6 +31,7 @@ import { loadOrCreateSecret } from "../auth/crypto.js";
 import { registerAuthRoutes } from "../auth/routes.js";
 import { SocketManager } from "../net/socket-manager.js";
 import { PROTOCOL_VERSION } from "@fusion/shared";
+import { verifyGrant } from "../assets/asset-grant.js";
 import type { Envelope } from "@fusion/shared";
 
 // ---------------------------------------------------------------------------
@@ -56,6 +57,7 @@ interface TestContext {
   gmToken: string;
   playerToken: string;
   player2Token: string;
+  secret: Uint8Array;
   gmId: string;
   gmColor: string;
   playerId: string;
@@ -135,6 +137,7 @@ async function buildTestContext(): Promise<TestContext> {
     playerToken: p1Login.accessToken,
     player2Token: p2Login.accessToken,
     gmId: gm.id,
+    secret,
     gmColor: gm.color,
     playerId: player1.id,
     playerColor: player1.color,
@@ -379,6 +382,96 @@ describe("Ephemeral handlers — ping identity and pull", () => {
     const payload = (await p).payload as Record<string, unknown>;
     expect(payload.x).toBe(7);
     expect(payload.pull).toBeUndefined();
+  });
+});
+
+describe("Ephemeral handlers — presence:show (Show Players)", () => {
+  let ctx: TestContext;
+  let gmSocket: ClientSocket;
+  let playerSocket: ClientSocket;
+
+  beforeEach(async () => {
+    ctx = await buildTestContext();
+    gmSocket = connectClient(ctx.port, ctx.worldId, ctx.gmToken);
+    playerSocket = connectClient(ctx.port, ctx.worldId, ctx.playerToken);
+    gmSocket.connect();
+    playerSocket.connect();
+    await Promise.all([waitForConnect(gmSocket), waitForConnect(playerSocket)]);
+  });
+
+  afterEach(async () => {
+    gmSocket.disconnect();
+    playerSocket.disconnect();
+    await teardown(ctx);
+  });
+
+  it("reaches the player with an image grant signed for that player and that name", async () => {
+    const p = waitForEphemeral(playerSocket, "presence:show", 2000);
+    gmSocket.emit("ephemeral", {
+      type: "presence:show",
+      ts: Date.now(),
+      payload: { title: "A porta", text: "Runas brilham.", image: "maps//door one.webp" },
+    });
+    const payload = (await p).payload as {
+      title: string;
+      text: string;
+      image: { name: string; token: string; exp: number; userId: string };
+    };
+    expect(payload.title).toBe("A porta");
+    expect(payload.text).toBe("Runas brilham.");
+    expect(payload.image.name).toBe("maps/door one.webp");
+    expect(payload.image.userId).toBe(ctx.playerId);
+    expect(
+      verifyGrant({
+        scope: "doc",
+        token: payload.image.token,
+        userId: payload.image.userId,
+        exp: payload.image.exp,
+        name: "maps/door one.webp",
+        secret: ctx.secret,
+      }),
+    ).toBe(true);
+    // The grant opens that file only.
+    expect(
+      verifyGrant({
+        scope: "doc",
+        token: payload.image.token,
+        userId: payload.image.userId,
+        exp: payload.image.exp,
+        name: "maps/other.webp",
+        secret: ctx.secret,
+      }),
+    ).toBe(false);
+  });
+
+  it("ignores a player trying to show something", async () => {
+    let received = false;
+    gmSocket.on("ephemeral", (e: Envelope) => {
+      if (e.type === "presence:show") received = true;
+    });
+    playerSocket.emit("ephemeral", {
+      type: "presence:show",
+      ts: Date.now(),
+      payload: { text: "falso" },
+    });
+    await new Promise((r) => setTimeout(r, 400));
+    expect(received).toBe(false);
+  });
+
+  it("refuses a traversal image name and an empty payload", async () => {
+    let received = 0;
+    playerSocket.on("ephemeral", (e: Envelope) => {
+      if (e.type === "presence:show") received++;
+    });
+    gmSocket.emit("ephemeral", {
+      type: "presence:show",
+      ts: Date.now(),
+      payload: { image: "../world.db" },
+    });
+    await new Promise((r) => setTimeout(r, 700));
+    gmSocket.emit("ephemeral", { type: "presence:show", ts: Date.now(), payload: {} });
+    await new Promise((r) => setTimeout(r, 700));
+    expect(received).toBe(0);
   });
 });
 

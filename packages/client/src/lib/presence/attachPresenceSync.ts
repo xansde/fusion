@@ -1,3 +1,4 @@
+import { shownFromPayload } from "./showPlayers.js";
 import type { AreaTemplate } from "@fusion/shared";
 /**
  * attachPresenceSync — wires socket.io 'ephemeral' events to the presence store.
@@ -24,6 +25,7 @@ import {
   replacePinnedTemplates,
   applyRemoteTokenPreview,
   updateOnlineUsers,
+  presenceState,
   startPresenceBackground,
 } from "./presenceStore.svelte.js";
 
@@ -124,6 +126,12 @@ export function attachPresenceSync(socket: Socket): () => void {
 
       case "presence:ruler:clear": {
         clearRemoteRuler(asStr(payload["userId"]));
+        break;
+      }
+
+      case "presence:show": {
+        const item = shownFromPayload(payload);
+        if (item) presenceState.shown = item;
         break;
       }
 

@@ -11,6 +11,7 @@
  */
 
 import { parseAreaTemplate } from "@fusion/shared";
+import type { ShownItem } from "./showPlayers.js";
 import type {
   RemoteCursor,
   MapPing,
@@ -62,6 +63,8 @@ export const presenceState: {
    * changes on every pull so a repeat on the same point still fires.
    */
   pullView: { x: number; y: number; seq: number } | null;
+  /** The picture/note the GM is showing the table right now; closing it only hides it for this client. */
+  shown: ShownItem | null;
 } = $state({
   remoteCursors: new Map<string, RemoteCursor>(),
   pings: [] as MapPing[],
@@ -71,7 +74,13 @@ export const presenceState: {
   onlineUsers: [] as OnlineUser[],
   remoteTokenPreviews: new Map<string, RemoteTokenPreview>(),
   pullView: null as { x: number; y: number; seq: number } | null,
+  shown: null as ShownItem | null,
 });
+
+/** Close the "Mostrar aos jogadores" window for this client only. */
+export function dismissShown(): void {
+  presenceState.shown = null;
+}
 
 // ---------------------------------------------------------------------------
 // Cursor updates

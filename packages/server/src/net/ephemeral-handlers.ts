@@ -33,6 +33,7 @@ import type { Logger } from "pino";
 import type { Envelope } from "@fusion/shared";
 import { z } from "zod";
 import { isRolePrivileged } from "../documents/ownership.js";
+import { ShowPlayersPayloadSchema, cleanShowImage, showPayloadFor } from "./show-players.js";
 
 // ---------------------------------------------------------------------------
 // Payload schemas
@@ -228,6 +229,8 @@ export interface EphemeralHandlerOptions {
    * so the socket is joined to the correct `scene:<sceneId>` room (REQ-NET-005).
    */
   sceneRooms: Map<string, string>;
+  /** World HMAC secret: signs the per-recipient image grant of `presence:show`. */
+  assetSecret?: Uint8Array;
 }
 
 /**
@@ -372,6 +375,42 @@ export function handleEphemeralEnvelope(
         ns.to(sceneRoom).emit("ephemeral", broadcast);
       } else {
         ns.emit("ephemeral", broadcast);
+      }
+      return true;
+    }
+
+    case "presence:show": {
+      // GM "Show Players": privileged senders only, and a leak-proof image grant per recipient.
+      if (!isRolePrivileged(ctx.role)) {
+        logger.debug({ userId: ctx.userId }, "presence:show refused: not privileged");
+        return false;
+      }
+      if (!pingRateLimiter.allow(socket.id, "presence:show", now)) return false;
+      const parsed = ShowPlayersPayloadSchema.safeParse(envelope.payload);
+      if (!parsed.success) return false;
+      const imageName = cleanShowImage(parsed.data.image);
+      if (imageName === null) {
+        logger.warn({ userId: ctx.userId }, "presence:show refused: bad image name");
+        return false;
+      }
+      for (const target of ns.sockets.values()) {
+        const targetUserId = (target.data as { userId?: string }).userId;
+        if (!targetUserId) continue;
+        target.emit("ephemeral", {
+          type: "presence:show",
+          ts: now,
+          payload: showPayloadFor(
+            targetUserId,
+            {
+              ...(parsed.data.title ? { title: parsed.data.title } : {}),
+              ...(parsed.data.text ? { text: parsed.data.text } : {}),
+              ...(imageName !== undefined ? { imageName } : {}),
+              ...(ctx.userName ? { fromName: ctx.userName } : {}),
+            },
+            opts.assetSecret,
+            now,
+          ),
+        } satisfies Envelope);
       }
       return true;
     }
