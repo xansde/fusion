@@ -456,7 +456,7 @@ export class FusionCanvas {
     effectsGroup.label = "group:effects";
     world.addChild(effectsGroup);
 
-    const effectsLayers: LayerName[] = ["weather", "lighting"];
+    const effectsLayers: LayerName[] = ["weather", "lighting", "fog"];
     for (const name of effectsLayers) {
       const layer = new Container();
       layer.label = `layer:${name}`;

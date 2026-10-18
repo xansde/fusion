@@ -35,6 +35,9 @@
   import { registerCoreSidebarTabs } from "../lib/sidebar/registerCoreTabs.js";
   import { registerCoreChatCardExtensions } from "../lib/chat/registerCoreChatCardExtensions.js";
   import ActiveSceneBadge from "./scenes/ActiveSceneBadge.svelte";
+  import FogToolbar from "./scenes/FogToolbar.svelte";
+  import { ManualFogHost } from "../lib/canvas/fog/fogHost.svelte.js";
+  import { fogToolState } from "../lib/canvas/fog/fogToolState.svelte.js";
   import NoSceneOverlay from "./scenes/NoSceneOverlay.svelte";
   import ScenePrepareNotice from "./scenes/ScenePrepareNotice.svelte";
   import { sceneListState } from "../lib/scenes/scenesState.svelte.js";
@@ -151,6 +154,24 @@
   // true only once init() has resolved; the $effect is gated on it so no
   // loadSceneDocument call can reach the canvas before its layers exist.
   let canvasReady = $state(false);
+
+  // ---- Manual fog of war (névoa manual) ----
+  // The host owns the fog layer, the GM's drawing tools and the optimistic copy;
+  // the toolbar is shown to privileged users only (the server enforces it too).
+  // `fogHost` is $state so the toolbar mounts once the canvas exists.
+  let fogHost = $state<ManualFogHost | null>(null);
+  const canUseFog = $derived((session.user?.role ?? 0) >= ROLE_ASSISTANT);
+
+  $effect(() => {
+    // Reads canvasScene + privilege: re-syncs on every scene mutation (cheap).
+    fogHost?.syncScene(canvasScene, canUseFog);
+  });
+
+  $effect(() => {
+    // Toolbar choices (tool, mode, radius, snap) -> controller.
+    void [fogToolState.tool, fogToolState.mode, fogToolState.radius, fogToolState.snap];
+    fogHost?.refreshTool();
+  });
 
   // ---- Refused drop over the scene (REQ-CPD-063) ----
   // A compendium entry with no destination on the map must be refused WITH a
@@ -298,6 +319,13 @@
       }
       // Flip the gate LAST: this gets read by the reactive $effect, which will
       // (re-)run now that the PIXI layer hierarchy is guaranteed to exist.
+      if (canvasContainer) {
+        fogHost = new ManualFogHost({
+          canvas,
+          container: canvasContainer,
+          getSocket: () => getSocket() ?? null,
+        });
+      }
       canvasReady = true;
     } catch (err) {
       console.error("[TableScreen] Canvas init failed:", err);
@@ -356,6 +384,8 @@
     // instead of installing. The returned generation id is unused — only
     // the side effect (invalidation) matters here.
     sceneLoadGuard.begin();
+    fogHost?.destroy();
+    fogHost = null;
     _teardownOrchestrator();
     // BAR-F1-01: the table is gone, and nobody is seated at it any more. Logout changes the
     // user and the screen in the same tick, so the viewer `$effect` above may never run with
@@ -1009,6 +1039,10 @@
   <!-- The rail is the same for every role; the GM group is simply absent    -->
   <!-- for a player (REQ-GAV-003, REQ-GAV-004).                              -->
   <!-- -------------------------------------------------------------------- -->
+  {#if canUseFog && canvasScene && fogHost}
+    <FogToolbar fog={fogHost.current()} onChange={(next) => void fogHost?.commit(next)} />
+  {/if}
+
   {#if getSocket()}
     {@const sock = getSocket()!}
     <Sidebar
