@@ -69,6 +69,7 @@ function fakeCanvas() {
       getLayer: () => layer,
       setGrid: vi.fn(),
       clearGridIf: vi.fn(),
+      setGridStrategy: vi.fn(),
       panTo: vi.fn(),
       fitToScene: vi.fn(),
     } as never,
