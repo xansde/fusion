@@ -17,6 +17,7 @@
  */
 
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
+import { setAssetCategory } from "../assetApi.js";
 import {
   assetUrl,
   assetNameFromPath,
@@ -429,6 +430,16 @@ describe("uploadAsset — the icon purpose (BAR-F3-05, REQ-BAR-103)", () => {
 
   const file = (): File => new File([new Uint8Array([0x89, 0x50, 0x4e, 0x47])], "Hanabi.png");
 
+  it("declares the tab the file is sent from as ?category=", async () => {
+    await uploadAsset("tok", file(), undefined, { category: "handouts" });
+    expect(FakeXhr.last?.url).toBe("/api/assets/upload?category=handouts");
+  });
+
+  it("sends nothing extra when no tab is declared", async () => {
+    await uploadAsset("tok", file());
+    expect(FakeXhr.last?.url).toBe("/api/assets/upload");
+  });
+
   it("declares the purpose in the query string, and nothing else names a folder", async () => {
     const result = await uploadAsset("tok", file(), undefined, { purpose: "icon" });
     expect(FakeXhr.last?.method).toBe("POST");
@@ -577,5 +588,35 @@ describe("assetStore.startUpload — the icon picker's upload (BAR-F3-05)", () =
 
     expect(FakeXhr.last?.url).toBe("/api/assets/upload");
     expect(fetchMock).toHaveBeenCalledWith("/api/assets", expect.anything());
+  });
+});
+
+describe("setAssetCategory", () => {
+  afterEach(() => {
+    vi.restoreAllMocks();
+  });
+
+  it("PATCHes the GM's choice (null clears it)", async () => {
+    const fetchMock = vi.fn().mockResolvedValue({ ok: true, json: async () => ({ ok: true }) });
+    global.fetch = fetchMock as unknown as typeof fetch;
+    await setAssetCategory("tok", "mapa-1.png", "maps");
+    await setAssetCategory("tok", "mapa-1.png", null);
+    const [url, init] = fetchMock.mock.calls[0] as [string, RequestInit];
+    expect(url).toBe("/api/assets/category");
+    expect(init.method).toBe("PATCH");
+    expect(JSON.parse(init.body as string)).toEqual({ name: "mapa-1.png", category: "maps" });
+    expect(JSON.parse((fetchMock.mock.calls[1] as [string, RequestInit])[1].body as string)).toEqual({
+      name: "mapa-1.png",
+      category: null,
+    });
+  });
+
+  it("surfaces the server's message on failure", async () => {
+    global.fetch = vi.fn().mockResolvedValue({
+      ok: false,
+      status: 403,
+      json: async () => ({ message: "nope" }),
+    }) as unknown as typeof fetch;
+    await expect(setAssetCategory("tok", "x.png", "maps")).rejects.toThrow("nope");
   });
 });
