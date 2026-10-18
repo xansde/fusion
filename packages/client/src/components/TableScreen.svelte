@@ -50,6 +50,8 @@
   import { TokenLayer } from "../lib/canvas/tokens/TokenLayer.js";
   import { ensureFootprintRegistry } from "../lib/canvas/tokens/footprintRegistry.svelte.js";
   import { initTokenDisplayPrefs } from "../lib/canvas/tokens/tokenDisplayPrefsStore.svelte.js";
+  import { attachRuler } from "../lib/presence/attachRuler.js";
+  import RulerToolButton from "./RulerToolButton.svelte";
   import { TokenInteractionManager } from "../lib/canvas/tokens/TokenInteractionManager.js";
   import { ROLE_ASSISTANT } from "../lib/canvas/tokens/token-interaction.js";
   import { ownedActorIdsOf } from "../lib/combat/combatBadge.svelte.js";
@@ -195,6 +197,8 @@
   // it is bound 1:1 to canvas.getLayer("tokens") + the socket for THIS scene
   // load, not part of the orchestrator's own render/tick contract.
   let _tokenInteraction: TokenInteractionManager | null = null;
+  /** Disposer of the ruler adapter (listeners + drawing) for the loaded scene. */
+  let _disposeRuler: (() => void) | null = null;
   /**
    * The `_id` of the scene the canvas currently has loaded — tracked so the
    * scene-reload $effect below can tell "the GM switched scenes" (reload)
@@ -750,6 +754,19 @@
       });
     }
 
+    // --- Ruler (hold R, or the on-screen button) ---
+    // Needs the scene's grid geometry (installed by loadSceneDocument before this
+    // runs) and a socket to share the measurement with the table.
+    const rulerGrid = canvas.gridStrategy;
+    if (rulerGrid) {
+      _disposeRuler = attachRuler({
+        canvas,
+        grid: rulerGrid,
+        layer: canvas.getLayer("controls"),
+        socket: sock,
+      });
+    }
+
     // --- CombatCanvasController ---
     const combatController = new CombatCanvasController(
       canvas,
@@ -791,6 +808,9 @@
     _tokenInteraction?.destroy();
     _tokenInteraction = null;
 
+    _disposeRuler?.();
+    _disposeRuler = null;
+
     if (sceneOrchestrator) {
       sceneOrchestrator.teardown();
       sceneOrchestrator = null;
@@ -821,6 +841,8 @@
   {#if !canvasScene}
     <NoSceneOverlay isGm={isGm()} />
   {/if}
+
+  <RulerToolButton />
 
   <!-- REQ-CPD-063: a compendium drop the map has no place for says so. -->
   {#if dropRefusal}

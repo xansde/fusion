@@ -10,6 +10,7 @@
 
 import { Sprite, Assets, Graphics, type Texture } from "pixi.js";
 import type { SceneDocument, GridConfig } from "@fusion/shared";
+import { createGridStrategy } from "@fusion/shared";
 import { GridRenderer } from "./GridRenderer.js";
 import type { FusionCanvas } from "./FusionCanvas.js";
 import { resolveAssetUrl } from "../assets/assetApi.js";
@@ -112,7 +113,18 @@ export async function loadSceneDocument(
     padY,
   );
   canvas.setGrid(gridCfg);
+  // The grid GEOMETRY (snap, measure) for this scene, built from the same size
+  // and origin the renderer just drew with, so a measurement lands on the lines.
+  const sceneGrid = (scene.grid ?? null) as unknown as GridConfig | null;
+  const gridStrategy =
+    gridCfg && sceneGrid
+      ? createGridStrategy({ ...sceneGrid, size: gridCfg.size }, { x: padX, y: padY }, (reason) => {
+          console.warn("[sceneLoader]", reason);
+        })
+      : null;
+  canvas.setGridStrategy(gridStrategy);
   cleanupFns.push(() => {
+    if (canvas.gridStrategy === gridStrategy) canvas.setGridStrategy(null);
     // BUG FIX (#81 follow-up): the grid is GLOBAL FusionCanvas state, not
     // scoped to this load. If this cleanup runs because sceneLoadGuard found
     // THIS load stale (superseded by a newer scene switch that already

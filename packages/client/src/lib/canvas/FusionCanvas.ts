@@ -21,6 +21,7 @@
 import { Application, Container, Text, TextStyle } from "pixi.js";
 
 import { squarePixelToCell } from "@fusion/shared";
+import type { GridStrategy } from "@fusion/shared";
 import {
   type CameraState,
   type ZoomLimits,
@@ -92,6 +93,11 @@ export class FusionCanvas {
   // Grid
   private _gridRenderer: GridRenderer | null = null;
   private _currentGridConfig: GridRenderConfig | null = null;
+  /**
+   * Grid geometry for the active scene. Owned by whoever loads the scene
+   * (sceneLoader) and injected here; the canvas never assumes a grid type.
+   */
+  private _gridStrategy: GridStrategy | null = null;
 
   // Pan interaction
   private _isPanning = false;
@@ -273,6 +279,28 @@ export class FusionCanvas {
     if (this._currentGridConfig === config) {
       this.setGrid(null);
     }
+  }
+
+  /**
+   * Set the grid geometry used to snap and measure. Pass null when no scene is
+   * active. Separate from setGrid(): GridRenderConfig is what the renderer
+   * needs to DRAW, GridStrategy is what callers need to MEASURE.
+   */
+  setGridStrategy(strategy: GridStrategy | null): void {
+    this._gridStrategy = strategy;
+  }
+
+  /** The active scene's grid geometry, or null when no scene is loaded. */
+  get gridStrategy(): GridStrategy | null {
+    return this._gridStrategy;
+  }
+
+  /**
+   * The DOM element the renderer is mounted in. Lets interaction modules
+   * (ruler, tools) attach pointer listeners without touching private state.
+   */
+  get viewElement(): HTMLElement {
+    return this._container;
   }
 
   /** The grid config currently installed (null when no grid is shown). */
