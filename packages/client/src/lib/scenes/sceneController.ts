@@ -225,6 +225,10 @@ export async function updateSceneConfig(
   });
 }
 
+function wholeOffset(offset: number, size: number): number {
+  return ((Math.round(offset) % size) + size) % size;
+}
+
 /** What the calibration panel hands the scene: the grid and where it starts. */
 export interface GridCalibrationData {
   size: number;
@@ -269,8 +273,10 @@ export async function updateGridCalibration(
               color: data.color,
               alpha: data.alpha,
             },
-            gridOffsetX: data.offsetX,
-            gridOffsetY: data.offsetY,
+            // Whole pixels: a drag at a fractional zoom leaves 30.707, and the lattice the
+            // tokens snap to should not carry that noise.
+            gridOffsetX: wholeOffset(data.offsetX, data.size),
+            gridOffsetY: wholeOffset(data.offsetY, data.size),
           },
         },
       ],

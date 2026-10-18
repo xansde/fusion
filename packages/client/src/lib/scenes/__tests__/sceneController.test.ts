@@ -381,4 +381,20 @@ describe("updateGridCalibration", () => {
     expect(upd?.diff["gridOffsetX"]).toBe(31);
     expect(upd?.diff["gridOffsetY"]).toBe(77);
   });
+
+  it("rounds the offset to whole pixels and keeps it inside one cell", async () => {
+    const sent: SentOp[] = [];
+    await updateGridCalibration(fakeSocket(sent), "s1", {
+      size: 73,
+      offsetX: 30.707,
+      offsetY: 72.6,
+      distance: 5,
+      units: "ft",
+      color: "#000000",
+      alpha: 0.4,
+    });
+    const diff = sent[0]?.payload.updates[0]?.diff;
+    expect(diff?.["gridOffsetX"]).toBe(31);
+    expect(diff?.["gridOffsetY"]).toBe(0); // 73 wraps to 0
+  });
 });
