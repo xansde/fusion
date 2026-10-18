@@ -43,6 +43,8 @@ export interface MapPing {
   startedAtMs: number;
   /** Duration of the ping animation in ms. */
   durationMs: number;
+  /** The token the ping was held on, if any. */
+  tokenId?: string;
 }
 
 // ---------------------------------------------------------------------------

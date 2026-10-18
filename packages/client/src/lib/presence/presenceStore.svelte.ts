@@ -145,6 +145,7 @@ export function addPing(data: {
   color?: string;
   /** The GM asked everyone to look here. */
   pull?: boolean;
+  tokenId?: string;
 }): void {
   if (data.pull === true) {
     presenceState.pullView = {
@@ -164,6 +165,7 @@ export function addPing(data: {
     durationMs: PING_DURATION_MS,
   };
   if (data.userName !== undefined) ping.userName = data.userName;
+  if (data.tokenId !== undefined) ping.tokenId = data.tokenId;
 
   presenceState.pings = [...presenceState.pings, ping];
 

@@ -10,7 +10,7 @@
  */
 
 import { Container, Graphics, Text, TextStyle } from "pixi.js";
-import type { CellOffset, GridStrategy, ScenePoint } from "@fusion/shared";
+import { AREA_BORDER_PX, type AreaStyle, type CellOffset, type GridStrategy, type ScenePoint } from "@fusion/shared";
 import { unitLabel, type RulerSnapshot } from "../presence/rulerState.js";
 import type { DragRulerView } from "../presence/dragRuler.js";
 import type { RulerState } from "../presence/types.js";
@@ -30,6 +30,32 @@ export interface AreaDraw {
   readonly origin: ScenePoint;
   /** Also draw a line from origin to this point (cone / line axis). */
   readonly axisTo?: ScenePoint;
+  /** Border and fill; absent = the legacy look. */
+  readonly style?: Pick<AreaStyle, "border" | "fill">;
+}
+
+/** One edge of an area outline, in grid-corner indices (not pixels). */
+export interface CellEdge {
+  readonly i1: number;
+  readonly j1: number;
+  readonly i2: number;
+  readonly j2: number;
+}
+
+/**
+ * The outer edges of a set of squares: an edge shared by two squares of the set is
+ * inside the area and is left out, so a thick border follows the silhouette only.
+ */
+export function boundaryEdges(cells: ReadonlyArray<CellOffset>): CellEdge[] {
+  const has = new Set(cells.map((c) => `${String(c.i)},${String(c.j)}`));
+  const edges: CellEdge[] = [];
+  for (const { i, j } of cells) {
+    if (!has.has(`${String(i)},${String(j - 1)}`)) edges.push({ i1: i, j1: j, i2: i + 1, j2: j });
+    if (!has.has(`${String(i)},${String(j + 1)}`)) edges.push({ i1: i, j1: j + 1, i2: i + 1, j2: j + 1 });
+    if (!has.has(`${String(i - 1)},${String(j)}`)) edges.push({ i1: i, j1: j, i2: i, j2: j + 1 });
+    if (!has.has(`${String(i + 1)},${String(j)}`)) edges.push({ i1: i + 1, j1: j, i2: i + 1, j2: j + 1 });
+  }
+  return edges;
 }
 
 /** Label height in screen pixels: the same at any zoom. */
@@ -81,6 +107,7 @@ export class RulerLayer {
     areas: Iterable<AreaDraw> = [],
     drag: DragRulerView | null = null,
     viewScale = 1,
+    hint: { text: string; at: ScenePoint } | null = null,
   ): void {
     if (this._destroyed) return;
     this._viewScale = viewScale;
@@ -115,6 +142,8 @@ export class RulerLayer {
       if (tip && local.distanceLabel) this._drawLabel(local.distanceLabel, tip, LOCAL_COLOR);
     }
 
+    if (hint) this._drawLabel(hint.text, hint.at, LOCAL_COLOR);
+
     if (drag && drag.path.length >= 1) {
       this._drawPath(drag.path, drag.color);
       const tip = drag.path.at(-1);
@@ -127,16 +156,22 @@ export class RulerLayer {
 
   private _drawArea(area: AreaDraw): void {
     const size = this._grid.config.size;
+    const fillAlpha = area.style?.fill ?? 0.28;
     for (const c of area.cells) {
       const center = this._grid.cellToPixel(c);
       this._graphics.rect(center.x - size / 2, center.y - size / 2, size, size);
     }
-    this._graphics.fill({ color: area.color, alpha: 0.28 });
-    for (const c of area.cells) {
-      const center = this._grid.cellToPixel(c);
-      this._graphics.rect(center.x - size / 2, center.y - size / 2, size, size);
+    this._graphics.fill({ color: area.color, alpha: fillAlpha });
+    // Outline of the silhouette only, at a width that is constant on screen.
+    const k = labelCounterScale(this._viewScale);
+    const width = (area.style ? AREA_BORDER_PX[area.style.border] : 2) * k;
+    const corner = this._grid.cellToPixel({ i: 0, j: 0 });
+    const x0 = corner.x - size / 2;
+    const y0 = corner.y - size / 2;
+    for (const e of boundaryEdges(area.cells)) {
+      this._graphics.moveTo(x0 + e.i1 * size, y0 + e.j1 * size).lineTo(x0 + e.i2 * size, y0 + e.j2 * size);
     }
-    this._graphics.stroke({ width: 2, color: area.color, alpha: 0.75 });
+    this._graphics.stroke({ width, color: area.color, alpha: 0.95, cap: "square", join: "miter" });
 
     if (area.axisTo) {
       this._graphics.moveTo(area.origin.x, area.origin.y).lineTo(area.axisTo.x, area.axisTo.y);

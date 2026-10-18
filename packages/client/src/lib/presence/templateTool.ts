@@ -10,12 +10,14 @@
  */
 
 import {
+  anchoredTemplate,
   directionDeg,
   snapToCornerOrEdge,
   snapToIntersection,
   templateTitle,
   type AreaFootprint,
   type AreaKind,
+  type AreaStyle,
   type AreaTemplate,
   type ScenePoint,
   type SquareGrid,
@@ -78,4 +80,39 @@ export function areaLabel(t: Pick<AreaTemplate, "kind" | "sizeFt">, names: reado
   const shown = names.slice(0, 3).join(", ");
   const more = names.length > 3 ? ` +${String(names.length - 3)}` : "";
   return `${title} · ${shown}${more}`;
+}
+
+/** An emanation anchored to `tokenId`, grown from its squares. */
+export function emanationForToken(
+  sizeFt: number,
+  tokenId: string,
+  footprint: AreaFootprint,
+  grid: SquareGrid,
+  style: AreaStyle,
+): AreaTemplate {
+  const base: AreaTemplate = {
+    kind: "emanation",
+    sizeFt,
+    origin: { x: 0, y: 0 },
+    direction: 0,
+    tokenId,
+    style,
+  };
+  return anchoredTemplate(base, footprint, { size: grid.config.size, ox: grid.origin.x, oy: grid.origin.y });
+}
+
+/**
+ * The template to draw for a pinned one: an anchored emanation is recomputed from the
+ * token's current squares (null = the token is gone, so the area goes with it); any
+ * other template is returned as is.
+ */
+export function resolvePinned(
+  t: AreaTemplate,
+  footprintOf: (tokenId: string) => AreaFootprint | null,
+  grid: SquareGrid,
+): AreaTemplate | null {
+  if (t.tokenId === undefined) return t;
+  const fp = footprintOf(t.tokenId);
+  if (!fp) return null;
+  return anchoredTemplate(t, fp, { size: grid.config.size, ox: grid.origin.x, oy: grid.origin.y });
 }

@@ -1,5 +1,5 @@
 import { shownFromPayload } from "./showPlayers.js";
-import type { AreaTemplate } from "@fusion/shared";
+import type { AreaStyle, AreaTemplate } from "@fusion/shared";
 /**
  * attachPresenceSync — wires socket.io 'ephemeral' events to the presence store.
  *
@@ -99,7 +99,12 @@ export function attachPresenceSync(socket: Socket): () => void {
         if (pn !== undefined) pingUpdate.userName = pn;
         const pc = asOptStr(payload["color"]);
         if (pc !== undefined) pingUpdate.color = pc;
-        const pingFull = { ...pingUpdate, ...(payload["pull"] === true ? { pull: true } : {}) };
+        const ptok = asOptStr(payload["tokenId"]);
+        const pingFull = {
+          ...pingUpdate,
+          ...(payload["pull"] === true ? { pull: true } : {}),
+          ...(ptok !== undefined ? { tokenId: ptok } : {}),
+        };
         addPing(pingFull);
         break;
       }
@@ -308,13 +313,20 @@ export function emitPing(
   y: number,
   color?: string,
   pull?: boolean,
+  tokenId?: string,
 ): void {
   if (!socket?.connected) return;
 
   socket.emit("ephemeral", {
     type: "presence:ping",
     ts: Date.now(),
-    payload: { x, y, ...(color != null ? { color } : {}), ...(pull ? { pull: true } : {}) },
+    payload: {
+      x,
+      y,
+      ...(color != null ? { color } : {}),
+      ...(pull ? { pull: true } : {}),
+      ...(tokenId != null ? { tokenId } : {}),
+    },
   });
 }
 
@@ -388,6 +400,21 @@ export function emitTemplateUnpin(socket: Socket | null, id: string, sceneId: st
     type: "presence:template:unpin",
     ts: Date.now(),
     payload: { id, sceneId },
+  });
+}
+
+/** Restyle a pinned template (its author or a GM). */
+export function emitTemplateStyle(
+  socket: Socket | null,
+  id: string,
+  sceneId: string,
+  style: AreaStyle,
+): void {
+  if (!socket?.connected) return;
+  socket.emit("ephemeral", {
+    type: "presence:template:style",
+    ts: Date.now(),
+    payload: { id, sceneId, style },
   });
 }
 

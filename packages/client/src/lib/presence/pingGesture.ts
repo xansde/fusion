@@ -35,7 +35,15 @@ const PING_BUTTON = 0;
 
 /** Raw user input, already normalized away from DOM specifics. */
 export type PingInput =
-  | { kind: "pointer-down"; point: ScenePoint; button: number; time: number; shift?: boolean }
+  | {
+      kind: "pointer-down";
+      point: ScenePoint;
+      button: number;
+      time: number;
+      shift?: boolean;
+      /** The token under the press, when there is one: the ping will name it. */
+      tokenId?: string;
+    }
   | { kind: "pointer-move"; point: ScenePoint; time: number }
   | { kind: "pointer-up"; time: number }
   /** Clock advanced — the only way a hold can ripen. Driven by the ticker. */
@@ -48,7 +56,7 @@ export type PingEffect =
   | { kind: "none" }
   /** Drop a ping here and broadcast it. */
   /** `pull` is set when Shift was held: the GM asks everyone to look here. */
-  | { kind: "ping"; point: ScenePoint; pull?: true }
+  | { kind: "ping"; point: ScenePoint; pull?: true; tokenId?: string }
   /**
    * The release that ends a fired hold. The caller must swallow the click so
    * the ping does not also select whatever sits under the pointer.
@@ -61,7 +69,7 @@ type Phase =
   /** No button down, or the press was disqualified. */
   | { name: "idle" }
   /** Button down, still eligible: motionless and not yet ripe. */
-  | { name: "holding"; origin: ScenePoint; since: number; shift: boolean }
+  | { name: "holding"; origin: ScenePoint; since: number; shift: boolean; tokenId?: string }
   /** The ping already fired; waiting for the release to swallow. */
   | { name: "fired" };
 
@@ -96,7 +104,13 @@ export class PingGesture {
         // press whose release was lost outside the window.
         this._phase =
           input.button === PING_BUTTON
-            ? { name: "holding", origin: input.point, since: input.time, shift: input.shift === true }
+            ? {
+                name: "holding",
+                origin: input.point,
+                since: input.time,
+                shift: input.shift === true,
+                ...(input.tokenId !== undefined ? { tokenId: input.tokenId } : {}),
+              }
             : IDLE;
         return NONE;
       }
@@ -112,9 +126,14 @@ export class PingGesture {
       case "tick": {
         if (this._phase.name !== "holding") return NONE;
         if (input.time - this._phase.since < PING_HOLD_MS) return NONE;
-        const { origin: point, shift } = this._phase;
+        const { origin: point, shift, tokenId } = this._phase;
         this._phase = { name: "fired" };
-        return shift ? { kind: "ping", point, pull: true } : { kind: "ping", point };
+        return {
+          kind: "ping",
+          point,
+          ...(shift ? { pull: true as const } : {}),
+          ...(tokenId !== undefined ? { tokenId } : {}),
+        };
       }
 
       case "pointer-up": {

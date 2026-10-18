@@ -16,7 +16,7 @@
  * the drawing half.
  */
 
-import { Container, Graphics } from "pixi.js";
+import { Container, Graphics, Text, TextStyle } from "pixi.js";
 import type { MapPing } from "../presence/types.js";
 
 /** Outer radius the ripple reaches, as a multiple of the grid cell. */
@@ -28,6 +28,28 @@ const RING_COUNT = 3;
 /** Fraction of the total duration between one ripple and the next. */
 const RING_STAGGER = 0.18;
 const RING_WIDTH = 4;
+
+/** Where a pinged token is, and what to call it. */
+export interface PingedToken {
+  readonly x: number;
+  readonly y: number;
+  readonly width: number;
+  readonly height: number;
+  readonly name?: string;
+}
+
+/** Label of a ping on a token: "who · token". Empty when the token has no name. */
+export function tokenPingLabel(userName: string | undefined, tokenName: string | undefined): string {
+  if (tokenName === undefined || tokenName === "") return "";
+  return userName !== undefined && userName !== "" ? `${userName} · ${tokenName}` : tokenName;
+}
+
+/** What the layer needs from the app to highlight tokens. */
+export interface PingTokenContext {
+  resolve: (tokenId: string) => PingedToken | null;
+  /** Camera scale: labels and ring width stay constant on screen. */
+  viewScale: number;
+}
 
 /** One ripple, resolved for a single frame. */
 export interface PingRing {
@@ -83,6 +105,8 @@ export class PingLayer {
   private _cellPx: number;
   /** True when the last render drew nothing — lets the caller skip work. */
   private _empty = true;
+  private _labels = new Map<string, Container>();
+  private _labelRoot: Container;
 
   constructor(parent: Container, cellPx: number = FALLBACK_CELL_PX) {
     this._cellPx = cellPx > 0 ? cellPx : FALLBACK_CELL_PX;
@@ -91,7 +115,9 @@ export class PingLayer {
     this._root.eventMode = "none"; // never steals a click from a token
     this._graphics = new Graphics();
     this._graphics.eventMode = "none";
-    this._root.addChild(this._graphics);
+    this._labelRoot = new Container();
+    this._labelRoot.eventMode = "none";
+    this._root.addChild(this._graphics, this._labelRoot);
     parent.addChild(this._root);
   }
 
@@ -107,16 +133,26 @@ export class PingLayer {
    *              because the server echoes the ping back to its sender).
    * @param now   Current wall clock, matching `MapPing.startedAtMs`.
    */
-  render(pings: Iterable<MapPing>, now: number): void {
+  render(pings: Iterable<MapPing>, now: number, tokens?: PingTokenContext): void {
     if (this._destroyed) return;
 
     this._graphics.clear();
     let drew = false;
+    const live = new Set<string>();
 
     const maxRadius = this._cellPx * MAX_RADIUS_CELLS;
 
     for (const ping of pings) {
       const color = parseColor(ping.color);
+      const target = ping.tokenId !== undefined ? (tokens?.resolve(ping.tokenId) ?? null) : null;
+      if (target && tokens) {
+        const elapsed = now - ping.startedAtMs;
+        if (elapsed >= 0 && elapsed < ping.durationMs) {
+          this._drawTokenRing(ping, target, color, elapsed, tokens.viewScale);
+          live.add(ping.id);
+          drew = true;
+        }
+      }
       for (const ring of pingRings(now - ping.startedAtMs, ping.durationMs, maxRadius)) {
         this._graphics
           .circle(ping.x, ping.y, ring.radius)
@@ -125,7 +161,60 @@ export class PingLayer {
       }
     }
 
+    for (const [id, box] of this._labels) {
+      if (live.has(id)) continue;
+      box.destroy({ children: true });
+      this._labels.delete(id);
+    }
     this._empty = !drew;
+  }
+
+  /** Ring around the token, pulsing, plus "who · token" at constant screen size. */
+  private _drawTokenRing(
+    ping: MapPing,
+    t: PingedToken,
+    color: number,
+    elapsed: number,
+    viewScale: number,
+  ): void {
+    const k = viewScale > 0 && Number.isFinite(viewScale) ? 1 / viewScale : 1;
+    const progress = elapsed / ping.durationMs;
+    const pulse = 0.5 + 0.5 * Math.sin((elapsed / 350) * Math.PI);
+    const pad = (6 + pulse * 6) * k;
+    const alpha = Math.max(0, progress > 0.7 ? 1 - (progress - 0.7) / 0.3 : 1);
+    this._graphics
+      .roundRect(t.x - pad, t.y - pad, t.width + pad * 2, t.height + pad * 2, 12 * k)
+      .fill({ color, alpha: 0.14 * alpha });
+    this._graphics
+      .roundRect(t.x - pad, t.y - pad, t.width + pad * 2, t.height + pad * 2, 12 * k)
+      .stroke({ width: 5 * k, color, alpha });
+
+    const text = tokenPingLabel(ping.userName, t.name);
+    let box = this._labels.get(ping.id);
+    if (!box && text !== "") {
+      box = new Container();
+      box.eventMode = "none";
+      const label = new Text({
+        text,
+        style: new TextStyle({ fontFamily: "sans-serif", fontSize: 16, fontWeight: "bold", fill: color }),
+      });
+      label.x = 6;
+      label.y = 3;
+      const plate = new Graphics();
+      plate
+        .roundRect(0, 0, label.width + 12, label.height + 6, 5)
+        .fill({ color: 0x000000, alpha: 0.78 })
+        .stroke({ width: 1, color, alpha: 0.8 });
+      box.addChild(plate, label);
+      this._labelRoot.addChild(box);
+      this._labels.set(ping.id, box);
+    }
+    if (box) {
+      box.scale.set(k);
+      box.alpha = alpha;
+      box.x = t.x;
+      box.y = t.y - pad - 30 * k;
+    }
   }
 
   destroy(): void {

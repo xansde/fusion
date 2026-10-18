@@ -185,3 +185,26 @@ describe("Shift ping (pull view)", () => {
     expect(PING_HOLD_MS).toBe(500);
   });
 });
+
+describe("ping on a token", () => {
+  it("carries the token id of the press into the ping", () => {
+    const g = new PingGesture();
+    g.handle({ kind: "pointer-down", point: ORIGIN, button: 0, time: 0, tokenId: "tok1" });
+    expect(g.handle({ kind: "tick", time: PING_HOLD_MS })).toEqual({
+      kind: "ping",
+      point: ORIGIN,
+      tokenId: "tok1",
+    });
+  });
+
+  it("a press on a token that moves past the tolerance is a drag, not a ping", () => {
+    const g = new PingGesture();
+    g.handle({ kind: "pointer-down", point: ORIGIN, button: 0, time: 0, tokenId: "tok1" });
+    g.handle({
+      kind: "pointer-move",
+      point: { x: ORIGIN.x + PING_MOVE_TOLERANCE_PX + 1, y: ORIGIN.y },
+      time: 100,
+    });
+    expect(g.handle({ kind: "tick", time: PING_HOLD_MS })).toEqual({ kind: "none" });
+  });
+});

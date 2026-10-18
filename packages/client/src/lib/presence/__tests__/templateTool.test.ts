@@ -1,6 +1,12 @@
 import { describe, it, expect } from "vitest";
 import { SquareGrid } from "@fusion/shared";
-import { areaLabel, buildAreaTemplate, isAreaMode } from "../templateTool.js";
+import {
+  areaLabel,
+  buildAreaTemplate,
+  isAreaMode,
+  emanationForToken,
+  resolvePinned,
+} from "../templateTool.js";
 
 const grid = new SquareGrid({
   type: "square",
@@ -60,5 +66,42 @@ describe("isAreaMode", () => {
     expect(isAreaMode("cone")).toBe(true);
     expect(isAreaMode("ruler")).toBe(false);
     expect(isAreaMode(null)).toBe(false);
+  });
+});
+
+describe("emanationForToken", () => {
+  it("builds an emanation anchored to the token with the chosen style", () => {
+    const style = { color: "#0a84ff", border: "thick" as const, fill: 0.5 };
+    const t = emanationForToken(10, "tok1", { i: 2, j: 3, width: 1, height: 1 }, grid, style);
+    expect(t).toMatchObject({
+      kind: "emanation",
+      sizeFt: 10,
+      tokenId: "tok1",
+      origin: { x: 250, y: 350 },
+      style,
+    });
+  });
+});
+
+describe("resolvePinned", () => {
+  const tpl = {
+    kind: "emanation" as const,
+    sizeFt: 10,
+    origin: { x: 50, y: 50 },
+    direction: 0,
+    footprint: { i: 0, j: 0, width: 1, height: 1 },
+    tokenId: "tok1",
+  };
+  it("follows the token to its current squares", () => {
+    const r = resolvePinned(tpl, () => ({ i: 6, j: 2, width: 1, height: 1 }), grid);
+    expect(r?.footprint).toEqual({ i: 6, j: 2, width: 1, height: 1 });
+    expect(r?.origin).toEqual({ x: 650, y: 250 });
+  });
+  it("is null when the token is gone (the area disappears)", () => {
+    expect(resolvePinned(tpl, () => null, grid)).toBeNull();
+  });
+  it("leaves a template without a token untouched", () => {
+    const loose = { ...tpl, tokenId: undefined };
+    expect(resolvePinned(loose, () => null, grid)).toBe(loose);
   });
 });
