@@ -21,6 +21,7 @@ export * from "./grid/math.js";
 export * from "./grid/SquareGrid.js";
 export * from "./grid/factory.js";
 export * from "./grid/templates.js";
+export * from "./grid/calibration.js";
 export * from "./scene.js";
 export * from "./map-note.js";
 export * from "./chat/index.js";

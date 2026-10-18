@@ -137,6 +137,13 @@ export const SceneSchema = BaseDocumentSchema.extend({
       GridConfigSchema,
     )
     .optional(),
+  /**
+   * Grid origin relative to the map image (grid calibration). MUST be declared
+   * here: SceneSchema parses every write and drops undeclared keys. Null/absent
+   * = aligned to the map corner.
+   */
+  gridOffsetX: z.number().finite().nullable().optional(),
+  gridOffsetY: z.number().finite().nullable().optional(),
   /** Token vision enabled (spec 07 REQ-VIS-085). */
   tokenVision: z.boolean().default(false),
   /** Fog of war enabled (spec 07 REQ-VIS-085). */
