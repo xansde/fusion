@@ -53,10 +53,13 @@ class MockSocket extends MockEmitter {
 
 let latestMockSocket: MockSocket | null = null;
 
+/** socket.io's function form of `auth`: called on EVERY connect and reconnect attempt. */
+type AuthFn = (cb: (data: Record<string, unknown>) => void) => void;
+
 vi.mock("socket.io-client", () => ({
-  io: vi.fn((_ns: string, opts: { auth?: Record<string, unknown> } = {}) => {
+  io: vi.fn((_ns: string, opts: { auth?: Record<string, unknown> | AuthFn } = {}) => {
     const s = new MockSocket();
-    s.auth = opts.auth ?? {};
+    s.auth = (opts.auth ?? {}) as Record<string, unknown>;
     latestMockSocket = s;
     return s;
   }),
@@ -202,6 +205,51 @@ describe("SocketManager state transitions", () => {
     mgr.connect("world-abc");
 
     expect(latestMockSocket!.auth).toMatchObject({ protocolVersion: PROTOCOL_VERSION });
+    mgr.disconnect();
+  });
+});
+
+describe("SocketManager auth token on (re)connect", () => {
+  beforeEach(() => {
+    latestMockSocket = null;
+    vi.resetModules();
+  });
+
+  it("asks for a FRESH token on every connection attempt, not the snapshot taken at connect()", async () => {
+    // The JWT lives 15 min. A reconnect after that (Wi-Fi blip, server restart) used to resend
+    // the dead snapshot, the server answered AUTH_FAILED, the manager gave up for good and only
+    // F5 brought the player back.
+    const { SocketManager } = await import("../socket.js");
+    let live = "token-v1";
+    const mgr = new SocketManager(
+      () => "token-v1",
+      () => Promise.resolve(live),
+    );
+    mgr.connect("world-abc");
+
+    const auth = latestMockSocket!.auth as unknown as AuthFn;
+    expect(typeof auth).toBe("function");
+
+    const first = await new Promise<Record<string, unknown>>((r) => auth(r));
+    expect(first).toMatchObject({ token: "token-v1" });
+
+    live = "token-v2"; // refreshed in the meantime
+    const second = await new Promise<Record<string, unknown>>((r) => auth(r));
+    expect(second).toMatchObject({ token: "token-v2" });
+    mgr.disconnect();
+  });
+
+  it("falls back to the stored token when the refresh itself throws", async () => {
+    const { SocketManager } = await import("../socket.js");
+    const mgr = new SocketManager(
+      () => "stored-token",
+      () => Promise.reject(new Error("network")),
+    );
+    mgr.connect("world-abc");
+
+    const auth = latestMockSocket!.auth as unknown as AuthFn;
+    const data = await new Promise<Record<string, unknown>>((r) => auth(r));
+    expect(data).toMatchObject({ token: "stored-token" });
     mgr.disconnect();
   });
 });
