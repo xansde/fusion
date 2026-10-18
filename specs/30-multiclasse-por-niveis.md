@@ -76,7 +76,7 @@ character_level)` vai para `systems/engine-2e` e o SF2e pode adotá-la depois
 | **nível de personagem**   | Soma dos níveis de classe. É o que hoje vive em `system.level.value`.                                                                           |
 | **nível de classe**       | Quantos níveis o personagem gastou numa classe específica. Sob RAW é sempre igual ao nível de personagem; sob a variante, não.                  |
 | **dip**                   | Ter poucos níveis (tipicamente 1–2) numa classe secundária.                                                                                     |
-| **primeira classe**       | A classe escolhida no nível de personagem 1. Fonte única do boost de habilidade-chave e do class feat de nível 1.                               |
+| **primeira classe**       | A classe escolhida no nível de personagem 1. Fonte única do boost de habilidade-chave (o class feat de nível 1 de classe vem de toda classe — DEC-MCL-14). |
 | **recurso de personagem** | Boost de atributo, class feat, orçamento de perícia: vem uma vez, por orçamento fechado.                                                        |
 | **identidade de classe**  | Racket, Instinct, Doctrine, Thesis, Bloodline, Hunter's Edge, perícias assinatura: vem com o nível, sempre, de qualquer classe.                 |
 | **rank de dedicação**     | O rank de slot de magia que a rota gratuita de arquétipo entrega naquele nível de **personagem** (1@4, 2@6, 3@8, 4@12, 5@14, 6@16, 7@18, 8@20). |
@@ -162,6 +162,10 @@ classes não muda o resultado, o que elimina uma classe inteira de bug
 "dependente da ordem de itens no ator".
 
 ### DEC-MCL-05 — O nível 1 de classe é pacote cheio, e isso é aceito de olho aberto
+
+> **Emenda DEC-MCL-14 (18/10/2026)**: o class feat do nível 1 de classe **sai** da exceção —
+> vem de toda classe cuja tabela (`featLevels.class`) lista o nível 1, quando ela recebe o seu
+> nível de classe 1. Só o boost de habilidade-chave continua vindo da primeira classe.
 
 **Decisão:** ganhar o primeiro nível de qualquer classe concede o pacote completo
 daquela classe no nível 1 — saves, Percepção, proficiências de arma e armadura e
@@ -336,10 +340,10 @@ níveis (5e no Foundry e no Roll20: cada nível de classe contribui o próprio d
 1. Na multiclasse por níveis, o slot de talento de classe de um nível de personagem nasce quando a
    classe **dona daquele nível** (`classOwnerAt`) chega a um nível **de classe** que a tabela da
    própria classe (`featLevels.class`) lista. A paridade do nível de personagem não conta mais.
-2. O talento de classe do nível 1 **de classe** continua vindo só da primeira classe
-   (REQ-MCL-031): uma classe que entra depois começa a pagar no próximo nível que a tabela dela lista
-   (Investigador e Ladino listam 1, 2, 4, …; quem entra no Investigador no nível 2 de personagem
-   ganha o primeiro talento de Investigador no Investigador 2).
+2. ~~O talento de classe do nível 1 **de classe** continua vindo só da primeira classe
+   (REQ-MCL-031)~~ — **revogado pela DEC-MCL-14 (18/10/2026)**: o talento do nível 1 de classe vem
+   de toda classe cuja tabela lista o 1 (quem entra no Investigador no nível 2 de personagem ganha
+   o primeiro talento de Investigador ali, no Investigador 1).
 3. No seletor desse slot, talento de classe com nível maior que o nível de classe da dona do slot
    **não aparece** (filtro — emenda à DEC-MCL-06 só para este caso).
 4. Talento já escolhido num slot que deixou de existir **não é apagado**: fica no seu nível,
@@ -347,7 +351,8 @@ níveis (5e no Foundry e no Roll20: cada nível de classe contribui o próprio d
    Mestre resolver. Nada é movido automaticamente.
 
 **Exemplos (as fichas de A Queda):** Huo (Ladino 1 / Investigador 2–3) — slots no nível 1 (Ladino 1)
-e no nível 3 (Investigador 2); o `classFeat-2` dele vira órfão. C.L.A.U.D.E. (Investigador 1 /
+e no nível 3 (Investigador 2); o `classFeat-2` dele vira órfão (**corrigido pela DEC-MCL-14**: o
+Huo também tem slot no nível 2, Investigador 1). C.L.A.U.D.E. (Investigador 1 /
 Necromante 2–3) — slots nos níveis 1 e 3. Tormentor (Invocador 1 / Feiticeiro 2–3) — slot só no
 nível 3 (Feiticeiro 2; nenhuma das duas lista talento no nível 1 de classe).
 
@@ -357,6 +362,40 @@ Investigador 2. Seguir o nível de classe é o que a tabela de cada classe diz.
 
 **O que esta decisão aceita perder:** o total de talentos de classe deixa de ser "1 + níveis pares"
 fixo — passa a depender de como os níveis foram divididos entre as classes.
+
+### DEC-MCL-14 — Pegar o nível 1 de uma classe é pegar a classe no nível 1, exceto perícias e boost-chave (decisões do Alexandre, 18/10/2026; emenda DEC-MCL-05, DEC-MCL-13 item 2 e REQ-MCL-031)
+
+> "pegar nível 1 da classe é a mesma coisa de pegar a classe no nível 1, exceto pelas perícias.
+> use PF WotR como exemplo. Lá tem exatamente onde eu quero chegar (Não o layout, mas as regras
+> num todo)" — Alexandre, 18/10/2026
+>
+> "só a primeira classe dá o aumento de atributo chave" — Alexandre, 18/10/2026
+
+**Decisão:**
+1. Na multiclasse por níveis, **toda** classe que recebe o seu nível de classe 1 entrega o pacote
+   de nível 1 dela — inclusive o **talento de classe do nível 1**, quando a tabela da própria classe
+   (`featLevels.class`) lista o 1. O slot `classFeat-<nível>` nasce no nível de personagem em que a
+   classe entrou. Classe cuja tabela não lista o 1 (Feiticeiro, Necromante, Mago, Clérigo…) não
+   ganha talento ali — a lista é derivada da progressão (REQ-MCL-032), nunca escrita à mão.
+2. **Perícias continuam como hoje** (REQ-MCL-034/035): automáticas sempre, livres pelo `delta`.
+3. **Boost de habilidade-chave: só da primeira classe**, por decisão explícita — não é pendência.
+   Uma classe que entra depois não aumenta atributo nenhum; a class DC dela usa a habilidade-chave
+   declarada da própria classe (REQ-MCL-022).
+4. A entrada de conjuração de uma classe nova nasce dimensionada pelo nível **de classe** 1 dela,
+   não pelo nível de personagem em que ela entrou.
+5. Talento que ficou órfão sob a DEC-MCL-13 e volta a ter slot **reocupa o slot sozinho** (o id
+   `classFeat-<nível>` é o mesmo) — sem migração.
+
+**Modelo:** Pathfinder: Wrath of the Righteous (regras, não layout) — ao multiclassar, o 1º nível da
+classe nova dá as features, talentos e proficiências do nível 1 dela; o que é reduzido é perícia.
+
+**Efeito nas fichas de A Queda (18/10/2026):** Huo (Ladino 1 / Investigador 2–3) ganha slot no
+nível 2 (Investigador 1) além dos níveis 1 e 3. C.L.A.U.D.E. (Investigador 1 / Necromante 2–3),
+Tormentor (Invocador 1 / Feiticeiro 2–3) e Bhrotto (Patrulheiro 1–3) não mudam: Necromante e
+Feiticeiro não listam talento no nível 1 de classe; o Bhrotto tem classe única.
+
+**O que esta decisão aceita perder:** o dip fica mais forte (um talento de classe a mais por classe
+cuja tabela lista o 1). Entra no item 4 dos itens de playtest (§9).
 
 **Contexto:** relato do Alexandre sobre a ficha do Huo Jinwu, 18/10/2026 (satélite
 `fix/ficha-ler-talento`).
@@ -476,8 +515,10 @@ interface DerivedClassLevels {
 - **REQ-MCL-030** [MC] Ganhar o **primeiro** nível de uma classe DEVE conceder o
   pacote completo de nível 1 daquela classe: saves, Percepção, proficiências de
   arma e armadura e as features de identidade — sujeito ao `max` do REQ-MCL-021.
-- **REQ-MCL-031** [MC] O boost de habilidade-chave e o class feat concedido no
-  nível 1 de classe DEVEM vir **apenas** da primeira classe.
+- **REQ-MCL-031** [MC] (emendado por DEC-MCL-14, 18/10/2026) O boost de
+  habilidade-chave DEVE vir **apenas** da primeira classe. O class feat do nível 1 de
+  classe DEVE vir de **toda** classe cuja tabela (`featLevels.class`) lista o 1, no
+  nível de personagem em que ela recebe o seu nível de classe 1.
 - **REQ-MCL-032** [MC] A lista de classes que concedem class feat no nível 1 DEVE
   ser **derivada da progressão da classe**, nunca de lista escrita à mão. Feat
   concedido por dentro de uma feature de identidade acompanha a feature e não é
@@ -500,7 +541,7 @@ interface DerivedClassLevels {
   class feat em cada nível de personagem em que a classe **dona daquele nível**
   (`classOwnerAt` — a mesma classe do slot `classLevel-<nível>`) atinge um nível **de
   classe** listado em `featLevels.class` dela — independente da paridade do nível de
-  personagem; o do nível 1 de classe só para a primeira classe (REQ-MCL-031). O talento
+  personagem — inclusive o nível 1 de classe de uma classe que entra depois (DEC-MCL-14). O talento
   DEVE pertencer a essa classe, nunca a outra que o personagem também tenha (DEC-MCL-10);
   talento de classe de nível maior que o nível daquela classe NÃO DEVE ser oferecido no
   seletor; talento já escolhido num slot que deixou de existir DEVE continuar na ficha,
