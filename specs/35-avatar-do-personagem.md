@@ -39,7 +39,7 @@ canto inferior direito da mesa do jogador que controla aquele personagem.
 
 ### 2.2 Não inclui
 
-- Avatar no token do canvas (o token segue usando `texture`).
+- Token com sprite animado: o token continua sendo uma imagem estática (a arte do ator, `img`).
 - Avatar de NPC exibido para os jogadores.
 - Giro do boneco: o recorte do acervo tem `frente` e `perfil_dir`; a UI usa
   **frente** apenas.
@@ -106,6 +106,25 @@ canto inferior direito da mesa do jogador que controla aquele personagem.
   flutuante cobre o avatar — decoração cede lugar a trabalho.
 - **REQ-AVT-035** [MVP] `prefers-reduced-motion` remove a entrada e o loop.
 - **REQ-AVT-036** [MVP] O overlay não intercepta clique destinado ao canvas.
+
+### Miniatura (token e retrato) — adaptação à mesa
+
+- **REQ-AVT-060** [MVP] O criador oferece "Usar como token" e "Usar como retrato": renderizam o
+  avatar atual (frente, primeiro quadro de `idle`) num PNG 256x256 de fundo transparente, recortado
+  na figura (token: figura inteira; retrato: busto), com ampliação por fator INTEIRO e
+  nearest-neighbor. Publicam na biblioteca (aba Tokens) e gravam `img` do ator por `doc:update`.
+- **REQ-AVT-061** [MVP] A arte do token É `Actor.img` (REQ-TOK-010/011): token e retrato da ficha
+  compartilham o campo, então os dois botões escrevem o mesmo `img` e diferem só no recorte. Não há
+  `prototypeToken.texture` nem `texture` por token nesta linha.
+- **REQ-AVT-062** [MVP] O upload usa `?purpose=avatar`: aberto a todo PLAYER, só PNG, até 512 KB,
+  sempre na aba tokens. O upload genérico continua exigindo TRUSTED.
+- **REQ-AVT-063** [MVP] Todo `doc:update` primário do avatar leva `expectedVersion` (o servidor
+  recusa jogador sem ele) e espera o ack; ver `lib/avatar/escrita.ts`.
+- **REQ-AVT-064** [MVP] Arte cujo nome começa com `avatar-token`/`avatar-retrato` é desenhada no
+  canvas sem suavização (pixel art).
+- **REQ-AVT-065** [MVP] O botão "Avatar" é uma ação do cabeçalho da janela (`headerActions`), posta
+  pelo core em toda ficha de `character`; nenhuma ficha de sistema conhece o avatar. O overlay do
+  canto desvia da gaveta e sobe acima da barra de ações quando as duas colidiriam.
 
 ### Acervo e distribuição
 
@@ -198,9 +217,16 @@ das 12 classes, `docs/lessons.md`):
   remove de verdade, e um **teste negativo** mostra a peça voltando quando o diff
   não poda.
 
+## 6.1 Atribuição e licença (pendência)
+
+O acervo mistura arte LPC sob licenças diversas (CC-BY-SA, CC-BY, OGA-BY, GPL). O criador mostra
+os créditos do próprio acervo (REQ-AVT-019), mas o PNG publicado como token/retrato é obra derivada:
+a spec 26 ainda precisa registrar a atribuição para esse uso e decidir se o texto de créditos
+acompanha o executável. Pendente de decisão do Alexandre.
+
 ## 7. Aberto
 
-- Avatar no token do canvas (usar o sprite montado como textura).
+- Token animado no canvas (hoje o token usa um quadro parado, ver REQ-AVT-060).
 - Fileira de avatares dos outros jogadores conectados.
 - Expressão/pose reagindo a estado de jogo (HP baixo, condição).
 - Bump do acervo: hoje é manual (trocar o SHA); vale um verificador que compare o
