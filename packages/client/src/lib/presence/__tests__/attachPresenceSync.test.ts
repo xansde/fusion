@@ -115,3 +115,64 @@ describe("attachPresenceSync — presence:online (REQ-NET-043)", () => {
     expect(presenceState.onlineUsers).toEqual([]);
   });
 });
+
+describe("attachPresenceSync — area templates", () => {
+  const tpl = { kind: "cone", sizeFt: 15, origin: { x: 500, y: 500 }, direction: 45 };
+  const env = (type: string, payload: Record<string, unknown>): Envelope =>
+    ({ type, ts: Date.now(), payload }) as unknown as Envelope;
+
+  afterEach(() => {
+    presenceState.remoteTemplates.clear();
+    presenceState.pinnedTemplates.clear();
+  });
+
+  it("keeps one live template per remote user and drops it on clear", () => {
+    const socket = new FakeSocket();
+    const detach = attachPresenceSync(socket as unknown as Socket);
+
+    socket.emit(env("presence:template", { userId: "u1", userName: "Ana", template: tpl }));
+    expect(presenceState.remoteTemplates.get("u1")?.template.kind).toBe("cone");
+    expect(presenceState.remoteTemplates.get("u1")?.userName).toBe("Ana");
+
+    socket.emit(env("presence:template:clear", { userId: "u1" }));
+    expect(presenceState.remoteTemplates.has("u1")).toBe(false);
+    detach();
+  });
+
+  it("ignores a template payload that is not a valid template", () => {
+    const socket = new FakeSocket();
+    const detach = attachPresenceSync(socket as unknown as Socket);
+    socket.emit(env("presence:template", { userId: "u1", template: { kind: "spiral" } }));
+    expect(presenceState.remoteTemplates.size).toBe(0);
+    detach();
+  });
+
+  it("tracks pinned templates by id, with their scene, and unpins them", () => {
+    const socket = new FakeSocket();
+    const detach = attachPresenceSync(socket as unknown as Socket);
+
+    socket.emit(env("presence:template:pin", { id: "p1", sceneId: "s1", userId: "u1", template: tpl }));
+    expect(presenceState.pinnedTemplates.get("p1")).toMatchObject({ sceneId: "s1", userId: "u1" });
+
+    socket.emit(env("presence:template:unpin", { id: "p1", sceneId: "s1" }));
+    expect(presenceState.pinnedTemplates.size).toBe(0);
+    detach();
+  });
+
+  it("replaces the pinned set of a scene from a sync reply", () => {
+    const socket = new FakeSocket();
+    const detach = attachPresenceSync(socket as unknown as Socket);
+
+    socket.emit(env("presence:template:pin", { id: "old", sceneId: "s1", userId: "u1", template: tpl }));
+    socket.emit(env("presence:template:pin", { id: "other", sceneId: "s2", userId: "u1", template: tpl }));
+    socket.emit(
+      env("presence:template:pinned", {
+        sceneId: "s1",
+        templates: [{ id: "new", userId: "u2", template: tpl }],
+      }),
+    );
+
+    expect([...presenceState.pinnedTemplates.keys()].sort()).toEqual(["new", "other"]);
+    detach();
+  });
+});

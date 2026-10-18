@@ -200,3 +200,41 @@ export function targetsInCells(
   }
   return names;
 }
+
+const KINDS: ReadonlySet<string> = new Set(["burst", "cone", "line", "emanation"]);
+
+function num(v: unknown): number | undefined {
+  return typeof v === "number" && Number.isFinite(v) ? v : undefined;
+}
+
+/**
+ * Validate an untrusted template (from the wire). Returns a clean AreaTemplate or
+ * null; never throws.
+ */
+export function parseAreaTemplate(raw: unknown): AreaTemplate | null {
+  if (typeof raw !== "object" || raw === null) return null;
+  const r = raw as Record<string, unknown>;
+  const kind = r["kind"];
+  if (typeof kind !== "string" || !KINDS.has(kind)) return null;
+  const sizeFt = num(r["sizeFt"]);
+  const direction = num(r["direction"]);
+  const o = r["origin"] as Record<string, unknown> | undefined;
+  const ox = num(o?.["x"]);
+  const oy = num(o?.["y"]);
+  if (sizeFt === undefined || direction === undefined || ox === undefined || oy === undefined) {
+    return null;
+  }
+  const base = { kind: kind as AreaKind, sizeFt, origin: { x: ox, y: oy }, direction };
+  const fp = r["footprint"] as Record<string, unknown> | undefined;
+  if (fp) {
+    const i = num(fp["i"]);
+    const j = num(fp["j"]);
+    const width = num(fp["width"]);
+    const height = num(fp["height"]);
+    if (i === undefined || j === undefined || width === undefined || height === undefined) {
+      return null;
+    }
+    return { ...base, footprint: { i, j, width, height } };
+  }
+  return base;
+}
