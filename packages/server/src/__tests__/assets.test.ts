@@ -1210,3 +1210,55 @@ describe("the icon mark lives in the asset registry (REQ-BAR-078)", () => {
     }
   });
 });
+
+// ---------------------------------------------------------------------------
+// ?purpose=avatar — the avatar creator's "Usar como token / retrato", open to every player
+// ---------------------------------------------------------------------------
+
+describe("POST /api/assets/upload?purpose=avatar — a player publishes his own avatar art", () => {
+  it("a PLAYER uploads a PNG; it lands in the library under the tokens tab", async () => {
+    const resp = await uploadIcon(
+      ctx.fastify,
+      ctx.playerToken,
+      PNG_BYTES,
+      "avatar-token.png",
+      {},
+      "?purpose=avatar",
+    );
+    expect(resp.statusCode).toBe(201);
+    const { path } = resp.json<{ path: string }>();
+    expect(path).toMatch(/^avatar-token-[0-9a-f]{8}\.png$/);
+    expect(existsSync(join(ctx.assetsDir, path))).toBe(true);
+  });
+
+  it("refuses anything that is not a PNG, even from the GM", async () => {
+    for (const token of [ctx.playerToken, ctx.gmToken]) {
+      const resp = await ctx.fastify.inject({
+        method: "POST",
+        url: "/api/assets/upload?purpose=avatar",
+        ...(() => {
+          const form = new FormData();
+          form.append("file", JPEG_BYTES, { filename: "x.jpg", contentType: "image/jpeg" });
+          return {
+            headers: { ...form.getHeaders(), authorization: `Bearer ${token}` },
+            payload: form.getBuffer(),
+          };
+        })(),
+      });
+      expect(resp.statusCode).toBe(415);
+    }
+    expect(topLevelNames()).toEqual([]);
+  });
+
+  it("caps the size well under the generic limit", async () => {
+    const big = Buffer.concat([PNG_BYTES, Buffer.alloc(600 * 1024, 0xaa)]);
+    const resp = await uploadIcon(ctx.fastify, ctx.playerToken, big, "big.png", {}, "?purpose=avatar");
+    expect(resp.statusCode).toBe(413);
+    expect(topLevelNames()).toEqual([]);
+  });
+
+  it("is not a way around the generic rule: no purpose, a PLAYER is still refused", async () => {
+    const resp = await uploadIcon(ctx.fastify, ctx.playerToken, PNG_BYTES, "x.png", {}, "");
+    expect(resp.statusCode).toBe(403);
+  });
+});
