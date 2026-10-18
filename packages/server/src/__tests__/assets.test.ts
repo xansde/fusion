@@ -1079,6 +1079,8 @@ describe("the icon upload never reveals a file the gallery hides (Q-BAR-05, REQ-
         "GET /api/assets",
         "GET /api/assets/icons",
         "GET /assets/*",
+        // Signs only the ambient track the GM is playing; reads nothing from the body.
+        "POST /api/assets/ambient-grant",
         "POST /api/assets/grant",
         "POST /api/assets/token",
         "POST /api/assets/upload",
