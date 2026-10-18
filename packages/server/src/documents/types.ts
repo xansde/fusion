@@ -33,6 +33,7 @@ import {
   FolderDocumentSchema,
   GridConfigSchema,
   InitialViewSchema,
+  ManualFogSchema,
 } from "@fusion/shared";
 import type { DocumentTable } from "@fusion/shared";
 
@@ -140,6 +141,12 @@ export const SceneSchema = BaseDocumentSchema.extend({
   tokenVision: z.boolean().default(false),
   /** Fog of war enabled (spec 07 REQ-VIS-085). */
   fogEnabled: z.boolean().default(false),
+  /**
+   * Manual fog of war. MUST be declared here: SceneSchema is what the store
+   * parses every write with, and Zod drops any key it does not declare (the
+   * same trap that ate `grid` and `initialView`). Absent = off.
+   */
+  manualFog: ManualFogSchema.optional(),
   /** Darkness level 0–1 (spec 07 REQ-VIS-044). */
   darkness: z.number().min(0).max(1).default(0),
   /** Global illumination flag (spec 07 REQ-VIS-044). */

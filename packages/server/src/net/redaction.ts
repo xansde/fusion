@@ -106,12 +106,15 @@ import {
   ATTITUDE_FLAG_KEY,
   TOKEN_MARKS_FLAG_NAMESPACE,
   TOKEN_MARKS_FLAG_KEY,
+  isFogCovered,
+  manualFogIsActive,
 } from "@fusion/shared";
 import type {
   ActorDamageAppliedPayload,
   ChatMessage,
   DamageAppliedTarget,
   Ownership,
+  ManualFogLike,
   RollTarget,
 } from "@fusion/shared";
 import {
@@ -356,6 +359,42 @@ export function tokenIsHiddenFromViewer(
   return !(Array.isArray(seenBy) && (seenBy as unknown[]).includes(userId));
 }
 
+// ---------------------------------------------------------------------------
+// Manual fog of war (névoa manual) — a token under the fog never reaches a
+// non-privileged viewer, by the same funnels that carry the hidden-token cut.
+// ---------------------------------------------------------------------------
+
+/** The scene's manual fog when it is switched on, otherwise undefined. */
+function sceneManualFog(scene: Record<string, unknown>): ManualFogLike | undefined {
+  const fog = scene["manualFog"];
+  if (!fog || typeof fog !== "object") return undefined;
+  return manualFogIsActive(fog as ManualFogLike) ? (fog as ManualFogLike) : undefined;
+}
+
+/** Grid cell size used to find a token's anchor; same default the client renders with. */
+function sceneGridSize(scene: Record<string, unknown>): number {
+  const grid = scene["grid"];
+  const size = grid && typeof grid === "object" ? (grid as Record<string, unknown>)["size"] : undefined;
+  return typeof size === "number" && size > 0 ? size : 100;
+}
+
+/**
+ * True when the token's anchor — the centre of its first grid cell — is under
+ * the fog. The server does not know a token's footprint (it comes from the
+ * actor's size on the client), so the anchor cell decides: a large creature
+ * whose first cell is revealed stays visible, and the client fog layer still
+ * paints over its covered cells.
+ */
+function tokenIsUnderManualFog(
+  token: Record<string, unknown>,
+  fog: ManualFogLike,
+  gridSize: number,
+): boolean {
+  const x = typeof token["x"] === "number" ? token["x"] : 0;
+  const y = typeof token["y"] === "number" ? token["y"] : 0;
+  return isFogCovered(fog, x + gridSize / 2, y + gridSize / 2);
+}
+
 /**
  * Strip hidden tokens from a single Scene document for non-GM players.
  *
@@ -385,8 +424,11 @@ export function stripHiddenTokens(
   const rawTokens = scene["tokens"];
   if (!Array.isArray(rawTokens)) return scene;
 
+  const fog = sceneManualFog(scene);
+  const gridSize = fog ? sceneGridSize(scene) : 0;
   const filtered = (rawTokens as Record<string, unknown>[]).filter(
-    (token) => !tokenIsHiddenFromViewer(token, userId),
+    (token) =>
+      !tokenIsHiddenFromViewer(token, userId) && !(fog && tokenIsUnderManualFog(token, fog, gridSize)),
   );
 
   // Only allocate a new object when something was actually removed.
@@ -462,7 +504,15 @@ export function tokenLookupSourceFromStore(store: DocumentStore): TokenLookupSou
         const tokens = scene["tokens"];
         if (!Array.isArray(tokens)) continue;
         for (const token of tokens as Record<string, unknown>[]) {
-          if (token["_id"] === tokenId) return token;
+          if (token["_id"] !== tokenId) continue;
+          // Under the manual fog a token is, for every viewer-facing cut that asks
+          // `tokenIsHiddenFromViewer`, hidden from everybody (empty `seenBy`).
+          // Privileged callers skip those cuts, so the GM is unaffected.
+          const fog = sceneManualFog(scene);
+          if (fog && tokenIsUnderManualFog(token, fog, sceneGridSize(scene))) {
+            return { ...token, hidden: true, seenBy: [] };
+          }
+          return token;
         }
       }
       return undefined;

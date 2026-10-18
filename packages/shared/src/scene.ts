@@ -29,6 +29,7 @@ import {
   TokenLightSchema,
 } from "./vision/scene-schemas.js";
 import { ActorDeltaPatchSchema } from "./token/effectiveActor.js";
+import { ManualFogSchema } from "./manual-fog.js";
 
 // ---------------------------------------------------------------------------
 // GridConfig Zod schema
@@ -417,6 +418,12 @@ export const SceneDocumentSchema = BaseDocumentSchema.omit({
    * REQ-VIS-085: when false, all players see the entire map.
    */
   fogEnabled: z.boolean().default(false),
+
+  /**
+   * Manual fog of war (GM paints reveal/cover shapes; no vision involved).
+   * Absent = off. See `manual-fog.ts` for the representation.
+   */
+  manualFog: ManualFogSchema.optional(),
 
   /**
    * Scene darkness level (0–1).
