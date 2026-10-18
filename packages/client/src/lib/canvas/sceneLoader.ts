@@ -16,7 +16,7 @@ import type { FusionCanvas } from "./FusionCanvas.js";
 import { resolveAssetUrl } from "../assets/assetApi.js";
 import { fusionApi } from "../api.js";
 import { session } from "../session.svelte.js";
-import { sceneContentOffset } from "./sceneCoords.js";
+import { sceneContentOffset, sceneGridOffset } from "./sceneCoords.js";
 
 /**
  * Load a SceneDocument onto the canvas.
@@ -105,6 +105,12 @@ export async function loadSceneDocument(
   // ---- Grid ----
   // Cast needed: scene.grid is inferred from Zod with `| undefined` on optional
   // fields, which is incompatible with GridConfig under exactOptionalPropertyTypes.
+  // A calibrated scene starts its grid `gridOffset` px into the map; otherwise
+  // the origin is the padding corner. Drawing and geometry take the same origin
+  // or the lines the GM sees would sit away from the cells tokens snap to.
+  const gridOffset = sceneGridOffset(scene);
+  const originX = padX + gridOffset.x;
+  const originY = padY + gridOffset.y;
   const gridCfg = GridRenderer.fromGridConfig(
     // scene.grid can be undefined at runtime (scenes persisted without a grid,
     // see r7.1) despite the type saying otherwise; `?? null` normalizes it for
@@ -113,8 +119,8 @@ export async function loadSceneDocument(
     (scene.grid ?? null) as unknown as GridConfig | null,
     totalWidth,
     totalHeight,
-    padX,
-    padY,
+    originX,
+    originY,
   );
   canvas.setGrid(gridCfg);
   // The grid GEOMETRY (snap, measure) for this scene, built from the same size
@@ -125,7 +131,7 @@ export async function loadSceneDocument(
   // the ruler and the area templates silently do nothing on it.
   const gridStrategy = createGridStrategy(
     sceneGrid ? { ...sceneGrid, size: gridCfg?.size ?? sceneGrid.size } : null,
-    { x: padX, y: padY },
+    { x: originX, y: originY },
     (reason) => {
       console.warn("[sceneLoader]", reason);
     },

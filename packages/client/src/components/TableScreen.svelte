@@ -99,7 +99,13 @@ import { presenceState } from "../lib/presence/presenceStore.svelte.js";
   import type { CompendiumDragPayload } from "../lib/compendium/compendiumBrowser.js";
   import { hasActorDragType, hasCompendiumDragType } from "../lib/canvas/canvasDragTypes.js";
   import { CANVAS_DROP_EFFECT } from "../lib/canvas/dragEffects.js";
-  import { effectiveGridSize } from "../lib/canvas/sceneCoords.js";
+  import {
+    effectiveGridSize,
+    sceneContentOffset,
+    sceneGridOffset,
+    sceneGridSignature,
+  } from "../lib/canvas/sceneCoords.js";
+  import { captureView, restoreView, type KeptView } from "../lib/canvas/sceneViewKeep.js";
   import type { SceneDocument } from "@fusion/shared";
   import { t } from "../lib/i18n/i18n.js";
 
@@ -264,6 +270,14 @@ import { presenceState } from "../lib/presence/presenceStore.svelte.js";
    * a full reload here is both wrong and redundant for that case.
    */
   let _loadedSceneId: string | null = null;
+  /**
+   * What the loaded scene's grid looked like when it was drawn (size, calibrated
+   * offset, colour, ...). A change reloads the SAME scene: the background, the
+   * grid lines, the snap and the padding all depend on it.
+   */
+  let _loadedGridSig: string | null = null;
+  /** Map corner (scene padding) of the loaded scene, to keep the camera across a grid reload. */
+  let _loadedCorner: { padX: number; padY: number } | null = null;
 
   async function handleLogout(): Promise<void> {
     if (loggingOut) return;
@@ -519,6 +533,8 @@ import { presenceState } from "../lib/presence/presenceStore.svelte.js";
         x: worldX,
         y: worldY,
         gridSize,
+        gridOffsetX: sceneGridOffset(scene).x,
+        gridOffsetY: sceneGridOffset(scene).y,
       });
       // REQ-NPC-063: an embedded doc:create (`buildActorDropTokenOp` composes the
       // spec-41 token fields with the shared envelope), awaited with an ack so a
@@ -578,6 +594,8 @@ import { presenceState } from "../lib/presence/presenceStore.svelte.js";
             x: worldX,
             y: worldY,
             gridSize,
+            gridOffsetX: sceneGridOffset(scene).x,
+            gridOffsetY: sceneGridOffset(scene).y,
           });
           // REQ-CPD-062: an embedded doc:create, awaited with an ack — same
           // shape and same visible-failure treatment as the actor branch
@@ -643,7 +661,15 @@ import { presenceState } from "../lib/presence/presenceStore.svelte.js";
     // the other per-doc reconcilers already pick this up on their own mirror
     // subscriptions; a full canvas teardown/reload here would only cause a
     // black-screen flash and reset the camera for no reason. See _loadedSceneId.
-    if (scene && scene._id === _loadedSceneId) return;
+    if (scene && scene._id === _loadedSceneId && sceneGridSignature(scene) === _loadedGridSig) {
+      return;
+    }
+
+    // Same scene, new grid (calibration): reload it, but keep the camera where it is.
+    const keptView: KeptView | null =
+      scene && scene._id === _loadedSceneId && _loadedCorner
+        ? captureView(canvas, _loadedCorner)
+        : null;
 
     // Nothing to show (scene cleared): there is no art to wait for, so the old scene comes
     // down right away. A generation bump still supersedes any swap in flight.
@@ -684,8 +710,10 @@ import { presenceState } from "../lib/presence/presenceStore.svelte.js";
             return;
           }
           cleanupScene = cleanup;
+          if (keptView) restoreView(canvas, keptView, sceneContentOffset(scene));
           // The new background is in place: fade the stage in (~250 ms) instead of popping.
-          _cancelFade = canvas.fadeInStage();
+          // A grid reload of the same scene keeps the stage as is.
+          _cancelFade = keptView ? null : canvas.fadeInStage();
           // Create and set up orchestrator for the new scene
           sceneOrchestrator = _createOrchestrator(canvas, scene);
           await sceneOrchestrator.setup();
@@ -697,6 +725,8 @@ import { presenceState } from "../lib/presence/presenceStore.svelte.js";
             return;
           }
           _loadedSceneId = scene._id;
+          _loadedGridSig = sceneGridSignature(scene);
+          _loadedCorner = sceneContentOffset(scene);
         } catch (err) {
           console.error("[TableScreen] Scene load failed:", err);
         }
@@ -719,6 +749,8 @@ import { presenceState } from "../lib/presence/presenceStore.svelte.js";
     cleanupScene?.();
     cleanupScene = null;
     _loadedSceneId = null;
+    _loadedGridSig = null;
+    _loadedCorner = null;
   }
 
   // ---- SceneOrchestrator helpers ----
@@ -902,7 +934,7 @@ import { presenceState } from "../lib/presence/presenceStore.svelte.js";
           _selectedTokenIds = new Set(tokenIds);
           publishTokenSelection({ sceneId: scene._id, tokenIds: [...tokenIds] });
         },
-        gridConfig: { size: gridSize, offsetX: 0, offsetY: 0 },
+        gridConfig: { size: gridSize, offsetX: sceneGridOffset(scene).x, offsetY: sceneGridOffset(scene).y },
         // TK110 (REQ-TOK-110): two clicks on a token open its sheet. The
         // manager already decided the gesture happened and that this user may
         // see the sheet (REQ-TOK-111); everything read here is read NOW, from
