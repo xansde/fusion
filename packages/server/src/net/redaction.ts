@@ -954,6 +954,31 @@ export function sceneHasSecretDoors(doc: unknown): boolean {
 }
 
 /**
+ * Map pins (Scene.notes) the GM marked as theirs never reach a non-privileged
+ * viewer. FAIL CLOSED: a note is delivered only when it says `gmOnly: false`
+ * explicitly - a missing flag or a malformed entry stays on the GM side.
+ * Returns the original reference when nothing needs cutting.
+ */
+export function redactGmOnlyNotes(scene: Record<string, unknown>): Record<string, unknown> {
+  const notes = scene["notes"];
+  if (!Array.isArray(notes)) return scene;
+  const visible = (notes as unknown[]).filter(noteIsPublic);
+  if (visible.length === notes.length) return scene;
+  return { ...scene, notes: visible };
+}
+
+function noteIsPublic(note: unknown): boolean {
+  return isPlainObject(note) && note["gmOnly"] === false;
+}
+
+/** True when a Scene-shaped doc carries at least one note a player must not receive. */
+export function sceneHasGmOnlyNotes(doc: unknown): boolean {
+  if (!doc || typeof doc !== "object") return false;
+  const notes = (doc as Record<string, unknown>)["notes"];
+  return Array.isArray(notes) && (notes as unknown[]).some((n) => !noteIsPublic(n));
+}
+
+/**
  * Return true when a single Scene-shaped doc carries at least one hidden token.
  * A "Scene-shaped doc" is any object with a `tokens` array; non-Scene docs (no
  * `tokens` array) trivially have nothing to redact.
@@ -1036,7 +1061,9 @@ export function redactSceneDocsForNonPrivileged(
   const result: Record<string, unknown>[] = [];
   for (const doc of documents) {
     if (!sceneIsOnAir(doc)) continue;
-    result.push(redactTokenActorDeltaHp(redactSecretDoors(stripHiddenTokens(doc, userId))));
+    result.push(
+      redactGmOnlyNotes(redactTokenActorDeltaHp(redactSecretDoors(stripHiddenTokens(doc, userId)))),
+    );
   }
   return result;
 }
@@ -1960,6 +1987,11 @@ export function redactAckResultForNonPrivileged(
     Array.isArray(documents) && (documents as unknown[]).some((d) => sceneHasSecretDoors(d));
   const parentNeedsSecretDoorRedaction = sceneHasSecretDoors(parent);
 
+  // GM-only map pins ride the Scene body exactly like the cuts above.
+  const documentsNeedNoteRedaction =
+    Array.isArray(documents) && (documents as unknown[]).some((d) => sceneHasGmOnlyNotes(d));
+  const parentNeedsNoteRedaction = sceneHasGmOnlyNotes(parent);
+
   // M2-C: redact hidden combatants in combat payloads
   const combatNeedsRedaction = combatDocHasHiddenCombatants(combat);
 
@@ -1976,11 +2008,13 @@ export function redactAckResultForNonPrivileged(
     documentsNeedHiddenTokenRedaction ||
     documentsNeedTokenDeltaHpRedaction ||
     documentsNeedSecretDoorRedaction ||
+    documentsNeedNoteRedaction ||
     documentsNeedCombatRedaction;
   const parentNeedsRedaction =
     parentNeedsHiddenTokenRedaction ||
     parentNeedsTokenDeltaHpRedaction ||
     parentNeedsSecretDoorRedaction ||
+    parentNeedsNoteRedaction ||
     parentNeedsCombatRedaction;
 
   if (
@@ -2007,6 +2041,7 @@ export function redactAckResultForNonPrivileged(
           redacted = redactTokenActorDeltaHp(stripHiddenTokens(redacted, contactCtx?.userId));
         }
         if (Array.isArray(redacted["walls"])) redacted = redactSecretDoors(redacted);
+        if (Array.isArray(redacted["notes"])) redacted = redactGmOnlyNotes(redacted);
         if (Array.isArray(redacted["combatants"])) {
           redacted = stripHiddenCombatantsFromCombat(redacted);
         }
@@ -2027,6 +2062,7 @@ export function redactAckResultForNonPrivileged(
       redactedParent = redactTokenActorDeltaHp(redactedParent);
     }
     if (parentNeedsSecretDoorRedaction) redactedParent = redactSecretDoors(redactedParent);
+    if (parentNeedsNoteRedaction) redactedParent = redactGmOnlyNotes(redactedParent);
     if (parentNeedsCombatRedaction) {
       redactedParent = stripHiddenCombatantsFromCombat(redactedParent);
     }

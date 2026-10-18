@@ -10,6 +10,11 @@
  * REQ-NET-093: Envelope types from @fusion/shared.
  */
 
+import {
+  buildNoteCreateHandler,
+  buildNoteUpdateHandler,
+  buildNoteDeleteHandler,
+} from "./handlers/note-handlers.js";
 import { Server as SocketIOServer } from "socket.io";
 import type { Namespace, Socket } from "socket.io";
 import type { Server as HttpServer } from "node:http";
@@ -503,6 +508,11 @@ export class SocketManager {
     registry.register("light:update", buildLightUpdateHandler(visionDeps));
     registry.register("light:delete", buildLightDeleteHandler(visionDeps));
     registry.register("scene:doorState", buildDoorStateHandler(visionDeps));
+    // Map pins (Scene.notes)
+    const noteDeps = { store, seqStore, opBuffer, ns };
+    registry.register("scene:noteCreate", buildNoteCreateHandler(noteDeps));
+    registry.register("scene:noteUpdate", buildNoteUpdateHandler(noteDeps));
+    registry.register("scene:noteDelete", buildNoteDeleteHandler(noteDeps));
     // Override token:move with collision-aware handler
     registry.register("token:move", buildTokenMoveHandler(visionDeps));
 

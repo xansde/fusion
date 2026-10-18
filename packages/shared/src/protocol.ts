@@ -147,6 +147,10 @@ export const EnvelopeTypeSchema = z.union([
   z.literal("light:update"),
   z.literal("light:delete"),
   z.literal("scene:doorState"),
+  // Map pins (Scene.notes)
+  z.literal("scene:noteCreate"),
+  z.literal("scene:noteUpdate"),
+  z.literal("scene:noteDelete"),
   // M2-C: combat (spec 10 §API e Eventos)
   // client → server
   z.literal("combat:create"),
