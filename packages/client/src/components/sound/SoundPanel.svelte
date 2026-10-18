@@ -241,6 +241,7 @@
 
 {#if showFilePicker && isGm}
   <FilePicker
+    category="audio"
     token={fusionApi.getToken() ?? ""}
     kinds={["audio"]}
     onSelect={handleFilePicked}

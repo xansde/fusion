@@ -15,6 +15,7 @@ export {
   listIconGallery,
   iconGalleryUrl,
   deleteIconAsset,
+  setAssetCategory,
 } from "./assetApi.js";
 export type {
   AssetEntry,

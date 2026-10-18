@@ -16,6 +16,7 @@
  * Security:  21-seguranca.md — Bearer token in Authorization header
  */
 
+import type { AssetCategory } from "@fusion/shared";
 import { assetGrantsCovering, type AssetDocRef } from "./assetGrants.svelte.js";
 
 // ---------------------------------------------------------------------------
@@ -23,6 +24,8 @@ import { assetGrantsCovering, type AssetDocRef } from "./assetGrants.svelte.js";
 // ---------------------------------------------------------------------------
 
 export interface AssetEntry {
+  /** Effective category (the picker's tab); absent on entries of the icon gallery. */
+  category?: AssetCategory;
   /** Filename only (e.g. "goblin-warrior-a3f8bc12.webp"). */
   name: string;
   /** File size in bytes. */
@@ -54,6 +57,8 @@ export type UploadPurpose = "icon";
 
 export interface UploadOptions {
   purpose?: UploadPurpose;
+  /** The picker tab the file is sent from (never "icons": that is `purpose: "icon"`). */
+  category?: AssetCategory;
 }
 
 /** The shared icon gallery, as `GET /api/assets/icons` answers it (BAR-F3-05). */
@@ -131,10 +136,13 @@ export function uploadAsset(
 ): Promise<UploadResult> {
   return new Promise<UploadResult>((resolve, reject) => {
     const xhr = new XMLHttpRequest();
-    xhr.open(
-      "POST",
-      options.purpose === "icon" ? "/api/assets/upload?purpose=icon" : "/api/assets/upload",
-    );
+    const query =
+      options.purpose === "icon"
+        ? "?purpose=icon"
+        : options.category !== undefined
+          ? `?category=${encodeURIComponent(options.category)}`
+          : "";
+    xhr.open("POST", `/api/assets/upload${query}`);
     xhr.setRequestHeader("Authorization", `Bearer ${token}`);
 
     // Report progress
@@ -190,6 +198,24 @@ export function uploadAsset(
     form.append("file", file);
     xhr.send(form);
   });
+}
+
+/** The GM moves an asset to another picker tab; `null` clears the choice (back to derived). */
+export async function setAssetCategory(
+  token: string,
+  name: string,
+  category: AssetCategory | null,
+): Promise<void> {
+  const response = await fetch("/api/assets/category", {
+    method: "PATCH",
+    headers: { ...authHeader(token), "Content-Type": "application/json" },
+    credentials: "include",
+    body: JSON.stringify({ name, category }),
+  });
+  if (!response.ok) {
+    const body = (await response.json().catch(() => ({}))) as { message?: string };
+    throw new Error(body.message ?? `Failed to move asset (HTTP ${String(response.status)})`);
+  }
 }
 
 /**

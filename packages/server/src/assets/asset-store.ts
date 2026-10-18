@@ -27,7 +27,12 @@
  */
 
 import type { Database } from "better-sqlite3";
-import { ACTION_BAR_ICON_AREA, isActionBarIconFileName } from "@fusion/shared";
+import {
+  ACTION_BAR_ICON_AREA,
+  isActionBarIconFileName,
+  isAssetCategory,
+  type AssetCategory,
+} from "@fusion/shared";
 
 /** The reserved area every icon upload lands in — the icon mark itself. */
 export const ICON_ASSET_AREA = ACTION_BAR_ICON_AREA;
@@ -60,6 +65,11 @@ export interface AssetRecord {
   uploadedBy: string | null;
   /** Epoch milliseconds the row was first created. */
   createdAt: number;
+  /**
+   * Category set explicitly (GM move, or the tab an upload was sent from); `null` = not set, the
+   * category is then derived (see `asset-category.ts`). Migration 011.
+   */
+  category: AssetCategory | null;
 }
 
 /** Input to {@link recordAsset}. */
@@ -71,6 +81,8 @@ export interface RecordAssetInput {
   uploadedBy: string | null;
   /** Defaults to `Date.now()`. Exposed for tests and reconciliation backfill. */
   createdAt?: number;
+  /** Explicit category for a NEW row; an existing row keeps the one it has. */
+  category?: AssetCategory;
 }
 
 interface AssetTableRow {
@@ -80,6 +92,7 @@ interface AssetTableRow {
   mime_type: string;
   uploaded_by: string | null;
   created_at: number;
+  category: string | null;
 }
 
 function fromRow(row: AssetTableRow): AssetRecord {
@@ -90,6 +103,7 @@ function fromRow(row: AssetTableRow): AssetRecord {
     mimeType: row.mime_type,
     uploadedBy: row.uploaded_by,
     createdAt: row.created_at,
+    category: isAssetCategory(row.category) ? row.category : null,
   };
 }
 
@@ -115,8 +129,8 @@ function fromRow(row: AssetTableRow): AssetRecord {
 export function recordAsset(db: Database, input: RecordAssetInput): void {
   const createdAt = input.createdAt ?? Date.now();
   db.prepare(
-    `INSERT INTO assets (name, digest, bytes, mime_type, uploaded_by, created_at)
-     VALUES (@name, @digest, @bytes, @mimeType, @uploadedBy, @createdAt)
+    `INSERT INTO assets (name, digest, bytes, mime_type, uploaded_by, created_at, category)
+     VALUES (@name, @digest, @bytes, @mimeType, @uploadedBy, @createdAt, @category)
      ON CONFLICT(name) DO UPDATE SET
        digest      = excluded.digest,
        bytes       = excluded.bytes,
@@ -128,7 +142,20 @@ export function recordAsset(db: Database, input: RecordAssetInput): void {
     mimeType: input.mimeType,
     uploadedBy: input.uploadedBy,
     createdAt,
+    category: input.category ?? null,
   });
+}
+
+/**
+ * Set (or, with `null`, clear) the explicit category of a registered asset. Returns false when the
+ * name has no registry row — the caller decides whether to backfill the row first.
+ */
+export function setAssetCategory(
+  db: Database,
+  name: string,
+  category: AssetCategory | null,
+): boolean {
+  return db.prepare(`UPDATE assets SET category = ? WHERE name = ?`).run(category, name).changes > 0;
 }
 
 /**

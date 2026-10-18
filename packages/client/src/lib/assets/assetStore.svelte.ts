@@ -17,7 +17,14 @@
  *   assetStore.setSearch(q)    — update search query
  */
 
-import { listAssets, uploadAsset, type AssetEntry, type UploadOptions } from "./assetApi.js";
+import {
+  listAssets,
+  uploadAsset,
+  setAssetCategory,
+  type AssetEntry,
+  type UploadOptions,
+} from "./assetApi.js";
+import type { AssetCategory } from "@fusion/shared";
 import { validateFileForUpload } from "./clientValidation.js";
 import {
   createUploadState,
@@ -136,6 +143,12 @@ async function startUpload(
   }
 }
 
+/** The GM moves an asset to another tab; the local list follows only if the server accepted. */
+async function moveAsset(token: string, name: string, category: AssetCategory): Promise<void> {
+  await setAssetCategory(token, name, category);
+  _assets = _assets.map((a) => (a.name === name ? { ...a, category } : a));
+}
+
 function setSearch(query: string): void {
   _searchQuery = query;
 }
@@ -187,6 +200,7 @@ export const assetStore = {
   },
 
   loadAssets,
+  moveAsset,
   startUpload,
   setSearch,
   clearUploadError,

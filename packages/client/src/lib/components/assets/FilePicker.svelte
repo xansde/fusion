@@ -16,6 +16,9 @@
    *   mode      "assets" (default) | "actionbar-icons" — the action bar's icon gallery (BAR-F3-05):
    *             lists only the shared icons (any role), uploads with the "icon" purpose, offers no
    *             external URL, and lets the GM delete an icon. Every other caller is unchanged.
+   *   category  AssetCategory          — the tab the picker opens on (scene background -> "maps",
+   *                                      portrait -> "tokens", item -> "items", show players ->
+   *                                      "handouts"). Defaults by `kinds` (audio -> "audio").
    *   kinds     AssetKind[]            — media kinds this picker offers to browse
    *                                      for. Defaults to ["image"], which is what
    *                                      every current caller (scene background,
@@ -27,6 +30,9 @@
    * by clientValidation (and, for real, by the server).
    *
    * Features:
+   *   - Tabs (categories): Todos, Mapas, Tokens, Itens, Ícones, Música e som, Handouts, Outros —
+   *     each with its count; search runs inside the active tab; an upload inherits the tab; the GM
+   *     moves an asset with the "Mover para…" menu or by dragging it onto a tab.
    *   - Grid of existing world assets with <img> preview.
    *   - Search by filename (client-side, real-time).
    *   - Drag & drop area + click-to-browse button for uploads.
@@ -37,7 +43,8 @@
    * Logic lives in assetStore.svelte.ts and assetApi.ts — this component is UI only.
    */
 
-  import { onMount } from "svelte";
+  import { onMount, untrack } from "svelte";
+  import { ASSET_CATEGORIES, ASSET_TAB_ALL, type AssetCategory, type AssetTab } from "@fusion/shared";
   import { assetStore } from "$lib/assets/assetStore.svelte.js";
   import {
     assetUrl,
@@ -56,7 +63,17 @@
     maxBytesFor,
     type AssetKind,
   } from "$lib/assets/clientValidation.js";
-  import { canDeleteGalleryIcons, pickerUploadOptions } from "$lib/assets/iconPicker.js";
+  import { canDeleteGalleryIcons } from "$lib/assets/iconPicker.js";
+  import {
+    canMoveAsset,
+    initialTab,
+    tabCounts,
+    tabLabelKey,
+    tabsForKinds,
+    uploadOptionsFor,
+    visibleAssets,
+    type PickerAsset,
+  } from "$lib/assets/assetTabs.js";
   import { t } from "$lib/i18n/i18n.js";
   import { session } from "$lib/session.svelte.js";
 
@@ -68,13 +85,23 @@
     onClose,
     mode = "assets",
     kinds = ["image"],
+    category,
   }: {
     token: string;
     onSelect: (path: string) => void;
     onClose: () => void;
     mode?: "assets" | "actionbar-icons";
     kinds?: AssetKind[];
+    category?: AssetCategory;
   } = $props();
+
+  // ---- Tabs (categories) ----
+
+  let activeTab = $state<AssetTab>(untrack(() => initialTab(category, kinds)));
+  let tabQuery = $state("");
+  let moveError = $state<string | null>(null);
+  const tabs = $derived(tabsForKinds(kinds));
+  const isGm = $derived(session.user?.role === 4);
 
   // ---- Icon mode (BAR-F3-05) ----
   //
@@ -147,6 +174,7 @@
       return;
     }
     void assetStore.loadAssets(token);
+    void loadGallery(); // the "Ícones" tab: the gallery is the server's list of the icon area
     const userId = session.user?.id;
     if (userId) {
       void fetchAssetToken(token, userId)
@@ -156,10 +184,6 @@
   });
 
   // ---- Handlers ----
-
-  function handleSearch(e: Event): void {
-    assetStore.setSearch((e.target as HTMLInputElement).value);
-  }
 
   function handleSelectAsset(name: string): void {
     onSelect(assetUrl(name));
@@ -212,8 +236,10 @@
    */
   function startUploads(fileList: File[]): void {
     const single = fileList.length === 1;
+    const options = uploadOptionsFor(mode, activeTab);
+    const toGallery = options.purpose === "icon";
     const onDone = (path: string): void => {
-      if (iconMode) void loadGallery();
+      if (toGallery) void loadGallery();
       if (single) {
         onSelect(assetUrl(path));
         onClose();
@@ -223,14 +249,67 @@
       void assetStore.startUpload(
         token,
         file,
-        single || iconMode ? onDone : undefined,
-        pickerUploadOptions(mode),
+        single || toGallery ? onDone : undefined,
+        options,
       );
     }
   }
 
   function handleKeydown(e: KeyboardEvent): void {
     if (e.key === "Escape") onClose();
+  }
+
+  // ---- Tabs: everything the grid can show, from the library listing and the icon gallery ----
+
+  const allItems = $derived<PickerAsset[]>([
+    ...assetStore.assets.map((a) => ({
+      name: a.name,
+      size: a.size,
+      mime_type: a.mime_type,
+      category: a.category ?? "other",
+    })),
+    ...gallery.assets.map((a) => ({
+      name: a.name,
+      size: a.size,
+      mime_type: a.mime_type,
+      category: "icons" as const,
+    })),
+  ]);
+  const counts = $derived(tabCounts(allItems, kinds));
+  const shownItems = $derived(visibleAssets(allItems, activeTab, tabQuery, kinds));
+
+  function previewSrc(item: PickerAsset): string {
+    return item.category === "icons"
+      ? iconGalleryUrl(gallery, item.name, session.user?.id ?? "")
+      : assetUrl(item.name, previewToken ?? undefined);
+  }
+
+  async function moveTo(name: string, target: AssetCategory): Promise<void> {
+    moveError = null;
+    try {
+      await assetStore.moveAsset(token, name, target);
+    } catch (err) {
+      moveError = t("FUSION.AssetTabs.MoveFailed", {
+        message: err instanceof Error ? err.message : "",
+      });
+    }
+  }
+
+  function handleMoveChange(e: Event, name: string): void {
+    const select = e.target as HTMLSelectElement;
+    const target = select.value;
+    select.value = "";
+    if ((ASSET_CATEGORIES as readonly string[]).includes(target) && target !== "icons") {
+      void moveTo(name, target as AssetCategory);
+    }
+  }
+
+  let dragName: string | null = null;
+  function handleTabDrop(e: DragEvent, tab: AssetTab): void {
+    e.preventDefault();
+    const name = e.dataTransfer?.getData("text/x-fusion-asset") || dragName;
+    dragName = null;
+    if (name && tab !== ASSET_TAB_ALL && tab !== "icons") void moveTo(name, tab);
   }
 
   // ---- Computed ----
@@ -293,12 +372,40 @@
         class="picker__search field__input"
         type="search"
         placeholder="Search by name…"
-        value={assetStore.searchQuery}
-        oninput={handleSearch}
+        bind:value={tabQuery}
         aria-label="Search assets"
       />
     {/if}
   </div>
+
+  <!-- Tabs (categories) -->
+  {#if !iconMode}
+    <div class="picker__tabs" role="tablist" aria-label={t("FUSION.AssetTabs.Label")}>
+      {#each tabs as tab (tab)}
+        <button
+          class="picker__tab"
+          class:picker__tab--active={activeTab === tab}
+          type="button"
+          role="tab"
+          aria-selected={activeTab === tab}
+          data-tab={tab}
+          onclick={() => {
+            activeTab = tab;
+          }}
+          ondragover={(e) => {
+            if (isGm && tab !== ASSET_TAB_ALL && tab !== "icons") e.preventDefault();
+          }}
+          ondrop={(e) => handleTabDrop(e, tab)}
+        >
+          {t(tabLabelKey(tab))}
+          <span class="picker__tab-count" data-count={tab}>{counts[tab]}</span>
+        </button>
+      {/each}
+    </div>
+    {#if moveError}
+      <p class="picker__notice picker__notice--error" role="alert">{moveError}</p>
+    {/if}
+  {/if}
 
   <!-- Upload zone -->
   <div
@@ -431,20 +538,30 @@
         >Retry</button>
       </div>
 
-    {:else if assetStore.filtered.length === 0}
+    {:else if shownItems.length === 0}
       <div class="picker__empty">
-        {assetStore.assets.length === 0
-          ? "No assets uploaded yet. Drop a file above to get started."
-          : "No assets match your search."}
+        {#if allItems.length === 0}
+          No assets uploaded yet. Drop a file above to get started.
+        {:else if tabQuery.trim() !== ""}
+          No assets match your search.
+        {:else}
+          {t("FUSION.AssetTabs.EmptyTab")}
+        {/if}
       </div>
 
     {:else}
       <ul class="picker__grid" role="list" aria-label="Available assets">
-        {#each assetStore.filtered as asset (asset.name)}
-          <li>
+        {#each shownItems as asset (asset.name)}
+          {@const movable = isGm && canMoveAsset(session.user?.role, asset)}
+          <li class="icon-cell">
             <button
               class="asset-card"
               type="button"
+              draggable={movable}
+              ondragstart={(e) => {
+                dragName = asset.name;
+                e.dataTransfer?.setData("text/x-fusion-asset", asset.name);
+              }}
               onclick={() => handleSelectAsset(asset.name)}
               title={`${asset.name} (${formatBytes(asset.size)})`}
               aria-label={`Select ${asset.name}`}
@@ -452,7 +569,7 @@
               {#if isImageExtension(asset.name)}
                 <img
                   class="asset-card__img"
-                  src={assetUrl(asset.name, previewToken ?? undefined)}
+                  src={previewSrc(asset)}
                   alt={asset.name}
                   loading="lazy"
                 />
@@ -471,6 +588,29 @@
               <span class="asset-card__name">{asset.name}</span>
               <span class="asset-card__size">{formatBytes(asset.size)}</span>
             </button>
+            {#if movable}
+              <select
+                class="asset-move"
+                value=""
+                onchange={(e) => handleMoveChange(e, asset.name)}
+                aria-label={t("FUSION.AssetTabs.MoveLabel", { name: asset.name })}
+                title={t("FUSION.AssetTabs.MoveTo")}
+              >
+                <option value="" disabled>{t("FUSION.AssetTabs.MoveTo")}</option>
+                {#each ASSET_CATEGORIES.filter((c) => c !== "icons" && c !== asset.category) as target (target)}
+                  <option value={target}>{t(tabLabelKey(target))}</option>
+                {/each}
+              </select>
+            {/if}
+            {#if asset.category === "icons" && canDeleteIcons}
+              <button
+                class="icon-cell__delete"
+                type="button"
+                onclick={() => void handleDeleteIcon(asset.name)}
+                aria-label={t("FUSION.IconPicker.Delete", { name: iconFileName(asset.name) })}
+                title={t("FUSION.IconPicker.DeleteTitle")}
+              >&#x2715;</button>
+            {/if}
           </li>
         {/each}
       </ul>
@@ -825,6 +965,75 @@
     border-color: var(--fusion-danger);
     color: var(--fusion-danger);
     outline: none;
+  }
+
+  /* ---- Tabs ---- */
+  .picker__tabs {
+    display: flex;
+    flex-shrink: 0;
+    flex-wrap: wrap;
+    gap: 0.25rem;
+    padding: 0.6rem 1.25rem 0;
+  }
+
+  .picker__tab {
+    align-items: center;
+    background: transparent;
+    border: 1px solid var(--fusion-border);
+    border-radius: var(--fusion-radius-sm);
+    color: var(--fusion-text-muted);
+    cursor: pointer;
+    display: inline-flex;
+    font-family: var(--fusion-font);
+    font-size: 0.75rem;
+    gap: 0.35rem;
+    padding: 0.25rem 0.6rem;
+    transition: border-color var(--fusion-transition), color var(--fusion-transition);
+  }
+
+  .picker__tab:hover,
+  .picker__tab:focus-visible {
+    border-color: var(--fusion-text-muted);
+    color: var(--fusion-text);
+    outline: none;
+  }
+
+  .picker__tab--active {
+    background: var(--fusion-accent-dim);
+    border-color: var(--fusion-accent);
+    color: var(--fusion-text);
+  }
+
+  .picker__tab-count {
+    color: var(--fusion-text-subtle);
+    font-size: 0.6875rem;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .picker__notice--error {
+    color: var(--fusion-danger);
+    padding: 0 1.25rem;
+  }
+
+  .asset-move {
+    background: var(--fusion-surface);
+    border: 1px solid var(--fusion-border);
+    border-radius: var(--fusion-radius-sm);
+    color: var(--fusion-text-muted);
+    cursor: pointer;
+    font-family: var(--fusion-font);
+    font-size: 0.65rem;
+    max-width: 5.5rem;
+    opacity: 0;
+    padding: 0.1rem 0.2rem;
+    position: absolute;
+    right: 0.25rem;
+    top: 0.25rem;
+  }
+
+  .icon-cell:hover .asset-move,
+  .asset-move:focus-visible {
+    opacity: 1;
   }
 
   /* ---- External URL ---- */

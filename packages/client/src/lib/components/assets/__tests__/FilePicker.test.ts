@@ -61,12 +61,55 @@ describe("FilePicker — the icon mode's two decisions are the pure ones (lib/as
     "utf8",
   );
 
-  it("every upload goes out with pickerUploadOptions(mode)", () => {
-    expect(source).toMatch(/assetStore\.startUpload\([\s\S]*?pickerUploadOptions\(mode\),?\s*\)/);
+  it("every upload goes out with the options of the active tab", () => {
+    expect(source).toContain("uploadOptionsFor(mode, activeTab)");
+    expect(source).toMatch(/assetStore\.startUpload\([\s\S]*?options,?\s*\)/);
   });
 
   it("the delete button is offered through canDeleteGalleryIcons", () => {
     expect(source).toContain("canDeleteGalleryIcons(session.user?.role)");
     expect(source).toMatch(/\{#if canDeleteIcons\}/);
+  });
+});
+
+describe("FilePicker — tabs (categories)", () => {
+  const tabsOf = (props: Record<string, unknown>): string[] => {
+    const { body } = render(FilePicker, {
+      props: { token: "t", onSelect: noop, onClose: noop, ...props },
+    });
+    return [...body.matchAll(/data-tab="(\w+)"/g)].map((m) => m[1] ?? "");
+  };
+  const activeOf = (props: Record<string, unknown>): string | undefined => {
+    const { body } = render(FilePicker, {
+      props: { token: "t", onSelect: noop, onClose: noop, ...props },
+    });
+    return /picker__tab--active[^>]*data-tab="(\w+)"/.exec(body)?.[1];
+  };
+
+  it("shows the eight tabs in order, labelled in pt-BR", () => {
+    const { body } = render(FilePicker, {
+      props: { token: "t", onSelect: noop, onClose: noop, kinds: ["image", "audio"] },
+    });
+    expect([...body.matchAll(/data-tab="(\w+)"/g)].map((m) => m[1])).toEqual([
+      "all", "maps", "tokens", "items", "icons", "audio", "handouts", "other",
+    ]);
+    expect(body).toContain("Música e som");
+    expect(body).toContain("Tokens e retratos");
+  });
+
+  it("an image picker has no music tab; the icon gallery mode has no tabs at all", () => {
+    expect(tabsOf({})).not.toContain("audio");
+    expect(tabsOf({ mode: "actionbar-icons" })).toEqual([]);
+  });
+
+  it("opens on the tab its context asked for", () => {
+    expect(activeOf({ category: "maps" })).toBe("maps");
+    expect(activeOf({ category: "handouts" })).toBe("handouts");
+    expect(activeOf({})).toBe("all");
+  });
+
+  it("the sound picker opens straight on Música e som and offers no image tab", () => {
+    expect(activeOf({ kinds: ["audio"] })).toBe("audio");
+    expect(tabsOf({ kinds: ["audio"] })).toEqual(["all", "audio", "other"]);
   });
 });

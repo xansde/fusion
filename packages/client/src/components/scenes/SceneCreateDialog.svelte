@@ -340,6 +340,7 @@
 {#if showFilePicker}
   {@const tok = fusionApi.getToken() ?? ""}
   <FilePicker
+    category="maps"
     token={tok}
     onSelect={(path) => {
       formData.background = path;

@@ -1483,5 +1483,18 @@
   "FUSION.Fog.CoverAll": "Cobrir tudo",
   "FUSION.Fog.Undo": "Desfazer",
   "FUSION.Fog.TooComplex": "Névoa complexa demais. Use Revelar tudo ou Cobrir tudo para recomeçar.",
-  "FUSION.Fog.SaveFailed": "Não foi possível salvar a névoa."
+  "FUSION.Fog.SaveFailed": "Não foi possível salvar a névoa.",
+  "FUSION.AssetTabs.all": "Todos",
+  "FUSION.AssetTabs.maps": "Mapas",
+  "FUSION.AssetTabs.tokens": "Tokens e retratos",
+  "FUSION.AssetTabs.items": "Itens e loot",
+  "FUSION.AssetTabs.icons": "Ícones",
+  "FUSION.AssetTabs.audio": "Música e som",
+  "FUSION.AssetTabs.handouts": "Handouts",
+  "FUSION.AssetTabs.other": "Outros",
+  "FUSION.AssetTabs.Label": "Categorias de assets",
+  "FUSION.AssetTabs.MoveTo": "Mover para…",
+  "FUSION.AssetTabs.MoveLabel": "Mover {{name}} para outra aba",
+  "FUSION.AssetTabs.MoveFailed": "Não foi possível mover: {{message}}",
+  "FUSION.AssetTabs.EmptyTab": "Nada nesta aba."
 }
