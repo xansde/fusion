@@ -154,6 +154,12 @@ export interface BootNetContext {
    * undefined leaves the registry with only the generic-1d20 fallback.
    */
   systemModule?: SystemModule;
+  /**
+   * The world's assets directory (same value as BootAssetContext.assetsDir).
+   * Forwarded to SocketManager so sound:play can validate the requested track
+   * exists in the library. Optional — undefined leaves that to the picker UI.
+   */
+  assetsDir?: string;
 }
 
 // ---------------------------------------------------------------------------
@@ -765,6 +771,9 @@ export async function boot(options: BootOptions): Promise<BootResult> {
     }
     if (netContext.maxConnections !== undefined) {
       nsOptions.maxConnections = netContext.maxConnections;
+    }
+    if (netContext.assetsDir !== undefined) {
+      nsOptions.assetsDir = netContext.assetsDir;
     }
     socketManager.registerWorldNamespace(nsOptions);
 

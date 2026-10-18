@@ -5,6 +5,7 @@
  * All types live in @fusion/shared so both server and client share a single source of truth.
  */
 import { z } from "zod";
+import { AmbientTrackStateSchema } from "./sound/types.js";
 
 // ---------------------------------------------------------------------------
 // Protocol version
@@ -129,6 +130,10 @@ export const EnvelopeTypeSchema = z.union([
   z.literal("companion:setActive"),
   // L3 I4 (BHR-F5-07): the owner commands an animal companion; the server records it on the combat.
   z.literal("companion:command"),
+  // Ambient table track (shared/src/sound/types.ts): GM commands + server broadcast.
+  z.literal("sound:play"),
+  z.literal("sound:stop"),
+  z.literal("sound:state"),
   // Spec 52 REQ-BHR-102..105 (BHR-F4-08, DEC-BHR-09): a pack effect copied onto
   // other actors, with the permission-by-link rule decided on the server.
   z.literal("effect:apply"),
@@ -457,6 +462,12 @@ export const WorldSnapshotPayloadSchema = z.object({
     z.string(), // document type name e.g. "Scene", "Actor"
     z.array(z.unknown()), // raw document objects
   ),
+
+  /**
+   * Ambient table track playing right now, or null when the table is silent.
+   * Optional: older snapshots omit it; clients treat absent as null.
+   */
+  ambientTrack: AmbientTrackStateSchema.optional(),
 });
 
 export type WorldSnapshotPayload = z.infer<typeof WorldSnapshotPayloadSchema>;

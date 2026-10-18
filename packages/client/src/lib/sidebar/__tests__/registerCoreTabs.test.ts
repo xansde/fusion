@@ -104,6 +104,7 @@ describe("the core tabs register through the public call (G016)", () => {
         "contacts",
         "combat",
         "compendium",
+        "sound",
         "npcs",
         "scenes",
         "settings",
@@ -113,6 +114,7 @@ describe("the core tabs register through the public call (G016)", () => {
         "contacts",
         "combat",
         "compendium",
+        "sound",
         "npcs",
         "scenes",
         "settings",
@@ -150,7 +152,7 @@ describe("the core tabs register through the public call (G016)", () => {
       // REQ-GAV-003 order of the "all" group — exactly the four tabs of the
       // requirement now that G078 buried the provisional Atores directory that used
       // to sit at the end of the group (REQ-GAV-031 position).
-      expect(idsOf(visible.all)).toEqual(["chat", "contacts", "combat", "compendium"]);
+      expect(idsOf(visible.all)).toEqual(["chat", "contacts", "combat", "compendium", "sound"]);
       // REQ-NPC-001: NPCs is the FIRST of the gm group, ahead of Cenas.
       expect(idsOf(visible.gm)).toEqual(["npcs", "scenes"]);
       expect(idsOf(visible.footer)).toEqual([SETTINGS_TAB_ID]);
@@ -160,10 +162,10 @@ describe("the core tabs register through the public call (G016)", () => {
       const player = listVisibleSidebarTabs(false);
       const gm = listVisibleSidebarTabs(true);
 
-      expect(idsOf(player)).toEqual(["chat", "contacts", "combat", "compendium", "settings"]);
+      expect(idsOf(player)).toEqual(["chat", "contacts", "combat", "compendium", "sound", "settings"]);
       // REQ-NPC-003: the NPCs tab is not rendered for a seat without a privileged role.
       expect(idsOf(player)).not.toContain("npcs");
-      for (const id of ["chat", "contacts", "combat", "compendium"]) {
+      for (const id of ["chat", "contacts", "combat", "compendium", "sound"]) {
         expect(idsOf(player).indexOf(id)).toBe(idsOf(gm).indexOf(id));
       }
       expect(idsOf(player).at(-1)).toBe("settings");
@@ -303,6 +305,8 @@ describe("the core tabs register through the public call (G016)", () => {
       ["contacts", () => import("../../../components/contacts/ContactsPanel.svelte")],
       ["combat", () => import("../../../components/combat/CombatPanel.svelte")],
       ["compendium", () => import("../../../components/compendium/CompendiumBrowser.svelte")],
+      // Ambient table track: visible to every seat, after the compendium.
+      ["sound", () => import("../../../components/sound/SoundPanel.svelte")],
       // REQ-NPC-001: NPCs is spec 42's own panel, first of the gm group — and since
       // G078 the only panel of this table that authors an Actor.
       ["npcs", () => import("../../../components/npcs/NpcsPanel.svelte")],

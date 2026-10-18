@@ -25,6 +25,7 @@ export * from "./scene.js";
 export * from "./map-note.js";
 export * from "./chat/index.js";
 export * from "./vision/index.js";
+export * from "./sound/index.js";
 export * from "./combat/index.js";
 export * from "./compendium.js";
 export * from "./knowledge.js";
