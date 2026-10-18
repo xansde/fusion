@@ -48,6 +48,7 @@
   import { liberarPixelsDoAvatar } from "$lib/avatar/desenhar.js";
   import { getSocket } from "$lib/session.svelte.js";
   import { atualizarAtor } from "$lib/avatar/escrita.js";
+  import { FilaDeSalvamento } from "$lib/avatar/salvamento.js";
   import { caminhoDeArteValido, podeRestaurar, precisaConfirmarSubstituicao } from "$lib/avatar/imagemDoAtor.js";
   import { worldMirror } from "$lib/docs/worldSync.js";
   import ActorPortrait from "$lib/components/common/ActorPortrait.svelte";
@@ -182,65 +183,95 @@
   // Edits
   // ---------------------------------------------------------------------------
 
+  /**
+   * Every edit saves by itself (lib/avatar/salvamento.ts): at the table a figure
+   * built, used as token and then closed without "Salvar avatar" was lost — only
+   * the three starting pieces were on the document.
+   */
+  function editou(): void {
+    sujo = true;
+    mensagem = null;
+    if (catalogo === null) return;
+    ultimoAgendado = paraFlag(catalogo, corpo, selecao);
+    fila.agendar(ultimoAgendado);
+  }
+
   function escolher(item: Item | null): void {
     if (!podeEditar || slotAtual === undefined) return;
     selecao = selecaoCom(item);
-    sujo = true;
-    mensagem = null;
+    editou();
   }
 
   function pintar(canal: CanalDoCriador, valor: string): void {
     if (!podeEditar || slotAtual === undefined) return;
     selecao = definirCor(selecao, slotAtual.slot, canal.nome, valor);
-    sujo = true;
-    mensagem = null;
+    editou();
   }
 
   function trocarCorpo(novo: string): void {
     if (!podeEditar) return;
     corpo = novo;
-    sujo = true;
+    editou();
   }
 
   function recomecar(): void {
     if (!podeEditar || catalogo === null) return;
     selecao = selecaoInicial(catalogo, corpo);
-    sujo = true;
-    mensagem = null;
+    editou();
+  }
+
+  function tirar(slot: string): void {
+    if (!podeEditar) return;
+    selecao = trocarPeca(selecao, slot, null);
+    editou();
   }
 
   // ---------------------------------------------------------------------------
   // Save / remove
   // ---------------------------------------------------------------------------
 
-  async function enviar(novo: AvatarFlag | null): Promise<void> {
+  /** The newest state handed to the queue — `sujo` clears only once THAT one landed. */
+  let ultimoAgendado: AvatarFlag | null = null;
+
+  async function gravar(novo: AvatarFlag | null): Promise<void> {
     const socket = getSocket();
-    if (socket === null) {
-      mensagem = t("FUSION.Avatar.Error.Offline");
-      return;
-    }
+    if (socket === null) throw new Error("offline");
     salvando = true;
-    mensagem = null;
     try {
       await atualizarAtor(socket, actorId, diffDoAvatar(baseline, novo));
       baseline = novo;
-      sujo = false;
-      mensagem = novo === null ? t("FUSION.Avatar.Removed") : t("FUSION.Avatar.Saved");
-    } catch {
-      mensagem = t("FUSION.Avatar.Error.Save");
+      if (novo === ultimoAgendado) sujo = false;
     } finally {
       salvando = false;
     }
   }
 
+  const fila = new FilaDeSalvamento<AvatarFlag | null>({
+    espera: 600,
+    gravar,
+    aoFalhar: () => {
+      mensagem = getSocket() === null ? t("FUSION.Avatar.Error.Offline") : t("FUSION.Avatar.Error.Save");
+    },
+  });
+
+  // Closing the window flushes the pending edit: the socket outlives the window.
+  $effect(() => () => {
+    void fila.descarregar();
+  });
+
   async function salvar(): Promise<void> {
-    if (!podeEditar || catalogo === null) return;
-    await enviar(paraFlag(catalogo, corpo, selecao));
+    if (!podeEditar) return;
+    await fila.descarregar();
+    if (!sujo) mensagem = t("FUSION.Avatar.Saved");
   }
 
   async function remover(): Promise<void> {
     if (!podeEditar) return;
-    await enviar(null);
+    ultimoAgendado = null;
+    fila.agendar(null);
+    await fila.descarregar();
+    if (baseline === null) mensagem = t("FUSION.Avatar.Removed");
+    // The fresh doll is NOT scheduled: saving it would bring the avatar back.
     if (catalogo !== null) selecao = selecaoInicial(catalogo, corpo);
   }
 
@@ -276,6 +307,9 @@
   async function usarComo(modo: ModoMiniatura): Promise<void> {
     if (!podeEditar || catalogo === null) return;
     descartarPendente();
+    // The token is made from the avatar: the avatar on the document must be the
+    // same figure, so the pending edit lands first.
+    await fila.descarregar();
     salvando = true;
     mensagem = null;
     try {
@@ -437,7 +471,7 @@
                 <button
                   type="button"
                   class="equipados__tirar"
-                  onclick={() => { selecao = trocarPeca(selecao, linha.slot, null); sujo = true; }}
+                  onclick={() => tirar(linha.slot)}
                   aria-label={t("FUSION.Avatar.Unequip", { slot: linha.rotulo })}
                 >×</button>
               {/if}
@@ -454,8 +488,14 @@
 
       {#if podeEditar}
         <div class="acoes">
-          <button type="button" class="acoes__salvar" disabled={salvando || !sujo} onclick={salvar}>
-            {salvando ? t("FUSION.Avatar.Saving") : t("FUSION.Avatar.Save")}
+          <button
+            type="button"
+            class="acoes__salvar"
+            disabled={salvando || !sujo}
+            title={t("FUSION.Avatar.AutoSaveHint")}
+            onclick={salvar}
+          >
+            {salvando ? t("FUSION.Avatar.Saving") : sujo ? t("FUSION.Avatar.Save") : t("FUSION.Avatar.SavedState")}
           </button>
           <button type="button" disabled={salvando} onclick={recomecar}>{t("FUSION.Avatar.Reset")}</button>
           <button

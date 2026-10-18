@@ -1533,6 +1533,8 @@
   "FUSION.Avatar.Save": "Salvar avatar",
   "FUSION.Avatar.Saving": "Salvando…",
   "FUSION.Avatar.Saved": "Avatar salvo.",
+  "FUSION.Avatar.SavedState": "Salvo ✓",
+  "FUSION.Avatar.AutoSaveHint": "O avatar se salva sozinho a cada mudança; este botão só adianta o salvamento.",
   "FUSION.Avatar.Reset": "Recomeçar",
   "FUSION.Avatar.Remove": "Remover avatar",
   "FUSION.Avatar.Removed": "Avatar removido.",
