@@ -294,6 +294,7 @@
   "FUSION.Sheet.Header.Level": "Level {{level}}",
   "FUSION.Sheet.Portrait.Change": "Change portrait",
   "FUSION.Sheet.Portrait.Remove": "Remove portrait",
+  "FUSION.Sheet.Portrait.RemoveConfirm": "Remove the portrait? The image also disappears from the map token (it can be restored from the avatar creator).",
   "FUSION.Sheet.Portrait.Alt": "Portrait of {{name}}",
   "FUSION.Sheet.Labels.HP": "HP",
   "FUSION.Sheet.Labels.AC": "AC",
