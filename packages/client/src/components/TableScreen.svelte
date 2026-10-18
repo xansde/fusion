@@ -71,6 +71,13 @@ import { presenceState } from "../lib/presence/presenceStore.svelte.js";
   import ShowPlayersButton from "./ShowPlayersButton.svelte";
   import ShowPlayersWindow from "./ShowPlayersWindow.svelte";
   import MapNoteButton from "./MapNoteButton.svelte";
+  import CalibrateGridButton from "./CalibrateGridButton.svelte";
+  import GridCalibrationPanel from "./scenes/GridCalibrationPanel.svelte";
+  import {
+    gridCalibrationState,
+    stopGridCalibration,
+  } from "../lib/scenes/gridCalibrationState.svelte.js";
+  import { cornerPanel } from "../lib/ui/cornerPanel.svelte.js";
   import MapNotePopup from "./MapNotePopup.svelte";
   import { attachNotes, type NotesHandle } from "../lib/notes/attachNotes.js";
   import { noteUi } from "../lib/notes/noteUi.svelte.js";
@@ -1104,6 +1111,19 @@ import { presenceState } from "../lib/presence/presenceStore.svelte.js";
   {#if isGm()}
     <ShowPlayersButton />
     <MapNoteButton />
+    <CalibrateGridButton sceneId={canvasScene?._id ?? null} />
+    <!-- Grid calibration: aimed at the scene the canvas is showing; leaving that scene
+         (or closing the corner panel) unmounts it and drops the box. -->
+    {#if cornerPanel.open === "calibrate" && fusionCanvas && canvasScene && gridCalibrationState.sceneId === canvasScene._id}
+      {#key canvasScene._id}
+        <GridCalibrationPanel
+          canvas={fusionCanvas}
+          scene={canvasScene}
+          socket={getSocket()}
+          onClose={stopGridCalibration}
+        />
+      {/key}
+    {/if}
   {/if}
   <MapNotePopup />
   <ShowPlayersWindow />

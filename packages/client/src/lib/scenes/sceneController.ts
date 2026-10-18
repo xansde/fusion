@@ -225,6 +225,59 @@ export async function updateSceneConfig(
   });
 }
 
+/** What the calibration panel hands the scene: the grid and where it starts. */
+export interface GridCalibrationData {
+  size: number;
+  /** Offset from the map corner, in [0, size). */
+  offsetX: number;
+  offsetY: number;
+  /** In-game distance of one cell and its unit label. */
+  distance: number;
+  units: string;
+  /** Line colour (CSS hex) and opacity (0-1). */
+  color: string;
+  alpha: number;
+}
+
+/**
+ * Write a calibrated grid: size, origin and look, in ONE update.
+ *
+ * Size and offset travel together because either alone leaves the Master
+ * looking at a grid that is still off after a calibration that said it worked.
+ * The grid block is sent whole (and forced to `square`): a scene saved without
+ * one — three of the five in the real world — has nothing to merge a partial
+ * patch into, and calibration only makes sense on a square grid.
+ */
+export async function updateGridCalibration(
+  socket: Socket,
+  sceneId: string,
+  data: GridCalibrationData,
+): Promise<void> {
+  await sendOp(socket, {
+    type: "doc:update",
+    payload: {
+      documentType: "Scene",
+      updates: [
+        {
+          _id: sceneId,
+          diff: {
+            grid: {
+              type: "square",
+              size: data.size,
+              distance: data.distance,
+              units: data.units,
+              color: data.color,
+              alpha: data.alpha,
+            },
+            gridOffsetX: data.offsetX,
+            gridOffsetY: data.offsetY,
+          },
+        },
+      ],
+    },
+  });
+}
+
 /**
  * Activate a scene.
  *

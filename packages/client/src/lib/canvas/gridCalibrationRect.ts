@@ -142,13 +142,14 @@ export function nudgeStep(shift: boolean): number {
 }
 
 /**
- * Make a rectangle square by growing its short side to the long one, keeping
- * the top-left corner where it is (so the box does not jump under the cursor).
+ * Make a rectangle's cells square: the cell side becomes the LONGER of the two
+ * sides per cell, keeping the top-left corner where it is (so the box does not
+ * jump under the cursor). `cols` x `rows` is how many cells the box spans.
  */
-export function squareUpRect(rect: Rect): Rect {
+export function squareUpRect(rect: Rect, cols = 1, rows = 1): Rect {
   const r = normalizeRect(rect);
-  const side = Math.max(r.width, r.height);
-  return { x: r.x, y: r.y, width: side, height: side };
+  const cell = Math.max(r.width / cols, r.height / rows);
+  return { x: r.x, y: r.y, width: cell * cols, height: cell * rows };
 }
 
 /**

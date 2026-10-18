@@ -95,6 +95,7 @@
   import { needsAssetQueryToken, resolveAssetUrl } from "../../lib/assets/assetApi.js";
   import { fusionApi } from "../../lib/api.js";
   import TokenAddDialog from "./TokenAddDialog.svelte";
+  import { startGridCalibration } from "../../lib/scenes/gridCalibrationState.svelte.js";
   import {
     enterScenePrepare,
     exitScenePrepare,
@@ -239,6 +240,18 @@
   function togglePrepare(sceneId: string): void {
     if (scenePrepareState.sceneId === sceneId) exitScenePrepare();
     else enterScenePrepare(sceneId, activeSceneId);
+  }
+
+  /**
+   * Aim the grid calibration at a scene. The tool works on the scene the canvas is
+   * showing, so a scene that is neither on air nor prepared is prepared first — a local
+   * act of this Master that writes nothing (REQ-CEN-051).
+   */
+  function calibrateGrid(sceneId: string): void {
+    if (sceneId !== activeSceneId && scenePrepareState.sceneId !== sceneId) {
+      enterScenePrepare(sceneId, activeSceneId);
+    }
+    startGridCalibration(sceneId);
   }
 
   function toggleGroup(groupKey: string): void {
@@ -421,6 +434,30 @@
         >
           <path d="m10.6 2.9 2.5 2.5L5.5 13H3v-2.5z" />
           <path d="M9.2 4.3l2.5 2.5" />
+        </svg>
+      </button>
+      <!-- Grid calibration: drag a box over one printed cell and the grid follows. -->
+      <button
+        class="scene-head__calibrate"
+        title={t("FUSION.Scene.Calibrate.Open")}
+        aria-label="{t('FUSION.Scene.Calibrate.Open')} {head.name}"
+        onclick={() => {
+          calibrateGrid(head.sceneId);
+        }}
+      >
+        <svg
+          viewBox="0 0 16 16"
+          width="14"
+          height="14"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="1.3"
+          stroke-linejoin="round"
+          aria-hidden="true"
+          focusable="false"
+        >
+          <path d="M2 2h12v12H2z M2 8h12 M8 2v12" stroke-dasharray="2 1.2" />
+          <rect x="8" y="8" width="6" height="6" stroke-width="1.8" />
         </svg>
       </button>
       <!-- TK022-client: the door into TokenAddDialog — the form path stays reachable
@@ -680,6 +717,29 @@
                         <circle cx="8" cy="8" r="1.8" />
                       </svg>
                     </button>
+                    <button
+                      class="action-btn action-btn--calibrate"
+                      onclick={() => {
+                        calibrateGrid(entry.sceneId);
+                      }}
+                      title={t("FUSION.Scene.Calibrate.Open")}
+                      aria-label="{t('FUSION.Scene.Calibrate.Open')} {entry.name}"
+                    >
+                      <svg
+                        viewBox="0 0 16 16"
+                        width="14"
+                        height="14"
+                        fill="none"
+                        stroke="currentColor"
+                        stroke-width="1.3"
+                        stroke-linejoin="round"
+                        aria-hidden="true"
+                        focusable="false"
+                      >
+                        <path d="M2 2h12v12H2z M2 8h12 M8 2v12" stroke-dasharray="2 1.2" />
+                        <rect x="8" y="8" width="6" height="6" stroke-width="1.8" />
+                      </svg>
+                    </button>
                     <!-- REQ-CEN-061: configuring never happens inside the drawer. -->
                     <button
                       class="action-btn action-btn--edit"
@@ -842,6 +902,35 @@
     top: 0.4rem;
     width: 1.5rem;
     z-index: 1;
+  }
+
+  /* Grid calibration door: third chip of the head's top-right corner. */
+  .scene-head__calibrate {
+    align-items: center;
+    background: rgba(0, 0, 0, 0.55);
+    border: 1px solid rgba(255, 255, 255, 0.18);
+    border-radius: var(--fusion-radius-sm);
+    color: rgba(255, 255, 255, 0.85);
+    cursor: pointer;
+    display: flex;
+    justify-content: center;
+    padding: 0.2rem;
+    position: absolute;
+    right: calc(0.4rem + 2 * (1.5rem + 0.3rem));
+    top: 0.4rem;
+    width: 1.5rem;
+    z-index: 1;
+  }
+
+  .scene-head__calibrate:hover {
+    background: var(--fusion-accent);
+    border-color: var(--fusion-accent);
+    color: #fff;
+  }
+
+  .scene-head__calibrate:focus-visible {
+    outline: 2px solid var(--fusion-accent);
+    outline-offset: 2px;
   }
 
   .scene-head__addToken:hover {

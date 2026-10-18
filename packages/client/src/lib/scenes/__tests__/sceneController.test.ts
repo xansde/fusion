@@ -11,6 +11,7 @@ import {
   listScenes,
   createScene,
   updateSceneConfig,
+  updateGridCalibration,
   preloadSceneForAll,
   type SceneFormData,
 } from "../sceneController.js";
@@ -336,5 +337,48 @@ describe("preloadSceneForAll", () => {
     expect(sent).toHaveLength(1);
     expect(sent[0]?.type).toBe("scene:preload");
     expect(sent[0]?.payload).toEqual({ sceneId: "scene-9" });
+  });
+});
+
+describe("updateGridCalibration", () => {
+  interface SentOp {
+    type: string;
+    payload: { documentType: string; updates: Array<{ _id: string; diff: Record<string, unknown> }> };
+  }
+  function fakeSocket(sent: SentOp[]): Parameters<typeof updateGridCalibration>[0] {
+    return {
+      emit(_event: string, envelope: SentOp, ack: (r: unknown) => void): void {
+        sent.push(envelope);
+        ack({ ok: true, result: { documents: [{ _id: "s1" }] } });
+      },
+    } as unknown as Parameters<typeof updateGridCalibration>[0];
+  }
+
+  it("writes the whole grid block and the offset in ONE update", async () => {
+    const sent: SentOp[] = [];
+    await updateGridCalibration(fakeSocket(sent), "s1", {
+      size: 132,
+      offsetX: 31,
+      offsetY: 77,
+      distance: 5,
+      units: "ft",
+      color: "#112233",
+      alpha: 0.6,
+    });
+    expect(sent).toHaveLength(1);
+    expect(sent[0]?.type).toBe("doc:update");
+    const upd = sent[0]?.payload.updates[0];
+    expect(upd?._id).toBe("s1");
+    // A complete block: a scene saved without one has nothing to merge into.
+    expect(upd?.diff["grid"]).toEqual({
+      type: "square",
+      size: 132,
+      distance: 5,
+      units: "ft",
+      color: "#112233",
+      alpha: 0.6,
+    });
+    expect(upd?.diff["gridOffsetX"]).toBe(31);
+    expect(upd?.diff["gridOffsetY"]).toBe(77);
   });
 });

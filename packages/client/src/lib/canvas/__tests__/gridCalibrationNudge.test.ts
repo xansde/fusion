@@ -43,6 +43,16 @@ describe("squareUpRect", () => {
     });
   });
 
+  it("squares the cell, not the box, when the box spans several cells", () => {
+    // 3 x 2 cells drawn 300 x 260: cells are 100 wide and 130 tall -> 130.
+    expect(squareUpRect({ x: 0, y: 0, width: 300, height: 260 }, 3, 2)).toEqual({
+      x: 0,
+      y: 0,
+      width: 390,
+      height: 260,
+    });
+  });
+
   it("normalizes a backwards drag first", () => {
     expect(squareUpRect({ x: 200, y: 200, width: -100, height: -120 })).toEqual({
       x: 100,
