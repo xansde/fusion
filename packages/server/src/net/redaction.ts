@@ -892,18 +892,24 @@ export function redactChatEffectExpiryForNonPrivileged(msg: ChatMessage): ChatMe
   const flags = msg.flags as Record<string, Record<string, unknown>> | undefined;
   const fusionFlags = flags?.[CHAT_FUSION_FLAG_NAMESPACE];
   const expiry = fusionFlags?.["effectExpiry"];
-  if (!isPlainObject(expiry) || expiry["hidden"] !== true) return msg;
+  // The turn automation (pf2e persistent damage, recovery checks, frightened decay) stamps the same `hidden` marker.
+  const automation = fusionFlags?.["turnAutomation"];
+  const expiryHidden = isPlainObject(expiry) && expiry["hidden"] === true;
+  const automationHidden = isPlainObject(automation) && automation["hidden"] === true;
+  if (!expiryHidden && !automationHidden) return msg;
 
   const { actorId: _actorId, ...speaker } = msg.speaker as typeof msg.speaker & {
     actorId?: string;
   };
   return {
     ...msg,
-    content: "Um efeito terminou.",
+    content: expiryHidden ? "Um efeito terminou." : "Algo aconteceu no turno de um combatente oculto.",
     speaker,
     flags: {
       ...flags,
-      [CHAT_FUSION_FLAG_NAMESPACE]: { ...fusionFlags, effectExpiry: { hidden: true } },
+      [CHAT_FUSION_FLAG_NAMESPACE]: expiryHidden
+        ? { ...fusionFlags, effectExpiry: { hidden: true } }
+        : { ...fusionFlags, turnAutomation: { hidden: true } },
     },
   };
 }
