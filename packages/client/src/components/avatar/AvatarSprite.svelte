@@ -11,13 +11,19 @@
    *   animando  a requestAnimationFrame loop, driven by `performance.now()`
    *             DIRECTLY rather than by a per-instance start time — so every
    *             avatar on screen shares one phase and they breathe together.
-   *   parado    repaints only until every layer has landed. A still sprite has
-   *             no next tick to fix itself on, and an atlas evicted while the
-   *             grid scrolls would otherwise leave the cell blank forever.
+   *   parado    paints once. Every tile was sliced when the avatar was
+   *             prepared, so there is nothing left to land.
    */
 
+  import { untrack } from "svelte";
   import type { Catalogo, Selecao } from "waybuilder-avatar";
-  import { desenharAvatar, prepararAvatar, type AvatarPronto } from "$lib/avatar/desenhar.js";
+  import {
+    chaveDoAvatar,
+    desenharAvatar,
+    passoEm,
+    prepararAvatar,
+    type AvatarPronto,
+  } from "$lib/avatar/desenhar.js";
   import { ladoDoQuadro } from "$lib/avatar/animacao.js";
 
   interface Props {
@@ -47,12 +53,26 @@
 
   const lado = $derived(ladoDoQuadro(catalogo));
 
-  // Resolve layers + palettes + atlases whenever the SELECTION changes (never
-  // per frame). The cancel flag keeps a slow load from overwriting a newer one.
+  /*
+   * What this sprite shows, as a string. Callers hand us FRESH selection objects
+   * all the time (the corner rebuilds it on every Actor broadcast — HP, a token
+   * move —, the creator's grid on every edit); keying the work on content means
+   * an unchanged avatar is neither re-prepared nor repainted.
+   */
+  const chave = $derived(chaveDoAvatar(selecao, corpo, animacao, !animando));
+
+  // Resolve layers + palettes + every tile whenever the CONTENT changes (never
+  // per frame). The previous `pronto` stays on screen until the new one is whole,
+  // and the cancel flag keeps a slow load from overwriting a newer one.
   $effect(() => {
-    const alvo = { catalogo, selecao, corpo, animacao };
+    void chave;
+    // Untracked: the CONTENT key above is the only dependency. Tracking the
+    // props themselves would re-prepare on every fresh-but-equal object.
+    const alvo = untrack(() => ({ catalogo, selecao, corpo, animacao, parado: !animando }));
     let cancelado = false;
-    void prepararAvatar(alvo.catalogo, alvo.selecao, alvo.corpo, alvo.animacao).then((p) => {
+    void prepararAvatar(alvo.catalogo, alvo.selecao, alvo.corpo, alvo.animacao, {
+      parado: alvo.parado,
+    }).then((p) => {
       if (!cancelado) pronto = p;
     });
     return () => {
@@ -63,28 +83,32 @@
   $effect(() => {
     const ctx = tela?.getContext("2d") ?? null;
     const atual = pronto;
+    // Read so a zoom change (canvas resize clears it) repaints.
+    const escala = zoom;
     if (ctx === null || atual === null) return;
 
-    let raf = 0;
-
-    if (animando) {
-      const passo = (agora: number) => {
-        desenharAvatar(ctx, atual, agora, zoom);
-        raf = requestAnimationFrame(passo);
-      };
-      raf = requestAnimationFrame(passo);
-    } else {
-      // Still: paint frame 0 and stop as soon as nothing is missing. The attempt
-      // cap keeps a genuinely broken atlas from spinning forever.
-      let tentativas = 0;
-      const passo = () => {
-        const faltando = desenharAvatar(ctx, atual, 0, zoom);
-        tentativas++;
-        if (faltando > 0 && tentativas < 120) raf = requestAnimationFrame(passo);
-      };
-      raf = requestAnimationFrame(passo);
+    if (!animando || atual.ciclo.length <= 1) {
+      // Still: every tile is already in hand — one paint, done.
+      desenharAvatar(ctx, atual, 0, escala);
+      return;
     }
 
+    // Animated: the cycle runs at the acervo's fps (8), the display at 60+.
+    // Repaint only when the cycle step changes — the same pixels drawn again
+    // are work, not motion.
+    let raf = 0;
+    let ultimo = -1;
+    const passo = (agora: number) => {
+      const p = passoEm(agora, atual.fps);
+      if (p !== ultimo) {
+        ultimo = p;
+        desenharAvatar(ctx, atual, agora, escala);
+      }
+      raf = requestAnimationFrame(passo);
+    };
+    desenharAvatar(ctx, atual, performance.now(), escala);
+    ultimo = passoEm(performance.now(), atual.fps);
+    raf = requestAnimationFrame(passo);
     return () => cancelAnimationFrame(raf);
   });
 </script>

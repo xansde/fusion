@@ -84,11 +84,6 @@ export function planoDaMiniatura(
   return { sx, sy, lado, escala, dx: Math.floor((alvo - tamanho) / 2), dy: Math.floor((alvo - tamanho) / 2) };
 }
 
-/** Wait one animation frame (the atlases may still be decoding). */
-function proximoQuadro(): Promise<void> {
-  return new Promise((resolve) => requestAnimationFrame(() => resolve()));
-}
-
 /**
  * Draw the avatar and return the PNG, or null when there is no figure to draw.
  * `selecao`/`corpo` are the creator's CURRENT choices — what the preview shows.
@@ -100,7 +95,7 @@ export async function renderizarMiniatura(
   modo: ModoMiniatura,
 ): Promise<Blob | null> {
   const animacao = animacaoDisponivel(catalogo, ANIMACAO_PADRAO);
-  const pronto = await prepararAvatar(catalogo, selecao, corpo, animacao);
+  const pronto = await prepararAvatar(catalogo, selecao, corpo, animacao, { parado: true });
   const lado = ladoDoQuadro(catalogo);
 
   const origem = document.createElement("canvas");
@@ -109,11 +104,11 @@ export async function renderizarMiniatura(
   const octx = origem.getContext("2d", { willReadFrequently: true });
   if (octx === null) return null;
 
-  // Still frame: time 0 is the first pose of the cycle. Repaint until every layer landed.
-  for (let tentativa = 0; tentativa < 120; tentativa++) {
-    if (desenharAvatar(octx, pronto, 0, 1) === 0) break;
-    await proximoQuadro();
-  }
+  // Still frame: time 0 is the first pose of the cycle. Every tile was sliced by
+  // prepararAvatar, so one paint is the whole figure — it used to retry for 120
+  // frames against an atlas cache too small for a dressed figure, then export
+  // whatever layers happened to be resident.
+  desenharAvatar(octx, pronto, 0, 1);
 
   const caixa = caixaDaFigura(octx.getImageData(0, 0, lado, lado).data, lado, lado);
   if (caixa === null) return null;

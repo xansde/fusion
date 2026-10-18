@@ -20,10 +20,12 @@
  * The cache class is still the acervo's — it is a keyed memo, and the key parts
  * are used as (file, rect, signature).
  *
- * EVERY frame is sliced into that cache, recoloured or not. That is what makes
- * the decoded-atlas LRU safe to keep small: once a frame is cached the big image
- * is not needed to draw it again, so an eviction costs at most a re-decode, never
- * a missing layer. It is also what makes the creator's grid cheap — 90 cells
+ * EVERY frame a composition needs is sliced at PREPARE time, recoloured or not,
+ * and the prepared avatar keeps its own references to those tiles. The draw loop
+ * therefore never looks an atlas up — and it must not: an atlas is one LAYER of
+ * one slot, a dressed figure has ~19 of them and the decoded-atlas LRU holds 8,
+ * so a draw-time lookup misses most layers on every tick (that was the blinking
+ * avatar). The LRU only bounds what preparing costs. It is also what makes the creator's grid cheap — 90 cells
  * composing the whole character reuse the same tiles for the 7 layers they share
  * and only slice the candidate piece.
  *
@@ -162,69 +164,140 @@ function quadroDaCamada(
 // Painter
 // ---------------------------------------------------------------------------
 
-/** A composition plus everything needed to draw it without awaiting again. */
+/** A composition plus every tile needed to draw it, held by reference. */
 export interface AvatarPronto {
   composicao: Composicao;
   animacao: string;
   ciclo: number[];
   fps: number;
   lado: number;
-  /** Resolved ramps per layer index; absent when the layer needs no recolour. */
-  rampas: Map<number, Rampas[]>;
+  /**
+   * Per layer index: frame number → tile. The pronto OWNS these references, so
+   * neither the atlas LRU nor a wholesale drop of the shared frame cache can make
+   * a layer vanish from an avatar that is already on screen. A layer absent here
+   * is one whose atlas failed to load.
+   */
+  quadros: Map<number, Map<number, HTMLCanvasElement>>;
+}
+
+export interface OpcoesDePreparo {
+  /** Only the frame shown at t=0 is sliced — a still grid cell needs no more. */
+  parado?: boolean;
 }
 
 /**
- * Resolve a selection into something drawable: layers, ramps, atlases loaded.
+ * The frames a layer actually shows over its animation cycle, each once.
+ *
+ * Mirrors {@link frameEm}'s clamping: a layer with a single frame stays on 0,
+ * and a cycle step past the layer's strip lands on its last frame.
+ */
+export function framesDaCamada(ciclo: readonly number[], quadros: number): number[] {
+  if (quadros <= 1 || ciclo.length === 0) return [0];
+  return [...new Set(ciclo.map((f) => Math.min(f, quadros - 1)))];
+}
+
+/**
+ * Content identity of what a sprite draws.
+ *
+ * Callers keep their selection in fresh objects (a mirror broadcast rebuilds the
+ * actor on every update, the creator's grid rebuilds each cell's selection on
+ * every edit); this key is what lets them skip a re-preparation — and a redraw —
+ * when nothing visible changed. Key order does not matter, content does.
+ */
+export function chaveDoAvatar(
+  selecao: Selecao,
+  corpo: string,
+  animacao: string,
+  parado: boolean,
+): string {
+  const slots = Object.keys(selecao).sort();
+  const partes = slots.map((slot) => {
+    const escolha = selecao[slot];
+    if (escolha === undefined) return slot;
+    const cores = Object.entries(escolha.cores ?? {})
+      .sort(([a], [b]) => a.localeCompare(b))
+      .map(([canal, valor]) => `${canal}=${valor}`)
+      .join(",");
+    return `${slot}:${escolha.id}[${cores}]`;
+  });
+  return `${corpo}|${animacao}|${parado ? "parado" : "anim"}|${partes.join(";")}`;
+}
+
+/**
+ * Resolve a selection into something drawable: layers, ramps, and every tile.
  *
  * Async on purpose, and called on every SELECTION change rather than every
  * frame: the draw itself must be synchronous so it can run inside
  * requestAnimationFrame without a promise between the tick and the pixels.
+ *
+ * Every tile the cycle needs is sliced here, from the atlas references the
+ * loads resolved with — never from the shared LRU, which holds 8 atlases while
+ * a dressed figure has one per layer (19 for a sixteen-slot outfit). Looking the
+ * atlas up at draw time instead is what made layers blink in and out.
  */
 export async function prepararAvatar(
   catalogo: Catalogo,
   selecao: Selecao,
   corpo: string,
   animacao: string,
+  opcoes: OpcoesDePreparo = {},
 ): Promise<AvatarPronto> {
   const composicao = montarCamadas(catalogo, selecao, corpo, animacao);
 
   await garantirPaletas(arquivosDasCamadas(composicao.camadas));
   const paletas = paletasCarregadas();
 
-  const rampas = new Map<number, Rampas[]>();
+  const ciclo = cicloDe(catalogo, animacao);
+  const fps = fpsDe(catalogo);
+  const lado = ladoDoQuadro(catalogo);
+
+  const arquivos = [...new Set(composicao.camadas.map((c) => c.arq))];
+  const imagens = new Map<string, HTMLImageElement | null>();
+  await Promise.all(
+    arquivos.map(async (arq) => {
+      imagens.set(arq, await carregarAtlas(arq));
+    }),
+  );
+
+  const quadrosPorCamada = new Map<number, Map<number, HTMLCanvasElement>>();
   composicao.camadas.forEach((camada, indice) => {
-    const pedidos = camada.recolor ?? [];
-    if (pedidos.length === 0) return;
-    const resolvidas = pedidos
+    const atlas = imagens.get(camada.arq) ?? null;
+    if (atlas === null) return;
+    const rampas = (camada.recolor ?? [])
       .map((pedido) => resolverRampas(pedido, paletas))
       .filter((r): r is Rampas => r !== null);
-    if (resolvidas.length > 0) rampas.set(indice, resolvidas);
+    const assinatura = rampas.length > 0 ? assinaturaDoRecolor(camada) : "";
+    const frames =
+      opcoes.parado === true
+        ? [frameEm(0, ciclo, fps, camada.frames)]
+        : framesDaCamada(ciclo, camada.frames);
+    const tiles = new Map<number, HTMLCanvasElement>();
+    for (const frame of frames) {
+      tiles.set(
+        frame,
+        quadroDaCamada(atlas, camada.arq, camada.x + frame * lado, camada.y, lado, assinatura, rampas),
+      );
+    }
+    quadrosPorCamada.set(indice, tiles);
   });
 
-  // Load every atlas the composition touches before the first draw, so the
-  // figure appears whole instead of assembling itself layer by layer.
-  await Promise.all([...new Set(composicao.camadas.map((c) => c.arq))].map(carregarAtlas));
+  return { composicao, animacao, ciclo, fps, lado, quadros: quadrosPorCamada };
+}
 
-  return {
-    composicao,
-    animacao,
-    ciclo: cicloDe(catalogo, animacao),
-    fps: fpsDe(catalogo),
-    lado: ladoDoQuadro(catalogo),
-    rampas,
-  };
+/** Which step of the cycle time `tMs` falls in — a redraw is only due when it changes. */
+export function passoEm(tMs: number, fps: number): number {
+  return Math.floor((Math.max(0, tMs) * fps) / 1000);
 }
 
 /**
- * Draw one frame. Synchronous: anything not yet loaded is skipped this tick.
+ * Draw one frame. Synchronous, and never touches the network or the decoder:
+ * every tile was sliced by {@link prepararAvatar}.
  *
  * `tMs` is a monotonic time, not a frame index — the cycle and fps decide which
  * frame that is, so every avatar on screen animates in step regardless of how
  * often its own canvas repaints.
  *
- * Returns how many layers could NOT be drawn. A STILL sprite (a grid cell) has
- * no next tick to fix itself on, so its caller repaints until this reaches zero;
- * without that, an atlas evicted mid-grid would leave a cell permanently blank.
+ * Returns how many layers could NOT be drawn (an atlas that failed to load).
  */
 export function desenharAvatar(
   ctx: CanvasRenderingContext2D,
@@ -238,28 +311,12 @@ export function desenharAvatar(
   ctx.imageSmoothingEnabled = false;
 
   pronto.composicao.camadas.forEach((camada, indice) => {
-    const atlas = atlases.get(camada.arq);
-    if (atlas === undefined) {
-      // Not decoded yet (or evicted): ask for it and let the next tick draw it.
-      void carregarAtlas(camada.arq);
+    const frame = frameEm(tMs, pronto.ciclo, pronto.fps, camada.frames);
+    const tile = pronto.quadros.get(indice)?.get(frame);
+    if (tile === undefined) {
       faltando++;
       return;
     }
-
-    const frame = frameEm(tMs, pronto.ciclo, pronto.fps, camada.frames);
-    const sx = camada.x + frame * lado;
-    const sy = camada.y;
-    const rampas = pronto.rampas.get(indice) ?? [];
-
-    const tile = quadroDaCamada(
-      atlas,
-      camada.arq,
-      sx,
-      sy,
-      lado,
-      rampas.length > 0 ? assinaturaDoRecolor(camada) : "",
-      rampas,
-    );
     ctx.drawImage(tile, 0, 0, lado, lado, 0, 0, lado * zoom, lado * zoom);
   });
 
