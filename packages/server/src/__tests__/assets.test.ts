@@ -1079,6 +1079,8 @@ describe("the icon upload never reveals a file the gallery hides (Q-BAR-05, REQ-
         "GET /api/assets",
         "GET /api/assets/icons",
         "GET /assets/*",
+        // The GM moves an asset between picker tabs; never into the icon area (tested).
+        "PATCH /api/assets/category",
         // Signs only the ambient track the GM is playing; reads nothing from the body.
         "POST /api/assets/ambient-grant",
         "POST /api/assets/grant",
