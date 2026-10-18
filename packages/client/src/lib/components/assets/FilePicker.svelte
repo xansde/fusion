@@ -16,6 +16,15 @@
    *   mode      "assets" (default) | "actionbar-icons" — the action bar's icon gallery (BAR-F3-05):
    *             lists only the shared icons (any role), uploads with the "icon" purpose, offers no
    *             external URL, and lets the GM delete an icon. Every other caller is unchanged.
+   *   kinds     AssetKind[]            — media kinds this picker offers to browse
+   *                                      for. Defaults to ["image"], which is what
+   *                                      every current caller (scene background,
+   *                                      token texture) wants. Drives the file
+   *                                      dialog's `accept` and the hint line.
+   *
+   * Note: `kinds` narrows the BROWSE dialog, not drag & drop — the browser hands
+   * dropped files over regardless of `accept`, and the upload is then validated
+   * by clientValidation (and, for real, by the server).
    *
    * Features:
    *   - Grid of existing world assets with <img> preview.
@@ -39,7 +48,14 @@
     type AssetQueryToken,
     type IconGallery,
   } from "$lib/assets/assetApi.js";
-  import { isImageExtension, formatBytes } from "$lib/assets/clientValidation.js";
+  import {
+    isImageExtension,
+    formatBytes,
+    acceptAttrFor,
+    formatsLabelFor,
+    maxBytesFor,
+    type AssetKind,
+  } from "$lib/assets/clientValidation.js";
   import { canDeleteGalleryIcons, pickerUploadOptions } from "$lib/assets/iconPicker.js";
   import { t } from "$lib/i18n/i18n.js";
   import { session } from "$lib/session.svelte.js";
@@ -51,11 +67,13 @@
     onSelect,
     onClose,
     mode = "assets",
+    kinds = ["image"],
   }: {
     token: string;
     onSelect: (path: string) => void;
     onClose: () => void;
     mode?: "assets" | "actionbar-icons";
+    kinds?: AssetKind[];
   } = $props();
 
   // ---- Icon mode (BAR-F3-05) ----
@@ -225,6 +243,12 @@
   });
 
   const hasActiveUploads = $derived(() => activeUploads().length > 0);
+
+  // Everything the drop zone advertises is derived from the same map that
+  // validates the file — the UI can never offer a format the upload rejects.
+  const acceptAttr = $derived(acceptAttrFor(kinds));
+  const dropLabel = $derived(kinds.length === 1 ? `Drop ${kinds[0]} files here` : "Drop files here");
+  const limitHint = $derived(`${formatsLabelFor(kinds)} · up to ${formatBytes(maxBytesFor(kinds))}`);
 </script>
 
 <!-- Backdrop -->
@@ -287,7 +311,7 @@
     aria-label={iconMode ? t("FUSION.IconPicker.DropLabel") : "Drop files here to upload"}
   >
     <span class="picker__drop-icon" aria-hidden="true">&#8679;</span>
-    <span class="picker__drop-text">{iconMode ? t("FUSION.IconPicker.Drop") : "Drop image files here"}</span>
+    <span class="picker__drop-text">{iconMode ? t("FUSION.IconPicker.Drop") : dropLabel}</span>
     <span class="picker__drop-sep">{iconMode ? t("FUSION.IconPicker.Or") : "or"}</span>
     <button
       class="btn btn--ghost btn--sm"
@@ -300,13 +324,15 @@
     <input
       bind:this={fileInput}
       type="file"
-      accept=".png,.jpg,.jpeg,.webp,.svg"
+      accept={acceptAttr}
       multiple
       style="display:none"
       onchange={handleFileInput}
       aria-hidden="true"
       tabindex="-1"
     />
+    <!-- Formats and size ceiling: today the user only discovers them by failing -->
+    <span class="picker__drop-hint">{limitHint}</span>
   </div>
 
   <!-- Upload progress items -->
@@ -586,6 +612,14 @@
   .picker__drop-sep {
     color: var(--fusion-text-muted);
     font-size: 0.8125rem;
+  }
+
+  /* Full-width so it wraps onto its own line below the drop row */
+  .picker__drop-hint {
+    color: var(--fusion-text-subtle);
+    flex-basis: 100%;
+    font-size: 0.6875rem;
+    text-align: center;
   }
 
   /* ---- Upload progress list ---- */

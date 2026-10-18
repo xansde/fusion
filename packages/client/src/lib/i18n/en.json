@@ -1443,5 +1443,22 @@
   "FUSION.ActionBar.Menu.RestoreIcon": "Restore default icon",
   "FUSION.ActionBar.Menu.IconCap": "This character already has {{cap}} custom icons.",
   "FUSION.ActionBar.Error.NoConnection": "No connection to the server.",
-  "FUSION.ActionBar.Error.Generic": "Could not run it."
+  "FUSION.ActionBar.Error.Generic": "Could not run it.",
+
+  "FUSION.Sidebar.Tabs.Sound": "Sound",
+  "FUSION.Sound.Title": "Ambient Sound",
+  "FUSION.Sound.NowPlaying": "Now playing",
+  "FUSION.Sound.Silence": "Silence",
+  "FUSION.Sound.UnlockBadge": "Click to enable sound",
+  "FUSION.Sound.Volume": "Volume",
+  "FUSION.Sound.Favorites": "World tracks",
+  "FUSION.Sound.Selected": "Selected: {{name}} (not sent yet)",
+  "FUSION.Sound.ChooseTrack": "Choose track",
+  "FUSION.Sound.Play": "Play",
+  "FUSION.Sound.PlayTitle": "Plays the selected track (or restarts the current one)",
+  "FUSION.Sound.Stop": "Stop",
+  "FUSION.Sound.PlayFailed": "Could not play the track: {{message}}",
+  "FUSION.Sound.StopFailed": "Could not stop the track: {{message}}",
+  "FUSION.Sound.UnexpectedError": "unexpected error",
+  "FUSION.Sound.InvalidAsset": "Pick an audio file already uploaded to the library."
 }
