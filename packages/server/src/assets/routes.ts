@@ -129,12 +129,15 @@ import {
   type AssetKind,
 } from "./upload-limits.js";
 import { sanitizeSvg } from "./svg-sanitize.js";
+import { classifyAssets } from "./asset-category.js";
+import { isAssetCategory, type AssetCategory } from "@fusion/shared";
 import { buildSafeFilename, sha256Hex } from "./slug.js";
 import { guardPath, guardFilename, PathTraversalError } from "./path-guard.js";
 import {
   recordAsset,
   deleteAssetRecord,
   getAssetRecord,
+  setAssetCategory,
   ICON_ASSET_AREA,
   isIconAssetName,
 } from "./asset-store.js";
@@ -443,6 +446,7 @@ async function assetPlugin(
     digest: string,
     bytes: number,
     mimeType: string,
+    category?: AssetCategory,
   ): void {
     if (!db) return;
     try {
@@ -452,6 +456,7 @@ async function assetPlugin(
         bytes,
         mimeType,
         uploadedBy: request.authUser?.id ?? null,
+        ...(category !== undefined ? { category } : {}),
       });
     } catch (err) {
       request.log.warn(
@@ -518,6 +523,17 @@ async function assetPlugin(
         ok: false,
         code: "VALIDATION_FAILED",
         message: 'Unknown upload purpose (the only one is "icon").',
+      });
+    }
+
+    // The tab the upload was sent from (FilePicker). Optional; "icons" is not declarable here —
+    // the icon area is reserved to `purpose=icon` (REQ-BAR-103).
+    const category = parseUploadCategory(request.query);
+    if (category === null) {
+      return reply.code(400).send({
+        ok: false,
+        code: "VALIDATION_FAILED",
+        message: "Unknown asset category.",
       });
     }
 
@@ -710,7 +726,14 @@ async function assetPlugin(
     // before (see registerUpload's doc comment for why a registry failure
     // must not turn into a reported upload failure). For an icon the row's
     // name carries the area: that IS the icon mark (REQ-BAR-078, asset-store.ts).
-    registerUpload(request, writtenName, digest, finalBuf.length, detected.mime);
+    registerUpload(
+      request,
+      writtenName,
+      digest,
+      finalBuf.length,
+      detected.mime,
+      purpose === "icon" || category === "none" ? undefined : category,
+    );
 
     return reply.code(201).send({
       ok: true,
@@ -913,8 +936,73 @@ async function assetPlugin(
   fastify.get("/api/assets", { preHandler: requireAuth }, async (request, reply) => {
     if (!requireRole(Role.TRUSTED, request, reply)) return;
 
+    // Each entry carries its effective category (stored, else derived) — the FilePicker's tabs.
+    // Nothing here widens who may list: the role gate above is unchanged.
     const files = listAssets(assetsDir);
-    return reply.send({ ok: true, assets: files });
+    const categories = classifyAssets(
+      db,
+      files.map((f) => ({ name: f.name, mimeType: f.mime_type })),
+    );
+    return reply.send({
+      ok: true,
+      assets: files.map((f) => ({ ...f, category: categories.get(f.name) ?? "other" })),
+    });
+  });
+
+  // --------------------------------------------------------------------------
+  // PATCH /api/assets/category
+  // The GM moves an asset to another tab. `null` clears the choice (back to the derived
+  // category). Only the GM (STORAGE_DELETE-class decision about the shared library); a name in the
+  // icon area is never movable — the area IS the icon mark (asset-store.ts).
+  // --------------------------------------------------------------------------
+
+  fastify.patch("/api/assets/category", { preHandler: requireAuth }, async (request, reply) => {
+    if (!requireRole(Role.GAMEMASTER, request, reply)) return;
+    const body = (request.body ?? {}) as { name?: unknown; category?: unknown };
+    const name = body.name;
+    const category = body.category;
+    if (typeof name !== "string" || name === "" || name.includes("/") || name.includes("\\")) {
+      return reply
+        .code(400)
+        .send({ ok: false, code: "VALIDATION_FAILED", message: "Invalid asset name." });
+    }
+    if (category !== null && (!isAssetCategory(category) || category === "icons")) {
+      return reply
+        .code(400)
+        .send({ ok: false, code: "VALIDATION_FAILED", message: "Invalid asset category." });
+    }
+    try {
+      guardFilename(name);
+    } catch (err) {
+      if (err instanceof PathTraversalError) {
+        return reply.code(400).send({ ok: false, code: "PATH_TRAVERSAL", message: err.message });
+      }
+      throw err;
+    }
+    if (!db) {
+      return reply
+        .code(503)
+        .send({ ok: false, code: "REGISTRY_UNAVAILABLE", message: "Asset registry unavailable." });
+    }
+    let isFile = false;
+    try {
+      isFile = lstatSync(guardPath(assetsDir, name)).isFile();
+    } catch {
+      isFile = false;
+    }
+    if (!isFile) {
+      return reply
+        .code(404)
+        .send({ ok: false, code: "ASSET_NOT_FOUND", message: `Asset not found: ${name}` });
+    }
+    // A file that predates the registry has no row to hold the choice: backfill it first.
+    registerExistingIfUnknown(request, name);
+    if (!setAssetCategory(db, name, category)) {
+      return reply
+        .code(500)
+        .send({ ok: false, code: "REGISTRY_FAILED", message: "Could not save the category." });
+    }
+    return reply.send({ ok: true, name, category });
   });
 
   // --------------------------------------------------------------------------
@@ -1699,6 +1787,17 @@ function parseUploadPurpose(query: unknown): "generic" | "icon" | null {
   const raw = (query as Record<string, unknown>)["purpose"];
   if (raw === undefined) return "generic";
   return raw === "icon" ? "icon" : null;
+}
+
+/**
+ * The category an upload declares in `?category=`: `"none"` when absent, a category for a valid
+ * one other than "icons", `null` for anything else (unknown, empty, repeated, "icons").
+ */
+function parseUploadCategory(query: unknown): AssetCategory | "none" | null {
+  if (typeof query !== "object" || query === null) return "none";
+  const raw = (query as Record<string, unknown>)["category"];
+  if (raw === undefined) return "none";
+  return isAssetCategory(raw) && raw !== "icons" ? raw : null;
 }
 
 /**
