@@ -47,10 +47,12 @@
   import WindowHost from "./windows/WindowHost.svelte";
   import { getSocket } from "../lib/session.svelte.js";
   import { SceneOrchestrator } from "../lib/canvas/scene-orchestrator.js";
+  import { footprintOf } from "../lib/canvas/tokens/footprint.js";
   import { TokenLayer } from "../lib/canvas/tokens/TokenLayer.js";
   import { ensureFootprintRegistry } from "../lib/canvas/tokens/footprintRegistry.svelte.js";
   import { initTokenDisplayPrefs } from "../lib/canvas/tokens/tokenDisplayPrefsStore.svelte.js";
-  import { attachRuler } from "../lib/presence/attachRuler.js";
+  import { attachRuler, type RulerHandle } from "../lib/presence/attachRuler.js";
+  import { actorSpeedFt } from "../lib/presence/dragRuler.js";
   import RulerToolButton from "./RulerToolButton.svelte";
   import { TokenInteractionManager } from "../lib/canvas/tokens/TokenInteractionManager.js";
   import { ROLE_ASSISTANT } from "../lib/canvas/tokens/token-interaction.js";
@@ -197,8 +199,10 @@
   // it is bound 1:1 to canvas.getLayer("tokens") + the socket for THIS scene
   // load, not part of the orchestrator's own render/tick contract.
   let _tokenInteraction: TokenInteractionManager | null = null;
-  /** Disposer of the ruler adapter (listeners + drawing) for the loaded scene. */
-  let _disposeRuler: (() => void) | null = null;
+  /** Handle of the ruler adapter (listeners, drawing, drag ruler) for the loaded scene. */
+  let _ruler: RulerHandle | null = null;
+  /** Tokens selected on the canvas (ids), for the emanation source. */
+  let _selectedTokenIds: ReadonlySet<string> = new Set();
   /**
    * The `_id` of the scene the canvas currently has loaded — tracked so the
    * scene-reload $effect below can tell "the GM switched scenes" (reload)
@@ -652,6 +656,40 @@
    *
    * CombatCanvasController is wired if the canvas is available.
    */
+  /** Top-left square and size of a token, in cells, from its scene position. */
+  function tokenCells(
+    token: { x: number; y: number; actorId: string },
+    grid: { pixelToCell: (p: { x: number; y: number }) => { i: number; j: number }; config: { size: number } },
+  ): { i: number; j: number; width: number; height: number } {
+    const actor = worldMirror.getDoc<Record<string, unknown>>("Actor", token.actorId);
+    const fp = footprintOf(undefined, actor as Parameters<typeof footprintOf>[1]);
+    const half = grid.config.size / 2;
+    const cell = grid.pixelToCell({ x: token.x + half, y: token.y + half });
+    return { i: cell.i, j: cell.j, width: fp.width, height: fp.height };
+  }
+
+  /** The squares of the (first) selected token on this scene, or null. */
+  function selectedTokenFootprint(sceneId: string, _size: number) {
+    const grid = fusionCanvas?.gridStrategy;
+    if (!grid) return null;
+    const scene = worldMirror.getDoc<SceneDocument>("Scene", sceneId);
+    const token = scene?.tokens?.find((t) => _selectedTokenIds.has(t._id));
+    return token ? tokenCells(token, grid) : null;
+  }
+
+  /** Every token of the scene as a named target, for "who is inside the area". */
+  function sceneTargets(
+    sceneId: string,
+    grid: Parameters<typeof tokenCells>[1],
+  ): Array<{ name: string; i: number; j: number; width: number; height: number }> {
+    const scene = worldMirror.getDoc<SceneDocument>("Scene", sceneId);
+    return (scene?.tokens ?? []).map((t) => {
+      const actor = worldMirror.getDoc<Record<string, unknown>>("Actor", t.actorId);
+      const name = t.name ?? (typeof actor?.["name"] === "string" ? actor["name"] : "?");
+      return { name, ...tokenCells(t, grid) };
+    });
+  }
+
   function _createOrchestrator(canvas: FusionCanvas, scene: SceneDocument): SceneOrchestrator {
     const sock = getSocket();
     const currentIsGm = isGm();
@@ -705,7 +743,26 @@
         // THIS manager's scene. The store only listens to the scene the canvas draws, so the
         // empty selection this manager publishes when torn down on the way to another scene
         // does not drop the actor — the selection is kept by actor and crosses the change.
+        // Movement ruler: path, distance and the colour against the actor's Speed.
+        onDrag: (info) => {
+          if (!info) {
+            _ruler?.showDrag(null);
+            return;
+          }
+          const dragged = worldMirror
+            .getDoc<SceneDocument>("Scene", scene._id)
+            ?.tokens?.find((candidate) => candidate._id === info.tokenId);
+          const actor = dragged
+            ? worldMirror.getDoc<Record<string, unknown>>("Actor", dragged.actorId)
+            : undefined;
+          _ruler?.showDrag({
+            from: info.from,
+            to: info.to,
+            speedFt: actorSpeedFt(actor?.["system"]),
+          });
+        },
         onSelectionChange: (tokenIds) => {
+          _selectedTokenIds = new Set(tokenIds);
           publishTokenSelection({ sceneId: scene._id, tokenIds: [...tokenIds] });
         },
         gridConfig: { size: gridSize, offsetX: 0, offsetY: 0 },
@@ -759,11 +816,15 @@
     // runs) and a socket to share the measurement with the table.
     const rulerGrid = canvas.gridStrategy;
     if (rulerGrid) {
-      _disposeRuler = attachRuler({
+      _ruler = attachRuler({
         canvas,
         grid: rulerGrid,
         layer: canvas.getLayer("controls"),
         socket: sock,
+        sceneId: scene._id,
+        selfUserId: userId,
+        getSource: () => selectedTokenFootprint(scene._id, rulerGrid.config.size),
+        getTargets: () => sceneTargets(scene._id, rulerGrid),
       });
     }
 
@@ -808,8 +869,8 @@
     _tokenInteraction?.destroy();
     _tokenInteraction = null;
 
-    _disposeRuler?.();
-    _disposeRuler = null;
+    _ruler?.dispose();
+    _ruler = null;
 
     if (sceneOrchestrator) {
       sceneOrchestrator.teardown();

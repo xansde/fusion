@@ -25,7 +25,7 @@ describe("TableScreen wires the ruler", () => {
   });
 
   it("disposes the ruler on scene teardown", () => {
-    expect(table).toMatch(/_disposeRuler\?\.\(\)/);
+    expect(table).toMatch(/_ruler\?\.dispose\(\)/);
   });
 
   it("mounts the visible ruler button", () => {
@@ -34,10 +34,31 @@ describe("TableScreen wires the ruler", () => {
 });
 
 describe("the ruler button", () => {
-  it("toggles the shared tool store and carries the tooltip", () => {
-    expect(button).toMatch(/toggleRulerTool/);
+  it("drives the shared tool store and carries the tooltip", () => {
+    expect(button).toMatch(/rulerTool\.mode/);
     expect(button).toMatch(/Régua \(segure R\)/);
-    expect(button).toMatch(/aria-pressed=\{rulerTool\.active\}/);
+    expect(button).toMatch(/aria-pressed=\{rulerTool\.mode !== null\}/);
+  });
+
+  it("offers every area next to the ruler", () => {
+    const tool = read("../../presence/templateTool.ts");
+    for (const label of ["Régua", "Explosão", "Cone", "Linha", "Emanação"]) {
+      expect(tool).toContain(label);
+    }
+  });
+});
+
+describe("the movement ruler hangs on the token drag", () => {
+  it("TableScreen feeds the drag to the ruler with the actor speed", () => {
+    expect(table).toMatch(/onDrag: \(info\)/);
+    expect(table).toMatch(/_ruler\?\.showDrag\(/);
+    expect(table).toMatch(/actorSpeedFt\(/);
+  });
+
+  it("the interaction manager reports drag moves and the end of the drag", () => {
+    const tim = read("../tokens/TokenInteractionManager.ts");
+    expect(tim).toMatch(/this\._opts\.onDrag\?\.\(\{/);
+    expect(tim).toMatch(/this\._opts\.onDrag\?\.\(null\)/);
   });
 });
 

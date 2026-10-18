@@ -143,6 +143,16 @@ export interface TokenInteractionOptions {
    * (REQ-TOK-034, REQ-BAR-004). What it receives is a copy, never the manager's own Set.
    */
   onSelectionChange?: (tokenIds: ReadonlySet<string>) => void;
+
+  /**
+   * A pointer drag of a token, for the movement ruler. Called on every drag move with the
+   * token's top-left before the drag (`from`) and now (`to`), in scene pixels, and with
+   * `null` when the drag ends (drop, Esc or teardown). Display only: it changes nothing
+   * about the drag itself.
+   */
+  onDrag?: (
+    info: { tokenId: string; from: { x: number; y: number }; to: { x: number; y: number } } | null,
+  ) => void;
 }
 
 /**
@@ -527,6 +537,7 @@ export class TokenInteractionManager {
   destroy(): void {
     if (this._destroyed) return;
     this._destroyed = true;
+    this._opts.onDrag?.(null);
 
     if (this._keyboardAttached) {
       window.removeEventListener("keydown", this._onKeyDown);
@@ -694,6 +705,15 @@ export class TokenInteractionManager {
           snapped.x,
           snapped.y,
         );
+
+        const ctx = this._drag.context;
+        if (ctx) {
+          this._opts.onDrag?.({
+            tokenId: ctx.tokenId,
+            from: { x: ctx.originalX, y: ctx.originalY },
+            to: { x: snapped.x, y: snapped.y },
+          });
+        }
       }
     });
 
@@ -726,6 +746,7 @@ export class TokenInteractionManager {
 
   private _handleDrop(): void {
     if (this._drag.state !== "dragging" || !this._drag.context) return;
+    this._opts.onDrag?.(null);
 
     const { tokenId, ghostX, ghostY, originalX, originalY, requestId } = this._drag.context;
 
@@ -847,6 +868,7 @@ export class TokenInteractionManager {
       if (this._drag.state === "dragging" && this._drag.context) {
         const { tokenId, originalX, originalY } = this._drag.context;
         this._drag = cancelDrag(this._drag);
+        this._opts.onDrag?.(null);
         // Snap token back to original position
         this._opts.tokenLayer.applyLocalMove(tokenId, originalX, originalY);
       } else {
