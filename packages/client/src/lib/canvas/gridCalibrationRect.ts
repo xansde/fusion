@@ -126,3 +126,65 @@ export function applyHandleDrag(start: Rect, handle: CalibrationHandle, delta: P
 export function defaultRect(center: Point, side: number): Rect {
   return { x: center.x - side / 2, y: center.y - side / 2, width: side, height: side };
 }
+
+/**
+ * Move a rectangle by whole pixels. The arrow keys use this: 1 px for a fine
+ * correction, 10 px (Shift) for a coarse one.
+ */
+export function nudgeRect(rect: Rect, dx: number, dy: number): Rect {
+  const r = normalizeRect(rect);
+  return { ...r, x: r.x + dx, y: r.y + dy };
+}
+
+/** Pixels an arrow key moves the box: 1, or 10 with Shift held. */
+export function nudgeStep(shift: boolean): number {
+  return shift ? 10 : 1;
+}
+
+/**
+ * Make a rectangle square by growing its short side to the long one, keeping
+ * the top-left corner where it is (so the box does not jump under the cursor).
+ */
+export function squareUpRect(rect: Rect): Rect {
+  const r = normalizeRect(rect);
+  const side = Math.max(r.width, r.height);
+  return { x: r.x, y: r.y, width: side, height: side };
+}
+
+/**
+ * Coordinates of the grid lines of a `size`-px grid whose cell (0,0) corner sits
+ * at `offset`, covering `[0, extent]`. Pure so the preview is checkable.
+ */
+export function gridLinePositions(size: number, offset: number, extent: number): number[] {
+  if (!(size > 0) || !(extent > 0)) return [];
+  const first = ((offset % size) + size) % size;
+  const out: number[] = [];
+  for (let p = first; p <= extent; p += size) out.push(p);
+  return out;
+}
+
+/**
+ * The box a typed cell size / offset implies, placed on the cell nearest to
+ * `near` so editing a number does not teleport the box across the map.
+ *
+ * @param origin  Where the map image starts (scene padding), same coordinates as `near`.
+ * @param offset  Grid offset relative to the map, as stored in the scene.
+ */
+export function rectFromGrid(
+  size: number,
+  offset: Point,
+  origin: Point,
+  near: Rect,
+  cols = 1,
+  rows = 1,
+): Rect {
+  const n = normalizeRect(near);
+  const kx = Math.round((n.x - origin.x - offset.x) / size);
+  const ky = Math.round((n.y - origin.y - offset.y) / size);
+  return {
+    x: origin.x + offset.x + kx * size,
+    y: origin.y + offset.y + ky * size,
+    width: size * cols,
+    height: size * rows,
+  };
+}
