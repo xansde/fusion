@@ -97,7 +97,8 @@ export function attachPresenceSync(socket: Socket): () => void {
         if (pn !== undefined) pingUpdate.userName = pn;
         const pc = asOptStr(payload["color"]);
         if (pc !== undefined) pingUpdate.color = pc;
-        addPing(pingUpdate);
+        const pingFull = { ...pingUpdate, ...(payload["pull"] === true ? { pull: true } : {}) };
+        addPing(pingFull);
         break;
       }
 
@@ -293,13 +294,19 @@ export function emitCursor(
  * @param y       World Y coordinate
  * @param color   User color (optional — server will attach user color if omitted)
  */
-export function emitPing(socket: Socket | null, x: number, y: number, color?: string): void {
+export function emitPing(
+  socket: Socket | null,
+  x: number,
+  y: number,
+  color?: string,
+  pull?: boolean,
+): void {
   if (!socket?.connected) return;
 
   socket.emit("ephemeral", {
     type: "presence:ping",
     ts: Date.now(),
-    payload: { x, y, ...(color != null ? { color } : {}) },
+    payload: { x, y, ...(color != null ? { color } : {}), ...(pull ? { pull: true } : {}) },
   });
 }
 

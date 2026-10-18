@@ -176,3 +176,24 @@ describe("attachPresenceSync — area templates", () => {
     detach();
   });
 });
+
+describe("attachPresenceSync — presence:ping pull", () => {
+  it("records a pull view only when the ping carries pull", () => {
+    const socket = new FakeSocket();
+    const detach = attachPresenceSync(socket as unknown as Socket);
+    const before = presenceState.pullView?.seq ?? 0;
+    socket.emit({
+      type: "presence:ping",
+      ts: 1,
+      payload: { userId: "p", x: 1, y: 2 },
+    } as unknown as Envelope);
+    expect(presenceState.pullView?.seq ?? 0).toBe(before);
+    socket.emit({
+      type: "presence:ping",
+      ts: 2,
+      payload: { userId: "gm", x: 30, y: 40, pull: true },
+    } as unknown as Envelope);
+    expect(presenceState.pullView).toEqual({ x: 30, y: 40, seq: before + 1 });
+    detach();
+  });
+});

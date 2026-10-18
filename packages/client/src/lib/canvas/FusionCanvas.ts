@@ -341,6 +341,25 @@ export class FusionCanvas {
   }
 
   /**
+   * True when the screen point (client coordinates) lies on an interactive
+   * object of the tokens layer. Used by gestures that must only act on empty map.
+   */
+  isOverToken(clientX: number, clientY: number): boolean {
+    const app = this._app;
+    if (!app) return false;
+    const rect = this._container.getBoundingClientRect();
+    const hit = app.renderer.events.rootBoundary.hitTest(
+      clientX - rect.left,
+      clientY - rect.top,
+    );
+    const tokens = this.getLayer("tokens");
+    for (let node: Container | null = hit; node; node = node.parent) {
+      if (node === tokens) return node !== hit;
+    }
+    return false;
+  }
+
+  /**
    * Instantly pan to a world position (center viewport on that point).
    * REQ-CNV-008.
    */

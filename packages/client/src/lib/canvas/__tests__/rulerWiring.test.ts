@@ -68,3 +68,11 @@ describe("sceneLoader hands the grid geometry to the canvas", () => {
     expect(loader).toMatch(/canvas\.setGridStrategy\(/);
   });
 });
+
+describe("TableScreen wires the map ping", () => {
+  it("attaches the ping on the controls layer, yielding to the ruler tools", () => {
+    expect(table).toMatch(/attachPing\(\{/);
+    expect(table).toMatch(/isBusy: \(\) => _ruler\?\.isBusy\(\)/);
+    expect(table).toMatch(/_disposePing\?\.\(\)/);
+  });
+});

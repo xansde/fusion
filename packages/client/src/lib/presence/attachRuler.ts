@@ -85,6 +85,8 @@ export interface AttachRulerOptions {
 
 export interface RulerHandle {
   dispose: () => void;
+  /** True while a measuring tool owns the left button (ruler, template, token drag). */
+  isBusy: () => boolean;
   /** Report a token drag (null when it ended or was cancelled). */
   showDrag: (info: TokenDragInfo | null) => void;
 }
@@ -433,6 +435,7 @@ export function attachRuler(opts: AttachRulerOptions): RulerHandle {
       if (tpl) emitTemplateClear(socket);
       rulerLayer.destroy();
     },
+    isBusy: () => measuring || toolDragging || tplPress !== null || dragInfo !== null || rulerTool.mode !== null,
     showDrag: (info) => {
       if (!info) dragWaypoints = [];
       dragInfo = info;

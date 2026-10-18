@@ -858,6 +858,10 @@ export class SocketManager {
         pingRateLimiter,
         previewRateLimiter,
         sceneRooms,
+        userIdentity: (id: string) => {
+          const u = userStore.findById(id);
+          return u ? { name: u.name, color: u.color } : undefined;
+        },
       });
 
       socket.on("disconnect", (reason) => {
@@ -1002,6 +1006,8 @@ export class SocketManager {
       previewRateLimiter: EphemeralRateLimiter;
       /** REQ-NET-005: shared scene room tracking map for this namespace. */
       sceneRooms: Map<string, string>;
+      /** Display name/colour of a user, stamped server-side on ephemeral broadcasts. */
+      userIdentity: (userId: string) => { name: string; color: string } | undefined;
     },
   ): void {
     const logger = this.logger;
@@ -1153,6 +1159,7 @@ export class SocketManager {
       }
 
       // M1-E: route ephemeral events to presence handlers
+      const identity = rateLimiters.userIdentity(data.userId);
       handleEphemeralEnvelope(
         socket,
         parsed.data as Envelope,
@@ -1160,6 +1167,7 @@ export class SocketManager {
           userId: data.userId,
           role: data.role,
           worldId: data.worldId,
+          ...(identity ? { userName: identity.name, userColor: identity.color } : {}),
         },
         {
           ns,

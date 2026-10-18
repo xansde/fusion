@@ -57,6 +57,11 @@ export const presenceState: {
   onlineUsers: OnlineUser[];
   /** REQ-NET-044: token:preview broadcasts from OTHER users, keyed by tokenId. */
   remoteTokenPreviews: Map<string, RemoteTokenPreview>;
+  /**
+   * Latest GM "Shift+ping": every client centres the camera on (x, y). `seq`
+   * changes on every pull so a repeat on the same point still fires.
+   */
+  pullView: { x: number; y: number; seq: number } | null;
 } = $state({
   remoteCursors: new Map<string, RemoteCursor>(),
   pings: [] as MapPing[],
@@ -65,6 +70,7 @@ export const presenceState: {
   pinnedTemplates: new Map<string, PinnedTemplate>(),
   onlineUsers: [] as OnlineUser[],
   remoteTokenPreviews: new Map<string, RemoteTokenPreview>(),
+  pullView: null as { x: number; y: number; seq: number } | null,
 });
 
 // ---------------------------------------------------------------------------
@@ -128,7 +134,16 @@ export function addPing(data: {
   x: number;
   y: number;
   color?: string;
+  /** The GM asked everyone to look here. */
+  pull?: boolean;
 }): void {
+  if (data.pull === true) {
+    presenceState.pullView = {
+      x: data.x,
+      y: data.y,
+      seq: (presenceState.pullView?.seq ?? 0) + 1,
+    };
+  }
   const id = `ping-${String(++_pingCounter)}-${String(Date.now())}`;
   const ping: MapPing = {
     id,

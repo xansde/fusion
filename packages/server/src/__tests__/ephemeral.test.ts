@@ -326,6 +326,62 @@ describe("Ephemeral handlers — presence:ping", () => {
   });
 });
 
+describe("Ephemeral handlers — ping identity and pull", () => {
+  let ctx: TestContext;
+  let gmSocket: ClientSocket;
+  let playerSocket: ClientSocket;
+
+  beforeEach(async () => {
+    ctx = await buildTestContext();
+    gmSocket = connectClient(ctx.port, ctx.worldId, ctx.gmToken);
+    playerSocket = connectClient(ctx.port, ctx.worldId, ctx.playerToken);
+    gmSocket.connect();
+    playerSocket.connect();
+    await Promise.all([waitForConnect(gmSocket), waitForConnect(playerSocket)]);
+  });
+
+  afterEach(async () => {
+    gmSocket.disconnect();
+    playerSocket.disconnect();
+    await teardown(ctx);
+  });
+
+  it("stamps the sender's server-side colour and name on the ping", async () => {
+    const p = waitForEphemeral(gmSocket, "presence:ping", 2000);
+    playerSocket.emit("ephemeral", {
+      type: "presence:ping",
+      ts: Date.now(),
+      payload: { x: 1, y: 2, color: "#000001" },
+    });
+    const payload = (await p).payload as Record<string, unknown>;
+    expect(payload.color).toBe(ctx.playerColor);
+    expect(payload.userName).toBe("Player1");
+  });
+
+  it("keeps pull when a privileged user asks for it", async () => {
+    const p = waitForEphemeral(playerSocket, "presence:ping", 2000);
+    gmSocket.emit("ephemeral", {
+      type: "presence:ping",
+      ts: Date.now(),
+      payload: { x: 7, y: 8, pull: true },
+    });
+    const payload = (await p).payload as Record<string, unknown>;
+    expect(payload.pull).toBe(true);
+  });
+
+  it("strips pull from a player's ping (only the GM moves the camera)", async () => {
+    const p = waitForEphemeral(gmSocket, "presence:ping", 2000);
+    playerSocket.emit("ephemeral", {
+      type: "presence:ping",
+      ts: Date.now(),
+      payload: { x: 7, y: 8, pull: true },
+    });
+    const payload = (await p).payload as Record<string, unknown>;
+    expect(payload.x).toBe(7);
+    expect(payload.pull).toBeUndefined();
+  });
+});
+
 describe("Ephemeral handlers — presence:ruler", () => {
   let ctx: TestContext;
   let gmSocket: ClientSocket;

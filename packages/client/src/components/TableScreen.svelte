@@ -52,6 +52,7 @@
   import { ensureFootprintRegistry } from "../lib/canvas/tokens/footprintRegistry.svelte.js";
   import { initTokenDisplayPrefs } from "../lib/canvas/tokens/tokenDisplayPrefsStore.svelte.js";
   import { attachRuler, type RulerHandle } from "../lib/presence/attachRuler.js";
+  import { attachPing } from "../lib/presence/attachPing.js";
   import { actorSpeedFt } from "../lib/presence/dragRuler.js";
   import RulerToolButton from "./RulerToolButton.svelte";
   import { TokenInteractionManager } from "../lib/canvas/tokens/TokenInteractionManager.js";
@@ -201,6 +202,7 @@
   let _tokenInteraction: TokenInteractionManager | null = null;
   /** Handle of the ruler adapter (listeners, drawing, drag ruler) for the loaded scene. */
   let _ruler: RulerHandle | null = null;
+  let _disposePing: (() => void) | null = null;
   /** Tokens selected on the canvas (ids), for the emanation source. */
   let _selectedTokenIds: ReadonlySet<string> = new Set();
   /**
@@ -826,6 +828,15 @@
         getSource: () => selectedTokenFootprint(scene._id, rulerGrid.config.size),
         getTargets: () => sceneTargets(scene._id, rulerGrid),
       });
+      // --- Map ping (hold the left button on empty map; GM Shift+hold pulls the camera) ---
+      _disposePing = attachPing({
+        canvas,
+        layer: canvas.getLayer("controls"),
+        socket: sock,
+        cellPx: rulerGrid.config.size,
+        userId,
+        isBusy: () => _ruler?.isBusy() ?? false,
+      });
     }
 
     // --- CombatCanvasController ---
@@ -871,6 +882,8 @@
 
     _ruler?.dispose();
     _ruler = null;
+    _disposePing?.();
+    _disposePing = null;
 
     if (sceneOrchestrator) {
       sceneOrchestrator.teardown();

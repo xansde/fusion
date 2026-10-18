@@ -32,6 +32,7 @@ import type { Namespace, Socket } from "socket.io";
 import type { Logger } from "pino";
 import type { Envelope } from "@fusion/shared";
 import { z } from "zod";
+import { isRolePrivileged } from "../documents/ownership.js";
 
 // ---------------------------------------------------------------------------
 // Payload schemas
@@ -49,6 +50,8 @@ export const MapPingPayloadSchema = z.object({
   y: z.number().finite(),
   /** User color in CSS hex format (e.g. "#ff4444"). */
   color: z.string().optional(),
+  /** GM "Shift+ping": ask every client to centre the camera here. Ignored for players. */
+  pull: z.boolean().optional(),
 });
 export type MapPingPayload = z.infer<typeof MapPingPayloadSchema>;
 
@@ -349,9 +352,11 @@ export function handleEphemeralEnvelope(
       const pingPayload: MapPingPayload & { userId: string; userName?: string } = {
         x: parsed.data.x,
         y: parsed.data.y,
+        // The account colour is authoritative; a client-sent one is only a fallback.
         ...(parsed.data.color !== undefined || ctx.userColor !== undefined
-          ? { color: parsed.data.color ?? ctx.userColor }
+          ? { color: ctx.userColor ?? parsed.data.color }
           : {}),
+        ...(parsed.data.pull === true && isRolePrivileged(ctx.role) ? { pull: true } : {}),
         userId: ctx.userId,
         ...(ctx.userName !== undefined ? { userName: ctx.userName } : {}),
       };
