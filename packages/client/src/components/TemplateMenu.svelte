@@ -12,16 +12,23 @@
 
   const open = $derived(templateMenu.open);
   const pin = $derived(open ? presenceState.pinnedTemplates.get(open.id) : undefined);
-  const style = $derived(normalizeAreaStyle(pin?.template.style ?? DEFAULT_AREA_STYLE));
+  // Patches made faster than the server echo build on each other instead of on a stale style.
+  let draft = $state<AreaStyle | null>(null);
+  const style = $derived(draft ?? normalizeAreaStyle(pin?.template.style ?? DEFAULT_AREA_STYLE));
 
   // The area vanished (removed by someone, token gone): close the menu.
   $effect(() => {
     if (open && !pin) closeTemplateMenu();
   });
+  $effect(() => {
+    void open?.id;
+    draft = null;
+  });
 
   function change(patch: Partial<AreaStyle>): void {
     if (!open || !pin) return;
-    emitTemplateStyle(getSocket() ?? null, open.id, pin.sceneId, normalizeAreaStyle({ ...style, ...patch }));
+    draft = normalizeAreaStyle({ ...style, ...patch });
+    emitTemplateStyle(getSocket() ?? null, open.id, pin.sceneId, draft);
   }
 
   function remove(): void {
