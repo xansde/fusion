@@ -182,6 +182,11 @@ acompanha a feature e não cai na exceção.
 
 ### DEC-MCL-06 — Elegibilidade marca, nunca bloqueia
 
+> **Emenda DEC-MCL-13 (18/10/2026)**: no slot de **talento de classe** da multiclasse
+> por níveis, talento de classe com nível **maior** que o nível de classe da classe
+> dona do slot **sai da lista** (filtro, não marca). O resto desta decisão continua
+> valendo para todos os outros casos (pré-requisito, acesso, exclusão mútua etc.).
+
 **Decisão:** requisito não atendido — inclusive o veto de exclusão mútua da
 regra 23 — **marca** a opção com o motivo e a mantém na lista, ordenada depois
 das atendidas. O que **filtra** a lista é a elegibilidade de _slot_ (um feat sem
@@ -237,7 +242,12 @@ arquétipo livre, aberta num mundo sem a regra, tem talentos que aquele mundo n�
 concederia. O aviso disso é trabalho de quem implementar importação de ator
 (`ver 16-compendiums-e-importacao.md`), não desta variante.
 
-### DEC-MCL-10 — Talento de classe de nível par é do dono do nível, não de "qualquer classe que o personagem tenha" (decisão do Alexandre, 26/09/2026)
+### DEC-MCL-10 — **REVOGADA por DEC-MCL-13 (18/10/2026) quanto à cadência** — Talento de classe de nível par é do dono do nível, não de "qualquer classe que o personagem tenha" (decisão do Alexandre, 26/09/2026)
+
+> **Revogada em parte por DEC-MCL-13**: a cadência "a cada nível **par de personagem**"
+> deixa de valer; o slot passa a seguir o nível **de classe** da classe dona do nível.
+> Continua valendo a parte de propriedade: o talento do slot é da classe dona daquele
+> nível (`classOwnerAt`), nunca de outra classe que o personagem tenha.
 
 > **Emenda REQ-MCL-040**: a cláusula original "gastável em qualquer classe que ele
 > tenha" é removida. O resto do requisito (cadência em todo nível par de personagem,
@@ -314,6 +324,42 @@ níveis (5e no Foundry e no Roll20: cada nível de classe contribui o próprio d
 **O que esta decisão aceita perder:** a simplificação de "um único PV por nível" da DEC-MCL-11.
 
 **Contexto:** revisão das fichas de A Queda, 17/10/2026 (satélite `fix/fichas-a-queda`, `b787ff57`).
+
+### DEC-MCL-13 — O slot de talento de classe segue o nível DE CLASSE, não a paridade do nível de personagem (decisão do Alexandre, 18/10/2026; revoga a cadência da DEC-MCL-10)
+
+> "Pessoa de interesse não pode aparecer no slot de nível 2 de personagem, pois é nível 1 de
+> investigador. Pessoa de interesse é feat de classe nível 2, então só pode aparecer para ele quando
+> for investigador 2+. Os slots de classe devem aparecer de acordo com o nível de classe,
+> independente de se nível ímpar de personagem." — Alexandre, 18/10/2026
+
+**Decisão:**
+1. Na multiclasse por níveis, o slot de talento de classe de um nível de personagem nasce quando a
+   classe **dona daquele nível** (`classOwnerAt`) chega a um nível **de classe** que a tabela da
+   própria classe (`featLevels.class`) lista. A paridade do nível de personagem não conta mais.
+2. O talento de classe do nível 1 **de classe** continua vindo só da primeira classe
+   (REQ-MCL-031): uma classe que entra depois começa a pagar no próximo nível que a tabela dela lista
+   (Investigador e Ladino listam 1, 2, 4, …; quem entra no Investigador no nível 2 de personagem
+   ganha o primeiro talento de Investigador no Investigador 2).
+3. No seletor desse slot, talento de classe com nível maior que o nível de classe da dona do slot
+   **não aparece** (filtro — emenda à DEC-MCL-06 só para este caso).
+4. Talento já escolhido num slot que deixou de existir **não é apagado**: fica no seu nível,
+   marcado como órfão ("sem slot neste nível pela regra atual"), legível e removível, para o
+   Mestre resolver. Nada é movido automaticamente.
+
+**Exemplos (as fichas de A Queda):** Huo (Ladino 1 / Investigador 2–3) — slots no nível 1 (Ladino 1)
+e no nível 3 (Investigador 2); o `classFeat-2` dele vira órfão. C.L.A.U.D.E. (Investigador 1 /
+Necromante 2–3) — slots nos níveis 1 e 3. Tormentor (Invocador 1 / Feiticeiro 2–3) — slot só no
+nível 3 (Feiticeiro 2; nenhuma das duas lista talento no nível 1 de classe).
+
+**Racional:** a cadência por nível par de personagem dava ao Huo um slot de Investigador quando ele
+era Investigador 1 (o talento de nível 2 da classe ficava inalcançável) e nenhum quando ele chegava a
+Investigador 2. Seguir o nível de classe é o que a tabela de cada classe diz.
+
+**O que esta decisão aceita perder:** o total de talentos de classe deixa de ser "1 + níveis pares"
+fixo — passa a depender de como os níveis foram divididos entre as classes.
+
+**Contexto:** relato do Alexandre sobre a ficha do Huo Jinwu, 18/10/2026 (satélite
+`fix/ficha-ler-talento`).
 
 ---
 
@@ -450,12 +496,15 @@ interface DerivedClassLevels {
 
 ### 6.5 Feats e cadência
 
-- **REQ-MCL-040** [MC] O personagem DEVE receber um class feat a cada nível
-  **par de personagem**; o talento DEVE pertencer à classe que **é a dona daquele
-  nível** (`classOwnerAt` — a mesma classe do slot `classLevel-<nível>`), nunca a
-  qualquer outra classe que o personagem também tenha; o requisito de nível do feat
-  DEVE ser conferido contra o nível **daquela classe** (DEC-MCL-10, 2026-09-26 —
-  substitui a leitura anterior "gastável em qualquer classe que ele tenha").
+- **REQ-MCL-040** [MC] (emendado por DEC-MCL-13, 18/10/2026) O personagem DEVE receber um
+  class feat em cada nível de personagem em que a classe **dona daquele nível**
+  (`classOwnerAt` — a mesma classe do slot `classLevel-<nível>`) atinge um nível **de
+  classe** listado em `featLevels.class` dela — independente da paridade do nível de
+  personagem; o do nível 1 de classe só para a primeira classe (REQ-MCL-031). O talento
+  DEVE pertencer a essa classe, nunca a outra que o personagem também tenha (DEC-MCL-10);
+  talento de classe de nível maior que o nível daquela classe NÃO DEVE ser oferecido no
+  seletor; talento já escolhido num slot que deixou de existir DEVE continuar na ficha,
+  marcado como órfão.
 - **REQ-MCL-041** [MC] Feat de arquétipo (trait `archetype`) DEVE ser conferido
   contra o nível de **personagem**, mesmo quando pago com um slot de class feat.
 - **REQ-MCL-042** [MC] A cadência básica do personagem (ancestry feat, general
