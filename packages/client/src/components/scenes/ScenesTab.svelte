@@ -58,6 +58,22 @@
   import type { SidebarPanelProps } from "../../lib/sidebar/registry.js";
   import { sceneListState } from "../../lib/scenes/scenesState.svelte.js";
   import { activateScene, preloadSceneForAll, OpError } from "../../lib/scenes/sceneController.js";
+
+  let preloadStatus = $state<Record<string, "loading" | "done">>({});
+
+  async function runPreload(sceneId: string): Promise<void> {
+    preloadStatus[sceneId] = "loading";
+    try {
+      await preloadSceneForAll(socket, sceneId);
+      preloadStatus[sceneId] = "done";
+      window.setTimeout(() => {
+        delete preloadStatus[sceneId];
+      }, 3000);
+    } catch {
+      delete preloadStatus[sceneId];
+      activateError = t("FUSION.Scene.Dialog.UnexpectedError");
+    }
+  }
   import {
     openSceneConfigWindow,
     openSceneCreateWindow,
@@ -588,6 +604,27 @@
                         >
                       {/each}
                     </span>
+                    <!-- "Pre-carregar para todos": every client downloads this scene's map now,
+                         so the switch that follows has nothing left to fetch. It does not
+                         change the scene on air. A real labelled button, always visible
+                         (it used to be a 24px ghost icon inside the hover-only group). -->
+                    <button
+                      type="button"
+                      class="preload-btn"
+                      class:preload-btn--done={preloadStatus[entry.sceneId] === "done"}
+                      disabled={preloadStatus[entry.sceneId] === "loading"}
+                      onclick={() => {
+                        void runPreload(entry.sceneId);
+                      }}
+                      title={t("FUSION.Scene.Dialog.PreloadForAll")}
+                      aria-label="{t('FUSION.Scene.Dialog.PreloadForAll')}: {entry.name}"
+                    >
+                      {preloadStatus[entry.sceneId] === "loading"
+                        ? t("FUSION.Scene.Dialog.Preloading")
+                        : preloadStatus[entry.sceneId] === "done"
+                          ? t("FUSION.Scene.Dialog.Preloaded")
+                          : t("FUSION.Scene.Dialog.PreloadForAll")}
+                    </button>
                   </span>
                   <div class="scene-row__actions">
                     <button
@@ -609,34 +646,6 @@
                         focusable="false"
                       >
                         <path d="M5 3.5 12 8l-7 4.5z" fill="currentColor" />
-                      </svg>
-                    </button>
-                    <!-- "Pre-carregar para todos": every client downloads this scene's map now,
-                         so the switch that follows has nothing left to fetch. It does not
-                         change the scene on air. -->
-                    <button
-                      class="action-btn action-btn--preload"
-                      onclick={() => {
-                        void preloadSceneForAll(socket, entry.sceneId).catch(() => {
-                          activateError = t("FUSION.Scene.Dialog.UnexpectedError");
-                        });
-                      }}
-                      title={t("FUSION.Scene.Dialog.PreloadForAll")}
-                      aria-label="{t('FUSION.Scene.Dialog.PreloadForAll')}: {entry.name}"
-                    >
-                      <svg
-                        viewBox="0 0 16 16"
-                        width="14"
-                        height="14"
-                        fill="none"
-                        stroke="currentColor"
-                        stroke-width="1.4"
-                        stroke-linecap="round"
-                        stroke-linejoin="round"
-                        aria-hidden="true"
-                        focusable="false"
-                      >
-                        <path d="M8 2.5v7M5 7l3 3 3-3M3 13h10" />
                       </svg>
                     </button>
                     <!-- REQ-CEN-050: open this scene on THIS canvas without touching the
@@ -1202,6 +1211,38 @@
   .scene-row:hover .scene-row__actions,
   .scene-row:focus-within .scene-row__actions {
     opacity: 1;
+  }
+
+  .preload-btn {
+    align-self: flex-start;
+    background: var(--fusion-surface-alt);
+    border: 1px solid var(--fusion-border);
+    border-radius: var(--fusion-radius-sm);
+    color: var(--fusion-text);
+    cursor: pointer;
+    font-family: var(--fusion-font);
+    font-size: 0.72rem;
+    margin-top: 0.2rem;
+    padding: 0.15rem 0.5rem;
+  }
+
+  .preload-btn:hover:not(:disabled) {
+    border-color: var(--fusion-accent);
+  }
+
+  .preload-btn:disabled {
+    cursor: progress;
+    opacity: 0.7;
+  }
+
+  .preload-btn--done {
+    border-color: var(--fusion-success);
+    color: var(--fusion-success);
+  }
+
+  .preload-btn:focus-visible {
+    outline: 2px solid var(--fusion-accent);
+    outline-offset: 2px;
   }
 
   .action-btn {

@@ -9,8 +9,9 @@
   import { getSocket } from "../lib/session.svelte.js";
   import { canSendShow, emitShow } from "../lib/presence/showPlayers.js";
   import { assetNameFromPath } from "../lib/assets/assetApi.js";
+  import { cornerPanel, toggleCornerPanel } from "../lib/ui/cornerPanel.svelte.js";
 
-  let open = $state(false);
+  const open = $derived(cornerPanel.open === "show");
   let picking = $state(false);
   let title = $state("");
   let text = $state("");
@@ -49,7 +50,7 @@
     aria-label="Mostrar aos jogadores"
     title="Mostrar aos jogadores"
     onclick={() => {
-      open = !open;
+      toggleCornerPanel("show");
     }}
   >
     <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true">

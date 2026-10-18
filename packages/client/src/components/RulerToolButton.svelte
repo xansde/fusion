@@ -16,20 +16,28 @@
   } from "../lib/presence/rulerToolStore.svelte.js";
   import { TOOL_MODES, isAreaMode } from "../lib/presence/templateTool.js";
   import AreaStyleControls from "./AreaStyleControls.svelte";
+  import {
+    closeCornerPanel,
+    cornerPanel,
+    openCornerPanel,
+    toggleCornerPanel,
+  } from "../lib/ui/cornerPanel.svelte.js";
 
-  let open = $state(false);
+  // The picker is one of the corner panels: opening the fog bar or the show form closes it.
+  const open = $derived(cornerPanel.open === "ruler");
 
   function onMain(): void {
     if (rulerTool.mode !== null) {
       setRulerTool(null);
-      open = false;
+      closeCornerPanel("ruler");
     } else {
-      open = !open;
+      toggleCornerPanel("ruler");
     }
   }
 
   function pick(mode: (typeof TOOL_MODES)[number]["mode"]): void {
     selectRulerMode(mode);
+    openCornerPanel("ruler");
   }
 
   function onSize(e: Event): void {
@@ -69,7 +77,7 @@
     </svg>
   </button>
 
-  {#if open || rulerTool.mode !== null}
+  {#if open}
     <div class="ruler-tool__panel" role="group" aria-label="Ferramentas de medição">
       {#each TOOL_MODES as m (m.mode)}
         <button
