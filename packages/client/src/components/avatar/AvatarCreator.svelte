@@ -47,7 +47,7 @@
   import { publicarMiniatura } from "$lib/avatar/publicarMiniatura.js";
   import { liberarPixelsDoAvatar } from "$lib/avatar/desenhar.js";
   import { getSocket } from "$lib/session.svelte.js";
-  import { sendOp } from "$lib/docs/sendOp.js";
+  import { atualizarAtor } from "$lib/avatar/escrita.js";
   import { t } from "$lib/i18n/i18n.js";
   import AvatarSprite from "./AvatarSprite.svelte";
 
@@ -219,13 +219,7 @@
     salvando = true;
     mensagem = null;
     try {
-      await sendOp(socket, {
-        type: "doc:update",
-        payload: {
-          documentType: "Actor",
-          updates: [{ _id: actorId, diff: diffDoAvatar(baseline, novo) }],
-        },
-      });
+      await atualizarAtor(socket, actorId, diffDoAvatar(baseline, novo));
       baseline = novo;
       sujo = false;
       mensagem = novo === null ? t("FUSION.Avatar.Removed") : t("FUSION.Avatar.Saved");
@@ -270,10 +264,7 @@
         return;
       }
       const caminho = await publicarMiniatura(png, modo);
-      await sendOp(socket, {
-        type: "doc:update",
-        payload: { documentType: "Actor", updates: [{ _id: actorId, diff: { img: caminho } }] },
-      });
+      await atualizarAtor(socket, actorId, { img: caminho });
       mensagem = t(modo === "token" ? "FUSION.Avatar.UsedAsToken" : "FUSION.Avatar.UsedAsPortrait");
     } catch {
       mensagem = t("FUSION.Avatar.Error.Art");
@@ -709,10 +700,17 @@
     margin: 0;
   }
 
+  /* Sticky: five buttons wrap to three rows and would scroll out of a short window. */
   .acoes {
+    background: var(--fusion-surface, #1e1e1e);
+    bottom: -0.75rem;
     display: flex;
     flex-wrap: wrap;
     gap: 0.35rem;
+    margin: 0 -0.75rem -0.75rem;
+    padding: 0.5rem 0.75rem 0.75rem;
+    position: sticky;
+    z-index: 1;
   }
 
   .acoes button {
