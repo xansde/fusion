@@ -14,8 +14,6 @@ export const MIN_BRUSH_RADIUS = 10;
 export const MAX_BRUSH_RADIUS = 400;
 
 export const fogToolState: {
-  /** The mini-bar is open. */
-  open: boolean;
   tool: FogTool;
   mode: FogMode;
   radius: number;
@@ -23,7 +21,6 @@ export const fogToolState: {
   /** One-line message under the bar (e.g. "fog too complex"); cleared on the next action. */
   notice: string | null;
 } = $state({
-  open: false,
   tool: "none",
   mode: "reveal",
   radius: DEFAULT_BRUSH_RADIUS,
@@ -31,9 +28,8 @@ export const fogToolState: {
   notice: null,
 });
 
-/** Close the bar and put the pointer back to normal canvas interaction. */
+/** Put the pointer back to normal canvas interaction. */
 export function closeFogBar(): void {
-  fogToolState.open = false;
   fogToolState.tool = "none";
   fogToolState.notice = null;
 }

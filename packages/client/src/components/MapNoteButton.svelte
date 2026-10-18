@@ -5,10 +5,14 @@
    * the new-pin form at that spot. Click again (or Esc) to cancel.
    */
   import { noteUi, startPlacing, stopPlacing } from "../lib/notes/noteUi.svelte.js";
+  import { closeAllCornerPanels } from "../lib/ui/cornerPanel.svelte.js";
 
   function toggle(): void {
     if (noteUi.placing) stopPlacing();
-    else startPlacing();
+    else {
+      closeAllCornerPanels();
+      startPlacing();
+    }
   }
 </script>
 
