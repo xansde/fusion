@@ -1524,5 +1524,13 @@
   "FUSION.Avatar.Error.Acervo": "Could not load the avatar acervo.",
   "FUSION.Avatar.Error.Unknown": "Unexpected error while building the avatar creator.",
   "FUSION.Avatar.Error.Offline": "No connection to the server — the avatar was not saved.",
-  "FUSION.Avatar.Error.Save": "The server refused to save the avatar."
+  "FUSION.Avatar.Error.Save": "The server refused to save the avatar.",
+  "FUSION.Avatar.UseAsToken": "Use as token",
+  "FUSION.Avatar.UseAsTokenHint": "Publishes the full figure to the Tokens tab and sets it as the character's art (the map token and the sheet portrait share the same art)",
+  "FUSION.Avatar.UseAsPortrait": "Use as portrait",
+  "FUSION.Avatar.UseAsPortraitHint": "Publishes a bust to the Tokens tab and sets it as the character's art (the map token and the sheet portrait share the same art)",
+  "FUSION.Avatar.UsedAsToken": "Figure published and applied to the token and portrait.",
+  "FUSION.Avatar.UsedAsPortrait": "Bust published and applied to the portrait and token.",
+  "FUSION.Avatar.Error.Empty": "There is no figure to draw: equip at least one piece.",
+  "FUSION.Avatar.Error.Art": "Could not publish the avatar art."
 }

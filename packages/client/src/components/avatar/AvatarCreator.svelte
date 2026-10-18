@@ -43,6 +43,8 @@
     type CanalDoCriador,
   } from "$lib/avatar/criador.js";
   import { diffDoAvatar } from "$lib/avatar/patch.js";
+  import { renderizarMiniatura, type ModoMiniatura } from "$lib/avatar/miniatura.js";
+  import { publicarMiniatura } from "$lib/avatar/publicarMiniatura.js";
   import { liberarPixelsDoAvatar } from "$lib/avatar/desenhar.js";
   import { getSocket } from "$lib/session.svelte.js";
   import { sendOp } from "$lib/docs/sendOp.js";
@@ -245,6 +247,41 @@
     if (catalogo !== null) selecao = selecaoInicial(catalogo, corpo);
   }
 
+  // ---------------------------------------------------------------------------
+  // "Usar como token / retrato" — render the current preview to a square PNG,
+  // publish it to the asset library (tokens tab) and set it as the actor's art.
+  // A token has no art of its own (REQ-TOK-010/011): it IS the actor's `img`, so
+  // this one write reaches every token of the actor and the sheet portrait.
+  // ---------------------------------------------------------------------------
+
+  async function usarComo(modo: ModoMiniatura): Promise<void> {
+    if (!podeEditar || catalogo === null) return;
+    const socket = getSocket();
+    if (socket === null) {
+      mensagem = t("FUSION.Avatar.Error.Offline");
+      return;
+    }
+    salvando = true;
+    mensagem = null;
+    try {
+      const png = await renderizarMiniatura(catalogo, selecao, corpo, modo);
+      if (png === null) {
+        mensagem = t("FUSION.Avatar.Error.Empty");
+        return;
+      }
+      const caminho = await publicarMiniatura(png, modo);
+      await sendOp(socket, {
+        type: "doc:update",
+        payload: { documentType: "Actor", updates: [{ _id: actorId, diff: { img: caminho } }] },
+      });
+      mensagem = t(modo === "token" ? "FUSION.Avatar.UsedAsToken" : "FUSION.Avatar.UsedAsPortrait");
+    } catch {
+      mensagem = t("FUSION.Avatar.Error.Art");
+    } finally {
+      salvando = false;
+    }
+  }
+
   function alternarCreditos(): void {
     mostrarCreditos = !mostrarCreditos;
     if (mostrarCreditos && creditos === null) {
@@ -356,6 +393,24 @@
             {salvando ? t("FUSION.Avatar.Saving") : t("FUSION.Avatar.Save")}
           </button>
           <button type="button" disabled={salvando} onclick={recomecar}>{t("FUSION.Avatar.Reset")}</button>
+          <button
+            type="button"
+            class="acoes__usar"
+            disabled={salvando}
+            title={t("FUSION.Avatar.UseAsTokenHint")}
+            onclick={() => usarComo("token")}
+          >
+            {t("FUSION.Avatar.UseAsToken")}
+          </button>
+          <button
+            type="button"
+            class="acoes__usar"
+            disabled={salvando}
+            title={t("FUSION.Avatar.UseAsPortraitHint")}
+            onclick={() => usarComo("retrato")}
+          >
+            {t("FUSION.Avatar.UseAsPortrait")}
+          </button>
           <button type="button" class="acoes__remover" disabled={salvando || baseline === null} onclick={remover}>
             {t("FUSION.Avatar.Remove")}
           </button>

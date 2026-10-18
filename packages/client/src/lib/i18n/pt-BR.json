@@ -1524,5 +1524,13 @@
   "FUSION.Avatar.Error.Acervo": "Não foi possível carregar o acervo do avatar.",
   "FUSION.Avatar.Error.Unknown": "Erro inesperado ao montar o criador de avatar.",
   "FUSION.Avatar.Error.Offline": "Sem conexão com o servidor — o avatar não foi salvo.",
-  "FUSION.Avatar.Error.Save": "O servidor recusou salvar o avatar."
+  "FUSION.Avatar.Error.Save": "O servidor recusou salvar o avatar.",
+  "FUSION.Avatar.UseAsToken": "Usar como token",
+  "FUSION.Avatar.UseAsTokenHint": "Publica a figura inteira na aba Tokens e a usa como arte do personagem (token no mapa e retrato da ficha usam a mesma arte)",
+  "FUSION.Avatar.UseAsPortrait": "Usar como retrato",
+  "FUSION.Avatar.UseAsPortraitHint": "Publica busto na aba Tokens e o usa como arte do personagem (token no mapa e retrato da ficha usam a mesma arte)",
+  "FUSION.Avatar.UsedAsToken": "Figura publicada e aplicada ao token e ao retrato.",
+  "FUSION.Avatar.UsedAsPortrait": "Busto publicado e aplicado ao retrato e ao token.",
+  "FUSION.Avatar.Error.Empty": "Não há figura para desenhar: equipe ao menos uma peça.",
+  "FUSION.Avatar.Error.Art": "Não foi possível publicar a arte do avatar."
 }
