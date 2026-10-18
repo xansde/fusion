@@ -14,6 +14,8 @@ import { Server as SocketIOServer } from "socket.io";
 import type { Namespace, Socket } from "socket.io";
 import type { Server as HttpServer } from "node:http";
 import type { Logger } from "pino";
+import { existsSync } from "node:fs";
+import { guardPath, PathTraversalError } from "../assets/path-guard.js";
 
 import { EnvelopeSchema, PROTOCOL_VERSION, FUSION_VERSION, type Envelope } from "@fusion/shared";
 
@@ -107,6 +109,7 @@ import {
   buildActiveSceneHandler,
   sendJoinSnapshot,
 } from "./handlers/sync-handlers.js";
+import { buildSoundPlayHandler, buildSoundStopHandler } from "./handlers/sound-handlers.js";
 import {
   buildChatSendHandler,
   buildChatHistoryHandler,
@@ -194,6 +197,12 @@ export interface WorldNamespaceOptions {
    * fallback (e.g. stub system, or system package not loaded).
    */
   systemModule?: SystemModule;
+  /**
+   * The world's assets directory (same value passed as `assetsDir` to
+   * registerAssetRoutes). When provided, sound:play rejects an unknown track
+   * with NOT_FOUND; when omitted, existence is left to the GM's picker.
+   */
+  assetsDir?: string;
   /**
    * BHR-F2-05: where the marks on a roll's target come from
    * (`target:mark:<slug>`). `TokenMark` (BHR-F3-06) plugs its reader in here;
@@ -298,6 +307,7 @@ export class SocketManager {
       compendiumService,
       systemId,
       systemModule,
+      assetsDir,
       tokenMarkSource,
     } = options;
 
@@ -449,6 +459,22 @@ export class SocketManager {
     // Register M1-B sync handlers
     registry.register("resync:request", buildResyncRequestHandler(syncDeps));
     registry.register("world:activeScene", buildActiveSceneHandler(syncDeps));
+
+    // Ambient table track (sound:play / sound:stop). assetExists is wired only
+    // when assetsDir was supplied (see boot.ts).
+    const assetExists = assetsDir
+      ? (name: string): boolean => {
+          try {
+            return existsSync(guardPath(assetsDir, name));
+          } catch (err) {
+            if (err instanceof PathTraversalError) return false;
+            throw err;
+          }
+        }
+      : undefined;
+    const soundDeps = { db, ns, seqStore, opBuffer, ...(assetExists ? { assetExists } : {}) };
+    registry.register("sound:play", buildSoundPlayHandler(soundDeps));
+    registry.register("sound:stop", buildSoundStopHandler(soundDeps));
 
     // Register M1-D chat + roll handlers
     // store/targetingStore (ALQ-F1-05 / REQ-CBT-056): chat:send reads the

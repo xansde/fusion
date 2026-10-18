@@ -11,6 +11,13 @@ export { registerAssetRoutes } from "./routes.js";
 export type { RegisterAssetRoutesOptions } from "./routes.js";
 export { detectType, ALLOWED_TYPES } from "./magic-bytes.js";
 export type { DetectedType } from "./magic-bytes.js";
+export {
+  MAX_BYTES_BY_KIND,
+  MAX_UPLOAD_BYTES_GLOBAL,
+  kindOfMime,
+  effectiveCapForKind,
+} from "./upload-limits.js";
+export type { AssetKind } from "./upload-limits.js";
 export { sanitizeSvg, svgHasXssVectors } from "./svg-sanitize.js";
 export { guardPath, guardFilename, PathTraversalError } from "./path-guard.js";
 export { buildSafeFilename, sha256Hex, slugifyBasename, randomHex16 } from "./slug.js";

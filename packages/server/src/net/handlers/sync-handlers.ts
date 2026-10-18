@@ -40,6 +40,7 @@ import type { SystemModule } from "@fusion/system-api";
 import { runActorDerivation } from "../derive-runner.js";
 import { resolveWorldVariantRules } from "../../documents/world-variant-rules.js";
 
+import { getAmbientTrackState } from "./sound-handlers.js";
 import { WorldResyncRequestPayloadSchema, WorldActiveScenePayloadSchema } from "@fusion/shared";
 import type {
   Envelope,
@@ -550,6 +551,9 @@ function buildSnapshot(deps: SyncHandlerDeps, userId: string, role: number): Wor
     seq: deps.seqStore.peek(),
     activeSceneId: getActiveSceneId(deps.db),
     documents,
+    // Ambient table track playing right now (or null); late joiners derive
+    // their loop position from `startedAt` locally.
+    ambientTrack: getAmbientTrackState(deps.db),
   };
 }
 
