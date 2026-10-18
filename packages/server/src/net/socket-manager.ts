@@ -105,6 +105,7 @@ import { MapCounter, registerMapCounterReset } from "../combat/map-counter.js";
 import {
   buildResyncRequestHandler,
   buildActiveSceneHandler,
+  buildScenePreloadHandler,
   sendJoinSnapshot,
 } from "./handlers/sync-handlers.js";
 import {
@@ -449,6 +450,7 @@ export class SocketManager {
     // Register M1-B sync handlers
     registry.register("resync:request", buildResyncRequestHandler(syncDeps));
     registry.register("world:activeScene", buildActiveSceneHandler(syncDeps));
+    registry.register("scene:preload", buildScenePreloadHandler(syncDeps));
 
     // Register M1-D chat + roll handlers
     // store/targetingStore (ALQ-F1-05 / REQ-CBT-056): chat:send reads the

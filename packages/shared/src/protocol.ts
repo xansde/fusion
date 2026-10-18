@@ -79,6 +79,8 @@ export const EnvelopeTypeSchema = z.union([
   // World-level broadcast events (M1-B)
   z.literal("world:snapshot"),
   z.literal("world:activeScene"),
+  // GM asks every client to warm a scene's art WITHOUT switching to it (ephemeral, no seq).
+  z.literal("scene:preload"),
   z.literal("ack:ok"),
   z.literal("ack:error"),
   // M1-D chat handlers
@@ -543,6 +545,18 @@ export const WorldActiveScenePayloadSchema = z.object({
 });
 
 export type WorldActiveScenePayload = z.infer<typeof WorldActiveScenePayloadSchema>;
+
+/**
+ * scene:preload — the GM's "Pre-carregar para todos". Request: `{ sceneId }`. The server
+ * answers every connected client with the same op carrying `{ sceneId, background }` (the art
+ * path to warm), WITHOUT a seq: it is not world state, only a hint, so it must neither advance
+ * nor hole the mirror's seq stream. It never changes the scene on air.
+ */
+export const ScenePreloadPayloadSchema = z.object({
+  sceneId: z.string().min(1),
+});
+
+export type ScenePreloadPayload = z.infer<typeof ScenePreloadPayloadSchema>;
 
 // ---------------------------------------------------------------------------
 // Note: EmbeddedAddress (EmbeddedAddressSchema) was defined here but never

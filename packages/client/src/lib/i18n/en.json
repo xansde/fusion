@@ -521,6 +521,8 @@
   "FUSION.Scene.Dialog.Saving": "Saving…",
   "FUSION.Scene.Dialog.UnexpectedError": "An unexpected error occurred.",
   "FUSION.Scene.Dialog.ActivateScene": "Activate scene",
+  "FUSION.Scene.Dialog.PreloadForAll": "Preload for everyone",
+  "FUSION.Scene.Loading": "Loading scene…",
   "FUSION.Scene.Dialog.EditScene": "Edit scene",
   "FUSION.Scene.Dialog.DeleteScene": "Delete scene",
   "FUSION.Scene.Delete.Title": "Delete Scene",

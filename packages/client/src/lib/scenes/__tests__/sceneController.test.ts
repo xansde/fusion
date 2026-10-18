@@ -11,6 +11,7 @@ import {
   listScenes,
   createScene,
   updateSceneConfig,
+  preloadSceneForAll,
   type SceneFormData,
 } from "../sceneController.js";
 import { DocumentMirror } from "../../docs/DocumentMirror.js";
@@ -317,5 +318,23 @@ describe("listScenes", () => {
     // Calling twice should not error and both should be sorted
     expect(first.map((s) => s.name)).toEqual(["A", "B"]);
     expect(second.map((s) => s.name)).toEqual(["A", "B"]);
+  });
+});
+
+describe("preloadSceneForAll", () => {
+  it("sends ONE scene:preload op and nothing that switches the scene", async () => {
+    const sent: Array<{ type: string; payload: Record<string, unknown> }> = [];
+    const socket = {
+      emit(_e: string, envelope: { type: string; payload: Record<string, unknown> }, ack: (r: unknown) => void) {
+        sent.push(envelope);
+        ack({ ok: true, result: {} });
+      },
+    } as unknown as Parameters<typeof preloadSceneForAll>[0];
+
+    await preloadSceneForAll(socket, "scene-9");
+
+    expect(sent).toHaveLength(1);
+    expect(sent[0]?.type).toBe("scene:preload");
+    expect(sent[0]?.payload).toEqual({ sceneId: "scene-9" });
   });
 });

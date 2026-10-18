@@ -26,6 +26,14 @@
   import { loadSceneDocument } from "../lib/canvas/sceneLoader.js";
   import { canLoadScene } from "../lib/canvas/canvasReadyGate.js";
   import { createSceneLoadGuard } from "../lib/canvas/sceneLoadGuard.js";
+  import { swapScene } from "../lib/canvas/sceneSwap.js";
+  import { preloadSceneTexture } from "../lib/canvas/scenePreload.js";
+  import { setScenePreloadListener } from "../lib/canvas/scenePreloadBus.js";
+  import {
+    beginSceneLoadingNotice,
+    endSceneLoadingNotice,
+  } from "../lib/canvas/sceneLoadingState.svelte.js";
+  import SceneLoadingNotice from "./scenes/SceneLoadingNotice.svelte";
   import { activeSceneState } from "../lib/docs/activeScene.svelte.js";
   import { attachCombatSync, setTargetingViewer } from "../lib/combat/combatStore.svelte.js";
   import { setCombatBadgeViewer } from "../lib/combat/combatBadge.svelte.js";
@@ -265,6 +273,10 @@
   // ---- Canvas lifecycle ----
 
   onMount(async () => {
+    // GM's "Pre-carregar para todos": warm the art of a scene that is NOT (yet) on air.
+    setScenePreloadListener(({ sceneId, background }) => {
+      void preloadSceneTexture({ _id: sceneId, background });
+    });
     if (!canvasContainer) return;
 
     const canvas = new FusionCanvas({ container: canvasContainer });
@@ -325,6 +337,7 @@
   });
 
   onDestroy(() => {
+    setScenePreloadListener(null);
     // BUG FIX (#81 follow-up): invalidate any scene load still in flight
     // BEFORE tearing down. Without this, a load that started just before
     // unmount is still `isCurrent` when it resolves after onDestroy has
@@ -583,23 +596,29 @@
     // black-screen flash and reset the camera for no reason. See _loadedSceneId.
     if (scene && scene._id === _loadedSceneId) return;
 
-    // Tear down previous orchestrator before changing scene
-    _teardownOrchestrator();
+    // Nothing to show (scene cleared): there is no art to wait for, so the old scene comes
+    // down right away. A generation bump still supersedes any swap in flight.
+    if (!scene) {
+      sceneLoadGuard.begin();
+      _swapOutCurrentScene();
+      return;
+    }
 
-    // Cleanup previous scene content — whatever the last WINNING generation
-    // installed (a still in-flight loser has nothing here yet: it discards
-    // itself below, on its own generation check, the moment it resolves).
-    cleanupScene?.();
-    cleanupScene = null;
-    _loadedSceneId = null;
-
-    // Bump the generation BEFORE the async work starts, synchronously, so a
-    // concurrent effect re-run always sees a strictly newer generation.
+    // A scene to show: the CURRENT one stays on screen while the next one's texture is fetched
+    // (with a discreet notice if that takes > 300 ms), and only then does the swap happen — in
+    // one step, followed by a short fade. Bump the generation BEFORE any await, synchronously,
+    // so a concurrent effect re-run always sees a strictly newer generation and a superseded
+    // swap does nothing more (see sceneSwap.ts).
     const generation = sceneLoadGuard.begin();
 
-    void (async () => {
-      try {
-        if (scene) {
+    void swapScene({
+      isCurrent: () => sceneLoadGuard.isCurrent(generation),
+      preload: () => preloadSceneTexture(scene),
+      showLoading: beginSceneLoadingNotice,
+      hideLoading: endSceneLoadingNotice,
+      teardown: _swapOutCurrentScene,
+      load: async () => {
+        try {
           const cleanup = await loadSceneDocument(canvas, scene);
           if (!sceneLoadGuard.isCurrent(generation)) {
             // Superseded while in flight: this result is stale. Nobody else
@@ -616,6 +635,8 @@
             return;
           }
           cleanupScene = cleanup;
+          // The new background is in place: fade the stage in (~250 ms) instead of popping.
+          _cancelFade = canvas.fadeInStage();
           // Create and set up orchestrator for the new scene
           sceneOrchestrator = _createOrchestrator(canvas, scene);
           await sceneOrchestrator.setup();
@@ -627,15 +648,29 @@
             return;
           }
           _loadedSceneId = scene._id;
+        } catch (err) {
+          console.error("[TableScreen] Scene load failed:", err);
         }
-        // When no active scene: canvas remains empty; NoSceneOverlay is shown
-        // by the Svelte template. Dev-scene is only used in the initial mount
-        // fallback (see onMount above, before canvasReady is set).
-      } catch (err) {
-        console.error("[TableScreen] Scene load failed:", err);
-      }
-    })();
+      },
+    });
   });
+
+  /** Cancels the fade of the previous swap (snaps the stage to opaque) — see `_swapOutCurrentScene`. */
+  let _cancelFade: (() => void) | null = null;
+
+  /**
+   * Take the scene currently on the canvas down: orchestrator first, then whatever the last
+   * WINNING generation installed (a still in-flight loser has nothing here yet: it discards
+   * itself on its own generation check, the moment it resolves).
+   */
+  function _swapOutCurrentScene(): void {
+    _cancelFade?.();
+    _cancelFade = null;
+    _teardownOrchestrator();
+    cleanupScene?.();
+    cleanupScene = null;
+    _loadedSceneId = null;
+  }
 
   // ---- SceneOrchestrator helpers ----
 
@@ -829,6 +864,8 @@
 
   <!-- REQ-CEN-052: while a prepare lasts, the canvas keeps a persistent notice naming
        the scene the TABLE is watching, with the two ways out. -->
+  <SceneLoadingNotice />
+
   {#if prepareNotice}
     <ScenePrepareNotice notice={prepareNotice} socket={getSocket()} bottomOffset={clearanceAboveBar(actionBarHeight())} />
   {/if}

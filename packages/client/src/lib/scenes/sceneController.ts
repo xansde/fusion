@@ -242,6 +242,18 @@ export async function activateScene(socket: Socket, sceneId: string): Promise<vo
 }
 
 /**
+ * "Pre-carregar para todos": ask the server to tell every client to download a scene's art now,
+ * WITHOUT switching to it. The server answers each client with a `scene:preload` hint; the
+ * scene on air does not change.
+ */
+export async function preloadSceneForAll(socket: Socket, sceneId: string): Promise<void> {
+  await sendOp(socket, {
+    type: "scene:preload",
+    payload: { sceneId },
+  });
+}
+
+/**
  * Delete a Scene document.
  */
 export async function deleteScene(socket: Socket, sceneId: string): Promise<void> {

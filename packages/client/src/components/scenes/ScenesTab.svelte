@@ -57,7 +57,7 @@
   import type { SceneDocument } from "@fusion/shared";
   import type { SidebarPanelProps } from "../../lib/sidebar/registry.js";
   import { sceneListState } from "../../lib/scenes/scenesState.svelte.js";
-  import { activateScene, OpError } from "../../lib/scenes/sceneController.js";
+  import { activateScene, preloadSceneForAll, OpError } from "../../lib/scenes/sceneController.js";
   import {
     openSceneConfigWindow,
     openSceneCreateWindow,
@@ -609,6 +609,34 @@
                         focusable="false"
                       >
                         <path d="M5 3.5 12 8l-7 4.5z" fill="currentColor" />
+                      </svg>
+                    </button>
+                    <!-- "Pre-carregar para todos": every client downloads this scene's map now,
+                         so the switch that follows has nothing left to fetch. It does not
+                         change the scene on air. -->
+                    <button
+                      class="action-btn action-btn--preload"
+                      onclick={() => {
+                        void preloadSceneForAll(socket, entry.sceneId).catch(() => {
+                          activateError = t("FUSION.Scene.Dialog.UnexpectedError");
+                        });
+                      }}
+                      title={t("FUSION.Scene.Dialog.PreloadForAll")}
+                      aria-label="{t('FUSION.Scene.Dialog.PreloadForAll')}: {entry.name}"
+                    >
+                      <svg
+                        viewBox="0 0 16 16"
+                        width="14"
+                        height="14"
+                        fill="none"
+                        stroke="currentColor"
+                        stroke-width="1.4"
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        aria-hidden="true"
+                        focusable="false"
+                      >
+                        <path d="M8 2.5v7M5 7l3 3 3-3M3 13h10" />
                       </svg>
                     </button>
                     <!-- REQ-CEN-050: open this scene on THIS canvas without touching the
