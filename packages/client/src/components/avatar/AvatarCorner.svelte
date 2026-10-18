@@ -219,6 +219,10 @@
   onkeydown={(e) => {
     if (e.key === "Escape") menuAberto = false;
   }}
+  onpointerdown={(e) => {
+    // A click anywhere else closes the menu, like any popover.
+    if (menuAberto && !(e.target instanceof Element && e.target.closest(".avatar-canto"))) menuAberto = false;
+  }}
 />
 
 {#if catalogo !== null && meu !== null && posicao.visivel}

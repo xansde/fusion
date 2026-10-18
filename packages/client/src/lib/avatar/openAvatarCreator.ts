@@ -26,6 +26,20 @@ export function actorHasAvatar(actorDoc: Record<string, unknown>): boolean {
   return actorDoc["type"] === "character";
 }
 
+/** The creator's opening size: 940×640, shrunk to the viewport (never under the minimum). */
+export function tamanhoDaJanela(
+  viewportWidth: number | undefined,
+  viewportHeight: number | undefined,
+): { width: number; height: number } {
+  const vw = typeof viewportWidth === "number" && viewportWidth > 0 ? viewportWidth : 1280;
+  const vh = typeof viewportHeight === "number" && viewportHeight > 0 ? viewportHeight : 800;
+  return {
+    width: Math.max(620, Math.min(940, vw - 40)),
+    // Header (48) + the window's own top offset and some air.
+    height: Math.max(460, Math.min(640, vh - 110)),
+  };
+}
+
 export async function openAvatarCreator(
   actorId: string,
   fallbackDoc: Record<string, unknown>,
@@ -46,7 +60,9 @@ export async function openAvatarCreator(
     minimizable: true,
     minWidth: 620,
     minHeight: 460,
-    position: { width: 940, height: 640 },
+    // Fits the screen it opens on: a fixed 640 px ran past the bottom of a short
+    // viewport and hid the creator's action buttons below the fold.
+    position: tamanhoDaJanela(globalThis.innerWidth, globalThis.innerHeight),
     component: AvatarCreator,
     componentProps: {
       actorId,

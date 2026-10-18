@@ -90,10 +90,18 @@ canto inferior direito da mesa do jogador que controla aquele personagem.
 - **REQ-AVT-018** [MVP] Sem permissão de edição o criador abre em leitura.
 - **REQ-AVT-019** [MVP] Os créditos da arte (fonte, pin, autores, licenças) são
   acessíveis dentro do criador — atribuição é obrigação de licença, não enfeite.
+- **REQ-AVT-020** [MVP] O criador **se salva sozinho**: cada edição agenda um salvamento
+  (rajada vira uma gravação do estado mais novo, gravações nunca se sobrepõem), e fechar a
+  janela ou "Usar como token/retrato" descarregam o pendente antes. Motivo (mesa, 18/10): a
+  figura montada e usada como token se perdeu ao fechar a janela sem "Salvar avatar" — o
+  documento ficou com as 3 peças iniciais. Ver `lib/avatar/salvamento.ts`.
+- **REQ-AVT-021** [MVP] A coluna esquerda do criador tem três faixas: prévia (encolhe com a
+  janela), meio rolável (corpo, animação, equipado, ajustes, créditos) e rodapé fixo com as
+  ações em grade de duas colunas. A janela abre do tamanho da tela (máx. 940×640).
 
 ### Canto da tela
 
-- **REQ-AVT-030** [MVP] O canto inferior direito mostra **um** avatar: o do
+- **REQ-AVT-030** [MVP] O overlay (por padrão no canto inferior direito) mostra **um** avatar: o do
   personagem que o usuário possui **explicitamente** (o mapa de ownership nomeia
   o usuário). Posse por papel não conta — o GM tem OWNER implícito em tudo e o
   canto mostraria um NPC qualquer como se fosse dele.
@@ -106,6 +114,17 @@ canto inferior direito da mesa do jogador que controla aquele personagem.
   flutuante cobre o avatar — decoração cede lugar a trabalho.
 - **REQ-AVT-035** [MVP] `prefers-reduced-motion` remove a entrada e o loop.
 - **REQ-AVT-036** [MVP] O overlay não intercepta clique destinado ao canvas.
+- **REQ-AVT-037** [MVP] **Cada jogador decide na própria tela** (preferência de cliente,
+  `clientPrefs.avatarOverlay`, localStorage por mundo + usuário, nunca sai do aparelho):
+  mostrar/ocultar, tamanho 64–320 px (canvas no zoom inteiro que cobre o tamanho, reduzido por
+  CSS pixelado) e posição — um dos 4 cantos ou um ponto arrastado à mão (guardado como fração da
+  viewport). Arrastar não abre a ficha; clicar abre.
+- **REQ-AVT-038** [MVP] Os ajustes ficam numa engrenagem que aparece no hover/foco do overlay,
+  no criador ("Meu avatar na tela") e em Configurações → Minhas preferências — os dois últimos
+  são o caminho de volta de um overlay oculto.
+- **REQ-AVT-039** [MVP] Qualquer que seja a escolha, o overlay fica fora da gaveta, do
+  cabeçalho e da viewport, e sobe acima da barra de ações quando a cruzaria — com a barra
+  **medida** na tela (`[data-action-bar]`), porque a altura dela depende da fileira de abas.
 
 ### Miniatura (token e retrato) — adaptação à mesa
 
@@ -125,6 +144,15 @@ canto inferior direito da mesa do jogador que controla aquele personagem.
 - **REQ-AVT-065** [MVP] O botão "Avatar" é uma ação do cabeçalho da janela (`headerActions`), posta
   pelo core em toda ficha de `character`; nenhuma ficha de sistema conhece o avatar. O overlay do
   canto desvia da gaveta e sobe acima da barra de ações quando as duas colidiriam.
+- **REQ-AVT-066** [MVP] **A imagem do ator nunca se perde.** O servidor guarda em
+  `flags.fusion.imagemAnterior` a imagem substituída em todo `doc:update` que troca o `img` de um
+  Actor — quem quer que troque (criador, FilePicker da ficha, botão de remover retrato). Vazio
+  nunca sobrescreve a memória; o cliente não forja o valor. Restaurar é gravar de volta, e alterna.
+  Incidente de origem (mesa, 18/10): o `img` do Bhrotto foi a `""` 6 s depois do "Usar como token".
+- **REQ-AVT-067** [MVP] O criador só grava um `img` que valida como `/assets/<nome>.png` (upload
+  falho ou caminho vazio abortam com erro visível, `img` intacto), pede confirmação mostrando a
+  imagem atual e a nova quando o ator tem arte própria (que não é arte de avatar) e oferece
+  "Restaurar imagem anterior".
 
 ### Acervo e distribuição
 
@@ -144,9 +172,13 @@ canto inferior direito da mesa do jogador que controla aquele personagem.
 - **REQ-AVT-050** [MVP] A unidade de cache é o **quadro de 64×64**, não o atlas: o
   atlas de cabelo tem 3072×5696 (~67 MB em RGBA) porque empilha as 90 peças do
   slot. Recolorir por arquivo custaria isso por cor.
-- **REQ-AVT-051** [MVP] Todo quadro passa pelo cache, recolorido ou não, para que
-  a evicção do LRU de atlas custe no máximo um re-decode e nunca uma camada
-  faltando.
+- **REQ-AVT-051** [MVP] Todos os quadros do ciclo são fatiados ao **preparar** o avatar, e o avatar
+  preparado guarda as referências: o desenho nunca consulta atlas. Cada camada é um atlas próprio
+  (19 num boneco de 16 slots) e o LRU guarda 8 — consultar o atlas a cada quadro fazia ~11 camadas
+  piscarem para sempre e o PNG do token sair com camadas faltando.
+- **REQ-AVT-055** [MVP] O sprite só se prepara de novo quando o **conteúdo** muda (chave estável
+  da seleção) e só repinta quando o passo da animação muda (8 fps), não a cada broadcast do ator
+  nem a cada frame do monitor.
 - **REQ-AVT-052** [MVP] O tempo da animação é monotônico e compartilhado: todos os
   avatares na tela ficam em fase.
 - **REQ-AVT-053** [MVP] A ordem dos frames vem do ciclo do acervo, não de `0..n`:

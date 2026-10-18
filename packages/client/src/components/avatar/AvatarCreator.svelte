@@ -52,6 +52,7 @@
   import { caminhoDeArteValido, podeRestaurar, precisaConfirmarSubstituicao } from "$lib/avatar/imagemDoAtor.js";
   import { worldMirror } from "$lib/docs/worldSync.js";
   import ActorPortrait from "$lib/components/common/ActorPortrait.svelte";
+  import AvatarOverlayControles from "./AvatarOverlayControles.svelte";
   import { t } from "$lib/i18n/i18n.js";
   import AvatarSprite from "./AvatarSprite.svelte";
 
@@ -431,156 +432,166 @@
         />
       </div>
 
-      <div class="grupo">
-        <span class="grupo__rotulo">{t("FUSION.Avatar.Body")}</span>
-        <div class="chips">
-          {#each catalogo.recorte.corpos as variante (variante)}
-            <button
-              type="button"
-              class="chip"
-              aria-pressed={variante === corpo}
-              disabled={!podeEditar}
-              onclick={() => trocarCorpo(variante)}
-            >{rotuloDoCorpo(catalogo, variante)}</button>
-          {/each}
+      <div class="palco__meio">
+        <div class="grupo">
+          <span class="grupo__rotulo">{t("FUSION.Avatar.Body")}</span>
+          <div class="chips">
+            {#each catalogo.recorte.corpos as variante (variante)}
+              <button
+                type="button"
+                class="chip"
+                aria-pressed={variante === corpo}
+                disabled={!podeEditar}
+                onclick={() => trocarCorpo(variante)}
+              >{rotuloDoCorpo(catalogo, variante)}</button>
+            {/each}
+          </div>
         </div>
-      </div>
 
-      <div class="grupo">
-        <span class="grupo__rotulo">{t("FUSION.Avatar.Animation")}</span>
-        <div class="chips">
-          {#each catalogo.recorte.animacoes as nomeAnim (nomeAnim)}
-            <button
-              type="button"
-              class="chip"
-              aria-pressed={nomeAnim === animacao}
-              onclick={() => { animacao = nomeAnim; }}
-            >{rotuloDaAnimacao(nomeAnim)}</button>
-          {/each}
+        <div class="grupo">
+          <span class="grupo__rotulo">{t("FUSION.Avatar.Animation")}</span>
+          <div class="chips">
+            {#each catalogo.recorte.animacoes as nomeAnim (nomeAnim)}
+              <button
+                type="button"
+                class="chip"
+                aria-pressed={nomeAnim === animacao}
+                onclick={() => { animacao = nomeAnim; }}
+              >{rotuloDaAnimacao(nomeAnim)}</button>
+            {/each}
+          </div>
         </div>
-      </div>
 
-      <div class="grupo">
-        <span class="grupo__rotulo">{t("FUSION.Avatar.Equipped")} ({equipados.length})</span>
-        <ul class="equipados">
-          {#each equipados as linha (linha.slot)}
-            <li>
-              <span class="equipados__peca">{rotuloDoItem(linha.item!)}</span>
-              <span class="equipados__slot">{linha.rotulo}</span>
-              {#if podeEditar}
-                <button
-                  type="button"
-                  class="equipados__tirar"
-                  onclick={() => tirar(linha.slot)}
-                  aria-label={t("FUSION.Avatar.Unequip", { slot: linha.rotulo })}
-                >×</button>
+        <div class="grupo">
+          <span class="grupo__rotulo">{t("FUSION.Avatar.Equipped")} ({equipados.length})</span>
+          <ul class="equipados">
+            {#each equipados as linha (linha.slot)}
+              <li>
+                <span class="equipados__peca">{rotuloDoItem(linha.item!)}</span>
+                <span class="equipados__slot">{linha.rotulo}</span>
+                {#if podeEditar}
+                  <button
+                    type="button"
+                    class="equipados__tirar"
+                    onclick={() => tirar(linha.slot)}
+                    aria-label={t("FUSION.Avatar.Unequip", { slot: linha.rotulo })}
+                  >×</button>
+                {/if}
+              </li>
+            {/each}
+          </ul>
+        </div>
+
+        {#if descartados.length > 0}
+          <p class="aviso" role="status">
+            {t("FUSION.Avatar.Dropped", { list: descartados.join(", ") })}
+          </p>
+        {/if}
+
+        <details class="na-tela">
+          <summary>{t("FUSION.Avatar.Overlay.Title")}</summary>
+          <AvatarOverlayControles />
+        </details>
+
+        <button type="button" class="creditos__botao" onclick={alternarCreditos} aria-expanded={mostrarCreditos}>
+          {t("FUSION.Avatar.Credits")}
+        </button>
+        {#if mostrarCreditos}
+          <div class="creditos">
+            {#if creditoTexto === null}
+              <p>{t("FUSION.Avatar.Loading")}</p>
+            {:else}
+              <p>{creditoTexto.fonte}</p>
+              <p class="creditos__pin">pin {creditoTexto.pin.slice(0, 8)}</p>
+              <p class="creditos__licencas">{creditoTexto.licencas.join(" · ")}</p>
+              <p class="creditos__autores">{creditoTexto.autores.join(", ")}</p>
+              {#if creditoTexto.url !== ""}
+                <a href={creditoTexto.url} target="_blank" rel="noreferrer noopener">{creditoTexto.url}</a>
               {/if}
-            </li>
-          {/each}
-        </ul>
+            {/if}
+          </div>
+        {/if}
       </div>
 
-      {#if descartados.length > 0}
-        <p class="aviso" role="status">
-          {t("FUSION.Avatar.Dropped", { list: descartados.join(", ") })}
-        </p>
-      {/if}
+      <div class="palco__rodape">
+        {#if pendente !== null}
+          <div class="substituir" role="alertdialog" aria-labelledby="avatar-substituir-titulo">
+            <p id="avatar-substituir-titulo" class="substituir__titulo">{t("FUSION.Avatar.ReplaceTitle")}</p>
+            <div class="substituir__lados">
+              <figure>
+                <ActorPortrait img={imgAtual} docRef={{ table: "actors", id: actorId }} name={nome} size={64} />
+                <figcaption>{t("FUSION.Avatar.ReplaceCurrent")}</figcaption>
+              </figure>
+              <span aria-hidden="true">→</span>
+              <figure>
+                <img class="substituir__nova" src={pendente.url} width="64" height="64" alt="" />
+                <figcaption>{t("FUSION.Avatar.ReplaceNew")}</figcaption>
+              </figure>
+            </div>
+            <p class="substituir__dica">{t("FUSION.Avatar.ReplaceHint")}</p>
+            <div class="substituir__botoes">
+              <button type="button" class="substituir__sim" disabled={salvando} onclick={confirmarSubstituicao}>
+                {t("FUSION.Avatar.ReplaceConfirm")}
+              </button>
+              <button type="button" disabled={salvando} onclick={descartarPendente}>
+                {t("FUSION.Avatar.ReplaceCancel")}
+              </button>
+            </div>
+          </div>
+        {/if}
 
-      {#if podeEditar}
-        <div class="acoes">
-          <button
-            type="button"
-            class="acoes__salvar"
-            disabled={salvando || !sujo}
-            title={t("FUSION.Avatar.AutoSaveHint")}
-            onclick={salvar}
-          >
-            {salvando ? t("FUSION.Avatar.Saving") : sujo ? t("FUSION.Avatar.Save") : t("FUSION.Avatar.SavedState")}
-          </button>
-          <button type="button" disabled={salvando} onclick={recomecar}>{t("FUSION.Avatar.Reset")}</button>
-          <button
-            type="button"
-            class="acoes__usar"
-            disabled={salvando}
-            title={t("FUSION.Avatar.UseAsTokenHint")}
-            onclick={() => usarComo("token")}
-          >
-            {t("FUSION.Avatar.UseAsToken")}
-          </button>
-          <button
-            type="button"
-            class="acoes__usar"
-            disabled={salvando}
-            title={t("FUSION.Avatar.UseAsPortraitHint")}
-            onclick={() => usarComo("retrato")}
-          >
-            {t("FUSION.Avatar.UseAsPortrait")}
-          </button>
-          {#if podeRestaurar(imgAtual, imagemAnterior)}
+        {#if mensagem !== null}
+          <p class="mensagem" role="status">{mensagem}</p>
+        {/if}
+
+        {#if podeEditar}
+          <div class="acoes">
+            <button
+              type="button"
+              class="acoes__salvar"
+              disabled={salvando || !sujo}
+              title={t("FUSION.Avatar.AutoSaveHint")}
+              onclick={salvar}
+            >
+              {salvando ? t("FUSION.Avatar.Saving") : sujo ? t("FUSION.Avatar.Save") : t("FUSION.Avatar.SavedState")}
+            </button>
+            <button type="button" disabled={salvando} onclick={recomecar}>{t("FUSION.Avatar.Reset")}</button>
             <button
               type="button"
               class="acoes__usar"
               disabled={salvando}
-              title={t("FUSION.Avatar.RestorePreviousHint")}
-              onclick={restaurarImagem}
+              title={t("FUSION.Avatar.UseAsTokenHint")}
+              onclick={() => usarComo("token")}
             >
-              {t("FUSION.Avatar.RestorePrevious")}
+              {t("FUSION.Avatar.UseAsToken")}
             </button>
-          {/if}
-          <button type="button" class="acoes__remover" disabled={salvando || baseline === null} onclick={remover}>
-            {t("FUSION.Avatar.Remove")}
-          </button>
-        </div>
-      {/if}
-
-      {#if pendente !== null}
-        <div class="substituir" role="alertdialog" aria-labelledby="avatar-substituir-titulo">
-          <p id="avatar-substituir-titulo" class="substituir__titulo">{t("FUSION.Avatar.ReplaceTitle")}</p>
-          <div class="substituir__lados">
-            <figure>
-              <ActorPortrait img={imgAtual} docRef={{ table: "actors", id: actorId }} name={nome} size={64} />
-              <figcaption>{t("FUSION.Avatar.ReplaceCurrent")}</figcaption>
-            </figure>
-            <span aria-hidden="true">→</span>
-            <figure>
-              <img class="substituir__nova" src={pendente.url} width="64" height="64" alt="" />
-              <figcaption>{t("FUSION.Avatar.ReplaceNew")}</figcaption>
-            </figure>
-          </div>
-          <p class="substituir__dica">{t("FUSION.Avatar.ReplaceHint")}</p>
-          <div class="substituir__botoes">
-            <button type="button" class="substituir__sim" disabled={salvando} onclick={confirmarSubstituicao}>
-              {t("FUSION.Avatar.ReplaceConfirm")}
+            <button
+              type="button"
+              class="acoes__usar"
+              disabled={salvando}
+              title={t("FUSION.Avatar.UseAsPortraitHint")}
+              onclick={() => usarComo("retrato")}
+            >
+              {t("FUSION.Avatar.UseAsPortrait")}
             </button>
-            <button type="button" disabled={salvando} onclick={descartarPendente}>
-              {t("FUSION.Avatar.ReplaceCancel")}
-            </button>
-          </div>
-        </div>
-      {/if}
-
-      {#if mensagem !== null}
-        <p class="mensagem" role="status">{mensagem}</p>
-      {/if}
-
-      <button type="button" class="creditos__botao" onclick={alternarCreditos} aria-expanded={mostrarCreditos}>
-        {t("FUSION.Avatar.Credits")}
-      </button>
-      {#if mostrarCreditos}
-        <div class="creditos">
-          {#if creditoTexto === null}
-            <p>{t("FUSION.Avatar.Loading")}</p>
-          {:else}
-            <p>{creditoTexto.fonte}</p>
-            <p class="creditos__pin">pin {creditoTexto.pin.slice(0, 8)}</p>
-            <p class="creditos__licencas">{creditoTexto.licencas.join(" · ")}</p>
-            <p class="creditos__autores">{creditoTexto.autores.join(", ")}</p>
-            {#if creditoTexto.url !== ""}
-              <a href={creditoTexto.url} target="_blank" rel="noreferrer noopener">{creditoTexto.url}</a>
+            {#if podeRestaurar(imgAtual, imagemAnterior)}
+              <button
+                type="button"
+                class="acoes__usar acoes__largo"
+                disabled={salvando}
+                title={t("FUSION.Avatar.RestorePreviousHint")}
+                onclick={restaurarImagem}
+              >
+                {t("FUSION.Avatar.RestorePrevious")}
+              </button>
             {/if}
-          {/if}
-        </div>
-      {/if}
+            <button type="button" class="acoes__remover" disabled={salvando || baseline === null} onclick={remover}>
+              {t("FUSION.Avatar.Remove")}
+            </button>
+          </div>
+        {/if}
+
+      </div>
     </div>
 
     <!-- ---- Right column: tabs, slots, grid, colours ---- -->
@@ -710,15 +721,44 @@
 
   /* ---- left column ---- */
 
+  /* Three bands: the preview and the actions never scroll away — only the
+     middle (body, animation, equipped list, settings) does. Before, the column
+     scrolled as a whole: with a dressed figure the preview left the screen and
+     five wrapping action buttons covered the animation chips in a short window. */
   .palco {
     border-right: 1px solid var(--fusion-border);
+    container-type: size;
     display: flex;
     flex: none;
     flex-direction: column;
-    gap: 0.75rem;
-    overflow-y: auto;
-    padding: 0.75rem;
+    gap: 0.5rem;
+    min-height: 0;
+    padding: 0.75rem 0.75rem 0.5rem;
     width: 244px;
+  }
+
+  .palco__meio {
+    display: flex;
+    flex: 1;
+    flex-direction: column;
+    gap: 0.75rem;
+    min-height: 0;
+    overflow-y: auto;
+  }
+
+  .palco__rodape {
+    border-top: 1px solid var(--fusion-border);
+    display: flex;
+    flex: none;
+    flex-direction: column;
+    gap: 0.4rem;
+    padding-top: 0.5rem;
+  }
+
+  /* The preview shrinks with the window instead of pushing everything out. */
+  .palco__boneco :global(canvas) {
+    height: clamp(96px, 34cqh, 256px);
+    width: auto;
   }
 
   .palco__boneco {
@@ -851,17 +891,14 @@
     margin: 0;
   }
 
-  /* Sticky: five buttons wrap to three rows and would scroll out of a short window. */
   .acoes {
-    background: var(--fusion-surface, #1e1e1e);
-    bottom: -0.75rem;
-    display: flex;
-    flex-wrap: wrap;
-    gap: 0.35rem;
-    margin: 0 -0.75rem -0.75rem;
-    padding: 0.5rem 0.75rem 0.75rem;
-    position: sticky;
-    z-index: 1;
+    display: grid;
+    gap: 0.3rem;
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .acoes__largo {
+    grid-column: 1 / -1;
   }
 
   .acoes button {
@@ -870,8 +907,12 @@
     border-radius: var(--fusion-radius-sm);
     color: var(--fusion-text);
     cursor: pointer;
-    font-size: 0.75rem;
-    padding: 0.3rem 0.6rem;
+    font-size: 0.6875rem;
+    line-height: 1.2;
+    overflow: hidden;
+    padding: 0.3rem 0.4rem;
+    text-overflow: ellipsis;
+    white-space: nowrap;
   }
 
   .acoes button:disabled {
@@ -953,6 +994,15 @@
     border-color: var(--fusion-accent);
     color: var(--fusion-on-accent);
     font-weight: 600;
+  }
+
+  .na-tela summary {
+    color: var(--fusion-text-subtle);
+    cursor: pointer;
+    font-size: 0.6875rem;
+    letter-spacing: 0.06em;
+    margin-bottom: 0.35rem;
+    text-transform: uppercase;
   }
 
   .creditos__botao {

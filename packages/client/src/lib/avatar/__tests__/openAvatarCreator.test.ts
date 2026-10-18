@@ -19,3 +19,21 @@ describe("openAvatarCreator helpers", () => {
     expect(avatarHeaderActions("a1", { type: "npc" }, perms)).toHaveLength(0);
   });
 });
+
+describe("tamanhoDaJanela", () => {
+  it("keeps 940x640 on a roomy screen", async () => {
+    const { tamanhoDaJanela } = await import("../openAvatarCreator.js");
+    expect(tamanhoDaJanela(1920, 1080)).toEqual({ width: 940, height: 640 });
+  });
+
+  it("shrinks to a short screen so the action buttons stay on it", async () => {
+    const { tamanhoDaJanela } = await import("../openAvatarCreator.js");
+    expect(tamanhoDaJanela(1280, 620).height).toBe(510);
+  });
+
+  it("never goes under the window's minimum", async () => {
+    const { tamanhoDaJanela } = await import("../openAvatarCreator.js");
+    expect(tamanhoDaJanela(500, 400)).toEqual({ width: 620, height: 460 });
+    expect(tamanhoDaJanela(undefined, undefined)).toEqual({ width: 940, height: 640 });
+  });
+});

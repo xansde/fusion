@@ -79,9 +79,9 @@ describe("PreferencesSection — REQ-CFG-021: client notification preferences", 
     expect(html).toContain(t("FUSION.Settings.Preferences.Notifications.TurnAlert"));
     // Total checkbox count includes the two TK080 token-display toggles too
     // (see the describe block below) — the notifications section itself is
-    // asserted by its two labels above and by the 4-checkbox count here.
+    // asserted by its two labels above, plus the avatar overlay's "show" toggle (spec 35 REQ-AVT-038) — 5 in all.
     const checkboxCount = (html.match(/type="checkbox"/g) ?? []).length;
-    expect(checkboxCount).toBe(4);
+    expect(checkboxCount).toBe(5);
   });
 
   it("reflects a saved 'off' state instead of always showing the default", () => {
@@ -90,7 +90,7 @@ describe("PreferencesSection — REQ-CFG-021: client notification preferences", 
 
     // Order on the page: chatSound, turnAlert, then TK080's showNames/showBars.
     const checkboxes = [...html.matchAll(/<input type="checkbox"([^>]*)>/g)];
-    expect(checkboxes).toHaveLength(4);
+    expect(checkboxes).toHaveLength(5);
     expect(checkboxes[0]?.[1]).not.toMatch(/checked/);
     expect(checkboxes[1]?.[1]).toMatch(/checked/);
   });
@@ -109,10 +109,17 @@ describe("PreferencesSection — REQ-TOK-074: token display preferences", () => 
     expect(html).toContain(t("FUSION.Settings.Preferences.TokenDisplay.ShowBars"));
 
     const checkboxes = [...html.matchAll(/<input type="checkbox"([^>]*)>/g)];
-    expect(checkboxes).toHaveLength(4);
+    expect(checkboxes).toHaveLength(5);
     // The last two checkboxes are showNames/showBars — both on by default.
     expect(checkboxes[2]?.[1]).toMatch(/checked/);
     expect(checkboxes[3]?.[1]).toMatch(/checked/);
+  });
+
+  it("offers the avatar overlay's 'show' toggle, on by default (REQ-AVT-038: the way back from hidden)", () => {
+    const html = render(PreferencesSection, { props: { worldId: "world-1", userId: "user-1" } }).body;
+    expect(html).toContain("Mostrar meu avatar na tela");
+    const checkboxes = [...html.matchAll(/<input type="checkbox"([^>]*)>/g)];
+    expect(checkboxes[4]?.[1]).toMatch(/checked/);
   });
 
   it("reflects a saved 'off' state for showNames without disturbing showBars", () => {
