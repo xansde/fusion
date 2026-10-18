@@ -582,8 +582,7 @@ export class SocketManager {
     // `applyDamage`/`applyCondition` are the REAL service (ALQ-F1-08/F1-09);
     // `deleteEmbedded`/`chat` are the REAL document-write services (B4 fix,
     // onda-4 adversarial review — see combat/turn-hook-runner.ts's header);
-    // `roll`/`updateActor`/`createEmbedded` stay stubs until a later task
-    // actually needs them.
+    // `roll` (server RNG + dice card), `updateActor` and `readSetting` are real too (turn automation).
     const hookServices: TurnHookContextServices = {
       ...createStubTurnHookContextServices(),
       ...createDocumentWriteTurnHookContextServices({
@@ -593,6 +592,7 @@ export class SocketManager {
         seqStore,
         opBuffer,
         worldId,
+        rollService: combatRollService,
         ...(systemModule ? { systemModule } : {}),
         logger: this.logger,
       }),

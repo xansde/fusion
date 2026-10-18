@@ -66,9 +66,11 @@ import { broadcastToWorld } from "../net/handlers/doc-handlers.js";
 import { tokenLookupSourceFromStore } from "../net/redaction.js";
 import {
   buildBaseMessage,
+  buildRollMessage,
   persistChatMessage,
   broadcastChatMessage,
 } from "../chat/chat-handler.js";
+import type { RollService } from "../chat/roll-service.js";
 
 // ---------------------------------------------------------------------------
 // Stub TurnHookContext services (ALQ-F1-08/F1-09 replace these)
@@ -179,8 +181,25 @@ export interface DocumentWriteTurnHookContextDeps {
    * kept showing the strike without the Monster Hunter's +1 the roll would add).
    */
   systemModule?: SystemModule;
+  /**
+   * When present, `roll` is real: the dice are rolled HERE (server RNG, REQ-ROL-025) and the result lands in the chat
+   * as an ordinary roll card. Without it `roll` stays the stub.
+   */
+  rollService?: RollService;
   logger?: Logger;
 }
+
+/** Top-level actor keys a hook may never write through `updateActor` (identity, permissions, embedded documents). */
+const UPDATE_ACTOR_FORBIDDEN_KEYS: ReadonlySet<string> = new Set([
+  "_id",
+  "_stats",
+  "worldId",
+  "ownership",
+  "items",
+  "type",
+  "folder",
+  "sort",
+]);
 
 /**
  * The real `deleteEmbedded`/`chat` services — REQ-SYS-140: every write goes
@@ -195,7 +214,16 @@ export interface DocumentWriteTurnHookContextDeps {
  */
 export function createDocumentWriteTurnHookContextServices(
   deps: DocumentWriteTurnHookContextDeps,
-): Pick<TurnHookContextServices, "createEmbedded" | "deleteEmbedded" | "chat" | "listActors"> {
+): Pick<
+  TurnHookContextServices,
+  | "createEmbedded"
+  | "deleteEmbedded"
+  | "chat"
+  | "listActors"
+  | "readSetting"
+  | "updateActor"
+  | "roll"
+> {
   const tokenSource = tokenLookupSourceFromStore(deps.store);
   const rederive = (actor: Record<string, unknown>): Record<string, unknown> =>
     recomputeDerivedIfNeeded(
@@ -213,6 +241,64 @@ export function createDocumentWriteTurnHookContextServices(
     // live on actors other than the one whose turn is transitioning.
     listActors() {
       return deps.store.getAll("actors");
+    },
+
+    // The stored value of one of the system's world-scope settings (`<systemId>:<key>`, REQ-CFG-071), or undefined
+    // when the GM never wrote it — the hook then applies the setting's declared default.
+    readSetting(key) {
+      if (!deps.systemModule) return undefined;
+      const fullKey = `${deps.systemModule.manifest.id}:${key}`;
+      const stored = deps.store.getAll("settings").find((doc) => doc["key"] === fullKey);
+      return stored?.["value"];
+    },
+
+    // A scoped diff on an actor's own fields (hp, flags...). Identity, ownership and the embedded items have their own
+    // paths (createEmbedded/deleteEmbedded/applyCondition) and are refused here, so a hook cannot rewrite who owns an
+    // actor or smuggle an item past the embedded-write path.
+    updateActor(actorId, diff) {
+      const forbidden = Object.keys(diff).filter((k) => UPDATE_ACTOR_FORBIDDEN_KEYS.has(k));
+      if (forbidden.length > 0) {
+        return Promise.reject(
+          new Error(`TurnHookContext.updateActor refuses the key(s): ${forbidden.join(", ")}`),
+        );
+      }
+      if (Object.keys(diff).length === 0) return Promise.resolve();
+      let updated = deps.store.update("actors", actorId, diff, { userId: null });
+      if (!updated) return Promise.resolve();
+      updated = rederive(updated);
+      const envelope: Envelope = {
+        type: "doc:update",
+        seq: deps.seqStore.next(),
+        ts: Date.now(),
+        payload: { documentType: "Actor", documents: [updated] },
+      };
+      deps.opBuffer.push(envelope);
+      broadcastToWorld(deps.ns, envelope, "Actor");
+      return Promise.resolve();
+    },
+
+    // Rolls on the SERVER (anti-cheat) and posts the dice card like any roll; `gmroll` keeps a hidden combatant's
+    // roll away from the players. Rejects when no RollService was injected (the stub's behaviour).
+    roll(formula, opts) {
+      if (!deps.rollService) return Promise.reject(new TurnHookContextStubError("roll"));
+      const mode = opts.rollMode ?? "public";
+      const result = deps.rollService.roll({
+        formula,
+        mode,
+        flavor: opts.flavor,
+        worldId: deps.worldId,
+        userId: "system",
+        ...(opts.speakerActorId !== undefined ? { actorId: opts.speakerActorId } : {}),
+      });
+      const speaker: ChatSpeaker = {
+        userId: "system",
+        alias: "Sistema",
+        ...(opts.speakerActorId !== undefined ? { actorId: opts.speakerActorId } : {}),
+      };
+      const msg = buildRollMessage(deps.db, deps.worldId, speaker, "system", result, mode);
+      persistChatMessage(deps.db, msg);
+      broadcastChatMessage(deps.ns, deps.seqStore, msg, speaker.userId, "doc:create", tokenSource);
+      return Promise.resolve(result);
     },
 
     // Neither write method below has anything to `await` — every write it makes

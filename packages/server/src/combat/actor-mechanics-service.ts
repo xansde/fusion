@@ -1325,6 +1325,11 @@ function computeApplyCondition(
     const patch = mechanics.applyCondition(actorBefore, payload, opts);
     const actorAfter = applyMechanicsPatch(deps.store, target.actorId, actorBefore, patch);
     if (patchChangesActor(patch)) changedActors.push(actorAfter);
+    // The `dead` condition (set by a GM or by a dying recovery turned fatal) takes the combatant out of the order, as
+    // a killing `actor:applyDamage` does (REQ-CBT-059) — closes the gap documented above.
+    if (patch.flags.dead && patchChangesActor(patch)) {
+      markCombatantDefeatedForActor(deps, target.actorId, target.sceneId);
+    }
     if (target.tokenId !== null) appliedTokenIds.push(target.tokenId);
 
     // Echo the REQUEST's own slug/mode/value back per target, rather than
