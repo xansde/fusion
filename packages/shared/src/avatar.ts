@@ -108,3 +108,35 @@ export function readAvatarFlag(doc: unknown): AvatarFlag | null {
 export function hasAvatar(doc: unknown): boolean {
   return readAvatarFlag(doc) !== null;
 }
+
+// ---------------------------------------------------------------------------
+// The actor's previous image
+// ---------------------------------------------------------------------------
+
+/**
+ * Key (under the `fusion` flag scope) where the server keeps the actor's
+ * PREVIOUS `img` every time the image changes — whoever changed it: the avatar
+ * creator's "Usar como token/retrato", the sheet's FilePicker, or the sheet's
+ * "remove portrait" button that writes an empty string.
+ *
+ * Kept apart from `flags.fusion.avatar` on purpose: removing the avatar nulls
+ * that whole subtree, and the image it replaced must survive that.
+ *
+ * Rule 2 of assets/asset-fields.ts holds: a `flags.*` value is never signed, so
+ * this path is only ever RESTORED (written back to `img`), never displayed raw.
+ */
+export const IMAGEM_ANTERIOR_FLAG_KEY = "imagemAnterior";
+
+/** Dot path for doc:update patches — `flags.fusion.imagemAnterior`. */
+export const IMAGEM_ANTERIOR_FLAG_PATH = `flags.${AVATAR_FLAG_SCOPE}.${IMAGEM_ANTERIOR_FLAG_KEY}`;
+
+/** The remembered previous image, or null when there is none worth restoring. */
+export function readImagemAnterior(doc: unknown): string | null {
+  if (typeof doc !== "object" || doc === null) return null;
+  const flags = (doc as { flags?: unknown }).flags;
+  if (typeof flags !== "object" || flags === null) return null;
+  const scope = (flags as Record<string, unknown>)[AVATAR_FLAG_SCOPE];
+  if (typeof scope !== "object" || scope === null) return null;
+  const valor = (scope as Record<string, unknown>)[IMAGEM_ANTERIOR_FLAG_KEY];
+  return typeof valor === "string" && valor.trim() !== "" ? valor : null;
+}

@@ -22,7 +22,7 @@
    */
 
   import type { Catalogo, Item, Selecao } from "waybuilder-avatar";
-  import type { AvatarFlag } from "@fusion/shared";
+  import { readImagemAnterior, type AvatarFlag } from "@fusion/shared";
   import { AcervoIndisponivel, carregarCatalogo, carregarCreditos, garantirPaletas, paletasCarregadas, type Creditos } from "$lib/avatar/acervo.js";
   import { arquivosDePaletaDoCatalogo } from "$lib/avatar/paletas.js";
   import { ANIMACAO_PADRAO, animacaoDisponivel } from "$lib/avatar/animacao.js";
@@ -48,6 +48,9 @@
   import { liberarPixelsDoAvatar } from "$lib/avatar/desenhar.js";
   import { getSocket } from "$lib/session.svelte.js";
   import { atualizarAtor } from "$lib/avatar/escrita.js";
+  import { caminhoDeArteValido, podeRestaurar, precisaConfirmarSubstituicao } from "$lib/avatar/imagemDoAtor.js";
+  import { worldMirror } from "$lib/docs/worldSync.js";
+  import ActorPortrait from "$lib/components/common/ActorPortrait.svelte";
   import { t } from "$lib/i18n/i18n.js";
   import AvatarSprite from "./AvatarSprite.svelte";
 
@@ -248,13 +251,31 @@
   // this one write reaches every token of the actor and the sheet portrait.
   // ---------------------------------------------------------------------------
 
+  /** The actor as the mirror has it NOW — its `img` and the server-kept previous one. */
+  let atorVivo: Record<string, unknown> | null = $state(null);
+  $effect(() => {
+    const ler = () => {
+      atorVivo = worldMirror.getDoc<Record<string, unknown>>("Actor", actorId) ?? null;
+    };
+    ler();
+    return worldMirror.subscribe("Actor", ler);
+  });
+  const imgAtual = $derived(typeof atorVivo?.["img"] === "string" ? (atorVivo["img"] as string) : null);
+  const imagemAnterior = $derived(readImagemAnterior(atorVivo));
+
+  /** A rendered figure waiting for the player's OK before it replaces art of their own. */
+  let pendente: { modo: ModoMiniatura; png: Blob; url: string } | null = $state(null);
+
+  function descartarPendente(): void {
+    if (pendente !== null) URL.revokeObjectURL(pendente.url);
+    pendente = null;
+  }
+
+  $effect(() => () => descartarPendente());
+
   async function usarComo(modo: ModoMiniatura): Promise<void> {
     if (!podeEditar || catalogo === null) return;
-    const socket = getSocket();
-    if (socket === null) {
-      mensagem = t("FUSION.Avatar.Error.Offline");
-      return;
-    }
+    descartarPendente();
     salvando = true;
     mensagem = null;
     try {
@@ -263,9 +284,62 @@
         mensagem = t("FUSION.Avatar.Error.Empty");
         return;
       }
-      const caminho = await publicarMiniatura(png, modo);
-      await atualizarAtor(socket, actorId, { img: caminho });
-      mensagem = t(modo === "token" ? "FUSION.Avatar.UsedAsToken" : "FUSION.Avatar.UsedAsPortrait");
+      // Art the player brought from elsewhere is not replaced without an OK —
+      // and nothing is uploaded until then.
+      if (precisaConfirmarSubstituicao(imgAtual)) {
+        pendente = { modo, png, url: URL.createObjectURL(png) };
+        return;
+      }
+      await aplicarArte(modo, png);
+    } catch {
+      mensagem = t("FUSION.Avatar.Error.Art");
+    } finally {
+      salvando = false;
+    }
+  }
+
+  async function confirmarSubstituicao(): Promise<void> {
+    const alvo = pendente;
+    if (alvo === null) return;
+    salvando = true;
+    mensagem = null;
+    try {
+      await aplicarArte(alvo.modo, alvo.png);
+    } catch {
+      mensagem = t("FUSION.Avatar.Error.Art");
+    } finally {
+      descartarPendente();
+      salvando = false;
+    }
+  }
+
+  /** Upload, check the path, write `img`. Throws (leaving `img` untouched) on any doubt. */
+  async function aplicarArte(modo: ModoMiniatura, png: Blob): Promise<void> {
+    const socket = getSocket();
+    if (socket === null) {
+      mensagem = t("FUSION.Avatar.Error.Offline");
+      return;
+    }
+    const caminho = await publicarMiniatura(png, modo);
+    if (!caminhoDeArteValido(caminho)) throw new Error(`invalid art path: ${caminho}`);
+    // The server remembers the image this replaces (flags.fusion.imagemAnterior).
+    await atualizarAtor(socket, actorId, { img: caminho });
+    mensagem = t(modo === "token" ? "FUSION.Avatar.UsedAsToken" : "FUSION.Avatar.UsedAsPortrait");
+  }
+
+  async function restaurarImagem(): Promise<void> {
+    const anterior = imagemAnterior;
+    if (!podeEditar || !podeRestaurar(imgAtual, anterior)) return;
+    const socket = getSocket();
+    if (socket === null) {
+      mensagem = t("FUSION.Avatar.Error.Offline");
+      return;
+    }
+    salvando = true;
+    mensagem = null;
+    try {
+      await atualizarAtor(socket, actorId, { img: anterior });
+      mensagem = t("FUSION.Avatar.Restored");
     } catch {
       mensagem = t("FUSION.Avatar.Error.Art");
     } finally {
@@ -402,9 +476,46 @@
           >
             {t("FUSION.Avatar.UseAsPortrait")}
           </button>
+          {#if podeRestaurar(imgAtual, imagemAnterior)}
+            <button
+              type="button"
+              class="acoes__usar"
+              disabled={salvando}
+              title={t("FUSION.Avatar.RestorePreviousHint")}
+              onclick={restaurarImagem}
+            >
+              {t("FUSION.Avatar.RestorePrevious")}
+            </button>
+          {/if}
           <button type="button" class="acoes__remover" disabled={salvando || baseline === null} onclick={remover}>
             {t("FUSION.Avatar.Remove")}
           </button>
+        </div>
+      {/if}
+
+      {#if pendente !== null}
+        <div class="substituir" role="alertdialog" aria-labelledby="avatar-substituir-titulo">
+          <p id="avatar-substituir-titulo" class="substituir__titulo">{t("FUSION.Avatar.ReplaceTitle")}</p>
+          <div class="substituir__lados">
+            <figure>
+              <ActorPortrait img={imgAtual} docRef={{ table: "actors", id: actorId }} name={nome} size={64} />
+              <figcaption>{t("FUSION.Avatar.ReplaceCurrent")}</figcaption>
+            </figure>
+            <span aria-hidden="true">→</span>
+            <figure>
+              <img class="substituir__nova" src={pendente.url} width="64" height="64" alt="" />
+              <figcaption>{t("FUSION.Avatar.ReplaceNew")}</figcaption>
+            </figure>
+          </div>
+          <p class="substituir__dica">{t("FUSION.Avatar.ReplaceHint")}</p>
+          <div class="substituir__botoes">
+            <button type="button" class="substituir__sim" disabled={salvando} onclick={confirmarSubstituicao}>
+              {t("FUSION.Avatar.ReplaceConfirm")}
+            </button>
+            <button type="button" disabled={salvando} onclick={descartarPendente}>
+              {t("FUSION.Avatar.ReplaceCancel")}
+            </button>
+          </div>
         </div>
       {/if}
 
@@ -738,6 +849,70 @@
   .acoes__remover:not(:disabled):hover {
     border-color: var(--fusion-danger);
     color: var(--fusion-danger);
+  }
+
+  .substituir {
+    background: var(--fusion-surface-alt);
+    border: 1px solid var(--fusion-accent);
+    border-radius: var(--fusion-radius);
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+    padding: 0.5rem;
+  }
+
+  .substituir__titulo {
+    font-size: 0.75rem;
+    font-weight: 600;
+    margin: 0;
+  }
+
+  .substituir__lados {
+    align-items: center;
+    display: flex;
+    gap: 0.5rem;
+    justify-content: center;
+  }
+
+  .substituir__lados figure {
+    align-items: center;
+    display: flex;
+    flex-direction: column;
+    gap: 0.15rem;
+    margin: 0;
+  }
+
+  .substituir__lados figcaption,
+  .substituir__dica {
+    color: var(--fusion-text-subtle);
+    font-size: 0.625rem;
+    margin: 0;
+  }
+
+  .substituir__nova {
+    image-rendering: pixelated;
+  }
+
+  .substituir__botoes {
+    display: flex;
+    gap: 0.35rem;
+  }
+
+  .substituir__botoes button {
+    background: var(--fusion-surface);
+    border: 1px solid var(--fusion-border);
+    border-radius: var(--fusion-radius-sm);
+    color: var(--fusion-text);
+    cursor: pointer;
+    font-size: 0.75rem;
+    padding: 0.3rem 0.6rem;
+  }
+
+  .substituir__botoes .substituir__sim {
+    background: var(--fusion-accent);
+    border-color: var(--fusion-accent);
+    color: var(--fusion-on-accent);
+    font-weight: 600;
   }
 
   .creditos__botao {

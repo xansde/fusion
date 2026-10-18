@@ -114,6 +114,7 @@ import {
   actionBarFlagsWriteProblem,
 } from "../../documents/action-bar-flags.js";
 import { rejectAttitudeWrite, sanitizeAttitudeOnCreate } from "../../documents/attitude.js";
+import { lembrarImagemAnterior } from "../../documents/actor-image-history.js";
 import { applyMountMovement } from "../../combat/mount-follow.js";
 import {
   findBlockingCombats,
@@ -1937,6 +1938,9 @@ export function buildDocUpdateHandler(deps: DocHandlerDeps): HandlerFn {
       // overwrite it (recomputeDerivedIfNeeded below is the sole writer).
       if (documentType === "Actor") {
         expandedDiff = stripSystemDerived(expandedDiff);
+        // The image being replaced is remembered server-side, whoever replaces it
+        // (documents/actor-image-history.ts — the 18/10 lost-token incident).
+        expandedDiff = lembrarImagemAnterior(existing, expandedDiff);
       }
       let result: Record<string, unknown> | null;
       try {

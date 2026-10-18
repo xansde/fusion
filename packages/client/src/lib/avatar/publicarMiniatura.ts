@@ -10,6 +10,7 @@
 import { fusionApi } from "../api.js";
 import { uploadAsset } from "../assets/assetApi.js";
 import type { ModoMiniatura } from "./miniatura.js";
+import { caminhoDeArteValido } from "./imagemDoAtor.js";
 
 /** Upload and return the `/assets/<name>` path to store in the actor's `img`. */
 export async function publicarMiniatura(png: Blob, modo: ModoMiniatura): Promise<string> {
@@ -17,5 +18,9 @@ export async function publicarMiniatura(png: Blob, modo: ModoMiniatura): Promise
   if (token === null) throw new Error("Not authenticated.");
   const arquivo = new File([png], `avatar-${modo}.png`, { type: "image/png" });
   const resultado = await uploadAsset(token, arquivo, undefined, { purpose: "avatar" });
-  return `/assets/${resultado.path}`;
+  const caminho = `/assets/${String(resultado.path ?? "")}`;
+  // Never hand back something that, written to `img`, would blank or break the
+  // actor's art: a missing/odd name from the server aborts the whole operation.
+  if (!caminhoDeArteValido(caminho)) throw new Error(`Unexpected upload path: ${caminho}`);
+  return caminho;
 }
