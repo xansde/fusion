@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any -- test doubles */
 /**
  * Conditions through the real derivation pipeline (etapa 3a): what the sheet shows after a
  * condition is applied. Expectations are PF2e remaster rules, not the pack's table.
