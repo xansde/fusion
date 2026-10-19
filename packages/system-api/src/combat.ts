@@ -212,6 +212,12 @@ export interface TurnHookContext {
    * still writes only through the methods above.
    */
   listActors(): Record<string, unknown>[];
+  /**
+   * Current value of one of the active system's world-scope settings, by its SYSTEM-LOCAL key (without the
+   * `<systemId>:` namespace), or `undefined` when the GM never stored a value (the hook then applies its own
+   * default). Read-only. Optional so contexts built before this existed (tests, stubs) stay valid.
+   */
+  getSetting?(localKey: string): unknown;
   worldTime: { round: number; turn: number };
 }
 
