@@ -147,6 +147,15 @@ export async function connect(opts = {}) {
       }
       return ack;
     },
+    /** Send a read-only query (compendium:list, compendium:index...) and resolve with the raw ack. */
+    query: (type, payload, timeoutMs = OP_TIMEOUT_MS) =>
+      new Promise((resolve, reject) => {
+        const timer = setTimeout(() => reject(new MesaError(`Timeout waiting for ${type}`, "TIMEOUT")), timeoutMs);
+        socket.emit("query", { type, payload, ts: Date.now() }, (ack) => {
+          clearTimeout(timer);
+          resolve(ack);
+        });
+      }),
     /** Subscribe to broadcast op envelopes (what other clients' changes look like). */
     onOp: (fn) => {
       socket.on("op", fn);
