@@ -1239,6 +1239,12 @@ export interface DocHandlerDeps {
  * slot at a time, and the merge still carries every other pre-existing
  * issue, so even the repair op was refused.
  */
+function asRecordOrEmpty(value: unknown): Record<string, unknown> {
+  return value !== null && typeof value === "object" && !Array.isArray(value)
+    ? (value as Record<string, unknown>)
+    : {};
+}
+
 function rejectIllegalCharacterBuild(
   deps: Pick<DocHandlerDeps, "store" | "systemModule">,
   mergedDoc: Record<string, unknown>,
@@ -1255,6 +1261,13 @@ function rejectIllegalCharacterBuild(
     variants.ancestryFeatsInGeneralSlots = world.ancestryFeatsInGeneralSlots;
   if (world.ancestryFeatLevelMinus2 !== undefined)
     variants.ancestryFeatLevelMinus2 = world.ancestryFeatLevelMinus2;
+  // D5/D12 (19/10/2026): under multiclass-by-levels the table forbids multiclass dedications and class
+  // archetypes. Same precedence the client sheet and the derivation use: the world setting, else the actor's own
+  // legacy field (a world that never opened Configurações → Mundo).
+  const legacyBuild = asRecordOrEmpty(asRecordOrEmpty(mergedDoc["system"])["build"]);
+  const legacyClassLevels = asRecordOrEmpty(legacyBuild["variantRules"])["classLevels"] === true;
+  const classLevels = world.classLevels ?? legacyClassLevels;
+  if (classLevels) variants.classLevels = true;
   const result = validateCharacterBuild(mergedDoc, variants);
   if (result.ok) return null;
 
