@@ -1,7 +1,7 @@
 # 30 — Multiclasse por níveis de classe (regra variante)
 
 - **Título:** Multiclasse por divisão de níveis de classe — regra variante do sistema PF2e
-- **Status:** draft v0.2 (decisões de 19/10/2026: DEC-MCL-15 a 27)
+- **Status:** draft v0.2 (decisões de 19/10/2026: DEC-MCL-15 a 28)
 - **Data:** 2026-08-01
 - **Baseada em:**
   - `docs/research/16-wayfinder-base-canonica-e-multiclasse.md` — avaliação do projeto Wayfinder (base canônica + houserule de multiclasse), com medições.
@@ -404,7 +404,7 @@ cuja tabela lista o 1). Entra no item 4 dos itens de playtest (§9).
 `fix/ficha-ler-talento`).
 
 
-### Decisões de 19/10/2026 — o documento da mesa vira a fonte (DEC-MCL-15 a DEC-MCL-27)
+### Decisões de 19/10/2026 — o documento da mesa vira a fonte (DEC-MCL-15 a DEC-MCL-28)
 
 > **Fonte:** `Mod PF2e — Multiclasse nível a nível` (documento da mesa, 27/09/2026) — "onde diverge da
 > spec 30, vale o que está abaixo". **Decisão do Alexandre, 19/10/2026**, tomada ponto a ponto
@@ -557,6 +557,39 @@ Alexandre._
 "− total de escolhas livres já concedidas"); o critério "o total independe da ordem" **deixa de valer** (a ordem
 das classes muda o delta: é o ponto do documento).
 
+### DEC-MCL-28 — Talento de arquétipo ocupa o slot de talento de classe, pelo nível do PERSONAGEM (decisão do Alexandre, 19/10/2026; mesa A Queda)
+
+**Pedido:** "quero poder pegar feat de dedicação no lugar de qualquer class feat, de acordo com o nível de
+personagem." É o RAW do PF2e (Player Core, "Archetypes": a dedicação e os talentos seguintes do arquétipo ocupam
+espaços de talento de classe) e vale para o slot de talento de classe **de qualquer classe, em qualquer nível**.
+
+**Decisão:**
+
+1. O slot de talento de classe aceita, além dos talentos da classe que o paga (DEC-MCL-13), qualquer talento com
+   trait `archetype` — a dedicação e os talentos do arquétipo, **de qualquer categoria** (Twirl Through do Fan
+   Dancer é de perícia) — e a dedicação que o vendor traz sem o `archetype` (Sanguimancer).
+2. Esse talento é medido pelo nível do **PERSONAGEM** (documento da mesa: "Nível mínimo dos talentos (gerais, de
+   perícia, de arquétipo) | Personagem"), **não** pelo nível da classe dona do slot: o talento de classe comum
+   continua medido pelo nível de classe. Investigador 2 (nível de personagem 3) aceita talento de arquétipo de
+   nível ≤ 3.
+3. **Continuam valendo:** D5/D12 (DEC-MCL-19 e DEC-MCL-26: dedicação de multiclasse e arquétipo de classe não
+   entram em slot nenhum; o servidor segue recusando a escolha nova com `MULTICLASS_ARCHETYPE_FORBIDDEN`); os
+   pré-requisitos (inclusive os de item); a regra "uma dedicação por vez" e "só depois de 2 talentos do arquétipo
+   anterior", **como marca** (DEC-MCL-06: a elegibilidade marca, nunca bloqueia).
+4. O seletor do slot de classe lista os talentos de arquétipo elegíveis junto com os de classe, com o contador
+   "N disponíveis / M no total" e os filtros compostos de sempre; os de arquétipo trazem o chip ARQUÉTIPO e o
+   filtro de trait separa classe × arquétipo. O slot vazio traz a nota "Aceita também talento de arquétipo".
+5. O servidor (`matchesFeatSlot`, `classFeat`) aceita o talento de arquétipo no slot de classe; o nível do slot
+   no servidor já é o do personagem.
+
+**Fora desta decisão (pendente com o Alexandre):** talento de classe de OUTRA classe no slot de classe. Não é
+ativado; o ponto de troca no código é `archetypeInClassSlot` em `isFeatEligible`.
+
+**Efeito nos REQ:** **emenda** REQ-MCL-041 (o talento de arquétipo também pode estar em slot de classe) e
+DEC-MCL-19 (a dedicação **geral** deixa de ser oferecida só no Arquétipo Livre: custa um talento de classe, então não
+reabre a "rota gratuita" revogada); a observação do satélite "isFeatEligible recusa 'dedication' em classFeat"
+(C-6, Onda 5) **deixa de valer**.
+
 ---
 
 ## 5. Modelo de dados
@@ -703,7 +736,7 @@ interface DerivedClassLevels {
   talento de classe de nível maior que o nível daquela classe NÃO DEVE ser oferecido no
   seletor; talento já escolhido num slot que deixou de existir DEVE continuar na ficha,
   marcado como órfão.
-- **REQ-MCL-041** [MC] (ampliado por DEC-MCL-23, 19/10/2026: o slot do Arquétipo Livre também recebe talento de classe, medido pelo nível de **classe**) Feat de arquétipo (trait `archetype`) DEVE ser conferido
+- **REQ-MCL-041** [MC] (ampliado por DEC-MCL-28, 19/10/2026: o talento de arquétipo também ocupa slot de talento de classe, pelo nível do personagem; e por DEC-MCL-23, 19/10/2026: o slot do Arquétipo Livre também recebe talento de classe, medido pelo nível de **classe**) Feat de arquétipo (trait `archetype`) DEVE ser conferido
   contra o nível de **personagem**, mesmo quando pago com um slot de class feat.
 - **REQ-MCL-042** [MC] (emendado por DEC-MCL-21, 19/10/2026: talento de perícia e aumento de perícia saem desta lista — seguem a tabela da classe no nível da classe) A cadência básica do personagem (ancestry feat, general
   feat, skill feat, boosts de 5/10/15/20, skill increase) DEVE seguir o nível de
