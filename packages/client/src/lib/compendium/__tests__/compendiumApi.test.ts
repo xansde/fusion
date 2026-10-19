@@ -124,11 +124,14 @@ describe("getDocument — the preview's query settles even when the ack never ar
 
   it("REQ-CPD-051: rejects once the query's internal timeout elapses, instead of hanging forever", async () => {
     const promise = getDocument(socketThatNeverAcks(), "Compendium.pf2e.spells-core.Item.s1");
+    const settled = expect(promise).rejects.toThrow(/demorou demais/i);
 
-    // No ack ever fires — advance past the query's own timeout window.
-    vi.advanceTimersByTime(10_001);
+    // No ack ever fires — advance past every attempt's timeout window (2 x 15 s
+    // plus the backoff between them; the 10 s flat budget became a retry in
+    // compendiumApi.resilience.test.ts).
+    await vi.advanceTimersByTimeAsync(60_000);
 
-    await expect(promise).rejects.toThrow(/timed out/i);
+    await settled;
   });
 
   it("REQ-CPD-051: resolves normally when the ack arrives before the timeout", async () => {

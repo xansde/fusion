@@ -284,8 +284,20 @@ export class SocketManager {
         methods: ["GET", "POST"],
         credentials: true,
       },
-      // Disable per-message compression for now (see spec Q3)
-      perMessageDeflate: false,
+      // Per-message compression (spec 04 Q3, answered by measurement): a pack
+      // index is megabytes of JSON that gzips to ~26% (feats-core 2645 -> 661 KB),
+      // and sending it raw through the tunnel is what made "carregar o compêndio"
+      // slow and failing on the table's connection. Only payloads above 16 KB are
+      // compressed (token moves, rolls and chat stay untouched), at a low zlib level
+      // (the biggest index costs ~50 ms of CPU), with no context takeover so an idle
+      // connection holds no zlib window.
+      perMessageDeflate: {
+        threshold: 16 * 1024,
+        zlibDeflateOptions: { level: 3 },
+        serverNoContextTakeover: true,
+        clientNoContextTakeover: true,
+        concurrencyLimit: 2,
+      },
       // Reasonable connection limits
       connectTimeout: 10_000,
       pingTimeout: 25_000,
