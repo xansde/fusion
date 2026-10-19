@@ -10,7 +10,7 @@
    * position, with "Desafixar" in its menu (BAR-F3-01, REQ-BAR-066); `favoriteCells` decides which
    * positions are which, and when a missing entry is an orphan rather than just late.
    *
-   * **A tab** lists its entries in groups ("Truques", "1º patamar", "Atletismo"…) with the counter
+   * **A tab** lists its entries in groups ("Truques", "1º grau", "Atletismo"…) with the counter
    * of the group in the header (the slots of a rank "2/3", the pips of focus). A tab with nothing in
    * it does NOT disappear or break: it says it is empty (REQ-BAR-026).
    *

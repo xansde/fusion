@@ -252,7 +252,7 @@ export function entriesForTab(
 }
 
 export interface SlotGroup {
-  /** The group's name ("Truques", "1º patamar"); undefined for entries that belong to none. */
+  /** The group's name ("Truques", "1º grau"); undefined for entries that belong to none. */
   name: string | undefined;
   /** The counter of the group header ("2/3" of slots, the pips of focus), from the first entry that carries one. */
   uses: ActionBarEntry["groupUses"];

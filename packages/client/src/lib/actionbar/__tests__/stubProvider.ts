@@ -184,7 +184,7 @@ export function makeStubEntries(): ActionBarEntry[] {
       id: "spell:stub-main:heal",
       kind: "spell",
       tab: "spells",
-      group: "1º patamar",
+      group: "1º grau",
       groupUses: { value: 2, max: 3, style: "count" },
       label: "Cura",
       icon: "heart",
