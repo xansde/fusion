@@ -323,6 +323,32 @@ describe("redactChatEffectExpiryForNonPrivileged", () => {
   });
 });
 
+// Condition front, stage 3b: the condition-turn announcer (Frightened ticking down, persistent damage, the
+// stun/slow reminder, the dying outcome) stamps `flags.fusion.conditionTurn.hidden` for a hidden combatant.
+describe("redactChatEffectExpiryForNonPrivileged — conditionTurn announcements", () => {
+  const turnMsg = (hidden: boolean) =>
+    ({
+      _id: "m2",
+      content: "Emboscador: Amedrontado 2 diminui para 1 no fim do turno.",
+      speaker: { userId: "system", alias: "Sistema", actorId: "actor-S" },
+      whisper: [],
+      flags: { fusion: { conditionTurn: { ...(hidden ? { hidden: true } : {}) } } },
+    }) as unknown as ChatMessage;
+
+  it("cuts the name, the actor id and the condition for a hidden combatant", () => {
+    const out = redactChatEffectExpiryForNonPrivileged(turnMsg(true));
+    expect(out.content).toBe("Uma condição foi resolvida.");
+    expect(JSON.stringify(out)).not.toContain("Emboscador");
+    expect(JSON.stringify(out)).not.toContain("Amedrontado");
+    expect(JSON.stringify(out)).not.toContain("actor-S");
+  });
+
+  it("returns the same message for a visible combatant", () => {
+    const msg = turnMsg(false);
+    expect(redactChatEffectExpiryForNonPrivileged(msg)).toBe(msg);
+  });
+});
+
 // ---------------------------------------------------------------------------
 // BAR-F4-01 — redactChatSpeakerForNonPrivileged: the speaker answers to the contact knowledge (spec 39)
 // ---------------------------------------------------------------------------
