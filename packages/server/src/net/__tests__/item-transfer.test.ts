@@ -1,5 +1,5 @@
 /**
- * `item:transfer` - giving an item (or part of a stack) to another actor, over the REAL socket transport.
+ * `item:transfer` (REQ-SYS-165) - giving an item (or part of a stack) to another actor, over the REAL socket transport.
  *
  * What is asserted is the core's contract (permission, atomicity, merge, containers, stale reads), never a game rule,
  * so the world runs on a rule-free fake system - same discipline as `item-consume.test.ts`.
