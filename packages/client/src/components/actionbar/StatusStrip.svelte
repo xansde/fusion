@@ -38,7 +38,7 @@
     actorId: string;
     /** The viewer is the privileged seat: only then does `status.gmOnly` count. */
     viewerIsGm: boolean;
-    /** `actor.type`, for the seal of the Mestre ("Mestre · NPC"). */
+    /** `actor.type`, for the seal of the Mestre ("Mestre · PdM"). */
     actorType: string;
     turn: TurnView;
     /** What the strike under the mouse does to the next attack ("depois deste: MAP −10"), or null. */

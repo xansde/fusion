@@ -125,7 +125,7 @@ describe("slotView — o que o slot desenha", () => {
   });
 
   describe("o selo do canto (T3, T4, T5)", () => {
-    it("patamar da magia", () => {
+    it("grau da magia", () => {
       expect(slotView(makeEntry("spell:a:b", { rank: 2 })).seal).toEqual({
         kind: "rank",
         text: "2",
@@ -154,7 +154,7 @@ describe("slotView — o que o slot desenha", () => {
       expect(slotView(makeEntry("item:a", { uses: { value: 0 } })).seal?.text).toBe("×0");
     });
 
-    it("um selo só: patamar vence MAP, que vence quantidade", () => {
+    it("um selo só: grau vence MAP, que vence quantidade", () => {
       const all = makeEntry("spell:a:b", { rank: 1, countsForMap: true, uses: { value: 4 } });
       expect(slotView(all).seal?.kind).toBe("rank");
       const noRank = makeEntry("action:a", { countsForMap: true, uses: { value: 4 } });
@@ -184,11 +184,11 @@ describe("slotView — o que o slot desenha", () => {
       expect(slotView(makeEntry("check:a", { badge: "+8" })).badge).toBe("+8");
     });
 
-    it("com mais de um eixo padrão com bônus, vale o primeiro na ordem: MAP, patamar, custo, elemento", () => {
+    it("com mais de um eixo padrão com bônus, vale o primeiro na ordem: MAP, grau, custo, elemento", () => {
       const axes = [
         { id: "element:fire", axis: "element", label: "Fogo", badge: "E", isDefault: true },
         { id: "cost:2", axis: "cost", label: "2 ações", badge: "C", isDefault: true },
-        { id: "rank:2", axis: "rank", label: "2º patamar", badge: "R", isDefault: true },
+        { id: "rank:2", axis: "rank", label: "2º grau", badge: "R", isDefault: true },
         { id: "map:1", axis: "map", label: "2º ataque", badge: "M", isDefault: true },
       ] as const;
       const badgeWithout = (...dropped: string[]): string | null =>
@@ -336,7 +336,7 @@ describe("entriesForTab / groupEntries — a aba e os grupos (REQ-BAR-026)", () 
     makeEntry("spell:m:a", { tab: "spells", group: "Truques" }),
     makeEntry("spell:m:b", {
       tab: "spells",
-      group: "1º patamar",
+      group: "1º grau",
       groupUses: { value: 2, max: 3, style: "count" },
     }),
     makeEntry("spell:m:c", { tab: "spells", group: "Truques" }),
@@ -357,7 +357,7 @@ describe("entriesForTab / groupEntries — a aba e os grupos (REQ-BAR-026)", () 
   it("agrupa pelo nome do grupo, na ordem da primeira aparição", () => {
     const groups = groupEntries(entriesForTab(entries, "spells"));
 
-    expect(groups.map((g) => g.name)).toEqual(["Truques", "1º patamar", undefined]);
+    expect(groups.map((g) => g.name)).toEqual(["Truques", "1º grau", undefined]);
     expect(groups[0]?.entries.map((e) => e.id)).toEqual(["spell:m:a", "spell:m:c"]);
   });
 
@@ -413,11 +413,11 @@ describe("tooltipView — o tooltip curto (REQ-BAR-044, REQ-BAR-039)", () => {
       "Golpe · corpo a corpo · alcance 5 pés",
     );
     const spell = makeEntry("spell:m:a", {
-      group: "1º patamar",
+      group: "1º grau",
       range: { kind: "range", feet: 30 },
     });
     expect(tooltipView(spell, "pt-BR", { hasDetails: false }).subtitle).toBe(
-      "Magia · 1º patamar · à distância · alcance 30 pés",
+      "Magia · 1º grau · à distância · alcance 30 pés",
     );
     expect(tooltipView(makeEntry("check:a"), "pt-BR", { hasDetails: false }).subtitle).toBe(
       "Teste",
@@ -445,11 +445,11 @@ describe("tooltipView — o tooltip curto (REQ-BAR-044, REQ-BAR-039)", () => {
       expect(subtitleOf(makeEntry("check:a", { group: "Testes" }))).toBe("Teste");
     });
 
-    it("um grupo que diz algo continua no subtítulo ('Classe', 'Truques', '1º patamar')", () => {
+    it("um grupo que diz algo continua no subtítulo ('Classe', 'Truques', '1º grau')", () => {
       expect(subtitleOf(makeEntry("action:a", { group: "Classe" }))).toBe("Ação · Classe");
       expect(subtitleOf(makeEntry("spell:m:a", { group: "Truques" }))).toBe("Magia · Truques");
-      expect(subtitleOf(makeEntry("spell:m:b", { group: "1º patamar" }))).toBe(
-        "Magia · 1º patamar",
+      expect(subtitleOf(makeEntry("spell:m:b", { group: "1º grau" }))).toBe(
+        "Magia · 1º grau",
       );
     });
 

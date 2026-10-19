@@ -273,7 +273,7 @@ describe("ActionBar — a faixa, as abas e os 12 slots (T1)", () => {
     expect(slotTag(html, "action:stub-command")).toContain('aria-keyshortcuts="7"');
   });
 
-  it("custo no canto, selo de patamar e bônus", () => {
+  it("custo no canto, selo de grau e bônus", () => {
     const html = bar();
 
     expect(html).toMatch(/<i class="slot__c[^"]*"[^>]*>◆<\/i>/);
@@ -811,12 +811,12 @@ describe("StatusStrip — condições, alvo, e o que é só do Mestre", () => {
     );
   });
 
-  it("T6: a CA e o selo 'Mestre · NPC' só aparecem para o Mestre", () => {
+  it("T6: a CA e o selo 'Mestre · PdM' só aparecem para o Mestre", () => {
     const status = makeStubStatus({ gmOnly: { ac: 31 } });
 
     const gm = textOf(strip(status, { viewerIsGm: true, actorType: "npc" }));
     expect(gm).toContain("CA 31");
-    expect(gm).toContain("Mestre · NPC");
+    expect(gm).toContain("Mestre · PdM");
 
     // O provedor deixa o campo vazio para o jogador; a faixa o ignora MESMO que ele venha preenchido.
     const player = textOf(strip(status, { viewerIsGm: false, actorType: "npc" }));
@@ -832,7 +832,7 @@ describe("StatusStrip — condições, alvo, e o que é só do Mestre", () => {
 
     expect(text).toContain("CA 24");
     expect(text).toContain("Mestre");
-    expect(text).not.toContain("Mestre · NPC");
+    expect(text).not.toContain("Mestre · PdM");
   });
 
   it("REQ-BAR-039: com o mouse num golpe, a faixa mostra o que muda no ataque seguinte", () => {
@@ -938,7 +938,7 @@ describe("SlotGrid — abas, grupos e o estado vazio (REQ-BAR-026)", () => {
     expect(slotIds(html)).toEqual(["spell:stub-main:burst", "spell:stub-main:heal"]);
     expect(html).toMatch(/<div class="grp__h[^"]*"[^>]*>[\s\S]*?Truques/);
     expect(html).toMatch(
-      /<div class="grp__h[^"]*"[^>]*>[\s\S]*?1º patamar[\s\S]*?<em[^>]*>2\/3<\/em>/,
+      /<div class="grp__h[^"]*"[^>]*>[\s\S]*?1º grau[\s\S]*?<em[^>]*>2\/3<\/em>/,
     );
   });
 

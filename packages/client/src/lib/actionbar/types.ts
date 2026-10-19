@@ -115,7 +115,7 @@ export interface ActionBarVariant {
   /** Stable within the entry: "map:0|1|2", "cost:1|2|3", "rank:<n>", "element:<slug>". */
   id: string;
   axis: "map" | "cost" | "rank" | "element";
-  label: string; // pt-BR: "1º ataque", "2 ações", "3º patamar", "Fogo"
+  label: string; // pt-BR: "1º ataque", "2 ações", "3º grau", "Fogo"
   badge?: string; // what the slot shows while this variant is in use: "+9", "−1", "CD 18"
   hint?: string; // what changes next: "depois deste: MAP −10"
   isDefault?: boolean; // exactly one per axis
@@ -127,7 +127,7 @@ export interface ActionBarEntry {
   id: string;
   kind: ActionBarEntryKind;
   tab: ActionBarTab;
-  group?: string; // "Truques", "2º patamar", "Atletismo"…
+  group?: string; // "Truques", "2º grau", "Atletismo"…
   label: string; // pt-BR, the pack's name — the bar has no names of its own
   shortLabel?: string; // D-BA15: short name under the icon; without it the core abbreviates `label`
   icon?: string; // key of the core's free icon set (never Paizo art)
@@ -135,7 +135,7 @@ export interface ActionBarEntry {
   traits?: string[];
   badge?: string; // final bonus or DC: "+4", "CD 18"
   uses?: { value: number; max?: number }; // quantity, uses, charges
-  groupUses?: { value: number; max: number; style: "count" | "pips" }; // group header: "1º patamar 2/3", "Foco ●○"
+  groupUses?: { value: number; max: number; style: "count" | "pips" }; // group header: "1º grau 2/3", "Foco ●○"
   rank?: number; // rank seal on the slot (T3)
   countsForMap?: boolean; // MAP seal (T4): Grapple, Shove, Trip…
   state?: "ready" | "unavailable" | "spent-until-recharge" | "active"; // absent = "ready"
