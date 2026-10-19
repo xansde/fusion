@@ -82,6 +82,7 @@ import { buildApplyDamageHandler } from "../combat/apply-damage-handler.js";
 import { buildApplyConditionHandler } from "../combat/apply-condition-handler.js";
 import { buildEffectApplyHandler } from "./handlers/effect-handlers.js";
 import { buildItemConsumeHandler } from "./handlers/item-handlers.js";
+import { buildItemTransferHandler } from "./handlers/item-transfer-handler.js";
 import {
   createTurnHookRunner,
   createStubTurnHookContextServices,
@@ -759,6 +760,12 @@ export class SocketManager {
         actorMechanicsService,
         logger: this.logger,
       }),
+    );
+
+    // Inventory: give an item to another actor - one atomic write on two actors (item-transfer-handler.ts).
+    registry.register(
+      "item:transfer",
+      buildItemTransferHandler({ store, db, ns, seqStore, opBuffer, worldId }),
     );
 
     // BHR-F4-08 (REQ-BHR-102..105): a pack effect onto other actors, permission by link.

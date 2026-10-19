@@ -117,6 +117,9 @@ export const EnvelopeTypeSchema = z.union([
   // expectedVersion live here; the game-specific plan (what to spend, what
   // effect to copy, what to roll) is `registrar.registerConsumeItem`.
   z.literal("item:consume"),
+  // Inventory (feat/inventario-completo): giving an item to ANOTHER actor. No single doc:update can do it - it takes
+  // one atomic write on two actors - and the sender only owns one of them, so permission lives in the handler.
+  z.literal("item:transfer"),
   // Spec 39 — contact knowledge (general rule + per-character exceptions).
   // The one way in: doc:update refuses the flag path outright, so knowledge
   // never rides an ordinary document write (REQ-CTT-070/072/080).
@@ -924,6 +927,38 @@ export interface ItemConsumeResult {
 }
 
 export type ItemConsumeAck = Ack<ItemConsumeResult>;
+
+// ---------------------------------------------------------------------------
+// item:transfer - client -> server. Giving `quantity` of an item to another actor.
+//
+// The sender must OWN `fromActorId` (or be the GM / an assistant); the receiver need not be owned - a player hands
+// things to another player's character - but must be a character a player owns or one the sender can at least
+// perceive. `expectedVersion` is the sender's `_stats.version`, the same stale-read guard as `item:consume`.
+// ---------------------------------------------------------------------------
+
+export const ItemTransferPayloadSchema = z
+  .object({
+    fromActorId: z.string().min(1),
+    toActorId: z.string().min(1),
+    itemId: z.string().min(1),
+    quantity: z.number().int().min(1),
+    expectedVersion: z.number().int().nonnegative(),
+  })
+  .strict();
+
+export type ItemTransferPayload = z.infer<typeof ItemTransferPayloadSchema>;
+
+export interface ItemTransferResult {
+  /** Units that changed hands. */
+  readonly moved: number;
+  /** The item's name as the sender saw it. */
+  readonly itemName: string;
+  readonly toActorId: string;
+  /** True when the units were added to a stack the receiver already had. */
+  readonly merged: boolean;
+}
+
+export type ItemTransferAck = Ack<ItemTransferResult>;
 
 // ---------------------------------------------------------------------------
 // effect:apply — client → server. Spec 52 §7.3 (REQ-BHR-102..105), DC-06,
