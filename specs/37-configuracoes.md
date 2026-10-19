@@ -341,7 +341,10 @@ Toda escrita das seções Mundo, Permissões, Usuários e Mods exige `role === G
   3. `ancestryFeatsInGeneralSlots`: os espaços de talento geral (nível > 1) também aceitam
      talentos de ancestralidade;
   4. `ancestryFeatLevelMinus2`: um talento de ancestralidade de nível N cabe num espaço de nível
-     max(1, N-2).
+     max(1, N-2);
+  5. `skillFeatInClassSlot` (19/10/2026, DEC-MCL-29 da spec 30): o espaço de talento de classe
+     também aceita talento de perícia, pelo nível do personagem. Desligada por padrão; o
+     GAMEMASTER liga em Configurações → Mundo ("Talento de perícia no lugar de talento de classe").
      Regras de plumbing no núcleo (espelham HJ-09/REQ-CFG-038):
   - só o GAMEMASTER escreve (REQ-CFG-070); o jogador LÊ as quatro chaves (allowlist de leitura do
     jogador, inclusive no broadcast ao vivo), porque a ficha aplica as regras;
@@ -350,9 +353,9 @@ Toda escrita das seções Mundo, Permissões, Usuários e Mods exige `role === G
     do ator traga é descartado quando o mundo não tem `Setting` (um jogador não forja a regra);
     `true`/`false` do mundo valem como estão;
   - a validação de legalidade da ficha no servidor (escrita de `doc:create`/`doc:update` e de itens
-    embutidos) recebe os mesmos três flags de espaço/nível (1, 3 e 4), tanto para o documento
+    embutidos) recebe os mesmos flags de espaço/nível (1, 3, 4 e 5), tanto para o documento
     mesclado quanto para o anterior;
-  - mudar qualquer das quatro re-deriva todos os personagens e propaga o resultado (REQ-CFG-035).
+  - mudar qualquer das cinco re-deriva todos os personagens e propaga o resultado (REQ-CFG-035).
 
 ### 5.5 Permissões
 

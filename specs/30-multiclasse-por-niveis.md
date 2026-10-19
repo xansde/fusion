@@ -1,7 +1,7 @@
 # 30 — Multiclasse por níveis de classe (regra variante)
 
 - **Título:** Multiclasse por divisão de níveis de classe — regra variante do sistema PF2e
-- **Status:** draft v0.2 (decisões de 19/10/2026: DEC-MCL-15 a 28)
+- **Status:** draft v0.2 (decisões de 19/10/2026: DEC-MCL-15 a 29)
 - **Data:** 2026-08-01
 - **Baseada em:**
   - `docs/research/16-wayfinder-base-canonica-e-multiclasse.md` — avaliação do projeto Wayfinder (base canônica + houserule de multiclasse), com medições.
@@ -404,7 +404,7 @@ cuja tabela lista o 1). Entra no item 4 dos itens de playtest (§9).
 `fix/ficha-ler-talento`).
 
 
-### Decisões de 19/10/2026 — o documento da mesa vira a fonte (DEC-MCL-15 a DEC-MCL-28)
+### Decisões de 19/10/2026 — o documento da mesa vira a fonte (DEC-MCL-15 a DEC-MCL-29)
 
 > **Fonte:** `Mod PF2e — Multiclasse nível a nível` (documento da mesa, 27/09/2026) — "onde diverge da
 > spec 30, vale o que está abaixo". **Decisão do Alexandre, 19/10/2026**, tomada ponto a ponto
@@ -589,6 +589,24 @@ ativado; o ponto de troca no código é `archetypeInClassSlot` em `isFeatEligibl
 DEC-MCL-19 (a dedicação **geral** deixa de ser oferecida só no Arquétipo Livre: custa um talento de classe, então não
 reabre a "rota gratuita" revogada); a observação do satélite "isFeatEligible recusa 'dedication' em classFeat"
 (C-6, Onda 5) **deixa de valer**.
+
+### DEC-MCL-29 — Talento de perícia no lugar de talento de classe: regra da casa com TOGGLE (decisão do Alexandre, 19/10/2026)
+
+**Pedido:** "Também gostaria de poder selecionar uma skill feat no lugar de uma class feat (isso através de um
+toggle)." Não é RAW: é regra da casa **ligável**, no mesmo mecanismo das regras da casa de A Queda (REQ-CFG-039).
+
+**Decisão:**
+
+1. Setting de mundo `variantRules.skillFeatInClassSlot` (booleana, **desligada por padrão**, só o GAMEMASTER escreve,
+   o jogador lê, confirmação ao desligar com a contagem de fichas afetadas). Fica em **Configurações → Mundo**,
+   rótulo "Talento de perícia no lugar de talento de classe".
+2. Ligada: o slot de talento de classe aceita também talento com `category: skill`, medido pelo nível do
+   **PERSONAGEM** (como o de arquétipo, DEC-MCL-28), com os pré-requisitos normais (proficiência na perícia etc.:
+   marca). Desligada: nada muda (o servidor recusa com `FEAT_SLOT_MISMATCH`).
+3. Cliente (seletor, nota do slot: "…e talento de perícia — nível do personagem"), servidor
+   (`validateCharacterBuild`, flag vinda do mundo) e derivação leem a MESMA setting. Talento de perícia que é também
+   de arquétipo (Twirl Through) continua legal sem o toggle (DEC-MCL-28).
+4. **Não está ligada no mundo a_queda**: o Alexandre liga pela interface.
 
 ---
 
