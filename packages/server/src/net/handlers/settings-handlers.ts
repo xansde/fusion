@@ -94,6 +94,7 @@ const PLAYER_READABLE_SETTING_KEYS: ReadonlySet<string> = new Set([
   "variantRules.freeOccultismOrReligion",
   "variantRules.ancestryFeatsInGeneralSlots",
   "variantRules.ancestryFeatLevelMinus2",
+  "variantRules.skillFeatInClassSlot",
 ]);
 
 /**

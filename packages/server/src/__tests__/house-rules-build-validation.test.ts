@@ -214,6 +214,7 @@ describe("house rules — doc:update validates the build with the world's varian
       ["ancestryFeatsInGeneralSlots", true],
       ["bonusGeneralFeatLevel1", true],
       ["ancestryFeatLevelMinus2", false],
+      ["skillFeatInClassSlot", true],
     ] as const) {
       const ack = await sendOp(gm, "doc:create", {
         documentType: "Setting",
@@ -239,6 +240,7 @@ describe("house rules — doc:update validates the build with the world's varian
         ancestryFeatsInGeneralSlots: true,
         bonusGeneralFeatLevel1: true,
         ancestryFeatLevelMinus2: false,
+        skillFeatInClassSlot: true,
       });
     }
   });
