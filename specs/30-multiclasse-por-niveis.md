@@ -1,7 +1,7 @@
 # 30 — Multiclasse por níveis de classe (regra variante)
 
 - **Título:** Multiclasse por divisão de níveis de classe — regra variante do sistema PF2e
-- **Status:** draft v0.1
+- **Status:** draft v0.2 (decisões de 19/10/2026: DEC-MCL-15 a 27)
 - **Data:** 2026-08-01
 - **Baseada em:**
   - `docs/research/16-wayfinder-base-canonica-e-multiclasse.md` — avaliação do projeto Wayfinder (base canônica + houserule de multiclasse), com medições.
@@ -150,7 +150,10 @@ números são iguais e a mudança é inócua, o que a torna barata de introduzir
   decisão de qual nível usar por dezenas de call sites — é exatamente o tipo de
   erro que não aparece em teste de classe única, porque lá os dois são iguais.
 
-### DEC-MCL-04 — Melhor rank vence; escrita direta vira merge
+### DEC-MCL-04 — **REVOGADA por DEC-MCL-18 (19/10/2026)** — Melhor rank vence; escrita direta vira merge
+
+> **Revogada por DEC-MCL-18 (19/10/2026)**: o modelo de "melhor rank" dá lugar à **fração** do documento da
+> mesa (proficiências por fração; "CD é CD" — DEC-MCL-17). Texto original mantido abaixo como histórico.
 
 **Decisão:** quando duas classes concedem a mesma proficiência (armas, armadura,
 saves, Percepção, class DC de cada classe), o valor derivado é o **maior rank**
@@ -400,6 +403,160 @@ cuja tabela lista o 1). Entra no item 4 dos itens de playtest (§9).
 **Contexto:** relato do Alexandre sobre a ficha do Huo Jinwu, 18/10/2026 (satélite
 `fix/ficha-ler-talento`).
 
+
+### Decisões de 19/10/2026 — o documento da mesa vira a fonte (DEC-MCL-15 a DEC-MCL-27)
+
+> **Fonte:** `Mod PF2e — Multiclasse nível a nível` (documento da mesa, 27/09/2026) — "onde diverge da
+> spec 30, vale o que está abaixo". **Decisão do Alexandre, 19/10/2026**, tomada ponto a ponto
+> (D1 a D13; registro: `.fusion-build/magias-wotr/decisoes-2026-10-19.md`). A numeração é fixa:
+> **DEC-MCL-(14 + N) = DN**. A spec 30 descrevia o modelo **"melhor rank por nível de classe"**
+> (Wayfinder); o documento da mesa descreve o modelo **"fração"**. Esta seção troca o modelo onde os dois
+> divergem e **não apaga** o texto histórico: cada decisão/requisito afetado ganha a marca
+> "REVOGADA/emendada por DEC-MCL-NN" no lugar onde nasceu.
+>
+> Implementação desta rodada (satélite `feat/regras-plano-doc`): **D5, D7, D8, D9, D12, D13**. Ficam
+> especificadas aqui, mas implementadas em outras frentes: D1, D3, D4 (proficiências por fração, outra
+> frente), D10, D11.
+
+### DEC-MCL-15 — Elevação de magia: toda magia pelo nível do PERSONAGEM; espaços, repertório, assinatura e entrada por CLASSE (D1)
+
+**Decisão:** truque, magia de foco, magia inata e magia de espaço elevam todos pelo **nível de personagem**
+(`ceil(nível_de_personagem / 2)`). Espaços, repertório, assinaturas e a entrada de conjuração são **por classe**,
+dimensionados pelo nível **da classe** (modelo Pathfinder: Wrath of the Righteous). Mago 2 / Guerreiro 6 tem os
+espaços de um mago 2 e eleva magia como personagem de nível 8.
+
+**Efeito nos REQ:** REQ-MCL-060 mantido; REQ-MCL-061 **mantido e ampliado** (a magia inata entra na elevação);
+REQ-MCL-062 **revogado** (DEC-MCL-24: sem teto de invocação). REQ-MCL-065 (Free Archetype roda RAW puro, sem
+elevação) **conflita** com "elevação de magia inata" do documento — reconciliação em aberto (Q-MCL-07).
+
+### DEC-MCL-16 — Pontos de foco: pool único, teto 3 (D2)
+
+**Decisão:** a spec vence o documento: **um** pool de pontos de foco por personagem, **teto 3** (o documento
+dizia "sem o máximo de 3"). **Efeito nos REQ:** REQ-MCL-066 **mantido**.
+
+### DEC-MCL-17 — CD de magia e CD de classe: "CD é CD", por fração (D3)
+
+**Decisão:** a proficiência de CD é **um bloco único**: toda classe soma fração no mesmo patamar; cada classe
+mantém a própria CD com o atributo-chave dela; a CD de classe e a de ataque/CD de magia usam o **mesmo patamar**
+("CD é CD"). Cada classe contribui com a melhor das suas duas progressões (CD de classe ou de magia; as
+conjuradoras, a de magia). Mago 10 / Guerreiro 10 no nível 20 tem 10/15 + 10/19 = 1,19 de mestre.
+
+**Efeito nos REQ:** REQ-MCL-022 (class DC por classe pelo rank da classe) **emendado**: o patamar é o da fração;
+a DC continua por classe só no atributo. Ver DEC-MCL-18.
+
+### DEC-MCL-18 — Proficiências por fração: o modelo de "melhor rank" deixa de valer (D4)
+
+**Decisão:** armas, armaduras, Percepção, salvamentos (e CDs, DEC-MCL-17) seguem a **fração**: cada nível de uma
+classe vale `1 ÷ (nível em que essa classe chega àquele patamar)`; quando a soma chega a 1, o personagem sobe de
+patamar. Contagem **paralela** (um nível soma ao mesmo tempo para todos os patamares); o **excedente se perde**;
+por **categoria** (simples, marcial, avançada, desarmado, cada tipo de armadura) usando a progressão geral da
+classe; patamar extra em grupo específico é característica de classe, ganho pelo nível **na classe**, fora da
+fração. **Bônus de salvamento** (Evasão, Juggernaut e afins) e efeitos presos a patamar (+2 de iniciativa,
+especialização de armadura) só vêm pelo nível **da classe** que os dá. Proficiência dada por arquétipo geral vale
+1/1 para o patamar que dá, sem avançar.
+
+**Efeito nos REQ:** **REVOGA** DEC-MCL-04 (melhor rank vence), REQ-MCL-021 (`max` entre classes) e REQ-MCL-023
+(sem amolecimento de rank — a fração **é** a regra de composição); REQ-MCL-020 **emendado** (o rank vem da fração
+das classes; o bônus segue `nível_de_personagem + rank × 2`); REQ-MCL-203 (comutatividade) **continua valendo**
+(a soma de frações é comutativa).
+
+### DEC-MCL-19 — Dedicações de multiclasse proibidas (D5)
+
+**Decisão:** sob a multiclasse por níveis, **dedicações de arquétipo multiclasse não são usadas**: somem do
+seletor do Arquétipo Livre e de qualquer outro slot de talento. Arquétipos **gerais** (Fan Dancer, Marshal, Pistol
+Phenom…) seguem permitidos. O conjunto proibido é **derivado** (REQ-MCL-072, mantido): dedicação com o trait
+`multiclass`, ou cujo nome é "<Classe> Dedication" — as duas vias concordam no pack (teste). Ficha que já tem uma
+**não é apagada**: o slot continua preenchido e fica **marcado em vermelho como ilegal**, com o motivo em pt-BR (a
+mesma postura dos órfãos da DEC-MCL-13); o servidor só recusa a escolha **nova** (diff contra o documento
+anterior, `MULTICLASS_ARCHETYPE_FORBIDDEN`). A ficha explica o porquê no slot do Arquétipo Livre.
+
+**Efeito nos REQ:** **REVOGA** REQ-MCL-070 (dedicação como rota paralela) e REQ-MCL-071 (marcação de "classe X +
+dedicação de X": a dedicação nem é oferecida); emenda DEC-MCL-06 (neste caso a elegibilidade de slot **filtra**,
+não só marca); REQ-MCL-073 passa a valer para a marca de ilegalidade; a rota de dedicação gratuita deixa de ser
+termo de comparação — REQ-MCL-200/201/083 perdem o objeto (o teste dos 204 pares fica como histórico até o piso
+`dedicationSpellRank` ser retirado do código). Revoga também a regra do satélite que aceitava a dedicação e só a marcava.
+
+### DEC-MCL-20 — Perícia fixa da classe nova: concedida de graça (D6)
+
+**Decisão:** a perícia fixa da classe nova é **concedida** (como a spec já fazia), **não** pré-requisito de
+entrada — o documento a tratava como pré-requisito; a mesa mantém a concessão. **Efeito nos REQ:** REQ-MCL-034
+**mantido**.
+
+### DEC-MCL-21 — Talento de perícia e aumento de perícia: pela tabela da CLASSE, no nível DA CLASSE (D7)
+
+**Decisão:** o espaço de talento de perícia e o de aumento de perícia nascem quando a **classe dona do nível**
+(`classOwnerAt`) chega a um nível **de classe** que a tabela dela lista — como o talento de classe (DEC-MCL-13).
+Ladino 1 e 2 ganham; Guerreiro 1 não, Guerreiro 2 sim. A "cadência extra desde a entrada" deixa de existir;
+talento ancestral, talento geral e aumento de atributo continuam pelo nível de personagem; o nível mínimo do
+talento de perícia segue o do personagem.
+
+**Efeito nos REQ:** **REVOGA** REQ-MCL-043; emenda REQ-MCL-042 (talento de perícia e aumento de perícia saem da
+lista da cadência do personagem). Escolha já feita num nível que a tabela da classe dona não oferece mais **não é
+apagada**: aparece como **órfã** (talento de perícia e aumento de perícia), para o Mestre resolver.
+
+**Fichas de A Queda (conferidas contra as fichas vivas, só leitura, em 19/10/2026):** Huo Jinwu — `skillFeat-2`
+(Distracting Performance) e `skillIncrease-2` (Furtividade) ficam órfãos (Investigador 1 não ganha); C.L.A.U.D.E.
+— `skillFeat-2` (Quick Squeeze) e `skillIncrease-2` (Arcanismo) órfãos (Necromante 1); Tormentor — `skillFeat-2`
+(Arcane Sense) e `skillIncrease-3` (Intimidação) órfãos (Feiticeiro 1 e 2); abrem slots novos: C.L.A.U.D.E.
+`skillFeat-3` e `skillIncrease-3` (Investigador 2), Tormentor `skillFeat-3` (Feiticeiro 2). Bhrotto (classe única)
+não muda.
+
+**O que esta decisão aceita perder:** o dip em Ladino/Investigador deixa de render a cadência "todo nível" em
+níveis de outra classe (a regra que entrou em 19/10 cedo, no satélite `fix/nivel5-pronto`, foi revertida).
+
+### DEC-MCL-22 — Classe nova só em nível PAR de personagem; validada no servidor (D8)
+
+**Decisão:** o nível 1 é a classe inicial; uma classe **nova** só entra em nível **par** de personagem; continuar
+uma classe que já se tem vale em **qualquer** nível. O cliente já recusava (`canTakeNewClassAt`; o seletor de nível
+ímpar só lista classes da ficha); agora o **servidor** também: `validateCharacterBuild` recusa um `classLevel` de
+classe nova em nível ímpar (`NEW_CLASS_AT_ODD_LEVEL`), pelo nível **mais baixo** em que a classe aparece. A ficha
+mostra o porquê no slot vazio ("Classe nova só em nível par…") e no seletor.
+
+**Efeito nos REQ:** **emenda** REQ-MCL-010 (a cada nível, +1 numa classe existente **ou nova** — a nova só em nível
+par). **Fichas de A Queda:** todas entram em classe nova no nível 2 (par): nenhuma fica ilegal.
+
+### DEC-MCL-23 — Arquétipo Livre aceita também talento de classe (D9)
+
+**Decisão:** o espaço do Arquétipo Livre ("um talento no nível 2 e em todo nível par") também pode receber um
+**talento de classe** de uma classe do personagem, com nível **≤ o nível dele naquela classe** (não no de
+personagem). O servidor aceita talento de classe nesse slot. **Efeito nos REQ:** REQ-MCL-041 ganha o caso inverso
+ao que cobria (talento de classe no slot de arquétipo, medido pelo nível de classe).
+
+### DEC-MCL-24 — Companheiros: nível do personagem; proficiências só pela classe que dá o companheiro (D10)
+
+**Decisão:** companheiro animal, familiar e eidolon usam o **nível do personagem** como nível; as proficiências
+vêm só das características e talentos da classe que os dá, **pelo nível nessa classe**, sem fração.
+
+**Efeito nos REQ:** **REVOGA** REQ-MCL-062 (teto de invocação) e REQ-MCL-063 (`min(class_level + 2,
+character_level)`) e, por consequência, REQ-MCL-064 (escopo por trait do 062); REQ-MCL-201 deixa de ter o único
+eixo com teto. Q-MCL-03 se resolve no sentido "nível do mestre = nível do personagem".
+
+### DEC-MCL-25 — "Seu nível" em habilidades de classe é o nível da CLASSE (D11)
+
+**Decisão:** "seu nível" no texto de uma habilidade de classe (PV temporários da fúria, fraqueza da antítese, nível
+dos itens do alquimista) vale o **nível da classe**; magias seguem DEC-MCL-15.
+
+**Efeito nos REQ:** REQ-MCL-050/051 **emendados**: a regra geral deixa de ser "nível de personagem, exceto o que o
+arquétipo equivalente nega/congela/gateia" e passa a ser "nível da classe nas habilidades de classe".
+
+### DEC-MCL-26 — Arquétipos de classe bloqueados por enquanto (D12)
+
+**Decisão:** arquétipos de **classe** (os de traits `archetype` + `class`: Avenger, Battle Harbinger, Spellshot…)
+ficam **bloqueados**, por complicarem a implementação; a decidir no futuro. Mesmo tratamento da DEC-MCL-19 (somem
+dos seletores; o que já existe na ficha fica marcado ilegal, sem apagar; o servidor recusa o novo).
+
+### DEC-MCL-27 — Perícias adicionais ao entrar em classe nova: diferença contra a mais generosa (D13)
+
+**Decisão:** ao entrar em classe **nova**, o personagem ganha a **diferença** entre o orçamento livre dela
+(`additional + Int`) e o da **mais generosa das classes anteriores**, nunca negativa; o `Int` é o modificador do
+**nível 1**. Ladino (7 + Int) → Psíquico (3 + Int) não ganha nada; Psíquico → Ladino ganha 4. Os slots nascem no
+cartão do nível em que a classe entra, com a conta na nota do slot. _Assumido pelo documento — a confirmar com o
+Alexandre._
+
+**Efeito nos REQ:** **emenda** REQ-MCL-035 (`delta = max(0, orçamento(C) − max(orçamentos anteriores))`, não mais
+"− total de escolhas livres já concedidas"); o critério "o total independe da ordem" **deixa de valer** (a ordem
+das classes muda o delta: é o ponto do documento).
+
 ---
 
 ## 5. Modelo de dados
@@ -485,7 +642,7 @@ interface DerivedClassLevels {
 
 ### 6.2 Estrutura de níveis
 
-- **REQ-MCL-010** [MC] O nível de personagem DEVE ser `Σ` das entradas
+- **REQ-MCL-010** [MC] (emendado por DEC-MCL-22, 19/10/2026: classe **nova** só em nível par de personagem; o nível 1 é a classe inicial) O nível de personagem DEVE ser `Σ` das entradas
   `type: "classLevel"`; a cada subida de nível, o builder DEVE oferecer +1 nível
   numa classe existente **ou** numa classe nova.
 - **REQ-MCL-011** [MC] O sistema DEVE materializar **um** item `type: 'class'`
@@ -498,17 +655,17 @@ interface DerivedClassLevels {
 
 ### 6.3 Proficiência
 
-- **REQ-MCL-020** [MC] O bônus total de proficiência DEVE ser
+- **REQ-MCL-020** [MC] (emendado por DEC-MCL-18, 19/10/2026: o rank vem da **fração**, não do nível de uma classe) O bônus total de proficiência DEVE ser
   `nível_de_personagem + rank*2` (rank > 0), com o **rank** determinado pelo
   nível **da classe que o concede**.
-- **REQ-MCL-021** [MC] Quando duas ou mais classes concedem a mesma proficiência,
+- **REQ-MCL-021** [MC] ~~Quando duas ou mais classes concedem a mesma proficiência,
   o rank derivado DEVE ser o **maior**, e `derived.proficiencyOrigin` DEVE
-  registrar de qual classe ele veio.
-- **REQ-MCL-022** [MC] A Class DC DEVE ser calculada **por classe**, com o rank
+  registrar de qual classe ele veio.~~ — **REVOGADO por DEC-MCL-18 (19/10/2026)**: a composição entre classes é a fração.
+- **REQ-MCL-022** [MC] (emendado por DEC-MCL-17, 19/10/2026: patamar compartilhado, "CD é CD"; a DC continua por classe só no atributo-chave) A Class DC DEVE ser calculada **por classe**, com o rank
   pelo nível daquela classe. Efeito que diz "your class DC" sem especificar qual
   DEVE usar a **maior** class DC do personagem.
-- **REQ-MCL-023** [MC] NÃO DEVE existir fórmula de amolecimento de rank (nada de
-  `floor((char+classe)/2)`): o rank é o da classe, cru.
+- **REQ-MCL-023** [MC] ~~NÃO DEVE existir fórmula de amolecimento de rank (nada de
+  `floor((char+classe)/2)`): o rank é o da classe, cru.~~ — **REVOGADO por DEC-MCL-18 (19/10/2026)**: a fração é a regra de composição.
 
 ### 6.4 Nível 1 de classe, HP e perícias
 
@@ -529,7 +686,7 @@ interface DerivedClassLevels {
   uma vez, no nível 1.
 - **REQ-MCL-034** [MC] As perícias **automáticas** de uma classe nova DEVEM ser
   sempre concedidas (são identidade).
-- **REQ-MCL-035** [MC] O orçamento de perícias **livres** DEVE seguir
+- **REQ-MCL-035** [MC] (emendado por DEC-MCL-27, 19/10/2026: o delta é contra a **mais generosa** das anteriores, Int do nível 1; o critério de ordem-independência deixa de valer) O orçamento de perícias **livres** DEVE seguir
   `delta = max(0, orçamento_livre(C) − total_de_escolhas_livres_já_concedidas)`,
   gastas dentro da lista de C; as perícias do REQ-MCL-034 não entram nessa conta
   de nenhum dos dois lados. **Critério verificável:** o total independe da ordem
@@ -546,26 +703,26 @@ interface DerivedClassLevels {
   talento de classe de nível maior que o nível daquela classe NÃO DEVE ser oferecido no
   seletor; talento já escolhido num slot que deixou de existir DEVE continuar na ficha,
   marcado como órfão.
-- **REQ-MCL-041** [MC] Feat de arquétipo (trait `archetype`) DEVE ser conferido
+- **REQ-MCL-041** [MC] (ampliado por DEC-MCL-23, 19/10/2026: o slot do Arquétipo Livre também recebe talento de classe, medido pelo nível de **classe**) Feat de arquétipo (trait `archetype`) DEVE ser conferido
   contra o nível de **personagem**, mesmo quando pago com um slot de class feat.
-- **REQ-MCL-042** [MC] A cadência básica do personagem (ancestry feat, general
+- **REQ-MCL-042** [MC] (emendado por DEC-MCL-21, 19/10/2026: talento de perícia e aumento de perícia saem desta lista — seguem a tabela da classe no nível da classe) A cadência básica do personagem (ancestry feat, general
   feat, skill feat, boosts de 5/10/15/20, skill increase) DEVE seguir o nível de
   personagem, sem alteração.
-- **REQ-MCL-043** [MC] Quando uma **classe** concede cadência extra ("ganha X todo
+- **REQ-MCL-043** [MC] **REVOGADO por DEC-MCL-21 (19/10/2026)** — texto histórico: ~~Quando uma **classe** concede cadência extra ("ganha X todo
   nível" — Ladino: skill feat e skill increase; Investigador: skill increase), o
   extra DEVE valer a partir do nível de personagem em que aquela classe entrou.
-  A fonte DEVE ser a progressão da classe, não uma lista curada.
+  A fonte DEVE ser a progressão da classe, não uma lista curada.~~
 - **REQ-MCL-044** [MC] A elegibilidade de uma opção DEVE ser avaliada com o par
   `(class_level, character_level)` e, quando não atendida, DEVE aparecer marcada
   com o motivo legível — nunca omitida (DEC-MCL-06).
 
 ### 6.6 "Your level"
 
-- **REQ-MCL-050** [MC] Em texto de regra, "your level" DEVE significar **nível de
+- **REQ-MCL-050** [MC] (emendado por DEC-MCL-25, 19/10/2026: nas habilidades de classe, "seu nível" é o nível da **classe**; magias seguem DEC-MCL-15) Em texto de regra, "your level" DEVE significar **nível de
   personagem**, exceto onde o arquétipo equivalente do PF2e **nega, congela,
   modifica ou gateia atrás de feat** a feature — nesses casos vale o nível
   **daquela classe**.
-- **REQ-MCL-051** [MC] A lista de exceções do REQ-MCL-050 DEVE ser **derivada**
+- **REQ-MCL-051** [MC] (emendado por DEC-MCL-25, 19/10/2026: a regra geral mudou; a lista de exceções derivada só vale para o que o doc não cobre) A lista de exceções do REQ-MCL-050 DEVE ser **derivada**
   do conteúdo do arquétipo correspondente, não escrita à mão. Casos conhecidos, a
   título ilustrativo e não normativo: advanced alchemy (congela), reação de causa
   do Campeão (gateia atrás de feat), elemental blast do Kineticist (gateia),
@@ -576,18 +733,18 @@ interface DerivedClassLevels {
 - **REQ-MCL-060** [MC] O **número de slots** e o **rank base acessível** DEVEM vir
   da tabela nativa da classe, indexada pelo **nível de classe cru** — sem
   houserule.
-- **REQ-MCL-061** [MC] O **rank efetivo** de truque, focus spell e magia de slot
+- **REQ-MCL-061** [MC] (mantido e ampliado por DEC-MCL-15, 19/10/2026: a magia inata também eleva) O **rank efetivo** de truque, focus spell e magia de slot
   DEVE ser `ceil(nível_de_personagem / 2)`.
-- **REQ-MCL-062** [MC] Para magia com trait `summon` **ou** `incarnate`, o rank
+- **REQ-MCL-062** [MC] **REVOGADO por DEC-MCL-24 (19/10/2026)** — texto histórico: ~~Para magia com trait `summon` **ou** `incarnate`, o rank
   DEVE ser
-  `min( max( ceil(class_level/2) + 2 , rank_de_dedicação(character_level) ) , ceil(character_level/2) )`.
-- **REQ-MCL-063** [MC] Para ator concedido (companheiro animal, familiar,
-  eidolon), o nível DEVE ser `min( class_level + 2 , character_level )`.
-- **REQ-MCL-064** [MC] O escopo do REQ-MCL-062 DEVE ser determinado **por trait**
+  `min( max( ceil(class_level/2) + 2 , rank_de_dedicação(character_level) ) , ceil(character_level/2) )`.~~
+- **REQ-MCL-063** [MC] **REVOGADO por DEC-MCL-24 (19/10/2026)** — texto histórico: ~~Para ator concedido (companheiro animal, familiar,
+  eidolon), o nível DEVE ser `min( class_level + 2 , character_level )`.~~
+- **REQ-MCL-064** [MC] **REVOGADO por DEC-MCL-24 (19/10/2026)** — texto histórico: ~~O escopo do REQ-MCL-062 DEVE ser determinado **por trait**
   (`summon`, `incarnate`), nunca por lista curada de magias.
 - **REQ-MCL-065** [MC] A elevação dos REQ-MCL-061/062 NÃO DEVE valer para slots
   vindos de arquétipo: Free Archetype e tudo que vem por ele roda RAW puro.
-- **REQ-MCL-066** [MC] Focus points DEVEM ser um pool único do personagem, teto 3,
+- **REQ-MCL-066** [MC] (mantido por DEC-MCL-16, 19/10/2026: o teto 3 da spec vence o documento) Focus points DEVEM ser um pool único do personagem, teto 3,
   independentemente do número de classes.
 - **REQ-MCL-067** [MC] A ficha DEVE exibir, por spellcasting entry, o nível de
   classe, o rank máximo do slot, o **rank efetivo** e a elevação ganha — a
@@ -595,16 +752,16 @@ interface DerivedClassLevels {
 
 ### 6.8 Arquétipos e exclusão mútua
 
-- **REQ-MCL-070** [MC] Dedicações DEVEM continuar existindo como rota paralela,
+- **REQ-MCL-070** [MC] **REVOGADO por DEC-MCL-19 (19/10/2026)** — texto histórico: ~~Dedicações DEVEM continuar existindo como rota paralela,
   rodando RAW.
-- **REQ-MCL-071** [MC] O sistema DEVE marcar como fora-do-requisito, nos **dois
+- **REQ-MCL-071** [MC] **REVOGADO por DEC-MCL-19 (19/10/2026)** — texto histórico: ~~O sistema DEVE marcar como fora-do-requisito, nos **dois
   sentidos**, a combinação "nível de classe X + dedicação de X": não se toma a
   dedicação de uma classe que já se tem, nem nível de uma classe cuja dedicação já
   se tem. A marcação NÃO bloqueia (DEC-MCL-06).
-- **REQ-MCL-072** [MC] O conjunto de arquétipos de multiclasse DEVE ser
+- **REQ-MCL-072** [MC] (mantido por DEC-MCL-19/DEC-MCL-26, 19/10/2026: agora define o conjunto PROIBIDO) O conjunto de arquétipos de multiclasse DEVE ser
   **derivado** (arquétipo cujo nome é nome de classe, ou dono de feat com trait
   `multiclass` — as duas vias devem concordar), nunca uma lista escrita à mão.
-- **REQ-MCL-073** [MC] O motivo da marcação DEVE ser legível na UI ("a mesma
+- **REQ-MCL-073** [MC] (aplica-se, por DEC-MCL-19, à marca de ilegalidade da ficha que já tem uma dedicação proibida) O motivo da marcação DEVE ser legível na UI ("a mesma
   magia sairia em dois ranks na mesma ficha"), não um booleano mudo.
 
 ### 6.9 Apresentação
@@ -626,13 +783,13 @@ interface DerivedClassLevels {
 
 ### 7.1 Balanceamento (o coração desta spec)
 
-- **REQ-MCL-200** [MC] **Invariante da regra 21.** Para todo par
+- **REQ-MCL-200** [MC] (sem objeto desde DEC-MCL-19, 19/10/2026: a rota de dedicação gratuita não é mais usada; o teste fica como histórico) **Invariante da regra 21.** Para todo par
   `(class_level, character_level)` com `1 ≤ class_level ≤ character_level` e
   `4 ≤ character_level ≤ 20` — os **204 pares** —, a rota de nível de classe NÃO
   PODE entregar menos, no eixo medido, que a rota de dedicação **gratuita** no
   mesmo nível de personagem. O teste DEVE ser exaustivo, jamais amostrado, e DEVE
   rodar no CI.
-- **REQ-MCL-201** [MC] O invariante do REQ-MCL-200 vale **por eixo medido**; hoje
+- **REQ-MCL-201** [MC] (sem objeto desde DEC-MCL-24, 19/10/2026: o teto de invocação foi revogado) O invariante do REQ-MCL-200 vale **por eixo medido**; hoje
   o único eixo com teto explícito é invocação (REQ-MCL-062/063). Qualquer teto
   novo introduzido por esta spec DEVE vir acompanhado da varredura dos 204 pares
   para o seu eixo.
@@ -741,7 +898,10 @@ reclamar, não antes.
 - **Q-MCL-02** Nível 20+ / mítico: fora de escopo, mas a soma de níveis torna
   fácil ultrapassar 20 por engano. Definir se o schema trava em 20 (hoje
   `z.number().max(20)`) ou se a variante abre.
-- **Q-MCL-03** Interação com `29-pets-companions-familiars.md`: REQ-MCL-063
+- **Q-MCL-07** (19/10/2026) REQ-MCL-065 (a elevação não vale para slots vindos de arquétipo; Free Archetype roda RAW puro) e o
+  documento da mesa ("elevação de magia, inclusive inata, é do personagem", DEC-MCL-15) precisam ser reconciliados: dizer se a
+  magia inata concedida por talento de arquétipo eleva ou não.
+- **Q-MCL-03** (resolvida por DEC-MCL-24, 19/10/2026) Interação com `29-pets-companions-familiars.md`: REQ-MCL-063
   define o nível do ator concedido; a spec 29 assume que o companion escala com o
   nível do mestre. As duas precisam concordar sobre qual número é "o nível do
   mestre" sob a variante.
