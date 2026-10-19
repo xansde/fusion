@@ -105,6 +105,8 @@ const BACKOFF_MS = [500, 1_500];
 
 /** Server answers that retrying cannot change. */
 const PERMANENT_CODES = new Set(["NOT_FOUND", "VALIDATION_FAILED", "PERMISSION_DENIED", "FORBIDDEN"]);
+/** Only failures that may pass on their own are asked again; any other refusal is the server's answer. */
+const TRANSIENT_CODES = new Set(["TIMEOUT", "INTERNAL_ERROR", "NOT_CONNECTED"]);
 
 function timeoutMessage(attempts: number): string {
   return attempts > 1
@@ -179,7 +181,7 @@ async function sendQuery<R = unknown>(
         type,
         attempt,
       );
-      if (PERMANENT_CODES.has(failure.code) || attempt >= policy.attempts) throw last;
+      if (PERMANENT_CODES.has(failure.code) || !TRANSIENT_CODES.has(failure.code) || attempt >= policy.attempts) throw last;
       // A replaced/disconnected socket cannot answer: fail now, the caller shows
       // the "not connected" state instead of waiting out a dead instance.
       requireConnectedSocket(socket);
@@ -219,13 +221,24 @@ function cached<R>(socket: Socket, key: string, load: () => Promise<R>): Promise
     if (oldest !== undefined && oldest !== key) cache.delete(oldest);
   }
   const owner = cache;
-  pending.catch(() => {
+  const forget = (): void => {
     if (owner.get(key) === pending) owner.delete(key);
-  });
+  };
+  // An empty answer is "not there yet" (a pack still loading, a world without
+  // it): keep asking later instead of pinning the emptiness for the session.
+  pending.then((r) => {
+    if (isEmptyAnswer(r)) forget();
+  }, forget);
   return pending;
 }
 
 /** Cached answer for `key` if one exists (settled or in flight), without asking the server. */
+function isEmptyAnswer(r: unknown): boolean {
+  if (Array.isArray(r)) return r.length === 0;
+  const entries = (r as { entries?: unknown } | null | undefined)?.entries;
+  return Array.isArray(entries) && entries.length === 0;
+}
+
 function peekCached<R>(socket: Socket, key: string): Promise<R> | undefined {
   return caches.get(socket)?.get(key) as Promise<R> | undefined;
 }
@@ -254,8 +267,18 @@ export function listPacks(
   filter?: { systemId?: string; documentType?: string },
 ): Promise<ListPacksResult> {
   const key = `list:${JSON.stringify(filter ?? {})}`;
+  // The pack list is small and can grow while the world runs (a pack that was
+  // not there yet): share it for a short while, not for the whole session.
+  const stamps = listStamps.get(socket) ?? new Map<string, number>();
+  listStamps.set(socket, stamps);
+  const at = stamps.get(key);
+  if (at !== undefined && Date.now() - at > LIST_TTL_MS) caches.get(socket)?.delete(key);
+  if (!peekCached(socket, key)) stamps.set(key, Date.now());
   return cached(socket, key, () => sendQuery<ListPacksResult>(socket, "compendium:list", filter ?? {}));
 }
+
+const LIST_TTL_MS = 30_000;
+const listStamps = new WeakMap<Socket, Map<string, number>>();
 
 export interface PackIndexResult {
   packId: string;
@@ -292,8 +315,13 @@ export function searchPack(
   // No text and no filter IS the pack index: share its cache and its request
   // instead of downloading the same megabytes a second time under another name.
   if (!hasFilter) {
+    // Still asked as `compendium:search` (the server answers it with the whole
+    // index, and callers/fakes that only speak search keep working), but stored
+    // under the index key so either call fills the cache for the other.
     // A copy: callers sort/splice what they get, and the cached array is shared.
-    return getPackIndex(socket, query.packId).then((r) => ({
+    return cached(socket, indexKey(query.packId), () =>
+      sendQuery<PackIndexResult>(socket, "compendium:search", { packId: query.packId }, BULK_POLICY),
+    ).then((r) => ({
       packId: r.packId,
       entries: r.entries.slice(),
     }));

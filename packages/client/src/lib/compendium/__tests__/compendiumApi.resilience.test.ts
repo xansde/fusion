@@ -113,6 +113,34 @@ describe("cache e requisição compartilhada", () => {
   });
 });
 
+describe("o que não fica guardado", () => {
+  it("lista de packs vale por pouco tempo: depois de 30 s pergunta de novo (pack que chegou depois aparece)", async () => {
+    const sent: Sent[] = [];
+    const socket = scriptedSocket(sent, () => ({ ok: true, result: { packs: [] } }));
+    await listPacks(socket, { systemId: "pf2e" });
+    await listPacks(socket, { systemId: "pf2e" });
+    expect(sent).toHaveLength(1);
+    vi.setSystemTime(Date.now() + 31_000);
+    await listPacks(socket, { systemId: "pf2e" });
+    expect(sent).toHaveLength(2);
+  });
+
+  it("índice vazio (pack ainda não carregado) não fica no cache", async () => {
+    const sent: Sent[] = [];
+    const socket = scriptedSocket(sent, () => ({ ok: true, result: { packId: "pf2e.feats-core", entries: [] } }));
+    await getPackIndex(socket, "pf2e.feats-core");
+    await getPackIndex(socket, "pf2e.feats-core");
+    expect(sent).toHaveLength(2);
+  });
+
+  it("recusa do servidor sem código transitório não é repetida", async () => {
+    const sent: Sent[] = [];
+    const socket = scriptedSocket(sent, () => ({ ok: false, message: "down" }));
+    await expect(getPackIndex(socket, "pf2e.feats-core")).rejects.toThrow();
+    expect(sent).toHaveLength(1);
+  });
+});
+
 describe("searchPack reaproveita o índice", () => {
   it("busca sem filtro usa o mesmo cache do índice (uma ida só para getPackIndex + searchPack)", async () => {
     const sent: Sent[] = [];
