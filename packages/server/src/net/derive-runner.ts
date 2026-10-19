@@ -71,7 +71,7 @@
  * overriding the fallback entirely for its Actor subtypes.
  */
 
-import { collectEffects, type EffectSource } from "@fusion/engine-2e";
+import { collectEffects, resolveImpliedConditions, type EffectSource } from "@fusion/engine-2e";
 import { emptySynthetics } from "@fusion/system-api";
 import type {
   ConditionDefinition,
@@ -171,6 +171,7 @@ function actorConditionsToEffectSources(
   if (!Array.isArray(rawItems)) return [];
 
   const sources: EffectSource[] = [];
+  const held: Array<{ slug: string; value: number | null }> = [];
   for (const raw of rawItems as EmbeddedConditionItem[]) {
     if (raw.type !== "condition") continue;
     const slug = raw.system?.slug;
@@ -178,6 +179,26 @@ function actorConditionsToEffectSources(
     const rawValue = raw.system?.value;
     const value = typeof rawValue === "number" ? rawValue : null;
     const src = conditionToEffectSource(slug, value, conditionDefs);
+    if (src) sources.push(src);
+    held.push({ slug, value });
+  }
+
+  // Conditions the held ones bring with them (Grabbed -> Off-Guard + Immobilized, ...): derived
+  // here each time, so nothing is left behind when the source condition goes away.
+  const implied = resolveImpliedConditions(held, (slug) =>
+    (conditionDefs.get(slug)?.effects ?? []).flatMap((rule) => {
+      const r = rule as { type?: unknown; conditionSlug?: unknown; value?: unknown };
+      if (r.type !== "toggleCondition" || typeof r.conditionSlug !== "string") return [];
+      return [
+        {
+          conditionSlug: r.conditionSlug,
+          ...(typeof r.value === "number" ? { value: r.value } : {}),
+        },
+      ];
+    }),
+  );
+  for (const c of implied) {
+    const src = conditionToEffectSource(c.slug, c.value, conditionDefs);
     if (src) sources.push(src);
   }
   return sources;
