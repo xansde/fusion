@@ -68,7 +68,9 @@ import {
   buildBaseMessage,
   persistChatMessage,
   broadcastChatMessage,
+  getGmUserIds,
 } from "../chat/chat-handler.js";
+import type { RollService } from "../chat/roll-service.js";
 
 // ---------------------------------------------------------------------------
 // Stub TurnHookContext services (ALQ-F1-08/F1-09 replace these)
@@ -195,7 +197,10 @@ export interface DocumentWriteTurnHookContextDeps {
  */
 export function createDocumentWriteTurnHookContextServices(
   deps: DocumentWriteTurnHookContextDeps,
-): Pick<TurnHookContextServices, "createEmbedded" | "deleteEmbedded" | "chat" | "listActors"> {
+): Pick<
+  TurnHookContextServices,
+  "createEmbedded" | "deleteEmbedded" | "chat" | "listActors" | "getSetting"
+> {
   const tokenSource = tokenLookupSourceFromStore(deps.store);
   const rederive = (actor: Record<string, unknown>): Record<string, unknown> =>
     recomputeDerivedIfNeeded(
@@ -213,6 +218,17 @@ export function createDocumentWriteTurnHookContextServices(
     // live on actors other than the one whose turn is transitioning.
     listActors() {
       return deps.store.getAll("actors");
+    },
+
+    // Condition front, stage 3b: a world-scope setting of the active system, by its system-local key. `undefined`
+    // when nothing is stored (the GM never opened Configurações → Mundo) so the hook applies its own default.
+    getSetting(localKey) {
+      if (!deps.systemModule) return undefined;
+      const wireKey = `${deps.systemModule.manifest.id}:${localKey}`;
+      for (const doc of deps.store.getAll("settings")) {
+        if (doc["key"] === wireKey) return doc["value"];
+      }
+      return undefined;
     },
 
     // Neither write method below has anything to `await` — every write it makes
@@ -305,6 +321,60 @@ export function createDocumentWriteTurnHookContextServices(
       persistChatMessage(deps.db, msg);
       broadcastChatMessage(deps.ns, deps.seqStore, msg, speaker.userId, "doc:create", tokenSource);
       return Promise.resolve();
+    },
+  };
+}
+
+// ---------------------------------------------------------------------------
+// Production `roll` (condition front, stage 3b)
+//
+// A turn hook that needs dice (persistent damage, the dying recovery check, the flat check that ends a condition)
+// rolls on the SERVER through the same RollService every chat roll uses (CSPRNG, audit log), and the roll lands in
+// the chat as a "roll" message, so the table sees the die. The roll mode decides who sees it, with the same
+// whisper/blind mapping a chat roll uses (D-CHT-02): a hook rolling for a hidden combatant asks for "gmroll".
+// The speaker is the system with NO actor id: the hook names the creature by its public combat name in the flavor,
+// and a speaker actor would be one more place that could name a hidden creature.
+// ---------------------------------------------------------------------------
+
+export interface RollTurnHookContextDeps {
+  db: Db;
+  ns: Namespace;
+  seqStore: SeqStore;
+  worldId: string;
+  rollService: Pick<RollService, "roll">;
+  /** For the per-viewer speaker/token redaction the broadcast applies to every chat message. */
+  store?: DocumentStore;
+}
+
+export function createRollTurnHookContextService(
+  deps: RollTurnHookContextDeps,
+): Pick<TurnHookContextServices, "roll"> {
+  const tokenSource = deps.store ? tokenLookupSourceFromStore(deps.store) : undefined;
+  return {
+    roll(formula, opts) {
+      const mode = opts.rollMode ?? "public";
+      const result = deps.rollService.roll({
+        formula,
+        mode,
+        flavor: opts.flavor,
+        worldId: deps.worldId,
+        userId: "system",
+      });
+
+      const speaker: ChatSpeaker = { userId: "system", alias: "Sistema" };
+      const content = result.flavor
+        ? `${result.flavor}: ${String(result.total)}`
+        : String(result.total);
+      const msg = buildBaseMessage(deps.worldId, speaker, "roll", content);
+      msg.rolls = [result];
+      if (mode !== "public") {
+        // A system roll has no author to whisper to, so "selfroll" is the GMs' too.
+        msg.whisper = getGmUserIds(deps.db);
+        msg.blind = mode === "blindroll";
+      }
+      persistChatMessage(deps.db, msg);
+      broadcastChatMessage(deps.ns, deps.seqStore, msg, speaker.userId, "doc:create", tokenSource);
+      return Promise.resolve(result);
     },
   };
 }

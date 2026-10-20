@@ -126,6 +126,7 @@ import {
   isNonPlayableActor,
 } from "../documents/knowledge.js";
 import type { DocumentStore } from "../documents/store.js";
+import { damageTypePt } from "../chat/damage-type-pt.js";
 
 // ---------------------------------------------------------------------------
 // Chat target redaction (spec 38 — DEC-ACH-09, REQ-ACH-073 / REQ-ACH-092)
@@ -757,7 +758,7 @@ export function redactDamageAppliedPayloadForNonPrivileged(
  * {@link redactChatDamageAppliedForNonPrivileged}), not what this renders.
  */
 export function formatDamageAppliedLine(target: DamageAppliedTarget): string {
-  return `${target.name} sofreu ${String(target.total)} de dano (${target.byType.map((b) => `${String(b.amount)} ${b.type}`).join(" + ")})`;
+  return `${target.name} sofreu ${String(target.total)} de dano (${target.byType.map((b) => `${String(b.amount)} de ${damageTypePt(b.type)}`).join(" + ")})`;
 }
 
 /**
@@ -892,18 +893,27 @@ export function redactChatEffectExpiryForNonPrivileged(msg: ChatMessage): ChatMe
   const flags = msg.flags as Record<string, Record<string, unknown>> | undefined;
   const fusionFlags = flags?.[CHAT_FUSION_FLAG_NAMESPACE];
   const expiry = fusionFlags?.["effectExpiry"];
-  if (!isPlainObject(expiry) || expiry["hidden"] !== true) return msg;
+  const conditionTurn = fusionFlags?.["conditionTurn"];
+  // Two announcers share this cut: the effect-expiry hook and the condition-turn hook (condition front, stage 3b:
+  // Frightened ticking down, the persistent damage verdict, the stun/slow reminder, the dying outcome).
+  const expiryHidden = isPlainObject(expiry) && expiry["hidden"] === true;
+  const conditionTurnHidden = isPlainObject(conditionTurn) && conditionTurn["hidden"] === true;
+  if (!expiryHidden && !conditionTurnHidden) return msg;
 
   const { actorId: _actorId, ...speaker } = msg.speaker as typeof msg.speaker & {
     actorId?: string;
   };
   return {
     ...msg,
-    content: "Um efeito terminou.",
+    content: expiryHidden ? "Um efeito terminou." : "Uma condição foi resolvida.",
     speaker,
     flags: {
       ...flags,
-      [CHAT_FUSION_FLAG_NAMESPACE]: { ...fusionFlags, effectExpiry: { hidden: true } },
+      [CHAT_FUSION_FLAG_NAMESPACE]: {
+        ...fusionFlags,
+        ...(expiryHidden ? { effectExpiry: { hidden: true } } : {}),
+        ...(conditionTurnHidden ? { conditionTurn: { hidden: true } } : {}),
+      },
     },
   };
 }

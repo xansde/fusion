@@ -214,7 +214,7 @@ function getAllUsers(db: Db): UserRow[] {
   return db.prepare(`SELECT id, name, role FROM users WHERE active = 1`).all() as UserRow[];
 }
 
-function getGmUserIds(db: Db): string[] {
+export function getGmUserIds(db: Db): string[] {
   // GAMEMASTER = 4, ASSISTANT = 3 — both are privileged
   return (
     db.prepare(`SELECT id FROM users WHERE role >= 3 AND active = 1`).all() as { id: string }[]

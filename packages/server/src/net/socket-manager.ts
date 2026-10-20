@@ -79,6 +79,7 @@ import {
   createTurnHookRunner,
   createStubTurnHookContextServices,
   createDocumentWriteTurnHookContextServices,
+  createRollTurnHookContextService,
 } from "../combat/turn-hook-runner.js";
 import type { TurnHookContextServices } from "../combat/turn-hook-runner.js";
 import type { TokenMarkSource } from "../chat/roll-resolution.js";
@@ -546,7 +547,7 @@ export class SocketManager {
     // `applyDamage`/`applyCondition` are the REAL service (ALQ-F1-08/F1-09);
     // `deleteEmbedded`/`chat` are the REAL document-write services (B4 fix,
     // onda-4 adversarial review — see combat/turn-hook-runner.ts's header);
-    // `roll`/`updateActor`/`createEmbedded` stay stubs until a later task
+    // `updateActor` stays a stub until a later task
     // actually needs them.
     const hookServices: TurnHookContextServices = {
       ...createStubTurnHookContextServices(),
@@ -559,6 +560,15 @@ export class SocketManager {
         worldId,
         ...(systemModule ? { systemModule } : {}),
         logger: this.logger,
+      }),
+      // Condition front, stage 3b: hooks roll on the server and the roll lands in the chat.
+      ...createRollTurnHookContextService({
+        db,
+        ns,
+        seqStore,
+        worldId,
+        rollService: combatRollService,
+        store,
       }),
       applyDamage: (p) => actorMechanicsService.applyDamage(p, "system"),
       applyCondition: (p) => actorMechanicsService.applyCondition(p, "system"),
