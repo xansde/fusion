@@ -126,6 +126,7 @@ import {
   isNonPlayableActor,
 } from "../documents/knowledge.js";
 import type { DocumentStore } from "../documents/store.js";
+import { damageTypePt } from "../chat/damage-type-pt.js";
 
 // ---------------------------------------------------------------------------
 // Chat target redaction (spec 38 — DEC-ACH-09, REQ-ACH-073 / REQ-ACH-092)
@@ -757,7 +758,7 @@ export function redactDamageAppliedPayloadForNonPrivileged(
  * {@link redactChatDamageAppliedForNonPrivileged}), not what this renders.
  */
 export function formatDamageAppliedLine(target: DamageAppliedTarget): string {
-  return `${target.name} sofreu ${String(target.total)} de dano (${target.byType.map((b) => `${String(b.amount)} ${b.type}`).join(" + ")})`;
+  return `${target.name} sofreu ${String(target.total)} de dano (${target.byType.map((b) => `${String(b.amount)} de ${damageTypePt(b.type)}`).join(" + ")})`;
 }
 
 /**
