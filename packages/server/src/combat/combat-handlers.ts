@@ -35,6 +35,7 @@
  *   single-threaded event loop (GM-only, no shared mutable state across ticks).
  */
 
+import { inheritedCombatantName } from "./combatant-name.js";
 import type { Namespace } from "socket.io";
 import type { Logger } from "pino";
 import type { HandlerFn, HandlerContext } from "../net/handler-registry.js";
@@ -923,7 +924,12 @@ export function buildCombatAddCombatantHandler(deps: CombatHandlerDeps): Handler
             system: {},
           },
         );
-        if (name === null && effective.name !== "") name = effective.name;
+        if (name === null) {
+          const deltaName = (delta as { name?: string } | null | undefined)?.name;
+          const inherited = inheritedCombatantName(baseActor, deltaName);
+          if (inherited !== "") name = inherited;
+          else if (effective.name !== "") name = effective.name;
+        }
         if (img === null && typeof effective.img === "string" && effective.img !== "")
           img = effective.img;
       } catch {

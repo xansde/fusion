@@ -437,7 +437,7 @@ describe("condition front 3b — pf2e.conditionTurn end to end", { timeout: 3000
       const doc = JSON.parse(r.data) as { rolls?: { flavor?: string }[] };
       return (doc.rolls ?? []).map((x) => x.flavor ?? "");
     });
-    expect(flavors.some((f) => f.startsWith("Dano persistente (fire)"))).toBe(true);
+    expect(flavors.some((f) => f.startsWith("Dano persistente (fogo)"))).toBe(true);
     expect(flavors.some((f) => f.startsWith("Teste simples para encerrar"))).toBe(true);
   });
 
