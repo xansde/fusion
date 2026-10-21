@@ -136,6 +136,14 @@ export interface RegisterAuthRoutesOptions {
    * When trustProxy=true this should typically also be true.
    */
   secureCookies?: boolean;
+  /**
+   * Told about the blank character `POST /api/users` created for a PLAYER/TRUSTED user (REQ-USR-025). The
+   * REST path writes it straight to the store, so without this nothing reaches the sockets already
+   * connected and the Mestre's "Na mesa" stays stale until a reload (#254). Boot wires it to the world's
+   * `doc:create` broadcast. A throwing hook never fails the creation: the user and the character already
+   * exist, and a reload (or the next resync) shows the character anyway.
+   */
+  onCharacterCreated?: (actor: Record<string, unknown>) => void;
 }
 
 /**
@@ -145,7 +153,13 @@ export function registerAuthRoutes(
   fastify: FastifyInstance,
   options: RegisterAuthRoutesOptions,
 ): void {
-  const { authService, worldInfo, trustProxy = false, secureCookies = false } = options;
+  const {
+    authService,
+    worldInfo,
+    trustProxy = false,
+    secureCookies = false,
+    onCharacterCreated,
+  } = options;
   const cookieOptions = buildCookieOptions(secureCookies);
 
   // --------------------------------------------------------------------------
@@ -374,7 +388,14 @@ export function registerAuthRoutes(
         };
         if (body.color !== undefined) createParams.color = body.color;
         if (body.password !== undefined) createParams.password = body.password;
-        const { user } = await authService.createUser(createParams);
+        const { user, character } = await authService.createUser(createParams);
+        if (character && onCharacterCreated) {
+          try {
+            onCharacterCreated(character);
+          } catch (hookErr) {
+            request.log.warn({ err: hookErr }, "onCharacterCreated hook failed");
+          }
+        }
         return await reply.code(201).send({ ok: true, user });
       } catch (err) {
         if (err instanceof AuthError && err.code === "NAME_TAKEN") {
