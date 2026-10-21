@@ -24,12 +24,15 @@ import type {
   Envelope,
   WorldSnapshotPayload,
   WorldActiveScenePayload,
+  SoundStatePayload,
   ResyncRequestAck,
   WorldResyncRequestPayload,
 } from "@fusion/shared";
 import { createDocumentId } from "@fusion/shared";
+import { dispatchScenePreload } from "../canvas/scenePreloadBus.js";
 import { DocumentMirror } from "./DocumentMirror.js";
 import { setActiveSceneId, syncActiveSceneFromMirror } from "./activeScene.svelte.js";
+import { applyAmbientTrackSnapshot, applySoundState } from "../sound/soundStore.svelte.js";
 import { applyWorldSettingDocs } from "../settings/worldSettingsRegistry.svelte.js";
 
 // ---------------------------------------------------------------------------
@@ -54,6 +57,13 @@ export const worldMirror = new DocumentMirror();
  * whether it arrives live or as part of a delta catch-up.
  */
 function _applyIncomingOp(op: Envelope): void {
+  // Ephemeral hint (no seq): the GM asked every client to warm a scene's art. Not world state —
+  // the mirror must not see it.
+  if (op.type === "scene:preload") {
+    dispatchScenePreload(op.payload);
+    return;
+  }
+
   if (op.type === "world:activeScene") {
     // Advance the mirror seq first, then update the active scene state.
     worldMirror.feedOp(op);
@@ -65,6 +75,14 @@ function _applyIncomingOp(op: Envelope): void {
   }
 
   worldMirror.feedOp(op);
+
+  // sound:state replayed inside a resync:delta must reach the store too, or a
+  // seat that missed the broadcast keeps playing the old track (idempotent
+  // with the live listener in attachSoundSync).
+  if (op.type === "sound:state") {
+    applySoundState(op.payload as SoundStatePayload);
+    return;
+  }
 
   // If a Scene doc changed, re-derive the active scene from the mirror.
   if (op.type === "doc:create" || op.type === "doc:update" || op.type === "doc:delete") {
@@ -217,4 +235,6 @@ function _applySnapshot(snapshot: WorldSnapshotPayload): void {
   syncActiveSceneFromMirror(worldMirror);
   // The snapshot carries the active scene id (string | null, always present)
   setActiveSceneId(snapshot.activeSceneId, worldMirror);
+  // ambientTrack is OPTIONAL on the snapshot; absent is treated as silence.
+  applyAmbientTrackSnapshot(snapshot.ambientTrack);
 }

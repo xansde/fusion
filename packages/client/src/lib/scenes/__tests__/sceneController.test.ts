@@ -11,6 +11,8 @@ import {
   listScenes,
   createScene,
   updateSceneConfig,
+  updateGridCalibration,
+  preloadSceneForAll,
   type SceneFormData,
 } from "../sceneController.js";
 import { DocumentMirror } from "../../docs/DocumentMirror.js";
@@ -194,8 +196,10 @@ describe("createScene / updateSceneConfig (spec 44 §5.7)", () => {
     const updates = sent[0]?.payload["updates"] as { diff: Record<string, unknown> }[];
     const diff = updates[0]?.diff ?? {};
     expect(Object.keys(diff).sort()).toEqual(
-      ["background", "backgroundColor", "folder", "grid.size", "height", "name", "width"].sort(),
+      ["background", "backgroundColor", "folder", "grid", "height", "name", "width"].sort(),
     );
+    // The grid goes as a nested object: the server drops unknown dotted keys.
+    expect(diff["grid"]).toEqual({ size: 120 });
     // REQ-CEN-042: `active` is refused by the server anyway; it is not even sent.
     expect(diff["active"]).toBeUndefined();
   });
@@ -315,5 +319,82 @@ describe("listScenes", () => {
     // Calling twice should not error and both should be sorted
     expect(first.map((s) => s.name)).toEqual(["A", "B"]);
     expect(second.map((s) => s.name)).toEqual(["A", "B"]);
+  });
+});
+
+describe("preloadSceneForAll", () => {
+  it("sends ONE scene:preload op and nothing that switches the scene", async () => {
+    const sent: Array<{ type: string; payload: Record<string, unknown> }> = [];
+    const socket = {
+      emit(_e: string, envelope: { type: string; payload: Record<string, unknown> }, ack: (r: unknown) => void) {
+        sent.push(envelope);
+        ack({ ok: true, result: {} });
+      },
+    } as unknown as Parameters<typeof preloadSceneForAll>[0];
+
+    await preloadSceneForAll(socket, "scene-9");
+
+    expect(sent).toHaveLength(1);
+    expect(sent[0]?.type).toBe("scene:preload");
+    expect(sent[0]?.payload).toEqual({ sceneId: "scene-9" });
+  });
+});
+
+describe("updateGridCalibration", () => {
+  interface SentOp {
+    type: string;
+    payload: { documentType: string; updates: Array<{ _id: string; diff: Record<string, unknown> }> };
+  }
+  function fakeSocket(sent: SentOp[]): Parameters<typeof updateGridCalibration>[0] {
+    return {
+      emit(_event: string, envelope: SentOp, ack: (r: unknown) => void): void {
+        sent.push(envelope);
+        ack({ ok: true, result: { documents: [{ _id: "s1" }] } });
+      },
+    } as unknown as Parameters<typeof updateGridCalibration>[0];
+  }
+
+  it("writes the whole grid block and the offset in ONE update", async () => {
+    const sent: SentOp[] = [];
+    await updateGridCalibration(fakeSocket(sent), "s1", {
+      size: 132,
+      offsetX: 31,
+      offsetY: 77,
+      distance: 5,
+      units: "ft",
+      color: "#112233",
+      alpha: 0.6,
+    });
+    expect(sent).toHaveLength(1);
+    expect(sent[0]?.type).toBe("doc:update");
+    const upd = sent[0]?.payload.updates[0];
+    expect(upd?._id).toBe("s1");
+    // A complete block: a scene saved without one has nothing to merge into.
+    expect(upd?.diff["grid"]).toEqual({
+      type: "square",
+      size: 132,
+      distance: 5,
+      units: "ft",
+      color: "#112233",
+      alpha: 0.6,
+    });
+    expect(upd?.diff["gridOffsetX"]).toBe(31);
+    expect(upd?.diff["gridOffsetY"]).toBe(77);
+  });
+
+  it("rounds the offset to whole pixels and keeps it inside one cell", async () => {
+    const sent: SentOp[] = [];
+    await updateGridCalibration(fakeSocket(sent), "s1", {
+      size: 73,
+      offsetX: 30.707,
+      offsetY: 72.6,
+      distance: 5,
+      units: "ft",
+      color: "#000000",
+      alpha: 0.4,
+    });
+    const diff = sent[0]?.payload.updates[0]?.diff;
+    expect(diff?.["gridOffsetX"]).toBe(31);
+    expect(diff?.["gridOffsetY"]).toBe(0); // 73 wraps to 0
   });
 });

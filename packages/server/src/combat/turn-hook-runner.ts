@@ -66,6 +66,7 @@ import { broadcastToWorld } from "../net/handlers/doc-handlers.js";
 import { tokenLookupSourceFromStore } from "../net/redaction.js";
 import {
   buildBaseMessage,
+  buildRollMessage,
   persistChatMessage,
   broadcastChatMessage,
   getGmUserIds,
@@ -181,8 +182,21 @@ export interface DocumentWriteTurnHookContextDeps {
    * kept showing the strike without the Monster Hunter's +1 the roll would add).
    */
   systemModule?: SystemModule;
+  /**
   logger?: Logger;
 }
+
+/** Top-level actor keys a hook may never write through `updateActor` (identity, permissions, embedded documents). */
+const UPDATE_ACTOR_FORBIDDEN_KEYS: ReadonlySet<string> = new Set([
+  "_id",
+  "_stats",
+  "worldId",
+  "ownership",
+  "items",
+  "type",
+  "folder",
+  "sort",
+]);
 
 /**
  * The real `deleteEmbedded`/`chat` services — REQ-SYS-140: every write goes
@@ -193,13 +207,13 @@ export interface DocumentWriteTurnHookContextDeps {
  *
  * Spread this AFTER `createStubTurnHookContextServices()` at the call site
  * (packages/server/src/net/socket-manager.ts) so it overrides only these two
- * keys and leaves `roll`/`updateActor` on the stub.
+ * keys and leaves `roll` (see `createRollTurnHookContextService`) on the stub.
  */
 export function createDocumentWriteTurnHookContextServices(
   deps: DocumentWriteTurnHookContextDeps,
 ): Pick<
   TurnHookContextServices,
-  "createEmbedded" | "deleteEmbedded" | "chat" | "listActors" | "getSetting"
+  "createEmbedded" | "deleteEmbedded" | "chat" | "listActors" | "getSetting" | "updateActor"
 > {
   const tokenSource = tokenLookupSourceFromStore(deps.store);
   const rederive = (actor: Record<string, unknown>): Record<string, unknown> =>
@@ -229,6 +243,31 @@ export function createDocumentWriteTurnHookContextServices(
         if (doc["key"] === wireKey) return doc["value"];
       }
       return undefined;
+    },
+
+    // A scoped diff on an actor's own fields (hp, flags...). Identity, ownership and the embedded items have their own
+    // paths (createEmbedded/deleteEmbedded/applyCondition) and are refused here, so a hook cannot rewrite who owns an
+    // actor or smuggle an item past the embedded-write path.
+    updateActor(actorId, diff) {
+      const forbidden = Object.keys(diff).filter((k) => UPDATE_ACTOR_FORBIDDEN_KEYS.has(k));
+      if (forbidden.length > 0) {
+        return Promise.reject(
+          new Error(`TurnHookContext.updateActor refuses the key(s): ${forbidden.join(", ")}`),
+        );
+      }
+      if (Object.keys(diff).length === 0) return Promise.resolve();
+      let updated = deps.store.update("actors", actorId, diff, { userId: null });
+      if (!updated) return Promise.resolve();
+      updated = rederive(updated);
+      const envelope: Envelope = {
+        type: "doc:update",
+        seq: deps.seqStore.next(),
+        ts: Date.now(),
+        payload: { documentType: "Actor", documents: [updated] },
+      };
+      deps.opBuffer.push(envelope);
+      broadcastToWorld(deps.ns, envelope, "Actor");
+      return Promise.resolve();
     },
 
     // Neither write method below has anything to `await` — every write it makes

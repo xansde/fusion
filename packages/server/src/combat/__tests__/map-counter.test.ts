@@ -291,4 +291,40 @@ describe("MapCounter (BHR-F3-04)", () => {
     expect(h.counter.getAttackCount(h.combatId, g1)).toBe(0);
     expect(h.counter.getAttackCount(h.combatId, g2)).toBe(1);
   });
+
+  it("Servo (thrall): its Strike uses and counts toward the controller's MAP, with no active flag", () => {
+    const doc = h.store.get("combats", h.combatId) as unknown as CombatDocument;
+    const pcActorId = doc.combatants.find((c) => c._id === h.pc)?.actorId ?? "";
+    const thrall = h.store.create(
+      "actors",
+      {
+        name: "Thrall",
+        type: "familiar",
+        ownership: { default: 0, [PLAYER_CTX.userId]: 3 },
+        system: { companionKind: "thrall", masterActorId: pcActorId },
+      },
+      { userId: GM_CTX.userId },
+    )["_id"] as string;
+    const strike = { userId: PLAYER_CTX.userId, role: PLAYER_CTX.role, actorId: thrall };
+    const marks: Array<{ count: number; byActor?: Record<string, number> }> = [];
+    h.counter.setPublisher((mark) => marks.push(mark));
+
+    // The controller's turn: the Servo's first Strike is at 0, the second takes -5 (the controller's count).
+    expect(h.counter.getMapPenalty(h.combatId, h.pc, false)).toBe(0);
+    expect(h.counter.noteAttackFromSpeaker(h.store, strike, {})).toBe(1);
+    expect(h.counter.getMapPenalty(h.combatId, h.pc, false)).toBe(-5);
+    expect(h.counter.noteAttackFromSpeaker(h.store, strike, {})).toBe(2);
+    // The clients read the Servo's count from the controller's (byActor).
+    expect(marks.at(-1)).toMatchObject({ count: 2, byActor: { [thrall]: 2 } });
+    // The controller then strikes with the count already made: this is its 3rd attack (-10).
+    expect(h.counter.getMapPenalty(h.combatId, h.pc, false)).toBe(-10);
+    attack(h, "tok-pc", PLAYER_CTX);
+    expect(h.counter.getAttackCount(h.combatId, h.pc)).toBe(3);
+
+    // Not the controller's turn: the Servo's Strike changes no count.
+    return h.next({ combatId: h.combatId }, GM_CTX).then(() => {
+      expect(h.counter.noteAttackFromSpeaker(h.store, strike, {})).toBeNull();
+      expect(h.counter.getAttackCount(h.combatId, h.pc)).toBe(3);
+    });
+  });
 });

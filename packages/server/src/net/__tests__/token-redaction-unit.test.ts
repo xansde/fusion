@@ -291,6 +291,31 @@ describe("redactSceneDocsForNonPrivileged also strips actorDelta hp (REQ-DOC-062
 // I-3 (revisão da onda 2) — effect-expiry chat line of a hidden combatant
 // ---------------------------------------------------------------------------
 
+// The card an earlier build stamped `flags.fusion.turnAutomation` (the same announcements the condition-turn hook now
+// stamps `conditionTurn`): a chat history that already holds them stays cut.
+describe("redactChatEffectExpiryForNonPrivileged — legacy turnAutomation card", () => {
+  const automationMsg = (hidden: boolean) =>
+    ({
+      _id: "m2",
+      content: "Dano persistente: Emboscador sofre 5 de fogo.",
+      speaker: { userId: "system", alias: "Sistema", actorId: "actor-S" },
+      whisper: [],
+      flags: { fusion: { turnAutomation: { kind: "persistent", ...(hidden ? { hidden: true } : {}) } } },
+    }) as unknown as ChatMessage;
+
+  it("cuts the name and the actor id of a hidden combatant's automation card", () => {
+    const out = redactChatEffectExpiryForNonPrivileged(automationMsg(true));
+    expect(JSON.stringify(out)).not.toContain("Emboscador");
+    expect(JSON.stringify(out)).not.toContain("actor-S");
+    expect(JSON.stringify(out)).not.toContain("persistent");
+  });
+
+  it("keeps the card of a visible combatant", () => {
+    const msg = automationMsg(false);
+    expect(redactChatEffectExpiryForNonPrivileged(msg)).toBe(msg);
+  });
+});
+
 describe("redactChatEffectExpiryForNonPrivileged", () => {
   const expiryMsg = (hidden: boolean) =>
     ({

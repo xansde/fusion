@@ -47,8 +47,18 @@ export class SocketManager {
   private _rttMs: number | null = null;
   private _detachPresence: (() => void) | null = null;
 
-  /** Token supplier — injected so the manager doesn't import fusionApi directly. */
-  constructor(private readonly getToken: () => string | null) {}
+  /**
+   * Token suppliers — injected so the manager doesn't import fusionApi directly.
+   *
+   * `getToken` is the in-memory snapshot. `getFreshToken` (optional) renews it first when it is
+   * expired or about to be: the access JWT lives 15 min, so a RECONNECT after that — Wi-Fi blip,
+   * the host restarting the server — must not resend the dead snapshot, or the server answers
+   * AUTH_FAILED, the manager gives up for good and only F5 brings the player back.
+   */
+  constructor(
+    private readonly getToken: () => string | null,
+    private readonly getFreshToken?: () => Promise<string | null>,
+  ) {}
 
   // --------------------------------------------------------------------------
   // Public API
@@ -88,10 +98,21 @@ export class SocketManager {
     // Namespace: /world/<worldSlug>
     // The Vite proxy forwards /socket.io/* → :33000
     const socket = io(`/world/${worldSlug}`, {
-      auth: {
-        token: token ?? "",
-        protocolVersion: PROTOCOL_VERSION,
-      },
+      // With a fresh-token supplier, socket.io's function form of `auth` is used: it runs on
+      // EVERY connection attempt (first connect and each reconnect), so the token is renewed
+      // exactly when it is about to be presented.
+      auth: this.getFreshToken
+        ? (cb: (data: { token: string; protocolVersion: number }) => void) => {
+            const fresh = this.getFreshToken;
+            const settle = (tok: string | null): void =>
+              cb({ token: tok ?? this.getToken() ?? "", protocolVersion: PROTOCOL_VERSION });
+            if (!fresh) return settle(null);
+            fresh().then(settle, () => settle(null));
+          }
+        : {
+            token: token ?? "",
+            protocolVersion: PROTOCOL_VERSION,
+          },
       // Reconnection with exponential backoff + jitter (REQ-NET-060)
       reconnection: true,
       reconnectionAttempts: Infinity,
@@ -168,7 +189,9 @@ export class SocketManager {
 
     socket.io.on("reconnect_attempt", () => {
       this._setState("reconnecting");
-      // Re-send fresh token on every reconnect attempt (REQ-USR-021)
+      // Re-send fresh token on every reconnect attempt (REQ-USR-021). With a fresh-token
+      // supplier the `auth` function above already does it, asynchronously.
+      if (this.getFreshToken) return;
       const freshToken = this.getToken();
       if (freshToken) {
         socket.auth = { token: freshToken, protocolVersion: PROTOCOL_VERSION };

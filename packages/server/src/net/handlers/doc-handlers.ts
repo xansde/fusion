@@ -109,7 +109,12 @@ import {
   isCharacterActor,
 } from "../../documents/knowledge.js";
 import { stripGmExceptionsOnCreate } from "../../documents/gm-exceptions.js";
+import {
+  actionBarFlagsCreateProblem,
+  actionBarFlagsWriteProblem,
+} from "../../documents/action-bar-flags.js";
 import { rejectAttitudeWrite, sanitizeAttitudeOnCreate } from "../../documents/attitude.js";
+import { lembrarImagemAnterior } from "../../documents/actor-image-history.js";
 import { applyMountMovement } from "../../combat/mount-follow.js";
 import {
   findBlockingCombats,
@@ -1234,6 +1239,12 @@ export interface DocHandlerDeps {
  * slot at a time, and the merge still carries every other pre-existing
  * issue, so even the repair op was refused.
  */
+function asRecordOrEmpty(value: unknown): Record<string, unknown> {
+  return value !== null && typeof value === "object" && !Array.isArray(value)
+    ? (value as Record<string, unknown>)
+    : {};
+}
+
 function rejectIllegalCharacterBuild(
   deps: Pick<DocHandlerDeps, "store" | "systemModule">,
   mergedDoc: Record<string, unknown>,
@@ -1250,6 +1261,14 @@ function rejectIllegalCharacterBuild(
     variants.ancestryFeatsInGeneralSlots = world.ancestryFeatsInGeneralSlots;
   if (world.ancestryFeatLevelMinus2 !== undefined)
     variants.ancestryFeatLevelMinus2 = world.ancestryFeatLevelMinus2;
+  if (world.skillFeatInClassSlot !== undefined) variants.skillFeatInClassSlot = world.skillFeatInClassSlot;
+  // D5/D12 (19/10/2026): under multiclass-by-levels the table forbids multiclass dedications and class
+  // archetypes. Same precedence the client sheet and the derivation use: the world setting, else the actor's own
+  // legacy field (a world that never opened Configurações → Mundo).
+  const legacyBuild = asRecordOrEmpty(asRecordOrEmpty(mergedDoc["system"])["build"]);
+  const legacyClassLevels = asRecordOrEmpty(legacyBuild["variantRules"])["classLevels"] === true;
+  const classLevels = world.classLevels ?? legacyClassLevels;
+  if (classLevels) variants.classLevels = true;
   const result = validateCharacterBuild(mergedDoc, variants);
   if (result.ok) return null;
 
@@ -1496,6 +1515,16 @@ export function buildDocCreateHandler(deps: DocHandlerDeps): HandlerFn {
       }
     }
 
+    // BAR-F3-05 / BAR-F3-01 (tasks.md §2.5): an Actor born with an invalid action bar is refused, for
+    // every role, and BEFORE the loop below writes anything — the loop persists as it goes, so a
+    // refusal inside it would leave the earlier items of the batch written and unannounced.
+    if (documentType === "Actor") {
+      for (const rawItem of data) {
+        const actionBarProblem = actionBarFlagsCreateProblem(rawItem as Record<string, unknown>);
+        if (actionBarProblem) return ackError("VALIDATION_FAILED", actionBarProblem);
+      }
+    }
+
     const authorCtx = { userId: ctx.userId };
     const created: Record<string, unknown>[] = [];
 
@@ -1603,6 +1632,7 @@ const VARIANT_RULES_KEY_SUFFIXES = [
   ":variantRules.freeOccultismOrReligion",
   ":variantRules.ancestryFeatsInGeneralSlots",
   ":variantRules.ancestryFeatLevelMinus2",
+  ":variantRules.skillFeatInClassSlot",
 ];
 
 function isVariantRulesSettingKey(key: unknown): boolean {
@@ -1738,6 +1768,24 @@ export function buildDocUpdateHandler(deps: DocHandlerDeps): HandlerFn {
       return ackError("NOT_FOUND", `Document not found: ${documentType}/${probed}`);
     }
 
+    // A primary batch names each document ONCE. The pre-flight below judges every
+    // entry against the same stored snapshot, and the write loop checks every
+    // `expectedVersion` against that same snapshot, so two entries for one `_id`
+    // were each validated alone and then both written: three entries of 64 icons
+    // stored 192 past a schema capped at 64 (BAR-F3-05 adversarial review), and
+    // the same hole weakens every merged-document check here (build, currency).
+    // Refused whole, before any document is read — so it says nothing about ids.
+    const batchIds = new Set<string>();
+    for (const upd of updates) {
+      if (batchIds.has(upd._id)) {
+        return ackError(
+          "VALIDATION_FAILED",
+          `doc:update batch names ${documentType}/${upd._id} more than once — send one entry per document`,
+        );
+      }
+      batchIds.add(upd._id);
+    }
+
     // Pre-flight: judge the whole batch before writing anything. The loop below
     // persists as it goes, so a rejection fired mid-loop would leave the
     // earlier entries written, skip the broadcast, and still ack ok:false —
@@ -1847,6 +1895,12 @@ export function buildDocUpdateHandler(deps: DocHandlerDeps): HandlerFn {
         if (!currencyValidation.ok) {
           return ackError("VALIDATION_FAILED", currencyValidation.message);
         }
+
+        // BAR-F3-05 / BAR-F3-01 (tasks.md §2.5): the action bar's state is judged on the RESULT,
+        // for every role — the ownership check above already decided WHO (REQ-BAR-072/073); this
+        // closes WHAT: one icon-area path per icon, at most ACTION_BAR_ICON_CAP of them.
+        const actionBarProblem = actionBarFlagsWriteProblem(existing, merged);
+        if (actionBarProblem) return ackError("VALIDATION_FAILED", actionBarProblem);
       }
     }
 
@@ -1899,6 +1953,9 @@ export function buildDocUpdateHandler(deps: DocHandlerDeps): HandlerFn {
       // overwrite it (recomputeDerivedIfNeeded below is the sole writer).
       if (documentType === "Actor") {
         expandedDiff = stripSystemDerived(expandedDiff);
+        // The image being replaced is remembered server-side, whoever replaces it
+        // (documents/actor-image-history.ts — the 18/10 lost-token incident).
+        expandedDiff = lembrarImagemAnterior(existing, expandedDiff);
       }
       let result: Record<string, unknown> | null;
       try {
@@ -2231,6 +2288,54 @@ export function buildDocDeleteHandler(deps: DocHandlerDeps): HandlerFn {
 // Embedded document operations (tokens inside scenes)
 // ---------------------------------------------------------------------------
 
+// ---------------------------------------------------------------------------
+// Owner drops their own character on the active scene (REQ-TOK-030a)
+// ---------------------------------------------------------------------------
+
+/**
+ * REQ-TOK-030a: besides the privileged-role rule of REQ-TOK-030, a player may
+ * put a token on the scene when EVERY token of the batch manifests an Actor the
+ * player holds at OWNER (3) — the same ownership test as moving (REQ-TOK-032,
+ * `testOwnership`, never a second predicate, REQ-TOK-034) — AND is not hidden
+ * AND the scene is the one on air. Anything else keeps falling to the role rule.
+ *
+ * The scene itself is not owned by the player, so a true result also stands in
+ * for the "OWNER of the parent scene" check of the generic path; nothing else
+ * about the create is relaxed (derived/refused fields, mount flag, schema).
+ */
+function isOwnerTokenDrop(
+  deps: DocHandlerDeps,
+  ctx: HandlerContext,
+  embeddedType: string,
+  data: unknown[],
+  parent: { type: string; id: string },
+): boolean {
+  if (embeddedType !== "Token" || parent.type !== "Scene" || data.length === 0) return false;
+  let sceneDoc: Record<string, unknown>;
+  try {
+    sceneDoc = deps.store.getRaw("scenes", parent.id);
+  } catch {
+    return false;
+  }
+  if (!sceneIsOnAir(sceneDoc)) return false;
+  for (const item of data) {
+    if (item === null || typeof item !== "object" || Array.isArray(item)) return false;
+    const raw = item as Record<string, unknown>;
+    if (raw["hidden"] === true) return false;
+    const actorId = raw["actorId"];
+    if (typeof actorId !== "string" || actorId.length === 0) return false;
+    try {
+      const actor = deps.store.getRaw("actors", actorId);
+      if (!testOwnership(getOwnershipFromDoc(actor), ctx.userId, ctx.role, OwnershipLevel.OWNER)) {
+        return false;
+      }
+    } catch {
+      return false;
+    }
+  }
+  return true;
+}
+
 function handleEmbeddedCreate(
   deps: DocHandlerDeps,
   ctx: HandlerContext,
@@ -2259,7 +2364,11 @@ function handleEmbeddedCreate(
   // `role === GAMEMASTER` is the one unconditional pass, everyone else is
   // measured against the resolved floor (fixed TRUSTED for Combatant, so this
   // changes nothing for that type).
-  if (parent.type !== "Actor") {
+  //
+  // REQ-TOK-030a: the owner of the manifested Actor dropping a non-hidden token on
+  // the scene on air is the one other way in (see `isOwnerTokenDrop`).
+  const ownerTokenDrop = isOwnerTokenDrop(deps, ctx, embeddedType, data, parent);
+  if (parent.type !== "Actor" && !ownerTokenDrop) {
     const minRole =
       embeddedType === "Token"
         ? resolvePermissionMinRole(deps.store, "TOKEN_CREATE")
@@ -2294,7 +2403,7 @@ function handleEmbeddedCreate(
   }
 
   // Check parent ownership (must be able to edit the parent scene)
-  if (!isPrivileged(ctx.role)) {
+  if (!isPrivileged(ctx.role) && !ownerTokenDrop) {
     const ownership = getOwnershipFromDoc(parentDoc);
     const level = resolveOwnership(ownership, ctx.userId, ctx.role);
     if (level < OwnershipLevel.OWNER) {

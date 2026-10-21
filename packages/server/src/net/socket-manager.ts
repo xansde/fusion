@@ -10,10 +10,17 @@
  * REQ-NET-093: Envelope types from @fusion/shared.
  */
 
+import {
+  buildNoteCreateHandler,
+  buildNoteUpdateHandler,
+  buildNoteDeleteHandler,
+} from "./handlers/note-handlers.js";
 import { Server as SocketIOServer } from "socket.io";
 import type { Namespace, Socket } from "socket.io";
 import type { Server as HttpServer } from "node:http";
 import type { Logger } from "pino";
+import { existsSync } from "node:fs";
+import { guardPath, PathTraversalError } from "../assets/path-guard.js";
 
 import { EnvelopeSchema, PROTOCOL_VERSION, FUSION_VERSION, type Envelope } from "@fusion/shared";
 
@@ -75,6 +82,7 @@ import { buildApplyDamageHandler } from "../combat/apply-damage-handler.js";
 import { buildApplyConditionHandler } from "../combat/apply-condition-handler.js";
 import { buildEffectApplyHandler } from "./handlers/effect-handlers.js";
 import { buildItemConsumeHandler } from "./handlers/item-handlers.js";
+import { buildItemTransferHandler } from "./handlers/item-transfer-handler.js";
 import {
   createTurnHookRunner,
   createStubTurnHookContextServices,
@@ -106,8 +114,10 @@ import { MapCounter, registerMapCounterReset } from "../combat/map-counter.js";
 import {
   buildResyncRequestHandler,
   buildActiveSceneHandler,
+  buildScenePreloadHandler,
   sendJoinSnapshot,
 } from "./handlers/sync-handlers.js";
+import { buildSoundPlayHandler, buildSoundStopHandler } from "./handlers/sound-handlers.js";
 import {
   buildChatSendHandler,
   buildChatHistoryHandler,
@@ -196,6 +206,12 @@ export interface WorldNamespaceOptions {
    */
   systemModule?: SystemModule;
   /**
+   * The world's assets directory (same value passed as `assetsDir` to
+   * registerAssetRoutes). When provided, sound:play rejects an unknown track
+   * with NOT_FOUND; when omitted, existence is left to the GM's picker.
+   */
+  assetsDir?: string;
+  /**
    * BHR-F2-05: where the marks on a roll's target come from
    * (`target:mark:<slug>`). `TokenMark` (BHR-F3-06) plugs its reader in here;
    * absent = no token carries a mark.
@@ -270,8 +286,20 @@ export class SocketManager {
         methods: ["GET", "POST"],
         credentials: true,
       },
-      // Disable per-message compression for now (see spec Q3)
-      perMessageDeflate: false,
+      // Per-message compression (spec 04 Q3, answered by measurement): a pack
+      // index is megabytes of JSON that gzips to ~26% (feats-core 2645 -> 661 KB),
+      // and sending it raw through the tunnel is what made "carregar o compêndio"
+      // slow and failing on the table's connection. Only payloads above 16 KB are
+      // compressed (token moves, rolls and chat stay untouched), at a low zlib level
+      // (the biggest index costs ~50 ms of CPU), with no context takeover so an idle
+      // connection holds no zlib window.
+      perMessageDeflate: {
+        threshold: 16 * 1024,
+        zlibDeflateOptions: { level: 3 },
+        serverNoContextTakeover: true,
+        clientNoContextTakeover: true,
+        concurrencyLimit: 2,
+      },
       // Reasonable connection limits
       connectTimeout: 10_000,
       pingTimeout: 25_000,
@@ -299,6 +327,7 @@ export class SocketManager {
       compendiumService,
       systemId,
       systemModule,
+      assetsDir,
       tokenMarkSource,
     } = options;
 
@@ -450,6 +479,23 @@ export class SocketManager {
     // Register M1-B sync handlers
     registry.register("resync:request", buildResyncRequestHandler(syncDeps));
     registry.register("world:activeScene", buildActiveSceneHandler(syncDeps));
+    registry.register("scene:preload", buildScenePreloadHandler(syncDeps));
+
+    // Ambient table track (sound:play / sound:stop). assetExists is wired only
+    // when assetsDir was supplied (see boot.ts).
+    const assetExists = assetsDir
+      ? (name: string): boolean => {
+          try {
+            return existsSync(guardPath(assetsDir, name));
+          } catch (err) {
+            if (err instanceof PathTraversalError) return false;
+            throw err;
+          }
+        }
+      : undefined;
+    const soundDeps = { db, ns, seqStore, opBuffer, ...(assetExists ? { assetExists } : {}) };
+    registry.register("sound:play", buildSoundPlayHandler(soundDeps));
+    registry.register("sound:stop", buildSoundStopHandler(soundDeps));
 
     // Register M1-D chat + roll handlers
     // store/targetingStore (ALQ-F1-05 / REQ-CBT-056): chat:send reads the
@@ -504,6 +550,11 @@ export class SocketManager {
     registry.register("light:update", buildLightUpdateHandler(visionDeps));
     registry.register("light:delete", buildLightDeleteHandler(visionDeps));
     registry.register("scene:doorState", buildDoorStateHandler(visionDeps));
+    // Map pins (Scene.notes)
+    const noteDeps = { store, seqStore, opBuffer, ns };
+    registry.register("scene:noteCreate", buildNoteCreateHandler(noteDeps));
+    registry.register("scene:noteUpdate", buildNoteUpdateHandler(noteDeps));
+    registry.register("scene:noteDelete", buildNoteDeleteHandler(noteDeps));
     // Override token:move with collision-aware handler
     registry.register("token:move", buildTokenMoveHandler(visionDeps));
 
@@ -547,8 +598,7 @@ export class SocketManager {
     // `applyDamage`/`applyCondition` are the REAL service (ALQ-F1-08/F1-09);
     // `deleteEmbedded`/`chat` are the REAL document-write services (B4 fix,
     // onda-4 adversarial review — see combat/turn-hook-runner.ts's header);
-    // `updateActor` stays a stub until a later task
-    // actually needs them.
+    // `updateActor` is real too, and `getSetting` reads the system's world settings.
     const hookServices: TurnHookContextServices = {
       ...createStubTurnHookContextServices(),
       ...createDocumentWriteTurnHookContextServices({
@@ -721,6 +771,12 @@ export class SocketManager {
       }),
     );
 
+    // Inventory: give an item to another actor - one atomic write on two actors (item-transfer-handler.ts).
+    registry.register(
+      "item:transfer",
+      buildItemTransferHandler({ store, db, ns, seqStore, opBuffer, worldId }),
+    );
+
     // BHR-F4-08 (REQ-BHR-102..105): a pack effect onto other actors, permission by link.
     registry.register(
       "effect:apply",
@@ -868,6 +924,11 @@ export class SocketManager {
         pingRateLimiter,
         previewRateLimiter,
         sceneRooms,
+        ...(secret ? { assetSecret: secret } : {}),
+        userIdentity: (id: string) => {
+          const u = userStore.findById(id);
+          return u ? { name: u.name, color: u.color } : undefined;
+        },
       });
 
       socket.on("disconnect", (reason) => {
@@ -1012,6 +1073,10 @@ export class SocketManager {
       previewRateLimiter: EphemeralRateLimiter;
       /** REQ-NET-005: shared scene room tracking map for this namespace. */
       sceneRooms: Map<string, string>;
+      /** Display name/colour of a user, stamped server-side on ephemeral broadcasts. */
+      /** World HMAC secret, to sign the image grant of "Show Players". */
+      assetSecret?: Uint8Array;
+      userIdentity: (userId: string) => { name: string; color: string } | undefined;
     },
   ): void {
     const logger = this.logger;
@@ -1163,6 +1228,7 @@ export class SocketManager {
       }
 
       // M1-E: route ephemeral events to presence handlers
+      const identity = rateLimiters.userIdentity(data.userId);
       handleEphemeralEnvelope(
         socket,
         parsed.data as Envelope,
@@ -1170,6 +1236,7 @@ export class SocketManager {
           userId: data.userId,
           role: data.role,
           worldId: data.worldId,
+          ...(identity ? { userName: identity.name, userColor: identity.color } : {}),
         },
         {
           ns,
@@ -1178,6 +1245,7 @@ export class SocketManager {
           pingRateLimiter: rateLimiters.pingRateLimiter,
           previewRateLimiter: rateLimiters.previewRateLimiter,
           sceneRooms: rateLimiters.sceneRooms,
+          ...(rateLimiters.assetSecret ? { assetSecret: rateLimiters.assetSecret } : {}),
         },
       );
     });

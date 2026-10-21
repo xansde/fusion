@@ -59,11 +59,19 @@ describe("sceneContentOffset", () => {
     });
   });
 
-  it("matches sceneLoader.ts's own formula exactly — same rounding on an odd product", () => {
-    // 999 * 0.25 = 249.75 → rounds to 250, same as Math.round would in sceneLoader.ts.
+  it("rounds the padding up to whole grid cells, so the drawn grid and the snap (anchored at the scene origin) share one lattice", () => {
+    // 999 * 0.25 = 249.75 → 3 cells of the default 100 px.
     expect(sceneContentOffset({ width: 999, height: 999, padding: 0.25 })).toEqual({
-      padX: 250,
-      padY: 250,
+      padX: 300,
+      padY: 300,
     });
+  });
+
+  it("uses the scene's own grid size for that rounding", () => {
+    // 2048 * 0.25 = 512 → 7 cells of 84 = 588; 632 * 0.25 = 158 → 2 cells = 168.
+    const offset = sceneContentOffset({ width: 2048, height: 632, padding: 0.25, grid: { size: 84 } });
+    expect(offset).toEqual({ padX: 588, padY: 168 });
+    expect(offset.padX % 84).toBe(0);
+    expect(offset.padY % 84).toBe(0);
   });
 });

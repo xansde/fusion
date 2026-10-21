@@ -1771,7 +1771,7 @@ export function buildBaseMessage(
   };
 }
 
-function buildRollMessage(
+export function buildRollMessage(
   db: Db,
   worldId: string,
   speaker: ChatSpeaker,

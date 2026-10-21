@@ -154,6 +154,12 @@ export interface BootNetContext {
    * undefined leaves the registry with only the generic-1d20 fallback.
    */
   systemModule?: SystemModule;
+  /**
+   * The world's assets directory (same value as BootAssetContext.assetsDir).
+   * Forwarded to SocketManager so sound:play can validate the requested track
+   * exists in the library. Optional — undefined leaves that to the picker UI.
+   */
+  assetsDir?: string;
 }
 
 // ---------------------------------------------------------------------------
@@ -525,6 +531,18 @@ export async function boot(options: BootOptions): Promise<BootResult> {
     logger.info("Update routes registered (GET/POST /admin/update/*)");
   }
 
+  // Avatar acervo (spec 35, REQ-AVT-041). Registered BEFORE the SPA so that a
+  // missing acervo answers an honest 404 instead of index.html (the client
+  // parses these as JSON). See avatar/routes.ts for the resolution order.
+  {
+    const { registerAvatarRoutes } = await import("./avatar/routes.js");
+    const { resolveClientDistDir } = await import("./spa/routes.js");
+    registerAvatarRoutes(fastify, {
+      clientDistDir: resolveClientDistDir(spaContext?.distDir),
+      logger,
+    });
+  }
+
   // Register the SPA static build (REQ-DST-002) — ON by default. Registered
   // LAST so its catch-all only ever answers requests that no other route
   // (API/health/asset) claimed. If packages/client/dist is missing (test
@@ -765,6 +783,9 @@ export async function boot(options: BootOptions): Promise<BootResult> {
     }
     if (netContext.maxConnections !== undefined) {
       nsOptions.maxConnections = netContext.maxConnections;
+    }
+    if (netContext.assetsDir !== undefined) {
+      nsOptions.assetsDir = netContext.assetsDir;
     }
     socketManager.registerWorldNamespace(nsOptions);
 

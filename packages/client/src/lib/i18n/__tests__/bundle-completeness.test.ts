@@ -165,7 +165,7 @@ describe("Spot-check: pt-BR translations differ from English for key terms", () 
     ["FUSION.Sidebar.Tabs.Scenes", "Cenas", "Scenes"],
     ["FUSION.Sidebar.Tabs.Combat", "Combate", "Combat"],
     ["FUSION.Combat.Empty", "Nenhum combate ativo.", "No active combat."],
-    ["FUSION.Join.JoinWorld", "Entrar no World", "Join World"],
+    ["FUSION.Join.JoinWorld", "Entrar no Mundo", "Join World"],
     ["FUSION.NoScene.Title", "Nenhuma Cena Ativa", "No Active Scene"],
     ["FUSION.Connection.Connected", "Conectado", "Connected"],
     ["FUSION.Role.GM", "Mestre", "GM"],
@@ -333,6 +333,8 @@ describe("Pets Kind badge keys coverage", () => {
     "FUSION.Sheet.Pets.Kind.animalCompanion",
     "FUSION.Sheet.Pets.Kind.mount",
     "FUSION.Sheet.Pets.Kind.eidolon",
+    "FUSION.Sheet.Pets.Kind.thrall",
+    "FUSION.Contacts.CompanionKind.thrall",
   ];
 
   it("all Pets Kind keys exist in pt-BR", () => {

@@ -16,8 +16,9 @@
  * ownership) — reproduced below (the OWNER-delete case) before the fix that
  * adds the TOKEN_DELETE role floor to the Token branch of handleEmbeddedDelete.
  *
- * CA-TOK-005: a player OWNER of their own character tries to put the token on
- * the scene and is refused; the GM does the same and is accepted.
+ * CA-TOK-005 / REQ-TOK-030a: a player OWNER of their own character may put that
+ * character's (non-hidden) token on the active scene; a hidden token, or an actor
+ * he does not own, is refused; the GM is accepted in every case.
  * CA-TOK-006: that same player moves their own character's token (arrow keys
  * and drag both funnel into token:move — REQ-TOK-041), and is refused when
  * trying to move an NPC's token.
@@ -241,10 +242,10 @@ describe("Token permissions — create/delete (papel privilegiado) vs. move (OWN
   // TK050 — create (REQ-TOK-030, CA-TOK-005)
   // -------------------------------------------------------------------------
 
-  it("CA-TOK-005/REQ-TOK-030: a player OWNER of their own character is refused when creating the token", async () => {
+  it("REQ-TOK-030a: a player OWNER of the actor is refused when the token is hidden", async () => {
     const ack = await sendOp(ownerSocket, "doc:create", {
       documentType: "Token",
-      data: [newTokenData(pcActorId, "Tobias")],
+      data: [{ ...newTokenData(pcActorId, "Tobias"), hidden: true }],
       parent: { type: "Scene", id: sceneId },
     });
     expect(ack["ok"]).toBe(false);
@@ -252,6 +253,47 @@ describe("Token permissions — create/delete (papel privilegiado) vs. move (OWN
 
     const scene = ctx.store.get("scenes", sceneId) as Record<string, unknown>;
     expect((scene["tokens"] as unknown[]).length).toBe(0);
+  });
+
+  it("REQ-TOK-030/030a: a player who does NOT own the actor is refused", async () => {
+    const ack = await sendOp(ownerSocket, "doc:create", {
+      documentType: "Token",
+      data: [newTokenData(npcActorId, "Goblin")],
+      parent: { type: "Scene", id: sceneId },
+    });
+    expect(ack["ok"]).toBe(false);
+    expect(ack["code"]).toBe("PERMISSION_DENIED");
+
+    // One owned actor does not carry a batch that also names one he does not own.
+    const mixed = await sendOp(ownerSocket, "doc:create", {
+      documentType: "Token",
+      data: [newTokenData(pcActorId, "Tobias"), newTokenData(npcActorId, "Goblin")],
+      parent: { type: "Scene", id: sceneId },
+    });
+    expect(mixed["ok"]).toBe(false);
+
+    const scene = ctx.store.get("scenes", sceneId) as Record<string, unknown>;
+    expect((scene["tokens"] as unknown[]).length).toBe(0);
+  });
+
+  it("CA-TOK-005/REQ-TOK-030a: a player OWNER of their own character creates the token on the active scene", async () => {
+    const ack = await sendOp(ownerSocket, "doc:create", {
+      documentType: "Token",
+      data: [newTokenData(pcActorId, "Tobias")],
+      parent: { type: "Scene", id: sceneId },
+    });
+    expect(ack["ok"], JSON.stringify(ack)).toBe(true);
+    const created = (ack["result"] as { documents: Array<{ _id: string; hidden: boolean }> })
+      .documents[0]!;
+    expect(created.hidden).toBe(false);
+
+    // Tidy up so the GM-driven cases below start from an empty scene.
+    const cleanup = await sendOp(gm, "doc:delete", {
+      documentType: "Token",
+      ids: [created._id],
+      parent: { type: "Scene", id: sceneId },
+    });
+    expect(cleanup["ok"], JSON.stringify(cleanup)).toBe(true);
   });
 
   let pcTokenId: string;

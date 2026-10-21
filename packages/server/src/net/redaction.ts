@@ -106,12 +106,15 @@ import {
   ATTITUDE_FLAG_KEY,
   TOKEN_MARKS_FLAG_NAMESPACE,
   TOKEN_MARKS_FLAG_KEY,
+  isFogCovered,
+  manualFogIsActive,
 } from "@fusion/shared";
 import type {
   ActorDamageAppliedPayload,
   ChatMessage,
   DamageAppliedTarget,
   Ownership,
+  ManualFogLike,
   RollTarget,
 } from "@fusion/shared";
 import {
@@ -357,6 +360,42 @@ export function tokenIsHiddenFromViewer(
   return !(Array.isArray(seenBy) && (seenBy as unknown[]).includes(userId));
 }
 
+// ---------------------------------------------------------------------------
+// Manual fog of war (névoa manual) — a token under the fog never reaches a
+// non-privileged viewer, by the same funnels that carry the hidden-token cut.
+// ---------------------------------------------------------------------------
+
+/** The scene's manual fog when it is switched on, otherwise undefined. */
+function sceneManualFog(scene: Record<string, unknown>): ManualFogLike | undefined {
+  const fog = scene["manualFog"];
+  if (!fog || typeof fog !== "object") return undefined;
+  return manualFogIsActive(fog as ManualFogLike) ? (fog as ManualFogLike) : undefined;
+}
+
+/** Grid cell size used to find a token's anchor; same default the client renders with. */
+function sceneGridSize(scene: Record<string, unknown>): number {
+  const grid = scene["grid"];
+  const size = grid && typeof grid === "object" ? (grid as Record<string, unknown>)["size"] : undefined;
+  return typeof size === "number" && size > 0 ? size : 100;
+}
+
+/**
+ * True when the token's anchor — the centre of its first grid cell — is under
+ * the fog. The server does not know a token's footprint (it comes from the
+ * actor's size on the client), so the anchor cell decides: a large creature
+ * whose first cell is revealed stays visible, and the client fog layer still
+ * paints over its covered cells.
+ */
+function tokenIsUnderManualFog(
+  token: Record<string, unknown>,
+  fog: ManualFogLike,
+  gridSize: number,
+): boolean {
+  const x = typeof token["x"] === "number" ? token["x"] : 0;
+  const y = typeof token["y"] === "number" ? token["y"] : 0;
+  return isFogCovered(fog, x + gridSize / 2, y + gridSize / 2);
+}
+
 /**
  * Strip hidden tokens from a single Scene document for non-GM players.
  *
@@ -386,8 +425,11 @@ export function stripHiddenTokens(
   const rawTokens = scene["tokens"];
   if (!Array.isArray(rawTokens)) return scene;
 
+  const fog = sceneManualFog(scene);
+  const gridSize = fog ? sceneGridSize(scene) : 0;
   const filtered = (rawTokens as Record<string, unknown>[]).filter(
-    (token) => !tokenIsHiddenFromViewer(token, userId),
+    (token) =>
+      !tokenIsHiddenFromViewer(token, userId) && !(fog && tokenIsUnderManualFog(token, fog, gridSize)),
   );
 
   // Only allocate a new object when something was actually removed.
@@ -463,7 +505,15 @@ export function tokenLookupSourceFromStore(store: DocumentStore): TokenLookupSou
         const tokens = scene["tokens"];
         if (!Array.isArray(tokens)) continue;
         for (const token of tokens as Record<string, unknown>[]) {
-          if (token["_id"] === tokenId) return token;
+          if (token["_id"] !== tokenId) continue;
+          // Under the manual fog a token is, for every viewer-facing cut that asks
+          // `tokenIsHiddenFromViewer`, hidden from everybody (empty `seenBy`).
+          // Privileged callers skip those cuts, so the GM is unaffected.
+          const fog = sceneManualFog(scene);
+          if (fog && tokenIsUnderManualFog(token, fog, sceneGridSize(scene))) {
+            return { ...token, hidden: true, seenBy: [] };
+          }
+          return token;
         }
       }
       return undefined;
@@ -897,12 +947,18 @@ export function redactChatEffectExpiryForNonPrivileged(msg: ChatMessage): ChatMe
   // Two announcers share this cut: the effect-expiry hook and the condition-turn hook (condition front, stage 3b:
   // Frightened ticking down, the persistent damage verdict, the stun/slow reminder, the dying outcome).
   const expiryHidden = isPlainObject(expiry) && expiry["hidden"] === true;
-  const conditionTurnHidden = isPlainObject(conditionTurn) && conditionTurn["hidden"] === true;
+  // `turnAutomation` is the name an earlier build stamped on the same cards: a chat history that already holds
+  // them must stay cut for a non-privileged viewer.
+  const legacyTurnAutomation = fusionFlags?.["turnAutomation"];
+  const conditionTurnHidden =
+    (isPlainObject(conditionTurn) && conditionTurn["hidden"] === true) ||
+    (isPlainObject(legacyTurnAutomation) && legacyTurnAutomation["hidden"] === true);
   if (!expiryHidden && !conditionTurnHidden) return msg;
 
   const { actorId: _actorId, ...speaker } = msg.speaker as typeof msg.speaker & {
     actorId?: string;
   };
+  const { turnAutomation: _legacyStamp, ...keptFusionFlags } = fusionFlags ?? {};
   return {
     ...msg,
     content: expiryHidden ? "Um efeito terminou." : "Uma condição foi resolvida.",
@@ -910,7 +966,7 @@ export function redactChatEffectExpiryForNonPrivileged(msg: ChatMessage): ChatMe
     flags: {
       ...flags,
       [CHAT_FUSION_FLAG_NAMESPACE]: {
-        ...fusionFlags,
+        ...keptFusionFlags,
         ...(expiryHidden ? { effectExpiry: { hidden: true } } : {}),
         ...(conditionTurnHidden ? { conditionTurn: { hidden: true } } : {}),
       },
@@ -961,6 +1017,31 @@ export function sceneHasSecretDoors(doc: unknown): boolean {
   const walls = (doc as Record<string, unknown>)["walls"];
   if (!Array.isArray(walls)) return false;
   return (walls as Record<string, unknown>[]).some((w) => w["doorType"] === "secret");
+}
+
+/**
+ * Map pins (Scene.notes) the GM marked as theirs never reach a non-privileged
+ * viewer. FAIL CLOSED: a note is delivered only when it says `gmOnly: false`
+ * explicitly - a missing flag or a malformed entry stays on the GM side.
+ * Returns the original reference when nothing needs cutting.
+ */
+export function redactGmOnlyNotes(scene: Record<string, unknown>): Record<string, unknown> {
+  const notes = scene["notes"];
+  if (!Array.isArray(notes)) return scene;
+  const visible = (notes as unknown[]).filter(noteIsPublic);
+  if (visible.length === notes.length) return scene;
+  return { ...scene, notes: visible };
+}
+
+function noteIsPublic(note: unknown): boolean {
+  return isPlainObject(note) && note["gmOnly"] === false;
+}
+
+/** True when a Scene-shaped doc carries at least one note a player must not receive. */
+export function sceneHasGmOnlyNotes(doc: unknown): boolean {
+  if (!doc || typeof doc !== "object") return false;
+  const notes = (doc as Record<string, unknown>)["notes"];
+  return Array.isArray(notes) && (notes as unknown[]).some((n) => !noteIsPublic(n));
 }
 
 /**
@@ -1046,7 +1127,9 @@ export function redactSceneDocsForNonPrivileged(
   const result: Record<string, unknown>[] = [];
   for (const doc of documents) {
     if (!sceneIsOnAir(doc)) continue;
-    result.push(redactTokenActorDeltaHp(redactSecretDoors(stripHiddenTokens(doc, userId))));
+    result.push(
+      redactGmOnlyNotes(redactTokenActorDeltaHp(redactSecretDoors(stripHiddenTokens(doc, userId)))),
+    );
   }
   return result;
 }
@@ -1970,6 +2053,11 @@ export function redactAckResultForNonPrivileged(
     Array.isArray(documents) && (documents as unknown[]).some((d) => sceneHasSecretDoors(d));
   const parentNeedsSecretDoorRedaction = sceneHasSecretDoors(parent);
 
+  // GM-only map pins ride the Scene body exactly like the cuts above.
+  const documentsNeedNoteRedaction =
+    Array.isArray(documents) && (documents as unknown[]).some((d) => sceneHasGmOnlyNotes(d));
+  const parentNeedsNoteRedaction = sceneHasGmOnlyNotes(parent);
+
   // M2-C: redact hidden combatants in combat payloads
   const combatNeedsRedaction = combatDocHasHiddenCombatants(combat);
 
@@ -1986,11 +2074,13 @@ export function redactAckResultForNonPrivileged(
     documentsNeedHiddenTokenRedaction ||
     documentsNeedTokenDeltaHpRedaction ||
     documentsNeedSecretDoorRedaction ||
+    documentsNeedNoteRedaction ||
     documentsNeedCombatRedaction;
   const parentNeedsRedaction =
     parentNeedsHiddenTokenRedaction ||
     parentNeedsTokenDeltaHpRedaction ||
     parentNeedsSecretDoorRedaction ||
+    parentNeedsNoteRedaction ||
     parentNeedsCombatRedaction;
 
   if (
@@ -2017,6 +2107,7 @@ export function redactAckResultForNonPrivileged(
           redacted = redactTokenActorDeltaHp(stripHiddenTokens(redacted, contactCtx?.userId));
         }
         if (Array.isArray(redacted["walls"])) redacted = redactSecretDoors(redacted);
+        if (Array.isArray(redacted["notes"])) redacted = redactGmOnlyNotes(redacted);
         if (Array.isArray(redacted["combatants"])) {
           redacted = stripHiddenCombatantsFromCombat(redacted);
         }
@@ -2037,6 +2128,7 @@ export function redactAckResultForNonPrivileged(
       redactedParent = redactTokenActorDeltaHp(redactedParent);
     }
     if (parentNeedsSecretDoorRedaction) redactedParent = redactSecretDoors(redactedParent);
+    if (parentNeedsNoteRedaction) redactedParent = redactGmOnlyNotes(redactedParent);
     if (parentNeedsCombatRedaction) {
       redactedParent = stripHiddenCombatantsFromCombat(redactedParent);
     }

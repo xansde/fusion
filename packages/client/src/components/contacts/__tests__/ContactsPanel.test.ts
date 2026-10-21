@@ -346,11 +346,19 @@ describe("opening the sheet (REQ-CTT-027)", () => {
 });
 
 describe("dragging a card to the map (REQ-CTT-028)", () => {
-  it("REQ-CTT-028: the player's card is not draggable at all", () => {
+  it("REQ-CTT-028/REQ-TOK-030a: the player drags the cards of the actors he owns, and no other", () => {
     const body = renderPanel();
 
-    expect(body).not.toContain('draggable="true"');
-    expect(cardOf(body, "act-fofurinha01")).toContain('draggable="false"');
+    expect(cardOf(body, "act-fofurinha01")).toContain('draggable="true"');
+    expect(cardOf(body, "act-tobias00001")).toContain('draggable="false"');
+  });
+
+  it("REQ-TOK-030a: a sub-character drags itself, not the card it sits in", () => {
+    const src = code();
+
+    expect(src).toContain("ondragstart={(event) => onDragStartSub(event, sub)}");
+    expect(src).toMatch(/function onDragStartSub[\s\S]*?event\.stopPropagation\(\)/);
+    expect(src).toContain("startActorDrag(event, sub.id, sub.name)");
   });
 
   it("REQ-CTT-028: the GM's card is draggable, and carries the canvas' own payload", () => {

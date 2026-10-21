@@ -27,6 +27,7 @@ export default defineWorkspace([
   "packages/server/vitest.config.ts",
   "packages/client/vitest.config.ts",
   "tools/boundary-test/vitest.config.ts",
+  "tools/mesa-cli/vitest.config.ts",
   "tools/spec-lint/vitest.config.ts",
   "tools/release/vitest.config.ts",
 ]);
