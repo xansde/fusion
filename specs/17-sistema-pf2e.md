@@ -1163,13 +1163,20 @@ resolveExpirations(
   expiração. Ele NÃO DEVE escrever: devolve `expiredItemIds` e `decremented`. No evento
   ancorado, `remainingRounds` DEVE ser decrementado em 1 e, ao chegar a zero, o item DEVE
   entrar em `expiredItemIds` **no mesmo evento**. O sistema DEVE registrá-lo em
-  `onTurnStart`, `onTurnEnd` e `onCombatEnd` com o id `pf2e.effectExpiry` e prioridade **40**
-  (REQ-PF2-216), e o servidor DEVE aplicar o resultado por `ctx.deleteEmbedded` e
+  `onTurnStart`, `onTurnEnd`, `onRoundEnd` e `onCombatEnd` com o id `pf2e.effectExpiry` e
+  prioridade **40** (REQ-PF2-216; `onRoundEnd` entrou em 21/10/2026, ver a emenda abaixo), e o servidor DEVE aplicar o resultado por `ctx.deleteEmbedded` e
   `ctx.updateActor` (`ver 15-api-de-sistemas.md`, REQ-SYS-140). A prioridade 40 é menor que a
   do dano persistente (100) de propósito: o dano do turno é aplicado enquanto o efeito ainda
   vale, e só depois ele sai. **Critério verificável:** efeito com `remainingRounds: 2`
   ancorado no ator A vai a 1 no `turn-start` de A, é removido no `turn-start` seguinte de A,
   e não muda em nenhum turno de B.
+
+  > **Emenda de 21/10/2026 (mesa, revisar no beta):** `round-end` ("até o fim da rodada") e
+  > `combat-end` estavam no contrato mas nenhum hook os disparava, então esses efeitos nunca
+  > saíam. A rodada é do combate, não do turno de um ator: o evento `round-end` NÃO nomeia ator
+  > e conta o efeito de **qualquer** origem e portador, pelas mesmas contas de rodadas de
+  > REQ-PF2-219 (um efeito iniciado em outro combate não conta). `combat-end` varre o mundo e
+  > remove, de todo portador, o efeito `encounter` do combate que acabou.
 - **REQ-PF2-222** [MVP] Item **físico temporário** (fabricação rápida, munição improvisada,
   qualquer item com prazo) DEVE usar o mesmo `system.fusion.expiry` no próprio item e DEVE
   ser **removido do inventário** ao expirar — sem segundo mecanismo e sem item morto com
