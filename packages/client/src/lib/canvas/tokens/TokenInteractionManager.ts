@@ -45,6 +45,7 @@ import type { DocumentMirror } from "../../docs/DocumentMirror.js";
 import type { FusionCanvas } from "../FusionCanvas.js";
 import { screenToWorld } from "../camera-math.js";
 import { sendOp, OpError } from "../../docs/sendOp.js";
+import { onWorldResynced, requestWorldResync } from "../../docs/worldSync.js";
 import { emitTokenPreview } from "../../presence/attachPresenceSync.js";
 import { combatActions, getMyTargets, setMyTargets } from "../../combat/combatStore.svelte.js";
 import type { TokenLayer } from "./TokenLayer.js";
@@ -176,6 +177,9 @@ const DRAG_THRESHOLD_PX = 5;
 /** Timeout for sendOp acks on token moves (ms). */
 const TOKEN_MOVE_TIMEOUT_MS = 8_000;
 
+/** After a move's ack timed out: how long to wait for the re-read world before deciding from the mirror (ms). */
+const RESYNC_WAIT_MS = 15_000;
+
 // ---------------------------------------------------------------------------
 // TokenInteractionManager
 // ---------------------------------------------------------------------------
@@ -202,6 +206,9 @@ export class TokenInteractionManager {
 
   /** Pending ack cleanup fn (to cancel rollback if destroyed during pending). */
   private _pendingCleanup: (() => void) | null = null;
+
+  /** Wakes up a move waiting for the world to be re-read (see `_settleUnackedMove`); `destroy()` calls it. */
+  private _cancelMoveWait: (() => void) | null = null;
 
   /** True if destroyed. */
   private _destroyed = false;
@@ -545,6 +552,7 @@ export class TokenInteractionManager {
     }
     this._pendingCleanup?.();
     this._pendingCleanup = null;
+    this._cancelMoveWait?.();
 
     // Detach PIXI events and give the layer back as FusionCanvas built it
     // (R9). `_attachContainerEvents` opts the shared tokens container into
@@ -820,18 +828,106 @@ export class TokenInteractionManager {
     } catch (err) {
       if (this._destroyed) return;
 
-      // Server rejected or timeout — rollback
-      this._drag = rollbackMove(this._drag, originalX, originalY);
-      this._drag = resetToIdle(this._drag);
-      this._opts.tokenLayer.rollbackMove(tokenId, originalX, originalY);
-      this._updatePendingVisual(tokenId, false);
+      // An explicit refusal is the server's verdict: revert at once. A TIMEOUT is not a verdict — the ack
+      // can be lost on a reconnect (socket.io never redelivers it) while the server accepted and broadcast
+      // the move; reverting blindly is the "token goes and comes back". Read the world first.
+      const timedOut = err instanceof OpError && err.code === "TIMEOUT";
+      const outcome = timedOut
+        ? await this._settleUnackedMove(tokenId, newX, newY, originalX, originalY)
+        : "lost";
+      // `destroy()` may have run while we waited (a call, not a property read, so no stale narrowing).
+      if (this._isDestroyed()) return;
 
-      const msg =
-        err instanceof OpError ? `Move rejected: ${err.message}` : "Move failed: network timeout";
-      this._opts.onError?.(msg);
+      if (outcome === "lost") {
+        this._drag = rollbackMove(this._drag, originalX, originalY);
+        this._drag = resetToIdle(this._drag);
+        const auth = this._getToken(tokenId);
+        this._opts.tokenLayer.rollbackMove(tokenId, auth?.x ?? originalX, auth?.y ?? originalY);
+        this._updatePendingVisual(tokenId, false);
+
+        const msg =
+          err instanceof OpError && !timedOut
+            ? `Move rejected: ${err.message}`
+            : "Move failed: network timeout";
+        this._opts.onError?.(msg);
+      } else {
+        // The server has the move (or a later one): the sprite already follows the mirror.
+        this._drag = confirmMove(this._drag);
+        this._drag = resetToIdle(this._drag);
+        this._updatePendingVisual(tokenId, false);
+      }
     } finally {
       cleanup();
     }
+  }
+
+  /**
+   * A move whose ack never arrived: decide from the server's truth, not from the silence.
+   *
+   * - The mirror already holds the new position, or any position other than the one we left → the server
+   *   applied it (or something later) and the broadcast reached us: "accepted".
+   * - Still the old position → the broadcast may be late or the transport may be down. Re-read the world
+   *   (waiting for the reconnect first, when the socket is down) and look again; only a move still absent
+   *   after that is "lost". The move is absolute (x, y), so there is nothing to resend: a resend would
+   *   override whatever happened while we were away.
+   *
+   * The wait is bounded once the socket is up (`RESYNC_WAIT_MS`) and is cancelled by `destroy()`.
+   */
+  private async _settleUnackedMove(
+    tokenId: string,
+    newX: number,
+    newY: number,
+    originalX: number,
+    originalY: number,
+  ): Promise<"accepted" | "lost"> {
+    const verdict = (): "accepted" | "lost" => {
+      const now = this._getToken(tokenId);
+      if (!now) return "accepted"; // token deleted meanwhile: nothing to put back
+      if (now.x === newX && now.y === newY) return "accepted";
+      if (now.x !== originalX || now.y !== originalY) return "accepted";
+      return "lost";
+    };
+
+    if (verdict() === "accepted") return "accepted";
+
+    const { socket } = this._opts;
+    await new Promise<void>((resolve) => {
+      let done = false;
+      let timer: ReturnType<typeof setTimeout> | null = null;
+      let offResync: (() => void) | null = null;
+      const finish = () => {
+        if (done) return;
+        done = true;
+        if (timer !== null) clearTimeout(timer);
+        offResync?.();
+        socket.off("connect", onConnect);
+        if (this._cancelMoveWait === finish) this._cancelMoveWait = null;
+        resolve();
+      };
+      const armFallback = () => {
+        if (timer !== null) clearTimeout(timer);
+        timer = setTimeout(finish, RESYNC_WAIT_MS);
+      };
+      const onConnect = () => {
+        socket.off("connect", onConnect);
+        // worldSync asks for the world on every connect; its answer (or the join push) wakes us.
+        armFallback();
+      };
+      this._cancelMoveWait = finish;
+      offResync = onWorldResynced(finish);
+      if (!socket.connected) {
+        socket.on("connect", onConnect);
+      } else {
+        requestWorldResync(socket);
+        armFallback();
+      }
+    });
+
+    return this._isDestroyed() ? "accepted" : verdict();
+  }
+
+  private _isDestroyed(): boolean {
+    return this._destroyed;
   }
 
   // ---------------------------------------------------------------------------

@@ -145,3 +145,52 @@ describe("resync answer", () => {
     expect(resyncRequests(socket)).toHaveLength(2);
   });
 });
+
+describe("resync settled notification (token move reconciliation)", () => {
+  beforeEach(() => vi.clearAllMocks());
+
+  it("requestWorldResync forces a request even while another is in flight, and listeners hear the ack", async () => {
+    const { socket } = await setup();
+    const { onWorldResynced, requestWorldResync } = await import("../worldSync.js");
+    const heard = vi.fn();
+    const off = onWorldResynced(heard);
+
+    socket.receive("op", started(12)); // a gap: first request in flight
+    requestWorldResync(socket as unknown as Socket);
+    expect(resyncRequests(socket)).toHaveLength(2);
+
+    answer(socket, { type: "delta", payload: { fromSeq: 11, toSeq: 12, ops: [started(12)] } });
+    expect(heard).toHaveBeenCalledTimes(1);
+
+    off();
+    answer(socket, { type: "delta", payload: { fromSeq: 11, toSeq: 12, ops: [] } });
+    expect(heard).toHaveBeenCalledTimes(1);
+  });
+
+  it("listeners also hear a failed ack (the caller still has to decide)", async () => {
+    const { socket } = await setup();
+    const { onWorldResynced, requestWorldResync } = await import("../worldSync.js");
+    const heard = vi.fn();
+    onWorldResynced(heard);
+    requestWorldResync(socket as unknown as Socket);
+    const last = [...socket.emits]
+      .reverse()
+      .find(([, env]) => (env as { type?: string }).type === "resync:request");
+    vi.spyOn(console, "warn").mockImplementation(() => undefined);
+    last?.[2]?.({ ok: false, code: "INTERNAL", message: "x" });
+    expect(heard).toHaveBeenCalledTimes(1);
+  });
+
+  it("the join-time resync:full pushed on the op channel counts as a resync too", async () => {
+    const { socket } = await setup();
+    const { onWorldResynced } = await import("../worldSync.js");
+    const heard = vi.fn();
+    onWorldResynced(heard);
+    socket.receive("op", {
+      type: "resync:delta",
+      ts: 1,
+      payload: { fromSeq: 10, toSeq: 10, ops: [] },
+    });
+    expect(heard).toHaveBeenCalledTimes(1);
+  });
+});
