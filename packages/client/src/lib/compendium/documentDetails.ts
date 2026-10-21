@@ -39,7 +39,7 @@ import {
   RARITY_NAMES_PT,
   AREA_SHAPE_NAMES_PT,
 } from "./traitNames.js";
-import { translatePrerequisite } from "./prerequisiteTranslation.js";
+import { translatePrerequisite, SKILL_NAMES_PT } from "./prerequisiteTranslation.js";
 
 // ---------------------------------------------------------------------------
 // Localization overlay picking (T1)
@@ -203,6 +203,16 @@ function findMatchingBracket(text: string, openIdx: number): number {
   return -1;
 }
 
+/**
+ * Own-property lookup in a generated slug map. A bare `map[slug]` also finds what every object inherits
+ * from `Object.prototype` (`constructor`, `toString`, `__proto__`...), so a junk slug would come back as
+ * a function instead of falling through to the caller's `?? fallback` (#292). `Object.freeze` does not
+ * remove inherited keys, hence the explicit own-key check.
+ */
+function ownLookup(map: Readonly<Record<string, string>>, key: string): string | undefined {
+  return Object.prototype.hasOwnProperty.call(map, key) ? map[key] : undefined;
+}
+
 /** Saving-throw statistics that read as "<Name> save" rather than a skill check. */
 const SAVE_STATISTICS = new Set(["fortitude", "reflex", "will"]);
 
@@ -240,7 +250,20 @@ function humanizeRollData(formula: string): string {
  * Result: `max(16,(2*(floor(level/2))))d6 fire` — formula (roll-data
  * simplified, no leading `@`) + damage type, with `[]` and `|flags` dropped.
  */
-function humanizeDamage(bracketBody: string): string {
+/** Damage categories that sit next to the type in `[persistent,fire]` and are not in the type glossary. */
+const DAMAGE_CATEGORY_PT: Readonly<Record<string, string>> = Object.freeze({
+  persistent: "persistente",
+  splash: "respingo",
+});
+
+/** One word of a damage-type list in the active locale; an unknown word (a roll-data reference) is kept. */
+function translateDamageWord(word: string, locale: SupportedLocale): string {
+  if (locale !== "pt-BR") return word;
+  const key = word.toLowerCase();
+  return ownLookup(DAMAGE_TYPE_NAMES_PT, key) ?? ownLookup(DAMAGE_CATEGORY_PT, key) ?? word;
+}
+
+function humanizeDamage(bracketBody: string, locale: SupportedLocale): string {
   // Split off trailing `|options:...` / `|traits:...` flag segments. A bare
   // `|` never appears inside the formula, so the first top-level `|` marks
   // the start of the flags.
@@ -254,7 +277,10 @@ function humanizeDamage(bracketBody: string): string {
   if (typeMatch) {
     const formula = humanizeRollData((typeMatch[1] ?? "").trim());
     // Damage type may itself be a list ("persistent,acid") or a roll-data ref.
-    const damageType = humanizeRollData((typeMatch[2] ?? "").trim()).replace(/,/g, " ");
+    const damageType = humanizeRollData((typeMatch[2] ?? "").trim())
+      .split(",")
+      .map((word) => translateDamageWord(word.trim(), locale))
+      .join(" ");
     return damageType ? `${formula} ${damageType}`.trim() : formula;
   }
 
@@ -270,7 +296,7 @@ function humanizeDamage(bracketBody: string): string {
  * The shape may be a bare first segment or a `type:` key; the size comes
  * from the `distance:` flag. Falls back to the raw shape if no distance.
  */
-function humanizeTemplate(bracketBody: string): string {
+function humanizeTemplate(bracketBody: string, locale: SupportedLocale): string {
   const parts = bracketBody.split("|").map((p) => p.trim());
   let shape: string | null = null;
   let distance: string | null = null;
@@ -278,6 +304,12 @@ function humanizeTemplate(bracketBody: string): string {
     if (part.startsWith("type:")) shape = part.slice(5);
     else if (part.startsWith("distance:")) distance = part.slice(9);
     else if (shape === null && !part.includes(":")) shape = part;
+  }
+  if (locale === "pt-BR") {
+    const shapePt = shape ? (ownLookup(AREA_SHAPE_NAMES_PT, shape.toLowerCase()) ?? shape) : null;
+    if (shapePt && distance) return `${shapePt} de ${distance} pés`;
+    if (shapePt) return shapePt;
+    return bracketBody;
   }
   if (shape && distance) return `${distance}-foot ${shape}`;
   if (shape) return shape;
@@ -296,7 +328,7 @@ function humanizeTemplate(bracketBody: string): string {
  * are skill checks and render as the capitalized skill name. A `basic` flag
  * prefixes "basic "; a `dc:` flag appends " (DC N)".
  */
-function humanizeCheck(bracketBody: string): string {
+function humanizeCheck(bracketBody: string, locale: SupportedLocale): string {
   const parts = bracketBody.split("|").map((p) => p.trim());
   const first = parts[0] ?? "";
   const statistic = (first.startsWith("type:") ? first.slice(5) : first).toLowerCase();
@@ -310,6 +342,17 @@ function humanizeCheck(bracketBody: string): string {
   const basic = flags.includes("basic");
 
   if (!statistic) return bracketBody;
+
+  if (locale === "pt-BR") {
+    // The prose around the enricher already says "teste de resistência de", so the save keeps no
+    // "save" of its own; the names are the sheet's (Reflexos, Vontade) and the skill glossary's.
+    const namePt =
+      ownLookup(SAVE_LABELS_PT, statistic) ??
+      ownLookup(SKILL_NAMES_PT, statistic) ??
+      (statistic === "perception" ? "Percepção" : capitalize(statistic));
+    const textPt = SAVE_STATISTICS.has(statistic) && basic ? `${namePt} básica` : namePt;
+    return dc ? `${textPt} (CD ${dc})` : textPt;
+  }
 
   const name = capitalize(statistic);
   let text: string;
@@ -428,11 +471,16 @@ function escapeHtmlAttr(text: string): string {
  *   the bracket/flag syntax is dropped — never executed (V2).
  * - `@Template[type:burst|distance:10]` → "10-foot burst".
  * - `@Check[fortitude|dc:29]` → "Fortitude save (DC 29)".
- * - `@Localize[...]` → dropped (localization key with no inline prose).
+ * - `@Localize[...]` / `@Embed[...]` → dropped (no inline prose to show).
  * - Any other/unknown tag → the readable bracket body (roll-data stripped),
  *   never the raw `@Tag[...]` syntax.
  */
-function rewriteInlineTag(tagName: string, bracketBody: string, label: string | null): string {
+function rewriteInlineTag(
+  tagName: string,
+  bracketBody: string,
+  label: string | null,
+  locale: SupportedLocale,
+): string {
   if (label) return label;
 
   switch (tagName) {
@@ -441,11 +489,16 @@ function rewriteInlineTag(tagName: string, bracketBody: string, label: string | 
       return lastSegment && lastSegment.trim() ? lastSegment.trim() : bracketBody;
     }
     case "Damage":
-      return humanizeDamage(bracketBody);
+      return humanizeDamage(bracketBody, locale);
     case "Template":
-      return humanizeTemplate(bracketBody);
+      return humanizeTemplate(bracketBody, locale);
     case "Check":
-      return humanizeCheck(bracketBody);
+      return humanizeCheck(bracketBody, locale);
+    case "Embed":
+      // `@Embed[Compendium.pf2e.pack.Item.Id inline]` asks Foundry to paste the whole referenced item here.
+      // This renderer is plain text and synchronous, so it cannot resolve the item; showing the UUID (what
+      // the generic fallback does) is the one wrong answer (#302), so the embed is omitted.
+      return "";
     case "Localize":
       // Pure localization-key wrapper (e.g. @Localize[PF2E.NPC...]) with no
       // inline prose — nothing readable to show, so drop it entirely.
@@ -471,7 +524,7 @@ function rewriteInlineTag(tagName: string, bracketBody: string, label: string | 
  * a trailing type word; `#flavor` comments and macro `key=value` args are
  * dropped as non-prose. Returns null if the body is not a recognized form.
  */
-function humanizeInlineRoll(body: string): string | null {
+function humanizeInlineRoll(body: string, locale: SupportedLocale): string | null {
   const trimmed = body.trim();
   const macroMatch = /^\/([a-z]+)\s+([\s\S]*)$/i.exec(trimmed);
   if (!macroMatch) return null;
@@ -495,7 +548,7 @@ function humanizeInlineRoll(body: string): string | null {
   // `@actor.level` is simplified. A bare formula (no `[type]`) passes through.
   const hashIdx = rest.indexOf("#");
   if (hashIdx !== -1) rest = rest.slice(0, hashIdx).trim();
-  return humanizeDamage(rest);
+  return humanizeDamage(rest, locale);
 }
 
 /**
@@ -504,7 +557,7 @@ function humanizeInlineRoll(body: string): string | null {
  * `{Label}` wins. Unrecognized blocks are left untouched for the `@Tag`
  * pass / plain rendering.
  */
-function rewriteInlineRolls(text: string): string {
+function rewriteInlineRolls(text: string, locale: SupportedLocale): string {
   let result = "";
   let i = 0;
 
@@ -551,7 +604,7 @@ function rewriteInlineRolls(text: string): string {
       }
     }
 
-    const readable = label ?? humanizeInlineRoll(body);
+    const readable = label ?? humanizeInlineRoll(body, locale);
     if (readable !== null) {
       result += readable;
       i = cursor;
@@ -570,7 +623,7 @@ function rewriteInlineRolls(text: string): string {
  * Replace every `@Tag[...]{...}` inline reference in `text` with its
  * human-readable form (see {@link rewriteInlineTag}).
  */
-function rewriteAtTags(text: string): string {
+function rewriteAtTags(text: string, locale: SupportedLocale): string {
   let result = "";
   let i = 0;
 
@@ -602,7 +655,7 @@ function rewriteAtTags(text: string): string {
       }
     }
 
-    result += rewriteInlineTag(match[1] ?? "", bracketBody, label);
+    result += rewriteInlineTag(match[1] ?? "", bracketBody, label, locale);
     i = cursor;
   }
 
@@ -615,8 +668,8 @@ function rewriteAtTags(text: string): string {
  * `@Tag[...]{...}` references (see {@link rewriteAtTags}). Idempotent on text
  * that contains no enrichers.
  */
-function rewriteInlineTags(text: string): string {
-  return rewriteAtTags(rewriteInlineRolls(text));
+function rewriteInlineTags(text: string, locale: SupportedLocale): string {
+  return rewriteAtTags(rewriteInlineRolls(text, locale), locale);
 }
 
 /**
@@ -640,12 +693,14 @@ export function sanitizeDescriptionToText(
 ): string[] {
   if (!html) return [];
 
-  const withGlyphs = convertActionGlyphs(html, locale);
+  // Entities are decoded FIRST (#223): `&lt;script&gt;` is a tag written as text, and only after decoding
+  // does the strip below see it as one. The old order (strip, then decode) let it out as a literal tag.
+  const withGlyphs = convertActionGlyphs(decodeHtmlEntities(html), locale);
 
   // Rewrite @Tag[...] references BEFORE stripping tags — some fallbacks
   // (e.g. @UUID's last-path-segment) rely on raw bracket content that must
   // not be tag-stripped first.
-  const withReadableTags = rewriteInlineTags(withGlyphs);
+  const withReadableTags = rewriteInlineTags(withGlyphs, locale);
 
   // Turn block-level boundaries into paragraph breaks before removing tags.
   // Table rows are treated as blocks too (I3, onda-3 review): a vendor
@@ -674,11 +729,11 @@ export function sanitizeDescriptionToText(
 
   // Strip every remaining tag (allow-list tags carry no special meaning in
   // plain-text output — they were only used above to derive breaks).
-  const stripped = withBreaks.replace(/<[^>]+>/g, "");
+  // Only things that LOOK like a tag (`<p>`, `</p>`, `<br/>`, `<!-- -->`) are stripped, so a decoded
+  // "DC < 10 or > 20" in prose survives instead of being eaten as if "< 10 or >" were a tag.
+  const stripped = withBreaks.replace(/<!--[\s\S]*?-->|<\/?[a-zA-Z][^>]*>/g, "");
 
-  const decoded = decodeHtmlEntities(stripped);
-
-  return decoded
+  return stripped
     .split(/\n{2,}/)
     .map((block) =>
       block
@@ -689,14 +744,21 @@ export function sanitizeDescriptionToText(
     .filter((block) => block.length > 0);
 }
 
+const HTML_ENTITIES: Readonly<Record<string, string>> = Object.freeze({
+  "&nbsp;": " ",
+  "&amp;": "&",
+  "&lt;": "<",
+  "&gt;": ">",
+  "&quot;": '"',
+  "&#39;": "'",
+});
+
+/** One pass, so `&amp;lt;` decodes to the text `&lt;` and not on to `<`. */
 function decodeHtmlEntities(text: string): string {
-  return text
-    .replace(/&nbsp;/g, " ")
-    .replace(/&amp;/g, "&")
-    .replace(/&lt;/g, "<")
-    .replace(/&gt;/g, ">")
-    .replace(/&quot;/g, '"')
-    .replace(/&#39;/g, "'");
+  return text.replace(
+    /&(?:nbsp|amp|lt|gt|quot|#39);/g,
+    (entity) => HTML_ENTITIES[entity] ?? entity,
+  );
 }
 
 /**
@@ -723,7 +785,7 @@ export function sanitizeDescriptionHtml(
   if (!html) return "";
 
   const withGlyphs = convertActionGlyphs(html, locale);
-  const withReadableTags = rewriteInlineTags(withGlyphs);
+  const withReadableTags = rewriteInlineTags(withGlyphs, locale);
 
   // The glyph-icon span is the one exception to the "no attributes survive"
   // rule: it carries a `title="..."` we generated ourselves (escaped), never
@@ -779,13 +841,13 @@ function humanizeSlug(slug: string): string {
  */
 export function traitDisplayName(slug: string, locale: SupportedLocale): string {
   if (locale !== "pt-BR") return slug;
-  return TRAIT_NAMES_PT[slug] ?? humanizeSlug(slug);
+  return ownLookup(TRAIT_NAMES_PT, slug) ?? humanizeSlug(slug);
 }
 
 /** Display label for a rarity slug (never shown for "common"). r15-A1. */
 export function rarityDisplayName(slug: string, locale: SupportedLocale): string {
   if (locale !== "pt-BR") return slug;
-  return RARITY_NAMES_PT[slug] ?? humanizeSlug(slug);
+  return ownLookup(RARITY_NAMES_PT, slug) ?? humanizeSlug(slug);
 }
 
 /**
@@ -841,6 +903,14 @@ const VALUE_TERMS_PT: ReadonlyArray<readonly [RegExp, string]> = [
   [/\bround\b/gi, "rodada"],
   [/\bdays\b/gi, "dias"],
   [/\bday\b/gi, "dia"],
+  [/\bturns\b/gi, "turnos"],
+  [/\bturn\b/gi, "turno"],
+  [/\bencounters\b/gi, "encontros"],
+  [/\bencounter\b/gi, "encontro"],
+  [/\bweeks\b/gi, "semanas"],
+  [/\bweek\b/gi, "semana"],
+  [/\bmonths\b/gi, "meses"],
+  [/\bmonth\b/gi, "mês"],
   [/\bsustained\b/gi, "sustentada"],
 ];
 
@@ -859,7 +929,7 @@ export function translateValueTokens(value: string, locale: SupportedLocale): st
 /** Damage-type token → pt-BR (e.g. "electricity" → "eletricidade"). r15-A1. */
 export function translateDamageType(type: string, locale: SupportedLocale): string {
   if (locale !== "pt-BR") return type;
-  return DAMAGE_TYPE_NAMES_PT[type.toLowerCase()] ?? type;
+  return ownLookup(DAMAGE_TYPE_NAMES_PT, type.toLowerCase()) ?? type;
 }
 
 // ---------------------------------------------------------------------------
@@ -1089,7 +1159,7 @@ function saveField(
     const statistic = str(save["statistic"]);
     if (statistic) {
       const stat = isPt
-        ? (SAVE_LABELS_PT[statistic] ?? statistic)
+        ? (ownLookup(SAVE_LABELS_PT, statistic) ?? statistic)
         : (SAVE_LABELS[statistic] ?? statistic);
       const basicSuffix = isPt ? " (básica)" : " (basic)";
       const value = save["basic"] === true ? `${stat}${basicSuffix}` : stat;
@@ -1177,7 +1247,7 @@ export function buildSpellFields(
     const type = str(area["type"]);
     const value = area["value"];
     if (type && typeof value === "number") {
-      const shape = isPt ? (AREA_SHAPE_NAMES_PT[type] ?? type) : type;
+      const shape = isPt ? (ownLookup(AREA_SHAPE_NAMES_PT, type) ?? type) : type;
       const areaValue = isPt ? `${String(value)} pés de ${shape}` : `${String(value)}-foot ${type}`;
       fields.push(field(FIELD_KEYS.area, isPt ? "Área" : "Area", areaValue));
     }
