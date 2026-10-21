@@ -672,6 +672,200 @@ describe("ASSISTANT permission denied on GAMEMASTER-strict routes (REQ-CFG-070)"
 });
 
 // ---------------------------------------------------------------------------
+// Tests: POST /api/users/me/password (REQ-USR-040..042, REQ-CFG-090)
+// ---------------------------------------------------------------------------
+
+describe("POST /api/users/me/password (own password)", () => {
+  const PLAYER_PASSWORD = "player-pass-1";
+
+  async function changePassword(
+    accessToken: string | null,
+    payload: Record<string, unknown>,
+    refreshCookie?: string,
+  ) {
+    const headers: Record<string, string> = {};
+    if (accessToken) headers["authorization"] = `Bearer ${accessToken}`;
+    if (refreshCookie) headers["cookie"] = `fusion_refresh=${refreshCookie}`;
+    return ctx.fastify.inject({
+      method: "POST",
+      url: "/api/users/me/password",
+      headers,
+      payload,
+    });
+  }
+
+  async function loginStatus(userId: string, password?: string): Promise<number> {
+    const resp = await ctx.fastify.inject({
+      method: "POST",
+      url: "/api/auth/login",
+      payload: { userId, password },
+    });
+    return resp.statusCode;
+  }
+
+  it("a PLAYER (not only the GM) changes the own password with the right current one (REQ-USR-040/041)", async () => {
+    const { accessToken, cookies } = await login(ctx.fastify, ctx.playerUser.id, PLAYER_PASSWORD);
+    const resp = await changePassword(
+      accessToken,
+      { currentPassword: PLAYER_PASSWORD, newPassword: "a-brand-new-pass" },
+      extractRefreshCookie(cookies),
+    );
+    expect(resp.statusCode).toBe(200);
+    expect(resp.json<{ ok: boolean }>().ok).toBe(true);
+    expect(resp.body).not.toMatch(/password_hash|a-brand-new-pass/);
+
+    expect(await loginStatus(ctx.playerUser.id, "a-brand-new-pass")).toBe(200);
+    expect(await loginStatus(ctx.playerUser.id, PLAYER_PASSWORD)).toBe(401);
+  });
+
+  it("a wrong current password is refused with 401 and the old password stays valid", async () => {
+    const { accessToken } = await login(ctx.fastify, ctx.playerUser.id, PLAYER_PASSWORD);
+    const resp = await changePassword(accessToken, {
+      currentPassword: "not-the-one",
+      newPassword: "a-brand-new-pass",
+    });
+    expect(resp.statusCode).toBe(401);
+    expect(resp.json<{ code: string }>().code).toBe("INVALID_CREDENTIALS");
+    expect(await loginStatus(ctx.playerUser.id, PLAYER_PASSWORD)).toBe(200);
+    expect(await loginStatus(ctx.playerUser.id, "a-brand-new-pass")).toBe(401);
+  });
+
+  it("a missing current password is refused exactly like a wrong one (no hint that a password exists)", async () => {
+    const { accessToken } = await login(ctx.fastify, ctx.playerUser.id, PLAYER_PASSWORD);
+    const missing = await changePassword(accessToken, { newPassword: "a-brand-new-pass" });
+    const wrong = await changePassword(accessToken, {
+      currentPassword: "nope",
+      newPassword: "a-brand-new-pass",
+    });
+    expect(missing.statusCode).toBe(401);
+    expect(missing.body).toBe(wrong.body);
+  });
+
+  it("a user with NO password defines one without a current password", async () => {
+    const { user } = await ctx.authService.createUser({ name: "Open", role: Role.PLAYER });
+    const { accessToken } = await login(ctx.fastify, user.id);
+    const resp = await changePassword(accessToken, { newPassword: "first-ever-pass" });
+    expect(resp.statusCode).toBe(200);
+
+    // From now on the join screen demands it.
+    expect(await loginStatus(user.id)).toBe(401);
+    expect(await loginStatus(user.id, "first-ever-pass")).toBe(200);
+  });
+
+  it("revokes the OTHER sessions of the user and keeps the one that changed it (REQ-USR-042)", async () => {
+    const phone = await login(ctx.fastify, ctx.gmUser.id, ctx.gmUser.password);
+    const desktop = await login(ctx.fastify, ctx.gmUser.id, ctx.gmUser.password);
+    const phoneRefresh = extractRefreshCookie(phone.cookies)!;
+    const desktopRefresh = extractRefreshCookie(desktop.cookies)!;
+
+    const resp = await changePassword(
+      desktop.accessToken,
+      { currentPassword: ctx.gmUser.password, newPassword: "gm-new-password" },
+      desktopRefresh,
+    );
+    expect(resp.statusCode).toBe(200);
+
+    const other = await ctx.fastify.inject({
+      method: "POST",
+      url: "/api/auth/refresh",
+      headers: { cookie: `fusion_refresh=${phoneRefresh}` },
+    });
+    expect(other.statusCode).toBe(401);
+
+    const current = await ctx.fastify.inject({
+      method: "POST",
+      url: "/api/auth/refresh",
+      headers: { cookie: `fusion_refresh=${desktopRefresh}` },
+    });
+    expect(current.statusCode).toBe(200);
+  });
+
+  it("without a refresh cookie it cannot tell which session is current, so every session of the user ends", async () => {
+    const a = await login(ctx.fastify, ctx.playerUser.id, PLAYER_PASSWORD);
+    const resp = await changePassword(a.accessToken, {
+      currentPassword: PLAYER_PASSWORD,
+      newPassword: "a-brand-new-pass",
+    });
+    expect(resp.statusCode).toBe(200);
+    const refresh = await ctx.fastify.inject({
+      method: "POST",
+      url: "/api/auth/refresh",
+      headers: { cookie: `fusion_refresh=${extractRefreshCookie(a.cookies)!}` },
+    });
+    expect(refresh.statusCode).toBe(401);
+  });
+
+  it("never touches the sessions of ANOTHER user, even when their refresh cookie is presented", async () => {
+    const gm = await login(ctx.fastify, ctx.gmUser.id, ctx.gmUser.password);
+    const player = await login(ctx.fastify, ctx.playerUser.id, PLAYER_PASSWORD);
+    // The player changes the password while sending the GM's cookie: the GM's session must survive,
+    // and the player's own sessions are all gone (the cookie is not the player's).
+    const resp = await changePassword(
+      player.accessToken,
+      { currentPassword: PLAYER_PASSWORD, newPassword: "a-brand-new-pass" },
+      extractRefreshCookie(gm.cookies),
+    );
+    expect(resp.statusCode).toBe(200);
+    const gmRefresh = await ctx.fastify.inject({
+      method: "POST",
+      url: "/api/auth/refresh",
+      headers: { cookie: `fusion_refresh=${extractRefreshCookie(gm.cookies)!}` },
+    });
+    expect(gmRefresh.statusCode).toBe(200);
+    const playerRefresh = await ctx.fastify.inject({
+      method: "POST",
+      url: "/api/auth/refresh",
+      headers: { cookie: `fusion_refresh=${extractRefreshCookie(player.cookies)!}` },
+    });
+    expect(playerRefresh.statusCode).toBe(401);
+  });
+
+  it("requires authentication", async () => {
+    const resp = await changePassword(null, {
+      currentPassword: "x",
+      newPassword: "a-brand-new-pass",
+    });
+    expect(resp.statusCode).toBe(401);
+  });
+
+  it("rejects a new password that is empty or too short (400) and a missing one", async () => {
+    const { accessToken } = await login(ctx.fastify, ctx.playerUser.id, PLAYER_PASSWORD);
+    for (const payload of [
+      { currentPassword: PLAYER_PASSWORD, newPassword: "" },
+      { currentPassword: PLAYER_PASSWORD, newPassword: "short" },
+      { currentPassword: PLAYER_PASSWORD },
+    ]) {
+      const resp = await changePassword(accessToken, payload);
+      expect(resp.statusCode).toBe(400);
+    }
+    expect(await loginStatus(ctx.playerUser.id, PLAYER_PASSWORD)).toBe(200);
+  });
+
+  it("guessing the current password is rate limited like the login (429 with Retry-After)", async () => {
+    const { accessToken } = await login(ctx.fastify, ctx.playerUser.id, PLAYER_PASSWORD);
+    let last = 0;
+    let retryAfter: unknown;
+    for (let i = 0; i < 6; i++) {
+      const resp = await changePassword(accessToken, {
+        currentPassword: `guess-${String(i)}`,
+        newPassword: "a-brand-new-pass",
+      });
+      last = resp.statusCode;
+      retryAfter = resp.headers["retry-after"];
+    }
+    expect(last).toBe(429);
+    expect(retryAfter).toBeDefined();
+
+    // Even the right current password is refused while locked out.
+    const locked = await changePassword(accessToken, {
+      currentPassword: PLAYER_PASSWORD,
+      newPassword: "a-brand-new-pass",
+    });
+    expect(locked.statusCode).toBe(429);
+  });
+});
+
+// ---------------------------------------------------------------------------
 // Tests: no sensitive fields in responses
 // ---------------------------------------------------------------------------
 

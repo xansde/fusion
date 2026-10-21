@@ -407,6 +407,15 @@ GM e não exige a senha atual.
 sessões ativas do usuário (mesma régua de REQ-USR-027), mantendo válida apenas a sessão que originou a
 troca.
 
+> **Implementada em 2026-10-21** (`POST /api/users/me/password`, `AuthService.changeOwnPassword`; testes em
+> `auth.test.ts`). Decisões **provisórias** de 21/10, a revisar no beta: (a) usuário **sem senha** define uma
+> sem informar a atual (não há o que provar); (b) a senha atual errada ou ausente soma ao mesmo bloqueio por
+> tentativas do login (`(userId, ip)`, REQ-SEC-011) e devolve 429 + `Retry-After` quando bloqueado — o token de
+> acesso roubado não vira oráculo de senha; (c) a nova senha tem piso de **8 caracteres** (as specs não fixam
+> política; o reset pelo GM, REQ-USR-027, segue aceitando qualquer senha não vazia); (d) a sessão "atual" é a do
+> cookie de refresh enviado; sem cookie (ou de outro usuário) não há como distingui-la e **todas** as sessões
+> do usuário caem.
+
 ### Presença e Estado Online
 
 **REQ-USR-032** [MVP] Ao conectar via WebSocket, o servidor deve emitir evento `userConnected` para
