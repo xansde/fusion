@@ -1267,16 +1267,11 @@ async function runOnDamageAppliedHooks(
 //     no chat-side effect for applyCondition, so this task publishes none.
 //     The ack (`ApplyConditionAck`) is what the caller consumes directly.
 //
-// KNOWN, DOCUMENTED GAP (same discipline ALQ-F1-08 used for its own
-// divergences, see this module's header): REQ-SYS-142 step 4's "mark the
-// combatant defeated" (REQ-CBT-059) is written once, generically, for "the
-// service" — but REQ-CBT-059 is not in THIS task's own Spec/REQ list (only
-// ALQ-F1-08 names it), and `markCombatantDefeatedForActor` needs deps
-// (`opBuffer`/`ns`/broadcast wiring) this function does not reach for. A GM
-// setting the `dead` slug directly via `actor:applyCondition` (REQ-PF2-215
-// explicitly allows `dead` as a slug) therefore does NOT mark a combatant
-// `defeated` the way a killing `actor:applyDamage` does. Left open for a
-// future task/reviewer decision rather than invented here.
+// CLOSED GAP (#229): REQ-CBT-059's "mark the combatant defeated" used to cover only a killing
+// `actor:applyDamage`. A `dead` slug set through `actor:applyCondition` (REQ-PF2-215 allows it, and a dying
+// recovery turned fatal ends there too) now takes the combatant out of the order the same way —
+// `computeApplyCondition` calls `markCombatantDefeatedForActor` when the patch flags `dead`
+// (apply-condition-handler.test.ts covers it).
 // ---------------------------------------------------------------------------
 
 /**
