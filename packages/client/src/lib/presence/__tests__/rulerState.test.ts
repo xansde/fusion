@@ -5,20 +5,22 @@
  */
 
 import { describe, it, expect } from "vitest";
-import { RulerStateMachine, formatDistance } from "../rulerState.js";
+import { RulerStateMachine, formatDistance, unitLabel } from "../rulerState.js";
+import { SquareGrid } from "@fusion/shared";
 
 // ---------------------------------------------------------------------------
-// Default config for tests (square grid, 5 ft per cell, 100px cells)
+// Default grid for tests (square, 5 ft per cell, 100px cells)
 // ---------------------------------------------------------------------------
 
-const defaultConfig = {
-  gridSize: 100,
-  gridDistance: 5,
-  diagonalRule: "equidistant" as const,
-  offsetX: 0,
-  offsetY: 0,
+const defaultConfig = new SquareGrid({
+  type: "square",
+  size: 100,
+  distance: 5,
   units: "ft",
-};
+  color: "#000000",
+  alpha: 0.4,
+  diagonalRule: "equidistant",
+});
 
 // ---------------------------------------------------------------------------
 // State machine
@@ -97,7 +99,7 @@ describe("RulerStateMachine — snapshot", () => {
     const snap = ruler.snapshot();
     // equidistant rule, 2 cells apart, gridDistance=5 → 10 ft
     expect(snap.totalDistance).toBe(10);
-    expect(snap.distanceLabel).toBe("10 ft");
+    expect(snap.distanceLabel).toBe("10 pés");
   });
 
   it("computes correct distance across waypoints", () => {
@@ -159,5 +161,44 @@ describe("formatDistance", () => {
 
   it("works with different units", () => {
     expect(formatDistance(10, "m")).toBe("10 m");
+  });
+});
+
+// ---------------------------------------------------------------------------
+// Diagonal 5-10-5 and unit label (acceptance of the table ruler)
+// ---------------------------------------------------------------------------
+
+describe("RulerStateMachine — PF2e diagonals", () => {
+  const pf2e = new SquareGrid({
+    type: "square",
+    size: 100,
+    distance: 5,
+    units: "ft",
+    color: "#000000",
+    alpha: 0.4,
+    diagonalRule: "alternating_1",
+  });
+
+  it("measures a 3-cell diagonal as 20 ft (5 + 10 + 5)", () => {
+    const ruler = new RulerStateMachine(pf2e);
+    ruler.startMeasuring({ x: 50, y: 50 });
+    ruler.updateLive({ x: 350, y: 350 });
+    const snap = ruler.snapshot();
+    expect(snap.totalDistance).toBe(20);
+    expect(snap.distanceLabel).toBe("20 pés");
+  });
+
+  it("labels straight 15 ft as '15 pés'", () => {
+    const ruler = new RulerStateMachine(pf2e);
+    ruler.startMeasuring({ x: 50, y: 50 });
+    ruler.updateLive({ x: 350, y: 50 });
+    expect(ruler.snapshot().distanceLabel).toBe("15 pés");
+  });
+});
+
+describe("unitLabel", () => {
+  it("translates feet to pés and leaves other units alone", () => {
+    expect(unitLabel("ft")).toBe("pés");
+    expect(unitLabel("m")).toBe("m");
   });
 });

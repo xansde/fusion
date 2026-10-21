@@ -200,6 +200,40 @@ describe("chat:send abilityCard flag (r20-X1)", () => {
     expect(card?.["damageFormula"]).toBeUndefined();
   });
 
+  it("I-1: an action card keeps its target BY REFERENCE and drops a name frozen beside it", () => {
+    // The sender may be the Mestre, who reads every name: the card names the creature by token and actor, and each
+    // viewer resolves the name from his own mirror. A name that rides along anyway is the leak this closes.
+    const { handler } = makeHarness();
+    const msg = send(handler, {
+      kind: "action",
+      casterActorId: CASTER_ID,
+      name: "Derrubar",
+      targetTokenId: "tok-wolf",
+      targetActorId: "act-wolf",
+      targetName: "Lobo Alfa da Emboscada",
+    });
+    expect(msg).not.toBeNull();
+    const card = readCard(msg);
+    expect(card?.["targetTokenId"]).toBe("tok-wolf");
+    expect(card?.["targetActorId"]).toBe("act-wolf");
+    expect(card?.["targetName"]).toBeUndefined();
+    expect(JSON.stringify(msg)).not.toContain("Lobo Alfa da Emboscada");
+  });
+
+  it("I-1: a card that names no token (the Command an Animal card) is not touched", () => {
+    const { handler } = makeHarness();
+    const card = readCard(
+      send(handler, {
+        kind: "action",
+        casterActorId: CASTER_ID,
+        name: "Comandar um Animal",
+        targetName: "Urso jovem",
+      }),
+    );
+    expect(card?.["targetName"]).toBe("Urso jovem");
+    expect(card?.["targetTokenId"]).toBeUndefined();
+  });
+
   it("BHR-F4-07: the same card forged as another actor is cleared", () => {
     const { handler } = makeHarness();
     const msg = send(handler, {

@@ -12,7 +12,8 @@
  *     H → toggle hidden; Del → delete selected token).
  *   - Dispatch optimistic moves via TokenLayer + sendOp (doc:update).
  *   - Rollback token position on ack failure/timeout.
- *   - Maintain a "selected token" set and update ring visuals.
+ *   - Maintain a "selected token" set, update ring visuals, and publish it
+ *     (`onSelectionChange`, BAR-F1-01) for the active-actor store.
  *   - Expose GM tools: addToken, deleteToken, toggleHidden.
  *   - Show a pending indicator (desaturation) while awaiting ack.
  *
@@ -130,6 +131,28 @@ export interface TokenInteractionOptions {
    * side of this callback.
    */
   onOpenSheet?: (tokenId: string) => void;
+  /**
+   * Told the token ids selected on THIS manager's scene every time the selection changes
+   * (BAR-F1-01, REQ-BAR-007; `docs/design/barra-de-acoes/tasks.md` §2.4): on a select, on a
+   * click on empty canvas, on Esc, after Del, and once more — empty — in `destroy()`. Never
+   * after `destroy()`. Same pattern as `onOpenSheet`: the manager does not know what listens.
+   *
+   * The selection is published as it is, whoever owns the token: ownership is NOT checked
+   * here. The active-actor store (`lib/actionbar/activeActorStore.svelte.ts`) is the single
+   * gate (D-BA01) and reads ownership itself — a second check here would be a second predicate
+   * (REQ-TOK-034, REQ-BAR-004). What it receives is a copy, never the manager's own Set.
+   */
+  onSelectionChange?: (tokenIds: ReadonlySet<string>) => void;
+
+  /**
+   * A pointer drag of a token, for the movement ruler. Called on every drag move with the
+   * token's top-left before the drag (`from`) and now (`to`), in scene pixels, and with
+   * `null` when the drag ends (drop, Esc or teardown). Display only: it changes nothing
+   * about the drag itself.
+   */
+  onDrag?: (
+    info: { tokenId: string; from: { x: number; y: number }; to: { x: number; y: number } } | null,
+  ) => void;
 }
 
 /**
@@ -287,6 +310,7 @@ export class TokenInteractionManager {
         payload: deletePayload,
       });
       this._selectedIds.delete(selectedId);
+      this._publishSelection();
     } catch (err) {
       this._opts.onError?.(
         err instanceof OpError
@@ -476,6 +500,7 @@ export class TokenInteractionManager {
   deselectAll(): void {
     this._selectedIds.clear();
     this._updateSelectionVisuals();
+    this._publishSelection();
   }
 
   /** The currently selected token IDs (read-only view). */
@@ -512,6 +537,7 @@ export class TokenInteractionManager {
   destroy(): void {
     if (this._destroyed) return;
     this._destroyed = true;
+    this._opts.onDrag?.(null);
 
     if (this._keyboardAttached) {
       window.removeEventListener("keydown", this._onKeyDown);
@@ -531,6 +557,14 @@ export class TokenInteractionManager {
     tokenContainer.removeAllListeners();
     tokenContainer.eventMode = "none";
     tokenContainer.hitArea = null;
+
+    // BAR-F1-01: the last word is the empty selection — this manager no longer speaks for any
+    // token. Sent directly: `_publishSelection` is silent from here on, which is what keeps a
+    // late ack (a delete still in flight) from publishing for a dead manager. Whether this
+    // clears the active actor is the store's call: when the canvas already moved to another
+    // scene, the selection survives (REQ-BAR-007).
+    this._selectedIds.clear();
+    this._opts.onSelectionChange?.(new Set());
   }
 
   // ---------------------------------------------------------------------------
@@ -671,6 +705,15 @@ export class TokenInteractionManager {
           snapped.x,
           snapped.y,
         );
+
+        const ctx = this._drag.context;
+        if (ctx) {
+          this._opts.onDrag?.({
+            tokenId: ctx.tokenId,
+            from: { x: ctx.originalX, y: ctx.originalY },
+            to: { x: snapped.x, y: snapped.y },
+          });
+        }
       }
     });
 
@@ -703,6 +746,7 @@ export class TokenInteractionManager {
 
   private _handleDrop(): void {
     if (this._drag.state !== "dragging" || !this._drag.context) return;
+    this._opts.onDrag?.(null);
 
     const { tokenId, ghostX, ghostY, originalX, originalY, requestId } = this._drag.context;
 
@@ -824,6 +868,7 @@ export class TokenInteractionManager {
       if (this._drag.state === "dragging" && this._drag.context) {
         const { tokenId, originalX, originalY } = this._drag.context;
         this._drag = cancelDrag(this._drag);
+        this._opts.onDrag?.(null);
         // Snap token back to original position
         this._opts.tokenLayer.applyLocalMove(tokenId, originalX, originalY);
       } else {
@@ -917,6 +962,13 @@ export class TokenInteractionManager {
     this._selectedIds.clear();
     this._selectedIds.add(tokenId);
     this._updateSelectionVisuals();
+    this._publishSelection();
+  }
+
+  /** BAR-F1-01: hand a COPY of the selection to `onSelectionChange` — never once destroyed. */
+  private _publishSelection(): void {
+    if (this._destroyed) return;
+    this._opts.onSelectionChange?.(new Set(this._selectedIds));
   }
 
   private _updateSelectionVisuals(): void {

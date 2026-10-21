@@ -339,6 +339,41 @@ describe("T024 — backup/restore includes assets (D4)", () => {
     expect(existsSync(restoredPath)).toBe(true);
     expect(readFileSync(restoredPath).equals(content)).toBe(true);
   });
+
+  // -------------------------------------------------------------------------
+  // BAR-F3-05: the action bar's icon gallery lives in `assets/actionbar-icons/`, the one folder
+  // the server itself writes (REQ-SEC-043 as amended). A backup that skipped it would lose every
+  // icon on restore — silently, since the flat loop only ever looked at files.
+  // -------------------------------------------------------------------------
+
+  it("the icon area (actionbar-icons/) survives backup -> delete assets -> restore", async () => {
+    const dataDir = newTempDir();
+    const wm = new WorldManager({ dataDir });
+    wm.create({ title: "Icon Gallery World", system: "pf2e", slug: "icon_gallery" });
+
+    const icon = randomBytes(700);
+    const map = randomBytes(900);
+    writeAsset(dataDir, "icon_gallery", "mapa-1a2b3c4d.png", map);
+    mkdirSync(join(worldAssetsDir(dataDir, "icon_gallery"), "actionbar-icons"), {
+      recursive: true,
+    });
+    writeAsset(dataDir, "icon_gallery", "actionbar-icons/hanabi-5e6f7a8b.png", icon);
+
+    const entry = await wm.backup("icon_gallery", "manual");
+    rmSync(worldAssetsDir(dataDir, "icon_gallery"), { recursive: true, force: true });
+    const result = await wm.restoreBackup("icon_gallery", entry.filename);
+    expect(result.assetsRestored).toBe(true);
+
+    const iconPath = join(
+      worldAssetsDir(dataDir, "icon_gallery"),
+      "actionbar-icons",
+      "hanabi-5e6f7a8b.png",
+    );
+    expect(existsSync(iconPath)).toBe(true);
+    expect(readFileSync(iconPath).equals(icon)).toBe(true);
+    const mapPath = join(worldAssetsDir(dataDir, "icon_gallery"), "mapa-1a2b3c4d.png");
+    expect(readFileSync(mapPath).equals(map)).toBe(true);
+  });
 });
 
 // ---------------------------------------------------------------------------

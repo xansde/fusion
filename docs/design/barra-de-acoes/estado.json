@@ -1,0 +1,247 @@
+{
+  "versao": 1,
+  "tarefas": {
+    "BAR-F0-01": {
+      "status": "integrada",
+      "tentativas": 1,
+      "onda": 0,
+      "modelo": "opus/high",
+      "resumo": "protótipo fiel T1–T7 (v1.1) aprovado pelo Alexandre em 11/10/2026",
+      "core_sha": "d9c4d21c"
+    },
+    "BAR-F0-02": {
+      "status": "integrada",
+      "tentativas": 1,
+      "onda": 0,
+      "modelo": "opus/high",
+      "resumo": "spec 53 e emendas nas specs 11/14/28/40/41/23/20, em lane paralela: chega pela branch docs/barra-spec-53, que o orquestrador integra à feat/barra-de-acoes antes da onda 1; se a lane falhar, o orquestrador corrige este status para pendente"
+    },
+    "BAR-F0-03": {
+      "status": "integrada",
+      "tentativas": 1,
+      "onda": 0,
+      "modelo": "sonnet/high",
+      "resumo": "tasks.md com 36 cartões, tasks-resumo.json, estado.json, tools/ (ondas, build-resumo, colisoes), entrada barra em frentes.json e skill /barra-de-acoes; validado com plan.mjs --mode status"
+    },
+    "BAR-F4-01": {
+      "status": "integrada",
+      "tentativas": 0,
+      "onda": 0,
+      "modelo": "sonnet/medium",
+      "resumo": "FORA da frente (D-BA13): a corrigir avulsa em fix/npc-rolagens (no dia do plano a branch e os PRs ainda não existiam), com PRs próprios para a main do satélite e a alfa/app. Marcada integrada só para o plan.mjs não escalá-la numa rodada nem travar o fechamento do L2; a espera real é a porteira da BAR-F4-02 (tasks.md §3)",
+      "foraDaFrente": true
+    },
+    "BAR-F1-01": {
+      "status": "integrada",
+      "tentativas": 1,
+      "onda": 1,
+      "modelo": "opus/high",
+      "resumo": "store de ator ativo + gate de posse (D-BA01/D-BA10), 57 testes, 5 mutações mortas; core 49e0cb2a",
+      "core_sha": "f3c0e977e4794babfe9d5f7076b4be5f33a3a7b3",
+      "sat_sha": "a65403f744e8c576e747d1be076a49459e1acda2"
+    },
+    "BAR-F1-02": {
+      "status": "integrada",
+      "tentativas": 1,
+      "onda": 1,
+      "modelo": "sonnet/medium",
+      "resumo": "actionBarRegistry, tipos (ActionBarCost, execute com ctx) e provedor stub; depcruise 0 violações; core 3f5e5e8d",
+      "core_sha": "f3c0e977e4794babfe9d5f7076b4be5f33a3a7b3",
+      "sat_sha": "a65403f744e8c576e747d1be076a49459e1acda2"
+    },
+    "BAR-F2-01": {
+      "status": "integrada",
+      "tentativas": 1,
+      "onda": 1,
+      "modelo": "sonnet/high",
+      "resumo": "extração headless (createCharacterVM, characterVMFor, useExecutable, emitAbility, emitCast) sem mudança de comportamento; ficha 4145→4248 testes, pathbuilder-parity 16/16; satélite c837335b",
+      "core_sha": "f3c0e977e4794babfe9d5f7076b4be5f33a3a7b3",
+      "sat_sha": "a65403f744e8c576e747d1be076a49459e1acda2"
+    },
+    "BAR-F1-03": {
+      "status": "integrada",
+      "tentativas": 1,
+      "onda": 2,
+      "modelo": "sonnet/medium",
+      "resumo": "Tooltip, Popover e ContextMenu genéricos sobre camadas flutuantes (posição, fechamento, foco, tempo), 333 testes novos, 55 mutantes mortos; core 481830d3 (empilhada sob a F1-04)",
+      "core_sha": "00220e6d8d1800c3bc8db3bb40005e9dcd1488b8",
+      "sat_sha": "7e07d5666bb746de67f8de12a2b1a36c03b8b3b8"
+    },
+    "BAR-F1-04": {
+      "status": "integrada",
+      "tentativas": 1,
+      "onda": 2,
+      "modelo": "sonnet/high",
+      "resumo": "casca ActionBar (faixa de estado, abas, slots, lugar na tela) montada no TableScreen, gate de posse no shell, sem contador de ações (D-15); 14 arquivos de teste novos, 407 testes; core 3e5f2ada",
+      "core_sha": "00220e6d8d1800c3bc8db3bb40005e9dcd1488b8",
+      "sat_sha": "7e07d5666bb746de67f8de12a2b1a36c03b8b3b8"
+    },
+    "BAR-F1-05": {
+      "status": "integrada",
+      "tentativas": 1,
+      "onda": 2,
+      "modelo": "sonnet/medium",
+      "resumo": "registro mínimo de atalhos (guard próprio de suspensão) e as 12 teclas dos Favoritos mais Esc; Q-BAR-07 provado (tecla continua valendo depois do clique); core 8f1d71de",
+      "core_sha": "00220e6d8d1800c3bc8db3bb40005e9dcd1488b8",
+      "sat_sha": "7e07d5666bb746de67f8de12a2b1a36c03b8b3b8"
+    },
+    "BAR-F2-02": {
+      "status": "integrada",
+      "tentativas": 1,
+      "onda": 2,
+      "modelo": "sonnet/high",
+      "resumo": "provedor de Golpes com MAP corrente, variantes, bombas e carga exibida; 128 testes novos (120 da fatia + 8 no strikeMapButton); satélite 1cc84f71",
+      "core_sha": "00220e6d8d1800c3bc8db3bb40005e9dcd1488b8",
+      "sat_sha": "7e07d5666bb746de67f8de12a2b1a36c03b8b3b8"
+    },
+    "BAR-F2-03": {
+      "status": "integrada",
+      "tentativas": 1,
+      "onda": 2,
+      "modelo": "sonnet/high",
+      "resumo": "provedor de Magias (patamares, truques, foco, inata) com reatividade provada no runtime do Svelte; 174 testes novos; satélite 955693cd",
+      "core_sha": "00220e6d8d1800c3bc8db3bb40005e9dcd1488b8",
+      "sat_sha": "7e07d5666bb746de67f8de12a2b1a36c03b8b3b8"
+    },
+    "BAR-F2-04": {
+      "status": "integrada",
+      "tentativas": 1,
+      "onda": 2,
+      "modelo": "sonnet/high",
+      "resumo": "provedor de Ações (lista relevante, Usar das executáveis, Impulsos, Rajada, alternáveis); 160 testes novos; satélite 546c2c27 (cabeça que entrou)",
+      "core_sha": "00220e6d8d1800c3bc8db3bb40005e9dcd1488b8",
+      "sat_sha": "7e07d5666bb746de67f8de12a2b1a36c03b8b3b8"
+    },
+    "BAR-F2-05": {
+      "status": "integrada",
+      "tentativas": 1,
+      "onda": 2,
+      "modelo": "sonnet/medium",
+      "resumo": "provedor de Testes (Percepção, salvaguardas, perícias, saberes) com nome pt-BR de toda perícia dos motores; 66 testes novos; satélite d613167c",
+      "core_sha": "00220e6d8d1800c3bc8db3bb40005e9dcd1488b8",
+      "sat_sha": "7e07d5666bb746de67f8de12a2b1a36c03b8b3b8"
+    },
+    "BAR-F2-06": {
+      "status": "integrada",
+      "tentativas": 1,
+      "onda": 2,
+      "modelo": "sonnet/medium",
+      "resumo": "faixa de estado do PF2e (PV, foco, herói, condições, alvo, MAP) igual à da ficha chip a chip; 86 testes novos; satélite 3466cff7",
+      "core_sha": "00220e6d8d1800c3bc8db3bb40005e9dcd1488b8",
+      "sat_sha": "7e07d5666bb746de67f8de12a2b1a36c03b8b3b8"
+    },
+    "BAR-F2-07": {
+      "status": "integrada",
+      "tentativas": 1,
+      "onda": 3,
+      "modelo": "sonnet/high",
+      "resumo": "provedor composto do personagem PF2e (Golpes, Magias, Ações, Testes, faixa de estado e painel de detalhes) registrado no registerPf2eSheets; a fatia que lança fica isolada no composeActionBarProvider; andaime de desenvolvimento removido; traz a correção final da F2-04; ligado aqui com a fatia de Itens e a semente, e provado sobre os quatro personagens reais; core a9529f51, satélite faf07d9 (cabeça 79356a7f)",
+      "core_sha": "29534158d419bbd703096a2efe39fa98d9e130ed",
+      "sat_sha": "516579756f15959185d977726d1462d659122fb4"
+    },
+    "BAR-F3-01": {
+      "status": "integrada",
+      "tentativas": 1,
+      "onda": 3,
+      "modelo": "sonnet/high",
+      "resumo": "favoritos no ator (store persistido com expectedVersion e edição refeita sobre o documento novo, semente da primeira abertura, entrada órfã, Fixar e Desafixar no menu do slot), 18 testes de socket real; união com a F3-05 em 3 arquivos e 6 trechos resolvida, com o órfão sem itens de ícone; core 51741533, satélite 0f8ddf4 (cabeça e913ba69)",
+      "core_sha": "29534158d419bbd703096a2efe39fa98d9e130ed",
+      "sat_sha": "516579756f15959185d977726d1462d659122fb4"
+    },
+    "BAR-F3-05": {
+      "status": "integrada",
+      "tentativas": 1,
+      "onda": 3,
+      "modelo": "opus/high",
+      "resumo": "ícone customizado por entrada e galeria compartilhada (schema do §2.5 no shared, envio de ícone aberto ao jogador, grant estreito, backup da área, modo de ícones do FilePicker, Trocar ícone e Restaurar no menu do slot, imagem do slot pelo grant do ator); só core 37b84bd9 (cabeça a6c534c5)",
+      "core_sha": "29534158d419bbd703096a2efe39fa98d9e130ed",
+      "sat_sha": "516579756f15959185d977726d1462d659122fb4"
+    },
+    "BAR-F5-01": {
+      "status": "integrada",
+      "tentativas": 1,
+      "onda": 3,
+      "modelo": "sonnet/high",
+      "resumo": "consumíveis: aba Itens (itemsSlice), consumeItem e botão Usar na ficha, guarda de quantity < 1 no plano do PF2e, loader de nomes pt-BR com os packs de equipamento; 118 testes novos no satélite e 7 no servidor; core 730b9a2f, satélite 9330f56 (cabeça 5db58297)",
+      "core_sha": "29534158d419bbd703096a2efe39fa98d9e130ed",
+      "sat_sha": "516579756f15959185d977726d1462d659122fb4"
+    }
+  },
+  "rodadas": [
+    {
+      "onda": 1,
+      "tarefas": ["BAR-F1-01", "BAR-F1-02", "BAR-F2-01"],
+      "integradas": ["BAR-F1-01", "BAR-F1-02", "BAR-F2-01"],
+      "gate": true,
+      "revisao": {
+        "achados": 0,
+        "abertos": ["revisão adversarial única no fechamento do lote (calibragem de 11/10)"]
+      },
+      "core_sha": "f3c0e977e4794babfe9d5f7076b4be5f33a3a7b3",
+      "sat_sha": "a65403f744e8c576e747d1be076a49459e1acda2"
+    },
+    {
+      "onda": 2,
+      "tarefas": [
+        "BAR-F1-03",
+        "BAR-F1-04",
+        "BAR-F1-05",
+        "BAR-F2-02",
+        "BAR-F2-03",
+        "BAR-F2-04",
+        "BAR-F2-05",
+        "BAR-F2-06"
+      ],
+      "integradas": [
+        "BAR-F1-03",
+        "BAR-F1-04",
+        "BAR-F1-05",
+        "BAR-F2-02",
+        "BAR-F2-03",
+        "BAR-F2-04",
+        "BAR-F2-05",
+        "BAR-F2-06"
+      ],
+      "gate": true,
+      "revisao": {
+        "achados": 0,
+        "abertos": ["revisão adversarial única no fechamento do lote (calibragem de 11/10)"]
+      },
+      "core_sha": "00220e6d8d1800c3bc8db3bb40005e9dcd1488b8",
+      "sat_sha": "7e07d5666bb746de67f8de12a2b1a36c03b8b3b8"
+    },
+    {
+      "onda": 3,
+      "tarefas": ["BAR-F2-07", "BAR-F3-01", "BAR-F3-05", "BAR-F5-01"],
+      "integradas": ["BAR-F2-07", "BAR-F3-01", "BAR-F3-05", "BAR-F5-01"],
+      "gate": true,
+      "revisao": {
+        "achados": 0,
+        "abertos": [
+          "revisão adversarial única no fechamento do lote (calibragem de 11/10)",
+          "suíte inteira do servidor sem saída 0 por timeout de infra, repetida só nos arquivos da onda",
+          "nada visto num navegador: smoke como GM e como player e prints T1 a T5 ficam para o roteiro de fechamento"
+        ]
+      },
+      "core_sha": "29534158d419bbd703096a2efe39fa98d9e130ed",
+      "sat_sha": "516579756f15959185d977726d1462d659122fb4"
+    }
+  ],
+  "lotes": {
+    "L1": {
+      "fechado": true,
+      "core_sha": "29534158d419bbd703096a2efe39fa98d9e130ed",
+      "sat_sha": "516579756f15959185d977726d1462d659122fb4"
+    },
+    "L2": {
+      "fechado": true,
+      "core_sha": "29534158d419bbd703096a2efe39fa98d9e130ed",
+      "sat_sha": "516579756f15959185d977726d1462d659122fb4"
+    },
+    "L3": {
+      "fechado": true,
+      "core_sha": "29534158d419bbd703096a2efe39fa98d9e130ed",
+      "sat_sha": "516579756f15959185d977726d1462d659122fb4"
+    }
+  }
+}

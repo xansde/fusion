@@ -343,6 +343,14 @@ chat, combat tracker).
   esquerda; a **sidebar** ancorada à direita; a **player list** no canto inferior
   esquerdo; a **hotbar** centralizada na parte inferior; e a área de
   **notifications** (toasts).
+
+  > **Emenda obrigada pela spec 53** (`53-barra-de-acoes.md`, DEC-BAR-04, DEC-BAR-09,
+  > REQ-BAR-022 e §12, 2026-10-11): a **hotbar** deixa de ser região fixa do shell. No
+  > lugar dela entra a **barra de ações**, centralizada na parte inferior da **área livre** do
+  > canvas (entre a borda esquerda e a gaveta), abaixo das janelas e da gaveta na escala de z
+  > (REQ-UIF-008). _(A redação acima substitui "a **hotbar** centralizada na parte inferior";
+  > as demais regiões não mudam.)_
+
 - **REQ-UIF-002** [MVP] A **sidebar** deve conter um conjunto de **tabs** e ser
   colapsável/expansível, com o estado (expandida/colapsada) persistido por usuário
   (DEC-UIF-10). As tabs do MVP são: Chat, Combat, Scenes, Actors, Items, Journal,
@@ -383,11 +391,22 @@ chat, combat tracker).
   > cena com um clique" e a de "a cena que o usuário está vendo"; listar as cenas visíveis
   > na navegação, indicar a cena ativa e ser colapsável permanecem inalterados.)_
 
-- **REQ-UIF-006** [MVP] A **hotbar** deve exibir uma página de **10 slots**
+- **REQ-UIF-006** [V2] ~~A **hotbar** deve exibir uma página de **10 slots**
   numerados; clicar (ou tecla `1`–`0`) executa a macro do slot; deve suportar
   **5 páginas** navegáveis e arrastar macros entre slots. Right-click em um slot
   abre context menu (editar/limpar). Conteúdo e execução de macros: ver
-  `14-macros-e-automacao.md`.
+  `14-macros-e-automacao.md`.~~
+
+  > **APOSENTADO** — **Emenda obrigada pela spec 53** (`53-barra-de-acoes.md`, DEC-BAR-04,
+  > REQ-BAR-102 e §12, 2026-10-11): a hotbar por usuário é substituída pela **barra de
+  > ações**, contextual ao personagem: Favoritos de 12 slots (teclas 1–9, 0, − e =) mais abas
+  > por categoria (REQ-BAR-048, REQ-BAR-062). O id permanece definido aqui, aposentado, para que
+  > nenhuma citação resolva para o vazio, e a tag muda de `[MVP]` para `[V2]` (`CONVENCOES.md`
+  > §2). As menções que sobram à hotbar nesta spec — o conceito de Shell, o fluxo (d) de
+  > REQ-UIF-046 (macro/Document → hotbar) e `hotbarPage` em `ClientUIPreferences` — leem-se como
+  > a barra de ações: a barra não tem páginas, o arrastar é interno a ela
+  > (REQ-BAR-047) e a macro volta depois como `kind` de entrada (spec 14).
+
 - **REQ-UIF-007** [MVP] A **player list** deve listar os usuários conectados com
   nome e cor, indicar quem está online/offline e quem é GM, e abrir (right-click)
   a configuração do usuário (própria para players; qualquer uma para GM — gating

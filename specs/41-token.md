@@ -367,6 +367,11 @@ decisão é de quem for dono dessa tela.
   o que muda é **onde** isso aparece, não que exista.
 - **O que motivou tirar:** uma peça de 1×1 com nome, duas barras, indicador de elevação, borda de
   disposição e até seis ícones de condição não é legível em nenhum zoom de mesa.
+- **Primeiro espaço dedicado (emenda da spec 53, 2026-10-11):** a faixa de estado da barra de
+  ações (`53-barra-de-acoes.md`, REQ-BAR-028) mostra as condições do ator ativo como
+  chips só com o nome, e o efeito aparece ao clicar. Ela decide só o que aparece para o ator
+  ativo: a peça continua sem ícones de condição (REQ-TOK-083), e o espaço dedicado das demais
+  peças segue por decidir.
 
 ### DEC-TOK-20 — O sistema estende a peça por `flags` namespaced, e a engine não lê
 
@@ -480,6 +485,17 @@ sendo do ator, e esta spec não define nenhuma "ficha de token".
 
 - **REQ-TOK-030** [MVP] Criar um token DEVE exigir papel privilegiado; o servidor DEVE recusar a
   criação pedida por qualquer outro papel, inclusive pelo OWNER do ator manifestado (DEC-TOK-06).
+- **REQ-TOK-030a** [MVP] _(Emenda de 2026-10-11, pedido do Alexandre.)_ Além do papel
+  privilegiado de REQ-TOK-030, o servidor DEVE aceitar a criação de token por quem for OWNER
+  (3) do ator manifestado, desde que, para TODOS os tokens do pedido: (a) o usuário seja OWNER
+  do ator de `actorId`, pelo mesmo teste de posse de REQ-TOK-032 (sem predicado novo,
+  REQ-TOK-034); (b) o token NÃO seja oculto (`hidden` ausente ou `false`); e (c) a cena seja a
+  cena ativa do mundo (a que está no ar). Qualquer outro caso continua recusado por
+  REQ-TOK-030. Nenhuma outra checagem é afrouxada (campos derivados, `actorDelta`, estado de
+  montaria, schema) e NÃO existe setting para ligar ou desligar essa via. Duplicar e excluir
+  seguem só pela régua de REQ-TOK-031. _(A frase "inclusive pelo OWNER" de REQ-TOK-030 vale
+  hoje apenas para os casos fora desta emenda; DEC-TOK-06 e DEC-CTT-12 ficam emendadas por
+  ela.)_
 - **REQ-TOK-031** [MVP] Duplicar e excluir um token DEVEM exigir papel privilegiado, com a mesma
   régua de REQ-TOK-030.
 - **REQ-TOK-032** [MVP] Mover um token DEVE exigir OWNER (3) sobre o ator efetivo, ou papel

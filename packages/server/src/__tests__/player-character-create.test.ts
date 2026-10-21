@@ -624,6 +624,101 @@ describe("Player-owned character edit + build legality (pf2e, O6/T6.2-T6.3; O6 f
     expect(String(ack["message"])).toContain("DUPLICATE_SLOT");
   });
 
+  it("DENIES a classLevel choice that enters a NEW class at an odd character level (D8, 19/10/2026)", async () => {
+    const ack = await sendOp(ownerSocket, "doc:update", {
+      documentType: "Actor",
+      updates: [
+        {
+          _id: characterId,
+          diff: {
+            "system.build.choices": [
+              { level: 1, slot: "classLevel-1", type: "classLevel", ref: "classAAA" },
+              { level: 2, slot: "classLevel-2", type: "classLevel", ref: "classAAA" },
+              { level: 3, slot: "classLevel-3", type: "classLevel", ref: "classBBB" },
+            ],
+          },
+          expectedVersion: version,
+        },
+      ],
+    });
+    expect(ack["ok"]).toBe(false);
+    expect(ack["code"]).toBe("VALIDATION_FAILED");
+    expect(String(ack["message"])).toContain("NEW_CLASS_AT_ODD_LEVEL");
+  });
+
+  it("ALLOWS a new class at an even level and continuing it at an odd one (D8)", async () => {
+    const ack = await sendOp(ownerSocket, "doc:update", {
+      documentType: "Actor",
+      updates: [
+        {
+          _id: characterId,
+          diff: {
+            "system.build.choices": [
+              { level: 1, slot: "classLevel-1", type: "classLevel", ref: "classAAA" },
+              { level: 2, slot: "classLevel-2", type: "classLevel", ref: "classBBB" },
+              { level: 3, slot: "classLevel-3", type: "classLevel", ref: "classBBB" },
+            ],
+          },
+          expectedVersion: version,
+        },
+      ],
+    });
+    expect(ack["ok"]).toBe(true);
+    const doc = (ack["result"] as { documents: Array<Record<string, unknown>> }).documents[0]!;
+    version = statsVersion(doc);
+  });
+
+  it("DENIES a multiclass dedication in the Free Archetype slot once the world runs multiclass-by-levels (D5)", async () => {
+    const on = await sendOp(ownerSocket, "doc:update", {
+      documentType: "Actor",
+      updates: [
+        {
+          _id: characterId,
+          diff: { "system.build.variantRules": { classLevels: true } },
+          expectedVersion: version,
+        },
+      ],
+    });
+    expect(on["ok"]).toBe(true);
+    version = statsVersion(
+      (on["result"] as { documents: Array<Record<string, unknown>> }).documents[0]!,
+    );
+    const rogueDedication = {
+      name: "Rogue Dedication",
+      type: "feat",
+      system: {
+        category: "class",
+        level: 2,
+        traits: { value: ["archetype", "dedication", "multiclass"] },
+      },
+      flags: { fusion: { build: { level: 2, slot: "archetypeFeat-2" } } },
+    };
+    const embedAck = await sendOp(ownerSocket, "doc:create", {
+      documentType: "Item",
+      parent: { type: "Actor", id: characterId },
+      data: [rogueDedication],
+    });
+    expect(embedAck["ok"]).toBe(false);
+    expect(embedAck["code"]).toBe("VALIDATION_FAILED");
+    expect(String(embedAck["message"])).toContain("MULTICLASS_ARCHETYPE_FORBIDDEN");
+  });
+
+  it("ALLOWS a class feat in the Free Archetype slot (D9) and a general archetype's dedication (D5 keeps those)", async () => {
+    const classFeat = {
+      name: "Test Class Feat in the archetype slot",
+      type: "feat",
+      system: { category: "class", level: 1, traits: { value: ["fighter"] } },
+      flags: { fusion: { build: { level: 2, slot: "archetypeFeat-2" } } },
+    };
+    const ack = await sendOp(ownerSocket, "doc:create", {
+      documentType: "Item",
+      parent: { type: "Actor", id: characterId },
+      data: [classFeat],
+    });
+    expect(ack["ok"]).toBe(true);
+    version = statsVersion((ack["result"] as { parent: Record<string, unknown> }).parent);
+  });
+
   // -------------------------------------------------------------------------
   // T6.4 — concurrent Mestre x jogador edit on the SAME player-owned
   // character, over the existing optimistic-version infra (expected-

@@ -1480,8 +1480,11 @@ export function buildCombatNextHandler(deps: CombatHandlerDeps): HandlerFn {
     // recovery check already applied).
     if (deps.turnHookRunner) {
       if (prevCombatant) {
+        // The turn that ENDS belongs to the previous round/turnIndex: when the last combatant of round N ends its
+        // turn, the persisted combat already says round N+1, and a duration counted in rounds would run one round
+        // short (an effect "until the end of your next turn" would leave at the end of the CURRENT one).
         await deps.turnHookRunner.runTurnEnd(
-          updatedCombat,
+          { ...updatedCombat, round: combat.round, turnIndex: combat.turnIndex },
           prevCombatant,
           loadActorOrNull(deps, prevCombatant.actorId),
         );

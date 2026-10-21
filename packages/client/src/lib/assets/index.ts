@@ -12,6 +12,10 @@ export {
   resolveAssetUrl,
   resolveBrowseAssetUrl,
   needsAssetQueryToken,
+  listIconGallery,
+  iconGalleryUrl,
+  deleteIconAsset,
+  setAssetCategory,
 } from "./assetApi.js";
 export type {
   AssetEntry,
@@ -19,6 +23,9 @@ export type {
   UploadResult,
   UploadProgress,
   UploadProgressCallback,
+  UploadPurpose,
+  UploadOptions,
+  IconGallery,
 } from "./assetApi.js";
 
 export {
@@ -38,9 +45,13 @@ export {
   formatBytes,
   isImageExtension,
   MAX_UPLOAD_BYTES,
+  MAX_BYTES_BY_KIND,
   ALLOWED_EXTENSIONS,
+  acceptAttrFor,
+  formatsLabelFor,
+  maxBytesFor,
 } from "./clientValidation.js";
-export type { ValidationResult } from "./clientValidation.js";
+export type { ValidationResult, AssetKind } from "./clientValidation.js";
 
 export {
   createUploadState,

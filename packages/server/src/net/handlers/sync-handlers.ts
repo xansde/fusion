@@ -40,7 +40,12 @@ import type { SystemModule } from "@fusion/system-api";
 import { runActorDerivation } from "../derive-runner.js";
 import { resolveWorldVariantRules } from "../../documents/world-variant-rules.js";
 
-import { WorldResyncRequestPayloadSchema, WorldActiveScenePayloadSchema } from "@fusion/shared";
+import { getAmbientTrackState } from "./sound-handlers.js";
+import {
+  WorldResyncRequestPayloadSchema,
+  WorldActiveScenePayloadSchema,
+  ScenePreloadPayloadSchema,
+} from "@fusion/shared";
 import type {
   Envelope,
   WorldSnapshotPayload,
@@ -550,6 +555,9 @@ function buildSnapshot(deps: SyncHandlerDeps, userId: string, role: number): Wor
     seq: deps.seqStore.peek(),
     activeSceneId: getActiveSceneId(deps.db),
     documents,
+    // Ambient table track playing right now (or null); late joiners derive
+    // their loop position from `startedAt` locally.
+    ambientTrack: getAmbientTrackState(deps.db),
   };
 }
 
@@ -878,6 +886,54 @@ export function buildActiveSceneHandler(deps: SyncHandlerDeps): HandlerFn {
     // This handler must not set it — doing so would be inconsistent with all
     // other handlers and could allow client-controlled requestId injection.
     return { ok: true, seq, result: { sceneId } };
+  };
+}
+
+// ---------------------------------------------------------------------------
+// scene:preload handler factory (GM only)
+// ---------------------------------------------------------------------------
+
+/**
+ * "Pre-carregar para todos": the GM tells every client to fetch a scene's background now, so the
+ * switch that follows has nothing left to download. Ephemeral — no seq, no opBuffer entry — since
+ * it is a hint, not world state (a client that reconnects later simply loads on demand).
+ *
+ * The background path of an off-air scene reaches players here on purpose: the GM chose to show
+ * it. Whether the player's asset grant for that scene is honoured is the asset gate's call, not
+ * this op's — with the gate enforcing, the warm-up fails quietly and the normal load runs.
+ */
+export function buildScenePreloadHandler(deps: SyncHandlerDeps): HandlerFn {
+  return (rawPayload, ctx) => {
+    if (!isPrivileged(ctx.role)) {
+      return {
+        ok: false,
+        code: "PERMISSION_DENIED" as const,
+        message: "Only GM can preload scenes for everyone",
+      };
+    }
+    const parsed = ScenePreloadPayloadSchema.safeParse(rawPayload);
+    if (!parsed.success) {
+      return { ok: false, code: "VALIDATION_FAILED" as const, message: parsed.error.message };
+    }
+    const { sceneId } = parsed.data;
+
+    let scene: Record<string, unknown>;
+    try {
+      scene = deps.store.get("scenes", sceneId);
+    } catch (err) {
+      if (err instanceof DocumentNotFoundError) {
+        return { ok: false, code: "NOT_FOUND" as const, message: `Scene not found: ${sceneId}` };
+      }
+      throw err;
+    }
+
+    const background = typeof scene["background"] === "string" ? scene["background"] : "";
+    deps.ns.emit("op", {
+      type: "scene:preload" as const,
+      ts: Date.now(),
+      payload: { sceneId, background },
+    });
+    return { ok: true, result: { sceneId } };
   };
 }
 

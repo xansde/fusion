@@ -96,6 +96,7 @@ export interface ResolvedWorldVariantRules {
   readonly freeOccultismOrReligion?: boolean | undefined;
   readonly ancestryFeatsInGeneralSlots?: boolean | undefined;
   readonly ancestryFeatLevelMinus2?: boolean | undefined;
+  readonly skillFeatInClassSlot?: boolean | undefined;
 }
 
 /** The four house-rule keys (local names, `variantRules.<key>`). */
@@ -104,6 +105,7 @@ export const HOUSE_RULE_VARIANT_KEYS = [
   "freeOccultismOrReligion",
   "ancestryFeatsInGeneralSlots",
   "ancestryFeatLevelMinus2",
+  "skillFeatInClassSlot",
 ] as const;
 export type HouseRuleVariantKey = (typeof HOUSE_RULE_VARIANT_KEYS)[number];
 
@@ -150,6 +152,7 @@ export function resolveWorldVariantRules(
       freeOccultismOrReligion: undefined,
       ancestryFeatsInGeneralSlots: undefined,
       ancestryFeatLevelMinus2: undefined,
+      skillFeatInClassSlot: undefined,
     };
   }
 
@@ -185,5 +188,6 @@ export function resolveWorldVariantRules(
     freeOccultismOrReligion: houseRules.freeOccultismOrReligion,
     ancestryFeatsInGeneralSlots: houseRules.ancestryFeatsInGeneralSlots,
     ancestryFeatLevelMinus2: houseRules.ancestryFeatLevelMinus2,
+    skillFeatInClassSlot: houseRules.skillFeatInClassSlot,
   };
 }
