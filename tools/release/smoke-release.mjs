@@ -39,7 +39,7 @@
 
 import { spawn, execFileSync } from "node:child_process";
 import { mkdtempSync, rmSync, readdirSync, existsSync } from "node:fs";
-import { join } from "node:path";
+import { dirname, join } from "node:path";
 import { tmpdir } from "node:os";
 import { createServer } from "node:net";
 import { io as ioClient } from "socket.io-client";
@@ -313,6 +313,48 @@ async function main() {
     log(`compendium:list OK: found ${String(packIds.length)} pack(s): ${packIds.join(", ")}`);
 
     socket.disconnect();
+
+    // -----------------------------------------------------------------------
+    // Step 4c — the avatar acervo is a SIDECAR, never embedded (decisoes
+    // 2026-10-21, item 10): the extracted client-dist has no avatar/, and
+    // /avatar/* is served from <dir of the exe>/avatar when it exists (404 with
+    // AVATAR_ACERVO_MISSING otherwise), with the traversal guard intact.
+    // -----------------------------------------------------------------------
+    log("Step 4c/5 — avatar acervo is served from the sidecar, not from the exe");
+
+    const extractedClientDist = join(dataDir, "runtime", expectedVersion, "client-dist");
+    if (existsSync(join(extractedClientDist, "avatar"))) {
+      throw new Error(
+        `client-dist embedded in the exe contains avatar/ — the acervo must ship as a sidecar ` +
+          `(build-release.mjs phase 5 --exclude avatar)`,
+      );
+    }
+    const sidecarDir = join(dirname(artifactPath), "avatar");
+    const catalogRes = await fetch(`${baseUrl}/avatar/catalogo.json`);
+    if (existsSync(join(sidecarDir, "catalogo.json"))) {
+      if (!catalogRes.ok) {
+        throw new Error(
+          `GET /avatar/catalogo.json failed with the sidecar present: HTTP ${String(catalogRes.status)}`,
+        );
+      }
+      await catalogRes.json(); // must be real JSON, not the SPA's index.html
+      const creditsRes = await fetch(`${baseUrl}/avatar/creditos.json`);
+      if (!creditsRes.ok) {
+        throw new Error(`GET /avatar/creditos.json failed: HTTP ${String(creditsRes.status)}`);
+      }
+      const escape = await fetch(`${baseUrl}/avatar/..%2f..%2fNOTICE`);
+      if (escape.status === 200) {
+        throw new Error("GET /avatar/..%2f..%2fNOTICE returned 200 — path traversal guard is broken");
+      }
+      log("avatar sidecar OK: /avatar/catalogo.json + creditos.json served, traversal refused");
+    } else {
+      if (catalogRes.status !== 404) {
+        throw new Error(
+          `Without the sidecar /avatar/catalogo.json must answer 404, got HTTP ${String(catalogRes.status)}`,
+        );
+      }
+      log("no avatar sidecar next to the artifact: /avatar/catalogo.json answered 404 as designed");
+    }
 
     // -----------------------------------------------------------------------
     // Step 5 — teardown
