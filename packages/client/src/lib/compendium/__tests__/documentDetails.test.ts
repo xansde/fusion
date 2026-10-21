@@ -91,7 +91,7 @@ describe("sanitizeDescriptionToText", () => {
 
   it("rewrites @Damage[...] with a nested bracketed type into readable text", () => {
     const html = "<p>Deals @Damage[((@item.level+2)*2)d6[poison]] damage.</p>";
-    const result = sanitizeDescriptionToText(html)[0];
+    const result = sanitizeDescriptionToText(html, "en")[0];
     expect(result).toContain("poison");
     expect(result).not.toContain("@Damage");
     expect(result).not.toContain("[poison]"); // bracket syntax itself should not leak through
@@ -99,12 +99,12 @@ describe("sanitizeDescriptionToText", () => {
 
   it("rewrites a save @Check[...] with a DC into '<Save> save (DC N)'", () => {
     const html = "<p>Attempt a @Check[fortitude|dc:29] save.</p>";
-    expect(sanitizeDescriptionToText(html)[0]).toBe("Attempt a Fortitude save (DC 29) save.");
+    expect(sanitizeDescriptionToText(html, "en")[0]).toBe("Attempt a Fortitude save (DC 29) save.");
   });
 
   it("rewrites a skill @Check[...] without a DC into the capitalized skill", () => {
     const html = "<p>Roll @Check[athletics] to climb.</p>";
-    expect(sanitizeDescriptionToText(html)[0]).toBe("Roll Athletics to climb.");
+    expect(sanitizeDescriptionToText(html, "en")[0]).toBe("Roll Athletics to climb.");
   });
 
   it("never leaves an @Tag[ fragment in the output for known or unknown tags", () => {
@@ -123,7 +123,7 @@ describe("sanitizeDescriptionToText", () => {
 
 describe("Foundry enricher humanization (via sanitizeDescriptionToText)", () => {
   /** Convenience: humanize a bare (already tag-free) enricher string. */
-  const humanize = (s: string): string => sanitizeDescriptionToText(`<p>${s}</p>`)[0] ?? "";
+  const humanize = (s: string): string => sanitizeDescriptionToText(`<p>${s}</p>`, "en")[0] ?? "";
 
   describe("@Damage", () => {
     it("renders formula + damage type, dropping bracket/flag syntax", () => {
@@ -288,7 +288,7 @@ describe("Foundry enricher humanization (via sanitizeDescriptionToText)", () => 
         "@Check[fortitude|against:spell|basic|options:area-effect] save against your spell DC; " +
         "creatures that critically fail are " +
         "@UUID[Compendium.pf2e.conditionitems.Item.Blinded] for 1 round.</p>";
-      const out = sanitizeDescriptionToText(html)[0] ?? "";
+      const out = sanitizeDescriptionToText(html, "en")[0] ?? "";
 
       expect(out).toBe(
         "Each creature in a 10-foot burst takes max(16,(2*(floor(level/2))))d6 fire damage with a " +
@@ -1588,5 +1588,177 @@ describe("pickLocalizedName reads the import snapshot (reprint L1)", () => {
         "pt-BR",
       ),
     ).toBe("Chain Mail");
+  });
+});
+
+// ---------------------------------------------------------------------------
+// Pacote de 21/10 (core-cliente): #223, #292, #298, #302
+// ---------------------------------------------------------------------------
+
+describe("#223 — entities are decoded BEFORE tags are stripped", () => {
+  it("an entity-encoded tag does not survive as a literal tag", () => {
+    const out = sanitizeDescriptionToText("<p>&lt;script&gt;alert(1)&lt;/script&gt;</p>", "en");
+    expect(out).toEqual(["alert(1)"]);
+    expect(out.join(" ")).not.toMatch(/<\/?script/i);
+  });
+
+  it("decodes once: '&amp;lt;' stays the text '&lt;' instead of becoming '<'", () => {
+    expect(sanitizeDescriptionToText("<p>a &amp;lt; b</p>", "en")).toEqual(["a &lt; b"]);
+  });
+
+  it("a plain less-than sign in prose is not eaten as if it opened a tag", () => {
+    expect(sanitizeDescriptionToText("<p>DC &lt; 10 or &gt; 20</p>", "en")).toEqual([
+      "DC < 10 or > 20",
+    ]);
+  });
+
+  it("an encoded line break becomes a real one, like the raw tag would", () => {
+    expect(sanitizeDescriptionToText("<p>one&lt;br&gt;two</p>", "en")).toEqual(["one two"]);
+  });
+});
+
+describe("#292 — slugs that are Object.prototype keys never resolve to inherited members", () => {
+  it.each(["constructor", "toString", "__proto__", "hasOwnProperty", "valueOf"])(
+    "trait, rarity and damage type '%s' fall back to text",
+    (slug) => {
+      expect(typeof traitDisplayName(slug, "pt-BR")).toBe("string");
+      expect(typeof rarityDisplayName(slug, "pt-BR")).toBe("string");
+      expect(typeof translateDamageType(slug, "pt-BR")).toBe("string");
+    },
+  );
+
+  it("an unknown slug still humanizes", () => {
+    expect(traitDisplayName("constructor", "pt-BR")).toBe("constructor");
+    expect(traitDisplayName("my-odd-trait", "pt-BR")).toBe("my odd trait");
+  });
+});
+
+describe("#298 — frequency and duration words are translated", () => {
+  it.each([
+    ["1 per turn", "1 per turno"],
+    ["turn", "turno"],
+    ["turns", "turnos"],
+    ["encounter", "encontro"],
+    ["encounters", "encontros"],
+    ["week", "semana"],
+    ["weeks", "semanas"],
+    ["month", "mês"],
+    ["months", "meses"],
+  ])("'%s'", (en, pt) => {
+    expect(translateValueTokens(en, "pt-BR")).toBe(pt);
+  });
+
+  it("the Frequência field of a feat prints the translated period", () => {
+    for (const [per, pt] of [
+      ["round", "rodada"],
+      ["minute", "minuto"],
+      ["hour", "hora"],
+      ["day", "dia"],
+      ["turn", "turno"],
+      ["encounter", "encontro"],
+      ["week", "semana"],
+      ["month", "mês"],
+    ] as const) {
+      const fields = buildFeatFields({ frequency: { max: 1, per } }, "pt-BR");
+      const freq = fields.find((f) => f.labelKey?.endsWith("Frequency"));
+      expect(freq?.value).toBe(`1 por ${pt}`);
+    }
+  });
+
+  it("the existing 'until the end of your turn' phrase is not broken by the new word", () => {
+    expect(translateValueTokens("until the end of your next turn", "pt-BR")).toBe(
+      "até o fim do seu próximo turno",
+    );
+  });
+});
+
+describe("#302 — @Embed and the language of unlabelled enrichers", () => {
+  const embed = "@Embed[Compendium.pf2e.actionspf2e.Item.OpiIzr7h1EKY8wKh inline]";
+
+  it("@Embed never leaks its UUID, in either language", () => {
+    for (const locale of ["pt-BR", "en"] as const) {
+      const out = sanitizeDescriptionToText(`<p>Before.</p><p>${embed}</p><p>After.</p>`, locale);
+      expect(out).toEqual(["Before.", "After."]);
+      expect(out.join(" ")).not.toMatch(/Compendium|OpiIzr7h1EKY8wKh|inline/);
+    }
+  });
+
+  it("@Embed in the middle of a sentence leaves the sentence readable", () => {
+    expect(sanitizeDescriptionToText(`<p>See ${embed} for details.</p>`, "en")).toEqual([
+      "See for details.",
+    ]);
+  });
+
+  it("an explicit {Label} on an @Embed still wins", () => {
+    expect(sanitizeDescriptionToText(`<p>${embed}{Ver ação}</p>`, "pt-BR")).toEqual(["Ver ação"]);
+  });
+
+  it("sanitizeDescriptionHtml drops the @Embed too", () => {
+    expect(sanitizeDescriptionHtml(`<p>Before.</p><p>${embed}</p>`, "pt-BR")).not.toMatch(
+      /Compendium|OpiIzr7h1EKY8wKh/,
+    );
+  });
+
+  describe("pt-BR", () => {
+    const pt = (s: string): string => sanitizeDescriptionToText(`<p>${s}</p>`, "pt-BR")[0] ?? "";
+
+    it("@Check names the save in Portuguese and does not repeat the word 'save'", () => {
+      expect(pt("@Check[fortitude|dc:29]")).toBe("Fortitude (CD 29)");
+      expect(pt("@Check[reflex]")).toBe("Reflexos");
+      expect(pt("@Check[will|dc:20]")).toBe("Vontade (CD 20)");
+      expect(pt("@Check[fortitude|against:spell|basic|options:area-effect]")).toBe(
+        "Fortitude básica",
+      );
+    });
+
+    it("@Check names a skill in Portuguese", () => {
+      expect(pt("@Check[athletics|dc:15]")).toBe("Atletismo (CD 15)");
+      expect(pt("@Check[acrobatics]")).toBe("Acrobacia");
+    });
+
+    it("@Check with a statistic the glossary does not know keeps the capitalized slug", () => {
+      expect(pt("@Check[flat|dc:3]")).toBe("Flat (CD 3)");
+    });
+
+    it("@Template speaks Portuguese: shape and feet", () => {
+      expect(pt("@Template[type:burst|distance:10]")).toBe("explosão de 10 pés");
+      expect(pt("@Template[cone|distance:30]")).toBe("cone de 30 pés");
+      expect(pt("@Template[emanation|distance:20]")).toBe("emanação de 20 pés");
+      expect(pt("@Template[line|distance:30]")).toBe("linha de 30 pés");
+      expect(pt("@Template[burst]")).toBe("explosão");
+    });
+
+    it("@Damage translates the type through the glossary, categories included", () => {
+      expect(pt("@Damage[6d6[fire]]")).toBe("6d6 fogo");
+      expect(pt("@Damage[2d6[persistent,acid]]")).toBe("2d6 persistente ácido");
+      expect(pt("@Damage[(1d4+2)[force]]")).toBe("(1d4+2) força");
+      expect(pt("@Damage[1d6[spirit]]")).toBe("1d6 espírito");
+    });
+
+    it("@Damage keeps a roll-data type reference untouched", () => {
+      expect(pt("@Damage[ceil(@actor.level/2)d6[@actor.flags.system.x.damageType]]")).toBe(
+        "ceil(level/2)d6 damageType",
+      );
+    });
+
+    it("a [[/r ...]] inline roll translates its damage type too", () => {
+      expect(pt("[[/br 2d6[fire]]]")).toBe("2d6 fogo");
+      expect(pt("[[/r 1d20+5]]")).toBe("1d20+5");
+    });
+
+    it("an explicit {Label} still wins over the localized form", () => {
+      expect(pt("@Check[fortitude|dc:29]{um teste especial}")).toBe("um teste especial");
+    });
+
+    it("a whole sentence no longer mixes the two languages", () => {
+      const out = pt(
+        "Cada criatura em @Template[type:burst|distance:10] sofre @Damage[4d6[fire]] " +
+          "(@Check[reflex|dc:25|basic]).",
+      );
+      expect(out).toBe(
+        "Cada criatura em explosão de 10 pés sofre 4d6 fogo (Reflexos básica (CD 25)).",
+      );
+      expect(out).not.toMatch(/save|foot|fire/);
+    });
   });
 });

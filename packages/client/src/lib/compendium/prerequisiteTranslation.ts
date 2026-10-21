@@ -72,7 +72,7 @@ import { DOCUMENT_NAMES_PT } from "./documentNamesPt.js";
  * documentDetails.ts's existing SAVE_LABELS_PT pattern of a small local map
  * rather than a cross-module import for a handful of fixed terms.
  */
-const SKILL_NAMES_PT: Readonly<Record<string, string>> = Object.freeze({
+export const SKILL_NAMES_PT: Readonly<Record<string, string>> = Object.freeze({
   acrobatics: "Acrobacia",
   arcana: "Arcanismo",
   athletics: "Atletismo",

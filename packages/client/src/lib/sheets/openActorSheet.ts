@@ -17,6 +17,18 @@ import type { Socket } from "socket.io-client";
 import { sheetRegistry } from "./sheetRegistry.js";
 import { displayName } from "../docs/displayName.js";
 import { avatarHeaderActions } from "../avatar/openAvatarCreator.js";
+import { t } from "../i18n/i18n.js";
+
+/**
+ * The actor type as the window title shows it ("personagem", "NPC"...), never the raw slug (#306). A subtype
+ * with no translation falls back to the slug itself: `t()` hands back the key when it has no string, and
+ * a title must never print a key.
+ */
+function subtypeLabel(subtype: string): string {
+  const key = `FUSION.Sheet.Window.Type.${subtype}`;
+  const label = t(key);
+  return label === key ? subtype : label;
+}
 
 /**
  * Open a sheet for an actor document using the windowManager.
@@ -74,7 +86,7 @@ export function openActorSheet(
     // WindowEntry.component is set (REQ-UIF-019).
     windowManager.open({
       singletonKey,
-      title: `${name} (${subtype})`,
+      title: `${name} (${subtypeLabel(subtype)})`,
       icon: "📋",
       resizable: true,
       minimizable: true,
