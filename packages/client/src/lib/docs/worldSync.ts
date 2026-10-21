@@ -121,6 +121,7 @@ export function attachWorldSync(socket: Socket): () => void {
       if (payload.snapshot) {
         _applySnapshot(payload.snapshot);
       }
+      _notifyResynced();
       return;
     }
 
@@ -134,6 +135,7 @@ export function attachWorldSync(socket: Socket): () => void {
         // _applyIncomingOp keeps world:activeScene ops inside a delta handled (FIX-3).
         _applyDelta(payload.ops, payload.toSeq);
       }
+      _notifyResynced();
       return;
     }
 
@@ -179,6 +181,31 @@ const RESYNC_IN_FLIGHT_MS = 10_000;
 /** Sockets with a `resync:request` waiting for its ack (value = when it was sent). One request at a time per socket. */
 const _resyncInFlight = new WeakMap<Socket, number>();
 
+/** Callers waiting to know the mirror was just brought up to the server's truth (see `onWorldResynced`). */
+const _resyncListeners = new Set<() => void>();
+
+/**
+ * Be told every time the mirror has just been reconciled with the server: a resync ack (delta, full or failed)
+ * or the delta/full the server pushes on the op channel when a socket joins. A caller holding a decision that
+ * depends on the server's truth (the token move whose ack was lost) waits for this instead of guessing.
+ * Returns the unsubscribe function.
+ */
+export function onWorldResynced(listener: () => void): () => void {
+  _resyncListeners.add(listener);
+  return () => {
+    _resyncListeners.delete(listener);
+  };
+}
+
+function _notifyResynced(): void {
+  for (const listener of [..._resyncListeners]) listener();
+}
+
+/** Ask the server for the world now, even if another request is already in flight. */
+export function requestWorldResync(socket: Socket): void {
+  _sendResyncRequest(socket, true);
+}
+
 function _sendResyncRequest(socket: Socket, force = false): void {
   const sentAt = _resyncInFlight.get(socket);
   if (!force && sentAt !== undefined && Date.now() - sentAt < RESYNC_IN_FLIGHT_MS) return;
@@ -202,6 +229,7 @@ function _sendResyncRequest(socket: Socket, force = false): void {
     _resyncInFlight.delete(socket);
     if (!ack.ok) {
       console.warn("[worldSync] resync:request failed", ack);
+      _notifyResynced();
       return;
     }
 
@@ -214,6 +242,7 @@ function _sendResyncRequest(socket: Socket, force = false): void {
     } else if (result.payload.snapshot) {
       _applySnapshot(result.payload.snapshot);
     }
+    _notifyResynced();
   });
 }
 
