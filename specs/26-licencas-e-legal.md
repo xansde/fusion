@@ -406,6 +406,12 @@ release.
 - **REQ-LEG-014** [MVP] O produto NÃO PODE incluir arte, tokens, ícones de condição,
   ilustrações de itens/spells ou mapas oriundos do repositório `pf2e`/Foundry. Um
   passo de auditoria de assets DEVE detectar e bloquear esses arquivos.
+- **REQ-LEG-026** [MVP] A arte de terceiros do criador de avatar (Liberated Pixel Cup, licença por
+  peça) DEVE constar no `NOTICE` (seção do avatar), o PNG gerado é tratado como obra derivada
+  CC-BY-SA 3.0 e leva a atribuição gravada no arquivo, e o acervo NÃO vai embutido no executável:
+  o release o publica como pasta `avatar/` ao lado dele, com `creditos.json` e `LICENSES.txt`.
+  Decisão provisória de 21/10/2026 (revisar no beta); detalhes e alternativas descartadas em
+  DEC-AVT-08 (spec 35, §6.1).
 
 ### Etmos
 
