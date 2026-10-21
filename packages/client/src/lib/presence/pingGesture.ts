@@ -30,6 +30,13 @@ export const PING_HOLD_MS = 500;
  */
 export const PING_MOVE_TOLERANCE_PX = 8;
 
+/**
+ * Drift allowed to a finger before the press is read as a drag (CSS px ON THE SCREEN).
+ * A finger is never as still as a mouse, and measuring it in scene units would make a
+ * zoomed-out map (one screen px = several scene px) kill every long press.
+ */
+export const PING_TOUCH_TOLERANCE_PX = 16;
+
 /** The mouse button that pings. Right-click targets; middle-click pans. */
 const PING_BUTTON = 0;
 
@@ -43,9 +50,22 @@ export type PingInput =
       shift?: boolean;
       /** The token under the press, when there is one: the ping will name it. */
       tokenId?: string;
+      /** PointerEvent.pointerType: "touch" gets the finger tolerance, on screen px. */
+      pointerType?: string;
+      /** PointerEvent.pointerId: a second finger cancels the hold, other ids are ignored. */
+      pointerId?: number;
+      /** Press position in screen px (client coordinates), for the finger tolerance. */
+      screen?: ScenePoint;
     }
-  | { kind: "pointer-move"; point: ScenePoint; time: number }
-  | { kind: "pointer-up"; time: number }
+  | {
+      kind: "pointer-move";
+      point: ScenePoint;
+      time: number;
+      pointerType?: string;
+      pointerId?: number;
+      screen?: ScenePoint;
+    }
+  | { kind: "pointer-up"; time: number; pointerId?: number }
   /** Clock advanced — the only way a hold can ripen. Driven by the ticker. */
   | { kind: "tick"; time: number }
   /** Window blur, pointer cancel, scene teardown. */
@@ -69,9 +89,17 @@ type Phase =
   /** No button down, or the press was disqualified. */
   | { name: "idle" }
   /** Button down, still eligible: motionless and not yet ripe. */
-  | { name: "holding"; origin: ScenePoint; since: number; shift: boolean; tokenId?: string }
+  | {
+      name: "holding";
+      origin: ScenePoint;
+      since: number;
+      shift: boolean;
+      tokenId?: string;
+      /** Set for a finger: the press position in screen px and the pointer that owns the hold. */
+      touch?: { screen: ScenePoint; pointerId: number | undefined };
+    }
   /** The ping already fired; waiting for the release to swallow. */
-  | { name: "fired" };
+  | { name: "fired"; pointerId?: number };
 
 const IDLE: Phase = { name: "idle" };
 
@@ -100,8 +128,22 @@ export class PingGesture {
   handle(input: PingInput): PingEffect {
     switch (input.kind) {
       case "pointer-down": {
+        // A second finger while one is held down is a pinch/pan, never a ping.
+        if (
+          input.pointerType === "touch" &&
+          this._phase.name === "holding" &&
+          this._phase.touch !== undefined &&
+          this._phase.touch.pointerId !== input.pointerId
+        ) {
+          this._phase = IDLE;
+          return NONE;
+        }
         // A fresh press always supersedes whatever came before, including a
         // press whose release was lost outside the window.
+        const touch =
+          input.pointerType === "touch" && input.screen !== undefined
+            ? { screen: input.screen, pointerId: input.pointerId }
+            : undefined;
         this._phase =
           input.button === PING_BUTTON
             ? {
@@ -110,6 +152,7 @@ export class PingGesture {
                 since: input.time,
                 shift: input.shift === true,
                 ...(input.tokenId !== undefined ? { tokenId: input.tokenId } : {}),
+                ...(touch ? { touch } : {}),
               }
             : IDLE;
         return NONE;
@@ -117,6 +160,18 @@ export class PingGesture {
 
       case "pointer-move": {
         if (this._phase.name !== "holding") return NONE;
+        const touch = this._phase.touch;
+        if (touch !== undefined) {
+          // Only the finger that started the hold counts, and its tremor is judged on screen.
+          if (touch.pointerId !== input.pointerId) return NONE;
+          if (
+            input.screen !== undefined &&
+            distance(touch.screen, input.screen) > PING_TOUCH_TOLERANCE_PX
+          ) {
+            this._phase = IDLE;
+          }
+          return NONE;
+        }
         if (distance(this._phase.origin, input.point) > PING_MOVE_TOLERANCE_PX) {
           this._phase = IDLE;
         }
@@ -126,8 +181,11 @@ export class PingGesture {
       case "tick": {
         if (this._phase.name !== "holding") return NONE;
         if (input.time - this._phase.since < PING_HOLD_MS) return NONE;
-        const { origin: point, shift, tokenId } = this._phase;
-        this._phase = { name: "fired" };
+        const { origin: point, shift, tokenId, touch } = this._phase;
+        this._phase = {
+          name: "fired",
+          ...(touch?.pointerId !== undefined ? { pointerId: touch.pointerId } : {}),
+        };
         return {
           kind: "ping",
           point,
@@ -137,6 +195,16 @@ export class PingGesture {
       }
 
       case "pointer-up": {
+        // Another finger lifting says nothing about this hold.
+        if (input.pointerId !== undefined) {
+          const owner =
+            this._phase.name === "holding"
+              ? this._phase.touch?.pointerId
+              : this._phase.name === "fired"
+                ? this._phase.pointerId
+                : undefined;
+          if (owner !== undefined && owner !== input.pointerId) return NONE;
+        }
         const fired = this._phase.name === "fired";
         this._phase = IDLE;
         return fired ? { kind: "suppress-click" } : NONE;
