@@ -44,6 +44,7 @@ import {
   buildDocCreateHandler,
   buildDocUpdateHandler,
   buildDocDeleteHandler,
+  broadcastToWorld,
 } from "./handlers/doc-handlers.js";
 import { buildActorSetKnowledgeHandler } from "./handlers/knowledge-handlers.js";
 import { buildFolderDeleteHandler } from "./handlers/folder-handlers.js";
@@ -273,6 +274,14 @@ export class SocketManager {
    */
   private readonly writeMetrics = new Map<string, WriteMetricsCollector>();
   private readonly mapCounters = new Map<string, MapCounter>();
+  /**
+   * Per world: announce documents that were created OUTSIDE a socket op (the character `POST /api/users`
+   * writes through REST). Same seq, op buffer and `broadcastToWorld` funnel as a socket `doc:create`.
+   */
+  private readonly docCreatedBroadcasters = new Map<
+    string,
+    (documentType: string, documents: Record<string, unknown>[]) => void
+  >();
 
   constructor(options: SocketManagerOptions) {
     this.logger = options.logger;
@@ -358,6 +367,17 @@ export class SocketManager {
     const mapCounter = new MapCounter();
     this.mapCounters.set(worldId, mapCounter);
     const registry = new HandlerRegistry();
+
+    this.docCreatedBroadcasters.set(worldId, (documentType, documents) => {
+      const envelope: Envelope = {
+        type: "doc:create",
+        seq: seqStore.next(),
+        ts: Date.now(),
+        payload: { documentType, documents },
+      };
+      opBuffer.push(envelope);
+      broadcastToWorld(ns, envelope, documentType);
+    });
 
     // Spec 39 §5.9 (REQ-CTT-083): bind this namespace to the Actor table its
     // contact redaction reads from. Registered here, once, so EVERY emission
@@ -974,6 +994,7 @@ export class SocketManager {
         ns.removeAllListeners();
         this.io._nsps.delete(`/world/${worldId}`);
         this.namespaces.delete(worldId);
+        this.docCreatedBroadcasters.delete(worldId);
 
         this.logger.info({ worldId }, "World namespace removed");
       }
@@ -1027,6 +1048,18 @@ export class SocketManager {
     for (const ns of this.namespaces.values()) {
       ns.to("gm").emit(event, payload);
     }
+  }
+
+  /**
+   * Announce documents created outside a socket op (e.g. the character born with a new user, #254) to
+   * every client of the world, as a `doc:create`. No-op for a world with no namespace.
+   */
+  broadcastDocCreated(
+    worldId: string,
+    documentType: string,
+    documents: Record<string, unknown>[],
+  ): void {
+    this.docCreatedBroadcasters.get(worldId)?.(documentType, documents);
   }
 
   /** Close all namespaces and the underlying socket.io server. */

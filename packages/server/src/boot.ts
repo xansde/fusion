@@ -468,6 +468,9 @@ export async function boot(options: BootOptions): Promise<BootResult> {
 
   // Register auth routes if a world context is provided.
   let authServiceInstance: AuthService | undefined;
+  // Deferred like `updateHooks`: the routes are registered before the socket layer exists (Phase 3b).
+  const authHooks: { onCharacterCreated: ((actor: Record<string, unknown>) => void) | undefined } =
+    { onCharacterCreated: undefined };
   if (authContext) {
     const { AuthService, registerAuthRoutes } = await import("./auth/index.js");
     authServiceInstance = new AuthService(authContext.db, authContext.secret, authContext.worldId);
@@ -478,6 +481,7 @@ export async function boot(options: BootOptions): Promise<BootResult> {
         title: authContext.worldTitle,
         systemId: authContext.worldSystemId,
       },
+      onCharacterCreated: (actor) => authHooks.onCharacterCreated?.(actor),
     });
     logger.info({ worldId: authContext.worldId }, "Auth routes registered");
   }
@@ -788,6 +792,12 @@ export async function boot(options: BootOptions): Promise<BootResult> {
       nsOptions.assetsDir = netContext.assetsDir;
     }
     socketManager.registerWorldNamespace(nsOptions);
+    // #254: the character born with a new user (REST path) reaches the clients already connected.
+    const smForCharacters = socketManager;
+    const netWorldId = netContext.worldId;
+    authHooks.onCharacterCreated = (actor) => {
+      smForCharacters.broadcastDocCreated(netWorldId, "Actor", [actor]);
+    };
 
     logger.info(
       { worldId: netContext.worldId, path: `/world/${netContext.worldId}` },

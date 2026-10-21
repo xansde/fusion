@@ -273,14 +273,20 @@ export class AuthService {
    * failure (e.g. validation) rolls back the user insert too and no user of
    * a non-privileged role is ever left without its Actor.
    *
-   * Returns the created user and, if a password was generated, that password.
+   * Returns the created user, the blank character that was born with it (`undefined` for the
+   * roles that get none) so the caller can announce it to the connected clients (#254), and, if a
+   * password was generated, that password.
    */
   async createUser(params: {
     name: string;
     role: Role;
     color?: string;
     password?: string;
-  }): Promise<{ user: UserPublic; generatedPassword?: string }> {
+  }): Promise<{
+    user: UserPublic;
+    character?: Record<string, unknown>;
+    generatedPassword?: string;
+  }> {
     // Unique name check
     const existing = this.users.findByName(params.name);
     if (existing) {
@@ -299,13 +305,14 @@ export class AuthService {
     };
     if (params.color !== undefined) createOpts.color = params.color;
 
+    let character: Record<string, unknown> | undefined;
     const record = this.db.transaction(() => {
       const created = this.users.create(createOpts);
 
       // DEC-USR-01: only PLAYER and TRUSTED are non-privileged; ASSISTANT and
       // GAMEMASTER get no character (REQ-USR-025, last paragraph).
       if (created.role === Role.PLAYER || created.role === Role.TRUSTED) {
-        this.documents.create(
+        character = this.documents.create(
           "actors",
           {
             // REQ-USR-025b: name derived from the user's own name; subtype
@@ -333,7 +340,7 @@ export class AuthService {
       return created;
     })();
 
-    return { user: toPublic(record) };
+    return character ? { user: toPublic(record), character } : { user: toPublic(record) };
   }
 
   /**

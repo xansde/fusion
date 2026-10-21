@@ -358,6 +358,12 @@ usuário (REQ-USR-026, inclusive mudança de papel), resetar senha (REQ-USR-027)
 existente. Dar um **segundo** personagem a um jogador que já tem um é [V2] e não é gesto desta tela
 (REQ-NPC-055a); excluir personagem de jogador segue sem tela em lugar nenhum do produto (Q-NPC-06).
 
+**REQ-USR-025e** [MVP] O personagem criado por REQ-USR-025 DEVE ser anunciado, no mesmo gesto, aos clientes
+já conectados do World como um `doc:create` de Actor (com `seq` do mundo, guardado no buffer de ops e pelo mesmo
+funil de redação de qualquer outra escrita), para que a seção "Na mesa" de Contatos o mostre sem recarregar a
+página. Uma falha no anúncio NÃO DEVE desfazer a criação do usuário nem do personagem. _Implementado em 21/10/2026
+(`SocketManager.broadcastDocCreated`; issue #254)._
+
 **REQ-USR-026** [MVP] O GM deve poder editar os campos `name`, `role`, `color`, `avatar` e `active`
 de qualquer usuário (inclusive outros GMs). Não é possível rebaixar o único GM ativo do World para
 outro role — o sistema deve recusar com mensagem de erro clara.

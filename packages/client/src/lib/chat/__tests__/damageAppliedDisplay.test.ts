@@ -66,6 +66,17 @@ const ACID_TARGET_NO_RESISTANCE: DamageAppliedTarget = {
   hpAfter: 16,
 };
 
+/** A type no dictionary knows (a homebrew slug): the raw-slug fallback. */
+const UNKNOWN_TYPE_TARGET: DamageAppliedTarget = {
+  tokenId: "tok-orc",
+  actorId: "actor-orc",
+  name: "Orc",
+  byType: [{ type: "plasma", amount: 16 }],
+  total: 16,
+  hpBefore: 32,
+  hpAfter: 16,
+};
+
 const HEAL_TARGET: DamageAppliedTarget = {
   tokenId: "tok-finn",
   actorId: "actor-finn",
@@ -137,8 +148,12 @@ describe("formatDamageAppliedPlayerLine (D-04: damage caused, never PV)", () => 
     );
   });
 
-  it("damage with no resistance/weakness (I3: 'acid' has no curated FUSION.Damage.* entry -> falls back to the raw slug, not a raw i18n key)", () => {
-    expect(formatDamageAppliedPlayerLine(ACID_TARGET_NO_RESISTANCE)).toBe("Orc sofreu 16 de acid");
+  it("damage with no resistance/weakness: every rules damage type is curated now, 'acid' -> 'ácido' (satélite #410)", () => {
+    expect(formatDamageAppliedPlayerLine(ACID_TARGET_NO_RESISTANCE)).toBe("Orc sofreu 16 de ácido");
+  });
+
+  it("I3: a type with no FUSION.Damage.* entry falls back to the raw slug, never a raw i18n key", () => {
+    expect(formatDamageAppliedPlayerLine(UNKNOWN_TYPE_TARGET)).toBe("Orc sofreu 16 de plasma");
   });
 
   it("healing reads as recovery, not 'damage'", () => {

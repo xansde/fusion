@@ -8,17 +8,17 @@ Isso mede *reivindicação de cobertura*, não correção: um teste que nomeia o
 requisito afirma cobri-lo, e essa afirmação é auditável. Requisito sem citação
 nenhuma não afirma nada — é a spec pedindo algo que ninguém foi conferir.
 
-Escopo: os **2367 requisitos [MVP]** definidos nas 48 specs. Os [V2] ficam de fora
+Escopo: os **2368 requisitos [MVP]** definidos nas 48 specs. Os [V2] ficam de fora
 porque ainda não foram prometidos para nenhum marco.
 
 ## Total
 
 | Situação | Requisitos | Fatia |
 | --- | ---: | ---: |
-| Citados por algum teste | 952 | 40% |
+| Citados por algum teste | 953 | 40% |
 | Citados só por código de produção | 337 | 14% |
 | Sem nenhuma citação | 1078 | 46% |
-| **Total [MVP]** | **2367** | |
+| **Total [MVP]** | **2368** | |
 
 ## Por spec
 
@@ -29,7 +29,7 @@ porque ainda não foram prometidos para nenhum marco.
 | [02](02-modelo-de-dados.md) | 59 | 18 | 13 | 28 | 31% |
 | [03](03-persistencia-e-mundos.md) | 36 | 3 | 19 | 14 | 8% |
 | [04](04-rede-e-sincronizacao.md) | 49 | 10 | 21 | 18 | 20% |
-| [05](05-usuarios-e-permissoes.md) | 43 | 20 | 13 | 10 | 47% |
+| [05](05-usuarios-e-permissoes.md) | 44 | 21 | 13 | 10 | 48% |
 | [06](06-canvas-e-renderizacao.md) | 89 | 20 | 25 | 44 | 22% |
 | [07](07-visao-iluminacao-fog.md) | 56 | 8 | 22 | 26 | 14% |
 | [08](08-motor-de-rolagens.md) | 49 | 14 | 12 | 23 | 29% |
