@@ -107,6 +107,15 @@
     gap: 0.25rem;
   }
 
+  .own-password__field input {
+    background: var(--fusion-surface-alt);
+    border: 1px solid var(--fusion-border);
+    border-radius: var(--fusion-radius-sm);
+    color: var(--fusion-text);
+    font: inherit;
+    padding: 0.3rem 0.4rem;
+  }
+
   .own-password__field small {
     color: var(--fusion-text-muted);
     font-size: 0.6875rem;
@@ -123,5 +132,21 @@
 
   button {
     align-self: flex-start;
+    background: var(--fusion-accent);
+    border: none;
+    border-radius: var(--fusion-radius-sm);
+    color: var(--fusion-surface);
+    cursor: pointer;
+    font: inherit;
+    padding: 0.35rem 0.6rem;
+  }
+
+  button:hover:not(:disabled) {
+    background: var(--fusion-accent-hover);
+  }
+
+  button:disabled {
+    cursor: default;
+    opacity: 0.6;
   }
 </style>
