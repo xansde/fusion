@@ -947,7 +947,7 @@ type ConsumeHookFn = (
   6. sem plano registrado, ou com nenhum `appliesTo` verdadeiro, responde `NOT_SUPPORTED` sem
      escrever nada (mesma postura de REQ-SYS-142 passo 6).
 - **REQ-SYS-165** [MVP] O servidor DEVE expor `item:transfer { fromActorId, toActorId, itemId,
-  quantity, expectedVersion }`: dar um item físico (ou parte de uma pilha) a **outro ator**, numa
+quantity, expectedVersion }`: dar um item físico (ou parte de uma pilha) a **outro ator**, numa
   única transação sobre os dois atores (nunca dois `doc:update`). Quem dá DEVE ser OWNER do ator
   de origem (ou GM/assistente); quem recebe não precisa ser do remetente, mas para um jogador
   DEVE ser um personagem que algum jogador possui ou um ator que ele ao menos enxerga (LIMITED).
@@ -955,7 +955,7 @@ type ConsumeHookFn = (
   `CONFLICT`). O item chega **fora de uso** (guardado no inventário, não investido, fora de
   contêiner); pilha idêntica já existente soma quantidade; contêiner só viaja inteiro e com o
   conteúdo. O servidor posta uma linha de sistema no chat. Resultado: `{ moved, itemName,
-  toActorId, merged }`.
+toActorId, merged }`.
 - **REQ-SYS-144** [MVP] O `registrar` DEVE expor
   `registerConsumeHook(id, fn, opts?: { priority?: number })`, aceitando **vários** callbacks,
   executados depois de persistir o consumo e antes do broadcast, com a mesma ordenação,

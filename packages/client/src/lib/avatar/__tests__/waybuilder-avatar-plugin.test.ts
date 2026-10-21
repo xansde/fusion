@@ -11,7 +11,11 @@
 import { describe, expect, it } from "vitest";
 import { existsSync } from "node:fs";
 import { join, resolve, sep } from "node:path";
-import { AVATAR_URL_PREFIX, resolveAcervoDir, resolveAcervoFile } from "../../../../vite-plugins/waybuilder-avatar.js";
+import {
+  AVATAR_URL_PREFIX,
+  resolveAcervoDir,
+  resolveAcervoFile,
+} from "../../../../vite-plugins/waybuilder-avatar.js";
 
 const ACERVO = resolve("/tmp/acervo");
 

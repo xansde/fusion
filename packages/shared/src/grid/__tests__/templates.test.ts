@@ -119,9 +119,7 @@ describe("cone", () => {
 describe("line", () => {
   it("is one square wide and N/5 squares long", () => {
     const t: AreaTemplate = { kind: "line", sizeFt: 30, origin: { x: 500, y: 550 }, direction: 0 };
-    expect(key(templateCells(t, grid))).toEqual(
-      ["5,5", "6,5", "7,5", "8,5", "9,5", "10,5"].sort(),
-    );
+    expect(key(templateCells(t, grid))).toEqual(["5,5", "6,5", "7,5", "8,5", "9,5", "10,5"].sort());
   });
 });
 

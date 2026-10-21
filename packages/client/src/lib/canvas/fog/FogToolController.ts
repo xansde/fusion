@@ -290,7 +290,12 @@ export class FogToolController {
       } else {
         const x = Math.min(this._rectStart.x, cursor.x);
         const y = Math.min(this._rectStart.y, cursor.y);
-        g.rect(x, y, Math.abs(cursor.x - this._rectStart.x), Math.abs(cursor.y - this._rectStart.y)).stroke({
+        g.rect(
+          x,
+          y,
+          Math.abs(cursor.x - this._rectStart.x),
+          Math.abs(cursor.y - this._rectStart.y),
+        ).stroke({
           color,
           width: line,
         });

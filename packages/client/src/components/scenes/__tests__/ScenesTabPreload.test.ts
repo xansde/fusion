@@ -19,7 +19,13 @@ describe("ScenesTab — preload for everyone", () => {
   beforeEach(() => {
     sceneListState.folders = [];
     sceneListState.scenes = [
-      { _id: "s1", type: "Scene", name: "Taverna", folder: null, sort: 0 } as unknown as SceneDocument,
+      {
+        _id: "s1",
+        type: "Scene",
+        name: "Taverna",
+        folder: null,
+        sort: 0,
+      } as unknown as SceneDocument,
     ];
   });
 

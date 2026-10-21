@@ -31,6 +31,9 @@ export function precisaConfirmarSubstituicao(imgAtual: string | null | undefined
 }
 
 /** The remembered image is worth offering only when it differs from the current one. */
-export function podeRestaurar(imgAtual: string | null | undefined, anterior: string | null): anterior is string {
+export function podeRestaurar(
+  imgAtual: string | null | undefined,
+  anterior: string | null,
+): anterior is string {
   return anterior !== null && anterior.trim() !== "" && anterior !== (imgAtual ?? "");
 }

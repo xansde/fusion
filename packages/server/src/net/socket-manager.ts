@@ -924,7 +924,7 @@ export class SocketManager {
         pingRateLimiter,
         previewRateLimiter,
         sceneRooms,
-        ...(secret ? { assetSecret: secret } : {}),
+        assetSecret: secret,
         userIdentity: (id: string) => {
           const u = userStore.findById(id);
           return u ? { name: u.name, color: u.color } : undefined;

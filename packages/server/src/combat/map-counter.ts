@@ -316,7 +316,15 @@ export class MapCounter {
       if (typeof active !== "string" || !Array.isArray(combat["combatants"])) continue;
       const combatants = combat["combatants"] as Record<string, unknown>[];
       if (thrallMasterId !== undefined) {
-        const counted = this.noteThrallAttack(store, combat, combatants, active, speaker, thrallMasterId, opts);
+        const counted = this.noteThrallAttack(
+          store,
+          combat,
+          combatants,
+          active,
+          speaker,
+          thrallMasterId,
+          opts,
+        );
         if (counted !== undefined) return counted;
         continue;
       }
@@ -366,10 +374,18 @@ export class MapCounter {
     opts: NoteAttackOptions,
   ): number | undefined {
     const combatId = String(combat["_id"]);
-    const controller = pickSpeakerCombatant(combatants, { ...speaker, actorId: masterId, tokenId: undefined }, active);
+    const controller = pickSpeakerCombatant(
+      combatants,
+      { ...speaker, actorId: masterId, tokenId: undefined },
+      active,
+    );
     if (!controller || typeof controller["_id"] !== "string") return undefined;
-    if (this.mapGroupOf(controller["_id"], combatId) !== this.mapGroupOf(active, combatId)) return undefined;
-    if (!isRolePrivileged(speaker.role) && !(speaker.actorId && ownsActor(store, speaker, speaker.actorId))) {
+    if (this.mapGroupOf(controller["_id"], combatId) !== this.mapGroupOf(active, combatId))
+      return undefined;
+    if (
+      !isRolePrivileged(speaker.role) &&
+      !(speaker.actorId && ownsActor(store, speaker, speaker.actorId))
+    ) {
       return undefined;
     }
     const count = this.noteAttack(combatId, controller["_id"], opts);

@@ -72,10 +72,17 @@ describe("avatar overlay preferences", () => {
   it("repairs junk: size clamped to 64..320, unknown corner, broken position", () => {
     store.set(
       clientPrefsKey("w", "u"),
-      JSON.stringify({ avatarOverlay: { visivel: "sim", tamanho: 9999, canto: "meio", livre: { x: "a" } } }),
+      JSON.stringify({
+        avatarOverlay: { visivel: "sim", tamanho: 9999, canto: "meio", livre: { x: "a" } },
+      }),
     );
-    expect(loadClientPreferences("w", "u").avatarOverlay).toEqual(DEFAULT_AVATAR_OVERLAY_WITH({ tamanho: 320 }));
-    store.set(clientPrefsKey("w", "u"), JSON.stringify({ avatarOverlay: { tamanho: 10, livre: { x: 5, y: -2 } } }));
+    expect(loadClientPreferences("w", "u").avatarOverlay).toEqual(
+      DEFAULT_AVATAR_OVERLAY_WITH({ tamanho: 320 }),
+    );
+    store.set(
+      clientPrefsKey("w", "u"),
+      JSON.stringify({ avatarOverlay: { tamanho: 10, livre: { x: 5, y: -2 } } }),
+    );
     const p = loadClientPreferences("w", "u").avatarOverlay;
     expect(p.tamanho).toBe(64);
     expect(p.livre).toEqual({ x: 1, y: 0 });

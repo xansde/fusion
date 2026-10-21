@@ -37,7 +37,10 @@ interface Ctx {
 let ctx: Ctx;
 
 beforeEach(async () => {
-  const dir = join(tmpdir(), `fusion-asset-cat-${String(Date.now())}-${Math.random().toString(36).slice(2)}`);
+  const dir = join(
+    tmpdir(),
+    `fusion-asset-cat-${String(Date.now())}-${Math.random().toString(36).slice(2)}`,
+  );
   const assetsDir = join(dir, "assets");
   mkdirSync(assetsDir, { recursive: true });
   const dbPath = join(dir, "world.db");
@@ -46,15 +49,40 @@ beforeEach(async () => {
   applyMigrations(db.raw, dbPath);
   const auth = new AuthService(db.raw, secret, "w");
   const { user: gm, password } = await auth.bootstrapGm();
-  const { user: trusted } = await auth.createUser({ name: "T", role: Role.TRUSTED, password: "t-pass" });
-  const { user: player } = await auth.createUser({ name: "P", role: Role.PLAYER, password: "p-pass" });
+  const { user: trusted } = await auth.createUser({
+    name: "T",
+    role: Role.TRUSTED,
+    password: "t-pass",
+  });
+  const { user: player } = await auth.createUser({
+    name: "P",
+    role: Role.PLAYER,
+    password: "p-pass",
+  });
   const fastify = Fastify({ logger: false }) as unknown as FastifyInstance;
   await fastify.register(fastifyCookie);
-  registerAuthRoutes(fastify, { authService: auth, worldInfo: { id: "w", title: "W", systemId: "stub" } });
-  registerAssetRoutes(fastify, { authService: auth, assetsDir, maxUploadBytes: 1024 * 1024, secret, db: db.raw });
+  registerAuthRoutes(fastify, {
+    authService: auth,
+    worldInfo: { id: "w", title: "W", systemId: "stub" },
+  });
+  registerAssetRoutes(fastify, {
+    authService: auth,
+    assetsDir,
+    maxUploadBytes: 1024 * 1024,
+    secret,
+    db: db.raw,
+  });
   await fastify.ready();
   const login = async (id: string, pass: string): Promise<string> =>
-    ((await fastify.inject({ method: "POST", url: "/api/auth/login", payload: { userId: id, password: pass } })).json() as { accessToken: string }).accessToken;
+    (
+      (
+        await fastify.inject({
+          method: "POST",
+          url: "/api/auth/login",
+          payload: { userId: id, password: pass },
+        })
+      ).json() as { accessToken: string }
+    ).accessToken;
   ctx = {
     dir,
     assetsDir,
@@ -138,17 +166,28 @@ describe("asset categories over HTTP", () => {
   });
 
   it("a PLAYER still cannot list the library (no new leak)", async () => {
-    const r = await ctx.fastify.inject({ method: "GET", url: "/api/assets", headers: auth(ctx.player) });
+    const r = await ctx.fastify.inject({
+      method: "GET",
+      url: "/api/assets",
+      headers: auth(ctx.player),
+    });
     expect(r.statusCode).toBe(403);
   });
 
   it("refuses an unknown category, 'icons', a path, and a missing file", async () => {
     writeFileSync(join(ctx.assetsDir, "solto.png"), PNG);
     const patch = (payload: unknown) =>
-      ctx.fastify.inject({ method: "PATCH", url: "/api/assets/category", headers: auth(ctx.gm), payload: payload as object });
+      ctx.fastify.inject({
+        method: "PATCH",
+        url: "/api/assets/category",
+        headers: auth(ctx.gm),
+        payload: payload as object,
+      });
     expect((await patch({ name: "solto.png", category: "bogus" })).statusCode).toBe(400);
     expect((await patch({ name: "solto.png", category: "icons" })).statusCode).toBe(400);
-    expect((await patch({ name: "actionbar-icons/a-11111111.png", category: "maps" })).statusCode).toBe(400);
+    expect(
+      (await patch({ name: "actionbar-icons/a-11111111.png", category: "maps" })).statusCode,
+    ).toBe(400);
     expect((await patch({ name: "../x.png", category: "maps" })).statusCode).toBe(400);
     expect((await patch({ name: "nao-existe.png", category: "maps" })).statusCode).toBe(404);
   });

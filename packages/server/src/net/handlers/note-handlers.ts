@@ -89,7 +89,7 @@ function persist(
   userId: string,
   notes: MapNote[],
   result: Record<string, unknown>,
-): Ack<unknown> {
+): Ack {
   const updated = deps.store.update("scenes", sceneId, { notes }, { userId });
   if (!updated) return ackOk(result, deps.seqStore.peek());
   const seq = deps.seqStore.next();

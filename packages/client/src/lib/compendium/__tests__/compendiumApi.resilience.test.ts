@@ -35,7 +35,10 @@ interface Sent {
 /** A socket driven by a script: each emit is answered by the next behaviour for that query type. */
 function scriptedSocket(
   sent: Sent[],
-  answer: (n: number, env: Sent) => "never" | { ok: boolean; result?: unknown; code?: string; message?: string },
+  answer: (
+    n: number,
+    env: Sent,
+  ) => "never" | { ok: boolean; result?: unknown; code?: string; message?: string },
 ): Socket {
   return {
     connected: true,
@@ -48,12 +51,23 @@ function scriptedSocket(
 }
 
 function entry(id: string, name: string, level: number): PackIndexEntry {
-  return { _id: id, uuid: `Compendium.pf2e.feats-core.Item.${id}`, name, img: "", type: "feat", index: { "system.level": level } } as unknown as PackIndexEntry;
+  return {
+    _id: id,
+    uuid: `Compendium.pf2e.feats-core.Item.${id}`,
+    name,
+    img: "",
+    type: "feat",
+    index: { "system.level": level },
+  } as unknown as PackIndexEntry;
 }
 
 const INDEX = {
   packId: "pf2e.feats-core",
-  entries: [entry("a", "Power Attack", 1), entry("b", "Shield Block", 1), entry("c", "Reactive Shield", 3)],
+  entries: [
+    entry("a", "Power Attack", 1),
+    entry("b", "Shield Block", 1),
+    entry("c", "Reactive Shield", 3),
+  ],
 };
 
 beforeEach(() => {
@@ -86,18 +100,30 @@ describe("cache e requisição compartilhada", () => {
 
   it("o cache é por conexão: socket novo (reconexão) pergunta de novo", async () => {
     const sent: Sent[] = [];
-    await getPackIndex(scriptedSocket(sent, () => ({ ok: true, result: INDEX })), "pf2e.feats-core");
-    await getPackIndex(scriptedSocket(sent, () => ({ ok: true, result: INDEX })), "pf2e.feats-core");
+    await getPackIndex(
+      scriptedSocket(sent, () => ({ ok: true, result: INDEX })),
+      "pf2e.feats-core",
+    );
+    await getPackIndex(
+      scriptedSocket(sent, () => ({ ok: true, result: INDEX })),
+      "pf2e.feats-core",
+    );
     expect(sent).toHaveLength(2);
   });
 
   it("falha não fica no cache: a próxima chamada tenta de novo", async () => {
     const sent: Sent[] = [];
     const socket = scriptedSocket(sent, (n) =>
-      n === 1 ? { ok: false, code: "NOT_FOUND", message: "Pack not found" } : { ok: true, result: INDEX },
+      n === 1
+        ? { ok: false, code: "NOT_FOUND", message: "Pack not found" }
+        : { ok: true, result: INDEX },
     );
-    await expect(getPackIndex(socket, "pf2e.feats-core")).rejects.toBeInstanceOf(CompendiumQueryError);
-    await expect(getPackIndex(socket, "pf2e.feats-core")).resolves.toMatchObject({ packId: "pf2e.feats-core" });
+    await expect(getPackIndex(socket, "pf2e.feats-core")).rejects.toBeInstanceOf(
+      CompendiumQueryError,
+    );
+    await expect(getPackIndex(socket, "pf2e.feats-core")).resolves.toMatchObject({
+      packId: "pf2e.feats-core",
+    });
     expect(sent).toHaveLength(2);
   });
 
@@ -127,7 +153,10 @@ describe("o que não fica guardado", () => {
 
   it("índice vazio (pack ainda não carregado) não fica no cache", async () => {
     const sent: Sent[] = [];
-    const socket = scriptedSocket(sent, () => ({ ok: true, result: { packId: "pf2e.feats-core", entries: [] } }));
+    const socket = scriptedSocket(sent, () => ({
+      ok: true,
+      result: { packId: "pf2e.feats-core", entries: [] },
+    }));
     await getPackIndex(socket, "pf2e.feats-core");
     await getPackIndex(socket, "pf2e.feats-core");
     expect(sent).toHaveLength(2);
@@ -161,7 +190,11 @@ describe("searchPack reaproveita o índice", () => {
     const all = await searchPack(socket, { packId: "pf2e.feats-core" });
     all.entries.reverse();
     const again = await getPackIndex(socket, "pf2e.feats-core");
-    expect(again.entries.map((e) => e.name)).toEqual(["Power Attack", "Shield Block", "Reactive Shield"]);
+    expect(again.entries.map((e) => e.name)).toEqual([
+      "Power Attack",
+      "Shield Block",
+      "Reactive Shield",
+    ]);
   });
 
   it("com o índice já em cache, a busca filtrada roda LOCAL com a mesma regra do servidor", async () => {
@@ -238,7 +271,11 @@ describe("tempo, nova tentativa e mensagem", () => {
 
   it("erro permanente do servidor (pack inexistente) não é repetido", async () => {
     const sent: Sent[] = [];
-    const socket = scriptedSocket(sent, () => ({ ok: false, code: "NOT_FOUND", message: "Pack not found" }));
+    const socket = scriptedSocket(sent, () => ({
+      ok: false,
+      code: "NOT_FOUND",
+      message: "Pack not found",
+    }));
     await expect(getPackIndex(socket, "pf2e.nada")).rejects.toMatchObject({ code: "NOT_FOUND" });
     expect(sent).toHaveLength(1);
   });
@@ -246,7 +283,9 @@ describe("tempo, nova tentativa e mensagem", () => {
   it("erro transitório do servidor (INTERNAL_ERROR) é repetido", async () => {
     const sent: Sent[] = [];
     const socket = scriptedSocket(sent, (n) =>
-      n === 1 ? { ok: false, code: "INTERNAL_ERROR", message: "boom" } : { ok: true, result: INDEX },
+      n === 1
+        ? { ok: false, code: "INTERNAL_ERROR", message: "boom" }
+        : { ok: true, result: INDEX },
     );
     const p = getPackIndex(socket, "pf2e.feats-core");
     await vi.advanceTimersByTimeAsync(5_000);

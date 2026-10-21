@@ -448,9 +448,7 @@ describe("tooltipView — o tooltip curto (REQ-BAR-044, REQ-BAR-039)", () => {
     it("um grupo que diz algo continua no subtítulo ('Classe', 'Truques', '1º grau')", () => {
       expect(subtitleOf(makeEntry("action:a", { group: "Classe" }))).toBe("Ação · Classe");
       expect(subtitleOf(makeEntry("spell:m:a", { group: "Truques" }))).toBe("Magia · Truques");
-      expect(subtitleOf(makeEntry("spell:m:b", { group: "1º grau" }))).toBe(
-        "Magia · 1º grau",
-      );
+      expect(subtitleOf(makeEntry("spell:m:b", { group: "1º grau" }))).toBe("Magia · 1º grau");
     });
 
     it("só conta o nome da aba da PRÓPRIA entrada: 'Golpes' num teste é um grupo como outro qualquer", () => {

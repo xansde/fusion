@@ -1,5 +1,9 @@
 import { describe, expect, it } from "vitest";
-import { caminhoDeArteValido, podeRestaurar, precisaConfirmarSubstituicao } from "../imagemDoAtor.js";
+import {
+  caminhoDeArteValido,
+  podeRestaurar,
+  precisaConfirmarSubstituicao,
+} from "../imagemDoAtor.js";
 
 describe("caminhoDeArteValido", () => {
   it("accepts what the avatar upload returns", () => {
@@ -7,7 +11,17 @@ describe("caminhoDeArteValido", () => {
   });
 
   it("refuses everything that would blank or break the actor's art", () => {
-    for (const ruim of ["", " ", "/assets/", "/assets/undefined", "/assets/x.png?g=1", "avatar-token-1.png", null, undefined, 42]) {
+    for (const ruim of [
+      "",
+      " ",
+      "/assets/",
+      "/assets/undefined",
+      "/assets/x.png?g=1",
+      "avatar-token-1.png",
+      null,
+      undefined,
+      42,
+    ]) {
       expect(caminhoDeArteValido(ruim)).toBe(false);
     }
   });
@@ -15,7 +29,9 @@ describe("caminhoDeArteValido", () => {
 
 describe("precisaConfirmarSubstituicao", () => {
   it("asks before replacing art the player brought from elsewhere", () => {
-    expect(precisaConfirmarSubstituicao("/assets/heroictoken_2026-10-04_16-56-12-785db055.png")).toBe(true);
+    expect(
+      precisaConfirmarSubstituicao("/assets/heroictoken_2026-10-04_16-56-12-785db055.png"),
+    ).toBe(true);
   });
 
   it("does not ask when there is nothing real to lose, or it is already avatar art", () => {

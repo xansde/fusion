@@ -237,7 +237,9 @@ describe("the server remembers the actor's previous img", () => {
     await escrever({ img: "" });
     await escrever({ img: "" });
     await escrever({ img: null });
-    expect(readImagemAnterior(ctx.store.get("actors", actorId))).toBe("/assets/heroictoken-785db055.png");
+    expect(readImagemAnterior(ctx.store.get("actors", actorId))).toBe(
+      "/assets/heroictoken-785db055.png",
+    );
   });
 
   it("restoring swaps: the image restored over is remembered in turn", async () => {
@@ -252,11 +254,18 @@ describe("the server remembers the actor's previous img", () => {
     await escrever({ img: "/assets/avatar-token-79449d7e.png" });
     await escrever({ name: "Bhrotto Raiz-funda" });
     await escrever({ img: "/assets/avatar-token-79449d7e.png" });
-    expect(readImagemAnterior(ctx.store.get("actors", actorId))).toBe("/assets/heroictoken-785db055.png");
+    expect(readImagemAnterior(ctx.store.get("actors", actorId))).toBe(
+      "/assets/heroictoken-785db055.png",
+    );
   });
 
   it("a client cannot forge the memory in the same write that changes img", async () => {
-    await escrever({ img: "/assets/x-11111111.png", [IMAGEM_ANTERIOR_FLAG_PATH]: "/assets/forjado.png" });
-    expect(readImagemAnterior(ctx.store.get("actors", actorId))).toBe("/assets/heroictoken-785db055.png");
+    await escrever({
+      img: "/assets/x-11111111.png",
+      [IMAGEM_ANTERIOR_FLAG_PATH]: "/assets/forjado.png",
+    });
+    expect(readImagemAnterior(ctx.store.get("actors", actorId))).toBe(
+      "/assets/heroictoken-785db055.png",
+    );
   });
 });

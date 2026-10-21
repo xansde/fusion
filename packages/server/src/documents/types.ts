@@ -132,7 +132,15 @@ export const SceneSchema = BaseDocumentSchema.extend({
     .preprocess(
       (g) =>
         g !== null && typeof g === "object"
-          ? { type: "square", size: 100, distance: 5, units: "ft", color: "#000000", alpha: 0.2, ...g }
+          ? {
+              type: "square",
+              size: 100,
+              distance: 5,
+              units: "ft",
+              color: "#000000",
+              alpha: 0.2,
+              ...g,
+            }
           : g,
       GridConfigSchema,
     )

@@ -300,7 +300,9 @@ describe("redactChatEffectExpiryForNonPrivileged — legacy turnAutomation card"
       content: "Dano persistente: Emboscador sofre 5 de fogo.",
       speaker: { userId: "system", alias: "Sistema", actorId: "actor-S" },
       whisper: [],
-      flags: { fusion: { turnAutomation: { kind: "persistent", ...(hidden ? { hidden: true } : {}) } } },
+      flags: {
+        fusion: { turnAutomation: { kind: "persistent", ...(hidden ? { hidden: true } : {}) } },
+      },
     }) as unknown as ChatMessage;
 
   it("cuts the name and the actor id of a hidden combatant's automation card", () => {

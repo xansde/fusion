@@ -202,18 +202,6 @@ function seqOf(ack: Record<string, unknown>): number {
   return seq;
 }
 
-function snapshotSeq(traffic: Record<string, unknown>[]): number {
-  for (const env of traffic) {
-    if (env["type"] !== "resync:full") continue;
-    const snap = (env["payload"] as Record<string, unknown>)["snapshot"] as Record<
-      string,
-      unknown
-    > | null;
-    if (snap) return snap["seq"] as number;
-  }
-  throw new Error("no resync:full snapshot in the recorded traffic");
-}
-
 /** Every Token id carried by any Scene body in the recorded traffic, whatever path. */
 function tokenIdsIn(envelopes: Record<string, unknown>[]): Set<string> {
   const ids = new Set<string>();
@@ -281,7 +269,8 @@ describe("manual fog of war — persistence, GM-only edit and token redaction", 
       documentType: "Actor",
       data: [{ name: "Goblin", type: "npc" }],
     });
-    const actorId = (actorsAck["result"] as { documents: Array<{ _id: string }> }).documents[0]!._id;
+    const actorId = (actorsAck["result"] as { documents: Array<{ _id: string }> }).documents[0]!
+      ._id;
 
     const sceneAck = await sendOp(gmSocket, "doc:create", {
       documentType: "Scene",
@@ -362,7 +351,12 @@ describe("manual fog of war — persistence, GM-only edit and token redaction", 
 
   it("a token moved into the fog by the GM disappears from the player", async () => {
     const traffic = recordEnvelopes(playerSocket);
-    const ack = await sendOp(gmSocket, "token:move", { sceneId, tokenId: seenTokenId, x: 900, y: 0 });
+    const ack = await sendOp(gmSocket, "token:move", {
+      sceneId,
+      tokenId: seenTokenId,
+      x: 900,
+      y: 0,
+    });
     expect(ack["ok"], JSON.stringify(ack)).toBe(true);
     await waitForSeq(traffic, seqOf(ack), "player copy of the move");
     expect(tokenIdsIn(traffic).has(seenTokenId)).toBe(false);
@@ -398,7 +392,9 @@ describe("manual fog of war — persistence, GM-only edit and token redaction", 
     const traffic = recordEnvelopes(playerSocket);
     const ack = await sendOp(gmSocket, "doc:update", {
       documentType: "Scene",
-      updates: [{ _id: sceneId, diff: { manualFog: { enabled: true, base: "revealed", ops: [] } } }],
+      updates: [
+        { _id: sceneId, diff: { manualFog: { enabled: true, base: "revealed", ops: [] } } },
+      ],
     });
     expect(ack["ok"], JSON.stringify(ack)).toBe(true);
     await waitForSeq(traffic, seqOf(ack), "player copy of reveal-all");

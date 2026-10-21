@@ -699,7 +699,11 @@ describe("Ephemeral handlers — anchored and styled templates", () => {
     gmSocket.emit("ephemeral", {
       type: "presence:template:style",
       ts: Date.now(),
-      payload: { id: "a2", sceneId: "sceneS2", style: { color: "#0a84ff", border: "thin", fill: 0.2 } },
+      payload: {
+        id: "a2",
+        sceneId: "sceneS2",
+        style: { color: "#0a84ff", border: "thin", fill: 0.2 },
+      },
     });
     const t = ((await again).payload as { template: Record<string, unknown> }).template;
     expect(t.style).toEqual({ color: "#0a84ff", border: "thin", fill: 0.2 });
@@ -720,7 +724,11 @@ describe("Ephemeral handlers — anchored and styled templates", () => {
     playerSocket.emit("ephemeral", {
       type: "presence:template:style",
       ts: Date.now(),
-      payload: { id: "a3", sceneId: "sceneS3", style: { color: "#0a84ff", border: "thin", fill: 0.2 } },
+      payload: {
+        id: "a3",
+        sceneId: "sceneS3",
+        style: { color: "#0a84ff", border: "thin", fill: 0.2 },
+      },
     });
     await new Promise((r) => setTimeout(r, 250));
     expect(seen).toBe(false);

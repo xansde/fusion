@@ -91,7 +91,14 @@ describe("FilePicker — tabs (categories)", () => {
       props: { token: "t", onSelect: noop, onClose: noop, kinds: ["image", "audio"] },
     });
     expect([...body.matchAll(/data-tab="(\w+)"/g)].map((m) => m[1])).toEqual([
-      "all", "maps", "tokens", "items", "icons", "audio", "handouts", "other",
+      "all",
+      "maps",
+      "tokens",
+      "items",
+      "icons",
+      "audio",
+      "handouts",
+      "other",
     ]);
     expect(body).toContain("Música e som");
     expect(body).toContain("Tokens e retratos");

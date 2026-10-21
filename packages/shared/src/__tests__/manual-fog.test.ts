@@ -10,7 +10,11 @@ import {
   type ManualFog,
 } from "../manual-fog.js";
 
-const on = (over: Partial<ManualFog> = {}): ManualFog => ({ ...defaultManualFog(), enabled: true, ...over });
+const on = (over: Partial<ManualFog> = {}): ManualFog => ({
+  ...defaultManualFog(),
+  enabled: true,
+  ...over,
+});
 
 describe("isFogCovered", () => {
   it("is false when the fog is off or absent", () => {
@@ -81,7 +85,12 @@ describe("ManualFogSchema", () => {
 
   it("rejects a list that blows the coordinate budget", () => {
     const p = Array.from({ length: MANUAL_FOG_LIMITS.maxBrushPoints * 2 }, (_, i) => i);
-    const ops = Array.from({ length: 60 }, () => ({ t: "brush" as const, m: "reveal" as const, r: 5, p }));
+    const ops = Array.from({ length: 60 }, () => ({
+      t: "brush" as const,
+      m: "reveal" as const,
+      r: 5,
+      p,
+    }));
     expect(ManualFogSchema.safeParse({ ops }).success).toBe(false);
   });
 });
@@ -93,7 +102,11 @@ describe("edits", () => {
     expect(added.ok && added.fog.ops).toHaveLength(1);
     if (!added.ok) throw new Error("unreachable");
     expect(undoFogOp(added.fog).ops).toHaveLength(0);
-    expect(resetFog(added.fog, "revealed")).toMatchObject({ base: "revealed", ops: [], enabled: true });
+    expect(resetFog(added.fog, "revealed")).toMatchObject({
+      base: "revealed",
+      ops: [],
+      enabled: true,
+    });
   });
 
   it("refuses an append past the budget without mutating", () => {

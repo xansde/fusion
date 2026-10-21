@@ -42,12 +42,19 @@ describe("assetTabs", () => {
   });
 
   it("an image picker never shows audio, music does not hide among the portraits", () => {
-    expect(visibleAssets(ASSETS, "all", "", ["image"]).some((x) => x.name === "tema.mp3")).toBe(false);
+    expect(visibleAssets(ASSETS, "all", "", ["image"]).some((x) => x.name === "tema.mp3")).toBe(
+      false,
+    );
   });
 
   it("filters by tab and by name inside the tab", () => {
-    expect(visibleAssets(ASSETS, "tokens", "", ["image"]).map((x) => x.name)).toEqual(["orc.png", "elfa.png"]);
-    expect(visibleAssets(ASSETS, "tokens", "ELF", ["image"]).map((x) => x.name)).toEqual(["elfa.png"]);
+    expect(visibleAssets(ASSETS, "tokens", "", ["image"]).map((x) => x.name)).toEqual([
+      "orc.png",
+      "elfa.png",
+    ]);
+    expect(visibleAssets(ASSETS, "tokens", "ELF", ["image"]).map((x) => x.name)).toEqual([
+      "elfa.png",
+    ]);
     expect(visibleAssets(ASSETS, "maps", "orc", ["image"])).toEqual([]);
   });
 

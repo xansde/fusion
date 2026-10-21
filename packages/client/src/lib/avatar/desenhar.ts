@@ -275,7 +275,15 @@ export async function prepararAvatar(
     for (const frame of frames) {
       tiles.set(
         frame,
-        quadroDaCamada(atlas, camada.arq, camada.x + frame * lado, camada.y, lado, assinatura, rampas),
+        quadroDaCamada(
+          atlas,
+          camada.arq,
+          camada.x + frame * lado,
+          camada.y,
+          lado,
+          assinatura,
+          rampas,
+        ),
       );
     }
     quadrosPorCamada.set(indice, tiles);

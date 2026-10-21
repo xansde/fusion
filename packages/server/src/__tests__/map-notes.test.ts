@@ -24,7 +24,7 @@ import { Role } from "../auth/user-store.js";
 import { loadOrCreateSecret } from "../auth/crypto.js";
 import { registerAuthRoutes } from "../auth/routes.js";
 import { SocketManager } from "../net/socket-manager.js";
-import { PROTOCOL_VERSION, createDocumentId } from "@fusion/shared";
+import { PROTOCOL_VERSION } from "@fusion/shared";
 
 // ---------------------------------------------------------------------------
 // Test helpers
@@ -198,7 +198,6 @@ async function createScene(
   return scene;
 }
 
-
 interface Note {
   id: string;
   x: number;
@@ -360,9 +359,8 @@ describe("map pins (Scene.notes)", () => {
     const sceneId = scene["_id"] as string;
     const open = (await addNote(sceneId, { title: "Aberto", playersCanEdit: true })).note;
     const closed = (await addNote(sceneId, { title: "Fechado" })).note;
-    const hidden = (
-      await addNote(sceneId, { title: "Oculto", gmOnly: true, playersCanEdit: true })
-    ).note;
+    const hidden = (await addNote(sceneId, { title: "Oculto", gmOnly: true, playersCanEdit: true }))
+      .note;
 
     const ok = await sendOp(playerSocket, "scene:noteUpdate", {
       sceneId,

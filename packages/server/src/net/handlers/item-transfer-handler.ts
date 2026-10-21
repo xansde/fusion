@@ -22,7 +22,14 @@
 import type { Namespace } from "socket.io";
 import type { Database as Db } from "better-sqlite3";
 import { ItemTransferPayloadSchema, OwnershipLevel, createDocumentId } from "@fusion/shared";
-import type { ChatSpeaker, Envelope, ItemTransferAck, ItemTransferPayload, ItemTransferResult, Ownership } from "@fusion/shared";
+import type {
+  ChatSpeaker,
+  Envelope,
+  ItemTransferAck,
+  ItemTransferPayload,
+  ItemTransferResult,
+  Ownership,
+} from "@fusion/shared";
 
 import type { HandlerContext, HandlerFn } from "../handler-registry.js";
 import { DocumentNotFoundError } from "../../documents/store.js";
@@ -31,7 +38,11 @@ import { isRolePrivileged, resolveOwnership } from "../../documents/ownership.js
 import type { SeqStore } from "../seq-store.js";
 import type { OpBuffer } from "../op-buffer.js";
 import { broadcastToWorld } from "./doc-handlers.js";
-import { buildBaseMessage, persistChatMessage, broadcastChatMessage } from "../../chat/chat-handler.js";
+import {
+  buildBaseMessage,
+  persistChatMessage,
+  broadcastChatMessage,
+} from "../../chat/chat-handler.js";
 import { tokenLookupSourceFromStore } from "../redaction.js";
 
 export interface ItemTransferHandlerDeps {
@@ -45,7 +56,15 @@ export interface ItemTransferHandlerDeps {
 
 type Obj = Record<string, unknown>;
 
-const PHYSICAL_TYPES: ReadonlySet<string> = new Set(["weapon", "armor", "shield", "equipment", "consumable", "treasure", "container"]);
+const PHYSICAL_TYPES: ReadonlySet<string> = new Set([
+  "weapon",
+  "armor",
+  "shield",
+  "equipment",
+  "consumable",
+  "treasure",
+  "container",
+]);
 
 class TransferError extends Error {
   constructor(
@@ -63,7 +82,9 @@ function asObj(value: unknown): Obj {
 
 function readOwnership(doc: Obj): Ownership {
   const ownership = doc["ownership"];
-  return ownership && typeof ownership === "object" ? (ownership as Ownership) : { default: OwnershipLevel.NONE };
+  return ownership && typeof ownership === "object"
+    ? (ownership as Ownership)
+    : { default: OwnershipLevel.NONE };
 }
 
 function readVersion(doc: Obj): number | undefined {
@@ -150,8 +171,12 @@ function canReceive(target: Obj, userId: string, role: number): boolean {
   if (isRolePrivileged(role)) return true;
   if (resolveOwnership(readOwnership(target), userId, role) >= OwnershipLevel.LIMITED) return true;
   if (target["type"] !== "character") return false;
-  const ownership = readOwnership(target) as unknown as Record<string, number>;
-  return Object.entries(ownership).some(([key, level]) => level >= OwnershipLevel.OWNER && key !== "default") || ownership["default"] === OwnershipLevel.OWNER;
+  const ownership = readOwnership(target);
+  return (
+    Object.entries(ownership).some(
+      ([key, level]) => level >= OwnershipLevel.OWNER && key !== "default",
+    ) || ownership["default"] === OwnershipLevel.OWNER
+  );
 }
 
 interface Planned {
@@ -171,11 +196,17 @@ function plan(from: Obj, to: Obj, itemId: string, quantity: number): Planned {
   }
   const available = quantityOf(item);
   if (quantity > available) {
-    throw new TransferError("VALIDATION_FAILED", `only ${String(available)} on hand, tried to give ${String(quantity)}`);
+    throw new TransferError(
+      "VALIDATION_FAILED",
+      `only ${String(available)} on hand, tried to give ${String(quantity)}`,
+    );
   }
   const inside = item["type"] === "container" ? descendantIds(fromItems, itemId) : [];
   if (inside.length > 0 && quantity !== available) {
-    throw new TransferError("VALIDATION_FAILED", "a container with contents can only be given whole");
+    throw new TransferError(
+      "VALIDATION_FAILED",
+      "a container with contents can only be given whole",
+    );
   }
 
   const whole = quantity === available;
@@ -191,11 +222,19 @@ function plan(from: Obj, to: Obj, itemId: string, quantity: number): Planned {
   const signature = stackSignature(item);
   const twin =
     inside.length === 0 && item["type"] !== "container"
-      ? toItems.find((candidate) => stackSignature(candidate) === signature && containerIdOf(candidate) === null)
+      ? toItems.find(
+          (candidate) =>
+            stackSignature(candidate) === signature && containerIdOf(candidate) === null,
+        )
       : undefined;
   if (twin) {
     const grown = toItems.map((candidate) =>
-      candidate === twin ? { ...candidate, system: { ...asObj(candidate["system"]), quantity: quantityOf(candidate) + quantity } } : candidate,
+      candidate === twin
+        ? {
+            ...candidate,
+            system: { ...asObj(candidate["system"]), quantity: quantityOf(candidate) + quantity },
+          }
+        : candidate,
     );
     return { fromItems: remaining, toItems: grown, merged: true, itemName: displayName(item) };
   }
@@ -208,19 +247,37 @@ function plan(from: Obj, to: Obj, itemId: string, quantity: number): Planned {
     const child = fromItems.find((i) => i["_id"] === id);
     if (!child) continue;
     const parent = containerIdOf(child);
-    const received = asReceived(child, quantityOf(child), parent !== null ? (idMap.get(parent) ?? null) : null);
+    const received = asReceived(
+      child,
+      quantityOf(child),
+      parent !== null ? (idMap.get(parent) ?? null) : null,
+    );
     // What sits inside a bag keeps its carry state ("carried"), but is not equipped either.
     arrivals.push({ ...received, _id: idMap.get(id) });
   }
-  return { fromItems: remaining, toItems: [...toItems, ...arrivals], merged: false, itemName: displayName(item) };
+  return {
+    fromItems: remaining,
+    toItems: [...toItems, ...arrivals],
+    merged: false,
+    itemName: displayName(item),
+  };
 }
 
-async function transfer(deps: ItemTransferHandlerDeps, rawPayload: unknown, ctx: HandlerContext): Promise<ItemTransferAck> {
+function transfer(
+  deps: ItemTransferHandlerDeps,
+  rawPayload: unknown,
+  ctx: HandlerContext,
+): ItemTransferAck {
   const parsed = ItemTransferPayloadSchema.safeParse(rawPayload);
-  if (!parsed.success) return { ok: false, code: "VALIDATION_FAILED", message: parsed.error.message };
+  if (!parsed.success)
+    return { ok: false, code: "VALIDATION_FAILED", message: parsed.error.message };
   const payload: ItemTransferPayload = parsed.data;
   if (payload.fromActorId === payload.toActorId) {
-    return { ok: false, code: "VALIDATION_FAILED", message: "cannot give an item to the same actor" };
+    return {
+      ok: false,
+      code: "VALIDATION_FAILED",
+      message: "cannot give an item to the same actor",
+    };
   }
 
   let outcome: { from: Obj; to: Obj; result: ItemTransferResult; fromName: string; toName: string };
@@ -230,7 +287,8 @@ async function transfer(deps: ItemTransferHandlerDeps, rawPayload: unknown, ctx:
         try {
           return deps.store.get("actors", id);
         } catch (err) {
-          if (err instanceof DocumentNotFoundError) throw new TransferError("NOT_FOUND", `actor "${id}" not found`);
+          if (err instanceof DocumentNotFoundError)
+            throw new TransferError("NOT_FOUND", `actor "${id}" not found`);
           throw err;
         }
       };
@@ -242,20 +300,32 @@ async function transfer(deps: ItemTransferHandlerDeps, rawPayload: unknown, ctx:
           throw new TransferError("PERMISSION_DENIED", "not OWNER of the sending actor");
         }
         if (!canReceive(to, ctx.userId, ctx.role)) {
-          throw new TransferError("PERMISSION_DENIED", "the receiving actor is not a character you may give items to");
+          throw new TransferError(
+            "PERMISSION_DENIED",
+            "the receiving actor is not a character you may give items to",
+          );
         }
       }
       if (readVersion(from) !== payload.expectedVersion) {
-        throw new TransferError("CONFLICT", "the sending actor changed since expectedVersion was read");
+        throw new TransferError(
+          "CONFLICT",
+          "the sending actor changed since expectedVersion was read",
+        );
       }
 
       const planned = plan(from, to, payload.itemId, payload.quantity);
-      const fromAfter = txn.update("actors", payload.fromActorId, { items: planned.fromItems }) ?? from;
+      const fromAfter =
+        txn.update("actors", payload.fromActorId, { items: planned.fromItems }) ?? from;
       const toAfter = txn.update("actors", payload.toActorId, { items: planned.toItems }) ?? to;
       return {
         from: fromAfter,
         to: toAfter,
-        result: { moved: payload.quantity, itemName: planned.itemName, toActorId: payload.toActorId, merged: planned.merged },
+        result: {
+          moved: payload.quantity,
+          itemName: planned.itemName,
+          toActorId: payload.toActorId,
+          merged: planned.merged,
+        },
         fromName: typeof from["name"] === "string" ? from["name"] : "?",
         toName: typeof to["name"] === "string" ? to["name"] : "?",
       };
@@ -277,11 +347,22 @@ async function transfer(deps: ItemTransferHandlerDeps, rawPayload: unknown, ctx:
   }
 
   // A line in the chat so the table sees who gave what to whom.
-  const speaker: ChatSpeaker = { userId: ctx.userId, actorId: payload.fromActorId, alias: "Sistema" };
+  const speaker: ChatSpeaker = {
+    userId: ctx.userId,
+    actorId: payload.fromActorId,
+    alias: "Sistema",
+  };
   const text = `${escapeHtml(outcome.fromName)} entregou ${String(outcome.result.moved)}x ${escapeHtml(outcome.result.itemName)} a ${escapeHtml(outcome.toName)}.`;
   const message = buildBaseMessage(deps.worldId, speaker, "system", text);
   persistChatMessage(deps.db, message);
-  broadcastChatMessage(deps.ns, deps.seqStore, message, speaker.userId, "doc:create", tokenLookupSourceFromStore(deps.store));
+  broadcastChatMessage(
+    deps.ns,
+    deps.seqStore,
+    message,
+    speaker.userId,
+    "doc:create",
+    tokenLookupSourceFromStore(deps.store),
+  );
 
   return { ok: true, result: outcome.result };
 }

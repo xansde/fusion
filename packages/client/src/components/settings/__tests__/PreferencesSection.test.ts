@@ -116,7 +116,9 @@ describe("PreferencesSection — REQ-TOK-074: token display preferences", () => 
   });
 
   it("offers the avatar overlay's 'show' toggle, on by default (REQ-AVT-038: the way back from hidden)", () => {
-    const html = render(PreferencesSection, { props: { worldId: "world-1", userId: "user-1" } }).body;
+    const html = render(PreferencesSection, {
+      props: { worldId: "world-1", userId: "user-1" },
+    }).body;
     expect(html).toContain("Mostrar meu avatar na tela");
     const checkboxes = [...html.matchAll(/<input type="checkbox"([^>]*)>/g)];
     expect(checkboxes[4]?.[1]).toMatch(/checked/);

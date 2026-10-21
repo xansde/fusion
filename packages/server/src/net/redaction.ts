@@ -369,13 +369,14 @@ export function tokenIsHiddenFromViewer(
 function sceneManualFog(scene: Record<string, unknown>): ManualFogLike | undefined {
   const fog = scene["manualFog"];
   if (!fog || typeof fog !== "object") return undefined;
-  return manualFogIsActive(fog as ManualFogLike) ? (fog as ManualFogLike) : undefined;
+  return manualFogIsActive(fog) ? fog : undefined;
 }
 
 /** Grid cell size used to find a token's anchor; same default the client renders with. */
 function sceneGridSize(scene: Record<string, unknown>): number {
   const grid = scene["grid"];
-  const size = grid && typeof grid === "object" ? (grid as Record<string, unknown>)["size"] : undefined;
+  const size =
+    grid && typeof grid === "object" ? (grid as Record<string, unknown>)["size"] : undefined;
   return typeof size === "number" && size > 0 ? size : 100;
 }
 
@@ -429,7 +430,8 @@ export function stripHiddenTokens(
   const gridSize = fog ? sceneGridSize(scene) : 0;
   const filtered = (rawTokens as Record<string, unknown>[]).filter(
     (token) =>
-      !tokenIsHiddenFromViewer(token, userId) && !(fog && tokenIsUnderManualFog(token, fog, gridSize)),
+      !tokenIsHiddenFromViewer(token, userId) &&
+      !(fog && tokenIsUnderManualFog(token, fog, gridSize)),
   );
 
   // Only allocate a new object when something was actually removed.

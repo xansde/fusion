@@ -207,7 +207,9 @@ describe("PF2e turn automation (real combat)", { timeout: 60000 }, () => {
   function slugs(actorId: string): string[] {
     return actorDoc(actorId).items.map((i) => {
       const sys = (i["system"] ?? {}) as { slug?: string; value?: number };
-      return sys.value !== undefined ? `${String(sys.slug)}:${String(sys.value)}` : String(sys.slug);
+      return sys.value !== undefined
+        ? `${String(sys.slug)}:${String(sys.value)}`
+        : String(sys.slug);
     });
   }
 

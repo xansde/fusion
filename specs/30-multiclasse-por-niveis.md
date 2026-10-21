@@ -71,16 +71,16 @@ character_level)` vai para `systems/engine-2e` e o SF2e pode adotá-la depois
 
 ## 3. Conceitos
 
-| Termo                     | Definição                                                                                                                                       |
-| ------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------- |
-| **nível de personagem**   | Soma dos níveis de classe. É o que hoje vive em `system.level.value`.                                                                           |
-| **nível de classe**       | Quantos níveis o personagem gastou numa classe específica. Sob RAW é sempre igual ao nível de personagem; sob a variante, não.                  |
-| **dip**                   | Ter poucos níveis (tipicamente 1–2) numa classe secundária.                                                                                     |
+| Termo                     | Definição                                                                                                                                                  |
+| ------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **nível de personagem**   | Soma dos níveis de classe. É o que hoje vive em `system.level.value`.                                                                                      |
+| **nível de classe**       | Quantos níveis o personagem gastou numa classe específica. Sob RAW é sempre igual ao nível de personagem; sob a variante, não.                             |
+| **dip**                   | Ter poucos níveis (tipicamente 1–2) numa classe secundária.                                                                                                |
 | **primeira classe**       | A classe escolhida no nível de personagem 1. Fonte única do boost de habilidade-chave (o class feat de nível 1 de classe vem de toda classe — DEC-MCL-14). |
-| **recurso de personagem** | Boost de atributo, class feat, orçamento de perícia: vem uma vez, por orçamento fechado.                                                        |
-| **identidade de classe**  | Racket, Instinct, Doctrine, Thesis, Bloodline, Hunter's Edge, perícias assinatura: vem com o nível, sempre, de qualquer classe.                 |
-| **rank de dedicação**     | O rank de slot de magia que a rota gratuita de arquétipo entrega naquele nível de **personagem** (1@4, 2@6, 3@8, 4@12, 5@14, 6@16, 7@18, 8@20). |
-| **rank efetivo**          | Rank em que uma magia é lançada sob a variante: `ceil(nível_de_personagem / 2)`, com os tetos da §6.7.                                          |
+| **recurso de personagem** | Boost de atributo, class feat, orçamento de perícia: vem uma vez, por orçamento fechado.                                                                   |
+| **identidade de classe**  | Racket, Instinct, Doctrine, Thesis, Bloodline, Hunter's Edge, perícias assinatura: vem com o nível, sempre, de qualquer classe.                            |
+| **rank de dedicação**     | O rank de slot de magia que a rota gratuita de arquétipo entrega naquele nível de **personagem** (1@4, 2@6, 3@8, 4@12, 5@14, 6@16, 7@18, 8@20).            |
+| **rank efetivo**          | Rank em que uma magia é lançada sob a variante: `ceil(nível_de_personagem / 2)`, com os tetos da §6.7.                                                     |
 
 ---
 
@@ -340,6 +340,7 @@ níveis (5e no Foundry e no Roll20: cada nível de classe contribui o próprio d
 > independente de se nível ímpar de personagem." — Alexandre, 18/10/2026
 
 **Decisão:**
+
 1. Na multiclasse por níveis, o slot de talento de classe de um nível de personagem nasce quando a
    classe **dona daquele nível** (`classOwnerAt`) chega a um nível **de classe** que a tabela da
    própria classe (`featLevels.class`) lista. A paridade do nível de personagem não conta mais.
@@ -375,6 +376,7 @@ fixo — passa a depender de como os níveis foram divididos entre as classes.
 > "só a primeira classe dá o aumento de atributo chave" — Alexandre, 18/10/2026
 
 **Decisão:**
+
 1. Na multiclasse por níveis, **toda** classe que recebe o seu nível de classe 1 entrega o pacote
    de nível 1 dela — inclusive o **talento de classe do nível 1**, quando a tabela da própria classe
    (`featLevels.class`) lista o 1. O slot `classFeat-<nível>` nasce no nível de personagem em que a
@@ -402,7 +404,6 @@ cuja tabela lista o 1). Entra no item 4 dos itens de playtest (§9).
 
 **Contexto:** relato do Alexandre sobre a ficha do Huo Jinwu, 18/10/2026 (satélite
 `fix/ficha-ler-talento`).
-
 
 ### Decisões de 19/10/2026 — o documento da mesa vira a fonte (DEC-MCL-15 a DEC-MCL-29)
 
@@ -880,18 +881,18 @@ interface DerivedClassLevels {
 Levantado contra o código real (`docs/research/16-…` §4.2). Nenhum item é
 reescrita; são quatro trocas de conceito propagadas.
 
-| Alvo                                            | Arquivo                                         | Mudança                                                                          |
-| ----------------------------------------------- | ----------------------------------------------- | -------------------------------------------------------------------------------- |
-| `findClassItem(doc)` → `findClassItems(doc)`    | `systems/pf2e/src/derivations/build.ts`         | devolve lista; call sites passam a iterar                                        |
-| `stepCharApplyClass`                            | `build.ts`                                      | acumula por `max` (REQ-MCL-021) em vez de escrever direto                        |
-| `stepCharBuildHp`                               | `build.ts`                                      | soma o PV da classe de cada nível (REQ-MCL-033/DEC-MCL-12)                    |
-| `stepCharBuildSkills`                           | `build.ts`                                      | orçamento por `delta` (REQ-MCL-035)                                              |
-| `proficiencyBonus(rank, level)`                 | `systems/engine-2e`                             | passa a receber `LevelContext` (DEC-MCL-03)                                      |
-| `spellSlotsForLevel`                            | `build.ts` / `planVM.ts`                        | indexa por nível de classe; expõe rank efetivo                                   |
-| `isFeatEligible`                                | `packages/client/src/lib/sheets/pf2e/planVM.ts` | avalia com o par de níveis (REQ-MCL-044)                                         |
-| `derivePlan`                                    | `planVM.ts`                                     | slot "Nível de classe" por nível (REQ-MCL-081)                                   |
-| `CharacterBuildSchema`                          | `systems/pf2e/src/schemas/actor-character.ts`   | perde `freeArchetype`; nada de `variantRules` (REQ-MCL-001, DEC-MCL-09)          |
-| `ARCHETYPE_KEY_ABILITY` / class DC de arquétipo | `systems/pf2e/src/derivations/archetypes.ts`    | vira caso particular de "class DC por classe" (REQ-MCL-022)                      |
+| Alvo                                            | Arquivo                                         | Mudança                                                                 |
+| ----------------------------------------------- | ----------------------------------------------- | ----------------------------------------------------------------------- |
+| `findClassItem(doc)` → `findClassItems(doc)`    | `systems/pf2e/src/derivations/build.ts`         | devolve lista; call sites passam a iterar                               |
+| `stepCharApplyClass`                            | `build.ts`                                      | acumula por `max` (REQ-MCL-021) em vez de escrever direto               |
+| `stepCharBuildHp`                               | `build.ts`                                      | soma o PV da classe de cada nível (REQ-MCL-033/DEC-MCL-12)              |
+| `stepCharBuildSkills`                           | `build.ts`                                      | orçamento por `delta` (REQ-MCL-035)                                     |
+| `proficiencyBonus(rank, level)`                 | `systems/engine-2e`                             | passa a receber `LevelContext` (DEC-MCL-03)                             |
+| `spellSlotsForLevel`                            | `build.ts` / `planVM.ts`                        | indexa por nível de classe; expõe rank efetivo                          |
+| `isFeatEligible`                                | `packages/client/src/lib/sheets/pf2e/planVM.ts` | avalia com o par de níveis (REQ-MCL-044)                                |
+| `derivePlan`                                    | `planVM.ts`                                     | slot "Nível de classe" por nível (REQ-MCL-081)                          |
+| `CharacterBuildSchema`                          | `systems/pf2e/src/schemas/actor-character.ts`   | perde `freeArchetype`; nada de `variantRules` (REQ-MCL-001, DEC-MCL-09) |
+| `ARCHETYPE_KEY_ABILITY` / class DC de arquétipo | `systems/pf2e/src/derivations/archetypes.ts`    | vira caso particular de "class DC por classe" (REQ-MCL-022)             |
 
 ---
 

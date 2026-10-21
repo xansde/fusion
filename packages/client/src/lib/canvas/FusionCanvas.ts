@@ -363,10 +363,7 @@ export class FusionCanvas {
     const app = this._app;
     if (!app) return false;
     const rect = this._container.getBoundingClientRect();
-    const hit = app.renderer.events.rootBoundary.hitTest(
-      clientX - rect.left,
-      clientY - rect.top,
-    );
+    const hit = app.renderer.events.rootBoundary.hitTest(clientX - rect.left, clientY - rect.top);
     const tokens = this.getLayer("tokens");
     for (let node: Container | null = hit; node; node = node.parent) {
       if (node === tokens) return node !== hit;

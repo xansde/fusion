@@ -57,7 +57,9 @@ export async function atualizarAtor(
         type: "doc:update",
         payload: {
           documentType: "Actor",
-          updates: [{ _id: actorId, diff, ...(expectedVersion === undefined ? {} : { expectedVersion }) }],
+          updates: [
+            { _id: actorId, diff, ...(expectedVersion === undefined ? {} : { expectedVersion }) },
+          ],
         },
       });
       lembrar(actorId, result);

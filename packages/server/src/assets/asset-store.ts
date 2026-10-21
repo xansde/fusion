@@ -155,7 +155,9 @@ export function setAssetCategory(
   name: string,
   category: AssetCategory | null,
 ): boolean {
-  return db.prepare(`UPDATE assets SET category = ? WHERE name = ?`).run(category, name).changes > 0;
+  return (
+    db.prepare(`UPDATE assets SET category = ? WHERE name = ?`).run(category, name).changes > 0
+  );
 }
 
 /**

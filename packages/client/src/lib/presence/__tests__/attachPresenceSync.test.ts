@@ -151,7 +151,9 @@ describe("attachPresenceSync — area templates", () => {
     const socket = new FakeSocket();
     const detach = attachPresenceSync(socket as unknown as Socket);
 
-    socket.emit(env("presence:template:pin", { id: "p1", sceneId: "s1", userId: "u1", template: tpl }));
+    socket.emit(
+      env("presence:template:pin", { id: "p1", sceneId: "s1", userId: "u1", template: tpl }),
+    );
     expect(presenceState.pinnedTemplates.get("p1")).toMatchObject({ sceneId: "s1", userId: "u1" });
 
     socket.emit(env("presence:template:unpin", { id: "p1", sceneId: "s1" }));
@@ -163,8 +165,12 @@ describe("attachPresenceSync — area templates", () => {
     const socket = new FakeSocket();
     const detach = attachPresenceSync(socket as unknown as Socket);
 
-    socket.emit(env("presence:template:pin", { id: "old", sceneId: "s1", userId: "u1", template: tpl }));
-    socket.emit(env("presence:template:pin", { id: "other", sceneId: "s2", userId: "u1", template: tpl }));
+    socket.emit(
+      env("presence:template:pin", { id: "old", sceneId: "s1", userId: "u1", template: tpl }),
+    );
+    socket.emit(
+      env("presence:template:pin", { id: "other", sceneId: "s2", userId: "u1", template: tpl }),
+    );
     socket.emit(
       env("presence:template:pinned", {
         sceneId: "s1",

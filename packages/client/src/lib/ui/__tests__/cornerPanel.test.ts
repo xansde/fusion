@@ -1,5 +1,10 @@
 import { beforeEach, describe, expect, it } from "vitest";
-import { cornerPanel, openCornerPanel, closeCornerPanel, toggleCornerPanel } from "../cornerPanel.svelte.js";
+import {
+  cornerPanel,
+  openCornerPanel,
+  closeCornerPanel,
+  toggleCornerPanel,
+} from "../cornerPanel.svelte.js";
 import { fogToolState } from "../../canvas/fog/fogToolState.svelte.js";
 
 describe("cornerPanel", () => {

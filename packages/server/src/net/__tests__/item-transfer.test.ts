@@ -42,7 +42,12 @@ interface Ctx {
   p2Token: string;
 }
 
-function item(id: string, type: string, name: string, system: Record<string, unknown> = {}): Record<string, unknown> {
+function item(
+  id: string,
+  type: string,
+  name: string,
+  system: Record<string, unknown> = {},
+): Record<string, unknown> {
   return { _id: id, name, type, system: { quantity: 1, ...system } };
 }
 
@@ -54,7 +59,13 @@ const POTION = "potion000000000";
 
 function seed(db: FusionDatabase, p1: string, p2: string): void {
   const now = Date.now();
-  const actor = (id: string, name: string, type: string, ownership: Record<string, number>, items: Record<string, unknown>[]) => ({
+  const actor = (
+    id: string,
+    name: string,
+    type: string,
+    ownership: Record<string, number>,
+    items: Record<string, unknown>[],
+  ) => ({
     _id: id,
     name,
     type,
@@ -66,26 +77,41 @@ function seed(db: FusionDatabase, p1: string, p2: string): void {
   const docs = [
     actor(A, "Doadora", "character", { default: OwnershipLevel.NONE, [p1]: OwnershipLevel.OWNER }, [
       item(ROPE, "equipment", "Corda", { bulk: 0.1, quantity: 5 }),
-      item(SWORD, "weapon", "Espada", { bulk: 1, equipped: { value: true, carryType: "held", handsHeld: 1, invested: true } }),
+      item(SWORD, "weapon", "Espada", {
+        bulk: 1,
+        equipped: { value: true, carryType: "held", handsHeld: 1, invested: true },
+      }),
       item(BAG, "container", "Mochila", { bulk: 0.1, capacity: 4 }),
       item(BAG_ROPE, "equipment", "Corda de Mochila", { bulk: 0.1, quantity: 2, containerId: BAG }),
-      item(POTION, "consumable", "Pocao", { quantity: 3, uses: { value: 1, max: 1, autoDestroy: true } }),
+      item(POTION, "consumable", "Pocao", {
+        quantity: 3,
+        uses: { value: 1, max: 1, autoDestroy: true },
+      }),
     ]),
-    actor(B, "Receptor", "character", { default: OwnershipLevel.NONE, [p2]: OwnershipLevel.OWNER }, [
-      item("takerRope000000", "equipment", "Corda", { bulk: 0.1, quantity: 1 }),
-    ]),
+    actor(
+      B,
+      "Receptor",
+      "character",
+      { default: OwnershipLevel.NONE, [p2]: OwnershipLevel.OWNER },
+      [item("takerRope000000", "equipment", "Corda", { bulk: 0.1, quantity: 1 })],
+    ),
     actor(C, "Monstro", "npc", { default: OwnershipLevel.NONE }, []),
     actor(D, "Vigiada", "npc", { default: OwnershipLevel.NONE, [p1]: OwnershipLevel.OBSERVER }, []),
   ];
   for (const d of docs) {
     db.raw
-      .prepare(`INSERT INTO actors (id, data, name, type, sort, created_at, updated_at) VALUES (?, ?, ?, ?, 0, ?, ?)`)
+      .prepare(
+        `INSERT INTO actors (id, data, name, type, sort, created_at, updated_at) VALUES (?, ?, ?, ?, 0, ?, ?)`,
+      )
       .run(d._id, JSON.stringify(d), d.name, d.type, now, now);
   }
 }
 
 async function build(): Promise<Ctx> {
-  const dataDir = join(tmpdir(), `fusion-item-transfer-${String(Date.now())}-${Math.random().toString(36).slice(2)}`);
+  const dataDir = join(
+    tmpdir(),
+    `fusion-item-transfer-${String(Date.now())}-${Math.random().toString(36).slice(2)}`,
+  );
   mkdirSync(dataDir, { recursive: true });
   const dbPath = join(dataDir, "world.db");
   const worldId = "test-item-transfer-world";
@@ -94,16 +120,35 @@ async function build(): Promise<Ctx> {
   applyMigrations(fusionDb.raw, dbPath);
   const authService = new AuthService(fusionDb.raw, secret, worldId);
   const { user: gm, password: gmPw } = await authService.bootstrapGm();
-  const { user: p1 } = await authService.createUser({ name: "Player1", role: Role.PLAYER, password: "player1-pass" });
-  const { user: p2 } = await authService.createUser({ name: "Player2", role: Role.PLAYER, password: "player2-pass" });
+  const { user: p1 } = await authService.createUser({
+    name: "Player1",
+    role: Role.PLAYER,
+    password: "player1-pass",
+  });
+  const { user: p2 } = await authService.createUser({
+    name: "Player2",
+    role: Role.PLAYER,
+    password: "player2-pass",
+  });
   seed(fusionDb, p1.id, p2.id);
   const gmLogin = await authService.login({ userId: gm.id, password: gmPw, ip: "127.0.0.1" });
-  const p1Login = await authService.login({ userId: p1.id, password: "player1-pass", ip: "127.0.0.1" });
-  const p2Login = await authService.login({ userId: p2.id, password: "player2-pass", ip: "127.0.0.1" });
+  const p1Login = await authService.login({
+    userId: p1.id,
+    password: "player1-pass",
+    ip: "127.0.0.1",
+  });
+  const p2Login = await authService.login({
+    userId: p2.id,
+    password: "player2-pass",
+    ip: "127.0.0.1",
+  });
 
   const fastify = Fastify({ logger: false }) as unknown as FastifyInstance;
   await fastify.register(fastifyCookie);
-  registerAuthRoutes(fastify, { authService, worldInfo: { id: worldId, title: "Test", systemId: "test-system" } });
+  registerAuthRoutes(fastify, {
+    authService,
+    worldInfo: { id: worldId, title: "Test", systemId: "test-system" },
+  });
   const socketManager = new SocketManager({
     httpServer: fastify.server,
     logger: { info: () => {}, warn: () => {}, debug: () => {}, error: () => {} } as never,
@@ -130,7 +175,17 @@ async function build(): Promise<Ctx> {
   });
   const port = await reserveFreePort();
   await fastify.listen({ port, host: "127.0.0.1" });
-  return { dataDir, fusionDb, fastify, socketManager, port, worldId, gmToken: gmLogin.accessToken, p1Token: p1Login.accessToken, p2Token: p2Login.accessToken };
+  return {
+    dataDir,
+    fusionDb,
+    fastify,
+    socketManager,
+    port,
+    worldId,
+    gmToken: gmLogin.accessToken,
+    p1Token: p1Login.accessToken,
+    p2Token: p2Login.accessToken,
+  };
 }
 
 async function teardown(ctx: Ctx): Promise<void> {
@@ -156,10 +211,19 @@ function connect(ctx: Ctx, token: string): Promise<ClientSocket> {
 
 function send(socket: ClientSocket, payload: unknown): Promise<Record<string, unknown>> {
   return new Promise((resolve, reject) => {
-    socket.emit("op", { type: "item:transfer", ts: Date.now(), payload, requestId: Math.random().toString(36).slice(2) }, (ack: unknown) => {
-      if (!ack || typeof ack !== "object") reject(new Error("No ack"));
-      else resolve(ack as Record<string, unknown>);
-    });
+    socket.emit(
+      "op",
+      {
+        type: "item:transfer",
+        ts: Date.now(),
+        payload,
+        requestId: Math.random().toString(36).slice(2),
+      },
+      (ack: unknown) => {
+        if (!ack || typeof ack !== "object") reject(new Error("No ack"));
+        else resolve(ack as Record<string, unknown>);
+      },
+    );
     setTimeout(() => reject(new Error("ack timeout")), 5000);
   });
 }
@@ -169,16 +233,26 @@ interface Raw {
   _stats: { version: number };
 }
 function read(ctx: Ctx, id: string): Raw {
-  const row = ctx.fusionDb.raw.prepare(`SELECT data FROM actors WHERE id = ?`).get(id) as { data: string };
+  const row = ctx.fusionDb.raw.prepare(`SELECT data FROM actors WHERE id = ?`).get(id) as {
+    data: string;
+  };
   return JSON.parse(row.data) as Raw;
 }
-const qty = (it: Record<string, unknown> | undefined): number | undefined => (it?.["system"] as { quantity?: number } | undefined)?.quantity;
+const qty = (it: Record<string, unknown> | undefined): number | undefined =>
+  (it?.["system"] as { quantity?: number } | undefined)?.quantity;
 const byId = (raw: Raw, id: string) => raw.items.find((i) => i["_id"] === id);
 const byName = (raw: Raw, name: string) => raw.items.filter((i) => i["name"] === name);
 
 function give(ctx: Ctx, extra: Record<string, unknown>) {
   const version = read(ctx, (extra["fromActorId"] as string | undefined) ?? A)._stats.version;
-  return { fromActorId: A, toActorId: B, itemId: ROPE, quantity: 1, expectedVersion: version, ...extra };
+  return {
+    fromActorId: A,
+    toActorId: B,
+    itemId: ROPE,
+    quantity: 1,
+    expectedVersion: version,
+    ...extra,
+  };
 }
 
 describe("item:transfer", () => {
@@ -203,7 +277,12 @@ describe("item:transfer", () => {
   it("the owner gives part of a stack: the sender keeps the rest, the receiver's identical stack grows", async () => {
     const ack = await send(p1, give(ctx, { quantity: 2 }));
     expect(ack["ok"]).toBe(true);
-    expect(ack["result"]).toMatchObject({ moved: 2, itemName: "Corda", toActorId: B, merged: true });
+    expect(ack["result"]).toMatchObject({
+      moved: 2,
+      itemName: "Corda",
+      toActorId: B,
+      merged: true,
+    });
     expect(qty(byId(read(ctx, A), ROPE))).toBe(3);
     const receiver = read(ctx, B);
     expect(byName(receiver, "Corda")).toHaveLength(1);
@@ -229,7 +308,12 @@ describe("item:transfer", () => {
     await send(p1, give(ctx, { itemId: SWORD, quantity: 1 }));
     expect(byId(read(ctx, A), SWORD)).toBeUndefined();
     const arrived = byName(read(ctx, B), "Espada")[0];
-    expect((arrived?.["system"] as { equipped: unknown }).equipped).toEqual({ value: false, carryType: "carried", handsHeld: 0, invested: false });
+    expect((arrived?.["system"] as { equipped: unknown }).equipped).toEqual({
+      value: false,
+      carryType: "carried",
+      handsHeld: 0,
+      invested: false,
+    });
   });
 
   it("a container goes WITH its contents and keeps them inside the new one", async () => {
@@ -247,8 +331,14 @@ describe("item:transfer", () => {
   it("refuses more than the sender has, the same actor and an unknown item, writing nothing", async () => {
     const tooMany = await send(p1, give(ctx, { quantity: 6 }));
     expect(tooMany).toMatchObject({ ok: false, code: "VALIDATION_FAILED" });
-    expect(await send(p1, give(ctx, { toActorId: A }))).toMatchObject({ ok: false, code: "VALIDATION_FAILED" });
-    expect(await send(p1, give(ctx, { itemId: "ghost" }))).toMatchObject({ ok: false, code: "NOT_FOUND" });
+    expect(await send(p1, give(ctx, { toActorId: A }))).toMatchObject({
+      ok: false,
+      code: "VALIDATION_FAILED",
+    });
+    expect(await send(p1, give(ctx, { itemId: "ghost" }))).toMatchObject({
+      ok: false,
+      code: "NOT_FOUND",
+    });
     expect(qty(byId(read(ctx, A), ROPE))).toBe(5);
   });
 
@@ -267,7 +357,10 @@ describe("item:transfer", () => {
   });
 
   it("a player cannot give to an actor nobody plays and the player cannot see; can to one they can see", async () => {
-    expect(await send(p1, give(ctx, { toActorId: C }))).toMatchObject({ ok: false, code: "PERMISSION_DENIED" });
+    expect(await send(p1, give(ctx, { toActorId: C }))).toMatchObject({
+      ok: false,
+      code: "PERMISSION_DENIED",
+    });
     expect((await send(p1, give(ctx, { toActorId: D }))).ok).toBe(true);
   });
 
@@ -279,7 +372,13 @@ describe("item:transfer", () => {
   });
 
   it("rejects a malformed payload", async () => {
-    expect(await send(p1, { fromActorId: A })).toMatchObject({ ok: false, code: "VALIDATION_FAILED" });
-    expect(await send(p1, give(ctx, { quantity: 0 }))).toMatchObject({ ok: false, code: "VALIDATION_FAILED" });
+    expect(await send(p1, { fromActorId: A })).toMatchObject({
+      ok: false,
+      code: "VALIDATION_FAILED",
+    });
+    expect(await send(p1, give(ctx, { quantity: 0 }))).toMatchObject({
+      ok: false,
+      code: "VALIDATION_FAILED",
+    });
   });
 });

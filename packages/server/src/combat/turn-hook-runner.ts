@@ -66,7 +66,6 @@ import { broadcastToWorld } from "../net/handlers/doc-handlers.js";
 import { tokenLookupSourceFromStore } from "../net/redaction.js";
 import {
   buildBaseMessage,
-  buildRollMessage,
   persistChatMessage,
   broadcastChatMessage,
   getGmUserIds,
@@ -161,7 +160,7 @@ export function createStubTurnHookContextServices(): TurnHookContextServices {
 //
 // Scoped to exactly what a REGISTERED hook calls TODAY: `deleteEmbedded` (the
 // effect leaves the actor's `items[]` for real) and `chat` (the "Efeito X
-// terminou" announcement). `roll`/`updateActor`/`createEmbedded` stay
+// terminou" announcement). `roll` and `createEmbedded` stay
 // `TurnHookContextStubError` stubs — no hook registered as of this fix calls
 // them, and wiring a service with no caller to prove it against is exactly
 // the untested-branch trap the B1 finding fell into. Tracked as a follow-up
@@ -182,7 +181,6 @@ export interface DocumentWriteTurnHookContextDeps {
    * kept showing the strike without the Monster Hunter's +1 the roll would add).
    */
   systemModule?: SystemModule;
-  /**
   logger?: Logger;
 }
 

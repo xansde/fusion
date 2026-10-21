@@ -887,13 +887,12 @@ abilityMod(damage) + Σ damageModifiers`, com `abilityMod(damage)` = STR (melee)
 - **REQ-PF2-126** [MVP] Passar de `5 + For` DEVE aplicar **sobrecarregado** só no derivado
   (`clumsy 1` e −10 pés em todas as Velocidades, nunca abaixo de 5), sem criar item de
   condição, e `system.derived.encumbrance` DEVE publicar `{ bulkTenths, encumberedAbove, max,
-  state }`. Acima de `10 + For` o estado é `over-max`.
+state }`. Acima de `10 + For` o estado é `over-max`.
 - **REQ-PF2-127** [MVP] A runa **resiliente** (`runes.resilient` 0..3) DEVE ser bônus de item
   em Fortitude, Reflexos e Vontade, e o **escudo erguido** (empunhado, `equipped.raised`, não
   quebrado: PV acima do `brokenThreshold`) DEVE dar +`acBonus` de circunstância na CA.
   **Critério verificável:** armadura +1 potência/+2 resiliente investida, nível 5 treinado:
   CA 10 + 7 + acBonus + 1 e salvaguardas +7 + 2.
-
 
 ### Equipamento mágico
 

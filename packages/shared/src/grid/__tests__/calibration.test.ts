@@ -50,12 +50,10 @@ describe("one rectangle over one cell", () => {
 describe("origin (scene padding)", () => {
   it("measures the offset from the map corner, not from the padded canvas", () => {
     // Box at world x=1030 with the map starting at x=1000 -> 30 px into the map.
-    const result = calibrateSquareGrid(
-      { x: 1030, y: 2045, width: 100, height: 100 },
-      1,
-      1,
-      { x: 1000, y: 2000 },
-    );
+    const result = calibrateSquareGrid({ x: 1030, y: 2045, width: 100, height: 100 }, 1, 1, {
+      x: 1000,
+      y: 2000,
+    });
     expect(result.offsetX).toBe(30);
     expect(result.offsetY).toBe(45);
   });

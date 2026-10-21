@@ -484,7 +484,10 @@ describe("worldSync — scene:preload on 'op' channel", () => {
       makeEnvelope("scene:preload", { sceneId: "abcdefghij012345", background: "/assets/m.png" }),
     );
 
-    expect(listener).toHaveBeenCalledWith({ sceneId: "abcdefghij012345", background: "/assets/m.png" });
+    expect(listener).toHaveBeenCalledWith({
+      sceneId: "abcdefghij012345",
+      background: "/assets/m.png",
+    });
     expect(mockSetActiveSceneId).not.toHaveBeenCalled();
     expect(worldMirror.seq).toBe(seqBefore);
     setScenePreloadListener(null);

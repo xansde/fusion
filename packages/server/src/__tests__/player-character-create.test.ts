@@ -680,11 +680,17 @@ describe("Player-owned character edit + build legality (pf2e, O6/T6.2-T6.3; O6 f
       ],
     });
     expect(on["ok"]).toBe(true);
-    version = statsVersion((on["result"] as { documents: Array<Record<string, unknown>> }).documents[0]!);
+    version = statsVersion(
+      (on["result"] as { documents: Array<Record<string, unknown>> }).documents[0]!,
+    );
     const rogueDedication = {
       name: "Rogue Dedication",
       type: "feat",
-      system: { category: "class", level: 2, traits: { value: ["archetype", "dedication", "multiclass"] } },
+      system: {
+        category: "class",
+        level: 2,
+        traits: { value: ["archetype", "dedication", "multiclass"] },
+      },
       flags: { fusion: { build: { level: 2, slot: "archetypeFeat-2" } } },
     };
     const embedAck = await sendOp(ownerSocket, "doc:create", {

@@ -134,7 +134,10 @@ describe("loadSceneDocument — calibrated grid origin", () => {
 
   it("keeps the old behaviour (origin = padding corner) without an offset", async () => {
     const { canvas } = fakeCanvas();
-    await loadSceneDocument(canvas as never, { ...scene, gridOffsetX: null, gridOffsetY: null } as never);
+    await loadSceneDocument(
+      canvas as never,
+      { ...scene, gridOffsetX: null, gridOffsetY: null } as never,
+    );
     const args = fromGridConfig.mock.calls[0] as unknown[];
     expect(args[3]).toBe(500);
     expect(args[4]).toBe(300);

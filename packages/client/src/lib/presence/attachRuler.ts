@@ -173,13 +173,6 @@ export function attachRuler(opts: AttachRulerOptions): RulerHandle {
     return screenToWorld(e.clientX - rect.left, e.clientY - rect.top, canvas.camera);
   }
 
-  function toScene(e: PointerEvent): ScenePoint {
-    // Snap to cell centers so the reading is cell-to-cell, matching how tokens
-    // move. Without this the ruler reports the distance between two arbitrary
-    // pixels and the diagonal rule becomes impossible to read.
-    return grid.getSnappedPoint(toRaw(e), "center");
-  }
-
   // ---- Ruler ----
 
   function apply(input: RulerInput): void {
@@ -241,7 +234,9 @@ export function attachRuler(opts: AttachRulerOptions): RulerHandle {
       socket,
       newId(),
       sceneId,
-      emanationForToken(rulerTool.sizeFt, token.id, token.footprint, square, { ...rulerTool.style }),
+      emanationForToken(rulerTool.sizeFt, token.id, token.footprint, square, {
+        ...rulerTool.style,
+      }),
     );
   }
 
@@ -267,8 +262,14 @@ export function attachRuler(opts: AttachRulerOptions): RulerHandle {
   }
 
   /** Pinned templates of this scene as they must be drawn NOW (anchored ones follow their token). */
-  function livePinned(): Array<{ id: string; userId: string; userName?: string; template: AreaTemplate }> {
-    const out: Array<{ id: string; userId: string; userName?: string; template: AreaTemplate }> = [];
+  function livePinned(): Array<{
+    id: string;
+    userId: string;
+    userName?: string;
+    template: AreaTemplate;
+  }> {
+    const out: Array<{ id: string; userId: string; userName?: string; template: AreaTemplate }> =
+      [];
     const now = Date.now();
     for (const pin of presenceState.pinnedTemplates.values()) {
       if (pin.sceneId !== sceneId) continue;
@@ -279,7 +280,10 @@ export function attachRuler(opts: AttachRulerOptions): RulerHandle {
         const since = orphans.get(pin.id) ?? now;
         orphans.set(pin.id, since);
         // The token is gone: the area goes with it. Its author (or the GM) tells the server.
-        if (now - since > ORPHAN_GRACE_MS && (pin.userId === selfUserId || opts.isModerator === true)) {
+        if (
+          now - since > ORPHAN_GRACE_MS &&
+          (pin.userId === selfUserId || opts.isModerator === true)
+        ) {
           orphans.delete(pin.id);
           emitTemplateUnpin(socket, pin.id, sceneId);
         }
@@ -366,7 +370,13 @@ export function attachRuler(opts: AttachRulerOptions): RulerHandle {
       e.preventDefault();
     }
     // Enter with the emanation tool: the emanation of the selected token, no dragging.
-    if (e.key === "Enter" && !e.repeat && !editable(e) && rulerTool.mode === "emanation" && !tplPress) {
+    if (
+      e.key === "Enter" &&
+      !e.repeat &&
+      !editable(e) &&
+      rulerTool.mode === "emanation" &&
+      !tplPress
+    ) {
       const selected = opts.getSelectedToken?.() ?? null;
       if (selected) {
         e.preventDefault();
@@ -575,7 +585,12 @@ export function attachRuler(opts: AttachRulerOptions): RulerHandle {
       if (tpl) emitTemplateClear(socket);
       rulerLayer.destroy();
     },
-    isBusy: () => measuring || toolDragging || tplPress !== null || dragInfo !== null || rulerTool.mode !== null,
+    isBusy: () =>
+      measuring ||
+      toolDragging ||
+      tplPress !== null ||
+      dragInfo !== null ||
+      rulerTool.mode !== null,
     showDrag: (info) => {
       if (!info) dragWaypoints = [];
       dragInfo = info;

@@ -87,10 +87,15 @@ const HEX = /^#[0-9a-fA-F]{6}$/;
 /** Clean an untrusted style: unknown fields fall back to the defaults, fill is clamped. */
 export function normalizeAreaStyle(raw: unknown): AreaStyle {
   const r = typeof raw === "object" && raw !== null ? (raw as Record<string, unknown>) : {};
-  const color = typeof r["color"] === "string" && HEX.test(r["color"]) ? r["color"] : DEFAULT_AREA_STYLE.color;
+  const color =
+    typeof r["color"] === "string" && HEX.test(r["color"]) ? r["color"] : DEFAULT_AREA_STYLE.color;
   const b = r["border"];
-  const border: AreaBorder = b === "thin" || b === "medium" || b === "thick" ? b : DEFAULT_AREA_STYLE.border;
-  const f = typeof r["fill"] === "number" && Number.isFinite(r["fill"]) ? r["fill"] : DEFAULT_AREA_STYLE.fill;
+  const border: AreaBorder =
+    b === "thin" || b === "medium" || b === "thick" ? b : DEFAULT_AREA_STYLE.border;
+  const f =
+    typeof r["fill"] === "number" && Number.isFinite(r["fill"])
+      ? r["fill"]
+      : DEFAULT_AREA_STYLE.fill;
   return { color, border, fill: Math.min(AREA_FILL_MAX, Math.max(AREA_FILL_MIN, f)) };
 }
 
@@ -241,9 +246,29 @@ export function templateCells(t: AreaTemplate, grid: SquareGrid): CellOffset[] {
     case "cone":
       // 92 degrees: squares whose centre sits exactly on the 45-degree edge of a
       // 90-degree wedge must count, and float error must not decide it.
-      return squareConeHighlight(t.origin.x, t.origin.y, t.direction, 92, t.sizeFt, size, dist, ox, oy);
+      return squareConeHighlight(
+        t.origin.x,
+        t.origin.y,
+        t.direction,
+        92,
+        t.sizeFt,
+        size,
+        dist,
+        ox,
+        oy,
+      );
     case "line":
-      return squareLineHighlight(t.origin.x, t.origin.y, t.direction, t.sizeFt, 5, size, dist, ox, oy);
+      return squareLineHighlight(
+        t.origin.x,
+        t.origin.y,
+        t.direction,
+        t.sizeFt,
+        5,
+        size,
+        dist,
+        ox,
+        oy,
+      );
   }
 }
 
@@ -306,7 +331,8 @@ export function parseAreaTemplate(raw: unknown): AreaTemplate | null {
   if (sizeFt === undefined || direction === undefined || ox === undefined || oy === undefined) {
     return null;
   }
-  const tokenId = typeof r["tokenId"] === "string" && r["tokenId"] !== "" ? r["tokenId"] : undefined;
+  const tokenId =
+    typeof r["tokenId"] === "string" && r["tokenId"] !== "" ? r["tokenId"] : undefined;
   const base = {
     kind: kind as AreaKind,
     sizeFt,

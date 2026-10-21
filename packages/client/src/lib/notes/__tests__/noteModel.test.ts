@@ -54,7 +54,11 @@ describe("payload builders", () => {
   });
 
   it("builds a create payload with rounded coordinates and trimmed title", () => {
-    const p = createPayload("s1", { x: 10.6, y: 3.2 }, { ...EMPTY_DRAFT, title: " Cofre ", gmOnly: true });
+    const p = createPayload(
+      "s1",
+      { x: 10.6, y: 3.2 },
+      { ...EMPTY_DRAFT, title: " Cofre ", gmOnly: true },
+    );
     expect(p).toEqual({
       sceneId: "s1",
       note: { x: 11, y: 3, title: "Cofre", text: "", gmOnly: true, playersCanEdit: false },

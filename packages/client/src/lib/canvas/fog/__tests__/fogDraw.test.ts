@@ -51,9 +51,18 @@ describe("buildRectOp", () => {
 
 describe("buildPolyOp", () => {
   it("needs three distinct vertices", () => {
-    expect(buildPolyOp("reveal", [{ x: 0, y: 0 }, { x: 10, y: 0 }])).toBeNull();
     expect(
-      buildPolyOp("reveal", [{ x: 0, y: 0 }, { x: 10, y: 0 }, { x: 10.2, y: 0.2 }]),
+      buildPolyOp("reveal", [
+        { x: 0, y: 0 },
+        { x: 10, y: 0 },
+      ]),
+    ).toBeNull();
+    expect(
+      buildPolyOp("reveal", [
+        { x: 0, y: 0 },
+        { x: 10, y: 0 },
+        { x: 10.2, y: 0.2 },
+      ]),
     ).toBeNull();
   });
 
@@ -90,7 +99,10 @@ describe("brush", () => {
 
 describe("isNearFirstVertex", () => {
   it("only closes with at least three vertices", () => {
-    const v = [{ x: 0, y: 0 }, { x: 50, y: 0 }];
+    const v = [
+      { x: 0, y: 0 },
+      { x: 50, y: 0 },
+    ];
     expect(isNearFirstVertex(v, { x: 1, y: 1 }, 10)).toBe(false);
     expect(isNearFirstVertex([...v, { x: 50, y: 50 }], { x: 1, y: 1 }, 10)).toBe(true);
   });

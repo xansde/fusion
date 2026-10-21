@@ -71,7 +71,8 @@ export interface GridCalibrationHandle {
 }
 
 export function attachGridCalibration(opts: AttachGridCalibrationOptions): GridCalibrationHandle {
-  const { canvas, layer, cellPx, onChange, isValid, getPreview, onSettle, onCancel, onConfirm } = opts;
+  const { canvas, layer, cellPx, onChange, isValid, getPreview, onSettle, onCancel, onConfirm } =
+    opts;
 
   const el = canvas.viewElement;
   const calibrationLayer = new GridCalibrationLayer(layer);

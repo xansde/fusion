@@ -4,7 +4,9 @@
   "type": "module",
   "private": true,
   "description": "Command-line door into a LIVE Fusion server: logs in and sends ops through the same pipeline as the browser client.",
-  "bin": { "mesa": "./bin/mesa.mjs" },
+  "bin": {
+    "mesa": "./bin/mesa.mjs"
+  },
   "scripts": {
     "test": "vitest run"
   },

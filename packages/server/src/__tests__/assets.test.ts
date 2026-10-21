@@ -1252,7 +1252,14 @@ describe("POST /api/assets/upload?purpose=avatar — a player publishes his own 
 
   it("caps the size well under the generic limit", async () => {
     const big = Buffer.concat([PNG_BYTES, Buffer.alloc(600 * 1024, 0xaa)]);
-    const resp = await uploadIcon(ctx.fastify, ctx.playerToken, big, "big.png", {}, "?purpose=avatar");
+    const resp = await uploadIcon(
+      ctx.fastify,
+      ctx.playerToken,
+      big,
+      "big.png",
+      {},
+      "?purpose=avatar",
+    );
     expect(resp.statusCode).toBe(413);
     expect(topLevelNames()).toEqual([]);
   });

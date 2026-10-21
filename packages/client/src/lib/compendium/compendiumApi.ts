@@ -104,7 +104,12 @@ const SMALL_POLICY: QueryPolicy = { timeoutMs: 15_000, attempts: 2 };
 const BACKOFF_MS = [500, 1_500];
 
 /** Server answers that retrying cannot change. */
-const PERMANENT_CODES = new Set(["NOT_FOUND", "VALIDATION_FAILED", "PERMISSION_DENIED", "FORBIDDEN"]);
+const PERMANENT_CODES = new Set([
+  "NOT_FOUND",
+  "VALIDATION_FAILED",
+  "PERMISSION_DENIED",
+  "FORBIDDEN",
+]);
 /** Only failures that may pass on their own are asked again; any other refusal is the server's answer. */
 const TRANSIENT_CODES = new Set(["TIMEOUT", "INTERNAL_ERROR", "NOT_CONNECTED"]);
 
@@ -181,7 +186,12 @@ async function sendQuery<R = unknown>(
         type,
         attempt,
       );
-      if (PERMANENT_CODES.has(failure.code) || !TRANSIENT_CODES.has(failure.code) || attempt >= policy.attempts) throw last;
+      if (
+        PERMANENT_CODES.has(failure.code) ||
+        !TRANSIENT_CODES.has(failure.code) ||
+        attempt >= policy.attempts
+      )
+        throw last;
       // A replaced/disconnected socket cannot answer: fail now, the caller shows
       // the "not connected" state instead of waiting out a dead instance.
       requireConnectedSocket(socket);
@@ -274,7 +284,9 @@ export function listPacks(
   const at = stamps.get(key);
   if (at !== undefined && Date.now() - at > LIST_TTL_MS) caches.get(socket)?.delete(key);
   if (!peekCached(socket, key)) stamps.set(key, Date.now());
-  return cached(socket, key, () => sendQuery<ListPacksResult>(socket, "compendium:list", filter ?? {}));
+  return cached(socket, key, () =>
+    sendQuery<ListPacksResult>(socket, "compendium:list", filter ?? {}),
+  );
 }
 
 const LIST_TTL_MS = 30_000;
@@ -320,7 +332,12 @@ export function searchPack(
     // under the index key so either call fills the cache for the other.
     // A copy: callers sort/splice what they get, and the cached array is shared.
     return cached(socket, indexKey(query.packId), () =>
-      sendQuery<PackIndexResult>(socket, "compendium:search", { packId: query.packId }, BULK_POLICY),
+      sendQuery<PackIndexResult>(
+        socket,
+        "compendium:search",
+        { packId: query.packId },
+        BULK_POLICY,
+      ),
     ).then((r) => ({
       packId: r.packId,
       entries: r.entries.slice(),
@@ -420,7 +437,12 @@ export function searchAllPacks(
   socket: Socket,
   payload: CompendiumSearchAllPayload,
 ): Promise<CompendiumSearchAllResult> {
-  return sendQuery<CompendiumSearchAllResult>(socket, COMPENDIUM_SEARCH_ALL_QUERY, payload, BULK_POLICY);
+  return sendQuery<CompendiumSearchAllResult>(
+    socket,
+    COMPENDIUM_SEARCH_ALL_QUERY,
+    payload,
+    BULK_POLICY,
+  );
 }
 
 export interface GetDocumentResult {
