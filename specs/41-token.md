@@ -495,12 +495,21 @@ sendo do ator, e esta spec não define nenhuma "ficha de token".
   montaria, schema) e NÃO existe setting para ligar ou desligar essa via. Duplicar e excluir
   seguem só pela régua de REQ-TOK-031. _(A frase "inclusive pelo OWNER" de REQ-TOK-030 vale
   hoje apenas para os casos fora desta emenda; DEC-TOK-06 e DEC-CTT-12 ficam emendadas por
-  ela.)_
+  ela.)_ _(Emenda provisória de 21/10/2026, revisar no beta: por essa via o pedido carrega SÓ
+  `actorId`, `x` e `y` — o que o cliente do jogador manda — e o servidor recusa qualquer outro
+  campo (`light`, `vision`, `seenBy`, `disposition`, `elevation`, `flags`...) com
+  `PERMISSION_DENIED`; o jogador NÃO DEVE pôr mais de um token do mesmo ator na mesma cena
+  (`VALIDATION_FAILED`, contando o próprio lote). Vale para quem só entra por esta via: papel que
+  já alcança o piso de `TOKEN_CREATE` segue sem a restrição.)_
 - **REQ-TOK-031** [MVP] Duplicar e excluir um token DEVEM exigir papel privilegiado, com a mesma
   régua de REQ-TOK-030.
 - **REQ-TOK-032** [MVP] Mover um token DEVE exigir OWNER (3) sobre o ator efetivo, ou papel
   privilegiado (REQ-USR-013). _(Emenda da spec 52, 2026-10-05: OWNER deixa de bastar para o
   cavaleiro montado, que só se move com a montaria ou por papel privilegiado, REQ-TOK-117.)_
+  _(Emenda provisória de 21/10/2026, revisar no beta: o `doc:update` de token por quem NÃO tem papel
+  privilegiado só pode escrever `x`, `y` e `rotation` — o resto (`light`, `vision`, `seenBy`,
+  `disposition`, `elevation`, `flags`, também em chave pontilhada) é do Mestre e volta
+  `PERMISSION_DENIED`, nada gravado.)_
 - **REQ-TOK-033** [MVP] A avaliação de permissão DEVE ser feita no servidor em todos os casos; a
   interface PODE antecipar o resultado, mas NÃO DEVE ser a única guarda.
 - **REQ-TOK-034** [MVP] Não DEVE existir, em spec nem em código, um predicado de "controle de

@@ -583,6 +583,14 @@ botão de ficha alcançável por teclado e por toque.
 - **Q-CTT-03** — Um personagem pode conhecer outro **personagem de jogador** em grau
   diferente? Hoje a seção Na mesa mostra todos a todos; o conhecimento só se aplica a
   não-jogadores.
+  > **Emenda provisória de 21/10/2026 (xansde/fusion#240, revisar no beta):** "todos a
+  > todos" vale só entre quem tem acesso. O personagem de jogador responde a `ownership`
+  > como qualquer Actor (REQ-NET-096): a seção Na mesa lista os personagens sobre os quais
+  > o usuário tem nível efetivo `LIMITED` ou superior — o próprio (dono) sempre, e os dos
+  > outros só quando o Mestre os compartilhar (REQ-USR-025a nasce com `default = none`).
+  > O servidor aplica o mesmo corte no snapshot de join, no broadcast ao vivo, no replay do
+  > delta e no eco do ack; antes disso o personagem de outro jogador vazava nos três
+  > últimos caminhos a cada `doc:update` do dono.
 - **Q-CTT-04** — Quando um contato é rebaixado (de `conhecido` para `oculto`), o cliente
   deve avisar o jogador de que alguém sumiu da lista, ou o sumiço é silencioso? A posição
   provável é silencioso, como a queda de aba salva na 36.

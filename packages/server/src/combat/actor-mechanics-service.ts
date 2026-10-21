@@ -57,18 +57,13 @@
  * KNOWN, DOCUMENTED GAPS still open against the full REQ-SYS-142 text
  * (registered here rather than silently skipped — same discipline ALQ-F1-02
  * used for its own divergences):
- *   - Step 2b's reread of `type`/`category`/`traits`/`materials` from the
- *     recorded roll for a non-privileged caller is NOT implemented:
- *     `RollResultData` (`08-motor-de-rolagens.md`) carries none of these
- *     fields today — there is nothing server-side to reread them FROM (only
- *     `total` and the generic `degreeOfSuccess` string exist on a roll).
- *     A non-privileged caller's `traits`/`materials`/`type`/`category` still
- *     travel from the payload UNVERIFIED into `ResolvedDamageInstance` — a
- *     forged `materials: ["cold-iron"]` still fakes triggering a weakness
- *     against a REAL pf2e mechanic. Cannot be closed without inventing a
- *     richer persisted-roll shape — needs a design decision alongside a pf2e
- *     mechanic task, not a unilateral fix here. Tracked in issue #225
- *     (xansde/fusion).
+ *   - #225 (21/10/2026, partial): step 2b's reread of `type`/`category`/`traits`/`materials` is closed as far
+ *     as the recorded roll allows. `RollResultData` still has no field for them, so a non-privileged caller's
+ *     `category`/`traits`/`materials` are DROPPED (nothing to reread them from — like `nonlethal`), and its
+ *     `type` must match a `[type]` annotation of the roll's terms when the roll has one. A roll with no
+ *     annotation gives nothing to check `type` against: that case still trusts the payload. Closing it fully
+ *     means the damage roll recording its own type/traits/materials (a richer persisted shape, with the pf2e
+ *     mechanic), which is not done here.
  *
  * `ActorMechanicsPatch.breakdown` → `DamageAppliedTarget.byType` convention
  * (undocumented anywhere upstream — `DamageBreakdownStep.step` is explicitly
@@ -239,6 +234,30 @@ function readRoll(
 function readRollTotal(msg: Record<string, unknown>, rollIndex: number): number | undefined {
   const total = readRoll(msg, rollIndex)?.["total"];
   return typeof total === "number" ? total : undefined;
+}
+
+/**
+ * The damage types a recorded roll names: the `[flavor]` annotations of its terms (`2d6[fire]+1d6[cold]`),
+ * lowercased. Empty when the roll carries none — then there is nothing to check a claimed type against.
+ */
+function readRollDamageTypes(msg: Record<string, unknown>, rollIndex: number): Set<string> {
+  const types = new Set<string>();
+  const terms = readRoll(msg, rollIndex)?.["terms"];
+  if (!Array.isArray(terms)) return types;
+  const add = (raw: unknown): void => {
+    if (typeof raw === "string" && raw.trim().length > 0) types.add(raw.trim().toLowerCase());
+  };
+  for (const term of terms) {
+    if (!term || typeof term !== "object") continue;
+    const record = term as Record<string, unknown>;
+    add(record["flavor"]);
+    // The engine keeps a die's annotation inside its expression ("2d6 [fire]"), not in `flavor`.
+    const expression = record["expression"];
+    if (typeof expression === "string") {
+      for (const match of expression.matchAll(/\[([^\]]+)\]/g)) add(match[1]);
+    }
+  }
+  return types;
 }
 
 function readRollDegree(msg: Record<string, unknown>, rollIndex: number): string | undefined {
@@ -1044,6 +1063,15 @@ async function applyDamage(
       }
       amount = total;
       recordedDegree = msg ? readRollDegree(msg, instance.source.rollIndex) : undefined;
+      // #225 (REQ-SYS-142 step 2b): a non-privileged caller cannot claim a damage type the recorded roll
+      // contradicts. A roll with no `[type]` annotation gives nothing to check against, so it is left to
+      // the payload (the residual gap, see the module header).
+      if (!privileged && msg) {
+        const rolledTypes = readRollDamageTypes(msg, instance.source.rollIndex);
+        if (rolledTypes.size > 0 && !rolledTypes.has(instance.type.trim().toLowerCase())) {
+          return forbidden("damage type does not match the recorded roll");
+        }
+      }
     } else {
       // DamageInstanceInputSchema's refine guarantees `amount` when `source`
       // is absent (zod refinements are runtime-only — they cannot narrow the
@@ -1069,12 +1097,18 @@ async function applyDamage(
         : instance.critical;
     const nonlethal = !privileged && instance.source !== undefined ? false : instance.nonlethal;
 
+    // #225: `category`/`traits`/`materials` have no persisted carrier on a roll, so a non-privileged
+    // caller's claim cannot be verified — the safe reread of "no data" is none (like `nonlethal` above): a
+    // player can never fake a material or trait to dodge a resistance. Privileged/system callers keep them.
+    const unverifiable = !privileged && instance.source !== undefined;
     resolvedInstances.push({
       type: instance.type,
       amount,
-      ...(instance.category !== undefined ? { category: instance.category } : {}),
-      ...(instance.traits !== undefined ? { traits: instance.traits } : {}),
-      ...(instance.materials !== undefined ? { materials: instance.materials } : {}),
+      ...(!unverifiable && instance.category !== undefined ? { category: instance.category } : {}),
+      ...(!unverifiable && instance.traits !== undefined ? { traits: instance.traits } : {}),
+      ...(!unverifiable && instance.materials !== undefined
+        ? { materials: instance.materials }
+        : {}),
       ...(critical !== undefined ? { critical } : {}),
       ...(nonlethal !== undefined ? { nonlethal } : {}),
     });
@@ -1233,16 +1267,11 @@ async function runOnDamageAppliedHooks(
 //     no chat-side effect for applyCondition, so this task publishes none.
 //     The ack (`ApplyConditionAck`) is what the caller consumes directly.
 //
-// KNOWN, DOCUMENTED GAP (same discipline ALQ-F1-08 used for its own
-// divergences, see this module's header): REQ-SYS-142 step 4's "mark the
-// combatant defeated" (REQ-CBT-059) is written once, generically, for "the
-// service" — but REQ-CBT-059 is not in THIS task's own Spec/REQ list (only
-// ALQ-F1-08 names it), and `markCombatantDefeatedForActor` needs deps
-// (`opBuffer`/`ns`/broadcast wiring) this function does not reach for. A GM
-// setting the `dead` slug directly via `actor:applyCondition` (REQ-PF2-215
-// explicitly allows `dead` as a slug) therefore does NOT mark a combatant
-// `defeated` the way a killing `actor:applyDamage` does. Left open for a
-// future task/reviewer decision rather than invented here.
+// CLOSED GAP (#229): REQ-CBT-059's "mark the combatant defeated" used to cover only a killing
+// `actor:applyDamage`. A `dead` slug set through `actor:applyCondition` (REQ-PF2-215 allows it, and a dying
+// recovery turned fatal ends there too) now takes the combatant out of the order the same way —
+// `computeApplyCondition` calls `markCombatantDefeatedForActor` when the patch flags `dead`
+// (apply-condition-handler.test.ts covers it).
 // ---------------------------------------------------------------------------
 
 /**

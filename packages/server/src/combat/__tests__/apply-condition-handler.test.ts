@@ -317,6 +317,43 @@ describe("actor:applyCondition — ActorMechanicsService (ALQ-F1-09, REQ-SYS-142
     expect(readConditionValue(h, goblin, "clumsy")).toBe(2);
   });
 
+  it("#229: a condição `dead` aplicada pelo Mestre marca o combatente como defeated no encontro ativo da cena (REQ-CBT-059)", async () => {
+    const goblin = createActor(h, "Goblin");
+    const sceneId = createSceneWithTokens(h, [
+      { _id: "tok-goblin", name: "Goblin", actorId: goblin },
+    ]);
+    const combat = h.store.create(
+      "combats",
+      {
+        sceneId,
+        round: 1,
+        combatants: [
+          {
+            _id: "cbtGoblin0000001",
+            combatId: "combat00000000001",
+            tokenId: "tok-goblin",
+            actorId: goblin,
+            name: "Goblin",
+            img: "",
+            initiative: 10,
+            initiativeStatistic: "perception",
+          },
+        ],
+      },
+      { userId: GM_CTX.userId },
+    );
+
+    const ack = await h.handler(
+      { targetTokenIds: ["tok-goblin"], slug: "dead", mode: "add" },
+      GM_CTX,
+    );
+    expect(ack.ok, JSON.stringify(ack)).toBe(true);
+
+    const after = h.store.get("combats", combat["_id"] as string);
+    const combatants = after["combatants"] as Array<Record<string, unknown>>;
+    expect(combatants.find((c) => c["actorId"] === goblin)?.["defeated"]).toBe(true);
+  });
+
   it("player aplica em si mesmo via selfActorId — não precisa de seleção viva", async () => {
     const pc = createActor(h, "PC do jogador", "player-p");
 
@@ -437,6 +474,9 @@ describe("actor:applyCondition — ActorMechanicsService (ALQ-F1-09, REQ-SYS-142
       } {
         const pc = createActor(h, "PC do jogador", "player-p");
         const ogre = createActor(h, "Ogro");
+        // A `character` the players can see: since #240 a character answers to ownership on every path, so the
+        // doc:update of the target only reaches a player who holds at least LIMITED over it.
+        h.store.update("actors", ogre, { ownership: { default: 2 } }, { userId: GM_CTX.userId });
         const sceneId = createSceneWithTokens(h, [
           { _id: "tok-ogre", name: "Ogro", actorId: ogre, hidden },
         ]);

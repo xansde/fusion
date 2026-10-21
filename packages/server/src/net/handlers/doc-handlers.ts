@@ -725,6 +725,48 @@ function readMasterActorId(doc: Record<string, unknown>): string | null {
   return typeof raw === "string" && raw.length > 0 ? raw : null;
 }
 
+/**
+ * REQ-ATR-083 (#243): an Actor must not name itself as `system.masterActorId`, and the chain of masters
+ * must not close a cycle (A -> B -> A). `docId` is the id the document has (or will have) — a create that
+ * does not carry one gets a fresh server id nobody can reference yet, so it cannot close a cycle.
+ * `system` is the (expanded) `system` value of the create payload or of the update diff.
+ */
+function masterLinkRejection(
+  store: DocumentStore,
+  docId: unknown,
+  system: unknown,
+): Ack<never> | null {
+  if (typeof docId !== "string" || docId.length === 0) return null;
+  if (!system || typeof system !== "object" || Array.isArray(system)) return null;
+  const raw = (system as Record<string, unknown>)["masterActorId"];
+  if (typeof raw !== "string" || raw.length === 0) return null;
+  if (raw === docId) {
+    return ackError("VALIDATION_FAILED", "system.masterActorId must not point at the actor itself");
+  }
+  const visited = new Set<string>([raw]);
+  let current = raw;
+  // The walk is bounded by the visited set: a pre-existing cycle that does not include `docId` ends it.
+  for (;;) {
+    let linked: Record<string, unknown>;
+    try {
+      linked = store.get("actors", current);
+    } catch (err) {
+      if (err instanceof DocumentNotFoundError) return null; // soft reference (REQ-ATR-081)
+      throw err;
+    }
+    const next = readMasterActorId(linked);
+    if (next === docId) {
+      return ackError(
+        "VALIDATION_FAILED",
+        "system.masterActorId would close a cycle between actors",
+      );
+    }
+    if (next === null || visited.has(next)) return null;
+    visited.add(next);
+    current = next;
+  }
+}
+
 /** Read `system.companionKind` from a raw doc, or null when absent/blank. */
 function readCompanionKind(doc: Record<string, unknown>): string | null {
   const sys = doc["system"];
@@ -1573,6 +1615,10 @@ export function buildDocCreateHandler(deps: DocHandlerDeps): HandlerFn {
             return ackError("VALIDATION_FAILED", currencyValidation.message);
           }
           item = currencyValidation.doc;
+          // REQ-ATR-083 (#243): no self-reference and no cycle, the GM path and the batch included
+          // (an earlier item of the batch is already persisted when a later one is checked).
+          const masterRejection = masterLinkRejection(deps.store, item["_id"], item["system"]);
+          if (masterRejection) return masterRejection;
         }
         // r17-P1: for a player-authorized companion create, force the master's
         // ownership map onto the payload so the master's owners own the
@@ -1843,6 +1889,16 @@ export function buildDocUpdateHandler(deps: DocHandlerDeps): HandlerFn {
         existing,
       );
       if (rejection) return rejection;
+
+      // REQ-ATR-083 (#243): the master link may not point at the actor itself nor close a cycle.
+      if (documentType === "Actor") {
+        const masterRejection = masterLinkRejection(
+          deps.store,
+          upd._id,
+          expandedDiffForChecks["system"],
+        );
+        if (masterRejection) return masterRejection;
+      }
 
       // REQ-CFG-042: same domain validation as doc:create's guard above,
       // applied to the `fusion.permissions` Setting's `value` diff before it
@@ -2289,6 +2345,28 @@ export function buildDocDeleteHandler(deps: DocHandlerDeps): HandlerFn {
 // Embedded document operations (tokens inside scenes)
 // ---------------------------------------------------------------------------
 
+/**
+ * What the client of a PLAYER sends about a token: `{ x, y }` (plus `rotation`, which BHR-F5-03 lets a player
+ * set) when it drags its own character and
+ * `{ actorId, x, y }` when it drops it (`TokenInteractionManager._sendMoveOp`, `buildTokenFromActorFields`).
+ * Everything else — light, vision, seenBy, disposition, elevation, flags, ... — belongs to the Mestre, so the
+ * owner path refuses it (REQ-TOK-030a/032, mesa 21/10/2026). A dotted key counts by its first segment.
+ */
+const PLAYER_TOKEN_UPDATE_FIELDS: ReadonlySet<string> = new Set(["x", "y", "rotation"]);
+const PLAYER_TOKEN_DROP_FIELDS: ReadonlySet<string> = new Set(["actorId", "x", "y"]);
+
+/** First key of `diff` (by first dotted segment) that is not in `allowed`, or null. */
+function firstDisallowedTokenField(
+  diff: Record<string, unknown>,
+  allowed: ReadonlySet<string>,
+): string | null {
+  for (const key of Object.keys(diff)) {
+    const head = key.split(".")[0] ?? key;
+    if (!allowed.has(head)) return head;
+  }
+  return null;
+}
+
 // ---------------------------------------------------------------------------
 // Owner drops their own character on the active scene (REQ-TOK-030a)
 // ---------------------------------------------------------------------------
@@ -2369,15 +2447,20 @@ function handleEmbeddedCreate(
   // REQ-TOK-030a: the owner of the manifested Actor dropping a non-hidden token on
   // the scene on air is the one other way in (see `isOwnerTokenDrop`).
   const ownerTokenDrop = isOwnerTokenDrop(deps, ctx, embeddedType, data, parent);
-  if (parent.type !== "Actor" && !ownerTokenDrop) {
+  // True when the owner drop is the ONLY thing letting this caller in: a role that meets TOKEN_CREATE's
+  // floor was granted full creation by the Mestre, so the field allowlist below is for the other case.
+  let ownerDropOnly = false;
+  if (parent.type !== "Actor") {
     const minRole =
       embeddedType === "Token"
         ? resolvePermissionMinRole(deps.store, "TOKEN_CREATE")
         : UserRole.TRUSTED;
     // eslint-disable-next-line @typescript-eslint/no-unsafe-enum-comparison
-    if (ctx.role !== UserRole.GAMEMASTER && ctx.role < minRole) {
+    const roleFloorMet = ctx.role === UserRole.GAMEMASTER || ctx.role >= minRole;
+    if (!ownerTokenDrop && !roleFloorMet) {
       return ackError("PERMISSION_DENIED", "Insufficient role to create embedded documents");
     }
+    ownerDropOnly = ownerTokenDrop && !roleFloorMet;
   }
 
   // Load parent — RAW (REQ-TOK-002): the embedded collection below is
@@ -2437,6 +2520,28 @@ function handleEmbeddedCreate(
 
     // Validate against Token schema if applicable
     if (embeddedType === "Token") {
+      // Owner drop (REQ-TOK-030a): only what the player's client sends, and one token of the same actor
+      // per scene — counting what an earlier item of this very batch already added. Judged on the wire
+      // payload (`item`): `raw` already carries the server-generated `_id`.
+      if (ownerDropOnly) {
+        const extra = firstDisallowedTokenField(
+          item as Record<string, unknown>,
+          PLAYER_TOKEN_DROP_FIELDS,
+        );
+        if (extra !== null) {
+          return ackError(
+            "PERMISSION_DENIED",
+            `Field "${extra}" is not writable by a player when dropping a token`,
+          );
+        }
+        const dropActorId = raw["actorId"];
+        if ([...existing, ...created].some((t) => t["actorId"] === dropActorId)) {
+          return ackError(
+            "VALIDATION_FAILED",
+            "This scene already has a token for that actor — a player puts at most one",
+          );
+        }
+      }
       // REQ-TOK-002/CA-TOK-003/DEC-TOK-05: checked BEFORE the generic schema
       // parse so a null/absent/dangling actorId gets our explicit message
       // ("actorId is required and must resolve to an existing Actor")
@@ -2773,6 +2878,18 @@ function handleEmbeddedUpdate(
         );
         if (actorDeltaError) {
           return ackError(actorDeltaError.code, actorDeltaError.message);
+        }
+      }
+
+      // REQ-TOK-032 (mesa 21/10/2026): a player moves (and turns) his token and nothing else — x and y
+      // are the only fields his client sends, rotation the one a table may add. Light, vision, seenBy, disposition, elevation and flags are the Mestre's.
+      if (embeddedType === "Token" && !isPrivileged(ctx.role)) {
+        const extra = firstDisallowedTokenField(sanitizedDiff, PLAYER_TOKEN_UPDATE_FIELDS);
+        if (extra !== null) {
+          return ackError(
+            "PERMISSION_DENIED",
+            `Field "${extra}" of token ${tokenId} is not writable through doc:update by a player`,
+          );
         }
       }
 
@@ -3356,7 +3473,7 @@ export function findPollutingKey(value: unknown, depth = 0): string | null {
  * Example: diff = { "x": 100, "y": 200 } on token → sets token.x and token.y.
  * Also handles simple top-level key updates.
  */
-function applyDotPathDiff(
+export function applyDotPathDiff(
   target: Record<string, unknown>,
   diff: Record<string, unknown>,
 ): Record<string, unknown> {
@@ -3364,6 +3481,12 @@ function applyDotPathDiff(
 
   for (const [path, value] of Object.entries(diff)) {
     const parts = path.split(".");
+    // Defense in depth (#297): callers already run `findPollutingKey` on the raw diff, but the expander
+    // is the place that walks the path, so it refuses a polluting segment by itself too.
+    const pollutingSegment = parts.find((segment) => POLLUTING_SEGMENTS.has(segment));
+    if (pollutingSegment !== undefined) {
+      throw new Error(`applyDotPathDiff: polluting key segment "${pollutingSegment}" refused`);
+    }
     if (parts.length === 1) {
       result[path] = value;
     } else {

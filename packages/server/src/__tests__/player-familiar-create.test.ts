@@ -40,6 +40,7 @@ import { boot } from "../boot.js";
 import type { BootResult } from "../boot.js";
 import { loadConfig } from "../config.js";
 import { createLogger } from "../logger.js";
+import { reserveFreePort } from "./helpers/ports.js";
 import { openDatabase, applyMigrations } from "../db/index.js";
 import type { FusionDatabase } from "../db/index.js";
 import { AuthService } from "../auth/service.js";
@@ -113,7 +114,7 @@ async function buildCtx(): Promise<Ctx> {
 
   const config = loadConfig({
     dataDirOverride: dataDir,
-    cliOverrides: { port: 0, host: "127.0.0.1", logLevel: "silent" },
+    cliOverrides: { port: await reserveFreePort(), host: "127.0.0.1", logLevel: "silent" },
   });
   const logger = createLogger("silent");
 
