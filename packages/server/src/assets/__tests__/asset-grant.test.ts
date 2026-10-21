@@ -1200,20 +1200,26 @@ describe("grant — the Actor branch is redactActorDocsForViewer, and nothing el
     expect(Object.keys(body.grants)).toEqual(["retrato.png"]);
   });
 
-  it("DOES sign another player's character, which ownership never grants", async () => {
-    // `actorEscapingKnowledgeIsVisible` returns true for every character
-    // unconditionally (REQ-CTT-014/020), and the live broadcast and the replay
-    // apply that funnel with NO ownership filter — so the body, `img` included,
-    // really is in this player's mirror. Refusing to sign it buys nothing (he
-    // already has the filename) and empties the "Na mesa" row of the drawer.
+  it("signs another player's character only when ownership reaches LIMITED (#240, REQ-NET-096)", async () => {
+    // A character answers to `ownership` like every other Actor: the live broadcast, the replay, the ack and
+    // the join snapshot cut it at LIMITED, so the body (`img` included) is in this player's mirror only when
+    // the Mestre shared it. Signing what the mirror never receives would be a grant ownership denies.
     insertDoc(ctx.db, "actors", "charOutro001", {
       name: "Personagem do Outro",
       type: "character",
       img: "/assets/retrato.png",
       ownership: { [ctx.otherPlayer.id]: OwnershipLevel.OWNER, default: OwnershipLevel.NONE },
     });
+    const closed = await mint(ctx, ctx.player.token, "actors", "charOutro001");
+    expect(closed.status).toBe(404);
 
-    const { status, body } = await mint(ctx, ctx.player.token, "actors", "charOutro001");
+    insertDoc(ctx.db, "actors", "charShared001", {
+      name: "Personagem da Mesa",
+      type: "character",
+      img: "/assets/retrato.png",
+      ownership: { [ctx.otherPlayer.id]: OwnershipLevel.OWNER, default: OwnershipLevel.LIMITED },
+    });
+    const { status, body } = await mint(ctx, ctx.player.token, "actors", "charShared001");
     expect(status).toBe(200);
     expect(Object.keys(body.grants)).toEqual(["retrato.png"]);
   });
@@ -1666,11 +1672,11 @@ describe("grant — the icon map on the Actor (BAR-F3-05)", () => {
 
   it("whoever sees the actor gets the icon grant; whoever cannot see it gets the uniform 404", async () => {
     const icons = { "strike:arco": iconPath("arco-eletrico-5e6f7a8b.webp") };
-    // Another player's character: visible to every player (REQ-CTT-014/020).
+    // Another player's character, shared with the table at LIMITED (#240, REQ-CTT-014/020).
     insertDoc(ctx.db, "actors", "barSeen001", {
       name: "Personagem do Outro",
       type: "character",
-      ownership: { [ctx.otherPlayer.id]: OwnershipLevel.OWNER, default: OwnershipLevel.NONE },
+      ownership: { [ctx.otherPlayer.id]: OwnershipLevel.OWNER, default: OwnershipLevel.LIMITED },
       flags: { fusion: { actionBar: { icons } } },
     });
     const seen = await mint(ctx, ctx.player.token, "actors", "barSeen001");
