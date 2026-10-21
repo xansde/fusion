@@ -523,20 +523,8 @@ export class TokenSprite {
       this._footprint.height,
       this._gridSize,
     );
-    // Re-draw the ring, adding a selection highlight on top when selected.
+    // The highlight is part of the ring, so a repaint from anywhere keeps it (#296).
     this._drawRing(pixelW, pixelH);
-    if (this._selected) {
-      // Second pass: bright white outline, slightly inset, to create a "selected" glow.
-      const inset = RING_THICKNESS + 1;
-      this._ringGraphics.roundRect(
-        inset,
-        inset,
-        pixelW - inset * 2,
-        pixelH - inset * 2,
-        Math.max(2, Math.min(pixelW, pixelH) * 0.08),
-      );
-      this._ringGraphics.stroke({ width: 2, color: 0xffffff, alpha: 0.85 });
-    }
   }
 
   /**
@@ -634,9 +622,12 @@ export class TokenSprite {
     // Remove existing art
     this._sprite?.destroy({ texture: false });
     this._sprite = null;
-    this._placeholder?.destroy();
     this._placeholder = null;
+    // removeChildren() only DETACHES: destroy each child, or the placeholder's initials label
+    // (a Text, with its own texture) leaks on every art swap (#296).
+    const stale = [...this._artContainer.children];
     this._artContainer.removeChildren();
+    for (const child of stale) if (!child.destroyed) child.destroy();
 
     const actor = this._actor;
     const rawImg = actor?.img;
@@ -776,6 +767,22 @@ export class TokenSprite {
       Math.min(pixelW, pixelH) * 0.12,
     );
     g.stroke({ width: RING_THICKNESS, color, alpha: 0.95 });
+
+    // Selected: a second pass, a bright white outline slightly inset, as a "selected" glow.
+    // Drawn HERE (not by setSelected alone) because every repaint of the ring — a new
+    // disposition, grid size or footprint — clears the graphics, and the highlight of a
+    // token that is still selected must not disappear with it.
+    if (this._selected) {
+      const inset = RING_THICKNESS + 1;
+      g.roundRect(
+        inset,
+        inset,
+        pixelW - inset * 2,
+        pixelH - inset * 2,
+        Math.max(2, Math.min(pixelW, pixelH) * 0.08),
+      );
+      g.stroke({ width: 2, color: 0xffffff, alpha: 0.85 });
+    }
   }
 
   // ---------------------------------------------------------------------------
