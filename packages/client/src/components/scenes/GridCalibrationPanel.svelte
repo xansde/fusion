@@ -27,6 +27,7 @@
   } from "../../lib/canvas/gridCalibrationRect.js";
   import { effectiveGridSize, sceneContentOffset } from "../../lib/canvas/sceneCoords.js";
   import { updateGridCalibration } from "../../lib/scenes/sceneController.js";
+  import type { FootprintResolver } from "../../lib/scenes/gridRecalibration.js";
   import { t } from "../../lib/i18n/index.js";
 
   const {
@@ -34,11 +35,14 @@
     scene,
     socket,
     onClose,
+    footprintOf = () => ({ width: 1, height: 1 }),
   }: {
     canvas: FusionCanvas;
     scene: SceneDocument;
     socket: Socket | null;
     onClose: () => void;
+    /** Size in cells of the token behind an actor (tokens keep their centre on the map). */
+    footprintOf?: FootprintResolver;
   } = $props();
 
   // The scene is read once: the panel is aimed at THIS scene for as long as it is open,
@@ -158,15 +162,21 @@
 
     saving = true;
     try {
-      await updateGridCalibration(socket, sceneId, {
-        size: calibration.size,
-        offsetX: calibration.offsetX,
-        offsetY: calibration.offsetY,
-        distance,
-        units: units.trim(),
-        color,
-        alpha,
-      });
+      // `scene` (not `initial`): tokens may have moved while the panel was open.
+      await updateGridCalibration(
+        socket,
+        sceneId,
+        {
+          size: calibration.size,
+          offsetX: calibration.offsetX,
+          offsetY: calibration.offsetY,
+          distance,
+          units: units.trim(),
+          color,
+          alpha,
+        },
+        { scene, footprintOf },
+      );
       onClose();
     } catch (err) {
       error = err instanceof Error ? err.message : String(err);

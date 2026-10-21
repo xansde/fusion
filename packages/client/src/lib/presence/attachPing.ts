@@ -117,22 +117,38 @@ export function attachPing(opts: AttachPingOptions): () => void {
       button: e.button,
       time: Date.now(),
       shift: e.shiftKey,
+      pointerType: e.pointerType,
+      pointerId: e.pointerId,
+      screen: { x: e.clientX, y: e.clientY },
       ...(tokenId !== undefined ? { tokenId } : {}),
     });
   };
 
   const onPointerMove = (e: PointerEvent): void => {
-    gesture.handle({ kind: "pointer-move", point: toScene(e), time: Date.now() });
+    gesture.handle({
+      kind: "pointer-move",
+      point: toScene(e),
+      time: Date.now(),
+      pointerType: e.pointerType,
+      pointerId: e.pointerId,
+      screen: { x: e.clientX, y: e.clientY },
+    });
   };
 
-  const onPointerUp = (): void => {
-    const effect = gesture.handle({ kind: "pointer-up", time: Date.now() });
+  const onPointerUp = (e: PointerEvent): void => {
+    const effect = gesture.handle({ kind: "pointer-up", time: Date.now(), pointerId: e.pointerId });
     if (effect.kind === "suppress-click") suppressNextClick();
   };
 
   const onCancel = (): void => {
     gesture.handle({ kind: "cancel" });
   };
+
+  // A finger held on the map must reach us as a stream of pointer events: with the
+  // browser's default touch-action it takes the hold for the start of a scroll or a
+  // zoom and cancels the pointer, so a long press never ripened into a ping.
+  const previousTouchAction = el.style.touchAction;
+  el.style.touchAction = "none";
 
   // Listen on the window for the end of the gesture: a pointer released
   // outside the canvas must still close the hold, or the next press would
@@ -174,6 +190,7 @@ export function attachPing(opts: AttachPingOptions): () => void {
     window.removeEventListener("pointerup", onPointerUp);
     window.removeEventListener("pointercancel", onCancel);
     window.removeEventListener("blur", onCancel);
+    el.style.touchAction = previousTouchAction;
     disposeTicker();
     pingLayer.destroy();
   };

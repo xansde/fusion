@@ -1149,6 +1149,10 @@ import { presenceState } from "../lib/presence/presenceStore.svelte.js";
           scene={canvasScene}
           socket={getSocket()}
           onClose={stopGridCalibration}
+          footprintOf={(token) => {
+            const actor = worldMirror.getDoc<Record<string, unknown>>("Actor", token.actorId);
+            return footprintOf(undefined, actor as Parameters<typeof footprintOf>[1]);
+          }}
         />
       {/key}
     {/if}
