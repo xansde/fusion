@@ -149,7 +149,26 @@ export function pickLocalizedDescription(
 // HTML sanitization + @Tag[...] rewriting
 // ---------------------------------------------------------------------------
 
-const ALLOWED_TAGS = new Set(["p", "strong", "em", "b", "i", "ul", "ol", "li", "br", "hr"]);
+// Table tags (18/10/2026): the vendor writes option tables (Virtuosic Performer's specialties, Earn Income, …) as
+// <table>; without them a table read as one run-on line. Bare like every other allowed tag — no attribute survives.
+const ALLOWED_TAGS = new Set([
+  "p",
+  "strong",
+  "em",
+  "b",
+  "i",
+  "ul",
+  "ol",
+  "li",
+  "br",
+  "hr",
+  "table",
+  "thead",
+  "tbody",
+  "tr",
+  "th",
+  "td",
+]);
 
 /** Action-count glyphs: ◆ per action, ◇ free action, ⟳ reaction. */
 const ACTION_GLYPH = "◆";

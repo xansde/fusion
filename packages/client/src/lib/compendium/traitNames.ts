@@ -14,7 +14,7 @@
  */
 
 /**
- * Trait slug → pt-BR chip label (286 traits).
+ * Trait slug → pt-BR chip label (296 traits).
  */
 export const TRAIT_NAMES_PT: Readonly<Record<string, string>> = Object.freeze({
   aberration: "aberração",
@@ -39,6 +39,7 @@ export const TRAIT_NAMES_PT: Readonly<Record<string, string>> = Object.freeze({
   arcane: "arcano",
   archetype: "arquétipo",
   ardande: "ardande",
+  artifact: "artefato",
   athamaru: "athamaru",
   attack: "ataque",
   auditory: "auditivo",
@@ -205,6 +206,14 @@ export const TRAIT_NAMES_PT: Readonly<Record<string, string>> = Object.freeze({
   oread: "oréade",
   overflow: "transbordamento",
   parry: "aparar",
+  "persona-flirt": "persona: sedutor",
+  "persona-guardian": "persona: guardião",
+  "persona-leader": "persona: líder",
+  "persona-scholar": "persona: estudioso",
+  "persona-scoundrel": "persona: canalha",
+  "persona-underdog": "persona: azarão",
+  "persona-warrior": "persona: guerreiro",
+  "persona-wildcard": "persona: imprevisível",
   plant: "planta",
   poison: "veneno",
   polymorph: "transmutação",
@@ -290,6 +299,7 @@ export const TRAIT_NAMES_PT: Readonly<Record<string, string>> = Object.freeze({
   unstable: "instável",
   "versatile-p": "versátil-p",
   "versatile-s": "versátil-c",
+  vigilante: "vigilante",
   virulent: "virulento",
   visual: "visual",
   vitality: "vitalidade",

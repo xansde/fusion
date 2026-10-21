@@ -14,7 +14,8 @@
     "format": "prettier --write \"**/*.{ts,tsx,json,md}\"",
     "format:check": "prettier --check \"**/*.{ts,tsx,json,md}\"",
     "build:release": "node tools/release/build-release.mjs",
-    "smoke:release": "node tools/release/smoke-release.mjs"
+    "smoke:release": "node tools/release/smoke-release.mjs",
+    "mesa": "node tools/mesa-cli/bin/mesa.mjs"
   },
   "devDependencies": {
     "@typescript-eslint/eslint-plugin": "^8.33.0",

@@ -1,0 +1,22 @@
+{
+  "name": "@fusion/mesa-cli",
+  "version": "0.1.0",
+  "type": "module",
+  "private": true,
+  "description": "Command-line door into a LIVE Fusion server: logs in and sends ops through the same pipeline as the browser client.",
+  "bin": {
+    "mesa": "./bin/mesa.mjs"
+  },
+  "scripts": {
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "@fusion/shared": "workspace:*",
+    "socket.io-client": "^4.8.3"
+  },
+  "devDependencies": {
+    "@fusion/system-api": "workspace:*",
+    "@fusion/system-pf2e": "workspace:*",
+    "vitest": "^3.2.2"
+  }
+}

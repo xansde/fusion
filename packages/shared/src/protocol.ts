@@ -5,6 +5,7 @@
  * All types live in @fusion/shared so both server and client share a single source of truth.
  */
 import { z } from "zod";
+import { AmbientTrackStateSchema } from "./sound/types.js";
 
 // ---------------------------------------------------------------------------
 // Protocol version
@@ -40,6 +41,16 @@ export const EnvelopeTypeSchema = z.union([
   // M1-E ephemeral presence — ruler tool
   z.literal("presence:ruler"),
   z.literal("presence:ruler:clear"),
+  // Area templates (burst/cone/line/emanation): live preview + pinned set
+  z.literal("presence:template"),
+  z.literal("presence:template:clear"),
+  z.literal("presence:template:pin"),
+  z.literal("presence:template:unpin"),
+  z.literal("presence:template:style"),
+  z.literal("presence:template:sync"),
+  z.literal("presence:template:pinned"),
+  // GM "Show Players": a picture and/or a note popped open on every screen
+  z.literal("presence:show"),
   z.literal("system"),
   // Built-in system handlers (M0-C)
   z.literal("system:ping"),
@@ -79,6 +90,8 @@ export const EnvelopeTypeSchema = z.union([
   // World-level broadcast events (M1-B)
   z.literal("world:snapshot"),
   z.literal("world:activeScene"),
+  // GM asks every client to warm a scene's art WITHOUT switching to it (ephemeral, no seq).
+  z.literal("scene:preload"),
   z.literal("ack:ok"),
   z.literal("ack:error"),
   // M1-D chat handlers
@@ -104,6 +117,9 @@ export const EnvelopeTypeSchema = z.union([
   // expectedVersion live here; the game-specific plan (what to spend, what
   // effect to copy, what to roll) is `registrar.registerConsumeItem`.
   z.literal("item:consume"),
+  // Inventory (feat/inventario-completo): giving an item to ANOTHER actor. No single doc:update can do it - it takes
+  // one atomic write on two actors - and the sender only owns one of them, so permission lives in the handler.
+  z.literal("item:transfer"),
   // Spec 39 — contact knowledge (general rule + per-character exceptions).
   // The one way in: doc:update refuses the flag path outright, so knowledge
   // never rides an ordinary document write (REQ-CTT-070/072/080).
@@ -120,6 +136,10 @@ export const EnvelopeTypeSchema = z.union([
   z.literal("companion:setActive"),
   // L3 I4 (BHR-F5-07): the owner commands an animal companion; the server records it on the combat.
   z.literal("companion:command"),
+  // Ambient table track (shared/src/sound/types.ts): GM commands + server broadcast.
+  z.literal("sound:play"),
+  z.literal("sound:stop"),
+  z.literal("sound:state"),
   // Spec 52 REQ-BHR-102..105 (BHR-F4-08, DEC-BHR-09): a pack effect copied onto
   // other actors, with the permission-by-link rule decided on the server.
   z.literal("effect:apply"),
@@ -138,6 +158,10 @@ export const EnvelopeTypeSchema = z.union([
   z.literal("light:update"),
   z.literal("light:delete"),
   z.literal("scene:doorState"),
+  // Map pins (Scene.notes)
+  z.literal("scene:noteCreate"),
+  z.literal("scene:noteUpdate"),
+  z.literal("scene:noteDelete"),
   // M2-C: combat (spec 10 §API e Eventos)
   // client → server
   z.literal("combat:create"),
@@ -444,6 +468,12 @@ export const WorldSnapshotPayloadSchema = z.object({
     z.string(), // document type name e.g. "Scene", "Actor"
     z.array(z.unknown()), // raw document objects
   ),
+
+  /**
+   * Ambient table track playing right now, or null when the table is silent.
+   * Optional: older snapshots omit it; clients treat absent as null.
+   */
+  ambientTrack: AmbientTrackStateSchema.optional(),
 });
 
 export type WorldSnapshotPayload = z.infer<typeof WorldSnapshotPayloadSchema>;
@@ -543,6 +573,18 @@ export const WorldActiveScenePayloadSchema = z.object({
 });
 
 export type WorldActiveScenePayload = z.infer<typeof WorldActiveScenePayloadSchema>;
+
+/**
+ * scene:preload — the GM's "Pre-carregar para todos". Request: `{ sceneId }`. The server
+ * answers every connected client with the same op carrying `{ sceneId, background }` (the art
+ * path to warm), WITHOUT a seq: it is not world state, only a hint, so it must neither advance
+ * nor hole the mirror's seq stream. It never changes the scene on air.
+ */
+export const ScenePreloadPayloadSchema = z.object({
+  sceneId: z.string().min(1),
+});
+
+export type ScenePreloadPayload = z.infer<typeof ScenePreloadPayloadSchema>;
 
 // ---------------------------------------------------------------------------
 // Note: EmbeddedAddress (EmbeddedAddressSchema) was defined here but never
@@ -885,6 +927,38 @@ export interface ItemConsumeResult {
 }
 
 export type ItemConsumeAck = Ack<ItemConsumeResult>;
+
+// ---------------------------------------------------------------------------
+// item:transfer - client -> server. Giving `quantity` of an item to another actor.
+//
+// The sender must OWN `fromActorId` (or be the GM / an assistant); the receiver need not be owned - a player hands
+// things to another player's character - but must be a character a player owns or one the sender can at least
+// perceive. `expectedVersion` is the sender's `_stats.version`, the same stale-read guard as `item:consume`.
+// ---------------------------------------------------------------------------
+
+export const ItemTransferPayloadSchema = z
+  .object({
+    fromActorId: z.string().min(1),
+    toActorId: z.string().min(1),
+    itemId: z.string().min(1),
+    quantity: z.number().int().min(1),
+    expectedVersion: z.number().int().nonnegative(),
+  })
+  .strict();
+
+export type ItemTransferPayload = z.infer<typeof ItemTransferPayloadSchema>;
+
+export interface ItemTransferResult {
+  /** Units that changed hands. */
+  readonly moved: number;
+  /** The item's name as the sender saw it. */
+  readonly itemName: string;
+  readonly toActorId: string;
+  /** True when the units were added to a stack the receiver already had. */
+  readonly merged: boolean;
+}
+
+export type ItemTransferAck = Ack<ItemTransferResult>;
 
 // ---------------------------------------------------------------------------
 // effect:apply — client → server. Spec 52 §7.3 (REQ-BHR-102..105), DC-06,

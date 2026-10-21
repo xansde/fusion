@@ -16,6 +16,7 @@
 import type { Socket } from "socket.io-client";
 import { sheetRegistry } from "./sheetRegistry.js";
 import { displayName } from "../docs/displayName.js";
+import { avatarHeaderActions } from "../avatar/openAvatarCreator.js";
 
 /**
  * Open a sheet for an actor document using the windowManager.
@@ -81,6 +82,11 @@ export function openActorSheet(
         width: reg.defaultSize?.width ?? 640,
         height: reg.defaultSize?.height ?? 480,
       },
+      // Core-owned "Avatar" button in the title bar — no sheet needs to know.
+      headerActions: avatarHeaderActions(actorId, actorDoc, {
+        ownership: sheetProps.ownership,
+        isGm: sheetProps.isGm,
+      }),
       component: reg.component,
       componentProps: {
         actorId,

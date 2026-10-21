@@ -863,6 +863,36 @@ abilityMod(damage) + Σ damageModifiers`, com `abilityMod(damage)` = STR (melee)
   `encumbered` (clumsy 1, −10 ft Speed).
 - **REQ-PF2-122** [V2] Capacidade de containers, bulk reduction e bulk por tamanho
   de criatura na carga.
+  **Emenda de 2026-10-19 (inventário completo):** a capacidade de contêiner e a redução de
+  Volume saem do V2 e passam a [MVP] (REQ-PF2-123..127 abaixo); só o Volume por tamanho de
+  criatura segue V2.
+
+- **REQ-PF2-123** [MVP] Todo item físico DEVE ter um estado de porte em `system.equipped`:
+  `carryType` (`worn` vestido, `held` empunhado, `carried` no inventário, `dropped` largado),
+  `handsHeld` (0..2, só empunhado) e, quando guardado, `system.containerId`. `equipped.value`
+  continua verdadeiro só para `worn`/`held`, e é isso que os leitores antigos enxergam; um
+  documento sem `carryType` DEVE continuar valendo (`equipped: true` de arma/escudo = empunhado,
+  de armadura = vestido). Empunhar DEVE recusar o que passa de **2 mãos**; vestir uma armadura
+  ou empunhar um escudo DEVE guardar a que já estava em uso.
+- **REQ-PF2-124** [MVP] Item com a trait `invested` DEVE poder ser **investido**
+  (`equipped.invested`), até **10 por personagem**; só se investe o que está em uso. Item
+  `invested` marcado como NÃO investido DEVE dar nenhum bônus nem regra (`system.rules`,
+  runas de armadura) — a CA base da armadura continua. Documento sem a chave (legado) DEVE
+  continuar valendo como antes. Vestir com o limite cheio DEVE vestir sem investir e avisar.
+- **REQ-PF2-125** [MVP] O Volume DEVE seguir `10 L = 1`, `1.000 moedas = 1`, armadura **vestida**
+  vale 1 a menos (mínimo 0), item **largado** não pesa, e um contêiner pesa o próprio Volume
+  mais o conteúdo menos `bulkReduction` (mínimo 0). `capacity` DEVE ser respeitada ao guardar
+  e um contêiner NÃO PODE ser guardado dentro de si mesmo. **Critério verificável:** mochila
+  (L, redução 2) com 6 de corda e uma espada de 1 solta pesa 0,1 + (6 − 2) + 1 = 5,1.
+- **REQ-PF2-126** [MVP] Passar de `5 + For` DEVE aplicar **sobrecarregado** só no derivado
+  (`clumsy 1` e −10 pés em todas as Velocidades, nunca abaixo de 5), sem criar item de
+  condição, e `system.derived.encumbrance` DEVE publicar `{ bulkTenths, encumberedAbove, max,
+state }`. Acima de `10 + For` o estado é `over-max`.
+- **REQ-PF2-127** [MVP] A runa **resiliente** (`runes.resilient` 0..3) DEVE ser bônus de item
+  em Fortitude, Reflexos e Vontade, e o **escudo erguido** (empunhado, `equipped.raised`, não
+  quebrado: PV acima do `brokenThreshold`) DEVE dar +`acBonus` de circunstância na CA.
+  **Critério verificável:** armadura +1 potência/+2 resiliente investida, nível 5 treinado:
+  CA 10 + 7 + acBonus + 1 e salvaguardas +7 + 2.
 
 ### Equipamento mágico
 

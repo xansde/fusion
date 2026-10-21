@@ -68,6 +68,7 @@ import {
   augmentationSlotLimitViolation,
 } from "../documents/embedded-item.js";
 import { recomputeDerivedIfNeeded } from "../documents/derive.js";
+import { stripInvalidActionBarFlags } from "../documents/action-bar-flags.js";
 import type { AugmentationLikeItem } from "@fusion/system-sf2e";
 import type { Database as Db } from "better-sqlite3";
 import { createDocumentId } from "@fusion/shared";
@@ -901,6 +902,18 @@ export class CompendiumService {
         delete worldDoc["uuid"];
         delete worldDoc["i18n"];
         delete worldDoc["mechanics"];
+
+        // BAR-F3-05 (tasks.md §2.5: the bar is validated on update AND on create/import): an
+        // Actor whose `flags.fusion.actionBar` the schema refuses comes in without it.
+        if (manifest.documentType === "Actor") {
+          const barProblem = stripInvalidActionBarFlags(worldDoc);
+          if (barProblem !== null) {
+            options.logger?.warn(
+              { uuid, problem: barProblem },
+              "Dropped an invalid flags.fusion.actionBar from an imported Actor",
+            );
+          }
+        }
 
         // Derive on import (audit issue 3) — Actor documents only.
         //

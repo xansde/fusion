@@ -1,3 +1,4 @@
+import type { AreaTemplate } from "@fusion/shared";
 /**
  * Presence types — shared between the store and canvas layer.
  *
@@ -42,11 +43,29 @@ export interface MapPing {
   startedAtMs: number;
   /** Duration of the ping animation in ms. */
   durationMs: number;
+  /** The token the ping was held on, if any. */
+  tokenId?: string;
 }
 
 // ---------------------------------------------------------------------------
 // Ruler
 // ---------------------------------------------------------------------------
+
+/** A user's live (being aimed) area template. */
+export interface RemoteTemplate {
+  userId: string;
+  userName?: string;
+  template: AreaTemplate;
+}
+
+/** A template pinned on a scene until someone removes it. */
+export interface PinnedTemplate {
+  id: string;
+  sceneId: string;
+  userId: string;
+  userName?: string;
+  template: AreaTemplate;
+}
 
 export interface RulerState {
   /** User ID whose ruler is shown. */

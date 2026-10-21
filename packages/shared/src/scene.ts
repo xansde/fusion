@@ -29,6 +29,7 @@ import {
   TokenLightSchema,
 } from "./vision/scene-schemas.js";
 import { ActorDeltaPatchSchema } from "./token/effectiveActor.js";
+import { ManualFogSchema } from "./manual-fog.js";
 
 // ---------------------------------------------------------------------------
 // GridConfig Zod schema
@@ -396,6 +397,20 @@ export const SceneDocumentSchema = BaseDocumentSchema.omit({
     alpha: 0.2,
   })),
 
+  /**
+   * Where the grid starts relative to the map image, in scene pixels (grid
+   * calibration). Null = aligned to the map's top-left corner, which is what
+   * every scene did before calibration existed. A map image with its own grid
+   * baked in rarely starts on that corner, so calibration writes the measured
+   * origin here. Kept OUT of `grid` on purpose: `grid` says what the grid is,
+   * this says where this scene puts it. Normalized to [0, grid.size).
+   *
+   * Declare it in the server's SceneSchema too (documents/types.ts) or the
+   * store drops it on every write.
+   */
+  gridOffsetX: z.number().finite().nullable().default(null),
+  gridOffsetY: z.number().finite().nullable().default(null),
+
   // --- Initial view (REQ-CNV-068) ---
 
   /**
@@ -417,6 +432,12 @@ export const SceneDocumentSchema = BaseDocumentSchema.omit({
    * REQ-VIS-085: when false, all players see the entire map.
    */
   fogEnabled: z.boolean().default(false),
+
+  /**
+   * Manual fog of war (GM paints reveal/cover shapes; no vision involved).
+   * Absent = off. See `manual-fog.ts` for the representation.
+   */
+  manualFog: ManualFogSchema.optional(),
 
   /**
    * Scene darkness level (0–1).

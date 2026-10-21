@@ -534,6 +534,10 @@ Registradas para que o PR não deixe nenhuma spec contrariada em silêncio
 - **Q-CBA-01** — O aviso de vez deve ter alguma manifestação fora da gaveta (faixa no
   canvas, título da janela do navegador) quando o jogador está com a aba recolhida e
   olhando o mapa? Som está fora por REQ-GAV-024.
+  _Respondida em parte pela spec 53 (`53-barra-de-acoes.md`, REQ-BAR-040 e §12, 2026-10-11):
+  a faixa de estado da barra de ações é a "faixa no canvas": mostra de quem é a vez fora da
+  gaveta e oferece Encerrar turno pela mesma operação de REQ-CBA-072, com a redação de
+  REQ-CBA-082. O título da janela do navegador segue em aberto; som continua fora._
 - **Q-CBA-02** — A vida de criatura chega ao cliente do jogador pelas barras de
   recurso do token (REQ-CNV-090). Enquanto isso for verdade, REQ-CBA-041 é regra de
   tela, não sigilo. Fechar isso é decisão da área dona — e provavelmente da spec de

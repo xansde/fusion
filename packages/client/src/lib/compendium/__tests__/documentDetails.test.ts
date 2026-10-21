@@ -327,6 +327,18 @@ describe("sanitizeDescriptionHtml", () => {
     expect(sanitizeDescriptionHtml("")).toBe("");
   });
 
+  // "Artista virtuoso está estranho" (Alexandre, 18/10/2026): the vendor's specialty table (Virtuosic Performer,
+  // and 30 other pack documents) lost every table tag and read as one run-on line
+  // ("EspecialidadeExemplosAtuaçãoDrama, pantomima…"). Table structure is kept, bare like every allowed tag.
+  it("keeps a vendor table's structure, attributes stripped", () => {
+    const html =
+      '<table class="pf2e remaster"><thead><tr><th>Specialty</th><th>Examples</th></tr></thead>' +
+      '<tbody><tr><td style="x">Acting</td><td>Drama</td></tr></tbody></table>';
+    expect(sanitizeDescriptionHtml(html)).toBe(
+      "<table><thead><tr><th>Specialty</th><th>Examples</th></tr></thead><tbody><tr><td>Acting</td><td>Drama</td></tr></tbody></table>",
+    );
+  });
+
   it("keeps allow-listed tags bare (no attributes)", () => {
     const html = '<p class="foo" onclick="alert(1)">Hello</p>';
     expect(sanitizeDescriptionHtml(html)).toBe("<p>Hello</p>");
@@ -1298,7 +1310,7 @@ describe("trait/rarity display names (r15-A1)", () => {
     expect(traitDisplayName("some-new-trait", "pt-BR")).toBe("some new trait");
   });
 
-  it("covers all 286 glossary traits with a non-empty accented value", () => {
+  it("covers all 296 glossary traits with a non-empty accented value", () => {
     // 177 (r15) + 13 sincronizados na r20 (ancestrias planares, overflow,
     // potion, talisman...) + 27 sincronizados na r24 (rage e outros 26 traits
     // — ancestrias elf/human/ghoran, class, oath, consecration entre eles —
@@ -1329,7 +1341,7 @@ describe("trait/rarity display names (r15-A1)", () => {
     // propósito: trait novo no glossário exige regenerar via
     // tools/translate-packs/gen-client-maps.mjs e revisar.
     const keys = Object.keys(TRAIT_NAMES_PT);
-    expect(keys.length).toBe(286);
+    expect(keys.length).toBe(296);
     for (const slug of keys) {
       const pt = traitDisplayName(slug, "pt-BR");
       expect(pt.length).toBeGreaterThan(0);

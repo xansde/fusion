@@ -39,6 +39,7 @@ import { migration006 } from "../db/migrations/006_constraints.js";
 import { migration007 } from "../db/migrations/007_indexes.js";
 import { migration008 } from "../db/migrations/008_scene_active.js";
 import { migration009 } from "../db/migrations/009_assets.js";
+import { migration011 } from "../db/migrations/011_asset_category.js";
 
 import { AuthService } from "../auth/service.js";
 import { loadOrCreateSecret } from "../auth/crypto.js";
@@ -62,7 +63,8 @@ const UP_TO_8: FusionMigration[] = [
   migration007,
   migration008,
 ];
-const ALL: FusionMigration[] = [...UP_TO_8, migration009];
+// 010 (Ancient Elf) rewrites actors and is covered by its own test; 011 adds assets.category.
+const ALL: FusionMigration[] = [...UP_TO_8, migration009, migration011];
 
 let schemaTempDirs: string[] = [];
 
@@ -114,7 +116,7 @@ describe("migration 009 — assets table (T020)", () => {
     try {
       applyMigrations(db.raw, path);
 
-      expect(getSchemaVersion(db.raw)).toBe(9);
+      expect(getSchemaVersion(db.raw)).toBe(11);
 
       const table = db.raw
         .prepare(`SELECT 1 FROM sqlite_master WHERE type='table' AND name='assets'`)
@@ -151,7 +153,7 @@ describe("migration 009 — assets table (T020)", () => {
     try {
       applyMigrations(after.raw, path);
 
-      expect(getSchemaVersion(after.raw)).toBe(9);
+      expect(getSchemaVersion(after.raw)).toBe(11);
       const row = after.raw.prepare(`SELECT name FROM actors WHERE id = 'act1'`).get() as
         | { name: string }
         | undefined;
@@ -180,7 +182,7 @@ describe("migration 009 — assets table (T020)", () => {
     const migrated = openDatabase({ path: migratedPath, skipIntegrityCheck: true });
     try {
       applyMigrations(migrated.raw, migratedPath);
-      expect(getSchemaVersion(migrated.raw)).toBe(9);
+      expect(getSchemaVersion(migrated.raw)).toBe(11);
       expect(checkSchema(migrated.raw).ok).toBe(true);
     } finally {
       migrated.close();

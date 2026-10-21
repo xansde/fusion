@@ -10,7 +10,17 @@
  * M1-E: REQ-NET-040..044
  */
 
-import type { RemoteCursor, MapPing, RulerState, OnlineUser, RemoteTokenPreview } from "./types.js";
+import { parseAreaTemplate } from "@fusion/shared";
+import type { ShownItem } from "./showPlayers.js";
+import type {
+  RemoteCursor,
+  MapPing,
+  RulerState,
+  OnlineUser,
+  RemoteTokenPreview,
+  RemoteTemplate,
+  PinnedTemplate,
+} from "./types.js";
 import {
   applyCursorUpdate,
   pruneStale,
@@ -41,16 +51,36 @@ export const presenceState: {
   remoteCursors: Map<string, RemoteCursor>;
   pings: MapPing[];
   remoteRulers: Map<string, RulerState>;
+  /** Live area templates of OTHER users (one per user), keyed by userId. */
+  remoteTemplates: Map<string, RemoteTemplate>;
+  /** Templates pinned on any scene, keyed by id (filter by sceneId to draw). */
+  pinnedTemplates: Map<string, PinnedTemplate>;
   onlineUsers: OnlineUser[];
   /** REQ-NET-044: token:preview broadcasts from OTHER users, keyed by tokenId. */
   remoteTokenPreviews: Map<string, RemoteTokenPreview>;
+  /**
+   * Latest GM "Shift+ping": every client centres the camera on (x, y). `seq`
+   * changes on every pull so a repeat on the same point still fires.
+   */
+  pullView: { x: number; y: number; seq: number } | null;
+  /** The picture/note the GM is showing the table right now; closing it only hides it for this client. */
+  shown: ShownItem | null;
 } = $state({
   remoteCursors: new Map<string, RemoteCursor>(),
   pings: [] as MapPing[],
   remoteRulers: new Map<string, RulerState>(),
+  remoteTemplates: new Map<string, RemoteTemplate>(),
+  pinnedTemplates: new Map<string, PinnedTemplate>(),
   onlineUsers: [] as OnlineUser[],
   remoteTokenPreviews: new Map<string, RemoteTokenPreview>(),
+  pullView: null as { x: number; y: number; seq: number } | null,
+  shown: null as ShownItem | null,
 });
+
+/** Close the "Mostrar aos jogadores" window for this client only. */
+export function dismissShown(): void {
+  presenceState.shown = null;
+}
 
 // ---------------------------------------------------------------------------
 // Cursor updates
@@ -113,7 +143,17 @@ export function addPing(data: {
   x: number;
   y: number;
   color?: string;
+  /** The GM asked everyone to look here. */
+  pull?: boolean;
+  tokenId?: string;
 }): void {
+  if (data.pull === true) {
+    presenceState.pullView = {
+      x: data.x,
+      y: data.y,
+      seq: (presenceState.pullView?.seq ?? 0) + 1,
+    };
+  }
   const id = `ping-${String(++_pingCounter)}-${String(Date.now())}`;
   const ping: MapPing = {
     id,
@@ -125,6 +165,7 @@ export function addPing(data: {
     durationMs: PING_DURATION_MS,
   };
   if (data.userName !== undefined) ping.userName = data.userName;
+  if (data.tokenId !== undefined) ping.tokenId = data.tokenId;
 
   presenceState.pings = [...presenceState.pings, ping];
 
@@ -159,6 +200,62 @@ export function applyRemoteRuler(data: {
  */
 export function clearRemoteRuler(userId: string): void {
   presenceState.remoteRulers.delete(userId);
+}
+
+// ---------------------------------------------------------------------------
+// Area templates
+// ---------------------------------------------------------------------------
+
+/** Apply a live template from another user (presence:template). Invalid payloads are dropped. */
+export function applyRemoteTemplate(data: {
+  userId: string;
+  userName?: string;
+  template: unknown;
+}): void {
+  const template = parseAreaTemplate(data.template);
+  if (!template) return;
+  const entry: RemoteTemplate = { userId: data.userId, template };
+  if (data.userName !== undefined) entry.userName = data.userName;
+  presenceState.remoteTemplates.set(data.userId, entry);
+}
+
+export function clearRemoteTemplate(userId: string): void {
+  presenceState.remoteTemplates.delete(userId);
+}
+
+/** Add or replace one pinned template. */
+export function applyPinnedTemplate(data: {
+  id: string;
+  sceneId: string;
+  userId: string;
+  userName?: string;
+  template: unknown;
+}): void {
+  const template = parseAreaTemplate(data.template);
+  if (!template || data.id === "") return;
+  const entry: PinnedTemplate = {
+    id: data.id,
+    sceneId: data.sceneId,
+    userId: data.userId,
+    template,
+  };
+  if (data.userName !== undefined) entry.userName = data.userName;
+  presenceState.pinnedTemplates.set(data.id, entry);
+}
+
+export function removePinnedTemplate(id: string): void {
+  presenceState.pinnedTemplates.delete(id);
+}
+
+/** Replace every pinned template of `sceneId` with the server list. */
+export function replacePinnedTemplates(
+  sceneId: string,
+  list: ReadonlyArray<{ id: string; userId: string; userName?: string; template: unknown }>,
+): void {
+  for (const [id, pin] of presenceState.pinnedTemplates) {
+    if (pin.sceneId === sceneId) presenceState.pinnedTemplates.delete(id);
+  }
+  for (const item of list) applyPinnedTemplate({ ...item, sceneId });
 }
 
 // ---------------------------------------------------------------------------
@@ -222,6 +319,7 @@ export function markUserOffline(userId: string): void {
   // Remove their cursor and ruler
   removeCursor(userId);
   clearRemoteRuler(userId);
+  clearRemoteTemplate(userId);
   // Remove any token preview they were mid-drag on (REQ-NET-044) — a
   // disconnected user's ghost should not linger on other clients' screens.
   for (const [tokenId, preview] of presenceState.remoteTokenPreviews) {

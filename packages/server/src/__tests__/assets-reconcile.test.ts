@@ -320,6 +320,27 @@ describe("reconcileAssets", () => {
     }
   });
 
+  it("BAR-F3-05: an icon of the shared gallery that no actor uses is never an orphan", () => {
+    // The gallery itself is the icon's reference: a player picks from it later, so cleaning the
+    // "unused" icons would empty the gallery the GM's players share (adversarial review, finding 4).
+    const world = buildTestWorld();
+    try {
+      mkdirSync(join(world.assetsDir, "actionbar-icons"), { recursive: true });
+      writeFileSync(join(world.assetsDir, "actionbar-icons", "galeria-1a2b3c4d.png"), PNG_BYTES);
+      const stray = putAsset(world.assetsDir, "solto-99990001.png", PNG_BYTES);
+
+      const aged = reconcileAssets({
+        db: world.db,
+        assetsDir: world.assetsDir,
+        now: Date.now() + DEFAULT_ORPHAN_GRACE_MS + 60_000,
+      });
+      expect(aged.orphaned.map((o) => o.name)).toEqual([stray]);
+      expect(aged.recentUnreferenced).toEqual([]);
+    } finally {
+      world.close();
+    }
+  });
+
   it("keeps a just-arrived unreferenced file out of `orphaned` until the grace period passes", () => {
     const world = buildTestWorld();
     try {

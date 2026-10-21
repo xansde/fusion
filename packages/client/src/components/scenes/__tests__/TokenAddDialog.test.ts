@@ -82,6 +82,17 @@ describe("CA-TOK-003 / REQ-TOK-002: TokenAddDialog first paint", () => {
     expect(body).not.toContain('id="token-actor-id"');
   });
 
+  it("never paints the stored actor.img raw: thumbnails go through the signed-URL portrait", () => {
+    seedMirror();
+
+    const body = renderDialog();
+
+    // /assets needs a signed URL; the raw path would 401. ActorPortrait paints the
+    // initials fallback until the URL resolves, so no <img> carries the stored path.
+    expect(body).not.toContain("worlds/img/lobo.webp");
+    expect(body).toContain("actor-portrait");
+  });
+
   it("with no world actors at all, the picker says so instead of rendering empty", () => {
     worldMirror.applySnapshot({ seq: 1, activeSceneId: null, documents: { Actor: [] } });
 
