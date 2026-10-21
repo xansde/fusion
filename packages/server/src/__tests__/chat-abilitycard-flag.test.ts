@@ -7,7 +7,7 @@
  *   - attach a well-formed card (spell / impulse / strike) to the message;
  *   - reject a forged card whose casterActorId != the speaker actor;
  *   - drop a spell DC that matches no derived SPELLCASTING DC;
- *   - drop an impulse DC that matches no derived CLASS DC;
+ *   - drop an impulse DC that matches no derived CLASS DC (or the Dragonet breath DC, #304);
  *   - keep a coherent DC of the right kind, and never require a DC on strikes.
  *
  * Tested against the real buildChatSendHandler with a real temp SQLite DB and a
@@ -44,7 +44,7 @@ function makeTempDir(): string {
   return dir;
 }
 
-function seedCaster(db: Db, spellDc: number, classDc: number): void {
+function seedCaster(db: Db, spellDc: number, classDc: number, breathDc?: number): void {
   const now = Date.now();
   const doc = {
     _id: CASTER_ID,
@@ -54,6 +54,11 @@ function seedCaster(db: Db, spellDc: number, classDc: number): void {
       derived: {
         spellcasting: { "entry-arcane": { dc: spellDc, attack: 9 } },
         classDC: { dc: classDc },
+        ...(breathDc === undefined
+          ? {}
+          : {
+              dragonetBreath: { dc: breathDc, dcSource: breathDc === spellDc ? "spell" : "class" },
+            }),
       },
     },
   };
@@ -73,12 +78,12 @@ interface Harness {
   handler: ReturnType<typeof buildChatSendHandler>;
 }
 
-function makeHarness(spellDc = 19, classDc = 21): Harness {
+function makeHarness(spellDc = 19, classDc = 21, breathDc?: number): Harness {
   const dir = makeTempDir();
   const dbPath = join(dir, "world.db");
   const fusionDb: FusionDatabase = openDatabase({ path: dbPath, skipIntegrityCheck: true });
   applyMigrations(fusionDb.raw, dbPath);
-  seedCaster(fusionDb.raw, spellDc, classDc);
+  seedCaster(fusionDb.raw, spellDc, classDc, breathDc);
   const seqStore = new SeqStore(fusionDb.raw);
   const handler = buildChatSendHandler({
     db: fusionDb.raw,
@@ -304,6 +309,36 @@ describe("chat:send abilityCard flag (r20-X1)", () => {
       }),
     );
     expect(card!["dcValue"]).toBe(24);
+  });
+
+  it("#304: keeps the Dragonet breath DC when the SPELL DC beats the class DC (dcSource spell)", () => {
+    const { handler } = makeHarness(23, 21, 23);
+    const card = readCard(
+      send(handler, {
+        kind: "impulse",
+        casterActorId: CASTER_ID,
+        name: "Sopro do Dragonete",
+        dcValue: 23,
+        saveType: "reflex",
+        basicSave: true,
+      }),
+    );
+    expect(card!["dcValue"]).toBe(23);
+  });
+
+  it("#304: the breath DC does not open the door to an arbitrary spell DC", () => {
+    // The breath resolves to the class DC (21); the spell DC (19) is still not an impulse DC.
+    const { handler } = makeHarness(19, 21, 21);
+    const card = readCard(
+      send(handler, {
+        kind: "impulse",
+        casterActorId: CASTER_ID,
+        name: "Sopro do Dragonete",
+        dcValue: 19,
+        saveType: "reflex",
+      }),
+    );
+    expect(card!["dcValue"]).toBeUndefined();
   });
 
   it("rejects the whole chat:send when the card shape is malformed (Zod)", () => {

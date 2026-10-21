@@ -23,6 +23,7 @@ import { loadOrCreateSecret } from "../auth/crypto.js";
 import { PROTOCOL_VERSION } from "@fusion/shared";
 import { DocumentStore } from "../documents/store.js";
 import { reserveFreePort } from "./helpers/ports.js";
+import { applyDotPathDiff } from "../net/handlers/doc-handlers.js";
 
 // ---------------------------------------------------------------------------
 // Test infrastructure (mirrors player-familiar-create.test.ts)
@@ -233,5 +234,29 @@ describe("prototype pollution through doc:update diffs", () => {
     });
     expect(ack["ok"], JSON.stringify(ack)).toBe(true);
     expect(ctx.store.get("actors", actorId)["name"]).toBe("Renamed");
+  });
+});
+
+// Defense in depth (#297): even if a caller forgets `findPollutingKey`, the expander itself refuses.
+describe("applyDotPathDiff refuses polluting path segments on its own (#297)", () => {
+  for (const key of [
+    "__proto__.polluted",
+    "a.__proto__.polluted",
+    "constructor.prototype.polluted",
+    "system.prototype.polluted",
+    "__proto__",
+    "constructor",
+  ]) {
+    it(`throws on ${key}`, () => {
+      const diff = JSON.parse(JSON.stringify({ [key]: true })) as Record<string, unknown>;
+      expect(() => applyDotPathDiff({ system: {} }, diff)).toThrow(/polluting/);
+      expect(({} as Record<string, unknown>)["polluted"]).toBeUndefined();
+    });
+  }
+
+  it("still expands a plain dotted diff without touching the original", () => {
+    const original = { system: { a: 1 }, name: "x" };
+    const result = applyDotPathDiff(original, { "system.b": 2, name: "y" });
+    expect(result).toEqual({ system: { a: 1, b: 2 }, name: "y" });
   });
 });

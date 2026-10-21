@@ -277,9 +277,10 @@ describe("Token permissions — create/delete (papel privilegiado) vs. move (OWN
   });
 
   it("CA-TOK-005/REQ-TOK-030a: a player OWNER of their own character creates the token on the active scene", async () => {
+    // A player's drop carries { actorId, x, y } and nothing else (token-player-field-allowlist.test.ts).
     const ack = await sendOp(ownerSocket, "doc:create", {
       documentType: "Token",
-      data: [newTokenData(pcActorId, "Tobias")],
+      data: [newTokenData(pcActorId)],
       parent: { type: "Scene", id: sceneId },
     });
     expect(ack["ok"], JSON.stringify(ack)).toBe(true);
