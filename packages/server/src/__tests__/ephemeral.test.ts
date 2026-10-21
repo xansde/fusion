@@ -30,6 +30,8 @@ import { Role } from "../auth/user-store.js";
 import { loadOrCreateSecret } from "../auth/crypto.js";
 import { registerAuthRoutes } from "../auth/routes.js";
 import { SocketManager } from "../net/socket-manager.js";
+import { DocumentStore } from "../documents/index.js";
+import { defaultSceneDocument } from "@fusion/shared";
 import { PROTOCOL_VERSION } from "@fusion/shared";
 import { verifyGrant } from "../assets/asset-grant.js";
 import type { Envelope } from "@fusion/shared";
@@ -46,6 +48,15 @@ function makeTempDir(): string {
   mkdirSync(dir, { recursive: true });
   return dir;
 }
+
+/** Scenes the pinned-area tests pin on. */
+const PINNED_SCENE_IDS = [
+  "sceneA0000000000",
+  "sceneB0000000000",
+  "sceneS0000000000",
+  "sceneS2000000000",
+  "sceneS3000000000",
+];
 
 interface TestContext {
   dataDir: string;
@@ -125,6 +136,13 @@ async function buildTestContext(): Promise<TestContext> {
     secret,
     authService,
   });
+
+  // Pinned areas persist in Scene.templates, so the scenes they name must exist (on air:
+  // players may only act in the scene on air).
+  const seedStore = new DocumentStore({ db: fusionDb.raw, coreVersion: "0.1.0" });
+  for (const id of PINNED_SCENE_IDS) {
+    seedStore.create("scenes", { ...defaultSceneDocument(id), active: true });
+  }
 
   return {
     dataDir,
@@ -596,7 +614,7 @@ describe("Ephemeral handlers — presence:template", () => {
     gmSocket.emit("ephemeral", {
       type: "presence:template:pin",
       ts: Date.now(),
-      payload: { id: "t1", sceneId: "sceneA", template },
+      payload: { id: "t1", sceneId: "sceneA0000000000", template },
     });
     const pin = await pinned;
     expect((pin.payload as Record<string, unknown>).id).toBe("t1");
@@ -605,7 +623,7 @@ describe("Ephemeral handlers — presence:template", () => {
     playerSocket.emit("ephemeral", {
       type: "presence:template:sync",
       ts: Date.now(),
-      payload: { sceneId: "sceneA" },
+      payload: { sceneId: "sceneA0000000000" },
     });
     const env = await replay;
     const list = (env.payload as { templates: Array<{ id: string }> }).templates;
@@ -616,7 +634,7 @@ describe("Ephemeral handlers — presence:template", () => {
     gmSocket.emit("ephemeral", {
       type: "presence:template:pin",
       ts: Date.now(),
-      payload: { id: "t2", sceneId: "sceneB", template },
+      payload: { id: "t2", sceneId: "sceneB0000000000", template },
     });
     await waitForEphemeral(playerSocket, "presence:template:pin", 2000);
 
@@ -624,14 +642,14 @@ describe("Ephemeral handlers — presence:template", () => {
     playerSocket.emit("ephemeral", {
       type: "presence:template:unpin",
       ts: Date.now(),
-      payload: { id: "t2", sceneId: "sceneB" },
+      payload: { id: "t2", sceneId: "sceneB0000000000" },
     });
     await new Promise((r) => setTimeout(r, 200));
     const replay = waitForEphemeral(gmSocket, "presence:template:pinned", 2000);
     gmSocket.emit("ephemeral", {
       type: "presence:template:sync",
       ts: Date.now(),
-      payload: { sceneId: "sceneB" },
+      payload: { sceneId: "sceneB0000000000" },
     });
     expect(((await replay).payload as { templates: unknown[] }).templates).toHaveLength(1);
 
@@ -640,7 +658,7 @@ describe("Ephemeral handlers — presence:template", () => {
     gmSocket.emit("ephemeral", {
       type: "presence:template:unpin",
       ts: Date.now(),
-      payload: { id: "t2", sceneId: "sceneB" },
+      payload: { id: "t2", sceneId: "sceneB0000000000" },
     });
     expect(((await gone).payload as Record<string, unknown>).id).toBe("t2");
   });
@@ -681,7 +699,7 @@ describe("Ephemeral handlers — anchored and styled templates", () => {
     gmSocket.emit("ephemeral", {
       type: "presence:template:pin",
       ts: Date.now(),
-      payload: { id: "a1", sceneId: "sceneS", template },
+      payload: { id: "a1", sceneId: "sceneS0000000000", template },
     });
     const t = ((await pinned).payload as { template: Record<string, unknown> }).template;
     expect(t.tokenId).toBe("tok-a");
@@ -692,7 +710,7 @@ describe("Ephemeral handlers — anchored and styled templates", () => {
     gmSocket.emit("ephemeral", {
       type: "presence:template:pin",
       ts: Date.now(),
-      payload: { id: "a2", sceneId: "sceneS2", template },
+      payload: { id: "a2", sceneId: "sceneS2000000000", template },
     });
     await waitForEphemeral(playerSocket, "presence:template:pin", 2000);
     const again = waitForEphemeral(playerSocket, "presence:template:pin", 2000);
@@ -701,7 +719,7 @@ describe("Ephemeral handlers — anchored and styled templates", () => {
       ts: Date.now(),
       payload: {
         id: "a2",
-        sceneId: "sceneS2",
+        sceneId: "sceneS2000000000",
         style: { color: "#0a84ff", border: "thin", fill: 0.2 },
       },
     });
@@ -714,7 +732,7 @@ describe("Ephemeral handlers — anchored and styled templates", () => {
     gmSocket.emit("ephemeral", {
       type: "presence:template:pin",
       ts: Date.now(),
-      payload: { id: "a3", sceneId: "sceneS3", template },
+      payload: { id: "a3", sceneId: "sceneS3000000000", template },
     });
     await waitForEphemeral(playerSocket, "presence:template:pin", 2000);
     let seen = false;
@@ -726,7 +744,7 @@ describe("Ephemeral handlers — anchored and styled templates", () => {
       ts: Date.now(),
       payload: {
         id: "a3",
-        sceneId: "sceneS3",
+        sceneId: "sceneS3000000000",
         style: { color: "#0a84ff", border: "thin", fill: 0.2 },
       },
     });

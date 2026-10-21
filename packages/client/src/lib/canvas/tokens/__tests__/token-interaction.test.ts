@@ -139,14 +139,43 @@ describe("snapTokenToGrid", () => {
     expect(result.y).toBe(100);
   });
 
-  it("snaps 2x2 token correctly (multi-cell footprint)", () => {
-    // Grid size 100. Cursor top-left at (80, 80).
-    // Footprint center = (80 + 100, 80 + 100) = (180, 180)
-    // Nearest cell center at size=100 → cell (1,1) center = (150,150)
-    // top-left = (150 - 100, 150 - 100) = (50, 50)
+  it("snaps a 2x2 token onto whole squares (its corner on a grid line)", () => {
+    // Grid size 100. Cursor top-left at (80, 80): the nearest grid line is 100.
+    // The old rule snapped the CENTRE to a cell centre, which left an even footprint
+    // half a square off the grid (top-left (50, 50)) — straddling four squares.
     const result = snapTokenToGrid(80, 80, 2, 2, GRID);
-    expect(result.x).toBe(50);
-    expect(result.y).toBe(50);
+    expect(result.x).toBe(100);
+    expect(result.y).toBe(100);
+  });
+
+  it("every footprint, odd or even, ends with its top-left corner on the lattice", () => {
+    for (const [w, h] of [
+      [1, 1],
+      [2, 2],
+      [3, 3],
+      [4, 4],
+      [2, 1],
+      [1, 3],
+    ] as const) {
+      for (const grid of [GRID, GRID_WITH_OFFSET]) {
+        const r = snapTokenToGrid(137, 243, w, h, grid);
+        expect((r.x - grid.offsetX) % grid.size).toBe(0);
+        expect((r.y - grid.offsetY) % grid.size).toBe(0);
+      }
+    }
+  });
+
+  it("a 3x3 token (odd) still centres on a cell centre", () => {
+    // Top-left on line 100 -> footprint [100, 400), centre 250 = centre of cell 2.
+    const r = snapTokenToGrid(120, 120, 3, 3, GRID);
+    expect(r).toEqual({ x: 100, y: 100 });
+    expect(r.x + (3 * GRID.size) / 2).toBe(250);
+  });
+
+  it("a 2x2 token with a calibrated offset keeps both corners on the shifted lattice", () => {
+    // Offset (50, 25): lines at 50, 150, ... and 25, 125, ...
+    const r = snapTokenToGrid(160, 140, 2, 2, GRID_WITH_OFFSET);
+    expect(r).toEqual({ x: 150, y: 125 });
   });
 
   it("respects grid offset", () => {

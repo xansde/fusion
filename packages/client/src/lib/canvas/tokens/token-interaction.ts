@@ -19,7 +19,7 @@
  * pointer events to TokenLayer.applyLocalMove() and sendOp().
  */
 
-import { readMountState, squareSnapPoint } from "@fusion/shared";
+import { readMountState } from "@fusion/shared";
 import type { TokenDocument, ScenePoint } from "@fusion/shared";
 
 // ---------------------------------------------------------------------------
@@ -120,47 +120,35 @@ export interface GridSnapConfig {
 }
 
 /**
- * Snap a scene point to the nearest cell center (square grid).
- * Returns the top-left of the snapped cell so the token footprint aligns correctly.
+ * Snap a token's top-left corner onto the grid (square grid).
  *
- * The token's x/y is the top-left of the footprint bounding box.
- * Snapping snaps the footprint's center to the nearest cell center
- * (or cell-cluster center for footprint > 1), then converts back to top-left.
+ * The token's x/y is the top-left of the footprint bounding box, and a footprint is
+ * a whole number of cells, so a token always sits with its corner ON a grid line:
+ * an odd footprint (1x1, 3x3) then has its centre on a cell centre, an even one
+ * (2x2, 4x4) has its centre on a grid vertex. Snapping the CENTRE to a cell centre —
+ * what this did before — is right only for the odd ones: it left every even footprint
+ * half a square off the grid, straddling four squares.
  *
- * @param cursorX    Cursor x in scene coordinates (top-left drag anchor).
- * @param cursorY    Cursor y in scene coordinates.
- * @param footW      Token footprint width in cells.
- * @param footH      Token footprint height in cells.
+ * The footprint size does not change the answer (the corner snaps to the nearest line
+ * either way); it is kept in the signature because callers derive `cursorX/Y` from it
+ * (cursor minus half the footprint) and tests pin that contract.
+ *
+ * @param cursorX    Top-left drag anchor, scene coordinates.
+ * @param cursorY    Same, y.
+ * @param _footW     Token footprint width in cells (unused: see above).
+ * @param _footH     Token footprint height in cells (unused: see above).
  * @param grid       Grid configuration.
  */
 export function snapTokenToGrid(
   cursorX: number,
   cursorY: number,
-  footW: number,
-  footH: number,
+  _footW: number,
+  _footH: number,
   grid: GridSnapConfig,
 ): ScenePoint {
-  // For multi-cell footprints, snap the center of the bounding box
-  const halfPixW = (footW * grid.size) / 2;
-  const halfPixH = (footH * grid.size) / 2;
-
-  const centerX = cursorX + halfPixW;
-  const centerY = cursorY + halfPixH;
-
-  // Snap center to nearest cell center
-  const snappedCenter = squareSnapPoint(
-    centerX,
-    centerY,
-    grid.size,
-    grid.offsetX,
-    grid.offsetY,
-    "center",
-  );
-
-  // Convert back to top-left
   return {
-    x: snappedCenter.x - halfPixW,
-    y: snappedCenter.y - halfPixH,
+    x: grid.offsetX + Math.round((cursorX - grid.offsetX) / grid.size) * grid.size,
+    y: grid.offsetY + Math.round((cursorY - grid.offsetY) / grid.size) * grid.size,
   };
 }
 

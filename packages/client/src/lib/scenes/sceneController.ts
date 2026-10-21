@@ -18,6 +18,12 @@ import type { SceneDocument } from "@fusion/shared";
 import { createDocumentId } from "@fusion/shared";
 import { sendOp, OpError } from "../docs/sendOp.js";
 import type { DocumentMirror } from "../docs/DocumentMirror.js";
+import {
+  buildRecalibrationOps,
+  planGridRecalibration,
+  recalibrationSceneOf,
+  type FootprintResolver,
+} from "./gridRecalibration.js";
 
 // ---------------------------------------------------------------------------
 // Form data
@@ -256,7 +262,26 @@ export async function updateGridCalibration(
   socket: Socket,
   sceneId: string,
   data: GridCalibrationData,
+  /**
+   * The scene as it is now and how big each token is. When given, what is already placed
+   * keeps its place on the map (tokens re-seated on the nearest square, walls/notes/lights
+   * following the image) instead of sliding over the art — see gridRecalibration.ts.
+   */
+  placed?: { scene: SceneDocument; footprintOf: FootprintResolver },
 ): Promise<void> {
+  // Planned BEFORE the write: the plan reads the old size and padding.
+  const plan = placed
+    ? planGridRecalibration(
+        recalibrationSceneOf(placed.scene),
+        {
+          size: data.size,
+          offsetX: wholeOffset(data.offsetX, data.size),
+          offsetY: wholeOffset(data.offsetY, data.size),
+        },
+        placed.footprintOf,
+      )
+    : null;
+  const ops = plan ? buildRecalibrationOps(sceneId, plan) : [];
   await sendOp(socket, {
     type: "doc:update",
     payload: {
@@ -282,6 +307,17 @@ export async function updateGridCalibration(
       ],
     },
   });
+  // The grid is written; now put what was on the map back where it was on the map.
+  for (const op of ops) await sendOp(socket, op);
+  // Pinned areas live on the server, outside the scene document: it moves them by the
+  // same change of padding (ephemeral channel, like every other area message).
+  if (plan?.areaShift && socket.connected) {
+    socket.emit("ephemeral", {
+      type: "presence:template:shift",
+      ts: Date.now(),
+      payload: { sceneId, dx: plan.areaShift.dx, dy: plan.areaShift.dy },
+    });
+  }
 }
 
 /**

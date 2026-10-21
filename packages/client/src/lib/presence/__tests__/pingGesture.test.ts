@@ -14,6 +14,7 @@ import {
   PingGesture,
   PING_HOLD_MS,
   PING_MOVE_TOLERANCE_PX,
+  PING_TOUCH_TOLERANCE_PX,
   type PingEffect,
 } from "../pingGesture.js";
 
@@ -206,5 +207,105 @@ describe("ping on a token", () => {
       time: 100,
     });
     expect(g.handle({ kind: "tick", time: PING_HOLD_MS })).toEqual({ kind: "none" });
+  });
+});
+
+describe("long press on a touch screen", () => {
+  const SCREEN = { x: 400, y: 300 };
+
+  /** A finger goes down at SCREEN; scene coordinates are scaled by the camera. */
+  function touched(scale = 1): PingGesture {
+    const g = new PingGesture();
+    g.handle({
+      kind: "pointer-down",
+      point: { x: SCREEN.x / scale, y: SCREEN.y / scale },
+      button: 0,
+      time: 0,
+      pointerType: "touch",
+      pointerId: 7,
+      screen: SCREEN,
+    });
+    return g;
+  }
+
+  it("a finger held still pings after the hold time", () => {
+    const g = touched();
+    expect(g.handle({ kind: "tick", time: PING_HOLD_MS })).toEqual({
+      kind: "ping",
+      point: { x: SCREEN.x, y: SCREEN.y },
+    });
+  });
+
+  it("finger tremor zoomed out (a few screen px = many scene px) still pings", () => {
+    // Camera at 0.25x: 10 screen px of tremor are 40 scene px, far beyond the 8 px
+    // mouse tolerance — the tolerance of a finger is measured on the screen.
+    const g = touched(0.25);
+    g.handle({
+      kind: "pointer-move",
+      point: { x: (SCREEN.x + 10) / 0.25, y: SCREEN.y / 0.25 },
+      time: 100,
+      pointerType: "touch",
+      pointerId: 7,
+      screen: { x: SCREEN.x + 10, y: SCREEN.y },
+    });
+    expect(g.handle({ kind: "tick", time: PING_HOLD_MS }).kind).toBe("ping");
+  });
+
+  it("a finger that travels past the touch tolerance is a drag, not a ping", () => {
+    const g = touched();
+    g.handle({
+      kind: "pointer-move",
+      point: { x: SCREEN.x + PING_TOUCH_TOLERANCE_PX + 1, y: SCREEN.y },
+      time: 100,
+      pointerType: "touch",
+      pointerId: 7,
+      screen: { x: SCREEN.x + PING_TOUCH_TOLERANCE_PX + 1, y: SCREEN.y },
+    });
+    expect(g.handle({ kind: "tick", time: PING_HOLD_MS })).toEqual(NONE);
+  });
+
+  it("a second finger (pinch) cancels the hold", () => {
+    const g = touched();
+    g.handle({
+      kind: "pointer-down",
+      point: { x: 10, y: 10 },
+      button: 0,
+      time: 50,
+      pointerType: "touch",
+      pointerId: 8,
+      screen: { x: 10, y: 10 },
+    });
+    expect(g.handle({ kind: "tick", time: PING_HOLD_MS })).toEqual(NONE);
+  });
+
+  it("another finger moving or lifting does not disturb the hold", () => {
+    const g = touched();
+    g.handle({
+      kind: "pointer-move",
+      point: { x: 900, y: 900 },
+      time: 100,
+      pointerType: "touch",
+      pointerId: 9,
+      screen: { x: 900, y: 900 },
+    });
+    g.handle({ kind: "pointer-up", time: 120, pointerId: 9 });
+    expect(g.handle({ kind: "tick", time: PING_HOLD_MS }).kind).toBe("ping");
+  });
+
+  it("the release after a fired long press swallows the click that follows it", () => {
+    const g = touched();
+    g.handle({ kind: "tick", time: PING_HOLD_MS });
+    expect(g.handle({ kind: "pointer-up", time: PING_HOLD_MS + 50, pointerId: 7 })).toEqual({
+      kind: "suppress-click",
+    });
+  });
+
+  it("a short tap is still a plain click", () => {
+    const g = touched();
+    expect(g.handle({ kind: "pointer-up", time: 100, pointerId: 7 })).toEqual(NONE);
+  });
+
+  it("the mouse keeps its scene-unit tolerance", () => {
+    expect(PING_TOUCH_TOLERANCE_PX).toBeGreaterThan(PING_MOVE_TOLERANCE_PX);
   });
 });
