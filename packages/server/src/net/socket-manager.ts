@@ -916,6 +916,7 @@ export class SocketManager {
         previewRateLimiter,
         sceneRooms,
         ...(secret ? { assetSecret: secret } : {}),
+        store,
         userIdentity: (id: string) => {
           const u = userStore.findById(id);
           return u ? { name: u.name, color: u.color } : undefined;
@@ -1067,6 +1068,8 @@ export class SocketManager {
       /** Display name/colour of a user, stamped server-side on ephemeral broadcasts. */
       /** World HMAC secret, to sign the image grant of "Show Players". */
       assetSecret?: Uint8Array;
+      /** The world's documents (pinned areas persist in Scene.templates). */
+      store: DocumentStore;
       userIdentity: (userId: string) => { name: string; color: string } | undefined;
     },
   ): void {
@@ -1237,6 +1240,7 @@ export class SocketManager {
           previewRateLimiter: rateLimiters.previewRateLimiter,
           sceneRooms: rateLimiters.sceneRooms,
           ...(rateLimiters.assetSecret ? { assetSecret: rateLimiters.assetSecret } : {}),
+          store: rateLimiters.store,
         },
       );
     });
