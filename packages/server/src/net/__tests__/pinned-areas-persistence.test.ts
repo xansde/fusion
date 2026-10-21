@@ -229,3 +229,76 @@ describe("pinned areas persist with the scene", () => {
     expect(out.map((e) => e.to)).toEqual(["all"]);
   });
 });
+
+describe("shifting the pinned areas with the map image (recalibrating the grid)", () => {
+  const S = "scene00000000001";
+
+  function pinTwo(h: ReturnType<typeof harness>): void {
+    h.send(GM, "u-gm", "presence:template:pin", { id: "free", sceneId: S, template });
+    h.send(GM, "u-gm", "presence:template:pin", {
+      id: "anchored",
+      sceneId: S,
+      template: { ...template, kind: "emanation", tokenId: "tok-a" },
+    });
+  }
+
+  it("moves the free areas by (dx, dy), persists them and tells everyone; anchored ones stay", () => {
+    const dbPath = freshDbPath();
+    const store = boot(dbPath);
+    seedScene(store, S, true);
+    const h = harness(store);
+    pinTwo(h);
+
+    const out = h.send(GM, "u-gm", "presence:template:shift", { sceneId: S, dx: 60, dy: -20 });
+    // Only the free area is re-announced (as a pin: clients upsert by id).
+    expect(out.map((e) => e.payload.type)).toEqual(["presence:template:pin"]);
+    const announced = out[0]?.payload.payload as {
+      id: string;
+      template: { origin: { x: number; y: number } };
+    };
+    expect(announced.id).toBe("free");
+    expect(announced.template.origin).toEqual({ x: 560, y: 480 });
+
+    const stored = boot(dbPath).get("scenes", S)["templates"] as Array<{
+      id: string;
+      userId: string;
+      template: { origin: { x: number; y: number } };
+    }>;
+    expect(stored.find((a) => a.id === "free")?.template.origin).toEqual({ x: 560, y: 480 });
+    expect(stored.find((a) => a.id === "anchored")?.template.origin).toEqual({ x: 500, y: 500 });
+    // The author is kept (the GM who shifted is not the author of a player's area).
+    expect(stored.find((a) => a.id === "free")?.userId).toBe("u-gm");
+  });
+
+  it("keeps each area's author", () => {
+    const store = boot(freshDbPath());
+    seedScene(store, S, true);
+    const h = harness(store);
+    h.send(PLAYER, "u-pl", "presence:template:pin", { id: "mine", sceneId: S, template });
+    const out = h.send(GM, "u-gm", "presence:template:shift", { sceneId: S, dx: 10, dy: 10 });
+    expect((out[0]?.payload.payload as { userId: string }).userId).toBe("u-pl");
+  });
+
+  it("only a privileged user may shift", () => {
+    const store = boot(freshDbPath());
+    seedScene(store, S, true);
+    const h = harness(store);
+    pinTwo(h);
+    const out = h.send(PLAYER, "u-pl", "presence:template:shift", { sceneId: S, dx: 60, dy: 0 });
+    expect(out).toHaveLength(0);
+    expect(h.syncAs(GM, S)).toHaveLength(2);
+  });
+
+  it("a zero or nonsensical shift does nothing", () => {
+    const store = boot(freshDbPath());
+    seedScene(store, S, true);
+    const h = harness(store);
+    pinTwo(h);
+    expect(
+      h.send(GM, "u-gm", "presence:template:shift", { sceneId: S, dx: 0, dy: 0 }),
+    ).toHaveLength(0);
+    expect(
+      h.send(GM, "u-gm", "presence:template:shift", { sceneId: S, dx: "x", dy: 1 }),
+    ).toHaveLength(0);
+  });
+});

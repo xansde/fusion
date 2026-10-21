@@ -94,6 +94,12 @@ export const TemplateRefPayloadSchema = z.object({
   sceneId: z.string().min(1).max(64),
 });
 export const TemplateSyncPayloadSchema = z.object({ sceneId: z.string().min(1).max(64) });
+/** Move every free pinned area of a scene by (dx, dy): the map image moved under them. */
+export const TemplateShiftPayloadSchema = z.object({
+  sceneId: z.string().min(1).max(64),
+  dx: z.number().finite().min(-100000).max(100000),
+  dy: z.number().finite().min(-100000).max(100000),
+});
 
 /** Role value from which a user may remove templates they did not author (ASSISTANT). */
 const TEMPLATE_MODERATOR_ROLE = 3;
@@ -556,6 +562,43 @@ export function handleEphemeralEnvelope(
         ts: now,
         payload: { id, sceneId },
       });
+      return true;
+    }
+
+    case "presence:template:shift": {
+      // The Master recalibrated the grid: the padding around the image changed, so the
+      // map moved inside scene coordinates. Free areas stay on the same point of the map;
+      // areas anchored to a token follow the token by themselves. Privileged only.
+      if (!isRolePrivileged(ctx.role) || !opts.store) return false;
+      const parsed = TemplateShiftPayloadSchema.safeParse(envelope.payload);
+      if (!parsed.success) return false;
+      const { sceneId, dx, dy } = parsed.data;
+      if (dx === 0 && dy === 0) return false;
+      const loaded = loadPinnedAreas(opts.store, sceneId, ctx.role);
+      if (!loaded) return false;
+      const moved: PinnedArea[] = [];
+      const next = loaded.areas.map((area) => {
+        if (area.template.tokenId !== undefined) return area;
+        const shifted: PinnedArea = {
+          ...area,
+          template: {
+            ...area.template,
+            origin: { x: area.template.origin.x + dx, y: area.template.origin.y + dy },
+          },
+        };
+        moved.push(shifted);
+        return shifted;
+      });
+      if (moved.length === 0) return false;
+      savePinnedAreas(opts.store, sceneId, ctx.userId, next);
+      // Same envelope as a pin: clients upsert by id, and the author stays the author.
+      for (const area of moved) {
+        emitPin(ns, loaded.onAir, {
+          type: "presence:template:pin",
+          ts: now,
+          payload: { ...area, sceneId },
+        });
+      }
       return true;
     }
 

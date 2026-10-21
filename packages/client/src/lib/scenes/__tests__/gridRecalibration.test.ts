@@ -109,6 +109,8 @@ describe("planGridRecalibration — things bound to the image", () => {
     expect(dx).not.toBe(0);
 
     const plan = planGridRecalibration(old, next, ONE_BY_ONE);
+    // Pinned areas follow the image by the same change of padding (the server moves them).
+    expect(plan.areaShift).toEqual({ dx, dy });
     expect(plan.walls).toEqual([
       { _id: "w1", a: { x: 500 + dx, y: 500 + dy }, b: { x: 700 + dx, y: 500 + dy } },
     ]);
@@ -125,11 +127,14 @@ describe("planGridRecalibration — things bound to the image", () => {
     expect(plan.walls).toEqual([]);
     expect(plan.notes).toEqual([]);
     expect(plan.lights).toEqual([]);
+    expect(plan.areaShift).toBeNull();
   });
 
-  it("a scene with nothing on it plans nothing", () => {
+  it("a scene with nothing on it moves nothing in the document", () => {
     const plan = planGridRecalibration(scene(), { size: 64, offsetX: 5, offsetY: 5 }, ONE_BY_ONE);
-    expect(plan).toEqual({ tokens: [], walls: [], notes: [], lights: [] });
+    expect(plan).toMatchObject({ tokens: [], walls: [], notes: [], lights: [] });
+    // (the pinned areas live on the server: the shift is still announced)
+    expect(plan.areaShift).not.toBeNull();
   });
 });
 
@@ -142,6 +147,7 @@ describe("buildRecalibrationOps", () => {
       { id: "n2", x: 7, y: 8 },
     ],
     lights: [{ _id: "l1", x: 9, y: 10 }],
+    areaShift: null,
   };
 
   it("one embedded op per collection, in the shapes the server implements", () => {
@@ -177,8 +183,8 @@ describe("buildRecalibrationOps", () => {
   });
 
   it("an empty plan sends nothing", () => {
-    expect(buildRecalibrationOps("s", { tokens: [], walls: [], notes: [], lights: [] })).toEqual(
-      [],
-    );
+    expect(
+      buildRecalibrationOps("s", { tokens: [], walls: [], notes: [], lights: [], areaShift: null }),
+    ).toEqual([]);
   });
 });
