@@ -3356,7 +3356,7 @@ export function findPollutingKey(value: unknown, depth = 0): string | null {
  * Example: diff = { "x": 100, "y": 200 } on token → sets token.x and token.y.
  * Also handles simple top-level key updates.
  */
-function applyDotPathDiff(
+export function applyDotPathDiff(
   target: Record<string, unknown>,
   diff: Record<string, unknown>,
 ): Record<string, unknown> {
@@ -3364,6 +3364,12 @@ function applyDotPathDiff(
 
   for (const [path, value] of Object.entries(diff)) {
     const parts = path.split(".");
+    // Defense in depth (#297): callers already run `findPollutingKey` on the raw diff, but the expander
+    // is the place that walks the path, so it refuses a polluting segment by itself too.
+    const pollutingSegment = parts.find((segment) => POLLUTING_SEGMENTS.has(segment));
+    if (pollutingSegment !== undefined) {
+      throw new Error(`applyDotPathDiff: polluting key segment "${pollutingSegment}" refused`);
+    }
     if (parts.length === 1) {
       result[path] = value;
     } else {
