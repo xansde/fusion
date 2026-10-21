@@ -135,7 +135,11 @@ describe("pinned areas persist with the scene", () => {
     const first = boot(dbPath);
     seedScene(first, "scene00000000001", true);
     const h1 = harness(first);
-    h1.send(GM, "u-gm", "presence:template:pin", { id: "a1", sceneId: "scene00000000001", template });
+    h1.send(GM, "u-gm", "presence:template:pin", {
+      id: "a1",
+      sceneId: "scene00000000001",
+      template,
+    });
     h1.send(GM, "u-gm", "presence:template:pin", {
       id: "a2",
       sceneId: "scene00000000001",
@@ -152,8 +156,16 @@ describe("pinned areas persist with the scene", () => {
     const store = boot(dbPath);
     seedScene(store, "scene00000000001", true);
     const h = harness(store);
-    h.send(GM, "u-gm", "presence:template:pin", { id: "a1", sceneId: "scene00000000001", template });
-    h.send(GM, "u-gm", "presence:template:pin", { id: "a2", sceneId: "scene00000000001", template });
+    h.send(GM, "u-gm", "presence:template:pin", {
+      id: "a1",
+      sceneId: "scene00000000001",
+      template,
+    });
+    h.send(GM, "u-gm", "presence:template:pin", {
+      id: "a2",
+      sceneId: "scene00000000001",
+      template,
+    });
     h.send(GM, "u-gm", "presence:template:style", {
       id: "a1",
       sceneId: "scene00000000001",

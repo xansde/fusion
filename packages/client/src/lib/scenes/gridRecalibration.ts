@@ -16,16 +16,16 @@
  * Pure: the caller reads the scene and a footprint resolver, and sends what comes back.
  */
 
-import { parseMapNotes, type SceneDocument, type Wall } from "@fusion/shared";
-import { effectiveGridSize, sceneContentOffset, sceneGridOffset } from "../canvas/sceneCoords.js";
+import { parseMapNotes, type Envelope, type SceneDocument, type Wall } from "@fusion/shared";
+import {
+  effectiveGridSize,
+  sceneContentOffset,
+  sceneGridOffset,
+  type SceneDimensionsInput,
+  type SceneGridInput,
+} from "../canvas/sceneCoords.js";
 
-export interface RecalibrationScene {
-  width: number;
-  height: number;
-  padding: number;
-  grid?: { size?: number } | null | undefined;
-  gridOffsetX?: number | null | undefined;
-  gridOffsetY?: number | null | undefined;
+export interface RecalibrationScene extends SceneDimensionsInput, SceneGridInput {
   tokens?: ReadonlyArray<{ _id: string; x: number; y: number; actorId: string }> | undefined;
   walls?: ReadonlyArray<Pick<Wall, "_id" | "a" | "b">> | undefined;
   notes?: ReadonlyArray<{ id: string; x: number; y: number }> | undefined;
@@ -111,7 +111,7 @@ export function planGridRecalibration(
 
 /** One op to send, in the shape the server implements for that collection. */
 export interface RecalibrationOp {
-  readonly type: string;
+  readonly type: Envelope["type"];
   readonly payload: Record<string, unknown>;
 }
 

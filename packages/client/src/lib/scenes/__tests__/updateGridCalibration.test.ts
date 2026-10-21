@@ -57,7 +57,7 @@ describe("updateGridCalibration", () => {
     const update = (sent[1]?.payload["updates"] as Array<{ diff: { x: number; y: number } }>)[0];
     // New cell 70, new padding 560 x 420 (was 500 x 400): the token moved with the image.
     expect(update?.diff.x).not.toBe(600);
-    expect(update?.diff.x % 70).toBe(0);
+    expect((update?.diff.x ?? 1) % 70).toBe(0);
   });
 
   it("without the placed scene it is the single write it always was", async () => {
