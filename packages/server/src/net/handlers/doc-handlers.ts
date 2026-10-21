@@ -725,6 +725,49 @@ function readMasterActorId(doc: Record<string, unknown>): string | null {
   return typeof raw === "string" && raw.length > 0 ? raw : null;
 }
 
+/**
+ * REQ-ATR-083 (#243): an Actor must not name itself as `system.masterActorId`, and the chain of masters
+ * must not close a cycle (A -> B -> A). `docId` is the id the document has (or will have) — a create that
+ * does not carry one gets a fresh server id nobody can reference yet, so it cannot close a cycle.
+ * `system` is the (expanded) `system` value of the create payload or of the update diff.
+ */
+function masterLinkRejection(
+  store: DocumentStore,
+  docId: unknown,
+  system: unknown,
+): Ack<never> | null {
+  if (typeof docId !== "string" || docId.length === 0) return null;
+  if (!system || typeof system !== "object" || Array.isArray(system)) return null;
+  const raw = (system as Record<string, unknown>)["masterActorId"];
+  if (typeof raw !== "string" || raw.length === 0) return null;
+  if (raw === docId) {
+    return ackError("VALIDATION_FAILED", "system.masterActorId must not point at the actor itself");
+  }
+  const visited = new Set<string>([raw]);
+  let current: string | null = raw;
+  // The walk is bounded by the visited set: a pre-existing cycle that does not include `docId` ends it.
+  while (current !== null) {
+    let linked: Record<string, unknown>;
+    try {
+      linked = store.get("actors", current);
+    } catch (err) {
+      if (err instanceof DocumentNotFoundError) return null; // soft reference (REQ-ATR-081)
+      throw err;
+    }
+    const next = readMasterActorId(linked);
+    if (next === docId) {
+      return ackError(
+        "VALIDATION_FAILED",
+        "system.masterActorId would close a cycle between actors",
+      );
+    }
+    if (next === null || visited.has(next)) return null;
+    visited.add(next);
+    current = next;
+  }
+  return null;
+}
+
 /** Read `system.companionKind` from a raw doc, or null when absent/blank. */
 function readCompanionKind(doc: Record<string, unknown>): string | null {
   const sys = doc["system"];
@@ -1573,6 +1616,10 @@ export function buildDocCreateHandler(deps: DocHandlerDeps): HandlerFn {
             return ackError("VALIDATION_FAILED", currencyValidation.message);
           }
           item = currencyValidation.doc;
+          // REQ-ATR-083 (#243): no self-reference and no cycle, the GM path and the batch included
+          // (an earlier item of the batch is already persisted when a later one is checked).
+          const masterRejection = masterLinkRejection(deps.store, item["_id"], item["system"]);
+          if (masterRejection) return masterRejection;
         }
         // r17-P1: for a player-authorized companion create, force the master's
         // ownership map onto the payload so the master's owners own the
@@ -1843,6 +1890,16 @@ export function buildDocUpdateHandler(deps: DocHandlerDeps): HandlerFn {
         existing,
       );
       if (rejection) return rejection;
+
+      // REQ-ATR-083 (#243): the master link may not point at the actor itself nor close a cycle.
+      if (documentType === "Actor") {
+        const masterRejection = masterLinkRejection(
+          deps.store,
+          upd._id,
+          expandedDiffForChecks["system"],
+        );
+        if (masterRejection) return masterRejection;
+      }
 
       // REQ-CFG-042: same domain validation as doc:create's guard above,
       // applied to the `fusion.permissions` Setting's `value` diff before it
