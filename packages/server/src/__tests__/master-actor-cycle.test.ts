@@ -21,7 +21,6 @@ import { loadOrCreateSecret } from "../auth/crypto.js";
 import { PROTOCOL_VERSION } from "@fusion/shared";
 import { DocumentStore } from "../documents/store.js";
 import { reserveFreePort } from "./helpers/ports.js";
-import { applyDotPathDiff } from "../net/handlers/doc-handlers.js";
 
 // ---------------------------------------------------------------------------
 // Test infrastructure (mirrors player-familiar-create.test.ts)

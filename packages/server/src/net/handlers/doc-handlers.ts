@@ -744,9 +744,9 @@ function masterLinkRejection(
     return ackError("VALIDATION_FAILED", "system.masterActorId must not point at the actor itself");
   }
   const visited = new Set<string>([raw]);
-  let current: string | null = raw;
+  let current = raw;
   // The walk is bounded by the visited set: a pre-existing cycle that does not include `docId` ends it.
-  while (current !== null) {
+  for (;;) {
     let linked: Record<string, unknown>;
     try {
       linked = store.get("actors", current);
@@ -765,7 +765,6 @@ function masterLinkRejection(
     visited.add(next);
     current = next;
   }
-  return null;
 }
 
 /** Read `system.companionKind` from a raw doc, or null when absent/blank. */
