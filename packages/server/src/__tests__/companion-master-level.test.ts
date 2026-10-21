@@ -551,9 +551,10 @@ describe("Owner change re-derives the animal companion on the server (BHR-F4-03)
       }
     });
 
-    it("another flag of the token is still the player's to write", async () => {
+    it("no other flag of the token is the player's to write either (owner allowlist: x, y, rotation)", async () => {
       const ack = await updateToken(ownerSocket, { "flags.fusion.note": "ok" });
-      expect(ack["ok"], JSON.stringify(ack)).toBe(true);
+      expect(ack["ok"], JSON.stringify(ack)).toBe(false);
+      expect(ack["code"]).toBe("PERMISSION_DENIED");
     });
 
     describe("a scene the player owns, with TOKEN_CREATE lowered (create and whole-scene paths, wave 7 review)", () => {

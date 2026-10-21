@@ -1563,15 +1563,15 @@ function readGrantableDocument(
  *     viewer (see the TOO CLOSED half below, which was already the rule for
  *     identified contacts and now applies to glimpsed ones too).
  *
- *   TOO CLOSED — `redactActorDocsForViewer` delivers TWO populations that
- *     ownership says nothing about: every player CHARACTER, unconditionally
- *     (`actorEscapingKnowledgeIsVisible`, REQ-CTT-014/020), and a contact the
- *     viewer has IDENTIFIED, whose gate is knowledge per contact×character
- *     (spec 39), not ownership. Both arrive at the client with `img` in the
- *     body — the live/replay paths (doc-handlers.ts:1871, sync-handlers.ts:205)
- *     apply this funnel and NO ownership filter. Refusing to sign what the
- *     client legitimately received buys nothing (it already has the filename)
- *     and blanks the "Na mesa" and "Conhecidos" rows of the contacts drawer.
+ *   TOO CLOSED — `redactActorDocsForViewer` delivers a population that
+ *     ownership says nothing about: a contact the viewer has IDENTIFIED, whose
+ *     gate is knowledge per contact×character (spec 39), not ownership. It
+ *     arrives at the client with `img` in the body — the live/replay paths
+ *     (doc-handlers.ts, sync-handlers.ts) apply this funnel and NO ownership
+ *     filter. Refusing to sign what the client legitimately received buys
+ *     nothing (it already has the filename) and blanks the "Conhecidos" rows
+ *     of the contacts drawer. A player CHARACTER is NOT in this population since
+ *     #240 (21/10/2026): it answers to ownership at LIMITED like the snapshot.
  *
  * Both disappear by using the funnel itself, which is also what this repo's
  * CLAUDE.md requires: never duplicate a visibility predicate. The cost is one

@@ -2349,7 +2349,8 @@ function sanitizeSpellCastCard(
 
 /**
  * Read the actor's derived Kineticist class DC (`system.derived.classDC.dc`),
- * plus any archetype class DCs (`system.derived.archetypeClassDCs[].dc`), as the
+ * plus any archetype class DCs (`system.derived.archetypeClassDCs[].dc`) and the
+ * Dragonet breath DC (`system.derived.dragonetBreath.dc`, #304), as the
  * set of DCs a Kineticist impulse's saving throw may legitimately use. Returns
  * an empty array when the actor is unknown or carries no derived class DC — the
  * caller then skips the coherence check (best-effort log, never a hard gate).
@@ -2373,6 +2374,11 @@ function readCasterClassDCs(db: Db, actorId: string): number[] {
         if (typeof dc === "number") dcs.push(dc);
       }
     }
+    // #304: the Dragonet breath leaves as an `impulse` card and uses "class DC or spell DC, the higher"
+    // (`derived.dragonetBreath.dc`), so it is a legitimate impulse DC even when the spell DC wins. Only that
+    // derived value opens the door — an arbitrary spell DC is still refused.
+    const breath = derived?.["dragonetBreath"] as { dc?: unknown } | undefined;
+    if (typeof breath?.dc === "number") dcs.push(breath.dc);
     return dcs;
   } catch {
     return [];

@@ -893,6 +893,93 @@ describe("actor:applyDamage — ActorMechanicsService (ALQ-F1-08, REQ-SYS-142)",
     }
   });
 
+  it("#225: traits/materials/category forjados por um jogador não chegam à mecânica; o GM os mantém", async () => {
+    const playerSocket = await connectSocket(ctx.port, ctx.worldId, ctx.playerToken);
+    try {
+      await sendOp(playerSocket, "combat:target", { tokenId: T1_TOKEN_ID, targeted: true });
+      const rollAck = await sendOp(playerSocket, "chat:send", {
+        content: "/roll 2d6+4",
+        worldId: ctx.worldId,
+        speakerActorId: CASTER_ACTOR_ID,
+      });
+      const rollMsg = (rollAck["result"] as { message: ChatMessageLike }).message;
+
+      const damageAck = await sendOp(playerSocket, "actor:applyDamage", {
+        instances: [
+          {
+            type: "fire",
+            source: { messageId: rollMsg._id, rollIndex: 0 },
+            category: "precision",
+            traits: ["magical"],
+            materials: ["cold-iron"],
+          },
+        ],
+      });
+      expect(damageAck["ok"], JSON.stringify(damageAck)).toBe(true);
+      const received = ctx.instancesLog.at(-1)?.[0];
+      expect(received?.type).toBe("fire");
+      expect(received?.traits).toBeUndefined();
+      expect(received?.materials).toBeUndefined();
+      expect(received?.category).toBeUndefined();
+    } finally {
+      playerSocket.disconnect();
+    }
+
+    const gmSocket = await connectSocket(ctx.port, ctx.worldId, ctx.gmToken);
+    try {
+      const gmAck = await sendOp(gmSocket, "actor:applyDamage", {
+        instances: [
+          {
+            type: "fire",
+            amount: 5,
+            category: "precision",
+            traits: ["magical"],
+            materials: ["cold-iron"],
+          },
+        ],
+        targetTokenIds: [T2_TOKEN_ID],
+      });
+      expect(gmAck["ok"], JSON.stringify(gmAck)).toBe(true);
+      expect(ctx.instancesLog.at(-1)?.[0]).toMatchObject({
+        category: "precision",
+        traits: ["magical"],
+        materials: ["cold-iron"],
+      });
+    } finally {
+      gmSocket.disconnect();
+    }
+  });
+
+  it("#225: o tipo de dano de um jogador tem de bater com o tipo anotado na rolagem gravada", async () => {
+    const playerSocket = await connectSocket(ctx.port, ctx.worldId, ctx.playerToken);
+    try {
+      await sendOp(playerSocket, "combat:target", { tokenId: T1_TOKEN_ID, targeted: true });
+      const rollAck = await sendOp(playerSocket, "chat:send", {
+        content: "/roll 2d6[fire]+1",
+        worldId: ctx.worldId,
+        speakerActorId: CASTER_ACTOR_ID,
+      });
+      expect(rollAck["ok"], JSON.stringify(rollAck)).toBe(true);
+      const rollMsg = (rollAck["result"] as { message: ChatMessageLike }).message;
+      const flavors = JSON.stringify(rollMsg.rolls?.[0]);
+      expect(flavors).toContain("fire");
+
+      const forged = await sendOp(playerSocket, "actor:applyDamage", {
+        instances: [{ type: "force", source: { messageId: rollMsg._id, rollIndex: 0 } }],
+      });
+      expect(forged["ok"], JSON.stringify(forged)).toBe(false);
+      expect(forged["code"]).toBe("FORBIDDEN");
+      expect(readActorHp(ctx.fusionDb, T1_ACTOR_ID)).toBe(STARTING_HP);
+
+      const honest = await sendOp(playerSocket, "actor:applyDamage", {
+        instances: [{ type: "fire", source: { messageId: rollMsg._id, rollIndex: 0 } }],
+      });
+      expect(honest["ok"], JSON.stringify(honest)).toBe(true);
+    } finally {
+      playerSocket.disconnect();
+    }
+  });
+
   it("B3: multiplier 2 de um jogador sem crítico registrado na rolagem é FORBIDDEN", async () => {
     const playerSocket = await connectSocket(ctx.port, ctx.worldId, ctx.playerToken);
     try {
