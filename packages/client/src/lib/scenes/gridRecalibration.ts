@@ -46,6 +46,11 @@ export interface GridRecalibrationPlan {
 
   notes: Array<{ id: string; x: number; y: number }>;
   lights: Array<{ _id: string; x: number; y: number }>;
+  /**
+   * How far the pinned areas (kept by the server, not in the scene document the client
+   * holds) have to move: the same change of padding as the walls. `null` when nothing moves.
+   */
+  areaShift: { dx: number; dy: number } | null;
 }
 
 /** Footprint (in cells) of a token, from the actor behind it. */
@@ -78,7 +83,13 @@ export function planGridRecalibration(
   const originX = wrapOffset(next.offsetX, next.size);
   const originY = wrapOffset(next.offsetY, next.size);
 
-  const plan: GridRecalibrationPlan = { tokens: [], walls: [], notes: [], lights: [] };
+  const plan: GridRecalibrationPlan = {
+    tokens: [],
+    walls: [],
+    notes: [],
+    lights: [],
+    areaShift: null,
+  };
 
   for (const token of scene.tokens ?? []) {
     const fp = footprintOf(token);
@@ -92,6 +103,7 @@ export function planGridRecalibration(
   }
 
   if (dx === 0 && dy === 0) return plan;
+  plan.areaShift = { dx, dy };
 
   for (const wall of scene.walls ?? []) {
     plan.walls.push({

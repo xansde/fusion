@@ -270,20 +270,18 @@ export async function updateGridCalibration(
   placed?: { scene: SceneDocument; footprintOf: FootprintResolver },
 ): Promise<void> {
   // Planned BEFORE the write: the plan reads the old size and padding.
-  const ops = placed
-    ? buildRecalibrationOps(
-        sceneId,
-        planGridRecalibration(
-          recalibrationSceneOf(placed.scene),
-          {
-            size: data.size,
-            offsetX: wholeOffset(data.offsetX, data.size),
-            offsetY: wholeOffset(data.offsetY, data.size),
-          },
-          placed.footprintOf,
-        ),
+  const plan = placed
+    ? planGridRecalibration(
+        recalibrationSceneOf(placed.scene),
+        {
+          size: data.size,
+          offsetX: wholeOffset(data.offsetX, data.size),
+          offsetY: wholeOffset(data.offsetY, data.size),
+        },
+        placed.footprintOf,
       )
-    : [];
+    : null;
+  const ops = plan ? buildRecalibrationOps(sceneId, plan) : [];
   await sendOp(socket, {
     type: "doc:update",
     payload: {
@@ -311,6 +309,15 @@ export async function updateGridCalibration(
   });
   // The grid is written; now put what was on the map back where it was on the map.
   for (const op of ops) await sendOp(socket, op);
+  // Pinned areas live on the server, outside the scene document: it moves them by the
+  // same change of padding (ephemeral channel, like every other area message).
+  if (plan?.areaShift && socket.connected) {
+    socket.emit("ephemeral", {
+      type: "presence:template:shift",
+      ts: Date.now(),
+      payload: { sceneId, dx: plan.areaShift.dx, dy: plan.areaShift.dy },
+    });
+  }
 }
 
 /**

@@ -8,6 +8,13 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 import { defaultSceneDocument, defaultTokenDocument, createDocumentId } from "@fusion/shared";
 
 const sent: Array<{ type: string; payload: Record<string, unknown> }> = [];
+const emitted: Array<{ event: string; envelope: { type: string; payload: unknown } }> = [];
+const fakeSocket = {
+  connected: true,
+  emit: (event: string, envelope: { type: string; payload: unknown }): void => {
+    emitted.push({ event, envelope });
+  },
+};
 vi.mock("../../docs/sendOp.js", () => ({
   OpError: class OpError extends Error {},
   sendOp: (_s: unknown, env: { type: string; payload: Record<string, unknown> }): Promise<void> => {
@@ -30,6 +37,7 @@ const DATA = {
 
 beforeEach(() => {
   sent.length = 0;
+  emitted.length = 0;
 });
 
 describe("updateGridCalibration", () => {
@@ -44,7 +52,7 @@ describe("updateGridCalibration", () => {
       tokens: [{ ...defaultTokenDocument(createDocumentId(), createDocumentId()), x: 600, y: 400 }],
     } as never;
 
-    await updateGridCalibration({} as never, id, DATA, {
+    await updateGridCalibration(fakeSocket as never, id, DATA, {
       scene,
       footprintOf: () => ({ width: 1, height: 1 }),
     });
@@ -58,6 +66,31 @@ describe("updateGridCalibration", () => {
     // New cell 70, new padding 560 x 420 (was 500 x 400): the token moved with the image.
     expect(update?.diff.x).not.toBe(600);
     expect((update?.diff.x ?? 1) % 70).toBe(0);
+  });
+
+  it("tells the server to move the pinned areas by the change of padding", async () => {
+    const id = createDocumentId();
+    const scene = {
+      ...defaultSceneDocument(id),
+      width: 2000,
+      height: 1500,
+      padding: 0.25,
+      grid: { type: "square", size: 100, distance: 5, units: "ft", color: "#000000", alpha: 0.2 },
+    } as never;
+    await updateGridCalibration(fakeSocket as never, id, DATA, {
+      scene,
+      footprintOf: () => ({ width: 1, height: 1 }),
+    });
+    // 100 -> 70: padding 500x400 -> 560x420.
+    expect(emitted).toEqual([
+      {
+        event: "ephemeral",
+        envelope: expect.objectContaining({
+          type: "presence:template:shift",
+          payload: { sceneId: id, dx: 60, dy: 20 },
+        }),
+      },
+    ]);
   });
 
   it("without the placed scene it is the single write it always was", async () => {
