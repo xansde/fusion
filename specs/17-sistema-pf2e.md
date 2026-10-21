@@ -1177,6 +1177,7 @@ resolveExpirations(
   > e conta o efeito de **qualquer** origem e portador, pelas mesmas contas de rodadas de
   > REQ-PF2-219 (um efeito iniciado em outro combate não conta). `combat-end` varre o mundo e
   > remove, de todo portador, o efeito `encounter` do combate que acabou.
+
 - **REQ-PF2-222** [MVP] Item **físico temporário** (fabricação rápida, munição improvisada,
   qualquer item com prazo) DEVE usar o mesmo `system.fusion.expiry` no próprio item e DEVE
   ser **removido do inventário** ao expirar — sem segundo mecanismo e sem item morto com
