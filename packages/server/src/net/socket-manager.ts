@@ -87,6 +87,7 @@ import {
   createTurnHookRunner,
   createStubTurnHookContextServices,
   createDocumentWriteTurnHookContextServices,
+  createRollTurnHookContextService,
 } from "../combat/turn-hook-runner.js";
 import type { TurnHookContextServices } from "../combat/turn-hook-runner.js";
 import type { TokenMarkSource } from "../chat/roll-resolution.js";
@@ -597,7 +598,7 @@ export class SocketManager {
     // `applyDamage`/`applyCondition` are the REAL service (ALQ-F1-08/F1-09);
     // `deleteEmbedded`/`chat` are the REAL document-write services (B4 fix,
     // onda-4 adversarial review — see combat/turn-hook-runner.ts's header);
-    // `roll` (server RNG + dice card), `updateActor` and `readSetting` are real too (turn automation).
+    // `updateActor` is real too, and `getSetting` reads the system's world settings.
     const hookServices: TurnHookContextServices = {
       ...createStubTurnHookContextServices(),
       ...createDocumentWriteTurnHookContextServices({
@@ -607,9 +608,17 @@ export class SocketManager {
         seqStore,
         opBuffer,
         worldId,
-        rollService: combatRollService,
         ...(systemModule ? { systemModule } : {}),
         logger: this.logger,
+      }),
+      // Condition front, stage 3b: hooks roll on the server and the roll lands in the chat.
+      ...createRollTurnHookContextService({
+        db,
+        ns,
+        seqStore,
+        worldId,
+        rollService: combatRollService,
+        store,
       }),
       applyDamage: (p) => actorMechanicsService.applyDamage(p, "system"),
       applyCondition: (p) => actorMechanicsService.applyCondition(p, "system"),
@@ -915,7 +924,7 @@ export class SocketManager {
         pingRateLimiter,
         previewRateLimiter,
         sceneRooms,
-        ...(secret ? { assetSecret: secret } : {}),
+        assetSecret: secret,
         store,
         userIdentity: (id: string) => {
           const u = userStore.findById(id);

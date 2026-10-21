@@ -16,7 +16,8 @@ describe("boundaryEdges", () => {
   });
   it("a ring of 8 around a hole keeps the inner edges of the hole", () => {
     const cells = [];
-    for (let i = 0; i < 3; i++) for (let j = 0; j < 3; j++) if (i !== 1 || j !== 1) cells.push({ i, j });
+    for (let i = 0; i < 3; i++)
+      for (let j = 0; j < 3; j++) if (i !== 1 || j !== 1) cells.push({ i, j });
     expect(boundaryEdges(cells)).toHaveLength(12 + 4);
   });
 });

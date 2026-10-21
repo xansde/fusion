@@ -213,11 +213,11 @@ export interface TurnHookContext {
    */
   listActors(): Record<string, unknown>[];
   /**
-   * The world's stored value of one of THIS system's world-scope settings (`key` is the local name the system
-   * registered with `registrar.setting`, e.g. `automation.turn`), or `undefined` when the GM never touched it —
-   * the hook then falls back to the setting's declared default. Optional so a test context without a store can omit it.
+   * Current value of one of the active system's world-scope settings, by its SYSTEM-LOCAL key (without the
+   * `<systemId>:` namespace), or `undefined` when the GM never stored a value (the hook then applies its own
+   * default). Read-only. Optional so contexts built before this existed (tests, stubs) stay valid.
    */
-  readSetting?(key: string): unknown;
+  getSetting?(localKey: string): unknown;
   worldTime: { round: number; turn: number };
 }
 

@@ -28,6 +28,7 @@ import {
 } from "@fusion/shared";
 import type { ResolvedExtraDamage, RollTargetSnapshotEntry } from "@fusion/system-api";
 
+import { damageTypePt } from "./damage-type-pt.js";
 import { distanceBetween, type PositionGrid, type PositionedToken } from "../combat/position.js";
 
 type Rec = Record<string, unknown>;
@@ -200,28 +201,7 @@ function hasToken(scene: Rec, tokenId: string): boolean {
 // Settlement
 // ---------------------------------------------------------------------------
 
-const DAMAGE_TYPE_PT: Readonly<Record<string, string>> = {
-  slashing: "cortante",
-  piercing: "perfurante",
-  bludgeoning: "contundente",
-  bleed: "sangramento",
-  fire: "fogo",
-  cold: "frio",
-  acid: "ácido",
-  electricity: "eletricidade",
-  sonic: "sônico",
-  poison: "veneno",
-  mental: "mental",
-  force: "força",
-  vitality: "vitalidade",
-  void: "vazio",
-  spirit: "espírito",
-  precision: "precisão",
-};
-
-function typePt(type: string): string {
-  return DAMAGE_TYPE_PT[type] ?? type;
-}
+const typePt = damageTypePt;
 
 /**
  * Settle the extra damage of a Strike's damage roll. `hit` is the degree of the attack the server graded

@@ -68,7 +68,10 @@ export class ManualFogHost {
     this._scene = scene;
     this._privileged = privileged;
     const ov = this._override;
-    if (ov && (ov.sceneId !== scene?._id || JSON.stringify(scene?.manualFog) === JSON.stringify(ov.fog))) {
+    if (
+      ov &&
+      (ov.sceneId !== scene?._id || JSON.stringify(scene.manualFog) === JSON.stringify(ov.fog))
+    ) {
       // Echoed (or the scene changed): the document is authoritative again.
       this._override = null;
     }
@@ -92,7 +95,10 @@ export class ManualFogHost {
     try {
       await sendOp(sock, {
         type: "doc:update",
-        payload: { documentType: "Scene", updates: [{ _id: scene._id, diff: { manualFog: next } }] },
+        payload: {
+          documentType: "Scene",
+          updates: [{ _id: scene._id, diff: { manualFog: next } }],
+        },
       });
     } catch {
       this._override = null;

@@ -353,7 +353,26 @@ export function buildCompendiumImportHandler(deps: CompendiumHandlerDeps): Handl
       if (deps.metrics !== undefined) {
         importOpts.metrics = deps.metrics;
       }
-      const result = deps.compendium.importToWorld(parsed.data.uuids, importOpts);
+      const { createdDocs, ...result } = deps.compendium.importToWorld(
+        parsed.data.uuids,
+        importOpts,
+      );
+
+      // Announce each created document on the ordinary `doc:create` channel, through the same funnel
+      // every other write uses (`broadcastToWorld` decides what each role receives of an Actor), so
+      // the NPCs panel and every other mirror show it at once instead of after a reload.
+      if (deps.seqStore && deps.opBuffer) {
+        for (const { documentType, doc } of createdDocs) {
+          const envelope: Envelope = {
+            type: "doc:create",
+            seq: deps.seqStore.next(),
+            ts: Date.now(),
+            payload: { documentType, documents: [doc] },
+          };
+          deps.opBuffer.push(envelope);
+          broadcastToWorld(deps.ns, envelope, documentType);
+        }
+      }
 
       // Broadcast compendium:imported event.
       // Security: the list of created world _ids must only reach privileged sockets.

@@ -9,7 +9,11 @@ describe("sceneViewKeep", () => {
 
   it("remembers the view centre relative to the map corner", () => {
     // centre on screen (400,300) -> world ((400+300)/2, (300+100)/2) = (350, 200)
-    expect(captureView(canvas, { padX: 100, padY: 50 })).toEqual({ mapX: 250, mapY: 150, scale: 2 });
+    expect(captureView(canvas, { padX: 100, padY: 50 })).toEqual({
+      mapX: 250,
+      mapY: 150,
+      scale: 2,
+    });
   });
 
   it("puts the same map point back at the centre after the padding changed", () => {

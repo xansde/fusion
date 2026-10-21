@@ -326,7 +326,11 @@ describe("preloadSceneForAll", () => {
   it("sends ONE scene:preload op and nothing that switches the scene", async () => {
     const sent: Array<{ type: string; payload: Record<string, unknown> }> = [];
     const socket = {
-      emit(_e: string, envelope: { type: string; payload: Record<string, unknown> }, ack: (r: unknown) => void) {
+      emit(
+        _e: string,
+        envelope: { type: string; payload: Record<string, unknown> },
+        ack: (r: unknown) => void,
+      ) {
         sent.push(envelope);
         ack({ ok: true, result: {} });
       },
@@ -343,7 +347,10 @@ describe("preloadSceneForAll", () => {
 describe("updateGridCalibration", () => {
   interface SentOp {
     type: string;
-    payload: { documentType: string; updates: Array<{ _id: string; diff: Record<string, unknown> }> };
+    payload: {
+      documentType: string;
+      updates: Array<{ _id: string; diff: Record<string, unknown> }>;
+    };
   }
   function fakeSocket(sent: SentOp[]): Parameters<typeof updateGridCalibration>[0] {
     return {

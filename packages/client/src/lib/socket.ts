@@ -104,10 +104,16 @@ export class SocketManager {
       auth: this.getFreshToken
         ? (cb: (data: { token: string; protocolVersion: number }) => void) => {
             const fresh = this.getFreshToken;
-            const settle = (tok: string | null): void =>
+            const settle = (tok: string | null): void => {
               cb({ token: tok ?? this.getToken() ?? "", protocolVersion: PROTOCOL_VERSION });
-            if (!fresh) return settle(null);
-            fresh().then(settle, () => settle(null));
+            };
+            if (!fresh) {
+              settle(null);
+              return;
+            }
+            fresh().then(settle, () => {
+              settle(null);
+            });
           }
         : {
             token: token ?? "",

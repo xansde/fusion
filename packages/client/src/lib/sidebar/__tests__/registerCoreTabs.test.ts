@@ -162,7 +162,14 @@ describe("the core tabs register through the public call (G016)", () => {
       const player = listVisibleSidebarTabs(false);
       const gm = listVisibleSidebarTabs(true);
 
-      expect(idsOf(player)).toEqual(["chat", "contacts", "combat", "compendium", "sound", "settings"]);
+      expect(idsOf(player)).toEqual([
+        "chat",
+        "contacts",
+        "combat",
+        "compendium",
+        "sound",
+        "settings",
+      ]);
       // REQ-NPC-003: the NPCs tab is not rendered for a seat without a privileged role.
       expect(idsOf(player)).not.toContain("npcs");
       for (const id of ["chat", "contacts", "combat", "compendium", "sound"]) {

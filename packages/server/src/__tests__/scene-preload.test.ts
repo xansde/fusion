@@ -146,21 +146,6 @@ function sendOp(
 }
 
 /**
- * Create a minimal Actor via doc:create and return its `_id`. A Token no
- * longer accepts a missing/null `actorId` (REQ-TOK-002).
- */
-async function createActor(socket: ClientSocket, name: string): Promise<string> {
-  const ack = await sendOp(socket, "doc:create", {
-    documentType: "Actor",
-    data: [{ name, type: "npc", system: {}, ownership: { default: 0 } }],
-  });
-  if (!ack["ok"]) {
-    throw new Error(`Failed to create actor "${name}": ${JSON.stringify(ack)}`);
-  }
-  return (ack["result"] as { documents: Array<{ _id: string }> }).documents[0]!._id;
-}
-
-/**
  * Wait for the next broadcast `op` envelope matching `predicate` on `socket`.
  */
 function waitForOp(
@@ -181,33 +166,16 @@ function waitForOp(
   });
 }
 
-function sleep(ms: number): Promise<void> {
-  return new Promise((resolve) => setTimeout(resolve, ms));
-}
-
-/**
- * Read `_stats.version` straight from the database row — the source of
- * truth this suite compares broadcasts against, per the repo's own
- * discipline against circular tests (never assert a handler's claim against
- * itself; assert it against the bank).
- */
-function readVersion(fusionDb: FusionDatabase, table: "actors" | "scenes", id: string): number {
-  const row = fusionDb.raw.prepare(`SELECT data FROM ${table} WHERE id = ?`).get(id) as
-    | { data: string }
-    | undefined;
-  if (!row) throw new Error(`Row not found: ${table}/${id}`);
-  const doc = JSON.parse(row.data) as { _stats?: { version?: number } };
-  const version = doc._stats?.version;
-  if (typeof version !== "number") throw new Error(`No _stats.version on ${table}/${id}`);
-  return version;
-}
-
 // ---------------------------------------------------------------------------
 // Suite
 // ---------------------------------------------------------------------------
 
 /** Resolve with the next `op` of `type` on `socket`, or reject after `ms` (for "never arrives" checks). */
-function nextOpWithin(socket: ClientSocket, type: string, ms: number): Promise<Record<string, unknown> | null> {
+function nextOpWithin(
+  socket: ClientSocket,
+  type: string,
+  ms: number,
+): Promise<Record<string, unknown> | null> {
   return new Promise((resolve) => {
     const timer = setTimeout(() => {
       socket.off("op", handler);

@@ -31,9 +31,15 @@ describe("atualizarAtor", () => {
   beforeEach(() => _resetEscritaParaTestes());
 
   it("sends the mirror's version as expectedVersion (the server refuses a player's write without it)", async () => {
-    const { socket, enviados } = socketFalso([{ ok: true, result: { documents: [{ _id: "a1", _stats: { version: 8 } }] } }]);
+    const { socket, enviados } = socketFalso([
+      { ok: true, result: { documents: [{ _id: "a1", _stats: { version: 8 } }] } },
+    ]);
     await atualizarAtor(socket, "a1", { img: "/assets/x.png" }, espelho(7));
-    expect(payloadDe(enviados[0]!)).toMatchObject({ _id: "a1", diff: { img: "/assets/x.png" }, expectedVersion: 7 });
+    expect(payloadDe(enviados[0]!)).toMatchObject({
+      _id: "a1",
+      diff: { img: "/assets/x.png" },
+      expectedVersion: 7,
+    });
   });
 
   it("chains writes on the version the previous ack confirmed, even if the mirror lags", async () => {

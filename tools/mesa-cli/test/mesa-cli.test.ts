@@ -32,7 +32,10 @@ let url: string;
 let gmPassword: string;
 
 beforeAll(async () => {
-  dataDir = join(tmpdir(), `fusion-mesa-cli-${String(Date.now())}-${Math.random().toString(36).slice(2)}`);
+  dataDir = join(
+    tmpdir(),
+    `fusion-mesa-cli-${String(Date.now())}-${Math.random().toString(36).slice(2)}`,
+  );
   mkdirSync(dataDir, { recursive: true });
   const dbPath = join(dataDir, "world.db");
   const secret = loadOrCreateSecret(dataDir);

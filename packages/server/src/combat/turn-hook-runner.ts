@@ -66,9 +66,9 @@ import { broadcastToWorld } from "../net/handlers/doc-handlers.js";
 import { tokenLookupSourceFromStore } from "../net/redaction.js";
 import {
   buildBaseMessage,
-  buildRollMessage,
   persistChatMessage,
   broadcastChatMessage,
+  getGmUserIds,
 } from "../chat/chat-handler.js";
 import type { RollService } from "../chat/roll-service.js";
 
@@ -160,7 +160,7 @@ export function createStubTurnHookContextServices(): TurnHookContextServices {
 //
 // Scoped to exactly what a REGISTERED hook calls TODAY: `deleteEmbedded` (the
 // effect leaves the actor's `items[]` for real) and `chat` (the "Efeito X
-// terminou" announcement). `roll`/`updateActor`/`createEmbedded` stay
+// terminou" announcement). `roll` and `createEmbedded` stay
 // `TurnHookContextStubError` stubs — no hook registered as of this fix calls
 // them, and wiring a service with no caller to prove it against is exactly
 // the untested-branch trap the B1 finding fell into. Tracked as a follow-up
@@ -181,11 +181,6 @@ export interface DocumentWriteTurnHookContextDeps {
    * kept showing the strike without the Monster Hunter's +1 the roll would add).
    */
   systemModule?: SystemModule;
-  /**
-   * When present, `roll` is real: the dice are rolled HERE (server RNG, REQ-ROL-025) and the result lands in the chat
-   * as an ordinary roll card. Without it `roll` stays the stub.
-   */
-  rollService?: RollService;
   logger?: Logger;
 }
 
@@ -210,19 +205,13 @@ const UPDATE_ACTOR_FORBIDDEN_KEYS: ReadonlySet<string> = new Set([
  *
  * Spread this AFTER `createStubTurnHookContextServices()` at the call site
  * (packages/server/src/net/socket-manager.ts) so it overrides only these two
- * keys and leaves `roll`/`updateActor` on the stub.
+ * keys and leaves `roll` (see `createRollTurnHookContextService`) on the stub.
  */
 export function createDocumentWriteTurnHookContextServices(
   deps: DocumentWriteTurnHookContextDeps,
 ): Pick<
   TurnHookContextServices,
-  | "createEmbedded"
-  | "deleteEmbedded"
-  | "chat"
-  | "listActors"
-  | "readSetting"
-  | "updateActor"
-  | "roll"
+  "createEmbedded" | "deleteEmbedded" | "chat" | "listActors" | "getSetting" | "updateActor"
 > {
   const tokenSource = tokenLookupSourceFromStore(deps.store);
   const rederive = (actor: Record<string, unknown>): Record<string, unknown> =>
@@ -243,13 +232,15 @@ export function createDocumentWriteTurnHookContextServices(
       return deps.store.getAll("actors");
     },
 
-    // The stored value of one of the system's world-scope settings (`<systemId>:<key>`, REQ-CFG-071), or undefined
-    // when the GM never wrote it — the hook then applies the setting's declared default.
-    readSetting(key) {
+    // Condition front, stage 3b: a world-scope setting of the active system, by its system-local key. `undefined`
+    // when nothing is stored (the GM never opened Configurações → Mundo) so the hook applies its own default.
+    getSetting(localKey) {
       if (!deps.systemModule) return undefined;
-      const fullKey = `${deps.systemModule.manifest.id}:${key}`;
-      const stored = deps.store.getAll("settings").find((doc) => doc["key"] === fullKey);
-      return stored?.["value"];
+      const wireKey = `${deps.systemModule.manifest.id}:${localKey}`;
+      for (const doc of deps.store.getAll("settings")) {
+        if (doc["key"] === wireKey) return doc["value"];
+      }
+      return undefined;
     },
 
     // A scoped diff on an actor's own fields (hp, flags...). Identity, ownership and the embedded items have their own
@@ -275,30 +266,6 @@ export function createDocumentWriteTurnHookContextServices(
       deps.opBuffer.push(envelope);
       broadcastToWorld(deps.ns, envelope, "Actor");
       return Promise.resolve();
-    },
-
-    // Rolls on the SERVER (anti-cheat) and posts the dice card like any roll; `gmroll` keeps a hidden combatant's
-    // roll away from the players. Rejects when no RollService was injected (the stub's behaviour).
-    roll(formula, opts) {
-      if (!deps.rollService) return Promise.reject(new TurnHookContextStubError("roll"));
-      const mode = opts.rollMode ?? "public";
-      const result = deps.rollService.roll({
-        formula,
-        mode,
-        flavor: opts.flavor,
-        worldId: deps.worldId,
-        userId: "system",
-        ...(opts.speakerActorId !== undefined ? { actorId: opts.speakerActorId } : {}),
-      });
-      const speaker: ChatSpeaker = {
-        userId: "system",
-        alias: "Sistema",
-        ...(opts.speakerActorId !== undefined ? { actorId: opts.speakerActorId } : {}),
-      };
-      const msg = buildRollMessage(deps.db, deps.worldId, speaker, "system", result, mode);
-      persistChatMessage(deps.db, msg);
-      broadcastChatMessage(deps.ns, deps.seqStore, msg, speaker.userId, "doc:create", tokenSource);
-      return Promise.resolve(result);
     },
 
     // Neither write method below has anything to `await` — every write it makes
@@ -391,6 +358,60 @@ export function createDocumentWriteTurnHookContextServices(
       persistChatMessage(deps.db, msg);
       broadcastChatMessage(deps.ns, deps.seqStore, msg, speaker.userId, "doc:create", tokenSource);
       return Promise.resolve();
+    },
+  };
+}
+
+// ---------------------------------------------------------------------------
+// Production `roll` (condition front, stage 3b)
+//
+// A turn hook that needs dice (persistent damage, the dying recovery check, the flat check that ends a condition)
+// rolls on the SERVER through the same RollService every chat roll uses (CSPRNG, audit log), and the roll lands in
+// the chat as a "roll" message, so the table sees the die. The roll mode decides who sees it, with the same
+// whisper/blind mapping a chat roll uses (D-CHT-02): a hook rolling for a hidden combatant asks for "gmroll".
+// The speaker is the system with NO actor id: the hook names the creature by its public combat name in the flavor,
+// and a speaker actor would be one more place that could name a hidden creature.
+// ---------------------------------------------------------------------------
+
+export interface RollTurnHookContextDeps {
+  db: Db;
+  ns: Namespace;
+  seqStore: SeqStore;
+  worldId: string;
+  rollService: Pick<RollService, "roll">;
+  /** For the per-viewer speaker/token redaction the broadcast applies to every chat message. */
+  store?: DocumentStore;
+}
+
+export function createRollTurnHookContextService(
+  deps: RollTurnHookContextDeps,
+): Pick<TurnHookContextServices, "roll"> {
+  const tokenSource = deps.store ? tokenLookupSourceFromStore(deps.store) : undefined;
+  return {
+    roll(formula, opts) {
+      const mode = opts.rollMode ?? "public";
+      const result = deps.rollService.roll({
+        formula,
+        mode,
+        flavor: opts.flavor,
+        worldId: deps.worldId,
+        userId: "system",
+      });
+
+      const speaker: ChatSpeaker = { userId: "system", alias: "Sistema" };
+      const content = result.flavor
+        ? `${result.flavor}: ${String(result.total)}`
+        : String(result.total);
+      const msg = buildBaseMessage(deps.worldId, speaker, "roll", content);
+      msg.rolls = [result];
+      if (mode !== "public") {
+        // A system roll has no author to whisper to, so "selfroll" is the GMs' too.
+        msg.whisper = getGmUserIds(deps.db);
+        msg.blind = mode === "blindroll";
+      }
+      persistChatMessage(deps.db, msg);
+      broadcastChatMessage(deps.ns, deps.seqStore, msg, speaker.userId, "doc:create", tokenSource);
+      return Promise.resolve(result);
     },
   };
 }

@@ -49,7 +49,10 @@ describe("planoDaMiniatura", () => {
   });
 
   it("never picks a scale below 1", () => {
-    const p = planoDaMiniatura({ x: 0, y: 0, w: 64, h: 64 }, { modo: "token", alvo: 32, quadro: 64 });
+    const p = planoDaMiniatura(
+      { x: 0, y: 0, w: 64, h: 64 },
+      { modo: "token", alvo: 32, quadro: 64 },
+    );
     expect(p.escala).toBe(1);
   });
 });

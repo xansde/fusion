@@ -241,7 +241,6 @@ a aba Configurações faz com a seção Mundo (REQ-SYS-047).
 > ativa, criando o token (REQ-CTT-028, REQ-TOK-030a). O texto abaixo é o histórico da decisão
 > original; o cartão de NPC/Conhecidos segue exclusivo do Mestre.
 
-
 Arrastar um cartão para o canvas, criando token (REQ-UIF-044), é gesto exclusivo do Mestre.
 O cartão do jogador não oferece o gesto — não o oferece e falha.
 

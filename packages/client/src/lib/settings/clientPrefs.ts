@@ -192,7 +192,8 @@ function parseAvatarOverlay(record: Record<string, unknown>): AvatarOverlayPrefe
         }
       : null;
   return {
-    visivel: typeof source["visivel"] === "boolean" ? source["visivel"] : DEFAULT_AVATAR_OVERLAY.visivel,
+    visivel:
+      typeof source["visivel"] === "boolean" ? source["visivel"] : DEFAULT_AVATAR_OVERLAY.visivel,
     tamanho,
     canto,
     livre,

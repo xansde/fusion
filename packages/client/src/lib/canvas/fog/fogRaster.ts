@@ -41,7 +41,8 @@ function paintOp(ctx: FogCtx, op: FogOp): void {
     case "poly": {
       ctx.beginPath();
       ctx.moveTo(op.p[0] as number, op.p[1] as number);
-      for (let i = 2; i + 1 < op.p.length; i += 2) ctx.lineTo(op.p[i] as number, op.p[i + 1] as number);
+      for (let i = 2; i + 1 < op.p.length; i += 2)
+        ctx.lineTo(op.p[i] as number, op.p[i + 1] as number);
       ctx.closePath();
       ctx.fill();
       return;
@@ -58,7 +59,8 @@ function paintOp(ctx: FogCtx, op: FogOp): void {
       ctx.lineJoin = "round";
       ctx.beginPath();
       ctx.moveTo(op.p[0] as number, op.p[1] as number);
-      for (let i = 2; i + 1 < op.p.length; i += 2) ctx.lineTo(op.p[i] as number, op.p[i + 1] as number);
+      for (let i = 2; i + 1 < op.p.length; i += 2)
+        ctx.lineTo(op.p[i] as number, op.p[i + 1] as number);
       ctx.stroke();
       return;
     }

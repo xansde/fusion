@@ -129,6 +129,7 @@ import {
   isNonPlayableActor,
 } from "../documents/knowledge.js";
 import type { DocumentStore } from "../documents/store.js";
+import { damageTypePt } from "../chat/damage-type-pt.js";
 
 // ---------------------------------------------------------------------------
 // Chat target redaction (spec 38 — DEC-ACH-09, REQ-ACH-073 / REQ-ACH-092)
@@ -368,13 +369,14 @@ export function tokenIsHiddenFromViewer(
 function sceneManualFog(scene: Record<string, unknown>): ManualFogLike | undefined {
   const fog = scene["manualFog"];
   if (!fog || typeof fog !== "object") return undefined;
-  return manualFogIsActive(fog as ManualFogLike) ? (fog as ManualFogLike) : undefined;
+  return manualFogIsActive(fog) ? fog : undefined;
 }
 
 /** Grid cell size used to find a token's anchor; same default the client renders with. */
 function sceneGridSize(scene: Record<string, unknown>): number {
   const grid = scene["grid"];
-  const size = grid && typeof grid === "object" ? (grid as Record<string, unknown>)["size"] : undefined;
+  const size =
+    grid && typeof grid === "object" ? (grid as Record<string, unknown>)["size"] : undefined;
   return typeof size === "number" && size > 0 ? size : 100;
 }
 
@@ -428,7 +430,8 @@ export function stripHiddenTokens(
   const gridSize = fog ? sceneGridSize(scene) : 0;
   const filtered = (rawTokens as Record<string, unknown>[]).filter(
     (token) =>
-      !tokenIsHiddenFromViewer(token, userId) && !(fog && tokenIsUnderManualFog(token, fog, gridSize)),
+      !tokenIsHiddenFromViewer(token, userId) &&
+      !(fog && tokenIsUnderManualFog(token, fog, gridSize)),
   );
 
   // Only allocate a new object when something was actually removed.
@@ -608,7 +611,8 @@ const CHAT_APPLIED_CONDITIONS_FLAG_KEY = "appliedConditions";
 
 /**
  * The ChatMessage a NON-PRIVILEGED viewer may receive, with
- * `flags.fusion.targetSnapshot` redacted (B1 fix, REQ-CBT-056).
+ * `flags.fusion.targetSnapshot` redacted (B1 fix, REQ-CBT-056) and the token an `action` card names by reference
+ * (`flags.pf2e.abilityCard.targetTokenId`) cut when it is hidden from him (closing review, I-1).
  *
  * Composes with {@link redactChatTargetsForNonPrivileged} /
  * {@link redactBlindRollForNonPrivileged}: together they are everything this
@@ -621,6 +625,19 @@ const CHAT_APPLIED_CONDITIONS_FLAG_KEY = "appliedConditions";
  * callers can cheaply detect "unchanged".
  */
 export function redactChatTargetSnapshotForNonPrivileged(
+  msg: ChatMessage,
+  userId: string | undefined,
+  source: TokenLookupSource | undefined,
+): ChatMessage {
+  return redactAbilityCardTargetForNonPrivileged(
+    redactFusionTargetFlagsForNonPrivileged(msg, userId, source),
+    userId,
+    source,
+  );
+}
+
+/** `flags.fusion.targetSnapshot` and `flags.fusion.appliedConditions`: the tokens a roll message names by id. */
+function redactFusionTargetFlagsForNonPrivileged(
   msg: ChatMessage,
   userId: string | undefined,
   source: TokenLookupSource | undefined,
@@ -663,6 +680,56 @@ export function redactChatTargetSnapshotForNonPrivileged(
   return {
     ...msg,
     flags: { ...flags, [CHAT_FUSION_FLAG_NAMESPACE]: { ...fusionFlags, ...patch } },
+  };
+}
+
+/** Namespace/key `flags.pf2e.abilityCard` is stored under (chat-handler.ts). */
+const CHAT_PF2E_FLAG_NAMESPACE = "pf2e";
+const CHAT_ABILITY_CARD_FLAG_KEY = "abilityCard";
+
+/**
+ * The card a NON-PRIVILEGED viewer may read, with the reference to the creature an `action` card was used on cut
+ * when that token is hidden from him (closing review, I-1).
+ *
+ * The card names its target by `targetTokenId`/`targetActorId` and never by a name frozen by the sender: the
+ * sender may be the Mestre, who reads every name, and each viewer resolves the name from his own mirror, already
+ * redacted by the Actor and Scene cuts above. That moves the thing to guard from the name to the ids — and a hidden
+ * token's identity must not reach a non-privileged socket by ANY emission path, a card included. The hidden token
+ * loses the whole reference, `targetName` too in case an older sender put one beside it, and the card reads as an
+ * action with no target.
+ *
+ * Like {@link redactChatDamageAppliedForNonPrivileged}, and unlike the snapshot cut, a token that cannot be resolved
+ * keeps its reference: it is a token that is gone, not one this function can prove hidden, and what the viewer's
+ * mirror cannot name reads as an unknown creature anyway. Without a lookup source (a chat-only harness) nothing
+ * looks hidden. Re-resolves the token's CURRENT state on every call, and returns the SAME reference when there is
+ * nothing to cut.
+ */
+function redactAbilityCardTargetForNonPrivileged(
+  msg: ChatMessage,
+  userId: string | undefined,
+  source: TokenLookupSource | undefined,
+): ChatMessage {
+  const flags = msg.flags as Record<string, Record<string, unknown>> | undefined;
+  const pf2eFlags = flags?.[CHAT_PF2E_FLAG_NAMESPACE];
+  const card = pf2eFlags?.[CHAT_ABILITY_CARD_FLAG_KEY];
+  if (!isPlainObject(card)) return msg;
+  const tokenId = card["targetTokenId"];
+  if (typeof tokenId !== "string") return msg;
+  const token = source?.findToken(tokenId);
+  if (token === undefined || !tokenIsHiddenFromViewer(token, userId)) return msg;
+
+  const {
+    targetTokenId: _targetTokenId,
+    targetActorId: _targetActorId,
+    targetName: _targetName,
+    ...rest
+  } = card;
+  return {
+    ...msg,
+    flags: {
+      ...flags,
+      [CHAT_PF2E_FLAG_NAMESPACE]: { ...pf2eFlags, [CHAT_ABILITY_CARD_FLAG_KEY]: rest },
+    },
   };
 }
 
@@ -807,7 +874,7 @@ export function redactDamageAppliedPayloadForNonPrivileged(
  * {@link redactChatDamageAppliedForNonPrivileged}), not what this renders.
  */
 export function formatDamageAppliedLine(target: DamageAppliedTarget): string {
-  return `${target.name} sofreu ${String(target.total)} de dano (${target.byType.map((b) => `${String(b.amount)} ${b.type}`).join(" + ")})`;
+  return `${target.name} sofreu ${String(target.total)} de dano (${target.byType.map((b) => `${String(b.amount)} de ${damageTypePt(b.type)}`).join(" + ")})`;
 }
 
 /**
@@ -942,24 +1009,33 @@ export function redactChatEffectExpiryForNonPrivileged(msg: ChatMessage): ChatMe
   const flags = msg.flags as Record<string, Record<string, unknown>> | undefined;
   const fusionFlags = flags?.[CHAT_FUSION_FLAG_NAMESPACE];
   const expiry = fusionFlags?.["effectExpiry"];
-  // The turn automation (pf2e persistent damage, recovery checks, frightened decay) stamps the same `hidden` marker.
-  const automation = fusionFlags?.["turnAutomation"];
+  const conditionTurn = fusionFlags?.["conditionTurn"];
+  // Two announcers share this cut: the effect-expiry hook and the condition-turn hook (condition front, stage 3b:
+  // Frightened ticking down, the persistent damage verdict, the stun/slow reminder, the dying outcome).
   const expiryHidden = isPlainObject(expiry) && expiry["hidden"] === true;
-  const automationHidden = isPlainObject(automation) && automation["hidden"] === true;
-  if (!expiryHidden && !automationHidden) return msg;
+  // `turnAutomation` is the name an earlier build stamped on the same cards: a chat history that already holds
+  // them must stay cut for a non-privileged viewer.
+  const legacyTurnAutomation = fusionFlags?.["turnAutomation"];
+  const conditionTurnHidden =
+    (isPlainObject(conditionTurn) && conditionTurn["hidden"] === true) ||
+    (isPlainObject(legacyTurnAutomation) && legacyTurnAutomation["hidden"] === true);
+  if (!expiryHidden && !conditionTurnHidden) return msg;
 
   const { actorId: _actorId, ...speaker } = msg.speaker as typeof msg.speaker & {
     actorId?: string;
   };
+  const { turnAutomation: _legacyStamp, ...keptFusionFlags } = fusionFlags ?? {};
   return {
     ...msg,
-    content: expiryHidden ? "Um efeito terminou." : "Algo aconteceu no turno de um combatente oculto.",
+    content: expiryHidden ? "Um efeito terminou." : "Uma condição foi resolvida.",
     speaker,
     flags: {
       ...flags,
-      [CHAT_FUSION_FLAG_NAMESPACE]: expiryHidden
-        ? { ...fusionFlags, effectExpiry: { hidden: true } }
-        : { ...fusionFlags, turnAutomation: { hidden: true } },
+      [CHAT_FUSION_FLAG_NAMESPACE]: {
+        ...keptFusionFlags,
+        ...(expiryHidden ? { effectExpiry: { hidden: true } } : {}),
+        ...(conditionTurnHidden ? { conditionTurn: { hidden: true } } : {}),
+      },
     },
   };
 }

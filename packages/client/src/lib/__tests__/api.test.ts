@@ -410,7 +410,11 @@ describe("Content-Type on bodyless requests (issue #2)", () => {
 /** Build an unsigned JWT-shaped string whose `exp` is `secondsFromNow` away. */
 function fakeJwt(secondsFromNow: number): string {
   const b64 = (o: unknown) =>
-    Buffer.from(JSON.stringify(o)).toString("base64").replace(/=+$/, "").replace(/\+/g, "-").replace(/\//g, "_");
+    Buffer.from(JSON.stringify(o))
+      .toString("base64")
+      .replace(/=+$/, "")
+      .replace(/\+/g, "-")
+      .replace(/\//g, "_");
   const exp = Math.floor(Date.now() / 1000) + secondsFromNow;
   return `${b64({ alg: "HS256" })}.${b64({ sub: "u1", exp })}.sig`;
 }

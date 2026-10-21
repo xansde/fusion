@@ -94,7 +94,14 @@ describe("rectFromGrid", () => {
   });
 
   it("spans several cells when asked", () => {
-    const r = rectFromGrid(100, { x: 0, y: 0 }, origin, { x: 1000, y: 800, width: 1, height: 1 }, 3, 2);
+    const r = rectFromGrid(
+      100,
+      { x: 0, y: 0 },
+      origin,
+      { x: 1000, y: 800, width: 1, height: 1 },
+      3,
+      2,
+    );
     expect(r.width).toBe(300);
     expect(r.height).toBe(200);
   });

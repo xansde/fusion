@@ -13,7 +13,7 @@
 
 import { Sprite, Texture, type Container } from "pixi.js";
 import type { ManualFog } from "@fusion/shared";
-import { paintFog, type FogCtx } from "./fogRaster.js";
+import { paintFog } from "./fogRaster.js";
 import { sceneContentOffset, type SceneDimensionsInput } from "../sceneCoords.js";
 
 /** Largest raster side in pixels; bigger scenes are scaled down. */
@@ -65,7 +65,7 @@ export class ManualFogLayer {
     }
     const ctx = this._canvas.getContext("2d");
     if (!ctx) return;
-    paintFog(ctx as unknown as FogCtx, fog, totalW, totalH, scale);
+    paintFog(ctx, fog, totalW, totalH, scale);
 
     if (resized || !this._texture) {
       this._texture?.destroy(true);

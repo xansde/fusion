@@ -11,7 +11,9 @@ describe("publicarMiniatura", () => {
 
   it("returns the /assets/ path of the uploaded PNG", async () => {
     upload.mockResolvedValue({ ok: true, path: "avatar-token-79449d7e.png" });
-    await expect(publicarMiniatura(new Blob(["x"]), "token")).resolves.toBe("/assets/avatar-token-79449d7e.png");
+    await expect(publicarMiniatura(new Blob(["x"]), "token")).resolves.toBe(
+      "/assets/avatar-token-79449d7e.png",
+    );
   });
 
   it("throws instead of handing back a path that would blank the actor's art", async () => {

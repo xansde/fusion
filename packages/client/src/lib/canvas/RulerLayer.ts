@@ -10,7 +10,13 @@
  */
 
 import { Container, Graphics, Text, TextStyle } from "pixi.js";
-import { AREA_BORDER_PX, type AreaStyle, type CellOffset, type GridStrategy, type ScenePoint } from "@fusion/shared";
+import {
+  AREA_BORDER_PX,
+  type AreaStyle,
+  type CellOffset,
+  type GridStrategy,
+  type ScenePoint,
+} from "@fusion/shared";
 import { unitLabel, type RulerSnapshot } from "../presence/rulerState.js";
 import type { DragRulerView } from "../presence/dragRuler.js";
 import type { RulerState } from "../presence/types.js";
@@ -51,9 +57,11 @@ export function boundaryEdges(cells: ReadonlyArray<CellOffset>): CellEdge[] {
   const edges: CellEdge[] = [];
   for (const { i, j } of cells) {
     if (!has.has(`${String(i)},${String(j - 1)}`)) edges.push({ i1: i, j1: j, i2: i + 1, j2: j });
-    if (!has.has(`${String(i)},${String(j + 1)}`)) edges.push({ i1: i, j1: j + 1, i2: i + 1, j2: j + 1 });
+    if (!has.has(`${String(i)},${String(j + 1)}`))
+      edges.push({ i1: i, j1: j + 1, i2: i + 1, j2: j + 1 });
     if (!has.has(`${String(i - 1)},${String(j)}`)) edges.push({ i1: i, j1: j, i2: i, j2: j + 1 });
-    if (!has.has(`${String(i + 1)},${String(j)}`)) edges.push({ i1: i + 1, j1: j, i2: i + 1, j2: j + 1 });
+    if (!has.has(`${String(i + 1)},${String(j)}`))
+      edges.push({ i1: i + 1, j1: j, i2: i + 1, j2: j + 1 });
   }
   return edges;
 }
@@ -169,7 +177,9 @@ export class RulerLayer {
     const x0 = corner.x - size / 2;
     const y0 = corner.y - size / 2;
     for (const e of boundaryEdges(area.cells)) {
-      this._graphics.moveTo(x0 + e.i1 * size, y0 + e.j1 * size).lineTo(x0 + e.i2 * size, y0 + e.j2 * size);
+      this._graphics
+        .moveTo(x0 + e.i1 * size, y0 + e.j1 * size)
+        .lineTo(x0 + e.i2 * size, y0 + e.j2 * size);
     }
     this._graphics.stroke({ width, color: area.color, alpha: 0.95, cap: "square", join: "miter" });
 

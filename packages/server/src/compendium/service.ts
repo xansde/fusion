@@ -810,7 +810,10 @@ export class CompendiumService {
        */
       metrics?: WriteMetricsCollector;
     },
-  ): CompendiumImportResult {
+  ): CompendiumImportResult & {
+    /** The documents as persisted, for the handler to announce on the document channel; never sent in the ack. */
+    createdDocs: Array<{ documentType: string; doc: Record<string, unknown> }>;
+  } {
     if (!isRolePrivileged(options.role)) {
       throw new PermissionDeniedError("Only GM/ASSISTANT can import from compendiums");
     }
@@ -820,6 +823,7 @@ export class CompendiumService {
       ...(options.metrics !== undefined ? { metrics: options.metrics } : {}),
     });
     const created: string[] = [];
+    const createdDocs: Array<{ documentType: string; doc: Record<string, unknown> }> = [];
     const failed: Array<{ uuid: string; reason: string }> = [];
 
     for (const uuid of uuids) {
@@ -940,6 +944,7 @@ export class CompendiumService {
           const id = first["_id"];
           if (typeof id === "string") {
             created.push(id);
+            createdDocs.push({ documentType: manifest.documentType, doc: first });
           }
         }
       } catch (err) {
@@ -949,7 +954,7 @@ export class CompendiumService {
       }
     }
 
-    return { created, failed };
+    return { created, failed, createdDocs };
   }
 
   /**

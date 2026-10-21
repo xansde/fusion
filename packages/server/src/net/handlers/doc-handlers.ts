@@ -1261,7 +1261,8 @@ function rejectIllegalCharacterBuild(
     variants.ancestryFeatsInGeneralSlots = world.ancestryFeatsInGeneralSlots;
   if (world.ancestryFeatLevelMinus2 !== undefined)
     variants.ancestryFeatLevelMinus2 = world.ancestryFeatLevelMinus2;
-  if (world.skillFeatInClassSlot !== undefined) variants.skillFeatInClassSlot = world.skillFeatInClassSlot;
+  if (world.skillFeatInClassSlot !== undefined)
+    variants.skillFeatInClassSlot = world.skillFeatInClassSlot;
   // D5/D12 (19/10/2026): under multiclass-by-levels the table forbids multiclass dedications and class
   // archetypes. Same precedence the client sheet and the derivation use: the world setting, else the actor's own
   // legacy field (a world that never opened Configurações → Mundo).

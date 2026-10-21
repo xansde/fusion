@@ -67,9 +67,15 @@ function collectUsage(db: Database): Map<string, Set<UsageCategory>> {
       for (const t of tokens as unknown[]) if (isRecord(t)) note(usage, t["texture"], "tokens");
     }
   });
-  forEachDoc(db, "region_maps", (doc) => note(usage, doc["image"], "maps"));
-  forEachDoc(db, "actors", (doc) => note(usage, doc["img"], "tokens"));
-  forEachDoc(db, "items", (doc) => note(usage, doc["img"], "items"));
+  forEachDoc(db, "region_maps", (doc) => {
+    note(usage, doc["image"], "maps");
+  });
+  forEachDoc(db, "actors", (doc) => {
+    note(usage, doc["img"], "tokens");
+  });
+  forEachDoc(db, "items", (doc) => {
+    note(usage, doc["img"], "items");
+  });
   return usage;
 }
 

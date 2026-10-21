@@ -37,7 +37,15 @@ describe("FogToolbar", () => {
     expect(body).toContain("fog-strip");
     expect(body).not.toMatch(/<p[ >]/);
     expect(body).not.toContain(t("FUSION.Fog.AltHint"));
-    for (const key of ["Enabled", "ToolRect", "ToolBrush", "Undo", "RevealAll", "CoverAll", "Snap"]) {
+    for (const key of [
+      "Enabled",
+      "ToolRect",
+      "ToolBrush",
+      "Undo",
+      "RevealAll",
+      "CoverAll",
+      "Snap",
+    ]) {
       expect(body).toContain(`title="${t(`FUSION.Fog.${key}`)}`);
     }
     // radius slider only with the brush armed

@@ -1,8 +1,8 @@
 /**
- * TurnHookContext.roll / updateActor / readSetting — the real hook services behind the PF2e turn automation.
+ * TurnHookContext.updateActor / getSetting — real hook services.
  *
- * `roll` rolls on the server and posts the dice card; `updateActor` writes a scoped diff and refuses identity,
- * ownership and embedded keys; `readSetting` reads the system's world-scope setting from the stored Setting documents.
+ * `updateActor` writes a scoped diff and refuses identity,
+ * ownership and embedded keys; `getSetting` reads the system's world-scope setting from the stored Setting documents.
  */
 import { describe, it, expect, beforeEach, afterEach } from "vitest";
 import { mkdirSync, rmSync } from "node:fs";
@@ -14,11 +14,10 @@ import type { FusionDatabase } from "../db/index.js";
 import { DocumentStore } from "../documents/store.js";
 import { SeqStore } from "../net/seq-store.js";
 import { OpBuffer } from "../net/op-buffer.js";
-import { RollService } from "../chat/roll-service.js";
 import { createDocumentWriteTurnHookContextServices } from "../combat/turn-hook-runner.js";
 import { pf2eSystem } from "@fusion/system-pf2e";
 
-describe("turn hook services: roll / updateActor / readSetting", () => {
+describe("turn hook services: updateActor / getSetting", () => {
   let dataDir: string;
   let fusionDb: FusionDatabase;
   let store: DocumentStore;
@@ -42,7 +41,7 @@ describe("turn hook services: roll / updateActor / readSetting", () => {
     rmSync(dataDir, { recursive: true, force: true });
   });
 
-  function services(withRoll = true) {
+  function services() {
     const socket = {
       data: { role: 4, userId: "gm" },
       emit: (_e: string, env: { type: string; payload: Record<string, unknown> }) =>
@@ -56,25 +55,8 @@ describe("turn hook services: roll / updateActor / readSetting", () => {
       opBuffer: new OpBuffer(),
       worldId: "w",
       systemModule: pf2eSystem,
-      ...(withRoll ? { rollService: new RollService({ db: fusionDb.raw, rng: { next: () => 10 } }) } : {}),
     });
   }
-
-  it("roll: rolls on the server (d20 with engine 10 = face 11), returns the data and posts a roll card", async () => {
-    const result = await services().roll("1d20", { flavor: "Teste simples", rollMode: "public" });
-    expect(result.total).toBe(11);
-    expect(result.flavor).toBe("Teste simples");
-    const card = emitted.find((e) => e.type === "doc:create");
-    expect(card).toBeDefined();
-    const row = fusionDb.raw
-      .prepare("SELECT data FROM chat_messages ORDER BY rowid DESC LIMIT 1")
-      .get() as { data: string };
-    expect(JSON.parse(row.data)).toMatchObject({ type: "roll", speaker: { userId: "system" } });
-  });
-
-  it("roll: rejects when no RollService was injected", async () => {
-    await expect(services(false).roll("1d20", { flavor: "x" })).rejects.toThrow(/roll/);
-  });
 
   it("updateActor: writes the scoped diff and broadcasts the actor", async () => {
     store.create("actors", { _id: "actorUpd00000001", name: "A", type: "npc", flags: {} });
@@ -92,14 +74,14 @@ describe("turn hook services: roll / updateActor / readSetting", () => {
     }
   });
 
-  it("readSetting: undefined until the GM stores it, then the stored value (key namespaced by the system id)", () => {
+  it("getSetting: undefined until the GM stores it, then the stored value (key namespaced by the system id)", () => {
     const s = services();
-    expect(s.readSetting?.("automation.turn")).toBeUndefined();
+    expect(s.getSetting?.("conditions.automateTurn")).toBeUndefined();
     store.create("settings", {
       _id: "settingTurnAuto1",
-      key: `${pf2eSystem.manifest.id}:automation.turn`,
+      key: `${pf2eSystem.manifest.id}:conditions.automateTurn`,
       value: false,
     });
-    expect(s.readSetting?.("automation.turn")).toBe(false);
+    expect(s.getSetting?.("conditions.automateTurn")).toBe(false);
   });
 });

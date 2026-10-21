@@ -125,6 +125,7 @@ export async function loadSceneDocument(
   canvas.setGrid(gridCfg);
   // The grid GEOMETRY (snap, measure) for this scene, built from the same size
   // and origin the renderer just drew with, so a measurement lands on the lines.
+  // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
   const sceneGrid = (scene.grid ?? null) as unknown as GridConfig | null;
   // A scene persisted without a grid block still gets a measuring grid (the
   // factory's default square, the same size tokens already snap to), otherwise

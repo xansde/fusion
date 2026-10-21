@@ -76,15 +76,16 @@ export async function trackSlowLoad<T>(
   work: Promise<T>,
   hooks: { show: () => void; hide: () => void; delayMs?: number },
 ): Promise<T> {
-  let shown = false;
+  // An object (not a bare `let`): the timer callback flips it, which the flow analysis cannot see on a local.
+  const state = { shown: false };
   const timer = setTimeout(() => {
-    shown = true;
+    state.shown = true;
     hooks.show();
   }, hooks.delayMs ?? SCENE_LOADING_DELAY_MS);
   try {
     return await work;
   } finally {
     clearTimeout(timer);
-    if (shown) hooks.hide();
+    if (state.shown) hooks.hide();
   }
 }

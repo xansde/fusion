@@ -214,7 +214,7 @@ function getAllUsers(db: Db): UserRow[] {
   return db.prepare(`SELECT id, name, role FROM users WHERE active = 1`).all() as UserRow[];
 }
 
-function getGmUserIds(db: Db): string[] {
+export function getGmUserIds(db: Db): string[] {
   // GAMEMASTER = 4, ASSISTANT = 3 — both are privileged
   return (
     db.prepare(`SELECT id FROM users WHERE role >= 3 AND active = 1`).all() as { id: string }[]
@@ -2391,6 +2391,10 @@ function readCasterClassDCs(db: Db, actorId: string): number[] {
  *     `spell`, class DCs for `impulse`), otherwise the DC is dropped (the save
  *     button falls back to display-only) and a warning is logged. Strikes carry
  *     no DC, so the coherence check is skipped for them.
+ *   - the target by reference (closing review, I-1): a card that names the creature it was used on by
+ *     `targetTokenId` carries no `targetName` beside it. A name frozen by the sender is the name the SENDER may
+ *     read (the Mestre reads every one); each viewer resolves the name from his own mirror, so the server keeps
+ *     the one thing the viewers can use and drops the thing that would leak.
  */
 function sanitizeAbilityCard(
   db: Db,
@@ -2404,21 +2408,27 @@ function sanitizeAbilityCard(
     return null;
   }
 
-  if (card.dcValue !== undefined && card.kind !== "strike") {
+  let safe = card;
+  if (safe.targetTokenId !== undefined && safe.targetName !== undefined) {
+    const { targetName: _frozenName, ...withoutName } = safe;
+    safe = withoutName;
+  }
+
+  if (safe.dcValue !== undefined && safe.kind !== "strike") {
     const knownDCs =
-      card.kind === "impulse"
-        ? readCasterClassDCs(db, card.casterActorId)
-        : readCasterSpellDCs(db, card.casterActorId);
-    if (knownDCs.length > 0 && !knownDCs.includes(card.dcValue)) {
+      safe.kind === "impulse"
+        ? readCasterClassDCs(db, safe.casterActorId)
+        : readCasterSpellDCs(db, safe.casterActorId);
+    if (knownDCs.length > 0 && !knownDCs.includes(safe.dcValue)) {
       console.warn(
-        `[chat] abilityCard (${card.kind}) DC ${String(card.dcValue)} for actor ${card.casterActorId} matches no derived DC (${knownDCs.join(",")}); dropping DC.`,
+        `[chat] abilityCard (${safe.kind}) DC ${String(safe.dcValue)} for actor ${safe.casterActorId} matches no derived DC (${knownDCs.join(",")}); dropping DC.`,
       );
-      const { dcValue: _drop, ...rest } = card;
+      const { dcValue: _drop, ...rest } = safe;
       return rest;
     }
   }
 
-  return card;
+  return safe;
 }
 
 // ---------------------------------------------------------------------------

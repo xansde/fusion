@@ -69,7 +69,12 @@ describe("sceneContentOffset", () => {
 
   it("uses the scene's own grid size for that rounding", () => {
     // 2048 * 0.25 = 512 → 7 cells of 84 = 588; 632 * 0.25 = 158 → 2 cells = 168.
-    const offset = sceneContentOffset({ width: 2048, height: 632, padding: 0.25, grid: { size: 84 } });
+    const offset = sceneContentOffset({
+      width: 2048,
+      height: 632,
+      padding: 0.25,
+      grid: { size: 84 },
+    });
     expect(offset).toEqual({ padX: 588, padY: 168 });
     expect(offset.padX % 84).toBe(0);
     expect(offset.padY % 84).toBe(0);

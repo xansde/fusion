@@ -262,7 +262,6 @@ export class AmbientPlayer {
    * gesture, then rebuild the blocked Howl so it starts at the right position.
    */
   async requestUnlock(): Promise<void> {
-    // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
     const ctx = Howler.ctx as AudioContext | null | undefined;
     try {
       await ctx?.resume();

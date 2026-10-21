@@ -131,7 +131,8 @@ export class RulerStateMachine {
 
     const totalDistance = path.length >= 2 ? this._grid.measureDistance(path) : 0;
 
-    const distanceLabel = totalDistance > 0 ? `${totalDistance.toFixed(0)} ${unitLabel(units)}` : "";
+    const distanceLabel =
+      totalDistance > 0 ? `${totalDistance.toFixed(0)} ${unitLabel(units)}` : "";
 
     return {
       mode: this._mode,

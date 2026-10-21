@@ -28,8 +28,22 @@ const catalogo = JSON.parse(readFileSync(join(dirAcervo, "catalogo.json"), "utf8
 /** A realistic, heavily dressed character: one piece in each of sixteen slots. */
 function selecaoPesada(corpo: string): Selecao {
   const slots = [
-    "shadow", "body", "head", "eyes", "hair", "clothes", "legs", "shoes",
-    "hat", "weapon", "cape", "belt", "shield", "gloves", "beard", "necklace",
+    "shadow",
+    "body",
+    "head",
+    "eyes",
+    "hair",
+    "clothes",
+    "legs",
+    "shoes",
+    "hat",
+    "weapon",
+    "cape",
+    "belt",
+    "shield",
+    "gloves",
+    "beard",
+    "necklace",
   ];
   const selecao: Selecao = {};
   for (const slot of slots) {
@@ -158,7 +172,9 @@ describe("desenharAvatar with more atlases than the decoded-atlas cache holds", 
     const pronto = await prepararAvatar(catalogo, selecao, corpo, "idle");
     // The creator grid: dozens of other compositions warming other atlases.
     for (const item of catalogo.itens.filter((i) => i.slot === "hair").slice(0, 20)) {
-      await prepararAvatar(catalogo, { ...selecao, hair: { id: item.id } }, corpo, "idle", { parado: true });
+      await prepararAvatar(catalogo, { ...selecao, hair: { id: item.id } }, corpo, "idle", {
+        parado: true,
+      });
     }
     const alvo = ctxFalso({ width: 192, height: 192 });
     expect(desenharAvatar(alvo as unknown as CanvasRenderingContext2D, pronto, 500, 3)).toBe(0);
@@ -169,8 +185,18 @@ describe("desenharAvatar with more atlases than the decoded-atlas cache holds", 
 describe("chaveDoAvatar", () => {
   it("is equal for equal content regardless of object identity or key order", async () => {
     const { chaveDoAvatar } = await import("../desenhar.js");
-    const a = chaveDoAvatar({ body: { id: "b" }, hair: { id: "h", cores: { cor: "x", y: "z" } } }, "male", "idle", false);
-    const b = chaveDoAvatar({ hair: { id: "h", cores: { y: "z", cor: "x" } }, body: { id: "b" } }, "male", "idle", false);
+    const a = chaveDoAvatar(
+      { body: { id: "b" }, hair: { id: "h", cores: { cor: "x", y: "z" } } },
+      "male",
+      "idle",
+      false,
+    );
+    const b = chaveDoAvatar(
+      { hair: { id: "h", cores: { y: "z", cor: "x" } }, body: { id: "b" } },
+      "male",
+      "idle",
+      false,
+    );
     expect(a).toBe(b);
   });
 
@@ -178,7 +204,9 @@ describe("chaveDoAvatar", () => {
     const { chaveDoAvatar } = await import("../desenhar.js");
     const base = chaveDoAvatar({ body: { id: "b" } }, "male", "idle", false);
     expect(chaveDoAvatar({ body: { id: "c" } }, "male", "idle", false)).not.toBe(base);
-    expect(chaveDoAvatar({ body: { id: "b", cores: { cor: "x" } } }, "male", "idle", false)).not.toBe(base);
+    expect(
+      chaveDoAvatar({ body: { id: "b", cores: { cor: "x" } } }, "male", "idle", false),
+    ).not.toBe(base);
     expect(chaveDoAvatar({ body: { id: "b" } }, "female", "idle", false)).not.toBe(base);
     expect(chaveDoAvatar({ body: { id: "b" } }, "male", "walk", false)).not.toBe(base);
     expect(chaveDoAvatar({ body: { id: "b" } }, "male", "idle", true)).not.toBe(base);

@@ -1,5 +1,5 @@
 /**
- * PF2e turn automation, end to end: advancing a turn in a real combat (real sockets, the REAL pf2e system, the real
+ * PF2e condition turn automation, end to end: advancing a turn in a real combat (real sockets, the REAL pf2e system, the real
  * hook services) runs persistent damage + the DC 15 flat check and the frightened decay at the end of the turn, the
  * dying recovery check at the start of the next one, and the effect expiry by the round of the turn that ENDS.
  *
@@ -207,7 +207,9 @@ describe("PF2e turn automation (real combat)", { timeout: 60000 }, () => {
   function slugs(actorId: string): string[] {
     return actorDoc(actorId).items.map((i) => {
       const sys = (i["system"] ?? {}) as { slug?: string; value?: number };
-      return sys.value !== undefined ? `${String(sys.slug)}:${String(sys.value)}` : String(sys.slug);
+      return sys.value !== undefined
+        ? `${String(sys.slug)}:${String(sys.value)}`
+        : String(sys.slug);
     });
   }
 
@@ -262,10 +264,11 @@ describe("PF2e turn automation (real combat)", { timeout: 60000 }, () => {
 
     const fresh = cards().slice(cardsBefore);
     const text = fresh.map((card) => card.content);
-    expect(text.some((t) => t.includes("Dano persistente") && t.includes("sofre 4 de fogo"))).toBe(true);
-    expect(text.some((t) => t.includes("Teste simples CD 15: 15"))).toBe(true);
-    expect(text.some((t) => t.includes("Amedrontado de") && t.includes("de 2 para 1"))).toBe(true);
-    expect(text.some((t) => t.includes("Teste de recuperação") && t.includes("ferido 1"))).toBe(true);
+    expect(text.some((t) => t.includes("Dano persistente (fogo)") && t.endsWith(": 4"))).toBe(true);
+    expect(text.some((t) => t.includes("(CD 15)") && t.endsWith(": 15"))).toBe(true);
+    expect(text.some((t) => t.includes("o dano persistente (fogo) termina"))).toBe(true);
+    expect(text.some((t) => t.includes("Amedrontado 2 diminui para 1"))).toBe(true);
+    expect(text.some((t) => t.includes("se estabiliza") && t.includes("Ferido 1"))).toBe(true);
     // The dice themselves are real roll cards from the server.
     expect(fresh.filter((card) => card.type === "roll")).toHaveLength(3);
   });
@@ -299,7 +302,9 @@ describe("PF2e turn automation (real combat)", { timeout: 60000 }, () => {
     expect(slugs(a)).toEqual(["persistent-damage"]);
   });
 
-  it("the world setting OFF stops all of it", async () => {
+  // The switch is `conditions.automateTurn` (covered in turn-hook-condition-services.test.ts); a world that only has the
+  // older key `automation.turn` stored keeps obeying it.
+  it("the older world key automation.turn OFF stops all of it", async () => {
     const setting = await sendOp(gm, "doc:create", {
       documentType: "Setting",
       data: [{ key: `${pf2eSystem.manifest.id}:automation.turn`, value: false }],

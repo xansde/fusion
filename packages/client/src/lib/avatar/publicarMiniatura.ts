@@ -18,9 +18,10 @@ export async function publicarMiniatura(png: Blob, modo: ModoMiniatura): Promise
   if (token === null) throw new Error("Not authenticated.");
   const arquivo = new File([png], `avatar-${modo}.png`, { type: "image/png" });
   const resultado = await uploadAsset(token, arquivo, undefined, { purpose: "avatar" });
-  const caminho = `/assets/${String(resultado.path ?? "")}`;
+  const caminho: unknown = `/assets/${resultado.path}`;
   // Never hand back something that, written to `img`, would blank or break the
   // actor's art: a missing/odd name from the server aborts the whole operation.
-  if (!caminhoDeArteValido(caminho)) throw new Error(`Unexpected upload path: ${caminho}`);
+  if (!caminhoDeArteValido(caminho))
+    throw new Error(`Unexpected upload path: ${JSON.stringify(caminho)}`);
   return caminho;
 }

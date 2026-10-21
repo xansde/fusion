@@ -3,12 +3,7 @@
  * `FilePicker.svelte` only calls them.
  */
 
-import {
-  ASSET_CATEGORIES,
-  ASSET_TAB_ALL,
-  type AssetCategory,
-  type AssetTab,
-} from "@fusion/shared";
+import { ASSET_CATEGORIES, ASSET_TAB_ALL, type AssetCategory, type AssetTab } from "@fusion/shared";
 import type { AssetKind } from "./clientValidation.js";
 import type { UploadOptions } from "./assetApi.js";
 
@@ -91,10 +86,7 @@ export function visibleAssets(
  * the "Ícones" tab both send the "icon" purpose (the server picks the area); any other tab but
  * "all" declares itself as the file's category; "all" declares nothing (the server derives it).
  */
-export function uploadOptionsFor(
-  mode: "assets" | "actionbar-icons",
-  tab: AssetTab,
-): UploadOptions {
+export function uploadOptionsFor(mode: "assets" | "actionbar-icons", tab: AssetTab): UploadOptions {
   if (mode === "actionbar-icons" || tab === "icons") return { purpose: "icon" };
   if (tab === ASSET_TAB_ALL) return {};
   return { category: tab };

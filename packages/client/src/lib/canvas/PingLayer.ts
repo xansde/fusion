@@ -39,7 +39,10 @@ export interface PingedToken {
 }
 
 /** Label of a ping on a token: "who · token". Empty when the token has no name. */
-export function tokenPingLabel(userName: string | undefined, tokenName: string | undefined): string {
+export function tokenPingLabel(
+  userName: string | undefined,
+  tokenName: string | undefined,
+): string {
   if (tokenName === undefined || tokenName === "") return "";
   return userName !== undefined && userName !== "" ? `${userName} · ${tokenName}` : tokenName;
 }
@@ -196,7 +199,12 @@ export class PingLayer {
       box.eventMode = "none";
       const label = new Text({
         text,
-        style: new TextStyle({ fontFamily: "sans-serif", fontSize: 16, fontWeight: "bold", fill: color }),
+        style: new TextStyle({
+          fontFamily: "sans-serif",
+          fontSize: 16,
+          fontWeight: "bold",
+          fill: color,
+        }),
       });
       label.x = 6;
       label.y = 3;

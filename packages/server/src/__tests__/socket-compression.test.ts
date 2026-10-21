@@ -39,7 +39,8 @@ async function negotiatedExtensions(): Promise<string> {
   try {
     return await new Promise<string>((resolve, reject) => {
       client.io.on("open", () => {
-        const ws = (client.io.engine as unknown as { transport: { ws?: { extensions?: string } } }).transport.ws;
+        const ws = (client.io.engine as unknown as { transport: { ws?: { extensions?: string } } })
+          .transport.ws;
         resolve(ws?.extensions ?? "");
       });
       setTimeout(() => reject(new Error("socket did not open")), 5000);

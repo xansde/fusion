@@ -119,7 +119,12 @@ vi.mock("pixi.js", () => ({
 }));
 
 // --- session / api stubs ----------------------------------------------------
-vi.mock("../../api.js", () => ({ fusionApi: { getToken: (): string => "access-tok", getFreshToken: (): Promise<string> => Promise.resolve("access-tok") } }));
+vi.mock("../../api.js", () => ({
+  fusionApi: {
+    getToken: (): string => "access-tok",
+    getFreshToken: (): Promise<string> => Promise.resolve("access-tok"),
+  },
+}));
 vi.mock("../../session.svelte.js", () => ({ session: { user: { id: "user-1" } } }));
 
 // Imported AFTER the mocks above so both modules pick up the stubbed pixi.

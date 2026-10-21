@@ -19,7 +19,9 @@ const scene = (manualFog: unknown): Record<string, unknown> => ({
 
 describe("stripHiddenTokens with manual fog", () => {
   it("drops tokens whose anchor cell is under the fog", () => {
-    const ids = (stripHiddenTokens(scene(fog)) as { tokens: { _id: string }[] }).tokens.map((t) => t._id);
+    const ids = (stripHiddenTokens(scene(fog)) as { tokens: { _id: string }[] }).tokens.map(
+      (t) => t._id,
+    );
     expect(ids).toEqual(["in"]);
   });
 

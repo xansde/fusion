@@ -605,7 +605,9 @@ describe("setAssetCategory", () => {
     expect(url).toBe("/api/assets/category");
     expect(init.method).toBe("PATCH");
     expect(JSON.parse(init.body as string)).toEqual({ name: "mapa-1.png", category: "maps" });
-    expect(JSON.parse((fetchMock.mock.calls[1] as [string, RequestInit])[1].body as string)).toEqual({
+    expect(
+      JSON.parse((fetchMock.mock.calls[1] as [string, RequestInit])[1].body as string),
+    ).toEqual({
       name: "mapa-1.png",
       category: null,
     });

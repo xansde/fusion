@@ -330,8 +330,24 @@ export const AbilityCardSchema = z.object({
   damageType: z.string().max(40).optional(),
   /** Traits (display only). */
   traits: z.array(z.string().max(40)).max(30).optional(),
-  /** Name of the creature the action was used on (display only; `action` cards, BHR-F3-08). */
+  /**
+   * Name of the creature the action was used on (display only; `action` cards, BHR-F3-08).
+   *
+   * NOT for a creature that stands on a scene: a name frozen by the sender is the name the SENDER may read, and the
+   * Mestre reads every one. Such a card names its target by reference ({@link targetTokenId}) and each viewer
+   * resolves the name from his own mirror. What stays here is a name nobody has to be shielded from: the owner's own
+   * companion on the Command an Animal card. The server drops it from a card that also carries a reference.
+   */
   targetName: z.string().max(200).optional(),
+  /**
+   * The token the action was used on, BY REFERENCE (closing review I-1). The card shows each viewer the name that
+   * viewer's own mirror gives that token — the token's own label, else the actor's name if the viewer may read it,
+   * else "criatura desconhecida" — the way the strike card resolves its `targetSnapshot`. A hidden token's reference
+   * is cut from the card of a viewer who may not see it (`net/redaction.ts`).
+   */
+  targetTokenId: z.string().min(1).max(120).optional(),
+  /** The actor behind {@link targetTokenId}, when the sender's context knew it (the viewer resolves the name through it). */
+  targetActorId: z.string().min(1).max(120).optional(),
   /** The effect the action applied, shown INSIDE the card, never as a second message (REQ-CHT-061). */
   embeddedEffect: z.object({ name: z.string().min(1).max(200) }).optional(),
 });

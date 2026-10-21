@@ -74,7 +74,10 @@ export function buildAreaTemplate(
 }
 
 /** Label for the tip of a template: its title, plus up to three affected token names. */
-export function areaLabel(t: Pick<AreaTemplate, "kind" | "sizeFt">, names: readonly string[]): string {
+export function areaLabel(
+  t: Pick<AreaTemplate, "kind" | "sizeFt">,
+  names: readonly string[],
+): string {
   const title = templateTitle(t);
   if (names.length === 0) return title;
   const shown = names.slice(0, 3).join(", ");
@@ -98,7 +101,11 @@ export function emanationForToken(
     tokenId,
     style,
   };
-  return anchoredTemplate(base, footprint, { size: grid.config.size, ox: grid.origin.x, oy: grid.origin.y });
+  return anchoredTemplate(base, footprint, {
+    size: grid.config.size,
+    ox: grid.origin.x,
+    oy: grid.origin.y,
+  });
 }
 
 /**

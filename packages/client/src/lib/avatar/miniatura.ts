@@ -69,9 +69,7 @@ export function planoDaMiniatura(
   const { modo, alvo, quadro } = opcoes;
   // The portrait keeps only the top of the figure.
   const regiao: Caixa =
-    modo === "retrato"
-      ? { ...caixa, h: Math.max(1, Math.round(caixa.h * FRACAO_BUSTO)) }
-      : caixa;
+    modo === "retrato" ? { ...caixa, h: Math.max(1, Math.round(caixa.h * FRACAO_BUSTO)) } : caixa;
 
   const lado = Math.min(quadro, Math.max(regiao.w, regiao.h) + FOLGA * 2);
   const centroX = regiao.x + regiao.w / 2;
@@ -81,7 +79,14 @@ export function planoDaMiniatura(
   const sy = Math.round(Math.min(Math.max(0, sy0), quadro - lado));
   const escala = Math.max(1, Math.floor(alvo / lado));
   const tamanho = lado * escala;
-  return { sx, sy, lado, escala, dx: Math.floor((alvo - tamanho) / 2), dy: Math.floor((alvo - tamanho) / 2) };
+  return {
+    sx,
+    sy,
+    lado,
+    escala,
+    dx: Math.floor((alvo - tamanho) / 2),
+    dy: Math.floor((alvo - tamanho) / 2),
+  };
 }
 
 /**
@@ -131,5 +136,9 @@ export async function renderizarMiniatura(
     plano.lado * plano.escala,
     plano.lado * plano.escala,
   );
-  return new Promise((resolve) => saida.toBlob((blob) => resolve(blob), "image/png"));
+  return new Promise((resolve) => {
+    saida.toBlob((blob) => {
+      resolve(blob);
+    }, "image/png");
+  });
 }
