@@ -127,6 +127,13 @@
   "FUSION.Settings.Preferences.Password.WrongCurrent": "The current password is wrong.",
   "FUSION.Settings.Preferences.Password.LockedOut": "Too many wrong attempts. Wait a few minutes and try again.",
   "FUSION.Settings.Preferences.Password.Failed": "Could not change the password. Try again.",
+  "FUSION.Sheet.Window.Type.character": "character",
+  "FUSION.Sheet.Window.Type.npc": "NPC",
+  "FUSION.Sheet.Window.Type.familiar": "familiar",
+  "FUSION.Sheet.Window.Type.hazard": "hazard",
+  "FUSION.Sheet.Window.Type.vehicle": "vehicle",
+  "FUSION.Sheet.Window.Type.loot": "loot",
+  "FUSION.Sheet.Window.Type.party": "party",
   "FUSION.Settings.World.Empty": "The active system declared no world settings.",
   "FUSION.Settings.World.ConfirmDisable": {
     "1": "1 character has choices that depend on this rule. Turn it off anyway?",

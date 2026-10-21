@@ -127,6 +127,13 @@
   "FUSION.Settings.Preferences.Password.WrongCurrent": "A senha atual está incorreta.",
   "FUSION.Settings.Preferences.Password.LockedOut": "Muitas tentativas erradas. Aguarde alguns minutos e tente de novo.",
   "FUSION.Settings.Preferences.Password.Failed": "Não foi possível trocar a senha. Tente de novo.",
+  "FUSION.Sheet.Window.Type.character": "personagem",
+  "FUSION.Sheet.Window.Type.npc": "NPC",
+  "FUSION.Sheet.Window.Type.familiar": "familiar",
+  "FUSION.Sheet.Window.Type.hazard": "perigo",
+  "FUSION.Sheet.Window.Type.vehicle": "veículo",
+  "FUSION.Sheet.Window.Type.loot": "tesouro",
+  "FUSION.Sheet.Window.Type.party": "grupo",
   "FUSION.Settings.World.Empty": "O sistema ativo não declarou nenhuma configuração de mundo.",
   "FUSION.Settings.World.ConfirmDisable": {
     "1": "1 personagem tem escolhas que dependem desta regra. Desligar mesmo assim?",

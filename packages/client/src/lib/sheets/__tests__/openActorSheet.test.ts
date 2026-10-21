@@ -15,6 +15,7 @@ import { describe, it, expect, beforeEach } from "vitest";
 import { openActorSheet } from "../openActorSheet.js";
 import { windowManager } from "$lib/windows/window-manager.js";
 import { sheetRegistry } from "$lib/sheets/sheetRegistry.js";
+import "$lib/i18n/index.js";
 import { i18n } from "$lib/i18n/i18n.js";
 
 // Dynamic import inside openActorSheet resolves on a microtask; flush it.
@@ -61,7 +62,7 @@ describe("openActorSheet — window title (REQ-CMP-055)", () => {
       (w) => w.singletonKey === "sheet:Actor:actor-eagle",
     );
     expect(entry).toBeDefined();
-    expect(entry?.title).toBe("Águia (npc)");
+    expect(entry?.title).toBe("Águia (NPC)");
   });
 
   it("falls back to the raw doc.name when there is no translation snapshot", async () => {
@@ -84,6 +85,89 @@ describe("openActorSheet — window title (REQ-CMP-055)", () => {
       (w) => w.singletonKey === "sheet:Actor:actor-plain",
     );
     expect(entry).toBeDefined();
-    expect(entry?.title).toBe("Skeleton Guard (npc)");
+    expect(entry?.title).toBe("Skeleton Guard (NPC)");
+  });
+
+  // #306 — the actor type in the title is a display surface too: never the raw slug.
+  describe("the actor type in the title is translated (#306)", () => {
+    function titleOf(actorDoc: Record<string, unknown>): Promise<string | undefined> {
+      openActorSheet(String(actorDoc["_id"]), actorDoc, {
+        userId: "gm-1",
+        ownership: 3,
+        isGm: true,
+      });
+      return flushMicrotasks().then(
+        () =>
+          [...windowManager.windows.values()].find(
+            (w) => w.singletonKey === `sheet:Actor:${String(actorDoc["_id"])}`,
+          )?.title,
+      );
+    }
+
+    it.each([
+      ["character", "personagem"],
+      ["npc", "NPC"],
+      ["familiar", "familiar"],
+      ["hazard", "perigo"],
+      ["vehicle", "veículo"],
+      ["loot", "tesouro"],
+      ["party", "grupo"],
+    ])("pt-BR: %s -> %s", async (subtype, label) => {
+      sheetRegistry.register("Actor", subtype, {}, { defaultSize: { width: 480, height: 520 } });
+      expect(
+        await titleOf({
+          _id: `a-${subtype}`,
+          name: "Huo Jinwu",
+          type: subtype,
+          system: { subtype },
+        }),
+      ).toBe(`Huo Jinwu (${label})`);
+    });
+
+    it("en: the English word", async () => {
+      i18n.setLocale("en");
+      sheetRegistry.register(
+        "Actor",
+        "character",
+        {},
+        { defaultSize: { width: 480, height: 520 } },
+      );
+      expect(
+        await titleOf({
+          _id: "a-en",
+          name: "Huo Jinwu",
+          type: "character",
+          system: { subtype: "character" },
+        }),
+      ).toBe("Huo Jinwu (character)");
+    });
+
+    it("a subtype nobody translated still shows the raw slug, never a missing-key string", async () => {
+      sheetRegistry.register("Actor", "starship", {}, { defaultSize: { width: 480, height: 520 } });
+      expect(
+        await titleOf({
+          _id: "a-ship",
+          name: "Aurora",
+          type: "starship",
+          system: { subtype: "starship" },
+        }),
+      ).toBe("Aurora (starship)");
+    });
+
+    it("never prints an i18n key", async () => {
+      sheetRegistry.register(
+        "Actor",
+        "character",
+        {},
+        { defaultSize: { width: 480, height: 520 } },
+      );
+      const title = await titleOf({
+        _id: "a-key",
+        name: "Alguém",
+        type: "character",
+        system: { subtype: "character" },
+      });
+      expect(title).not.toMatch(/FUSION\./);
+    });
   });
 });
