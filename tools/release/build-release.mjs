@@ -35,12 +35,18 @@
  *      directory (B3-FIXES MÉDIA B — REQ-CMP-006 in the packaged exe) into
  *      the custom archive format (pack-native.mjs / native-loader.ts's
  *      packDirectory).
+ *      The avatar acervo (`packages/client/dist/avatar`, copied there by the Vite
+ *      plugin) is EXCLUDED from the client-dist archive: it is third-party,
+ *      partly share-alike art and ships as a sidecar instead (step 8b).
  *   6. Assemble the SEA: generate sea-config.json (make-sea-config.mjs),
  *      run `node --experimental-sea-config`, copy the CURRENT node.exe,
  *      inject the blob via postject, name the result
  *      `fusion-server-<version>-<platform>-<arch>[.exe]` (REQ-DST-004).
  *   7. Compute SHA-256 + size; fail if size > 180 MB (REQ-DST-046, DA-04;
  *      teto elevado de 150 para 180 MB em DEC-DST-08, 2026-09-28).
+ *   8b. Emit the avatar acervo as a sidecar folder `dist-release/avatar/` next to the
+ *      executable, with LICENSES.txt, plus `dist-release/NOTICE` and an optional
+ *      `fusion-avatar-acervo-<version>.zip` (decisoes 2026-10-21, item 10; spec 35 6.1).
  *   8. Write `latest-<channel>.json` (UpdateManifest shape, spec 22) into
  *      dist-release/ alongside the artefact.
  *
@@ -63,6 +69,12 @@ import {
 } from "node:fs";
 import { join, dirname } from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
+import { createRequire } from "node:module";
+import {
+  AVATAR_SIDECAR_STALE_NAMES,
+  AVATAR_SIDECAR_ZIP_PREFIX,
+  emitAvatarSidecar,
+} from "./avatar-sidecar.mjs";
 import { writeManifest } from "./manifest.mjs";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
@@ -162,7 +174,11 @@ function phaseCleanStaleArtifacts() {
     // nothing outside dist-release/ is ever touched.
     const isArtifact = entry.name.startsWith("fusion-server-");
     const isManifest = /^latest-.*\.json$/.test(entry.name);
-    if (!isArtifact && !isManifest) continue;
+    // The avatar sidecar (folder + NOTICE + optional zip) is regenerated every build.
+    const isAvatarSidecar =
+      AVATAR_SIDECAR_STALE_NAMES.includes(entry.name) ||
+      (entry.name.startsWith(AVATAR_SIDECAR_ZIP_PREFIX) && entry.name.endsWith(".zip"));
+    if (!isArtifact && !isManifest && !isAvatarSidecar) continue;
 
     const fullPath = join(distReleaseDir, entry.name);
     rmSync(fullPath, { recursive: true, force: true });
@@ -352,6 +368,10 @@ async function phasePackAssets(assetKeys) {
     clientDistArchive,
     "--exclude",
     "*.map",
+    // The avatar acervo is third-party art (CC-BY-SA among others): it ships as a
+    // sidecar folder next to the exe, never inside it (decisoes item 10, spec 35 6.1).
+    "--exclude",
+    "avatar",
   ]);
 
   // B3-FIXES MÉDIA B: pack every game system's committed packs/ directory
@@ -506,6 +526,46 @@ function phaseAssembleSea(bundlePath, assets, version) {
 }
 
 // ---------------------------------------------------------------------------
+// Phase 8b — avatar acervo sidecar (outside the exe)
+// ---------------------------------------------------------------------------
+
+function phaseAvatarSidecar(version) {
+  log("Phase 8b — avatar acervo sidecar (next to the executable, not inside it)");
+  const clientRequire = createRequire(join(repoRoot, "packages", "client", "package.json"));
+  let acervoDir;
+  try {
+    acervoDir = dirname(clientRequire.resolve("waybuilder-avatar/catalogo.json"));
+  } catch (err) {
+    throw new Error(
+      `waybuilder-avatar is not installed — run "pnpm install" before the release ` +
+        `(the sidecar carries the avatar attribution): ${String(err)}`,
+    );
+  }
+  const { sidecarDir } = emitAvatarSidecar({
+    acervoDir,
+    outDir: distReleaseDir,
+    noticePath: join(repoRoot, "NOTICE"),
+  });
+  log(`Avatar acervo sidecar: ${sidecarDir}`);
+
+  // Optional single-file bundle of the sidecar. Non-fatal: the folder is the deliverable.
+  const zipPath = join(distReleaseDir, `${AVATAR_SIDECAR_ZIP_PREFIX}${version}.zip`);
+  try {
+    // Windows: the bsdtar in System32 writes zips; a GNU tar earlier on PATH (Git Bash) does not.
+    const tarBin =
+      process.platform === "win32"
+        ? join(process.env["SystemRoot"] ?? String.raw`C:\Windows`, "System32", "tar.exe")
+        : "tar";
+    execFileSync(tarBin, ["-a", "-c", "-f", zipPath, "-C", distReleaseDir, "avatar", "NOTICE"], {
+      stdio: "inherit",
+    });
+    log(`Avatar acervo zip: ${zipPath}`);
+  } catch (err) {
+    log(`Could not create ${zipPath} (optional, continuing): ${String(err)}`);
+  }
+}
+
+// ---------------------------------------------------------------------------
 // Phase 7 — size + hash
 // ---------------------------------------------------------------------------
 
@@ -590,6 +650,7 @@ async function main() {
   const artifactPath = phaseAssembleSea(bundlePath, assets, version);
   const sizeAndHash = phaseSizeAndHash(artifactPath);
   const manifestPath = phaseManifest(version, artifactPath, sizeAndHash, channel);
+  phaseAvatarSidecar(version);
 
   // Clean up the scratch working directory — the archives/bundle/blob are
   // intermediate build products, not release deliverables.

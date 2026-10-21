@@ -272,6 +272,12 @@ Toda escrita das seções Mundo, Permissões, Usuários e Mods exige `role === G
   > REQ-USR-027). Este REQ e REQ-USR-040..042 fecham a spec; a implementação do campo em
   > `PreferencesSection.svelte` e do endpoint é PR seguinte, fora deste ajuste.
 
+  > **Implementado em 2026-10-21** — `OwnPasswordForm.svelte` (dentro de Minhas preferências), três campos
+  > (atual, nova, repetir), validação local do piso de 8 caracteres e da confirmação, mensagem própria para
+  > senha atual errada e para bloqueio por tentativas, e aviso de que os outros dispositivos foram
+  > desconectados. Usuário sem senha deixa a atual em branco. Detalhes e decisões provisórias em
+  > `05-usuarios-e-permissoes.md` (REQ-USR-040..042).
+
 ### 5.3a Avatar
 
 - **REQ-CFG-027** [MVP] A seção Avatar DEVE hospedar o criador do avatar do personagem (REQ-AVT-010), acessível a **todos** via aba Configurações, não pela ficha (DEC-AVT-07).

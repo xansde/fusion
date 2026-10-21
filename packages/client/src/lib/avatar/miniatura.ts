@@ -13,6 +13,7 @@
 
 import type { Catalogo, Selecao } from "waybuilder-avatar";
 import { ANIMACAO_PADRAO, animacaoDisponivel, ladoDoQuadro } from "./animacao.js";
+import { comAtribuicao } from "./atribuicaoPng.js";
 import { desenharAvatar, prepararAvatar } from "./desenhar.js";
 
 export type ModoMiniatura = "token" | "retrato";
@@ -136,9 +137,11 @@ export async function renderizarMiniatura(
     plano.lado * plano.escala,
     plano.lado * plano.escala,
   );
-  return new Promise((resolve) => {
+  const png = await new Promise<Blob | null>((resolve) => {
     saida.toBlob((blob) => {
       resolve(blob);
     }, "image/png");
   });
+  // The PNG is a derivative of CC-BY-SA art (spec 35 §6.1): the attribution travels inside it.
+  return png === null ? null : comAtribuicao(png);
 }

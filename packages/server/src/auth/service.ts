@@ -412,6 +412,62 @@ export class AuthService {
   }
 
   /**
+   * Change the caller's OWN password. REQ-USR-040..042, REQ-CFG-090.
+   *
+   * - A user that has a password must prove the current one (Argon2id). A missing or wrong one fails with the
+   *   same uniform INVALID_CREDENTIALS as a login, and counts against the same (user, ip) lockout, so a stolen
+   *   access token cannot be used to guess the password (REQ-SEC-011/012).
+   * - A user with no password (`password_hash` null) defines one without a current password.
+   * - Every OTHER session of the user is revoked; the one holding `currentRefreshToken` survives. When that
+   *   token is absent or is not an active session of this very user, the current session cannot be told apart
+   *   from the others, so all of them end (the safe side).
+   */
+  async changeOwnPassword(params: {
+    userId: string;
+    currentPassword?: string;
+    newPassword: string;
+    ip: string;
+    currentRefreshToken?: string;
+  }): Promise<void> {
+    const { userId, currentPassword, newPassword, ip, currentRefreshToken } = params;
+
+    const lockoutUntil = this.lockouts.checkLockout({ userId, ip });
+    if (lockoutUntil !== null) {
+      throw new AuthError(
+        "LOCKED_OUT",
+        "Too many failed attempts. Please try again later.",
+        lockoutUntil,
+      );
+    }
+
+    const user = this.users.findById(userId);
+    if (!user?.active) throw new AuthError("USER_NOT_FOUND", "User not found.");
+
+    if (user.password_hash !== null) {
+      const valid =
+        currentPassword !== undefined &&
+        currentPassword.length > 0 &&
+        (await verifyPassword(currentPassword, user.password_hash));
+      if (!valid) {
+        this.lockouts.record({ userId, ip, success: false });
+        throw new AuthError("INVALID_CREDENTIALS", "Invalid credentials.");
+      }
+    }
+
+    this.users.updatePasswordHash(userId, await hashPassword(newPassword));
+    this.lockouts.clearFailures({ userId, ip });
+
+    const current = currentRefreshToken
+      ? this.sessions.findByTokenHash(hashRefreshToken(currentRefreshToken))
+      : null;
+    if (current && current.user_id === userId && this.sessions.isValid(current)) {
+      this.sessions.revokeAllForUserExceptFamily(userId, current.family_id);
+    } else {
+      this.sessions.revokeAllForUser(userId);
+    }
+  }
+
+  /**
    * Revoke all sessions for a user (kick). REQ-USR-029.
    */
   kickUser(id: string): void {

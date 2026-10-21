@@ -14,11 +14,13 @@
  *                   next request instead of after a manual sync step.
  *   build         → `closeBundle` copies `saida/` into `dist/avatar/`.
  *
- * The build copy is what makes the packaged executable work: the release
- * pipeline (tools/release/build-release.mjs, phase 5) packs
- * `packages/client/dist` verbatim into the SEA blob, so anything under
- * `dist/avatar/` is embedded and served by spa/routes.ts with no server-side
- * route and no new dependency.
+ * The build copy serves a monorepo `pnpm build` (spa/avatar routes find
+ * `<clientDist>/avatar`). It is NOT part of the packaged executable: the release
+ * pipeline (tools/release/build-release.mjs, phase 5) EXCLUDES `avatar/` from the
+ * client-dist archive embedded in the SEA blob and ships the acervo as a sidecar
+ * folder next to the executable instead (phase 8b, tools/release/avatar-sidecar.mjs),
+ * because it is third-party art under per-piece licenses, share-alike among them
+ * (decisoes 2026-10-21, item 10; spec 35 6.1).
  *
  * Deliberately NOT `public/`: that would require either vendoring 2.8k binary
  * files into git or a copy step before every `vite dev`.

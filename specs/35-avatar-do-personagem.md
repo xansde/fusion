@@ -154,18 +154,31 @@ canto inferior direito da mesa do jogador que controla aquele personagem.
   imagem atual e a nova quando o ator tem arte própria (que não é arte de avatar) e oferece
   "Restaurar imagem anterior".
 
+- **REQ-AVT-068** [MVP] Todo PNG gerado pelo criador (token e retrato) leva a atribuição da arte
+  gravada dentro do arquivo, em chunks `tEXt` logo após o IHDR: `Source` (Liberated Pixel Cup /
+  waybuilder-avatar), `License` (CC-BY-SA 3.0, obra derivada; cada peça tem licença própria),
+  `Credits-URL` e `Credits` (`/avatar/creditos.json`). O chunk não duplica se o PNG já o tem e o
+  arquivo continua um PNG válido (CRC correto). Ver `lib/avatar/atribuicaoPng.ts` e DEC-AVT-08.
+
 ### Acervo e distribuição
 
 - **REQ-AVT-040** [MVP] O acervo entra como dependência npm **pinada em commit**;
   atualizar é trocar o SHA. Nenhum arquivo de arte é versionado no Fusion.
 - **REQ-AVT-041** [MVP] O acervo é publicado em `/avatar/*`: em dev/preview por
-  middleware do plugin Vite lendo o `node_modules`; no build, copiado para
-  `dist/avatar/`, que a fase 5 do `build-release.mjs` já empacota no executável.
+  middleware do plugin Vite lendo o `node_modules`; num `pnpm build` de monorepo, copiado para
+  `dist/avatar/`. No executável empacotado ele **não** vai embutido (REQ-AVT-069): o servidor o
+  serve de `<pasta do executável>/avatar` (ou de `FUSION_AVATAR_DIR`).
 - **REQ-AVT-042** [MVP] O guarda de traversal do middleware é obrigatório:
   `/avatar/` nunca pode ler fora do `saida/` do pacote.
 - **REQ-AVT-043** [MVP] Catálogo (1,7 MB) e atlas são buscados em **runtime**,
   nunca importados — import viraria chunk de JS pago em todo carregamento.
 - **REQ-AVT-044** [MVP] O catálogo só é buscado quando há avatar para desenhar.
+- **REQ-AVT-069** [MVP] O acervo fica **fora do executável**. A fase 5 do `build-release.mjs` exclui
+  `avatar/` do client-dist embutido; a fase 8b emite a pasta `dist-release/avatar/` (acervo +
+  `creditos.json` + `LICENSES.txt` + `NOTICE`), o `NOTICE` ao lado do executável e, opcionalmente,
+  `fusion-avatar-acervo-<versão>.zip`. Instalar = copiar a pasta `avatar/` para o diretório do
+  executável. Sem ela o Fusion funciona e `/avatar/*` responde 404 `AVATAR_ACERVO_MISSING`
+  (REQ-AVT-054). O `smoke:release` confere os dois lados e o guarda de traversal.
 
 ### Desenho
 
@@ -214,6 +227,17 @@ canto inferior direito da mesa do jogador que controla aquele personagem.
   **aba Configurações da gaveta** (não mais botão na ficha). O "behind 63" da worktree
   deixa de importar: só o ponto de integração precisa da alfa atual.
 
+- **DEC-AVT-08 — PNG gerado é obra derivada CC-BY-SA 3.0; acervo fora do exe (provisória, 21/10/2026
+  — revisar no beta).** Decisão de projeto, não parecer jurídico. O acervo mistura licenças por
+  peça (GPL 3.0, OGA-BY, CC-BY-SA 3.0, CC-BY, CC0...); trata-se o PNG como derivado sob a mais
+  restritiva entre as não-GPL, com atribuição. Medidas: `NOTICE` na raiz com a seção do avatar
+  (REQ-LEG-026), chunk de texto no PNG (REQ-AVT-068) e acervo como pacote opcional ao lado do
+  executável (REQ-AVT-069), que separa a arte share-alike do binário do Fusion e não incha o exe.
+  Descartadas: licenciar o PNG como CC0/domínio próprio (a arte não é nossa); embutir no exe
+  (mistura a SA com o binário); remover as peças SA (esvazia o acervo). PNGs já gerados ficam sem
+  o chunk (regenerar é opcional). Uso é privado do grupo (mesa fechada), o que reduz, mas não
+  elimina, a obrigação de atribuição.
+
 ## 5. Onde vive
 
 **A partir da F5 (DEC-AVT-07):** este pacote vive no repositório externo `fusion-avatar` (consumido pelo core `fusion` como `@fusion/avatar` por tag git). O contrato do flag continua em `@fusion/shared`.
@@ -249,12 +273,20 @@ das 12 classes, `docs/lessons.md`):
   remove de verdade, e um **teste negativo** mostra a peça voltando quando o diff
   não poda.
 
-## 6.1 Atribuição e licença (pendência)
+## 6.1 Atribuição e licença (decisão provisória, 21/10/2026)
 
-O acervo mistura arte LPC sob licenças diversas (CC-BY-SA, CC-BY, OGA-BY, GPL). O criador mostra
-os créditos do próprio acervo (REQ-AVT-019), mas o PNG publicado como token/retrato é obra derivada:
-a spec 26 ainda precisa registrar a atribuição para esse uso e decidir se o texto de créditos
-acompanha o executável. Pendente de decisão do Alexandre.
+O acervo mistura arte LPC sob licenças diversas (CC-BY-SA, CC-BY, OGA-BY, GPL). Decisão
+provisória (DEC-AVT-08, revisar no beta): o PNG publicado como token/retrato é **obra derivada sob
+CC-BY-SA 3.0**, com atribuição. Está implementado assim:
+
+- `NOTICE` na raiz (REQ-LEG-023/026) com a seção do avatar; o release o copia para
+  `dist-release/NOTICE` e para dentro de `avatar/`;
+- chunk `tEXt` com a atribuição em todo PNG gerado (REQ-AVT-068);
+- acervo fora do exe, em `avatar/` ao lado do executável, com `creditos.json` e `LICENSES.txt`
+  (REQ-AVT-069); o criador segue mostrando os créditos (REQ-AVT-019).
+
+Fica em aberto o que só uma pessoa decide: parecer jurídico se o grupo passar a distribuir o
+Fusion ou os PNGs fora da mesa fechada.
 
 ## 7. Aberto
 
