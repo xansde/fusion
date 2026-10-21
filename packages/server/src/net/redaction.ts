@@ -123,10 +123,7 @@ import {
   isRolePrivileged,
   resolveOwnership,
 } from "../documents/ownership.js";
-import {
-  PLAYER_CHARACTER_SUBTYPES,
-  isNonPlayableActor,
-} from "../documents/knowledge.js";
+import { PLAYER_CHARACTER_SUBTYPES, isNonPlayableActor } from "../documents/knowledge.js";
 import type { DocumentStore } from "../documents/store.js";
 import { damageTypePt } from "../chat/damage-type-pt.js";
 

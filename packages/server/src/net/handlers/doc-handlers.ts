@@ -2346,6 +2346,28 @@ export function buildDocDeleteHandler(deps: DocHandlerDeps): HandlerFn {
 // Embedded document operations (tokens inside scenes)
 // ---------------------------------------------------------------------------
 
+/**
+ * What the client of a PLAYER sends about a token: `{ x, y }` (plus `rotation`, which BHR-F5-03 lets a player
+ * set) when it drags its own character and
+ * `{ actorId, x, y }` when it drops it (`TokenInteractionManager._sendMoveOp`, `buildTokenFromActorFields`).
+ * Everything else — light, vision, seenBy, disposition, elevation, flags, ... — belongs to the Mestre, so the
+ * owner path refuses it (REQ-TOK-030a/032, mesa 21/10/2026). A dotted key counts by its first segment.
+ */
+const PLAYER_TOKEN_UPDATE_FIELDS: ReadonlySet<string> = new Set(["x", "y", "rotation"]);
+const PLAYER_TOKEN_DROP_FIELDS: ReadonlySet<string> = new Set(["actorId", "x", "y"]);
+
+/** First key of `diff` (by first dotted segment) that is not in `allowed`, or null. */
+function firstDisallowedTokenField(
+  diff: Record<string, unknown>,
+  allowed: ReadonlySet<string>,
+): string | null {
+  for (const key of Object.keys(diff)) {
+    const head = key.split(".")[0] ?? key;
+    if (!allowed.has(head)) return head;
+  }
+  return null;
+}
+
 // ---------------------------------------------------------------------------
 // Owner drops their own character on the active scene (REQ-TOK-030a)
 // ---------------------------------------------------------------------------
@@ -2426,15 +2448,20 @@ function handleEmbeddedCreate(
   // REQ-TOK-030a: the owner of the manifested Actor dropping a non-hidden token on
   // the scene on air is the one other way in (see `isOwnerTokenDrop`).
   const ownerTokenDrop = isOwnerTokenDrop(deps, ctx, embeddedType, data, parent);
-  if (parent.type !== "Actor" && !ownerTokenDrop) {
+  // True when the owner drop is the ONLY thing letting this caller in: a role that meets TOKEN_CREATE's
+  // floor was granted full creation by the Mestre, so the field allowlist below is for the other case.
+  let ownerDropOnly = false;
+  if (parent.type !== "Actor") {
     const minRole =
       embeddedType === "Token"
         ? resolvePermissionMinRole(deps.store, "TOKEN_CREATE")
         : UserRole.TRUSTED;
     // eslint-disable-next-line @typescript-eslint/no-unsafe-enum-comparison
-    if (ctx.role !== UserRole.GAMEMASTER && ctx.role < minRole) {
+    const roleFloorMet = ctx.role === UserRole.GAMEMASTER || ctx.role >= minRole;
+    if (!ownerTokenDrop && !roleFloorMet) {
       return ackError("PERMISSION_DENIED", "Insufficient role to create embedded documents");
     }
+    ownerDropOnly = ownerTokenDrop && !roleFloorMet;
   }
 
   // Load parent — RAW (REQ-TOK-002): the embedded collection below is
@@ -2494,6 +2521,28 @@ function handleEmbeddedCreate(
 
     // Validate against Token schema if applicable
     if (embeddedType === "Token") {
+      // Owner drop (REQ-TOK-030a): only what the player's client sends, and one token of the same actor
+      // per scene — counting what an earlier item of this very batch already added. Judged on the wire
+      // payload (`item`): `raw` already carries the server-generated `_id`.
+      if (ownerDropOnly) {
+        const extra = firstDisallowedTokenField(
+          item as Record<string, unknown>,
+          PLAYER_TOKEN_DROP_FIELDS,
+        );
+        if (extra !== null) {
+          return ackError(
+            "PERMISSION_DENIED",
+            `Field "${extra}" is not writable by a player when dropping a token`,
+          );
+        }
+        const dropActorId = raw["actorId"];
+        if ([...existing, ...created].some((t) => t["actorId"] === dropActorId)) {
+          return ackError(
+            "VALIDATION_FAILED",
+            "This scene already has a token for that actor — a player puts at most one",
+          );
+        }
+      }
       // REQ-TOK-002/CA-TOK-003/DEC-TOK-05: checked BEFORE the generic schema
       // parse so a null/absent/dangling actorId gets our explicit message
       // ("actorId is required and must resolve to an existing Actor")
@@ -2830,6 +2879,18 @@ function handleEmbeddedUpdate(
         );
         if (actorDeltaError) {
           return ackError(actorDeltaError.code, actorDeltaError.message);
+        }
+      }
+
+      // REQ-TOK-032 (mesa 21/10/2026): a player moves (and turns) his token and nothing else — x and y
+      // are the only fields his client sends, rotation the one a table may add. Light, vision, seenBy, disposition, elevation and flags are the Mestre's.
+      if (embeddedType === "Token" && !isPrivileged(ctx.role)) {
+        const extra = firstDisallowedTokenField(sanitizedDiff, PLAYER_TOKEN_UPDATE_FIELDS);
+        if (extra !== null) {
+          return ackError(
+            "PERMISSION_DENIED",
+            `Field "${extra}" of token ${tokenId} is not writable through doc:update by a player`,
+          );
         }
       }
 

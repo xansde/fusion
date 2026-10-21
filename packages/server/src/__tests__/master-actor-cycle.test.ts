@@ -139,7 +139,6 @@ function sendOp(
   });
 }
 
-
 async function createActorWith(
   socket: ClientSocket,
   data: Record<string, unknown>,
@@ -215,8 +214,18 @@ describe("masterActorId cannot point at itself or close a cycle (REQ-ATR-083, #2
     const ack = await sendOp(gm, "doc:create", {
       documentType: "Actor",
       data: [
-        { _id: "cycleA0000000000", name: "CA", type: "npc", system: { masterActorId: "cycleB0000000000" } },
-        { _id: "cycleB0000000000", name: "CB", type: "npc", system: { masterActorId: "cycleA0000000000" } },
+        {
+          _id: "cycleA0000000000",
+          name: "CA",
+          type: "npc",
+          system: { masterActorId: "cycleB0000000000" },
+        },
+        {
+          _id: "cycleB0000000000",
+          name: "CB",
+          type: "npc",
+          system: { masterActorId: "cycleA0000000000" },
+        },
       ],
     });
     expect(ack["ok"]).toBe(false);
