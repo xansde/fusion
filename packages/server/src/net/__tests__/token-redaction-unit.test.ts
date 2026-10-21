@@ -176,7 +176,8 @@ describe("redactActorDocsForViewer — hp cut applies across the batch (TK072, C
       ownership: { default: 0 },
       flags: { fusion: { knowledge: { general: 2, exceptions: {} } } },
     });
-    const otherPc = makeActor({ _id: "pc-other", ownership: { default: 0, otherUser: 3 } });
+    // Shared at OBSERVER so it still reaches the hp cut (a NONE character is dropped, #240).
+    const otherPc = makeActor({ _id: "pc-other", ownership: { default: 2, otherUser: 3 } });
     const ownPc = makeActor({ _id: "pc-mine", ownership: { default: 0, me: 3 } });
 
     const viewer: ContactViewer = { userId: "me", role: 1, ownedCharacterIds: ["pc-mine"] };

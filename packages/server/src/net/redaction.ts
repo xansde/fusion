@@ -125,7 +125,6 @@ import {
 } from "../documents/ownership.js";
 import {
   PLAYER_CHARACTER_SUBTYPES,
-  isCharacterActor,
   isNonPlayableActor,
 } from "../documents/knowledge.js";
 import type { DocumentStore } from "../documents/store.js";
@@ -1589,22 +1588,23 @@ function ownershipLevelFor(doc: Record<string, unknown>, viewer: ContactViewer):
  * this viewer (REQ-CTT-074).
  *
  * The knowledge filter is a restriction, never a grant, so escaping it cannot be
- * what makes a document visible. Two populations escape it:
+ * what makes a document visible. What escapes it is a player CHARACTER, the chest
+ * (`loot`, DEC-NPC-08), a companion (`familiar`, DEC-CTT-06) and whatever a future
+ * system adds: all of them answer to `ownership` and to nothing else, at the same
+ * LIMITED threshold the join snapshot uses (REQ-NET-024, REQ-NET-096), so the live
+ * broadcast, the replay and the ack echo cannot hand over a document the snapshot
+ * would have withheld.
  *
- *   - a player CHARACTER, which every player is meant to see: "Na mesa" lists the
- *     whole table, the viewer's own first (REQ-CTT-014, REQ-CTT-020);
- *   - everything the manifests declare that is neither playable nor a contact —
- *     the chest (`loot`, DEC-NPC-08), a companion (`familiar`, DEC-CTT-06), and
- *     whatever a future system adds. Those answer to `ownership` and to nothing
- *     else, at the same LIMITED threshold the join snapshot uses (REQ-NET-024),
- *     so the live broadcast and the replay cannot hand over a chest the snapshot
- *     would have withheld.
+ * #240 (provisional, 21/10/2026): the character used to be always visible here,
+ * which diverged from the snapshot — a character the viewer has no LIMITED
+ * ownership of (REQ-USR-025a: born with `ownership.default = none`) leaked on the
+ * first `doc:update` of its owner. "Na mesa" lists the characters the viewer
+ * reaches through ownership (spec 39, REQ-CTT-014).
  */
 function actorEscapingKnowledgeIsVisible(
   doc: Record<string, unknown>,
   viewer: ContactViewer,
 ): boolean {
-  if (isCharacterActor(doc)) return true;
   return ownershipLevelFor(doc, viewer) >= OwnershipLevel.LIMITED;
 }
 

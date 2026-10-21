@@ -343,6 +343,12 @@ e `ownership.<userId do novo usuário> = owner` (REQ-DOC-027), mesmo tendo sido 
 uma exceção declarada ao default de criação por GM de REQ-DOC-029, porque o dono pretendido não é o
 criador. O GM continua resolvendo `owner` pelo papel (REQ-DOC-028), sem entrada explícita no mapa.
 
+> **Emenda provisória de 21/10/2026 (xansde/fusion#240, revisar no beta):** o nascimento com
+> `default = none` vale também para a emissão: o personagem só chega a outro jogador quando o
+> nível efetivo dele sobre o Actor é `LIMITED` ou mais, no snapshot de join e nos demais
+> caminhos de REQ-NET-096. Compartilhar o personagem com a mesa é ato do Mestre
+> (`ownership.default` ≥ `limited`); a spec 39 (Q-CTT-03) descreve o efeito em "Na mesa".
+
 **REQ-USR-025b** [MVP] "Em branco" significa que o personagem nasce apenas com nome (derivado do
 nome do usuário) e subtipo `character`, sem preenchimento de sistema de jogo. A criação NÃO DEVE
 abrir ficha, janela flutuante nem qualquer tela além da que o GM já estava operando.
