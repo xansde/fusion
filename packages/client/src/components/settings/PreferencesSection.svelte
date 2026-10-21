@@ -7,8 +7,10 @@
    * (REQ-CFG-021), and — since TK080 (spec 41-token.md REQ-TOK-074, DEC-TOK-11) — the
    * two token display toggles (names, bars). Deliberately no `socket` prop and no import
    * of `sendOp`/`socket.io` — everything here reads and writes `lib/settings/clientPrefs.ts`,
-   * which never leaves the device (REQ-CFG-022, REQ-CFG-072, RNF-CFG-01). Deliberately no
-   * locale or theme control either (REQ-CFG-023) — those are portable, server-side
+   * which never leaves the device (REQ-CFG-022, REQ-CFG-072, RNF-CFG-01). The ONE exception
+   * is the own-password form (REQ-CFG-090, REQ-USR-040..042): a separate component that talks
+   * plain HTTP to `POST /api/users/me/password` — authentication is not a device preference.
+   * Deliberately no locale or theme control either (REQ-CFG-023) — those are portable, server-side
    * preferences owned by a different section entirely.
    *
    * The token-display toggle ALSO writes through `tokenDisplayPrefsStore.svelte.ts` (not
@@ -29,6 +31,7 @@
   } from "../../lib/settings/clientPrefs.js";
   import { setTokenDisplayPref } from "../../lib/canvas/tokens/tokenDisplayPrefsStore.svelte.js";
   import AvatarOverlayControles from "../avatar/AvatarOverlayControles.svelte";
+  import OwnPasswordForm from "./OwnPasswordForm.svelte";
 
   interface Props {
     worldId: string;
@@ -149,6 +152,12 @@
   <fieldset class="section">
     <legend class="section__title">{t("FUSION.Avatar.Overlay.Title")}</legend>
     <AvatarOverlayControles />
+  </fieldset>
+
+  <!-- REQ-CFG-090: any seat changes its own password (the only item here that reaches the server). -->
+  <fieldset class="section">
+    <legend class="section__title">{t("FUSION.Settings.Preferences.Password.Title")}</legend>
+    <OwnPasswordForm />
   </fieldset>
 </div>
 
