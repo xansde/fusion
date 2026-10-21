@@ -209,16 +209,15 @@ describe("TokenInteractionManager drag-snap footprint (F187-4, RNF-TOK-01)", () 
     const socket = makeFakeSocket();
     const mgr = new TokenInteractionManager(buildOpts(socket, mirror, layer, container));
 
-    // Cursor world position (identity camera): (220, 220). `snapTokenToGrid`
-    // snaps the cursor itself to the nearest cell CENTER — 220 falls in cell
-    // [200,300), whose center is 250 — then offsets by half the footprint's
-    // bounding box to get the top-left. A 2x2 footprint (grid size 100, half
-    // = 100) lands at 250 - 100 = 150. A 1x1 footprint (the bug: reading the
-    // BASE actor's "med" instead of the effective "lg") would instead offset
-    // by half = 50, landing at 250 - 50 = 200 — a visibly different cell.
+    // Cursor world position (identity camera): (220, 220) is the CENTRE of the
+    // dragged footprint. A 2x2 footprint (grid size 100, half = 100) has its
+    // top-left at 120, and the nearest grid line is 100: the token covers
+    // squares [100, 300) exactly. A 1x1 footprint (the bug: reading the BASE
+    // actor's "med" instead of the effective "lg") would have its top-left at
+    // 170 and snap to 200 — a visibly different square.
     simulateDrag(container, makeFakeTarget(TOKEN_ID), 10, 10, 220, 220);
 
-    expect(layer.applyLocalMove).toHaveBeenCalledWith(TOKEN_ID, 150, 150);
+    expect(layer.applyLocalMove).toHaveBeenCalledWith(TOKEN_ID, 100, 100);
 
     mgr.destroy();
   });
@@ -241,7 +240,7 @@ describe("TokenInteractionManager drag-snap footprint (F187-4, RNF-TOK-01)", () 
 
     simulateDrag(container, makeFakeTarget(TOKEN_ID), 10, 10, 220, 220);
 
-    expect(layer.applyLocalMove).toHaveBeenCalledWith(TOKEN_ID, 150, 150);
+    expect(layer.applyLocalMove).toHaveBeenCalledWith(TOKEN_ID, 100, 100);
 
     mgr.destroy();
   });
