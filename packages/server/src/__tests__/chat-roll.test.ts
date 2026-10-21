@@ -357,6 +357,28 @@ describe("chat:send + roll visibility", () => {
   }, 10_000);
 
   // -------------------------------------------------------------------------
+  it("a damage roll with no dice (the Blowgun's '1' and its critical '(1)*2') is accepted and totals what it says (closing review, I-2)", async () => {
+    const ackFlat = await sendOp(playerSocket, "chat:send", {
+      content: "/r 1 # Blowgun — Dano",
+      worldId: ctx.worldId,
+    });
+    expect(ackFlat["ok"], JSON.stringify(ackFlat)).toBe(true);
+    const ackCrit = await sendOp(playerSocket, "chat:send", {
+      content: "/r (1)*2 # Blowgun — Dano crítico",
+      worldId: ctx.worldId,
+    });
+    expect(ackCrit["ok"], JSON.stringify(ackCrit)).toBe(true);
+
+    const totalOf = (ack: Record<string, unknown>): number | undefined => {
+      const message = (ack["result"] as { message?: { rolls?: Array<{ total?: number }> } })
+        .message;
+      return message?.rolls?.[0]?.total;
+    };
+    expect(totalOf(ackFlat)).toBe(1);
+    expect(totalOf(ackCrit)).toBe(2);
+  }, 10_000);
+
+  // -------------------------------------------------------------------------
   it("/gmroll: player author sees result, other player does NOT, GM sees result", async () => {
     const gmOps = collectOps(gmSocket, 1);
     const playerOps = collectOps(playerSocket, 1);
@@ -750,6 +772,24 @@ describe("RollService unit", () => {
     expect(() =>
       svc.roll({ formula: longFormula, mode: "public", worldId: ctx.worldId, userId: ctx.gmId }),
     ).toThrowError(RollError);
+  });
+
+  it("rolls a formula with no dice at all, the way the Blowgun's fixed damage is written (closing review, I-2)", async () => {
+    // The Blowgun deals "1 piercing": the sheet used to write "0d4+1", which the parser refuses, so that damage
+    // could not be rolled at all. It now writes "1" (and "(1)*2" on a critical hit); a precision die is the pool.
+    const { RollService, RollError } = await import("../chat/roll-service.js");
+    const svc = new RollService({ db: ctx.fusionDb.raw });
+    const roll = (formula: string) =>
+      svc.roll({ formula, mode: "public", worldId: ctx.worldId, userId: ctx.gmId });
+
+    expect(roll("1").total).toBe(1);
+    expect(roll("(1)*2").total).toBe(2);
+    expect(roll("0").total).toBe(0);
+    const sneaky = roll("1d6+1").total;
+    expect(sneaky).toBeGreaterThanOrEqual(2);
+    expect(sneaky).toBeLessThanOrEqual(7);
+    // ...and the string the sheet used to write is refused, which is why it has to stay out of it.
+    expect(() => roll("0d4+1")).toThrowError(RollError);
   });
 
   it("extracts flavor from formula", async () => {

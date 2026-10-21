@@ -1007,3 +1007,153 @@ describe("no mesmo tick: chat:send como o NPC, actor:setKnowledge e outro chat:s
     ]);
   });
 });
+
+// ---------------------------------------------------------------------------
+// Closing review, I-1 — the creature an `action` card was used on
+//
+// The Mestre acts through a player character's bar: "Usa Derrubar" on a creature. The card used to freeze the
+// creature's NAME as the Mestre's mirror reads it (which is every name), so a player who did not know the NPC read
+// it. The card now names its target by reference (token and actor ids) and each client resolves the name from its
+// own redacted mirror. What the server owes: no frozen name on the wire, and no id of a hidden token for a player,
+// on every emission path.
+// ---------------------------------------------------------------------------
+
+/** What a sender with a stale or hostile client might still put beside the reference. */
+const FROZEN_NAME = "Capitão Gorvak, o Traidor";
+
+describe("o alvo de um card de ação vai por referência, nunca pelo nome do remetente (fechamento, I-1)", () => {
+  let ctx: TestContext;
+  let gmSocket: ClientSocket;
+  let playerSocket: ClientSocket;
+
+  beforeEach(async () => {
+    ctx = await buildTestContext();
+    seedSpeakers(ctx);
+    [gmSocket, playerSocket] = await Promise.all([
+      connectSocket(ctx.port, ctx.worldId, ctx.gmToken),
+      connectSocket(ctx.port, ctx.worldId, ctx.playerToken),
+    ]);
+  }, 15_000);
+
+  afterEach(async () => {
+    gmSocket?.disconnect();
+    playerSocket?.disconnect();
+    await teardown(ctx);
+  });
+
+  interface CardLike {
+    targetTokenId?: string;
+    targetActorId?: string;
+    targetName?: string;
+  }
+  interface ActionMessage extends ChatMessageLike {
+    flags?: { pf2e?: { abilityCard?: CardLike } };
+  }
+
+  /** The Mestre acts through the bar of a player character on `tokenId`, the way `buildExecutableUse` posts it. */
+  async function gmUsesActionOn(
+    tokenId: string,
+    actorId: string,
+    marker: string,
+  ): Promise<{ gm: ActionMessage; player: ActionMessage; messageId: string }> {
+    const gmSeen = nextChatMessage(gmSocket);
+    const playerSeen = nextChatMessage(playerSocket);
+    const ack = await sendOp(gmSocket, "chat:send", {
+      content: `Usa Derrubar ${marker}`,
+      worldId: ctx.worldId,
+      rollMode: "public",
+      speakerActorId: MY_PC_ID,
+      flags: {
+        pf2e: {
+          abilityCard: {
+            kind: "action",
+            casterActorId: MY_PC_ID,
+            name: "Derrubar",
+            targetTokenId: tokenId,
+            targetActorId: actorId,
+            targetName: FROZEN_NAME,
+          },
+        },
+      },
+    });
+    expect(ack["ok"], JSON.stringify(ack)).toBe(true);
+    const messageId = String((ack["result"] as { message: ChatMessageLike }).message._id);
+    const [gm, player] = await Promise.all([gmSeen, playerSeen]);
+    return { gm: gm as ActionMessage, player: player as ActionMessage, messageId };
+  }
+
+  it("ao vivo: ninguém recebe o nome congelado; o jogador lê a referência de um token visível; o Mestre também", async () => {
+    const { gm, player } = await gmUsesActionOn(ALLY_TOKEN_ID, ALLY_ACTOR_ID, "ao-vivo");
+
+    for (const copy of [gm, player]) {
+      expect(copy.flags?.pf2e?.abilityCard).toMatchObject({
+        targetTokenId: ALLY_TOKEN_ID,
+        targetActorId: ALLY_ACTOR_ID,
+      });
+      expect(copy.flags?.pf2e?.abilityCard?.targetName).toBeUndefined();
+      expect(JSON.stringify(copy)).not.toContain(FROZEN_NAME);
+    }
+  });
+
+  it("ao vivo: o token OCULTO sai do card do jogador (nem id de token, nem de ator, nem nome); o Mestre guarda a referência", async () => {
+    const { gm, player } = await gmUsesActionOn(AMBUSH_TOKEN_ID, AMBUSH_ACTOR_ID, "emboscada");
+
+    expect(gm.flags?.pf2e?.abilityCard).toMatchObject({
+      targetTokenId: AMBUSH_TOKEN_ID,
+      targetActorId: AMBUSH_ACTOR_ID,
+    });
+    const wire = JSON.stringify(player);
+    expect(wire).not.toContain(AMBUSH_TOKEN_ID);
+    expect(wire).not.toContain(AMBUSH_ACTOR_ID);
+    expect(wire).not.toContain(FROZEN_NAME);
+    // The announcement is still the player's to read: only WHO the hidden creature is gets cut.
+    expect(player.content).toContain("Usa Derrubar");
+    expect(player.flags?.pf2e?.abilityCard).toMatchObject({ kind: "action", name: "Derrubar" });
+  });
+
+  it("chat:history, chat:search e chat:context: a mesma regra vale ao reler o log persistido", async () => {
+    const { messageId } = await gmUsesActionOn(AMBUSH_TOKEN_ID, AMBUSH_ACTOR_ID, "relido-i1");
+    await sleep(20);
+
+    const playerHistory = await sendQuery(playerSocket, "chat:history", {
+      worldId: ctx.worldId,
+      limit: 10,
+    });
+    const playerSearch = await sendQuery(playerSocket, "chat:search", {
+      worldId: ctx.worldId,
+      q: "relido-i1",
+    });
+    const playerContext = await sendQuery(playerSocket, "chat:context", {
+      worldId: ctx.worldId,
+      id: messageId,
+      limit: 5,
+    });
+    for (const reply of [playerHistory, playerSearch, playerContext]) {
+      expect(reply["ok"], JSON.stringify(reply)).toBe(true);
+      const wire = JSON.stringify(reply);
+      expect(wire).toContain("Usa Derrubar");
+      expect(wire).not.toContain(AMBUSH_TOKEN_ID);
+      expect(wire).not.toContain(AMBUSH_ACTOR_ID);
+      expect(wire).not.toContain(FROZEN_NAME);
+    }
+
+    const gmHistory = await sendQuery(gmSocket, "chat:history", {
+      worldId: ctx.worldId,
+      limit: 10,
+    });
+    const gmMessages = (gmHistory["result"] as { messages: ActionMessage[] }).messages;
+    expect(
+      gmMessages.some((m) => m.flags?.pf2e?.abilityCard?.targetTokenId === AMBUSH_TOKEN_ID),
+    ).toBe(true);
+  });
+
+  it("o jogador que não conhece o NPC não recebe o nome real: o card dele não carrega nome nenhum para resolver", async () => {
+    // A contact the player does not know, standing on a visible token without a label of its own: the card points
+    // at the token, and the NAME the player ends up reading is the one his own redacted mirror holds (none).
+    const { player } = await gmUsesActionOn(ALLY_TOKEN_ID, NPC_HIDDEN, "desconhecido");
+    const wire = JSON.stringify(player);
+    expect(wire).not.toContain(NPC_NAMES[NPC_HIDDEN]!);
+    expect(wire).not.toContain(FROZEN_NAME);
+    expect(player.flags?.pf2e?.abilityCard?.targetName).toBeUndefined();
+  });
+});
