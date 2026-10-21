@@ -202,6 +202,7 @@ const FAMILIAR_FEAT: Record<string, unknown> = {
   _id: "feat-familiar",
   name: "Familiar",
   type: "feat",
+  flags: { fusion: { sourceId: "bcxIg7wi8ZAhvhOD" } }, // feats-core "Familiar" (identity is the sourceId, #130)
   system: { rules: [] },
 };
 

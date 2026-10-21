@@ -15,8 +15,18 @@
         "PENDÊNCIA: Scholar também concede o talento Assurance (na perícia escolhida acima) via GrantItem do próprio pack — mas a escolha de perícia é um ChoiceSet marcado unconvertedRules/unsupported (mesma limitação da Skilled Human acima), sem slot no Plan ainda. O comparador não consegue forçar nem verificar nem a perícia escolhida nem o Assurance enquanto esse ChoiceSet não for implementado (ver seção Pendências do fix-r2.md) — só a Academia Lore fixa é verificável hoje."
       ],
       "languages": {
-        "note": "Human fala Common (fixo) + additionalLanguages.count da própria ancestralidade (1, ancestries-core \"Human\") + max(0, mod INT) — os dois são ADITIVOS, não alternativos (systems/pf2e/src/derivations/character.ts, ancestryAdditionalLanguagesCount). Com INT 12 (mod +1) no chassi comum: 1 + 1 = 2 idiomas extras. Corrigido na rodada 2: a rodada 1 registrava só 1 idioma extra (Élfico) — ilegal, faltava 1. Para as classes de habilidade-chave Inteligência (Wizard, Investigator, Inventor, Witch — 4 das 29), o boost de +2 da classe soma à INT do chassi (12→14, mod +2): 2 + 1 = 3 idiomas extras nessas 4 classes — usar `list_classes_chave_int` abaixo em vez de `list`. Nomes corrigidos para o slug real do pack (\"Elven\", não \"Elvish\" — ver COMMON_LANGUAGES em character.ts/planVM.ts).",
+        "note": "Human fala Common (fixo) + additionalLanguages.count da própria ancestralidade (1, ancestries-core \"Human\") + max(0, mod INT) — os dois são ADITIVOS, não alternativos (systems/pf2e/src/derivations/character.ts, ancestryAdditionalLanguagesCount). Com INT 12 (mod +1) no chassi comum: 1 + 1 = 2 idiomas extras. Corrigido na rodada 2: a rodada 1 registrava só 1 idioma extra (Élfico) — ilegal, faltava 1. Para as classes de habilidade-chave Inteligência (Wizard, Alchemist, Commander, Inventor, Investigator, Witch, Necromancer, Runesmith — 8 das 29, conferidas no classes-core: `keyAbility` só `int`; a lista está em `classes_chave_int` abaixo), o boost de +2 da classe soma à INT do chassi (12→14, mod +2): 2 + 1 = 3 idiomas extras nessas 8 classes — usar `list_classes_chave_int` abaixo em vez de `list` (o comparador faz isso sozinho a partir do `keyAbility` da classe, #154). Nomes corrigidos para o slug real do pack (\"Elven\", não \"Elvish\" — ver COMMON_LANGUAGES em character.ts/planVM.ts).",
         "list": ["Common (Comum)", "Elven (Élfico)", "Dwarven (Anão)"],
+        "classes_chave_int": [
+          "Wizard",
+          "Alchemist",
+          "Commander",
+          "Inventor",
+          "Investigator",
+          "Witch",
+          "Necromancer",
+          "Runesmith"
+        ],
         "list_classes_chave_int": [
           "Common (Comum)",
           "Elven (Élfico)",
