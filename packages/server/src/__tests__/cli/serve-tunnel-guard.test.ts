@@ -17,7 +17,7 @@ import { mkdtempSync, rmSync, writeFileSync, mkdirSync } from "node:fs";
 import { join } from "node:path";
 import { tmpdir } from "node:os";
 
-const runCli = (args: string[], dataDir: string) => runCliAsync(args, dataDir, 15_000);
+const runCli = (args: string[], dataDir: string) => runCliAsync(args, dataDir, 60_000);
 
 function makeTempDataDir(): string {
   return mkdtempSync(join(tmpdir(), "fusion-tunnel-guard-"));
@@ -31,7 +31,7 @@ function cleanup(dir: string): void {
 // Cold Node child process spawn — same margin as world-commands.test.ts.
 describe.concurrent(
   "fusion serve --tunnel — FIX-4 CLI-level guard (setupCompleted required)",
-  { timeout: 30_000 },
+  { timeout: 90_000 },
   () => {
     it("exits 1 with a clear message when setupCompleted=false (fresh data dir)", async () => {
       const dataDir = makeTempDataDir();

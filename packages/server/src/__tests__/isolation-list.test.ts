@@ -9,6 +9,7 @@ import { describe, it, expect } from "vitest";
 import { readdirSync, readFileSync, existsSync } from "node:fs";
 import { join, relative, sep } from "node:path";
 import { fileURLToPath } from "node:url";
+import { io as ioClient } from "socket.io-client";
 import { ISOLATED_TEST_FILES, ISOLATION_PATTERNS } from "../../vitest.isolation";
 
 const SERVER_ROOT = fileURLToPath(new URL("../..", import.meta.url));
@@ -39,5 +40,15 @@ describe("server test isolation list", () => {
 
   it("every listed file exists (a stale entry would silently stop matching)", () => {
     expect(ISOLATED_TEST_FILES.filter((f) => !existsSync(join(SERVER_ROOT, f)))).toEqual([]);
+  });
+
+  it("a socket.io client never reuses another test's Manager (helpers/socket-io-client.ts)", () => {
+    // Same origin, another namespace: plain socket.io-client would hand back
+    // the cached Manager of the first — across files, possibly a dead one.
+    const a = ioClient("http://127.0.0.1:9/world/a", { autoConnect: false });
+    const b = ioClient("http://127.0.0.1:9/world/b", { autoConnect: false });
+    expect(a.io).not.toBe(b.io);
+    a.close();
+    b.close();
   });
 });

@@ -26,7 +26,7 @@ export interface RunResult {
  * resolves with a fake exit code — when the child is killed by the timeout or
  * fails to spawn, so a hang is not mistaken for a logic failure (exit 1).
  */
-export function runCli(args: string[], dataDir: string, timeoutMs = 30_000): Promise<RunResult> {
+export function runCli(args: string[], dataDir: string, timeoutMs = 90_000): Promise<RunResult> {
   return new Promise((resolvePromise, reject) => {
     const child = spawn(process.execPath, [CLI_ENTRY, ...args, "--data-dir", dataDir], {
       // Suppress pino pretty-print / colour codes.

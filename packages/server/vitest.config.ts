@@ -20,10 +20,20 @@ export function serverTestConfig(opts: {
 }): UserConfig {
   return {
     resolve: {
-      alias: {
-        "@fusion/shared": resolve(__dirname, "../shared/src/index.ts"),
-        "@fusion/system-api": resolve(__dirname, "../system-api/src/index.ts"),
-      },
+      alias: [
+        { find: "@fusion/shared", replacement: resolve(__dirname, "../shared/src/index.ts") },
+        {
+          find: "@fusion/system-api",
+          replacement: resolve(__dirname, "../system-api/src/index.ts"),
+        },
+        // Every socket.io client a test opens is a fresh connection (forceNew):
+        // see src/__tests__/helpers/socket-io-client.ts. Exact match (regex),
+        // so the helper's own "socket.io-client/debug" is the real package.
+        {
+          find: /^socket\.io-client$/,
+          replacement: resolve(__dirname, "src/__tests__/helpers/socket-io-client.ts"),
+        },
+      ],
     },
     test: {
       name: opts.name,
