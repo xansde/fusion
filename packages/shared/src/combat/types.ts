@@ -175,6 +175,25 @@ export interface CombatDocument {
   activeCombatantId: string | null;
 
   /**
+   * Attacks the active combatant already made this turn, as the server counts
+   * them (D-G03, onda-6 review I-7). Valid only when `combatantId` is the
+   * active combatant and `round` the current round; null/absent otherwise.
+   */
+  attackCount?: {
+    combatantId: string;
+    round: number;
+    count: number;
+    /** Attacks per animal companion acting on this combatant's turn (a MAP of its own). */
+    byActor?: Record<string, number>;
+  } | null;
+
+  /**
+   * Animal companions the owner commanded this turn, stamped by the server (`companion:command`, L3 I4). Valid only
+   * when `combatantId` is the active combatant and `round` the current round; null/absent otherwise.
+   */
+  commandMark?: { combatantId: string; round: number; actorIds: string[] } | null;
+
+  /**
    * Whether the encounter has been started (beginCombat was called).
    * REQ-CBT-020: false until beginCombat.
    */

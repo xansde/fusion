@@ -23,7 +23,21 @@
     type ScenePrepareNoticeVM,
   } from "../../lib/scenes/prepareState.svelte.js";
 
-  const { notice, socket }: { notice: ScenePrepareNoticeVM; socket: Socket | null } = $props();
+  const {
+    notice,
+    socket,
+    bottomOffset = 0,
+  }: {
+    notice: ScenePrepareNoticeVM;
+    socket: Socket | null;
+    /**
+     * Distance from the bottom edge, in px, when the action bar occupies the centre-bottom of the
+     * table (spec 53 REQ-BAR-022, DEC-BAR-09): the notice stacks ABOVE the bar, because it carries
+     * the only two ways out of a prepare and a bar over it would hide them. 0 — the default — keeps
+     * the notice where it has always been.
+     */
+    bottomOffset?: number;
+  } = $props();
 
   /** In flight — disables both actions instead of pretending the swap already happened. */
   let busy = $state(false);
@@ -50,6 +64,7 @@
   aria-live="polite"
   aria-label={t(notice.labelKey)}
   data-prepared-scene={notice.preparedSceneId}
+  style:bottom={bottomOffset > 0 ? `${String(bottomOffset)}px` : undefined}
 >
   <!-- Drawn glyph (REQ-NPC-094): a workbench square with a corner cut, meaning "off
        stage". Never an emoji. -->
@@ -97,7 +112,8 @@
 
 <style>
   /* Anchored to the canvas, above the no-scene overlay's plane but below the windows:
-     it is a state of the canvas, not a dialog, and it never blocks the map. */
+     it is a state of the canvas, not a dialog, and it never blocks the map. With the action bar on
+     screen the table shell passes `bottomOffset`, which replaces the default `bottom` below. */
   .scene-prepare {
     align-items: center;
     background: rgba(24, 24, 31, 0.9);

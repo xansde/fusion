@@ -50,3 +50,38 @@ describe("SystemManifestSchema.sizeToFootprint (REQ-SYS-009)", () => {
     expect(result.success).toBe(false);
   });
 });
+
+describe("SystemManifestSchema.vocabulary (I1, revisão adversarial 3)", () => {
+  it("is optional — a manifest with no declaration still parses", () => {
+    const parsed = SystemManifestSchema.parse({ ...BASE_MANIFEST });
+    expect(parsed.vocabulary).toBeUndefined();
+  });
+
+  it("accepts a skills/currency/spellTraditions declaration", () => {
+    const parsed = SystemManifestSchema.parse({
+      ...BASE_MANIFEST,
+      vocabulary: {
+        skills: [
+          { slug: "acrobatics", ability: "dex" },
+          { slug: "computers", ability: "int" },
+        ],
+        currency: ["pp", "gp", "sp", "cp"],
+        spellTraditions: ["arcane", "divine", "occult", "primal"],
+      },
+    });
+    expect(parsed.vocabulary?.skills).toHaveLength(2);
+    expect(parsed.vocabulary?.currency).toEqual(["pp", "gp", "sp", "cp"]);
+  });
+
+  it("rejects a skill entry missing its ability", () => {
+    const result = SystemManifestSchema.safeParse({
+      ...BASE_MANIFEST,
+      vocabulary: {
+        skills: [{ slug: "acrobatics" }],
+        currency: [],
+        spellTraditions: [],
+      },
+    });
+    expect(result.success).toBe(false);
+  });
+});

@@ -67,6 +67,29 @@ export function applyWorldSettingWrite(key: string, id: string, value: unknown):
   registry.rows = registry.rows.map((row) => (row.key === key ? { ...row, id, value } : row));
 }
 
+/**
+ * Fold LIVE `Setting` documents (a `doc:create`/`doc:update` envelope from the server) into the rows already
+ * declared: a row named by a document's `key` takes its `_id` and `value`. Setting documents are not part of the
+ * world snapshot, so this is how a client that is already connected learns the GM changed a world setting: the
+ * GM's own Mundo section (his write is echoed back) and, through the server's player-readable allowlist, the
+ * Plano of a player reading the campaign's trained skills (HJ-09, #434).
+ *
+ * Never invents a row (a document no declaration names is ignored), and skips malformed documents.
+ */
+export function applyWorldSettingDocs(docs: readonly unknown[]): void {
+  let rows = registry.rows;
+  for (const doc of docs) {
+    if (doc === null || typeof doc !== "object") continue;
+    const fields = doc as Record<string, unknown>;
+    const id = fields["_id"];
+    const key = fields["key"];
+    if (typeof id !== "string" || typeof key !== "string" || !("value" in fields)) continue;
+    const value = fields["value"];
+    rows = rows.map((row) => (row.key === key ? { ...row, id, value } : row));
+  }
+  if (rows !== registry.rows) registry.rows = rows;
+}
+
 /** Forget everything, including the single-flight guard (tests, world switch). */
 export function resetWorldSettingsRegistry(): void {
   registry.systemId = null;

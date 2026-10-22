@@ -19,7 +19,7 @@
  * pointer events to TokenLayer.applyLocalMove() and sendOp().
  */
 
-import { squareSnapPoint } from "@fusion/shared";
+import { readMountState } from "@fusion/shared";
 import type { TokenDocument, ScenePoint } from "@fusion/shared";
 
 // ---------------------------------------------------------------------------
@@ -54,6 +54,11 @@ export function canMoveToken(
   // GM and Assistant have blanket move permission
   if (userRole >= ROLE_ASSISTANT) return true;
 
+  // BHR-F5-03 (D-B03, REQ-CNV-106): a mounted rider travels with his mount — the only movement
+  // action he has is Mount/Dismount. The server refuses the move too (PERMISSION_DENIED); this just
+  // keeps the drag from starting.
+  if (readMountState(token).mountTokenId !== undefined) return false;
+
   // Players can only move tokens linked to actors they own
   if (ownedActorIds.has(token.actorId)) return true;
 
@@ -68,6 +73,32 @@ export function canMoveToken(
   // — the opposite of REQ-TOK-033's "the interface MAY anticipate the
   // result, but MUST NOT be the only guard".
   return false;
+}
+
+/**
+ * Where a mounted rider is DRAWN (REQ-CNV-107). The server stores him on a square beside the mount
+ * (so a dismount and the adjacency rules stay plain geometry); on the table he is stacked, half size,
+ * in the mount's upper-right corner. Pure: `offset*` is added to the rider's stored position (constant
+ * while either moves, so the slide animation of the pair stays in step), `scale` shrinks the sprite.
+ */
+export interface MountStackPlacement {
+  offsetX: number;
+  offsetY: number;
+  scale: number;
+}
+
+export const MOUNT_STACK_SCALE = 0.5;
+
+export function mountedStackPlacement(
+  mountPos: { x: number; y: number },
+  mountPx: { w: number; h: number },
+  riderPos: { x: number; y: number },
+  riderPx: { w: number; h: number },
+  scale: number = MOUNT_STACK_SCALE,
+): MountStackPlacement {
+  const drawnX = mountPos.x + mountPx.w - riderPx.w * scale;
+  const drawnY = mountPos.y;
+  return { offsetX: drawnX - riderPos.x, offsetY: drawnY - riderPos.y, scale };
 }
 
 /** Minimum role that grants blanket move permission (ASSISTANT = 3). */
@@ -89,47 +120,35 @@ export interface GridSnapConfig {
 }
 
 /**
- * Snap a scene point to the nearest cell center (square grid).
- * Returns the top-left of the snapped cell so the token footprint aligns correctly.
+ * Snap a token's top-left corner onto the grid (square grid).
  *
- * The token's x/y is the top-left of the footprint bounding box.
- * Snapping snaps the footprint's center to the nearest cell center
- * (or cell-cluster center for footprint > 1), then converts back to top-left.
+ * The token's x/y is the top-left of the footprint bounding box, and a footprint is
+ * a whole number of cells, so a token always sits with its corner ON a grid line:
+ * an odd footprint (1x1, 3x3) then has its centre on a cell centre, an even one
+ * (2x2, 4x4) has its centre on a grid vertex. Snapping the CENTRE to a cell centre —
+ * what this did before — is right only for the odd ones: it left every even footprint
+ * half a square off the grid, straddling four squares.
  *
- * @param cursorX    Cursor x in scene coordinates (top-left drag anchor).
- * @param cursorY    Cursor y in scene coordinates.
- * @param footW      Token footprint width in cells.
- * @param footH      Token footprint height in cells.
+ * The footprint size does not change the answer (the corner snaps to the nearest line
+ * either way); it is kept in the signature because callers derive `cursorX/Y` from it
+ * (cursor minus half the footprint) and tests pin that contract.
+ *
+ * @param cursorX    Top-left drag anchor, scene coordinates.
+ * @param cursorY    Same, y.
+ * @param _footW     Token footprint width in cells (unused: see above).
+ * @param _footH     Token footprint height in cells (unused: see above).
  * @param grid       Grid configuration.
  */
 export function snapTokenToGrid(
   cursorX: number,
   cursorY: number,
-  footW: number,
-  footH: number,
+  _footW: number,
+  _footH: number,
   grid: GridSnapConfig,
 ): ScenePoint {
-  // For multi-cell footprints, snap the center of the bounding box
-  const halfPixW = (footW * grid.size) / 2;
-  const halfPixH = (footH * grid.size) / 2;
-
-  const centerX = cursorX + halfPixW;
-  const centerY = cursorY + halfPixH;
-
-  // Snap center to nearest cell center
-  const snappedCenter = squareSnapPoint(
-    centerX,
-    centerY,
-    grid.size,
-    grid.offsetX,
-    grid.offsetY,
-    "center",
-  );
-
-  // Convert back to top-left
   return {
-    x: snappedCenter.x - halfPixW,
-    y: snappedCenter.y - halfPixH,
+    x: grid.offsetX + Math.round((cursorX - grid.offsetX) / grid.size) * grid.size,
+    y: grid.offsetY + Math.round((cursorY - grid.offsetY) / grid.size) * grid.size,
   };
 }
 
@@ -447,6 +466,33 @@ export function isEditableTarget(target: unknown): boolean {
     }
   }
   return el.isContentEditable === true;
+}
+
+/**
+ * Whether an Escape belongs to something else than the map (BHR-F3-01, I6):
+ * another handler already consumed it (`defaultPrevented`), a dialog/modal is
+ * open (the Esc is closing IT), or the focus sits in an editable field. The aim
+ * is only cleared by an Esc that is really aimed at the map. `doc` is the
+ * `document` (absent in a non-DOM environment).
+ */
+export function isEscapeForSomethingElse(
+  e: { defaultPrevented?: boolean; target?: unknown },
+  doc:
+    | {
+        querySelector(selector: string): unknown;
+        activeElement?: unknown;
+      }
+    | undefined,
+): boolean {
+  if (e.defaultPrevented === true) return true;
+  if (isEditableTarget(e.target)) return true;
+  if (doc === undefined) return false;
+  if (isEditableTarget(doc.activeElement)) return true;
+  return (
+    doc.querySelector(
+      'dialog[open], [role="dialog"], [role="alertdialog"], [aria-modal="true"]',
+    ) !== null
+  );
 }
 
 // ---------------------------------------------------------------------------

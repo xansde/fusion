@@ -358,3 +358,208 @@ describe("CompendiumService.importToActor — pt-BR name snapshot (REQ-CMP-055, 
     rmSync(packsRoot, { recursive: true, force: true });
   });
 });
+
+// ---------------------------------------------------------------------------
+// BAR-F3-05 — the import door for flags.fusion.actionBar (tasks.md §2.5: "update e create/import")
+// ---------------------------------------------------------------------------
+
+describe("CompendiumService.importToWorld — flags.fusion.actionBar (BAR-F3-05)", () => {
+  const BAR_PACK_ID = "pf2e.action-bar-import-test";
+  const BAR_PACK_SLUG = "action-bar-import-test";
+  const ICON = "/assets/actionbar-icons/hanabi-1a2b3c4d.png";
+
+  function overCapIcons(): Record<string, string> {
+    const icons: Record<string, string> = {};
+    for (let i = 0; i < 65; i++) icons[`strike:golpe-${String(i)}`] = ICON;
+    return icons;
+  }
+
+  const BAD_BAR = {
+    _id: "barActor0001",
+    name: "Over the cap",
+    type: "npc",
+    img: "icons/placeholder/npc.svg",
+    system: { level: { value: 1 } },
+    flags: { fusion: { sourceId: "bar-bad", actionBar: { icons: overCapIcons() } } },
+  };
+  const GOOD_BAR = {
+    _id: "barActor0002",
+    name: "Within the cap",
+    type: "npc",
+    img: "icons/placeholder/npc.svg",
+    system: { level: { value: 1 } },
+    flags: { fusion: { sourceId: "bar-good", actionBar: { icons: { "strike:katana": ICON } } } },
+  };
+
+  function setupBarPack(): { packsRoot: string } {
+    const packsRoot = makeDir();
+    const packDir = join(packsRoot, BAR_PACK_SLUG);
+    mkdirSync(packDir, { recursive: true });
+    writeFileSync(
+      join(packDir, "pack.json"),
+      JSON.stringify({ ...MANIFEST, id: BAR_PACK_ID, label: "Action Bar Import Test" }),
+    );
+    writeFileSync(join(packDir, "documents.json"), JSON.stringify([BAD_BAR, GOOD_BAR]));
+    return { packsRoot };
+  }
+
+  function importedFusionFlags(
+    db: ReturnType<typeof openDatabase>["raw"],
+    id: string | undefined,
+  ): Record<string, unknown> {
+    const row = db.prepare("SELECT data FROM actors WHERE id = ?").get(id) as { data: string };
+    const doc = JSON.parse(row.data) as { flags?: { fusion?: Record<string, unknown> } };
+    return doc.flags?.fusion ?? {};
+  }
+
+  it("an Actor whose bar the schema refuses comes in WITHOUT the bar; the rest of flags.fusion stays", () => {
+    const { packsRoot } = setupBarPack();
+    const svc = new CompendiumService();
+    svc.discoverPacks(packsRoot, "pf2e");
+    const { db, dataDir } = bootDb();
+    try {
+      const result = svc.importToWorld([`Compendium.${BAR_PACK_ID}.Actor.${BAD_BAR._id}`], {
+        db,
+        worldId: "bar-import-world",
+        userId: "gm-user",
+        role: Role.GAMEMASTER,
+      });
+      expect(result.created).toHaveLength(1);
+      const fusion = importedFusionFlags(db, result.created[0]);
+      expect(fusion["actionBar"]).toBeUndefined();
+      expect(fusion["sourceId"]).toBe("bar-bad");
+    } finally {
+      db.close();
+      rmSync(dataDir, { recursive: true, force: true });
+      rmSync(packsRoot, { recursive: true, force: true });
+    }
+  });
+
+  it("an Actor with a valid bar keeps it as it is", () => {
+    const { packsRoot } = setupBarPack();
+    const svc = new CompendiumService();
+    svc.discoverPacks(packsRoot, "pf2e");
+    const { db, dataDir } = bootDb();
+    try {
+      const result = svc.importToWorld([`Compendium.${BAR_PACK_ID}.Actor.${GOOD_BAR._id}`], {
+        db,
+        worldId: "bar-import-world-2",
+        userId: "gm-user",
+        role: Role.GAMEMASTER,
+      });
+      expect(result.created).toHaveLength(1);
+      const fusion = importedFusionFlags(db, result.created[0]);
+      expect(fusion["actionBar"]).toEqual({ icons: { "strike:katana": ICON } });
+    } finally {
+      db.close();
+      rmSync(dataDir, { recursive: true, force: true });
+      rmSync(packsRoot, { recursive: true, force: true });
+    }
+  });
+});
+
+// ---------------------------------------------------------------------------
+// BAR-F3-01 — the import door for the favourites row (tasks.md §2.5: "update e create/import")
+// ---------------------------------------------------------------------------
+
+describe("CompendiumService.importToWorld — flags.fusion.actionBar favourites (BAR-F3-01)", () => {
+  const FAV_PACK_ID = "pf2e.action-bar-favourites-import-test";
+  const FAV_PACK_SLUG = "action-bar-favourites-import-test";
+
+  const twelve = (...ids: Array<string | null>): Array<string | null> =>
+    Array.from({ length: 12 }, (_, index) => ids[index] ?? null);
+
+  const doc = (id: string, name: string, actionBar: unknown) => ({
+    _id: id,
+    name,
+    type: "npc",
+    img: "icons/placeholder/npc.svg",
+    system: { level: { value: 1 } },
+    flags: { fusion: { sourceId: `src-${id}`, actionBar } },
+  });
+
+  const THIRTEEN = doc("favActor0001", "Thirteen slots", { favorites: [...twelve(), null] });
+  const MALFORMED = doc("favActor0002", "Malformed id", {
+    favorites: twelve("strike:ok", "isto não é um id"),
+    seeded: true,
+  });
+  const NOT_BOOLEAN = doc("favActor0003", "Seeded as text", { seeded: "sim" });
+  const GOOD = doc("favActor0004", "Good row", {
+    favorites: twelve("strike:katana", null, "spell:main:heal"),
+    seeded: true,
+  });
+
+  function setupFavouritesPack(): { packsRoot: string } {
+    const packsRoot = makeDir();
+    const packDir = join(packsRoot, FAV_PACK_SLUG);
+    mkdirSync(packDir, { recursive: true });
+    writeFileSync(
+      join(packDir, "pack.json"),
+      JSON.stringify({
+        ...MANIFEST,
+        id: FAV_PACK_ID,
+        label: "Action Bar Favourites Import Test",
+        documentCount: 4,
+      }),
+    );
+    writeFileSync(
+      join(packDir, "documents.json"),
+      JSON.stringify([THIRTEEN, MALFORMED, NOT_BOOLEAN, GOOD]),
+    );
+    return { packsRoot };
+  }
+
+  function importedFusionFlags(
+    db: ReturnType<typeof openDatabase>["raw"],
+    id: string | undefined,
+  ): Record<string, unknown> {
+    const row = db.prepare("SELECT data FROM actors WHERE id = ?").get(id) as { data: string };
+    const parsed = JSON.parse(row.data) as { flags?: { fusion?: Record<string, unknown> } };
+    return parsed.flags?.fusion ?? {};
+  }
+
+  function importOne(actorId: string, worldId: string) {
+    const { packsRoot } = setupFavouritesPack();
+    const svc = new CompendiumService();
+    svc.discoverPacks(packsRoot, "pf2e");
+    const { db, dataDir } = bootDb();
+    try {
+      const result = svc.importToWorld([`Compendium.${FAV_PACK_ID}.Actor.${actorId}`], {
+        db,
+        worldId,
+        userId: "gm-user",
+        role: Role.GAMEMASTER,
+      });
+      expect(result.created).toHaveLength(1);
+      return importedFusionFlags(db, result.created[0]);
+    } finally {
+      db.close();
+      rmSync(dataDir, { recursive: true, force: true });
+      rmSync(packsRoot, { recursive: true, force: true });
+    }
+  }
+
+  it("an Actor with 13 favourite slots comes in WITHOUT the bar; the rest of flags.fusion stays", () => {
+    const fusion = importOne(THIRTEEN._id, "fav-import-world-1");
+
+    expect(fusion["actionBar"]).toBeUndefined();
+    expect(fusion["sourceId"]).toBe("src-favActor0001");
+  });
+
+  it("a malformed favourite id, or a seeded flag that is not a boolean, also brings the actor in without the bar", () => {
+    const withBadId = importOne(MALFORMED._id, "fav-import-world-2");
+    const withBadFlag = importOne(NOT_BOOLEAN._id, "fav-import-world-3");
+
+    expect(withBadId["actionBar"]).toBeUndefined();
+    expect(withBadFlag["actionBar"]).toBeUndefined();
+  });
+
+  it("an Actor with a valid row keeps it as it is, positions and seeded flag included", () => {
+    const fusion = importOne(GOOD._id, "fav-import-world-4");
+
+    expect(fusion["actionBar"]).toEqual({
+      favorites: twelve("strike:katana", null, "spell:main:heal"),
+      seeded: true,
+    });
+  });
+});

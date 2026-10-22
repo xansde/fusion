@@ -112,6 +112,11 @@ function persistChatMessage(db: Db, msg: ChatMessage): void {
   ).run(msg._id, data, msg.timestamp, msg.speaker.userId, now, now);
 }
 
+/** pt-BR label of the statistic an initiative was rolled with (the system names it in English: "Perception"). */
+function statisticLabelPt(statistic: string): string {
+  return statistic.toLowerCase() === "perception" ? "Percepção" : statistic;
+}
+
 /**
  * Build an initiative chat message for a single combatant result.
  *
@@ -124,8 +129,8 @@ function persistChatMessage(db: Db, msg: ChatMessage): void {
  */
 function buildInitiativeMessage(deps: CombatChatDeps, entry: InitiativeRollChatEntry): ChatMessage {
   const stats = defaultStats();
-  const statSuffix = entry.statistic ? ` (${entry.statistic})` : "";
-  const content = `${entry.combatantName} rolls initiative${statSuffix}: ${String(entry.total)}`;
+  const statSuffix = entry.statistic ? ` (${statisticLabelPt(entry.statistic)})` : "";
+  const content = `${entry.combatantName} rola iniciativa${statSuffix}: ${String(entry.total)}`;
 
   const gmOnly = entry.hidden || !entry.hasPlayerOwner;
   const whisper = gmOnly ? getGmUserIds(deps.db) : [];

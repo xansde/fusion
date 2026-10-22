@@ -50,6 +50,7 @@
   import { activeSceneState } from "../../lib/docs/activeScene.svelte.js";
   import { untrack } from "svelte";
   import { t } from "../../lib/i18n/i18n.js";
+  import { pickLocalizedName } from "../../lib/compendium/documentDetails.js";
 
   const {
     socket,
@@ -244,7 +245,8 @@
     if (!actor || typeof actor["name"] !== "string") return undefined;
     const system = actor["system"];
     return {
-      name: actor["name"],
+      // The pt-BR name an import snapshotted ("Águia"), not the stored EN one ("Eagle").
+      name: pickLocalizedName(actor, "pt-BR"),
       img: typeof actor["img"] === "string" ? actor["img"] : null,
       system: typeof system === "object" && system !== null ? (system as Record<string, unknown>) : {},
     };

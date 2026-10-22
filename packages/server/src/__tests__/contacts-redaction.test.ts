@@ -5,7 +5,9 @@
  *              is the server's, and a request that asks for a hidden contact
  *              gets nothing back.
  * REQ-CTT-081: the payload of a contact the viewer only GLIMPSED carries no
- *              name, no title, no portrait and no system data.
+ *              name, no title and no system data — except the portrait (spec 41
+ *              DEC-TOK-09) and the size category (spec 17 DEC-PF2-13, the
+ *              amendment of 29/09/2026), which the token needs to be drawn.
  * REQ-CTT-082: the payload of a HIDDEN contact is not delivered at all — not in
  *              the snapshot, not in the broadcast, not in the replay.
  * REQ-CTT-075: changing knowledge propagates the DELTA to each affected user —
@@ -19,6 +21,8 @@
  *              reaches a socket without a privileged role.
  * REQ-CTT-085: changing the title is checked on the server — privileged role or
  *              OWNER, anybody else refused.
+ * REQ-CTT-086: a Known contact the viewer does not own reaches him with its conditions
+ *              (and only them) — never the rest of the ficha.
  * REQ-CTT-013: a glimpsed contact cannot be found by name, because there is no
  *              name in the payload to find.
  *
@@ -61,6 +65,9 @@ const KNOWN_NAME = "Taverneiro Bartolomeu";
 const DENIED_NAME = "Segredo Fechado a Sete Chaves";
 const GLIMPSED_TITLE = "Mestre da Forja";
 const GLIMPSED_PORTRAIT = "assets/retratos/ferreiro.webp";
+const OGRE_NAME = "Ogro do Desfiladeiro";
+const OGRE_TITLE = "Terror da Estrada";
+const OGRE_PORTRAIT = "assets/retratos/ogro.webp";
 const KNOWN_TITLE = "Anfitrião do Javali";
 
 interface TestContext {
@@ -587,6 +594,110 @@ describe("spec 39 §5.9 — contact knowledge redacts in the single module (G061
     joiner.disconnect();
   });
 
+  it("REQ-CTT-081 (amended by spec 17): the SIZE of a glimpsed Large contact travels on every path — join snapshot, live broadcast, delta replay — and nothing else of `system` does", async () => {
+    // Where the player stands before the ogre exists, so the replay has a start.
+    const probe = connectClient(ctx, ctx.playerAToken);
+    const probeTraffic = recordEnvelopes(probe);
+    probe.connect();
+    await waitForConnect(probe);
+    await waitForJoinBatch(probeTraffic);
+    const lastSeq = snapshotSeq(probeTraffic);
+    probe.disconnect();
+
+    // LIVE BROADCAST — the GM puts a glimpsed ogre in the world while player A is connected.
+    const liveTraffic = recordEnvelopes(playerASocket);
+    const ogreId = await createActor({
+      name: OGRE_NAME,
+      type: "npc",
+      img: OGRE_PORTRAIT,
+      ownership: { default: 2 },
+      system: {
+        traits: { size: "lg", value: ["giant"] },
+        attributes: { hp: { value: 59, max: 59 }, ac: { value: 22 } },
+        details: { level: { value: 3 } },
+      },
+      flags: {
+        fusion: {
+          title: OGRE_TITLE,
+          knowledge: { general: KnowledgeState.Glimpsed, exceptions: {} },
+        },
+      },
+    });
+    await waitForSeq(liveTraffic, seqOfCreate(ogreId), "player A's copy of the ogre's create");
+
+    // JOIN SNAPSHOT — a fresh socket for the same user.
+    const joiner = connectClient(ctx, ctx.playerAToken);
+    const snapshotTraffic = recordEnvelopes(joiner);
+    joiner.connect();
+    await waitForConnect(joiner);
+    await waitForJoinBatch(snapshotTraffic);
+
+    // DELTA REPLAY — the same user reconnecting inside the buffer window.
+    const replayer = connectClient(ctx, ctx.playerAToken, lastSeq);
+    const replayTraffic = recordEnvelopes(replayer);
+    replayer.connect();
+    await waitForConnect(replayer);
+    await waitFor(
+      () => replayedOps(replayTraffic).some((op) => op["seq"] === seqOfCreate(ogreId)),
+      "the replayed create of the ogre in the delta",
+    );
+
+    for (const [path, traffic] of [
+      ["live broadcast", liveTraffic],
+      ["join snapshot", snapshotTraffic],
+      ["delta replay", replayTraffic],
+    ] as const) {
+      const doc = actorDocsIn(traffic).find((d) => d["_id"] === ogreId);
+      // Anchor: the glimpsed ogre DID reach this path — an absence below means nothing without it.
+      expect({ path, arrived: doc !== undefined }).toEqual({ path, arrived: true });
+      // The size, alone in `system`, in the slot the NPC keeps it in (REQ-CTT-081, REQ-PF2-154).
+      expect({ path, system: doc?.["system"] }).toEqual({
+        path,
+        system: { traits: { size: "lg" } },
+      });
+      expect(doc).not.toHaveProperty("name");
+      expect(doc?.["img"]).toBe(OGRE_PORTRAIT);
+      // Every path yields exactly what the redaction module yields (REQ-CTT-083).
+      expect({ path, doc }).toEqual({ path, doc: expectedFor(ogreId, ctx.playerAId) });
+      // Nothing else of the ficha, nor the identity, in ANY byte of the traffic.
+      const wire = JSON.stringify(traffic);
+      expect(wire).not.toContain(OGRE_NAME);
+      expect(wire).not.toContain(OGRE_TITLE);
+      expect(wire).not.toContain('"hp"');
+      expect(wire).not.toContain('"giant"');
+    }
+
+    joiner.disconnect();
+    replayer.disconnect();
+  });
+
+  it("REQ-TOK-017 through REQ-CTT-081: a glimpsed contact that GROWS reaches the player with the new size on the very same op", async () => {
+    const ogreId = await createActor({
+      name: OGRE_NAME,
+      type: "npc",
+      img: OGRE_PORTRAIT,
+      ownership: { default: 2 },
+      system: { traits: { size: "med" } },
+      flags: { fusion: { knowledge: { general: KnowledgeState.Glimpsed, exceptions: {} } } },
+    });
+    const liveTraffic = recordEnvelopes(playerASocket);
+
+    const ack = await sendOp(gmSocket, "doc:update", {
+      documentType: "Actor",
+      updates: [{ _id: ogreId, diff: { system: { traits: { size: "huge" } } } }],
+    });
+    expect(ack["ok"]).toBe(true);
+    await waitForSeq(liveTraffic, seqOf(ack), "player A's copy of the growth");
+
+    // The payload OF THE UPDATE (its own seq): the create's copy may still be arriving on the same socket.
+    const doc = (
+      aPayloadAtSeq(liveTraffic, seqOf(ack))["documents"] as Record<string, unknown>[]
+    )[0];
+    expect(doc?.["_id"]).toBe(ogreId);
+    expect(doc?.["system"]).toEqual({ traits: { size: "huge" } });
+    expect(doc).not.toHaveProperty("name");
+  });
+
   it("REQ-CTT-081: a known contact arrives whole — the filter restricts, it does not blank everything", async () => {
     const joiner = connectClient(ctx, ctx.playerAToken);
     const traffic = recordEnvelopes(joiner);
@@ -600,19 +711,34 @@ describe("spec 39 §5.9 — contact knowledge redacts in the single module (G061
     joiner.disconnect();
   });
 
-  it("REQ-CTT-074: knowledge never grants what ownership denies — a known contact owned by nobody still does not arrive", async () => {
+  it("REQ-CTT-083 (BHR-F7-06 D1): a contact is governed by knowledge on every door — a Known one owned by nobody arrives in the snapshot like it does live; Hidden stays out and Glimpsed comes without a name", async () => {
+    // A monster born with ownership NONE. The funnel (live broadcast, replay) never asked ownership of a contact, so
+    // the snapshot must not either: it used to drop the contact before the funnel ran and a reload lost the reveal.
+    // What ownership still gates are the actors knowledge says nothing about (the `loot` test above).
+    const bare = (name: string, general: number): Record<string, unknown> => ({
+      name,
+      type: "npc",
+      ownership: { default: 0 },
+      flags: { fusion: { knowledge: { general, exceptions: {} } } },
+    });
+    const bareHidden = await createActor(bare("Espreitador Oculto", KnowledgeState.Hidden));
+    const bareGlimpsed = await createActor(bare("Vulto Entrevisto", KnowledgeState.Glimpsed));
     const joiner = connectClient(ctx, ctx.playerAToken);
     const traffic = recordEnvelopes(joiner);
     joiner.connect();
     await waitForConnect(joiner);
     await waitForJoinBatch(traffic);
 
-    // Anchor: the batch that should have carried the denied contact did arrive
-    // and did carry contacts — what is missing is the one ownership shuts out.
+    // Anchors: the batch carried contacts, and the Known one owned by nobody is among them.
     expect(actorDocsIn(traffic).some((doc) => doc["_id"] === knownId)).toBe(true);
+    expect(actorDocsIn(traffic).find((doc) => doc["_id"] === deniedId)?.["name"]).toBe(DENIED_NAME);
 
-    expect(JSON.stringify(traffic)).not.toContain(DENIED_NAME);
-    expect(actorDocsIn(traffic).some((doc) => doc["_id"] === deniedId)).toBe(false);
+    expect(actorDocsIn(traffic).some((doc) => doc["_id"] === bareHidden)).toBe(false);
+    expect(JSON.stringify(traffic)).not.toContain("Espreitador Oculto");
+    const glimpsed = actorDocsIn(traffic).find((doc) => doc["_id"] === bareGlimpsed);
+    expect(glimpsed).toBeDefined();
+    expect(glimpsed).not.toHaveProperty("name");
+    expect(JSON.stringify(traffic)).not.toContain("Vulto Entrevisto");
     joiner.disconnect();
   });
 
@@ -921,6 +1047,343 @@ describe("spec 39 §5.9 — contact knowledge redacts in the single module (G061
     const fusion = flags?.["fusion"] as Record<string, unknown> | undefined;
     // REQ-CTT-084 on the ack path too.
     expect(fusion === undefined || !("knowledge" in fusion)).toBe(true);
+  });
+
+  it("REQ-CTT-075/REQ-CTT-083 (BHR-F7-06 D1): a contact the GM just marked Known stays Known for the player who reloads — snapshot agrees with the live broadcast", async () => {
+    // A monster dragged in by the GM is born with ownership NONE. Marking it
+    // Known for Fofurinha is the GM's deliberate act, and the player saw the
+    // name live — but the join snapshot used to filter by ownership BEFORE the
+    // knowledge funnel and dropped it, so a reload sent them back to "criatura
+    // desconhecida". Knowing reveals the NAME only (REQ-CTT-074, DEC-CTT-04):
+    // without ownership the ficha stays server-side (see the B1 test below).
+    const freshOgreId = await createActor({
+      name: OGRE_NAME,
+      type: "npc",
+      img: OGRE_PORTRAIT,
+      ownership: { default: 0 },
+      flags: { fusion: { knowledge: { general: KnowledgeState.Hidden, exceptions: {} } } },
+    });
+    const aTraffic = recordEnvelopes(playerASocket);
+    const ack = await sendOp(gmSocket, "actor:setKnowledge", {
+      updates: [{ actorId: freshOgreId, exceptions: { [charAId]: KnowledgeState.Known } }],
+    });
+    expect(ack["ok"]).toBe(true);
+    await waitForSeq(aTraffic, seqOf(ack), "player A's copy of the knowledge update");
+    // Anchor: live, the player does receive the named contact.
+    const live = actorDocsIn(aTraffic).find((d) => d["_id"] === freshOgreId);
+    expect(live?.["name"]).toBe(OGRE_NAME);
+
+    // The reload: a brand-new socket for the same user.
+    const reloaded = connectClient(ctx, ctx.playerAToken);
+    const snapshotTraffic = recordEnvelopes(reloaded);
+    reloaded.connect();
+    await waitForConnect(reloaded);
+    await waitForJoinBatch(snapshotTraffic);
+    const afterReload = actorDocsIn(snapshotTraffic).find((d) => d["_id"] === freshOgreId);
+    expect(afterReload?.["name"]).toBe(OGRE_NAME);
+    reloaded.disconnect();
+
+    // Player B's character was not told anything: ownership of the contact
+    // must not have opened the door for him.
+    const bJoinAgain = connectClient(ctx, ctx.playerBToken);
+    const bTraffic = recordEnvelopes(bJoinAgain);
+    bJoinAgain.connect();
+    await waitForConnect(bJoinAgain);
+    await waitForJoinBatch(bTraffic);
+    expect(JSON.stringify(bTraffic)).not.toContain(OGRE_NAME);
+    bJoinAgain.disconnect();
+  });
+
+  it("REQ-CTT-074 / DEC-CTT-04 (BHR-F7-06 revisão B1): a Known contact the viewer has no ownership of arrives as name, title, portrait and size — never the ficha — on snapshot, live broadcast and replay; with LIMITED it arrives whole", async () => {
+    const probe = connectClient(ctx, ctx.playerAToken);
+    const probeTraffic = recordEnvelopes(probe);
+    probe.connect();
+    await waitForConnect(probe);
+    await waitForJoinBatch(probeTraffic);
+    const lastSeq = snapshotSeq(probeTraffic);
+    probe.disconnect();
+
+    const knownBody = (ownership: Record<string, unknown>): Record<string, unknown> => ({
+      name: OGRE_NAME,
+      type: "npc",
+      img: OGRE_PORTRAIT,
+      ownership,
+      system: {
+        traits: { size: "lg", value: ["giant"] },
+        attributes: { hp: { value: 59, max: 59 }, ac: { value: 22 } },
+        details: { level: { value: 3 } },
+        saves: { fortitude: { value: 11 } },
+      },
+      items: [{ name: "Maça Brutal", type: "melee", system: { bonus: { value: 9 } } }],
+      flags: {
+        fusion: {
+          title: OGRE_TITLE,
+          knowledge: { general: KnowledgeState.Known, exceptions: {} },
+        },
+      },
+    });
+
+    const liveTraffic = recordEnvelopes(playerASocket);
+    const noneId = await createActor(knownBody({ default: 0 }));
+    const limitedId = await createActor(knownBody({ default: 1 }));
+    await waitForSeq(liveTraffic, seqOfCreate(limitedId), "player A's copy of the creates");
+
+    const joiner = connectClient(ctx, ctx.playerAToken);
+    const snapshotTraffic = recordEnvelopes(joiner);
+    joiner.connect();
+    await waitForConnect(joiner);
+    await waitForJoinBatch(snapshotTraffic);
+
+    const replayer = connectClient(ctx, ctx.playerAToken, lastSeq);
+    const replayTraffic = recordEnvelopes(replayer);
+    replayer.connect();
+    await waitForConnect(replayer);
+    await waitFor(
+      () => replayedOps(replayTraffic).some((op) => op["seq"] === seqOfCreate(limitedId)),
+      "the replayed creates in the delta",
+    );
+
+    for (const [path, traffic] of [
+      ["live broadcast", liveTraffic],
+      ["join snapshot", snapshotTraffic],
+      ["delta replay", replayTraffic],
+    ] as const) {
+      const none = actorDocsIn(traffic).find((d) => d["_id"] === noneId);
+      // Anchor: the contact DID reach this path, named — absence below means nothing without it.
+      expect({ path, name: none?.["name"] }).toEqual({ path, name: OGRE_NAME });
+      expect({ path, img: none?.["img"] }).toEqual({ path, img: OGRE_PORTRAIT });
+      const flags = none?.["flags"] as Record<string, Record<string, unknown>> | undefined;
+      expect({ path, title: flags?.["fusion"]?.["title"] }).toEqual({ path, title: OGRE_TITLE });
+      // DEC-CTT-04: name, title and category. Of `system`, only the size; no items, no derived, no marker.
+      expect({ path, system: none?.["system"] }).toEqual({
+        path,
+        system: { traits: { size: "lg" } },
+      });
+      expect({ path, hasItems: none !== undefined && "items" in none }).toEqual({
+        path,
+        hasItems: false,
+      });
+      expect(flags?.["fusion"]).not.toHaveProperty("knowledge");
+      expect(flags?.["fusion"]).not.toHaveProperty("glimpsed");
+      const wire = JSON.stringify(actorDocsIn(traffic).filter((d) => d["_id"] === noneId));
+      expect(wire).not.toContain("Maça Brutal");
+      expect(wire).not.toContain('"hp"');
+      expect(wire).not.toContain('"giant"');
+      expect(wire).not.toContain('"derived"');
+      // Every path yields exactly what the single module yields (REQ-CTT-083).
+      expect({ path, doc: none }).toEqual({ path, doc: expectedFor(noneId, ctx.playerAId) });
+
+      // With LIMITED the ownership already entitles the viewer: the contact arrives as it always did.
+      const limited = actorDocsIn(traffic).find((d) => d["_id"] === limitedId);
+      expect({ path, name: limited?.["name"] }).toEqual({ path, name: OGRE_NAME });
+      expect({ path, items: Array.isArray(limited?.["items"]) }).toEqual({ path, items: true });
+      expect((limited?.["system"] as Record<string, unknown> | undefined)?.["saves"]).toBeDefined();
+    }
+
+    joiner.disconnect();
+    replayer.disconnect();
+  });
+
+  // -------------------------------------------------------------------------
+  // REQ-CTT-086 / DEC-CTT-04 — conditions of a Known contact (decision of 2026-10-07)
+  // -------------------------------------------------------------------------
+
+  it("REQ-CTT-086 / DEC-CTT-04: a player who KNOWS a monster sees its conditions (name, slug, degree, icon) and nothing else of the items; a player who does not know it, or only glimpsed it, receives none — on snapshot, live broadcast and replay; the GM is unchanged", async () => {
+    const probe = connectClient(ctx, ctx.playerAToken);
+    const probeTraffic = recordEnvelopes(probe);
+    probe.connect();
+    await waitForConnect(probe);
+    await waitForJoinBatch(probeTraffic);
+    const lastSeq = snapshotSeq(probeTraffic);
+    probe.disconnect();
+
+    const SECRET_RULE = "regra-interna-secreta";
+    const SECRET_ORIGIN = "efeito-de-outro-ator-xyz";
+    const conditionItems = [
+      {
+        _id: "cndprone00000001",
+        name: "Caído",
+        type: "condition",
+        img: "systems/stub/icons/prone.svg",
+        system: {
+          slug: "prone",
+          value: null,
+          description: { value: SECRET_RULE },
+          rules: [{ key: "FlatModifier", selector: "ac", value: -2, label: SECRET_RULE }],
+          references: { parent: { id: SECRET_ORIGIN } },
+        },
+        flags: { fusion: { origin: SECRET_ORIGIN } },
+      },
+      {
+        _id: "cndfrightened001",
+        name: "Amedrontado",
+        type: "condition",
+        img: "systems/stub/icons/frightened.svg",
+        system: { slug: "frightened", value: 2, rules: [] },
+      },
+      {
+        _id: "efxsecret0000001",
+        name: "Efeito Oculto do Mestre",
+        type: "effect",
+        system: { slug: "efeito-oculto", description: { value: SECRET_RULE } },
+      },
+      {
+        _id: "wpnmace000000001",
+        name: "Maça Brutal",
+        type: "melee",
+        system: { bonus: { value: 9 } },
+      },
+    ];
+    const monster = (general: number): Record<string, unknown> => ({
+      name: OGRE_NAME,
+      type: "npc",
+      img: OGRE_PORTRAIT,
+      ownership: { default: 0 },
+      system: {
+        traits: { size: "lg", value: ["giant"] },
+        attributes: { hp: { value: 59, max: 59 }, ac: { value: 22 } },
+      },
+      items: conditionItems,
+      flags: {
+        fusion: { title: OGRE_TITLE, knowledge: { general, exceptions: {} } },
+      },
+    });
+
+    const liveA = recordEnvelopes(playerASocket);
+    const liveB = recordEnvelopes(playerBSocket);
+    // Nobody knows them by the general rule; then only Fofurinha (player A's) comes to know both.
+    // So A KNOWS the first, while B never even glimpsed it (hidden); B only GLIMPSED the second.
+    const hiddenForBId = await createActor(monster(KnowledgeState.Hidden));
+    const glimpsedForBId = await createActor(monster(KnowledgeState.Glimpsed));
+    const known = await sendOp(gmSocket, "actor:setKnowledge", {
+      updates: [
+        { actorId: hiddenForBId, exceptions: { [charAId]: KnowledgeState.Known } },
+        { actorId: glimpsedForBId, exceptions: { [charAId]: KnowledgeState.Known } },
+      ],
+    });
+    expect(known["ok"]).toBe(true);
+    await waitForSeq(liveA, seqOf(known), "player A's copy of the knowledge update");
+    await waitForSeq(liveB, seqOf(known), "player B's copy of the knowledge update");
+
+    const joinerA = connectClient(ctx, ctx.playerAToken);
+    const snapshotA = recordEnvelopes(joinerA);
+    joinerA.connect();
+    await waitForConnect(joinerA);
+    await waitForJoinBatch(snapshotA);
+    const replayerA = connectClient(ctx, ctx.playerAToken, lastSeq);
+    const replayA = recordEnvelopes(replayerA);
+    replayerA.connect();
+    await waitForConnect(replayerA);
+    await waitFor(
+      () => replayedOps(replayA).some((op) => op["seq"] === seqOf(known)),
+      "the replayed knowledge update in the delta",
+    );
+
+    for (const [path, traffic] of [
+      ["live broadcast", liveA],
+      ["join snapshot", snapshotA],
+      ["delta replay", replayA],
+    ] as const) {
+      const doc = actorDocsIn(traffic).find((d) => d["_id"] === hiddenForBId);
+      // Anchor: the contact DID reach A, named — everything below is meaningless without it.
+      expect({ path, name: doc?.["name"] }).toEqual({ path, name: OGRE_NAME });
+      // Exactly the two conditions, as name + slug + degree + icon — nothing else of the items.
+      expect({ path, items: doc?.["items"] }).toEqual({
+        path,
+        items: [
+          {
+            _id: "cndprone00000001",
+            name: "Caído",
+            type: "condition",
+            img: "systems/stub/icons/prone.svg",
+            system: { slug: "prone", value: null },
+          },
+          {
+            _id: "cndfrightened001",
+            name: "Amedrontado",
+            type: "condition",
+            img: "systems/stub/icons/frightened.svg",
+            system: { slug: "frightened", value: 2 },
+          },
+        ],
+      });
+      // The rest of the ficha stays out: AC, HP, strikes, effects, rules, origin.
+      const wire = JSON.stringify(actorDocsIn(traffic).filter((d) => d["_id"] === hiddenForBId));
+      for (const leaked of [
+        SECRET_RULE,
+        SECRET_ORIGIN,
+        "Maça Brutal",
+        "Efeito Oculto",
+        '"hp"',
+        '"ac"',
+        '"rules"',
+      ]) {
+        expect({ path, leaked, found: wire.includes(leaked) }).toEqual({
+          path,
+          leaked,
+          found: false,
+        });
+      }
+      expect({ path, doc }).toEqual({ path, doc: expectedFor(hiddenForBId, ctx.playerAId) });
+    }
+
+    // B does not know it (hidden): nothing of it, conditions included, ever reached B.
+    expect(JSON.stringify(liveB)).not.toContain("prone");
+    expect(JSON.stringify(liveB)).not.toContain("Caído");
+    // B only glimpsed it: the glimpsed cut has no items at all.
+    const glimpsedDoc = expectedFor(glimpsedForBId, ctx.playerBId);
+    expect(glimpsedDoc).toBeDefined();
+    expect(glimpsedDoc).not.toHaveProperty("items");
+    const glimpsedOnWire = actorDocsIn(liveB).find((d) => d["_id"] === glimpsedForBId);
+    expect(glimpsedOnWire).toBeDefined();
+    expect(glimpsedOnWire).not.toHaveProperty("items");
+    expect(JSON.stringify(glimpsedOnWire)).not.toContain("Caído");
+
+    // The GM is unchanged: the whole stored document, ficha and all.
+    const gmDoc = readFromStore(hiddenForBId);
+    expect((gmDoc["items"] as unknown[]).length).toBe(4);
+
+    // Live: a condition added now reaches the player who knows it, and only him.
+    const beforeA = liveA.length;
+    const beforeB = liveB.length;
+    const storedConditionId = (): string => {
+      const items = readFromStore(hiddenForBId)["items"] as { _id: string; name: string }[];
+      const bleeding = items.find((i) => i.name === "Sangrando");
+      if (!bleeding) throw new Error("the live condition was not stored");
+      return bleeding._id;
+    };
+    const added = await sendOp(gmSocket, "doc:create", {
+      documentType: "Item",
+      data: [{ type: "condition", name: "Sangrando", system: { slug: "bleeding" } }],
+      parent: { type: "Actor", id: hiddenForBId },
+    });
+    expect(added["ok"]).toBe(true);
+    await waitForSeq(liveA, seqOf(added), "player A's copy of the new condition");
+    await waitForSeq(liveB, seqOf(added), "player B's envelope for the new condition");
+    const aDocs = actorDocsIn(liveA.slice(beforeA)).filter((d) => d["_id"] === hiddenForBId);
+    expect(JSON.stringify(aDocs)).toContain("Sangrando");
+    expect(JSON.stringify(aDocs)).toContain("Caído");
+    const bAfter = JSON.stringify(liveB.slice(beforeB));
+    expect(bAfter).not.toContain("Sangrando");
+    expect(bAfter).not.toContain(OGRE_NAME);
+
+    // Removing every condition reaches A as a document without `items`: the mirror replaces by `_id`.
+    const beforeRemoval = liveA.length;
+    const removal = await sendOp(gmSocket, "doc:delete", {
+      documentType: "Item",
+      ids: ["cndprone00000001", "cndfrightened001", storedConditionId()],
+      parent: { type: "Actor", id: hiddenForBId },
+    });
+    expect(removal["ok"]).toBe(true);
+    await waitForSeq(liveA, seqOf(removal), "player A's copy of the removal");
+    const afterRemoval = actorDocsIn(liveA.slice(beforeRemoval)).find(
+      (d) => d["_id"] === hiddenForBId,
+    );
+    expect(afterRemoval?.["name"]).toBe(OGRE_NAME);
+    expect(afterRemoval).not.toHaveProperty("items");
+
+    joinerA.disconnect();
+    replayerA.disconnect();
   });
 
   // -------------------------------------------------------------------------

@@ -153,6 +153,13 @@
   // chatCardExtensionRegistry, which the active system populated at boot
   // (systems/pf2e's registerPf2eSheets()). A world with no matching
   // extension (or no system at all) simply falls through to plain text.
+  //
+  // ALQ-F1-10: the mounted extension component also receives `children` —
+  // the SAME nested-roll array `nested.rolls`/`nested.saves` are classified
+  // from below — so a card whose "apply damage" buttons must ride a
+  // SPECIFIC fired roll (not local per-clicker state) can derive that from
+  // the real broadcast children every viewer receives, GM included, instead
+  // of only the one viewer who happened to click the roll button.
   const cardExtension = $derived(resolveChatCardExtension(message));
 
   // Formatted rolls for the roll type
@@ -449,6 +456,8 @@
       {socket}
       {isGm}
       {userId}
+      {children}
+      flags={message.flags}
     />
   {:else}
     <!-- text / whisper / system (no card) -->
@@ -482,6 +491,9 @@
           <span class="nested-roll__total nested-roll__total--{line.totalClass || 'normal'}">
             {line.total}
           </span>
+          {#each line.extras ?? [] as extra (extra)}
+            <span class="nested-roll__extra">{extra}</span>
+          {/each}
         </div>
       {/each}
 
@@ -944,28 +956,39 @@
 
   .nested-roll {
     display: flex;
+    flex-wrap: wrap;
     align-items: baseline;
     justify-content: space-between;
-    gap: 0.5rem;
+    gap: 0.15rem 0.5rem;
     font-size: 0.78rem;
   }
 
+  /* The label owns its row and wraps: clipped, it hid the calculation and left the line unreadable (L2 round 2, D7). */
   .nested-roll__label {
     color: var(--fusion-text-muted);
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
+    flex: 1 1 100%;
+    min-width: 0;
+    overflow-wrap: anywhere;
   }
 
-  /* REQ-ACH-022: the dice of the child roll, right beside its label. */
+  /* BHR-F4-09: the part an effect of the roller added (the Apoio of the companion), quiet, on its own row. */
+  .nested-roll__extra {
+    flex: 1 1 100%;
+    min-width: 0;
+    font-size: 0.72rem;
+    font-style: italic;
+    color: var(--fusion-accent);
+    overflow-wrap: anywhere;
+  }
+
+  /* REQ-ACH-022: the dice of the child roll, on the row below its label, never clipped. */
   .nested-roll__breakdown {
     font-family: var(--fusion-font-mono);
     font-size: 0.72rem;
     color: var(--fusion-text-subtle);
-    flex: 1;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
+    flex: 1 1 0;
+    min-width: 0;
+    overflow-wrap: anywhere;
   }
 
   .nested-roll__badge {

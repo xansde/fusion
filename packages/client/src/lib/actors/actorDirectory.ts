@@ -110,6 +110,9 @@ export interface TokenFromActorOptions {
   gridSize: number;
   /** Whether to snap to grid. Default true. */
   snapToGrid?: boolean;
+  /** Calibrated grid offset in pixels (scene.gridOffsetX/Y). Default 0. */
+  gridOffsetX?: number;
+  gridOffsetY?: number;
 }
 
 /**
@@ -144,8 +147,10 @@ export function buildTokenFromActorFields(opts: TokenFromActorOptions): TokenCre
   let y = opts.y;
 
   if (snap && gs > 0) {
-    x = Math.round(x / gs) * gs;
-    y = Math.round(y / gs) * gs;
+    const ox = opts.gridOffsetX ?? 0;
+    const oy = opts.gridOffsetY ?? 0;
+    x = Math.round((x - ox) / gs) * gs + ox;
+    y = Math.round((y - oy) / gs) * gs + oy;
   }
 
   return {

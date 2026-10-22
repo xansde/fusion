@@ -12,7 +12,8 @@
  *     H → toggle hidden; Del → delete selected token).
  *   - Dispatch optimistic moves via TokenLayer + sendOp (doc:update).
  *   - Rollback token position on ack failure/timeout.
- *   - Maintain a "selected token" set and update ring visuals.
+ *   - Maintain a "selected token" set, update ring visuals, and publish it
+ *     (`onSelectionChange`, BAR-F1-01) for the active-actor store.
  *   - Expose GM tools: addToken, deleteToken, toggleHidden.
  *   - Show a pending indicator (desaturation) while awaiting ack.
  *
@@ -44,7 +45,9 @@ import type { DocumentMirror } from "../../docs/DocumentMirror.js";
 import type { FusionCanvas } from "../FusionCanvas.js";
 import { screenToWorld } from "../camera-math.js";
 import { sendOp, OpError } from "../../docs/sendOp.js";
+import { onWorldResynced, requestWorldResync } from "../../docs/worldSync.js";
 import { emitTokenPreview } from "../../presence/attachPresenceSync.js";
+import { combatActions, getMyTargets, setMyTargets } from "../../combat/combatStore.svelte.js";
 import type { TokenLayer } from "./TokenLayer.js";
 import { footprintOf, type FootprintActorInput } from "./footprint.js";
 import type { ActorDocument } from "../../actors/actorDirectory.js";
@@ -62,6 +65,7 @@ import {
   resetToIdle,
   canStartDrag,
   isEditableTarget,
+  isEscapeForSomethingElse,
   canOpenTokenSheet,
   registerTokenClick,
   type TokenClickTracker,
@@ -128,6 +132,28 @@ export interface TokenInteractionOptions {
    * side of this callback.
    */
   onOpenSheet?: (tokenId: string) => void;
+  /**
+   * Told the token ids selected on THIS manager's scene every time the selection changes
+   * (BAR-F1-01, REQ-BAR-007; `docs/design/barra-de-acoes/tasks.md` §2.4): on a select, on a
+   * click on empty canvas, on Esc, after Del, and once more — empty — in `destroy()`. Never
+   * after `destroy()`. Same pattern as `onOpenSheet`: the manager does not know what listens.
+   *
+   * The selection is published as it is, whoever owns the token: ownership is NOT checked
+   * here. The active-actor store (`lib/actionbar/activeActorStore.svelte.ts`) is the single
+   * gate (D-BA01) and reads ownership itself — a second check here would be a second predicate
+   * (REQ-TOK-034, REQ-BAR-004). What it receives is a copy, never the manager's own Set.
+   */
+  onSelectionChange?: (tokenIds: ReadonlySet<string>) => void;
+
+  /**
+   * A pointer drag of a token, for the movement ruler. Called on every drag move with the
+   * token's top-left before the drag (`from`) and now (`to`), in scene pixels, and with
+   * `null` when the drag ends (drop, Esc or teardown). Display only: it changes nothing
+   * about the drag itself.
+   */
+  onDrag?: (
+    info: { tokenId: string; from: { x: number; y: number }; to: { x: number; y: number } } | null,
+  ) => void;
 }
 
 /**
@@ -150,6 +176,9 @@ const DRAG_THRESHOLD_PX = 5;
 
 /** Timeout for sendOp acks on token moves (ms). */
 const TOKEN_MOVE_TIMEOUT_MS = 8_000;
+
+/** After a move's ack timed out: how long to wait for the re-read world before deciding from the mirror (ms). */
+const RESYNC_WAIT_MS = 15_000;
 
 // ---------------------------------------------------------------------------
 // TokenInteractionManager
@@ -177,6 +206,9 @@ export class TokenInteractionManager {
 
   /** Pending ack cleanup fn (to cancel rollback if destroyed during pending). */
   private _pendingCleanup: (() => void) | null = null;
+
+  /** Wakes up a move waiting for the world to be re-read (see `_settleUnackedMove`); `destroy()` calls it. */
+  private _cancelMoveWait: (() => void) | null = null;
 
   /** True if destroyed. */
   private _destroyed = false;
@@ -285,6 +317,7 @@ export class TokenInteractionManager {
         payload: deletePayload,
       });
       this._selectedIds.delete(selectedId);
+      this._publishSelection();
     } catch (err) {
       this._opts.onError?.(
         err instanceof OpError
@@ -474,6 +507,7 @@ export class TokenInteractionManager {
   deselectAll(): void {
     this._selectedIds.clear();
     this._updateSelectionVisuals();
+    this._publishSelection();
   }
 
   /** The currently selected token IDs (read-only view). */
@@ -510,6 +544,7 @@ export class TokenInteractionManager {
   destroy(): void {
     if (this._destroyed) return;
     this._destroyed = true;
+    this._opts.onDrag?.(null);
 
     if (this._keyboardAttached) {
       window.removeEventListener("keydown", this._onKeyDown);
@@ -517,6 +552,7 @@ export class TokenInteractionManager {
     }
     this._pendingCleanup?.();
     this._pendingCleanup = null;
+    this._cancelMoveWait?.();
 
     // Detach PIXI events and give the layer back as FusionCanvas built it
     // (R9). `_attachContainerEvents` opts the shared tokens container into
@@ -529,6 +565,14 @@ export class TokenInteractionManager {
     tokenContainer.removeAllListeners();
     tokenContainer.eventMode = "none";
     tokenContainer.hitArea = null;
+
+    // BAR-F1-01: the last word is the empty selection — this manager no longer speaks for any
+    // token. Sent directly: `_publishSelection` is silent from here on, which is what keeps a
+    // late ack (a delete still in flight) from publishing for a dead manager. Whether this
+    // clears the active actor is the store's call: when the canvas already moved to another
+    // scene, the selection survives (REQ-BAR-007).
+    this._selectedIds.clear();
+    this._opts.onSelectionChange?.(new Set());
   }
 
   // ---------------------------------------------------------------------------
@@ -545,6 +589,15 @@ export class TokenInteractionManager {
     // Pointer down on the container — check if we hit a token sprite
     tokenContainer.on("pointerdown", (e: FederatedPointerEvent) => {
       if (this._destroyed) return;
+      // Right button (BHR-F3-01 / GUE-F1-01, D-G01, REQ-BHR-081): toggle
+      // the user's aim on the token under the cursor. It never selects and
+      // never starts a drag; the browser menu is already suppressed by
+      // FusionCanvas (`contextmenu` preventDefault) and no token context menu
+      // exists, so nothing competes for the gesture.
+      if (e.button === 2) {
+        this._toggleTarget(e);
+        return;
+      }
       if (e.button !== 0) return; // left button only
 
       const tokenId = this._getTokenIdFromTarget(e.target);
@@ -660,6 +713,15 @@ export class TokenInteractionManager {
           snapped.x,
           snapped.y,
         );
+
+        const ctx = this._drag.context;
+        if (ctx) {
+          this._opts.onDrag?.({
+            tokenId: ctx.tokenId,
+            from: { x: ctx.originalX, y: ctx.originalY },
+            to: { x: snapped.x, y: snapped.y },
+          });
+        }
       }
     });
 
@@ -692,6 +754,7 @@ export class TokenInteractionManager {
 
   private _handleDrop(): void {
     if (this._drag.state !== "dragging" || !this._drag.context) return;
+    this._opts.onDrag?.(null);
 
     const { tokenId, ghostX, ghostY, originalX, originalY, requestId } = this._drag.context;
 
@@ -765,23 +828,121 @@ export class TokenInteractionManager {
     } catch (err) {
       if (this._destroyed) return;
 
-      // Server rejected or timeout — rollback
-      this._drag = rollbackMove(this._drag, originalX, originalY);
-      this._drag = resetToIdle(this._drag);
-      this._opts.tokenLayer.rollbackMove(tokenId, originalX, originalY);
-      this._updatePendingVisual(tokenId, false);
+      // An explicit refusal is the server's verdict: revert at once. A TIMEOUT is not a verdict — the ack
+      // can be lost on a reconnect (socket.io never redelivers it) while the server accepted and broadcast
+      // the move; reverting blindly is the "token goes and comes back". Read the world first.
+      const timedOut = err instanceof OpError && err.code === "TIMEOUT";
+      const outcome = timedOut
+        ? await this._settleUnackedMove(tokenId, newX, newY, originalX, originalY)
+        : "lost";
+      // `destroy()` may have run while we waited (a call, not a property read, so no stale narrowing).
+      if (this._isDestroyed()) return;
 
-      const msg =
-        err instanceof OpError ? `Move rejected: ${err.message}` : "Move failed: network timeout";
-      this._opts.onError?.(msg);
+      if (outcome === "lost") {
+        this._drag = rollbackMove(this._drag, originalX, originalY);
+        this._drag = resetToIdle(this._drag);
+        const auth = this._getToken(tokenId);
+        this._opts.tokenLayer.rollbackMove(tokenId, auth?.x ?? originalX, auth?.y ?? originalY);
+        this._updatePendingVisual(tokenId, false);
+
+        const msg =
+          err instanceof OpError && !timedOut
+            ? `Move rejected: ${err.message}`
+            : "Move failed: network timeout";
+        this._opts.onError?.(msg);
+      } else {
+        // The server has the move (or a later one): the sprite already follows the mirror.
+        this._drag = confirmMove(this._drag);
+        this._drag = resetToIdle(this._drag);
+        this._updatePendingVisual(tokenId, false);
+      }
     } finally {
       cleanup();
     }
   }
 
+  /**
+   * A move whose ack never arrived: decide from the server's truth, not from the silence.
+   *
+   * - The mirror already holds the new position, or any position other than the one we left → the server
+   *   applied it (or something later) and the broadcast reached us: "accepted".
+   * - Still the old position → the broadcast may be late or the transport may be down. Re-read the world
+   *   (waiting for the reconnect first, when the socket is down) and look again; only a move still absent
+   *   after that is "lost". The move is absolute (x, y), so there is nothing to resend: a resend would
+   *   override whatever happened while we were away.
+   *
+   * The wait is bounded once the socket is up (`RESYNC_WAIT_MS`) and is cancelled by `destroy()`.
+   */
+  private async _settleUnackedMove(
+    tokenId: string,
+    newX: number,
+    newY: number,
+    originalX: number,
+    originalY: number,
+  ): Promise<"accepted" | "lost"> {
+    const verdict = (): "accepted" | "lost" => {
+      const now = this._getToken(tokenId);
+      if (!now) return "accepted"; // token deleted meanwhile: nothing to put back
+      if (now.x === newX && now.y === newY) return "accepted";
+      if (now.x !== originalX || now.y !== originalY) return "accepted";
+      return "lost";
+    };
+
+    if (verdict() === "accepted") return "accepted";
+
+    const { socket } = this._opts;
+    await new Promise<void>((resolve) => {
+      let done = false;
+      let timer: ReturnType<typeof setTimeout> | null = null;
+      let offResync: (() => void) | null = null;
+      const finish = () => {
+        if (done) return;
+        done = true;
+        if (timer !== null) clearTimeout(timer);
+        offResync?.();
+        socket.off("connect", onConnect);
+        if (this._cancelMoveWait === finish) this._cancelMoveWait = null;
+        resolve();
+      };
+      const armFallback = () => {
+        if (timer !== null) clearTimeout(timer);
+        timer = setTimeout(finish, RESYNC_WAIT_MS);
+      };
+      const onConnect = () => {
+        socket.off("connect", onConnect);
+        // worldSync asks for the world on every connect; its answer (or the join push) wakes us.
+        armFallback();
+      };
+      this._cancelMoveWait = finish;
+      offResync = onWorldResynced(finish);
+      if (!socket.connected) {
+        socket.on("connect", onConnect);
+      } else {
+        requestWorldResync(socket);
+        armFallback();
+      }
+    });
+
+    return this._isDestroyed() ? "accepted" : verdict();
+  }
+
+  private _isDestroyed(): boolean {
+    return this._destroyed;
+  }
+
   // ---------------------------------------------------------------------------
   // Private — keyboard handler
   // ---------------------------------------------------------------------------
+
+  /** Right-click aim toggle (D-G01): arm/disarm the token under the cursor. */
+  private _toggleTarget(e: FederatedPointerEvent): void {
+    const tokenId = this._getTokenIdFromTarget(e.target);
+    if (!tokenId || !this._getToken(tokenId)) return;
+    const alreadyTargeted = getMyTargets().some((t) => t.tokenId === tokenId);
+    // Fire-and-forget: the server is the authority and echoes `token:targeted`.
+    void combatActions.target(this._opts.socket, tokenId, !alreadyTargeted);
+    e.stopPropagation();
+  }
 
   private _handleKeyDown(e: KeyboardEvent): void {
     if (this._destroyed) return;
@@ -803,10 +964,20 @@ export class TokenInteractionManager {
       if (this._drag.state === "dragging" && this._drag.context) {
         const { tokenId, originalX, originalY } = this._drag.context;
         this._drag = cancelDrag(this._drag);
+        this._opts.onDrag?.(null);
         // Snap token back to original position
         this._opts.tokenLayer.applyLocalMove(tokenId, originalX, originalY);
       } else {
+        // I6: an Esc that closes a dialog/menu, or that another handler
+        // consumed, must not also drop the selection and the aim.
+        if (isEscapeForSomethingElse(e, (globalThis as { document?: Document }).document)) {
+          return;
+        }
         this.deselectAll();
+        // D-G01: Esc also clears THIS user's aim (diffed against the live
+        // selection scoped to the local user, so other users' aims stay).
+        // No-op op-wise when nothing is aimed.
+        void setMyTargets(this._opts.socket, []);
       }
       return;
     }
@@ -887,6 +1058,13 @@ export class TokenInteractionManager {
     this._selectedIds.clear();
     this._selectedIds.add(tokenId);
     this._updateSelectionVisuals();
+    this._publishSelection();
+  }
+
+  /** BAR-F1-01: hand a COPY of the selection to `onSelectionChange` — never once destroyed. */
+  private _publishSelection(): void {
+    if (this._destroyed) return;
+    this._opts.onSelectionChange?.(new Set(this._selectedIds));
   }
 
   private _updateSelectionVisuals(): void {

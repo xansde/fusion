@@ -389,3 +389,107 @@ describe("FIX-3 — world:activeScene inside resync:delta updates activeSceneId 
     expect(mockSetActiveSceneId).toHaveBeenCalledWith(sceneId, worldMirror);
   });
 });
+
+// ---------------------------------------------------------------------------
+// HJ-09 (#434): a live `Setting` envelope reaches the Mundo registry
+// ---------------------------------------------------------------------------
+
+describe("worldSync: Setting envelopes update the world-settings registry (HJ-09)", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  it("a doc:create then a doc:update of a declared Setting on 'op' fold the id and value into the registry", async () => {
+    const reg = await import("../../settings/worldSettingsRegistry.svelte.js");
+    reg.resetWorldSettingsRegistry();
+    reg.seedWorldSettingsRegistry({
+      systemId: "fake-system",
+      settings: [
+        {
+          id: null,
+          key: "fake-system:campaign.trainedSkills",
+          kind: "enumList",
+          options: ["a", "b"],
+          label: "L",
+          value: [],
+        },
+      ],
+    });
+    const { attachWorldSync, worldMirror } = await importWorldSync();
+    const socket = makeMockSocket(false);
+    worldMirror.applySnapshot(makeSnapshot(0));
+    attachWorldSync(socket as unknown as Socket);
+
+    socket.receive(
+      "op",
+      makeEnvelope(
+        "doc:create",
+        {
+          documentType: "Setting",
+          documents: [{ _id: "s-1", key: "fake-system:campaign.trainedSkills", value: ["a"] }],
+        },
+        1,
+      ),
+    );
+    expect(reg.worldSettingsRegistry.rows[0]).toMatchObject({ id: "s-1", value: ["a"] });
+
+    socket.receive(
+      "op",
+      makeEnvelope(
+        "doc:update",
+        {
+          documentType: "Setting",
+          documents: [{ _id: "s-1", key: "fake-system:campaign.trainedSkills", value: ["a", "b"] }],
+        },
+        2,
+      ),
+    );
+    expect(reg.worldSettingsRegistry.rows[0]).toMatchObject({ id: "s-1", value: ["a", "b"] });
+  });
+
+  it("an empty-body Setting envelope (what a player gets for a key off the allowlist) changes nothing", async () => {
+    const reg = await import("../../settings/worldSettingsRegistry.svelte.js");
+    reg.resetWorldSettingsRegistry();
+    reg.seedWorldSettingsRegistry({
+      systemId: "fake-system",
+      settings: [{ id: "s-1", key: "fake-system:k", kind: "boolean", label: "L", value: true }],
+    });
+    const { attachWorldSync, worldMirror } = await importWorldSync();
+    const socket = makeMockSocket(false);
+    worldMirror.applySnapshot(makeSnapshot(0));
+    attachWorldSync(socket as unknown as Socket);
+    socket.receive("op", makeEnvelope("doc:update", { documentType: "Setting", documents: [] }, 1));
+    expect(reg.worldSettingsRegistry.rows[0]).toMatchObject({ id: "s-1", value: true });
+  });
+});
+
+describe("worldSync — scene:preload on 'op' channel", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  it("hands the hint to the preload listener and does NOT touch the mirror or the active scene", async () => {
+    const { attachWorldSync, worldMirror } = await importWorldSync();
+    const { setScenePreloadListener } = await import("../../canvas/scenePreloadBus.js");
+    const listener = vi.fn();
+    setScenePreloadListener(listener);
+    const socket = makeMockSocket(false);
+    worldMirror.applySnapshot(makeSnapshot(0));
+    attachWorldSync(socket as unknown as Socket);
+    const seqBefore = worldMirror.seq;
+
+    // Ephemeral: no seq (the server sends none).
+    socket.receive(
+      "op",
+      makeEnvelope("scene:preload", { sceneId: "abcdefghij012345", background: "/assets/m.png" }),
+    );
+
+    expect(listener).toHaveBeenCalledWith({
+      sceneId: "abcdefghij012345",
+      background: "/assets/m.png",
+    });
+    expect(mockSetActiveSceneId).not.toHaveBeenCalled();
+    expect(worldMirror.seq).toBe(seqBefore);
+    setScenePreloadListener(null);
+  });
+});

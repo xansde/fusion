@@ -191,6 +191,18 @@
     {/if}
     <span class="fusion-window__title">{entry.title}</span>
 
+    {#each entry.headerActions ?? [] as action (action.id)}
+      <button
+        type="button"
+        class="fusion-window__action"
+        title={action.title ?? action.label}
+        onclick={action.onclick}
+        onpointerdown={(e) => e.stopPropagation()}
+      >
+        {action.label}
+      </button>
+    {/each}
+
     <div class="fusion-window__controls">
       {#if entry.minimizable}
         <button
@@ -312,6 +324,23 @@
   .fusion-window__btn:focus-visible {
     opacity: 1;
     background: rgba(255, 255, 255, 0.1);
+    outline: 2px solid var(--fusion-color-focus, #5b8dee);
+  }
+
+  .fusion-window__action {
+    background: rgba(255, 255, 255, 0.08);
+    border: 1px solid rgba(255, 255, 255, 0.18);
+    border-radius: var(--fusion-radius-sm, 4px);
+    color: var(--_win-titlebar-fg);
+    cursor: pointer;
+    font-size: 12px;
+    margin-left: 6px;
+    padding: 2px 8px;
+  }
+
+  .fusion-window__action:hover,
+  .fusion-window__action:focus-visible {
+    background: rgba(255, 255, 255, 0.16);
     outline: 2px solid var(--fusion-color-focus, #5b8dee);
   }
 

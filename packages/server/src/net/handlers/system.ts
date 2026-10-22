@@ -216,3 +216,73 @@ export function buildSystemFootprintHandler(
     };
   };
 }
+
+// --------------------------------------------------------------------------
+// system:vocabulary
+// --------------------------------------------------------------------------
+
+export interface VocabularySkillEntry {
+  slug: string;
+  ability: string;
+}
+
+export interface SystemVocabulary {
+  skills: VocabularySkillEntry[];
+  currency: string[];
+  spellTraditions: string[];
+}
+
+export interface SystemVocabularyResult {
+  /** Id of the world's active system, or `null` when no system is resolved. */
+  systemId: string | null;
+  /** `null` when the system declared no `vocabulary` (ficha falls back). */
+  vocabulary: SystemVocabulary | null;
+}
+
+export type SystemVocabularyPayload = Record<string, never>;
+
+/**
+ * Source of the world's `vocabulary` — the `SystemModule`'s own manifest,
+ * narrowed to what this handler reads (same shape discipline as
+ * `FootprintManifestSource`/`ConditionRegistrySource`).
+ */
+export interface VocabularyManifestSource {
+  manifest: { id: string; vocabulary?: SystemVocabulary | undefined };
+}
+
+/**
+ * `system:vocabulary` — hand the client the active system's skill/currency/
+ * spell-tradition vocabulary (I1, revisão adversarial 3, spec 15).
+ *
+ * Why this exists: `sheets/pf2e/src/lib/sheets/pf2e/systemSheetConfig.ts`
+ * used to hard-copy `SKILL_SLUGS`/`SKILL_ABILITY`/currency literals per
+ * systemId by hand — a skill added to a system's own package (or a new
+ * composite system) never showed up in the ficha until someone also edited
+ * that table (I1's "sem codar de novo" violation). The client package
+ * cannot import a game system (only the server resolves one, by world) —
+ * this is that door, same shape as `system:conditions`/`system:footprint`.
+ *
+ * No role gate, on purpose: this is the system's static vocabulary — the
+ * same for every seat, carrying nothing about any actor.
+ *
+ * A world whose system declared no `vocabulary` (or that has no system at
+ * all) answers with `vocabulary: null` rather than an error — the ficha
+ * degrades to its own built-in fallback (REQ-CTT-035-style open degrade),
+ * never left without an answer to wait for.
+ */
+export function buildSystemVocabularyHandler(
+  systemModule?: VocabularyManifestSource,
+): HandlerFn<SystemVocabularyPayload, SystemVocabularyResult> {
+  return () => {
+    if (!systemModule) {
+      return { ok: true, result: { systemId: null, vocabulary: null } };
+    }
+    return {
+      ok: true,
+      result: {
+        systemId: systemModule.manifest.id,
+        vocabulary: systemModule.manifest.vocabulary ?? null,
+      },
+    };
+  };
+}

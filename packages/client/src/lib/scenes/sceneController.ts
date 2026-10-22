@@ -18,6 +18,12 @@ import type { SceneDocument } from "@fusion/shared";
 import { createDocumentId } from "@fusion/shared";
 import { sendOp, OpError } from "../docs/sendOp.js";
 import type { DocumentMirror } from "../docs/DocumentMirror.js";
+import {
+  buildRecalibrationOps,
+  planGridRecalibration,
+  recalibrationSceneOf,
+  type FootprintResolver,
+} from "./gridRecalibration.js";
 
 // ---------------------------------------------------------------------------
 // Form data
@@ -215,7 +221,7 @@ export async function updateSceneConfig(
             folder: data.folder,
             width: data.width,
             height: data.height,
-            "grid.size": data.gridSize,
+            grid: { size: data.gridSize },
             backgroundColor: data.backgroundColor.trim(),
             background: data.background.trim() || null,
           },
@@ -223,6 +229,95 @@ export async function updateSceneConfig(
       ],
     },
   });
+}
+
+function wholeOffset(offset: number, size: number): number {
+  return ((Math.round(offset) % size) + size) % size;
+}
+
+/** What the calibration panel hands the scene: the grid and where it starts. */
+export interface GridCalibrationData {
+  size: number;
+  /** Offset from the map corner, in [0, size). */
+  offsetX: number;
+  offsetY: number;
+  /** In-game distance of one cell and its unit label. */
+  distance: number;
+  units: string;
+  /** Line colour (CSS hex) and opacity (0-1). */
+  color: string;
+  alpha: number;
+}
+
+/**
+ * Write a calibrated grid: size, origin and look, in ONE update.
+ *
+ * Size and offset travel together because either alone leaves the Master
+ * looking at a grid that is still off after a calibration that said it worked.
+ * The grid block is sent whole (and forced to `square`): a scene saved without
+ * one — three of the five in the real world — has nothing to merge a partial
+ * patch into, and calibration only makes sense on a square grid.
+ */
+export async function updateGridCalibration(
+  socket: Socket,
+  sceneId: string,
+  data: GridCalibrationData,
+  /**
+   * The scene as it is now and how big each token is. When given, what is already placed
+   * keeps its place on the map (tokens re-seated on the nearest square, walls/notes/lights
+   * following the image) instead of sliding over the art — see gridRecalibration.ts.
+   */
+  placed?: { scene: SceneDocument; footprintOf: FootprintResolver },
+): Promise<void> {
+  // Planned BEFORE the write: the plan reads the old size and padding.
+  const plan = placed
+    ? planGridRecalibration(
+        recalibrationSceneOf(placed.scene),
+        {
+          size: data.size,
+          offsetX: wholeOffset(data.offsetX, data.size),
+          offsetY: wholeOffset(data.offsetY, data.size),
+        },
+        placed.footprintOf,
+      )
+    : null;
+  const ops = plan ? buildRecalibrationOps(sceneId, plan) : [];
+  await sendOp(socket, {
+    type: "doc:update",
+    payload: {
+      documentType: "Scene",
+      updates: [
+        {
+          _id: sceneId,
+          diff: {
+            grid: {
+              type: "square",
+              size: data.size,
+              distance: data.distance,
+              units: data.units,
+              color: data.color,
+              alpha: data.alpha,
+            },
+            // Whole pixels: a drag at a fractional zoom leaves 30.707, and the lattice the
+            // tokens snap to should not carry that noise.
+            gridOffsetX: wholeOffset(data.offsetX, data.size),
+            gridOffsetY: wholeOffset(data.offsetY, data.size),
+          },
+        },
+      ],
+    },
+  });
+  // The grid is written; now put what was on the map back where it was on the map.
+  for (const op of ops) await sendOp(socket, op);
+  // Pinned areas live on the server, outside the scene document: it moves them by the
+  // same change of padding (ephemeral channel, like every other area message).
+  if (plan?.areaShift && socket.connected) {
+    socket.emit("ephemeral", {
+      type: "presence:template:shift",
+      ts: Date.now(),
+      payload: { sceneId, dx: plan.areaShift.dx, dy: plan.areaShift.dy },
+    });
+  }
 }
 
 /**
@@ -237,6 +332,18 @@ export async function updateSceneConfig(
 export async function activateScene(socket: Socket, sceneId: string): Promise<void> {
   await sendOp(socket, {
     type: "world:activeScene",
+    payload: { sceneId },
+  });
+}
+
+/**
+ * "Pre-carregar para todos": ask the server to tell every client to download a scene's art now,
+ * WITHOUT switching to it. The server answers each client with a `scene:preload` hint; the
+ * scene on air does not change.
+ */
+export async function preloadSceneForAll(socket: Socket, sceneId: string): Promise<void> {
+  await sendOp(socket, {
+    type: "scene:preload",
     payload: { sceneId },
   });
 }

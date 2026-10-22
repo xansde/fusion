@@ -446,6 +446,17 @@ describe("sub-characters live inside the owner's card (REQ-CTT-025)", () => {
     expect(cards.flatMap((card) => card.subCharacters.map((sub) => sub.name))).toEqual(["Grão"]);
   });
 
+  it("pedido do Alexandre (2026-10-07): a sub-ficha só abre para o Mestre e para o dono", () => {
+    const subOf = (userId: string, isPrivileged: boolean) =>
+      sectionFor(userId, isPrivileged)
+        .mine.concat(sectionFor(userId, isPrivileged).others)
+        .find((card) => card.id === "act-fofurinha01")!.subCharacters[0]!;
+
+    expect(subOf(ALEX, false).canOpenSheet).toBe(true);
+    expect(subOf(GM, true).canOpenSheet).toBe(true);
+    expect(subOf(TOBIAS, false).canOpenSheet).toBe(false);
+  });
+
   it("REQ-CTT-021: a sub-character carries conditions and no hit points either", () => {
     const [sub] = sectionFor(ALEX).mine[0]!.subCharacters;
 
@@ -459,12 +470,37 @@ describe("sub-characters live inside the owner's card (REQ-CTT-025)", () => {
 // ---------------------------------------------------------------------------
 
 describe("dragging a card to the map (REQ-CTT-028)", () => {
-  it("REQ-CTT-028: only a privileged role gets a draggable card", () => {
+  it("REQ-CTT-028/REQ-TOK-030a: the Master drags any card, a player only the actors he owns", () => {
     expect(canDragContactToCanvas(true)).toBe(true);
     expect(canDragContactToCanvas(false)).toBe(false);
+    expect(canDragContactToCanvas(false, true)).toBe(true);
 
-    expect(sectionFor(ALEX).mine.every((card) => card.draggable)).toBe(false);
+    // Alex owns Fofurinha and her familiar; Tobias's and Ana's cards are not his to drag.
+    const asAlex = sectionFor(ALEX);
+    expect(asAlex.mine.every((card) => card.draggable)).toBe(true);
+    expect(asAlex.mine.flatMap((card) => card.subCharacters).every((sub) => sub.draggable)).toBe(
+      true,
+    );
+    expect(asAlex.others.some((card) => card.draggable)).toBe(false);
+
     expect(sectionFor(GM, true).others.every((card) => card.draggable)).toBe(true);
+  });
+
+  it("REQ-TOK-030a: a sub-character the player does not own is not draggable, even in his own card", () => {
+    const strangerPet = actor({
+      ...GRAO,
+      _id: "act-grao-alheio",
+      ownership: { default: 0, [TOBIAS]: 3 },
+    });
+    const section = buildTableSection({
+      actors: [FOFURINHA, strangerPet],
+      userId: ALEX,
+      isPrivileged: false,
+    });
+
+    const [card] = section.mine;
+    expect(card!.draggable).toBe(true);
+    expect(card!.subCharacters[0]!.draggable).toBe(false);
   });
 });
 

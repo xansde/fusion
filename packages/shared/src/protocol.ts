@@ -5,6 +5,7 @@
  * All types live in @fusion/shared so both server and client share a single source of truth.
  */
 import { z } from "zod";
+import { AmbientTrackStateSchema } from "./sound/types.js";
 
 // ---------------------------------------------------------------------------
 // Protocol version
@@ -40,6 +41,17 @@ export const EnvelopeTypeSchema = z.union([
   // M1-E ephemeral presence — ruler tool
   z.literal("presence:ruler"),
   z.literal("presence:ruler:clear"),
+  // Area templates (burst/cone/line/emanation): live preview + pinned set
+  z.literal("presence:template"),
+  z.literal("presence:template:clear"),
+  z.literal("presence:template:pin"),
+  z.literal("presence:template:unpin"),
+  z.literal("presence:template:style"),
+  z.literal("presence:template:sync"),
+  z.literal("presence:template:shift"),
+  z.literal("presence:template:pinned"),
+  // GM "Show Players": a picture and/or a note popped open on every screen
+  z.literal("presence:show"),
   z.literal("system"),
   // Built-in system handlers (M0-C)
   z.literal("system:ping"),
@@ -55,6 +67,12 @@ export const EnvelopeTypeSchema = z.union([
   // the token, and the client cannot import a game system — same "the
   // declaration travels over the wire" reasoning as system:conditions above.
   z.literal("system:footprint"),
+  // I1 (revisão adversarial 3): the active system's skill/currency/spell-
+  // tradition vocabulary — same "the client cannot import a game system,
+  // the declaration travels over the wire" reasoning as system:conditions/
+  // system:footprint above, for the ficha's per-system config
+  // (systemSheetConfig.ts) instead of a hand-copied table.
+  z.literal("system:vocabulary"),
   // Spec 37 §5.4 (REQ-CFG-030/031, RNF-CFG-02): the Configurações tab's Mundo
   // section renders purely from what the active system declared with escopo
   // `world` — same "the client cannot import a game system" reasoning as
@@ -73,6 +91,8 @@ export const EnvelopeTypeSchema = z.union([
   // World-level broadcast events (M1-B)
   z.literal("world:snapshot"),
   z.literal("world:activeScene"),
+  // GM asks every client to warm a scene's art WITHOUT switching to it (ephemeral, no seq).
+  z.literal("scene:preload"),
   z.literal("ack:ok"),
   z.literal("ack:error"),
   // M1-D chat handlers
@@ -84,10 +104,46 @@ export const EnvelopeTypeSchema = z.union([
   z.literal("chat:context"),
   // Invalidate/revalidate one message — REQ-CHT-005 (nothing is ever deleted)
   z.literal("chat:invalidate"),
+  // Spec 15 REQ-SYS-138..142 / spec 09 REQ-CHT-052/053 (plan do Alquimista,
+  // ALQ-F1-01/02, DEC-SYS-12): apply damage/condition to an actor is a CORE
+  // op (ActorMechanicsService) — the system only supplies the pure rule via
+  // registrar.registerActorMechanics. NOT a chat op even though its usual
+  // trigger is a damage-roll card's buttons (REQ-CHT-052).
+  z.literal("actor:applyDamage"),
+  z.literal("actor:applyCondition"),
+  // Spec 15 REQ-SYS-143/144 / spec 17 REQ-PF2-224..228 (plan do Alquimista,
+  // ALQ-F2-11, DEC-SYS-12's emenda de consumo — ALQ-F2-01): consuming an item
+  // (charge/quantity, resource, or the strike a consumable derives) is a CORE
+  // op with the SAME split as actor:applyDamage — permission, atomicity and
+  // expectedVersion live here; the game-specific plan (what to spend, what
+  // effect to copy, what to roll) is `registrar.registerConsumeItem`.
+  z.literal("item:consume"),
+  // Inventory (feat/inventario-completo): giving an item to ANOTHER actor. No single doc:update can do it - it takes
+  // one atomic write on two actors - and the sender only owns one of them, so permission lives in the handler.
+  z.literal("item:transfer"),
   // Spec 39 — contact knowledge (general rule + per-character exceptions).
   // The one way in: doc:update refuses the flag path outright, so knowledge
   // never rides an ordinary document write (REQ-CTT-070/072/080).
   z.literal("actor:setKnowledge"),
+  // Spec 52 REQ-BHR-086..090 (BHR-F3-06): the Prey (TokenMark) persisted on the
+  // marking actor — not doc:update (permission is "own actor + own target").
+  z.literal("mark:set"),
+  z.literal("mark:clear"),
+  // Spec 52 REQ-PET-123, REQ-BHR-174..176 (BHR-F5-02): mount / dismount a creature,
+  // MountState written on both tokens after the server checks adjacency, size and link.
+  z.literal("mount:mount"),
+  z.literal("mount:dismount"),
+  // Spec 52 REQ-PET-120..121 (BHR-F4-10, DC-07): swap the ACTIVE animal companion of a master.
+  z.literal("companion:setActive"),
+  // L3 I4 (BHR-F5-07): the owner commands an animal companion; the server records it on the combat.
+  z.literal("companion:command"),
+  // Ambient table track (shared/src/sound/types.ts): GM commands + server broadcast.
+  z.literal("sound:play"),
+  z.literal("sound:stop"),
+  z.literal("sound:state"),
+  // Spec 52 REQ-BHR-102..105 (BHR-F4-08, DEC-BHR-09): a pack effect copied onto
+  // other actors, with the permission-by-link rule decided on the server.
+  z.literal("effect:apply"),
   // Spec 42 — removing a folder without removing anything it held (REQ-NPC-022).
   // Not doc:delete: that path drops the row and stops, leaving every actor of the
   // folder pointing at an id that is gone and every subfolder orphaned.
@@ -103,6 +159,10 @@ export const EnvelopeTypeSchema = z.union([
   z.literal("light:update"),
   z.literal("light:delete"),
   z.literal("scene:doorState"),
+  // Map pins (Scene.notes)
+  z.literal("scene:noteCreate"),
+  z.literal("scene:noteUpdate"),
+  z.literal("scene:noteDelete"),
   // M2-C: combat (spec 10 §API e Eventos)
   // client → server
   z.literal("combat:create"),
@@ -184,6 +244,34 @@ export const ErrorCodeSchema = z.union([
   z.literal("INTERNAL_ERROR"),
   /** M2-A: returned when a token:move is blocked by a wall. */
   z.literal("MOVE_BLOCKED"),
+  /**
+   * Spec 15 REQ-SYS-142 / spec 41 alquimista (ALQ-F1-01/02): a target/ownership
+   * assertion failed for `actor:applyDamage`/`actor:applyCondition` — e.g. a
+   * non-privileged caller referenced a `source.messageId` they do not OWNER-own,
+   * a payload with no snapshot to fall back to, or `assertTargetsSelected`
+   * (plan §2.3) finding a requested tokenId outside the caller's live selection.
+   * Deliberately distinct from `PERMISSION_DENIED` (coarser role gate used
+   * elsewhere): FORBIDDEN is always about "you don't own/target this specific
+   * thing", never about lacking a role outright.
+   */
+  z.literal("FORBIDDEN"),
+  /**
+   * Spec 15 REQ-SYS-142 step 6: `actor:applyDamage`/`actor:applyCondition`
+   * reached the ActorMechanicsService but no system registered
+   * `registerActorMechanics` — the op is a no-op, nothing is written.
+   */
+  z.literal("NOT_SUPPORTED"),
+  /**
+   * Spec 15 REQ-SYS-143 step 3 (plan do Alquimista, ALQ-F2-11): `item:consume`
+   * refuses, writing nothing, when `expectedVersion` does not match the
+   * actor's current `_stats.version` — two clients racing to spend the same
+   * last charge/quantity. Deliberately a DIFFERENT literal from the generic
+   * doc:update path's `STALE_WRITE` (same underlying version-mismatch idea,
+   * different op family, per REQ-SYS-143's own wording): `item:consume`
+   * calls `store.transaction()` around the read-check-write so this code is
+   * a genuine "someone else won the race" answer, not a stale client cache.
+   */
+  z.literal("CONFLICT"),
 ]);
 
 export type ErrorCode = z.infer<typeof ErrorCodeSchema>;
@@ -381,6 +469,12 @@ export const WorldSnapshotPayloadSchema = z.object({
     z.string(), // document type name e.g. "Scene", "Actor"
     z.array(z.unknown()), // raw document objects
   ),
+
+  /**
+   * Ambient table track playing right now, or null when the table is silent.
+   * Optional: older snapshots omit it; clients treat absent as null.
+   */
+  ambientTrack: AmbientTrackStateSchema.optional(),
 });
 
 export type WorldSnapshotPayload = z.infer<typeof WorldSnapshotPayloadSchema>;
@@ -448,6 +542,23 @@ export const ResyncFullPayloadSchema = z.object({
 export type ResyncFullPayload = z.infer<typeof ResyncFullPayloadSchema>;
 
 /**
+ * What the ack of a `resync:request` carries in `result`: the server answers with a delta or a full snapshot, tagged
+ * by `type`. ONE schema for both ends: the server handler returns it and the client unwraps it, so a change of shape
+ * breaks the build (and the contract test) instead of silently freezing every player's mirror.
+ */
+export const ResyncAckResultSchema = z.discriminatedUnion("type", [
+  z.object({ type: z.literal("delta"), payload: ResyncDeltaPayloadSchema }),
+  z.object({ type: z.literal("full"), payload: ResyncFullPayloadSchema }),
+]);
+
+export type ResyncAckResult = z.infer<typeof ResyncAckResultSchema>;
+
+/** The whole ack of a `resync:request`: success carries {@link ResyncAckResult}; failure only a code and message. */
+export type ResyncRequestAck =
+  | { ok: true; seq: number; result: ResyncAckResult }
+  | { ok: false; code?: string; message?: string };
+
+/**
  * world:activeScene — broadcast when the GM activates a different scene.
  * REQ-NET-005 (rooms), spec 06 §scene activation.
  *
@@ -464,6 +575,18 @@ export const WorldActiveScenePayloadSchema = z.object({
 
 export type WorldActiveScenePayload = z.infer<typeof WorldActiveScenePayloadSchema>;
 
+/**
+ * scene:preload — the GM's "Pre-carregar para todos". Request: `{ sceneId }`. The server
+ * answers every connected client with the same op carrying `{ sceneId, background }` (the art
+ * path to warm), WITHOUT a seq: it is not world state, only a hint, so it must neither advance
+ * nor hole the mirror's seq stream. It never changes the scene on air.
+ */
+export const ScenePreloadPayloadSchema = z.object({
+  sceneId: z.string().min(1),
+});
+
+export type ScenePreloadPayload = z.infer<typeof ScenePreloadPayloadSchema>;
+
 // ---------------------------------------------------------------------------
 // Note: EmbeddedAddress (EmbeddedAddressSchema) was defined here but never
 // wired into DocCreatePayload, DocUpdatePayload, or DocDeletePayload — those
@@ -472,3 +595,421 @@ export type WorldActiveScenePayload = z.infer<typeof WorldActiveScenePayloadSche
 // keep the public surface minimal. If an explicit EmbeddedAddress type is
 // needed in M1-C, re-introduce it aligned with the actual payload schemas.
 // ---------------------------------------------------------------------------
+
+// ---------------------------------------------------------------------------
+// ApplyDamage / ApplyCondition — REQ-SYS-138..142 (spec 15), REQ-CHT-052/053
+// (spec 09), plan do Alquimista §2.1/§2.4 (ALQ-F1-01/02, DEC-SYS-12).
+//
+// `actor:applyDamage` and `actor:applyCondition` are CORE ops
+// (ActorMechanicsService, packages/server) — validated/authorized here, the
+// game-specific rule (IWR, dying, condition immunity…) is a pure function a
+// system registers via `registrar.registerActorMechanics`
+// (packages/system-api/src/actor-mechanics.ts). This file carries only the
+// wire contract: what a client may send and what the server broadcasts back.
+// The op HANDLER itself (ActorMechanicsService) is server behavior for
+// ALQ-F1-05/F1-08 — out of scope here.
+// ---------------------------------------------------------------------------
+
+/**
+ * Generic degree-of-success label (e.g. PF2e's four-degree remaster set).
+ * Deliberately a plain string, never a fixed enum — the engine does not
+ * hardcode a game system's rules (DEC-SYS-12; mirrors
+ * `RollResultData.degreeOfSuccess` in `chat/types.ts` and
+ * `DegreeOfSuccessResult.degree` in `@fusion/system-api`'s registries.ts,
+ * both `string` for the exact same reason).
+ */
+export type DegreeOfSuccess = string;
+
+/**
+ * A single damage/healing component of an `actor:applyDamage` instance.
+ *
+ * With `source` present, the server REREADS `type`/`category`/`critical`/
+ * `nonlethal`/`traits`/`materials`/`amount` from the roll gravada
+ * (`08-motor-de-rolagens.md` RollResult) for any non-privileged caller and
+ * IGNORES whatever the client sent for those fields (REQ-SYS-142 step 2b) —
+ * this schema stays PERMISSIVE (accepts them alongside `source`) on purpose:
+ * rejecting them here would reject exactly the shape a well-behaved
+ * privileged client (GM / `actingAs:"system"`) is allowed to send outright,
+ * and a non-privileged client sending them is a server-side "ignore", never a
+ * schema-level "reject" (REQ-SYS-142 is explicit that the response for that
+ * case is to silently reread, not to refuse the envelope). Permission-gated
+ * fields (`amount` without `source`, `traits`/`materials`/`critical`/
+ * `nonlethal` without `source`) are enforced by ActorMechanicsService, not by
+ * this schema — it has no caller role to check against.
+ */
+export const DamageInstanceInputSchema = z
+  .object({
+    /** Damage type slug ("fire", "piercing"…) or "healing" / "temp-hp". */
+    type: z.string().min(1).max(60),
+    category: z.enum(["persistent", "splash", "precision"]).optional(),
+    /** Only honoured from a privileged caller or `actingAs:"system"` without `source`. */
+    amount: z.number().optional(),
+    /** The server rereads the total (and, non-privileged, the rest of this shape) from here. */
+    source: z
+      .object({
+        messageId: z.string().min(1),
+        rollIndex: z.number().int().nonnegative(),
+      })
+      .strict()
+      .optional(),
+    /** IWR exceptions (e.g. "magical", "silver"). */
+    traits: z.array(z.string().min(1)).optional(),
+    /** cold-iron, silver… (F5-09). */
+    materials: z.array(z.string().min(1)).optional(),
+    critical: z.boolean().optional(),
+    nonlethal: z.boolean().optional(),
+  })
+  .strict()
+  .refine((instance) => instance.source !== undefined || instance.amount !== undefined, {
+    message: "DamageInstanceInput requires either `source` or `amount`",
+  });
+
+export type DamageInstanceInput = z.infer<typeof DamageInstanceInputSchema>;
+
+/**
+ * `actor:applyDamage` — client → server. REQ-SYS-142, REQ-CHT-052.
+ *
+ * `targetTokenIds`/`hardness`/`ignoreResistance` are GM-only overrides (or
+ * `actingAs:"system"`); a non-privileged caller applies to every token in the
+ * originating roll's `flags.fusion.targetSnapshot` instead — enforced by
+ * ActorMechanicsService (permission context isn't available to this schema).
+ * `multiplier` and `basicSave` ARE mutually exclusive at the schema level
+ * (REQ-SYS-142 step 1: "basicSave e multiplier juntos DEVEM ser rejeitados").
+ */
+export const ActorApplyDamagePayloadSchema = z
+  .object({
+    /** Same type in the same payload sums before IWR. */
+    instances: z.array(DamageInstanceInputSchema).min(1),
+    targetTokenIds: z.array(z.string().min(1)).optional(),
+    selfActorId: z.string().min(1).optional(),
+    multiplier: z.union([z.literal(0), z.literal(0.5), z.literal(1), z.literal(2)]).optional(),
+    basicSave: z
+      .object({ degree: z.string().min(1) })
+      .strict()
+      .optional(),
+    hardness: z.number().optional(),
+    /** Exploitive Bomb-style overrides. */
+    ignoreResistance: z
+      .array(z.object({ type: z.string().min(1), value: z.number() }).strict())
+      .optional(),
+  })
+  .strict()
+  .refine((payload) => !(payload.multiplier !== undefined && payload.basicSave !== undefined), {
+    message: "multiplier and basicSave are mutually exclusive",
+  });
+
+export type ActorApplyDamagePayload = z.infer<typeof ActorApplyDamagePayloadSchema>;
+
+// ---------------------------------------------------------------------------
+// FusionExpiry — plan §2.5 (owner: ALQ-F2-01/EffectItem). Minimal forward
+// declaration: ActorApplyConditionPayload (this task, §2.4) references it for
+// `expiry`, and §2.5 already fixes the exact shape (not "contrato ausente" —
+// just owned by a later task). If F2-01 wants it elsewhere, move it; keep
+// this one in sync or re-export to avoid a duplicate/divergent definition.
+// ---------------------------------------------------------------------------
+
+export const ExpiryOnSchema = z.enum([
+  "turn-start",
+  "turn-end",
+  "round-end",
+  "combat-end",
+  "daily-prep",
+  "never",
+  "after-roll",
+]);
+
+export type ExpiryOn = z.infer<typeof ExpiryOnSchema>;
+
+export const FusionExpirySchema = z
+  .object({
+    on: ExpiryOnSchema,
+    ownerActorId: z.string().min(1),
+    remainingRounds: z.number().int().nonnegative().optional(),
+    // `after-roll` only (BHR-F2-06, DC-05): the roll that spends the effect.
+    rollPredicate: z.array(z.string().min(1)).max(16).optional(),
+  })
+  .strict();
+
+export type FusionExpiry = z.infer<typeof FusionExpirySchema>;
+
+/**
+ * How long a condition applied via `actor:applyCondition` is declared to
+ * last (I5 fix, onda 4 revisão adversarial). Same six units as
+ * `EffectItemSystem.duration` (plan §2.5) — deliberately only `value`/`unit`
+ * (no `sustained`/inner `expiry`, which are EffectItem-specific concerns):
+ * `engine-2e`'s `resolveExpirations` (`ExpiryDuration`) only ever reads
+ * those two fields to convert a duration to a round count.
+ *
+ * Declarative "what the rule says" (like `expiry` itself, already
+ * client-declarable above) — never the anchor for "what round is it right
+ * now"; that is `ApplyConditionOptions.now` (`@fusion/system-api`,
+ * server-resolved only, same discipline as `ApplyDamageOptions.actingAs`).
+ */
+export const ConditionDurationSchema = z
+  .object({
+    value: z.number().int(),
+    unit: z.enum(["round", "minute", "hour", "day", "encounter", "unlimited"]),
+  })
+  .strict();
+
+export type ConditionDuration = z.infer<typeof ConditionDurationSchema>;
+
+/**
+ * `actor:applyCondition` — client → server. REQ-SYS-142, spec 09 (chat
+ * protocol table), plan §2.4.
+ *
+ * GM on any actor; player on their own actor or on their live target
+ * selection (REQ-CBT-056) — enforced server-side, not by this schema.
+ */
+export const ActorApplyConditionPayloadSchema = z
+  .object({
+    targetTokenIds: z.array(z.string().min(1)),
+    selfActorId: z.string().min(1).optional(),
+    /** A condition slug the active system registered (+ "dead" for PF2e). */
+    slug: z.string().min(1),
+    mode: z.enum(["add", "remove", "set", "increase", "decrease"]),
+    value: z.number().nullable().optional(),
+    /** e.g. `{ instance: PersistentDamageInstance }` — opaque to the core. */
+    data: z.record(z.string(), z.unknown()).optional(),
+    expiry: FusionExpirySchema.optional(),
+    /**
+     * I5 fix: how long this condition lasts (e.g. Debilitating Bomb's
+     * `clumsy 1` for 1 minute). Without this, `expiry` alone can't tell
+     * `resolveExpirations` how many rounds to count — it fell back to
+     * "expire on the very first matching turn boundary" (a 10-round
+     * condition lasting 1). Meaningful only together with `expiry`.
+     */
+    duration: ConditionDurationSchema.optional(),
+    source: z
+      .object({
+        messageId: z.string().min(1).optional(),
+        itemUuid: z.string().min(1).optional(),
+        effectItemId: z.string().min(1).optional(),
+      })
+      .strict()
+      .optional(),
+  })
+  .strict();
+
+export type ActorApplyConditionPayload = z.infer<typeof ActorApplyConditionPayloadSchema>;
+
+// ---------------------------------------------------------------------------
+// actor:damageApplied — NOT a socket envelope type. Per spec 09's own
+// protocol table, the summary is delivered as a `ChatMessage` (document:create)
+// whose card carries this shape — mirroring how `AbilityCardSchema` rides
+// `flags.pf2e.abilityCard` (packages/shared/src/chat/types.ts): this one is
+// core-level (DF-02: ApplyDamage is a core op), so it travels under
+// `flags.fusion.damageApplied`, the same "fusion" namespace as
+// `flags.fusion.targetSnapshot`/`rollContext`/`rollNotes` used throughout the
+// plan. Wiring this into ChatMessageSchema/ChatSendFlagsSchema is server
+// behavior (ALQ-F1-05/F1-08) — out of this task's scope; this only fixes the
+// payload SHAPE those flags will carry (REQ-CHT-053).
+// ---------------------------------------------------------------------------
+
+export const DamageAppliedTypeBreakdownSchema = z
+  .object({
+    type: z.string().min(1),
+    amount: z.number(),
+    /** Present when a resistance/weakness of this type applied. */
+    resistanceApplied: z.number().optional(),
+  })
+  .strict();
+
+export type DamageAppliedTypeBreakdown = z.infer<typeof DamageAppliedTypeBreakdownSchema>;
+
+/**
+ * One target's line in the `actor:damageApplied` summary (REQ-CHT-053: "uma
+ * linha por alvo"). `hpBefore`/`hpAfter`/`tempHpAfter`/`deathCondition` are
+ * PRIVILEGED-only — present for GM/owner, stripped by
+ * `packages/server/src/net/redaction.ts` before broadcast to a non-privileged
+ * viewer, who sees only `byType`/`total` (D-04, REQ-CHT-053). Optional here so
+ * a redacted payload still parses.
+ */
+export const DamageAppliedTargetSchema = z
+  .object({
+    tokenId: z.string().min(1),
+    actorId: z.string().min(1),
+    name: z.string().min(1),
+    byType: z.array(DamageAppliedTypeBreakdownSchema),
+    total: z.number(),
+    hpBefore: z.number().optional(),
+    hpAfter: z.number().optional(),
+    tempHpAfter: z.number().optional(),
+    /** null clears a previously-shown death condition. Privileged-only, like the HP fields above. */
+    deathCondition: z.enum(["dead", "dying", "unconscious"]).nullable().optional(),
+  })
+  .strict();
+
+export type DamageAppliedTarget = z.infer<typeof DamageAppliedTargetSchema>;
+
+export const ActorDamageAppliedPayloadSchema = z
+  .object({
+    sourceMessageId: z.string().min(1),
+    targets: z.array(DamageAppliedTargetSchema).min(1),
+  })
+  .strict();
+
+export type ActorDamageAppliedPayload = z.infer<typeof ActorDamageAppliedPayloadSchema>;
+
+// ---------------------------------------------------------------------------
+// Acks — TurnHookContext.applyDamage/applyCondition (system-api combat.ts)
+// resolve these. REQ-SYS-142: "o ack devolvido a usuário sem papel
+// privilegiado DEVE seguir a mesma redação do resumo" — ApplyDamageAck reuses
+// the same shape as the broadcast card for exactly that reason. Neither shape
+// is spelled out verbatim in plan §2.1 or spec 15 (both are illustrative,
+// "não-normativas em detalhes de campo" per spec 15's own disclaimer) — this
+// is this task's minimal, documented choice; ALQ-F1-05/F1-08 (the server op)
+// may refine it.
+// ---------------------------------------------------------------------------
+
+export type ApplyDamageAck = Ack<ActorDamageAppliedPayload>;
+
+export const ActorConditionAppliedResultSchema = z
+  .object({
+    actorId: z.string().min(1),
+    slug: z.string().min(1),
+    mode: z.enum(["add", "remove", "set", "increase", "decrease"]),
+    value: z.number().nullable().optional(),
+  })
+  .strict();
+
+export type ActorConditionAppliedResult = z.infer<typeof ActorConditionAppliedResultSchema>;
+
+export type ApplyConditionAck = Ack<{ targets: ActorConditionAppliedResult[] }>;
+
+// ---------------------------------------------------------------------------
+// item:consume — client → server. Spec 15 REQ-SYS-143/144, spec 17
+// REQ-PF2-224..228, plan §2.6, task ALQ-F2-11.
+//
+// Shapes fixed verbatim from spec 15's own `ItemConsumePayload`/
+// `ItemConsumeResult` code block (not "illustrative" like ApplyDamage's own
+// disclaimer elsewhere in this file — ALQ-F2-01 pinned this one exactly,
+// this task only adds the Zod validation).
+// ---------------------------------------------------------------------------
+
+export const ItemConsumeModeSchema = z.enum(["use", "strike", "resource"]);
+export type ItemConsumeMode = z.infer<typeof ItemConsumeModeSchema>;
+
+export const ItemConsumePayloadSchema = z
+  .object({
+    actorId: z.string().min(1),
+    /** Required in "use" and "strike"; absent in "resource". */
+    itemId: z.string().min(1).optional(),
+    /** Required in "resource"; absent in "use"/"strike". */
+    resourceSlug: z.string().min(1).optional(),
+    mode: ItemConsumeModeSchema,
+    /** Only meaningful in "strike" — which attack of a multi-attack action. */
+    mapIndex: z.union([z.literal(0), z.literal(1), z.literal(2)]).optional(),
+    /** Checked against the actor's `_stats.version` — REQ-SYS-143 step 3. */
+    expectedVersion: z.number().int().nonnegative(),
+  })
+  .strict()
+  .refine((p) => p.mode === "resource" || p.itemId !== undefined, {
+    message: 'itemId is required when mode is "use" or "strike"',
+  })
+  .refine((p) => p.mode !== "resource" || p.resourceSlug !== undefined, {
+    message: 'resourceSlug is required when mode is "resource"',
+  });
+
+export type ItemConsumePayload = z.infer<typeof ItemConsumePayloadSchema>;
+
+/**
+ * `item:consume`'s result — REQ-SYS-143 step 5. Plain type (not a wire
+ * envelope schema of its own): unlike `ActorDamageAppliedPayload`, this shape
+ * never rides a second channel (no chat-message flags need to parse it back)
+ * — it only ever travels once, as the socket Ack's `result`.
+ */
+export interface ItemConsumeResult {
+  readonly consumed:
+    | { readonly itemId?: string; readonly quantityLeft: number; readonly destroyed: boolean }
+    | { readonly resourceSlug: string; readonly valueLeft: number };
+  readonly appliedEffectIds: string[];
+  readonly chatMessageIds: string[];
+}
+
+export type ItemConsumeAck = Ack<ItemConsumeResult>;
+
+// ---------------------------------------------------------------------------
+// item:transfer - client -> server. Giving `quantity` of an item to another actor.
+//
+// The sender must OWN `fromActorId` (or be the GM / an assistant); the receiver need not be owned - a player hands
+// things to another player's character - but must be a character a player owns or one the sender can at least
+// perceive. `expectedVersion` is the sender's `_stats.version`, the same stale-read guard as `item:consume`.
+// ---------------------------------------------------------------------------
+
+export const ItemTransferPayloadSchema = z
+  .object({
+    fromActorId: z.string().min(1),
+    toActorId: z.string().min(1),
+    itemId: z.string().min(1),
+    quantity: z.number().int().min(1),
+    expectedVersion: z.number().int().nonnegative(),
+  })
+  .strict();
+
+export type ItemTransferPayload = z.infer<typeof ItemTransferPayloadSchema>;
+
+export interface ItemTransferResult {
+  /** Units that changed hands. */
+  readonly moved: number;
+  /** The item's name as the sender saw it. */
+  readonly itemName: string;
+  readonly toActorId: string;
+  /** True when the units were added to a stack the receiver already had. */
+  readonly merged: boolean;
+}
+
+export type ItemTransferAck = Ack<ItemTransferResult>;
+
+// ---------------------------------------------------------------------------
+// effect:apply — client → server. Spec 52 §7.3 (REQ-BHR-102..105), DC-06,
+// task BHR-F4-08. The client only NAMES the effect (`packId` + `docId`); the
+// server reads it from the pack, so no effect content ever travels on the wire.
+// ---------------------------------------------------------------------------
+
+export const EffectApplyPayloadSchema = z
+  .object({
+    sourceActorId: z.string().min(1),
+    targetActorIds: z.array(z.string().min(1)).min(1).max(32),
+    effect: z.object({ packId: z.string().min(1), docId: z.string().min(1) }).strict(),
+    /**
+     * Who ticks the clock (`ownerActorId`). The rest of the expiry (`on`,
+     * `remainingRounds`, `rollPredicate`) is built on the SERVER from the pack
+     * effect's `expiryTemplate`; only the Mestre/assistant may override it
+     * (onda-6 review I-1).
+     */
+    expiry: FusionExpirySchema.partial({ on: true }).optional(),
+    /** The roll message whose `targetSnapshot` names the targets (DF-03). */
+    messageId: z.string().min(1).optional(),
+  })
+  .strict();
+
+export type EffectApplyPayload = z.infer<typeof EffectApplyPayloadSchema>;
+
+export interface EffectApplyResult {
+  /** One embedded effect item per target, in `targetActorIds` order. */
+  readonly applied: { readonly actorId: string; readonly itemId: string }[];
+}
+
+export type EffectApplyAck = Ack<EffectApplyResult>;
+
+// ---------------------------------------------------------------------------
+// Target-selection assertion — REQ-CBT-056, plan §2.3. TYPE ONLY: the plan
+// places the implementation at packages/server/src/combat/target-selection.ts
+// (server behavior — out of ALQ-F1-02's scope, which delivers types/schemas).
+// Not present in specs/15-api-de-sistemas.md's own contract block — registered
+// as an open divergence (see this task's report): the plan §2.3 is the only
+// normative source for this exact signature today.
+// ---------------------------------------------------------------------------
+
+/**
+ * Pure assertion ActorMechanicsService (REQ-SYS-142 step 3) uses before
+ * resolving `actor:applyCondition` targets from a non-privileged caller's LIVE
+ * target selection: every requested `tokenId` must be part of that user's
+ * current selection (REQ-CBT-056), or the op is FORBIDDEN.
+ */
+export type AssertTargetsSelectedFn = (
+  userId: string,
+  role: string,
+  tokenIds: readonly string[],
+) => { ok: true } | { ok: false; code: "FORBIDDEN"; missing: string[] };

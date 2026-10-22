@@ -165,7 +165,7 @@ describe("Spot-check: pt-BR translations differ from English for key terms", () 
     ["FUSION.Sidebar.Tabs.Scenes", "Cenas", "Scenes"],
     ["FUSION.Sidebar.Tabs.Combat", "Combate", "Combat"],
     ["FUSION.Combat.Empty", "Nenhum combate ativo.", "No active combat."],
-    ["FUSION.Join.JoinWorld", "Entrar no World", "Join World"],
+    ["FUSION.Join.JoinWorld", "Entrar no Mundo", "Join World"],
     ["FUSION.NoScene.Title", "Nenhuma Cena Ativa", "No Active Scene"],
     ["FUSION.Connection.Connected", "Conectado", "Connected"],
     ["FUSION.Role.GM", "Mestre", "GM"],
@@ -314,6 +314,37 @@ describe("No raw HTML entities in bundle values", () => {
   it("no en value contains an HTML entity escape", () => {
     const leaks = findEntityLeaks(enBundle);
     expect(leaks, `en values with raw HTML entities: ${leaks.join(", ")}`).toHaveLength(0);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// 11 — Pets tab "Kind" badge keys coverage (I1, ficha-nivel3 onda 3 review)
+//
+// PetCard.svelte renders `t(`FUSION.Sheet.Pets.Kind.${familiar.companionKind}`)`
+// for every linked companion. "eidolon" (T3.2, DEC-PET-04) shipped with no
+// bundle entry in either locale, so the Summoner's eidolon showed the raw
+// i18n key on its card instead of a translated badge.
+// ---------------------------------------------------------------------------
+
+describe("Pets Kind badge keys coverage", () => {
+  const kindKeys = [
+    "FUSION.Sheet.Pets.Kind.familiar",
+    "FUSION.Sheet.Pets.Kind.pet",
+    "FUSION.Sheet.Pets.Kind.animalCompanion",
+    "FUSION.Sheet.Pets.Kind.mount",
+    "FUSION.Sheet.Pets.Kind.eidolon",
+    "FUSION.Sheet.Pets.Kind.thrall",
+    "FUSION.Contacts.CompanionKind.thrall",
+  ];
+
+  it("all Pets Kind keys exist in pt-BR", () => {
+    const missing = kindKeys.filter((k) => !(k in ptBRBundle));
+    expect(missing, `Missing Pets Kind keys in pt-BR: ${missing.join(", ")}`).toHaveLength(0);
+  });
+
+  it("all Pets Kind keys exist in en", () => {
+    const missing = kindKeys.filter((k) => !(k in enBundle));
+    expect(missing, `Missing Pets Kind keys in en: ${missing.join(", ")}`).toHaveLength(0);
   });
 });
 

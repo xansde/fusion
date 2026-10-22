@@ -9,6 +9,7 @@
 export * from "./manifest.js";
 export * from "./system-module.js";
 export * from "./combat.js";
+export * from "./actor-mechanics.js";
 export * from "./validate.js";
 export * from "./registry.js";
 // M3-A additions
