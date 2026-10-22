@@ -32,6 +32,7 @@
   import { currentRollMode } from "../../lib/chat/rollModeState.svelte.js";
   import { openRollBuilderWindow } from "../../lib/chat/rollBuilderWindow.js";
   import { rollModeI18nStem, rollModeIcons } from "./rollModeIcons.js";
+  import Icon from "../common/Icon.svelte";
 
   import type { ChatSendPayload } from "@fusion/shared";
   import type { FavoriteDie } from "../../lib/chat/favoriteDice.js";
@@ -110,16 +111,6 @@
   }
 
   /** Drawn d20 with a plus — "compose a roll". Same 24×24 grammar as the rail's icons. */
-  const builderIcon =
-    '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="16" height="16" ' +
-    'fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" ' +
-    'stroke-linejoin="round" focusable="false">' +
-    '<path d="M10.5 2.8 3.6 6.9v8.2l6.9 4.1 6.9-4.1V6.9z"/>' +
-    '<path d="m3.6 6.9 6.9 4.1 6.9-4.1"/>' +
-    '<path d="M10.5 11v8.2"/>' +
-    '<path d="M19 16.5v5"/>' +
-    '<path d="M16.5 19h5"/>' +
-    "</svg>";
 </script>
 
 <div class="dice-tray" role="group" aria-label={t("FUSION.Chat.Favorites.RowLabel")}>
@@ -145,7 +136,10 @@
           <span class="dice-tray__mode" aria-hidden="true">{@html rollModeIcons[favorite.mode]}</span>
         {/if}
       </span>
-      <span class="dice-tray__formula">{favorite.formula}</span>
+      <!-- ui-chat: a favourite named by its own formula ("1d20") does not print it twice. -->
+      {#if favorite.formula !== favorite.label}
+        <span class="dice-tray__formula">{favorite.formula}</span>
+      {/if}
     </button>
   {/each}
 
@@ -158,37 +152,38 @@
     aria-label={t("FUSION.Chat.Favorites.OpenBuilder")}
     onclick={openBuilder}
   >
-    <span class="dice-tray__icon" aria-hidden="true">{@html builderIcon}</span>
+    <Icon name="dices" size={20} />
   </button>
 </div>
 
 <style>
-  /* Layout mirrors `.dicebar`/`.fav` in prototypes/chat-tab.prototype.html — sizes, gaps
-     and colors are read from there, not guessed. */
+  /* Layout follows `.dicebar`/`.fav` in prototypes/chat-tab.prototype.html; sizes are the
+     tokens of the visual language (ui-chat): 40px targets, 13px floor, no caps. */
   .dice-tray {
     display: flex;
     align-items: stretch;
-    gap: 0.25rem;
-    padding: 0.35rem 0.5rem 0;
+    gap: var(--fusion-space-1);
+    padding: var(--fusion-space-2) var(--fusion-space-3) 0;
     flex-shrink: 0;
   }
 
   .dice-tray__favorite {
     flex: 1;
     min-width: 0;
+    min-height: var(--fusion-target);
     display: flex;
     flex-direction: column;
-    align-items: flex-start;
-    gap: 0.05rem;
-    padding: 0.25rem 0.3rem;
-    border: 1px solid var(--fusion-border);
-    border-radius: var(--fusion-radius-sm);
+    align-items: center;
+    justify-content: center;
+    padding: var(--fusion-space-1);
+    border: 1px solid var(--fusion-border-strong);
+    border-radius: var(--fusion-radius);
     background: var(--fusion-surface-alt);
     color: var(--fusion-text);
     cursor: pointer;
     font-family: var(--fusion-font);
-    font-size: 0.72rem;
-    line-height: 1.15;
+    font-size: var(--fusion-text-sm);
+    line-height: var(--fusion-leading-tight);
     transition: border-color var(--fusion-transition);
   }
 
@@ -199,42 +194,40 @@
   .dice-tray__head {
     display: flex;
     align-items: center;
-    gap: 0.2rem;
+    justify-content: center;
+    gap: var(--fusion-space-1);
     width: 100%;
   }
 
   .dice-tray__label {
-    flex: 1;
     min-width: 0;
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
-    font-weight: 600;
+    font-weight: var(--fusion-weight-bold);
   }
 
   /* A locked favourite carries its own mode icon, so the row says who will see the roll
      before it is fired (REQ-ACH-044). */
   .dice-tray__mode {
-    display: grid;
-    place-items: center;
-    color: var(--fusion-accent-hover);
+    display: inline-flex;
+    color: var(--fusion-text-muted);
     flex-shrink: 0;
   }
 
   .dice-tray__mode :global(svg) {
-    width: 12px;
-    height: 12px;
-    stroke-width: 1.9;
+    width: 14px;
+    height: 14px;
   }
 
   .dice-tray__formula {
-    width: 100%;
+    max-width: 100%;
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
-    color: var(--fusion-text-subtle);
-    font-family: ui-monospace, monospace;
-    font-size: 0.65rem;
+    color: var(--fusion-text-muted);
+    font-family: var(--fusion-font-mono);
+    font-size: var(--fusion-text-xs);
   }
 
   /* Q-ACH-04: invalid means disabled with the reason in the tooltip, not a click that
@@ -248,13 +241,14 @@
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    flex: 0 0 34px;
-    border: 1px solid var(--fusion-border);
-    border-radius: var(--fusion-radius-sm);
+    flex: 0 0 var(--fusion-target);
+    min-height: var(--fusion-target);
+    border: 1px solid var(--fusion-border-strong);
+    border-radius: var(--fusion-radius);
     background: var(--fusion-surface-alt);
-    color: var(--fusion-accent-hover);
+    color: var(--fusion-text);
     cursor: pointer;
-    transition: color var(--fusion-transition), border-color var(--fusion-transition);
+    transition: border-color var(--fusion-transition);
   }
 
   .dice-tray__builder:not(:disabled):hover {
@@ -269,12 +263,7 @@
 
   .dice-tray__favorite:focus-visible,
   .dice-tray__builder:focus-visible {
-    outline: 2px solid var(--fusion-accent);
+    outline: 2px solid var(--fusion-focus);
     outline-offset: 1px;
-  }
-
-  .dice-tray__icon {
-    display: inline-flex;
-    line-height: 0;
   }
 </style>

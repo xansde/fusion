@@ -139,43 +139,45 @@
   .favorite-editor {
     display: flex;
     flex-direction: column;
-    gap: 0.5rem;
-    padding: 0.6rem;
+    gap: var(--fusion-space-3);
+    padding: var(--fusion-space-3);
     font-family: var(--fusion-font);
-    font-size: 0.8125rem;
+    font-size: var(--fusion-text-base);
     color: var(--fusion-text);
   }
 
   /* Row-based, like `.fld` in prototypes/chat-tab.prototype.html: label, formula and mode
      of a favourite sit on one line, wrapping only when the formula's reason needs its own
-     row. */
+     row. ui-chat: grouped by a hairline, not a box per slot. */
   .favorite-editor__slot {
     display: flex;
     flex-direction: row;
     flex-wrap: wrap;
     align-items: flex-end;
-    gap: 0.4rem;
-    border: 1px solid var(--fusion-border);
-    border-radius: var(--fusion-radius-sm);
-    padding: 0.4rem 0.5rem;
+    gap: var(--fusion-space-2);
+    border: none;
+    border-top: 1px solid var(--fusion-border);
+    margin: 0;
+    padding: var(--fusion-space-2) 0 0;
   }
 
   .favorite-editor__slot legend {
-    font-size: 0.7rem;
+    font-size: var(--fusion-text-sm);
+    font-weight: var(--fusion-weight-bold);
     color: var(--fusion-text-muted);
-    padding: 0 0.25rem;
+    padding: 0 var(--fusion-space-1) 0 0;
   }
 
   .favorite-editor__field {
     display: flex;
     flex-direction: column;
-    gap: 0.15rem;
-    font-size: 0.7rem;
+    gap: var(--fusion-space-1);
+    font-size: var(--fusion-text-sm);
     color: var(--fusion-text-muted);
   }
 
   .favorite-editor__field--label {
-    flex: 0 0 6rem;
+    flex: 0 0 6.5rem;
   }
 
   .favorite-editor__field--formula {
@@ -185,7 +187,7 @@
 
   /* Shrinks instead of wrapping to its own row (a `flex: 0 0 auto` mode field never yields
      its intrinsic width, and the fieldset's hypothetical-basis sum overflows the roll
-     builder window's 340px — see FavoriteDiceEditor's review r1 note). */
+     builder window — see FavoriteDiceEditor's review r1 note). */
   .favorite-editor__field--mode {
     flex: 0 1 auto;
     min-width: 0;
@@ -198,18 +200,25 @@
 
   .favorite-editor__field input,
   .favorite-editor__field select {
-    background: var(--fusion-surface-alt);
-    border: 1px solid var(--fusion-border);
-    border-radius: var(--fusion-radius-sm);
+    min-height: var(--fusion-target);
+    background: var(--fusion-input-bg);
+    border: 1px solid var(--fusion-border-strong);
+    border-radius: var(--fusion-radius);
     color: var(--fusion-text);
     font-family: var(--fusion-font);
-    font-size: 0.8125rem;
-    padding: 0.2rem 0.35rem;
+    font-size: var(--fusion-text-base);
+    padding: 0 var(--fusion-space-2);
     min-width: 0;
   }
 
+  .favorite-editor__field input:focus-visible,
+  .favorite-editor__field select:focus-visible {
+    outline: 2px solid var(--fusion-focus);
+    outline-offset: 1px;
+  }
+
   .favorite-editor__field--formula input {
-    font-family: ui-monospace, monospace;
+    font-family: var(--fusion-font-mono);
   }
 
   .favorite-editor__input--invalid {
@@ -219,35 +228,40 @@
   .favorite-editor__problem {
     flex: 1 0 100%;
     margin: 0;
-    font-size: 0.7rem;
+    font-size: var(--fusion-text-sm);
     color: var(--fusion-danger);
   }
 
   .favorite-editor__actions {
     display: flex;
     align-items: center;
-    gap: 0.5rem;
+    gap: var(--fusion-space-3);
   }
 
   .favorite-editor__actions button {
+    min-height: var(--fusion-target);
+    padding: 0 var(--fusion-space-4);
     background: var(--fusion-accent);
     border: 1px solid var(--fusion-accent);
-    border-radius: var(--fusion-radius-sm);
-    color: #fff;
+    border-radius: var(--fusion-radius);
+    color: var(--fusion-on-accent);
     cursor: pointer;
     font-family: var(--fusion-font);
-    font-size: 0.8125rem;
-    font-weight: 600;
-    padding: 0.3rem 0.7rem;
+    font-size: var(--fusion-text-base);
+    font-weight: var(--fusion-weight-bold);
+  }
+
+  .favorite-editor__actions button:hover {
+    background: var(--fusion-accent-hover);
   }
 
   .favorite-editor__actions button:focus-visible {
-    outline: 2px solid var(--fusion-accent);
+    outline: 2px solid var(--fusion-focus);
     outline-offset: 1px;
   }
 
   .favorite-editor__saved {
-    font-size: 0.7rem;
-    color: var(--fusion-success);
+    font-size: var(--fusion-text-sm);
+    color: var(--fusion-text);
   }
 </style>
