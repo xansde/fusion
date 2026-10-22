@@ -214,7 +214,12 @@ export function redactBlindRollForNonPrivileged(msg: ChatMessage): ChatMessage {
  * result over; so are the extra damage dice the server added to a damage roll (`extraDamage`). A blind roll's
  * non-privileged body carries none of them.
  */
-const BLIND_HIDDEN_FUSION_FLAG_KEYS = ["rollNotes", "conditionalModifiers", "extraDamage"] as const;
+const BLIND_HIDDEN_FUSION_FLAG_KEYS = [
+  "rollNotes",
+  "conditionalModifiers",
+  "extraDamage",
+  "breakdown",
+] as const;
 
 function stripBlindRollResolution(flags: ChatMessage["flags"]): ChatMessage["flags"] {
   const fusion = (flags as Record<string, unknown> | undefined)?.["fusion"];
