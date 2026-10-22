@@ -1095,6 +1095,7 @@ const SAVE_LABELS_PT: Record<string, string> = {
  */
 const FIELD_KEYS = {
   cast: "FUSION.Sheet.Details.Field.Cast",
+  actions: "FUSION.Sheet.Details.Field.Actions",
   range: "FUSION.Sheet.Details.Field.Range",
   area: "FUSION.Sheet.Details.Field.Area",
   target: "FUSION.Sheet.Details.Field.Target",
@@ -1342,17 +1343,19 @@ export function buildFeatFields(
 
   const actionType = str(system["actionType"]);
   const actions = system["actions"];
-  const castLabel = isPt ? "Conjuração" : "Cast";
+  // A feat or an action is used, not cast: its cost reads "Ações" (ui-builder, 22/10/2026 — the field said
+  // "Conjuração" on every talent of the builder's pickers). Spells keep "Conjuração" (buildSpellFields).
+  const costLabel = isPt ? "Ações" : "Actions";
   if (actionType === "action" && typeof actions === "number") {
     const cost = formatActionCost(String(actions), locale);
     const value = cost.icons ? `${cost.icons} ${cost.label}` : cost.label;
-    fields.push(field(FIELD_KEYS.cast, castLabel, value));
+    fields.push(field(FIELD_KEYS.actions, costLabel, value));
   } else if (actionType === "reaction") {
     const cost = formatActionCost("reaction", locale);
-    fields.push(field(FIELD_KEYS.cast, castLabel, `${cost.icons} ${cost.label}`));
+    fields.push(field(FIELD_KEYS.actions, costLabel, `${cost.icons} ${cost.label}`));
   } else if (actionType === "free") {
     const cost = formatActionCost("free", locale);
-    fields.push(field(FIELD_KEYS.cast, castLabel, `${cost.icons} ${cost.label}`));
+    fields.push(field(FIELD_KEYS.actions, costLabel, `${cost.icons} ${cost.label}`));
   }
 
   return fields;
