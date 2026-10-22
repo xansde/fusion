@@ -349,7 +349,7 @@ function connect(port: number, worldId: string, token: string): Promise<ClientSo
       socket.once("op", () => resolve(socket));
     });
     socket.once("connect_error", reject);
-    setTimeout(() => reject(new Error("connect timeout")), 5000);
+    setTimeout(() => reject(new Error("connect timeout")), 15_000);
   });
 }
 

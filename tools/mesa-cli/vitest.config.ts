@@ -20,5 +20,10 @@ export default defineConfig({
     include: ["test/**/*.test.ts"],
     testTimeout: 30_000,
     hookTimeout: 20_000,
+    // Minimum Argon2id cost for the users every test bootstraps (see
+    // argon2Options in packages/server/src/auth/crypto.ts; production cost is
+    // pinned by auth/__tests__/argon2-cost.test.ts). Inherited by the CLI
+    // child processes the tests spawn.
+    env: { FUSION_TEST_FAST_ARGON2: "1" },
   },
 });

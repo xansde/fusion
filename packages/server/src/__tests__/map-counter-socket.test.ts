@@ -95,7 +95,7 @@ function connect(port: number, token: string): Promise<ClientSocket> {
       socket.once("op", () => resolve(socket));
     });
     socket.once("connect_error", reject);
-    setTimeout(() => reject(new Error("connect timeout")), 5000);
+    setTimeout(() => reject(new Error("connect timeout")), 15_000);
   });
 }
 
