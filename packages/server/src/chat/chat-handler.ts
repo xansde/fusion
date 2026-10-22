@@ -551,7 +551,11 @@ export function buildChatSendHandler(deps: ChatHandlerDeps): HandlerFn {
     // a token that exists, an oracle of the hidden ones.
 
     // --- Parse command ---
-    const command = parseChatCommand(payload.content);
+    // The world's user names let `/w Nome Composto msg` find a compound name
+    // without brackets or quotes (REQ-CHT-014, longest match).
+    const command = parseChatCommand(payload.content, {
+      knownNames: getAllUsers(deps.db).map((u) => u.name),
+    });
 
     // --- Speaker resolution (REQ-CHT-022) ---
     // Simplified: userId is always present; actorId/tokenId from payload if provided

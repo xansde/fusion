@@ -19,6 +19,8 @@
   import JoinScreen from "./components/JoinScreen.svelte";
   import TableScreen from "./components/TableScreen.svelte";
   import ManagementScreen from "./components/ManagementScreen.svelte";
+  import FusionMark from "./components/common/FusionMark.svelte";
+  import { t } from "./lib/i18n/i18n.js";
 
   onMount(async () => {
     await sessionActions.load();
@@ -29,8 +31,8 @@
   {#if session.screen === "loading"}
     <!-- Loading / session-restore splash -->
     <div class="loading-screen" role="status" aria-live="polite">
-      <span class="loading-screen__dot" aria-hidden="true"></span>
-      <span class="loading-screen__label">Loading…</span>
+      <span class="loading-screen__mark" aria-hidden="true"><FusionMark size={40} /></span>
+      <span class="loading-screen__label">{t("FUSION.App.Loading")}</span>
     </div>
 
   {:else if session.screen === "join"}
@@ -51,32 +53,32 @@
     flex-direction: column;
   }
 
-  /* Minimal full-screen loading indicator */
+  /* Minimal full-screen loading indicator: the mark breathes (no spinner);
+     reduced motion keeps it still (base.css switches animations off). */
   .loading-screen {
     align-items: center;
+    background: var(--fusion-bg);
+    color: var(--fusion-accent);
     display: flex;
     flex-direction: column;
-    gap: 0.75rem;
+    gap: var(--fusion-space-3);
     height: 100%;
     justify-content: center;
   }
 
-  .loading-screen__dot {
-    animation: spin 0.8s linear infinite;
-    border: 2px solid var(--fusion-border);
-    border-top-color: var(--fusion-accent);
-    border-radius: 50%;
-    display: block;
-    height: 28px;
-    width: 28px;
+  .loading-screen__mark {
+    animation: breathe 1.6s ease-in-out infinite;
+    display: inline-flex;
   }
 
   .loading-screen__label {
-    color: var(--fusion-text-subtle);
-    font-size: 0.8125rem;
+    color: var(--fusion-text-muted);
+    font-size: var(--fusion-text-base);
   }
 
-  @keyframes spin {
-    to { transform: rotate(360deg); }
+  @keyframes breathe {
+    50% {
+      opacity: 0.45;
+    }
   }
 </style>

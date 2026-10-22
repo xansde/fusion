@@ -21,9 +21,11 @@
     value: string;
     /** Rendered size in CSS pixels (square). Default: 180. */
     size?: number;
+    /** Accessible name (translated by the caller). */
+    label?: string;
   }
 
-  const { value, size = 180 }: Props = $props();
+  const { value, size = 180, label }: Props = $props();
 
   // Error correction level "M" (15% recovery) is a reasonable default for
   // URLs displayed on a screen and scanned at short range.
@@ -56,7 +58,7 @@
     height={size}
     viewBox="0 0 {viewBoxSize} {viewBoxSize}"
     role="img"
-    aria-label="QR code for {value}"
+    aria-label={label ?? value}
   >
     <rect width={viewBoxSize} height={viewBoxSize} fill="#ffffff" />
     {#each modules as row, rowIndex (rowIndex)}
