@@ -617,6 +617,8 @@
   "FUSION.Role.Player": "Jogador",
   "FUSION.Header.Leave": "Sair",
   "FUSION.Header.Leaving": "…",
+  "FUSION.Sidebar.CloseDrawer": "Fechar gaveta",
+  "FUSION.Header.Latency": "Latência: {{ms}} ms",
   "FUSION.Header.CollapsePanel": "Recolher painel",
   "FUSION.Header.ExpandPanel": "Expandir painel",
   "FUSION.Header.UnreadMessages": "{{count}} mensagens não lidas",

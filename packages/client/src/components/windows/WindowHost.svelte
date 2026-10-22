@@ -127,7 +127,7 @@
     position: fixed;
     inset: 0;
     pointer-events: none; /* let clicks through to canvas */
-    z-index: var(--fusion-z-windows, 200);
+    z-index: var(--fusion-z-windows);
   }
 
   /* Windows and dialogs re-enable pointer events on themselves */

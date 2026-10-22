@@ -5,6 +5,7 @@
    * sent to every connected client.
    */
   import FilePicker from "$lib/components/assets/FilePicker.svelte";
+  import Icon from "./common/Icon.svelte";
   import { fusionApi } from "../lib/api.js";
   import { getSocket } from "../lib/session.svelte.js";
   import { canSendShow, emitShow } from "../lib/presence/showPlayers.js";
@@ -108,7 +109,7 @@
             aria-label="Remover imagem"
             onclick={() => {
               imagePath = null;
-            }}>&times;</button
+            }}><Icon name="x" size={18} /></button
           >
         {/if}
       </div>
@@ -150,7 +151,7 @@
 
   .show-tool__main,
   .show-tool__panel {
-    background: rgba(24, 24, 31, 0.85);
+    background: var(--fusion-bg);
     backdrop-filter: blur(6px);
     border: 1px solid var(--fusion-border);
     border-radius: var(--fusion-radius-sm);
@@ -181,7 +182,7 @@
     color: var(--fusion-text-muted);
     display: flex;
     flex-direction: column;
-    font-size: 0.8125rem;
+    font-size: var(--fusion-text-sm);
     gap: 0.45rem;
     padding: 0.55rem;
     width: 16rem;
@@ -226,7 +227,7 @@
     color: var(--fusion-text);
     cursor: pointer;
     font-family: var(--fusion-font);
-    font-size: 0.8125rem;
+    font-size: var(--fusion-text-sm);
     padding: 0.25rem 0.55rem;
   }
 

@@ -25,6 +25,8 @@
   import { listVisibleSidebarTabs } from "../../lib/sidebar/registry.js";
   import type { SidebarPanelProps } from "../../lib/sidebar/registry.js";
   import { SidebarDrawerState } from "../../lib/sidebar/drawerState.svelte.js";
+  import Icon from "../common/Icon.svelte";
+  import { t } from "../../lib/i18n/i18n.js";
 
   /** The drawer takes exactly what it hands every panel (registry, REQ-GAV-030). */
   const { socket, worldId, userId, isGm, activeSceneId }: SidebarPanelProps = $props();
@@ -52,6 +54,18 @@
 </script>
 
 <aside class="fusion-sidebar" class:fusion-sidebar--open={drawer.open}>
+  <!-- Phone only (REQ-GAV-040, emenda 22/10/2026): a strip of the map stays in sight left of the
+       open drawer, and the strip is its "Fechar" — the same gesture as clicking the active tab. -->
+  {#if drawer.open}
+    <button
+      type="button"
+      class="fusion-sidebar__peek"
+      aria-label={t("FUSION.Sidebar.CloseDrawer")}
+      onclick={() => drawer.select(drawer.activeTabId)}
+    >
+      <span class="fusion-sidebar__peek-x"><Icon name="x" size={22} /></span>
+    </button>
+  {/if}
   <SidebarRail
     {isGm}
     open={drawer.open}
@@ -97,7 +111,47 @@
   @media (max-width: 899.98px) {
     .fusion-sidebar--open {
       left: 0;
-      --fusion-sidebar-width: calc(100% - var(--fusion-sidebar-rail-width, 44px));
+      --fusion-sidebar-width: calc(100% - var(--fusion-sidebar-rail-width));
+    }
+  }
+
+  /* The peek strip: hidden above the phone breakpoint. */
+  .fusion-sidebar__peek {
+    display: none;
+  }
+
+  /* REQ-GAV-040 (emenda 22/10/2026, provisória) — phone: under 600px the open drawer leaves a
+     56px strip of the map visible on its left, and that strip closes it (an X at its top, a
+     plain wash below so the map still reads). For the action bar's layout the drawer still
+     covers the whole viewport: the strip is part of it. */
+  @media (max-width: 599.98px) {
+    .fusion-sidebar--open {
+      --fusion-sidebar-width: calc(100% - var(--fusion-sidebar-rail-width) - 56px);
+    }
+
+    .fusion-sidebar--open .fusion-sidebar__peek {
+      display: flex;
+      flex: 0 0 56px;
+      align-items: flex-start;
+      justify-content: center;
+      padding: var(--fusion-space-2) 0 0;
+      border: 0;
+      background: var(--fusion-accent-dim);
+      color: var(--fusion-text);
+      cursor: pointer;
+      pointer-events: auto;
+    }
+
+    .fusion-sidebar__peek-x {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: var(--fusion-target);
+      height: var(--fusion-target);
+      border: 1px solid var(--fusion-border-strong);
+      border-radius: 50%;
+      background: var(--fusion-surface);
+      box-shadow: var(--fusion-shadow-popover);
     }
   }
 </style>

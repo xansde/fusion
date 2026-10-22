@@ -56,7 +56,7 @@
 
   .calibrate-tool__main {
     align-items: center;
-    background: rgba(24, 24, 31, 0.85);
+    background: var(--fusion-bg);
     backdrop-filter: blur(6px);
     border: 1px solid var(--fusion-border);
     border-radius: var(--fusion-radius-sm);
@@ -85,7 +85,7 @@
   }
 
   .calibrate-tool__main:focus-visible {
-    outline: 2px solid var(--fusion-accent);
+    outline: 2px solid var(--fusion-focus);
     outline-offset: 2px;
   }
 </style>
