@@ -5,6 +5,7 @@
    */
 
   import { t } from "../../lib/i18n/i18n.js";
+  import Icon from "../common/Icon.svelte";
 
   const {
     isGm,
@@ -15,7 +16,7 @@
 
 <div class="no-scene" aria-live="polite" aria-atomic="true">
   <div class="no-scene__card">
-    <span class="no-scene__icon" aria-hidden="true">&#x1F5FA;</span>
+    <span class="no-scene__icon" aria-hidden="true"><Icon name="map" size={40} /></span>
     <p class="no-scene__title">{t("FUSION.NoScene.Title")}</p>
     <p class="no-scene__hint">
       {#if isGm}
