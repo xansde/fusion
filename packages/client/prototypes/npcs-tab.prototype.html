@@ -1,8 +1,9 @@
 <!doctype html>
 <html lang="pt-BR">
   <head>
+    <!-- Atualizado para a linguagem visual de 22/10/2026 (lane ui-gaveta). Fonte dos tokens: packages/client/src/styles/base.css. -->
     <meta charset="utf-8" />
-    <title>PROTOTYPE — Aba NPCs (rodada 3: atitude, preset e ícones desenhados)</title>
+    <title>Protótipo — Aba NPCs (rodada 3: atitude, preset e ícones desenhados)</title>
     <!--
   PROTOTYPE — descartável. Rodada 3 do grill. Não é código de produção.
   Rodada 1 (três variantes) e rodada 2 (diretório) estão no histórico do arquivo.
@@ -14,7 +15,7 @@
    2. MOVER ATOR por arraste E pelo botão de pasta — as duas formas.
    3. PERSONAGEM NÃO NASCE AQUI. "A aba é de NPC, ou seja, personagens NÃO
       jogáveis." Personagem nasce colado ao player: todo player criado nasce com
-      um personagem em branco. → emenda na 37 (Usuários) e na 05.
+      um personagem em branco. => emenda na 37 (Usuários) e na 05.
    4. VEÍCULO SAIU. Ver o item 1 da rodada 3: ele nunca existiu.
    5. CRIAR NPC tem dois caminhos: do bestiário (browser aqui) ou do zero.
    6. VIDA NÃO APARECE nesta aba.
@@ -28,33 +29,33 @@
       que o Fusion não tem. Confirmado no código: systems/pf2e/src/index.ts:71
       declara Actor: ["character","npc","hazard","loot","familiar"]. "vehicle"
       não aparece em lugar nenhum do repo; foi invenção do protótipo da rodada 1.
-      → A janela de criação oferece NPC e Perigo. `familiar` nasce colado a um dono
+      => A janela de criação oferece NPC e Perigo. `familiar` nasce colado a um dono
         (DEC-CTT-06), e `loot` é assunto do baú (item 3).
    2. "TIPO DE NPC" É PRESET. Mercador, chefe, montaria pré-preenchem a ficha na
       criação e NÃO viram capacidade gravada no ator. Os presets AINDA NÃO EXISTEM,
       mas vão existir — a spec fixa o conceito e o ponto de extensão, não o catálogo.
-      → Consequência que o protótipo passou a respeitar: o preset SOME depois de
+      => Consequência que o protótipo passou a respeitar: o preset SOME depois de
         criar. Não há etiqueta de "mercador" na linha, porque não há nada gravado
         para etiquetar. Só aparece na janela de criação.
    3. BAÚ NÃO É ATOR. "É uma ferramenta para ajudar na agilidade do GM narrar."
-      → O botão põe um baú direto na cena e ele NUNCA aparece no diretório.
-      → Fica pendurado: o pf2e declara o subtipo `loot`, que é exatamente o
+      => O botão põe um baú direto na cena e ele NUNCA aparece no diretório.
+      => Fica pendurado: o pf2e declara o subtipo `loot`, que é exatamente o
         recipiente. Se o baú não é ator, `loot` fica sem uso — ou o baú usa `loot`
         por baixo sem nunca ser listado. Onde vive o conteúdo do baú é assunto da
         spec de Token/Cenas, não desta.
    4. NOVO — ATITUDE. Cada NPC pode ter uma atitude diante dos jogadores:
       INIMIGO · NEUTRO · ALIADO. É configuração para a PARTY INTEIRA, não por
       personagem. Atributo simples; só importa de verdade mais para a frente.
-      → O contraste que vale registrar na spec: CONHECIMENTO é por par
-        contato × personagem (DEC-CTT-03), ATITUDE é da party toda. Duas
+      => O contraste que vale registrar na spec: CONHECIMENTO é por par
+        contato e personagem (DEC-CTT-03), ATITUDE é da party toda. Duas
         granularidades diferentes de propósito, e a spec tem que dizer por quê.
-      → No protótipo: marca à esquerda dos números, sempre visível, que CICLA no
-        clique (aliado → neutro → inimigo), como a célula da matriz da 39.
+      => No protótipo: marca à esquerda dos números, sempre visível, que CICLA no
+        clique (aliado => neutro => inimigo), como a célula da matriz da 39.
         Perigo não tem atitude — a marca simplesmente não aparece.
    5. SEM EMOJI. Todo ícone desta tela é desenhado. Era regra do projeto desde a
       DEC-ACH-04 (spec 38): "emoji muda de desenho e de cor em cada sistema
       operacional e não acompanha o tema". O protótipo estava violando em nove
-      lugares (baú, pastas, ficha, lápis, ✕, estrela, hexágono, chevrons).
+      lugares (baú, pastas, ficha, lápis, x de fechar, estrela, hexágono, chevrons).
 
   ════════════════════════════════════════════════════════════════════════════
   HERDADO DA SPEC 39 (não se rediscute)
@@ -81,116 +82,365 @@
    N10 EXCLUIR PERSONAGEM — criar ganhou casa (Usuários); excluir não tem nenhuma.
 -->
     <style>
-      :root {
-        --bg: #0e0e12;
-        --surface: #18181f;
-        --surface-alt: #1f1f2a;
-        --border: #2e2e3d;
-        --text: #e8e8f0;
-        --muted: #8888a0;
-        --subtle: #55556a;
-        --accent: #7c5cfc;
-        --accent-hover: #9b7ffe;
-        --accent-dim: rgba(124, 92, 252, 0.15);
-        --danger: #ff5c5c;
-        --warn: #e5b83b;
-        --ok: #3ddc84;
-        --special: #b98cff;
-        --pin: #f5a623;
-        --radius-sm: 4px;
-        --radius: 8px;
-        --radius-lg: 12px;
-        --font: system-ui, -apple-system, "Segoe UI", sans-serif;
-        --header: 48px;
-        --panel-w: 300px;
-        --rail-w: 44px;
-      }
-      * {
-        box-sizing: border-box;
-      }
+/* ===== BLOCO DE TOKENS (copiar integral para o <style> de cada protótipo) ===== */
+@font-face{font-family:"Atkinson Hyperlegible Next";font-style:normal;font-display:swap;font-weight:200 800;src:url("../src/styles/fonts/atkinson-hyperlegible-next-latin-wght-normal.woff2") format("woff2")}
+@font-face{font-family:"Atkinson Hyperlegible Mono";font-style:normal;font-display:swap;font-weight:200 800;src:url("../src/styles/fonts/atkinson-hyperlegible-mono-latin-wght-normal.woff2") format("woff2")}
+:root {
+  color-scheme: dark;
+
+  /* Surfaces: warm charcoal, three flat steps. */
+  --fusion-bg: #141311;
+  --fusion-surface: #1c1b18;
+  --fusion-surface-alt: #25231f;
+  --fusion-input-bg: #11100e;
+  --fusion-border: #3b3830;
+  --fusion-border-strong: #575245;
+
+  /* Text: off-white, never #fff. Muted and subtle stay AA on every surface. */
+  --fusion-text: #ebe5d6;
+  --fusion-text-muted: #b8b09e;
+  --fusion-text-subtle: #9a927f;
+
+  /* The one accent — brass. Interactive and "selected" only, never decoration. */
+  --fusion-accent: #d6a24a;
+  --fusion-accent-hover: #e4b765;
+  --fusion-accent-dim: rgba(214, 162, 74, 0.16);
+  --fusion-on-accent: #1a1408;
+
+  /* Semantic */
+  --fusion-success: #7cc395;
+  --fusion-warning: #e8925a;
+  --fusion-danger: #ec7468;
+  --fusion-info: #7fb2dc;
+  --fusion-magic: #b9a0ea;
+
+  /* Semantic washes — subtle tinted fills for badges / states */
+  --fusion-success-dim: rgba(124, 195, 149, 0.15);
+  --fusion-warning-dim: rgba(232, 146, 90, 0.15);
+  --fusion-danger-dim: rgba(236, 116, 104, 0.15);
+  --fusion-info-dim: rgba(127, 178, 220, 0.15);
+  --fusion-magic-dim: rgba(185, 160, 234, 0.15);
+
+  /* Chat system card (A022, spec 38, DEC-ACH-02/03 + REQ-ACH-025): a card's left border is
+     this fixed blue regardless of sender, so "this is a system card" reads apart from
+     "this is <someone>'s message". Not derived from the accent/semantic tones on purpose —
+     those already carry meaning in chat (crit, fumble, blind). */
+  --fusion-chat-sys: #6fa6cc;
+
+  /* Focus ring: its own colour, never the accent, so focus never reads as "selected". */
+  --fusion-focus: #9ccaff;
+
+  /* Elevation: one soft shadow, for floating windows, popovers and menus only. */
+  --fusion-shadow-modal: 0 12px 32px rgba(0, 0, 0, 0.45);
+  --fusion-shadow-popover: 0 6px 18px rgba(0, 0, 0, 0.35);
+
+  /* Proficiency (TEML — Destreinado, Treinado, Expert, Mestre, Lendário). */
+  --fusion-prof-u: var(--fusion-text-subtle);
+  --fusion-prof-t: var(--fusion-info);
+  --fusion-prof-e: var(--fusion-success);
+  --fusion-prof-m: var(--fusion-accent);
+  --fusion-prof-l: var(--fusion-magic);
+
+  --fusion-prof-u-bg: rgba(154, 146, 127, 0.14);
+  --fusion-prof-t-bg: var(--fusion-info-dim);
+  --fusion-prof-e-bg: var(--fusion-success-dim);
+  --fusion-prof-m-bg: var(--fusion-accent-dim);
+  --fusion-prof-l-bg: var(--fusion-magic-dim);
+
+  --fusion-prof-u-border: var(--fusion-border);
+  --fusion-prof-t-border: rgba(127, 178, 220, 0.45);
+  --fusion-prof-e-border: rgba(124, 195, 149, 0.45);
+  --fusion-prof-m-border: rgba(214, 162, 74, 0.45);
+  --fusion-prof-l-border: rgba(185, 160, 234, 0.45);
+
+  /* Typography. rem sizes (the reader's browser zoom wins); nothing below xs. */
+  --fusion-font:
+    "Atkinson Hyperlegible Next", system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial,
+    sans-serif;
+  --fusion-font-mono:
+    "Atkinson Hyperlegible Mono", ui-monospace, "Cascadia Code", "Source Code Pro", Menlo, Consolas,
+    monospace;
+  --fusion-text-xs: 0.8125rem; /* 13px — captions, badges: the floor */
+  --fusion-text-sm: 0.875rem; /* 14px — dense lists, secondary text */
+  --fusion-text-base: 0.9375rem; /* 15px — body */
+  --fusion-text-md: 1rem; /* 16px — reading text (journal, descriptions) */
+  --fusion-text-lg: 1.125rem; /* 18px — section titles */
+  --fusion-text-xl: 1.375rem; /* 22px — window / sheet titles */
+  --fusion-text-2xl: 1.75rem; /* 28px — the big number of a stat or a roll */
+  --fusion-leading: 1.5;
+  --fusion-leading-tight: 1.25;
+  --fusion-tracking: 0.012em;
+  --fusion-word-spacing: 0.06em;
+  --fusion-weight-regular: 400;
+  --fusion-weight-medium: 500;
+  --fusion-weight-bold: 700;
+  /* Readable line length for prose. */
+  --fusion-measure: 68ch;
+
+  /* Spacing (4px grid) */
+  --fusion-space-1: 4px;
+  --fusion-space-2: 8px;
+  --fusion-space-3: 12px;
+  --fusion-space-4: 16px;
+  --fusion-space-5: 20px;
+  --fusion-space-6: 24px;
+  --fusion-space-8: 32px;
+
+  /* Radii: small and few. Pills only for counters. */
+  --fusion-radius-sm: 3px;
+  --fusion-radius: 6px;
+  --fusion-radius-lg: 8px;
+  --fusion-radius-pill: 999px;
+
+  /* Touch target floor (mouse and finger). */
+  --fusion-target: 40px;
+
+  /* Motion */
+  --fusion-transition: 150ms ease;
+
+  /* Layout.
+     The side drawer is one fixed width for every tab (REQ-GAV-012, DEC-GAV-04):
+     300px of panel plus a 44px rail, and no user resize — a tab that needs more
+     room opens a floating window instead of stretching the drawer. */
+  --fusion-sidebar-width: 300px;
+  --fusion-sidebar-rail-width: 44px;
+  --fusion-header-height: 48px;
+
+  /* Layer scale (spec 11 REQ-UIF-008; spec 53 §2.7 — BAR-F1-03).
+     The z-index of the shell's layers, declared in one place so nobody hard-codes a number:
+
+       canvas
+       < scene notice               60  literal in ScenePrepareNotice.svelte
+       < action bar                 70  --fusion-z-actionbar
+       < side drawer                90  literal in Sidebar.svelte
+       < header                    100  literal in TableScreen.svelte
+       < floating windows         101+  counted up by the window manager, inside the host
+       < window host               200  --fusion-z-windows
+       < tooltip, popover          400  --fusion-z-tooltip
+       < context menu              410  --fusion-z-menu
+
+     Tooltip, popover and menu are portaled to <body> (lib/ui/floatingLayer.ts), so these
+     numbers are compared with the window host's own: the host is a stacking context at
+     200, and a layer rendered *inside* a window could never rise above it.
+     They also clear the in-page modals that still use literals (token dialogs 200/201, file
+     picker 300/301), so a tooltip or menu opened from inside one stays visible. REQ-UIF-008
+     wants modals above menus and tooltips; that is for the day modals get tokens of their own
+     (above 410) — a native <dialog> is already above everything, in the top layer. */
+  --fusion-z-actionbar: 70;
+  --fusion-z-windows: 200;
+  --fusion-z-tooltip: 400;
+  --fusion-z-menu: 410;
+
+  /* Combat turn head (spec 40, DEC-CBA-02 / REQ-CBA-021).
+     The head of the turn is one fixed height for every participant — a new condition, a
+     long name or a health bar must never move the advance control, which is anchored to
+     the footer strip below (RNF-CBA-03). Mirrored in TS by TURN_HEAD_HEIGHT_REM /
+     TURN_HEAD_FOOTER_HEIGHT_REM in lib/combat/turnHead.svelte.ts. */
+  --fusion-combat-turn-head-height: 6.5rem;
+  --fusion-combat-turn-head-footer-height: 2.25rem;
+
+  /* Condition tone (DEC-CTT-11, REQ-SYS-043 / REQ-CTT-031).
+     The colour of a condition chip says what the condition does to whoever carries it,
+     never how grave it is: green helps, red hinders, purple is a situation (detection,
+     attitude, control). Aliases rather than raw colours so the combat tab (REQ-CBA-050)
+     and the contacts tab paint the same three tones. The `-dim` fills are the emphasis of
+     a critical condition (REQ-CTT-032) — emphasis on the tone it already has, never a
+     fourth colour. */
+  --fusion-condition-benefit: var(--fusion-success);
+  --fusion-condition-harm: var(--fusion-danger);
+  --fusion-condition-special: var(--fusion-magic);
+  --fusion-condition-benefit-dim: var(--fusion-success-dim);
+  --fusion-condition-harm-dim: var(--fusion-danger-dim);
+  --fusion-condition-special-dim: var(--fusion-magic-dim);
+
+  /* The "no ar" head of the Cenas tab is one fixed height for every state
+     (REQ-CEN-010/013): a long scene name, a missing background image or the
+     environment row must never move the controls the GM presses all session. */
+  --fusion-scene-head-height: 132px;
+
+  /* Aliases for components written against names nobody had declared (they silently fell
+     back to hard-coded colours and ignored the theme). New code uses the names above. */
+  --fusion-radius-md: var(--fusion-radius);
+  --fusion-surface-raised: var(--fusion-surface-alt);
+  --fusion-text-on-accent: var(--fusion-on-accent);
+  --fusion-accent-contrast: var(--fusion-on-accent);
+  --fusion-accent-soft: var(--fusion-accent-dim);
+  --fusion-warn: var(--fusion-warning);
+  --fusion-color-accent: var(--fusion-accent);
+  --fusion-color-accent-hover: var(--fusion-accent-hover);
+  --fusion-color-on-accent: var(--fusion-on-accent);
+  --fusion-color-border: var(--fusion-border);
+  --fusion-color-focus: var(--fusion-focus);
+  --fusion-color-hero: var(--fusion-accent);
+  --fusion-color-info: var(--fusion-info);
+  --fusion-color-magic: var(--fusion-magic);
+  --fusion-color-success: var(--fusion-success);
+  --fusion-color-warning: var(--fusion-warning);
+  --fusion-color-input-bg: var(--fusion-input-bg);
+  --fusion-color-surface: var(--fusion-surface);
+  --fusion-color-surface-raised: var(--fusion-surface-alt);
+  --fusion-color-text: var(--fusion-text);
+  --fusion-color-text-primary: var(--fusion-text);
+  --fusion-color-text-secondary: var(--fusion-text-muted);
+  --fusion-color-text-muted: var(--fusion-text-muted);
+  --fusion-color-text-subtle: var(--fusion-text-subtle);
+}
+
+:root[data-theme="light"] {
+  color-scheme: light;
+
+  --fusion-bg: #efe9dc;
+  --fusion-surface: #f9f6ef;
+  --fusion-surface-alt: #f1ebdf;
+  --fusion-input-bg: #fffdf8;
+  --fusion-border: #d3c9b5;
+  --fusion-border-strong: #b0a48c;
+
+  --fusion-text: #29251f;
+  --fusion-text-muted: #554e42;
+  --fusion-text-subtle: #6e665a;
+
+  --fusion-accent: #8a5a12;
+  --fusion-accent-hover: #6f480c;
+  --fusion-accent-dim: rgba(138, 90, 18, 0.12);
+  --fusion-on-accent: #fffaf0;
+
+  --fusion-success: #2e7448;
+  --fusion-warning: #a14f12;
+  --fusion-danger: #b0352b;
+  --fusion-info: #23628f;
+  --fusion-magic: #6a46b0;
+  --fusion-success-dim: rgba(46, 116, 72, 0.12);
+  --fusion-warning-dim: rgba(161, 79, 18, 0.12);
+  --fusion-danger-dim: rgba(176, 53, 43, 0.12);
+  --fusion-info-dim: rgba(35, 98, 143, 0.12);
+  --fusion-magic-dim: rgba(106, 70, 176, 0.12);
+
+  --fusion-chat-sys: #2d6f99;
+  --fusion-focus: #1d5fa8;
+
+  --fusion-shadow-modal: 0 12px 32px rgba(60, 45, 20, 0.22);
+  --fusion-shadow-popover: 0 6px 18px rgba(60, 45, 20, 0.18);
+
+  --fusion-prof-u-bg: rgba(110, 102, 90, 0.1);
+  --fusion-prof-t-border: rgba(35, 98, 143, 0.4);
+  --fusion-prof-e-border: rgba(46, 116, 72, 0.4);
+  --fusion-prof-m-border: rgba(138, 90, 18, 0.4);
+  --fusion-prof-l-border: rgba(106, 70, 176, 0.4);
+}
+
+/* reset + base do protótipo (sem overflow:hidden; o protótipo rola) */
+*,*::before,*::after{box-sizing:border-box}
+html,body{margin:0;min-height:100%}
+body{background:var(--fusion-bg);color:var(--fusion-text);font-family:var(--fusion-font);font-size:var(--fusion-text-base);line-height:var(--fusion-leading);letter-spacing:var(--fusion-tracking);word-spacing:var(--fusion-word-spacing);font-variant-numeric:tabular-nums;text-align:left;-webkit-font-smoothing:antialiased}
+button,input,select,textarea{font-family:inherit;font-size:inherit;letter-spacing:inherit;word-spacing:inherit;color:inherit}
+h1,h2,h3,h4,h5,h6{font-weight:var(--fusion-weight-bold);line-height:var(--fusion-leading-tight);color:var(--fusion-text);margin:0}
+:focus-visible{outline:2px solid var(--fusion-focus);outline-offset:2px}
+@media (prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:.01ms!important;transition-duration:.01ms!important}}
+.svg-i{width:1em;height:1em;flex:none;fill:none;stroke:currentColor;stroke-width:1.75;stroke-linecap:round;stroke-linejoin:round}
+.theme-toggle{position:fixed;top:8px;right:8px;z-index:9999;min-height:var(--fusion-target);padding:0 var(--fusion-space-3);background:var(--fusion-surface-alt);color:var(--fusion-text);border:1px solid var(--fusion-border-strong);border-radius:var(--fusion-radius);font-size:var(--fusion-text-sm);cursor:pointer}
+/* ===== fim do bloco de tokens ===== */
+
+
+      /* ===== CSS local do protótipo (sem paleta própria: tudo via var(--fusion-*)) ===== */
       html,
       body {
-        margin: 0;
         height: 100%;
-        background: var(--bg);
-        color: var(--text);
-        font-family: var(--font);
-        font-size: 14px;
         overflow: hidden;
+      }
+      .svg-i {
+        width: var(--ico, 1em);
+        height: var(--ico, 1em);
+      }
+      .num {
+        font-family: var(--fusion-font-mono);
+      }
+      .svg-i.fill {
+        fill: currentColor;
+      }
+      .dotlive {
+        display: inline-block;
+        width: 8px;
+        height: 8px;
+        border-radius: var(--fusion-radius-pill);
+        background: var(--fusion-success);
+        flex: none;
+      }
+      .theme-toggle {
+        left: 50%;
+        right: auto;
+        top: 4px;
+        transform: translateX(-50%);
       }
 
       /* ---------- App shell (mock) ---------- */
       .header {
-        height: var(--header);
+        height: var(--fusion-header-height);
         display: flex;
         align-items: center;
-        gap: 0.75rem;
-        padding: 0 0.75rem;
-        background: var(--surface);
-        border-bottom: 1px solid var(--border);
+        gap: var(--fusion-space-3);
+        padding: 0 var(--fusion-space-3);
+        background: var(--fusion-surface);
+        border-bottom: 1px solid var(--fusion-border);
         position: relative;
         z-index: 200;
       }
       .header .bolt {
-        color: #f5a623;
+        color: var(--fusion-accent);
+        display: inline-flex;
       }
       .header .world {
-        font-weight: 600;
+        font-weight: var(--fusion-weight-bold);
       }
       .header .pill {
-        background: var(--accent-dim);
-        border: 1px solid var(--accent);
-        color: var(--accent-hover);
-        border-radius: var(--radius-sm);
-        padding: 0.15rem 0.5rem;
-        font-size: 0.8rem;
-        font-weight: 600;
+        display: inline-flex;
+        align-items: center;
+        gap: var(--fusion-space-1);
+        border-bottom: 2px solid var(--fusion-accent);
+        color: var(--fusion-text);
+        padding: 0 var(--fusion-space-1);
+        font-size: var(--fusion-text-sm);
+        font-weight: var(--fusion-weight-bold);
       }
       .header .spacer {
         flex: 1;
       }
       .header .status {
-        color: var(--muted);
-        font-size: 0.8rem;
+        color: var(--fusion-text-muted);
+        font-size: var(--fusion-text-sm);
         display: flex;
         align-items: center;
-        gap: 0.35rem;
-      }
-      .header .dot {
-        width: 8px;
-        height: 8px;
-        border-radius: 50%;
-        background: var(--ok);
+        gap: var(--fusion-space-2);
       }
       .header .who {
-        background: var(--surface-alt);
-        border: 1px solid var(--border);
-        border-radius: var(--radius-sm);
-        padding: 0.15rem 0.5rem;
-        font-size: 0.8rem;
+        font-size: var(--fusion-text-sm);
+        display: inline-flex;
+        align-items: center;
+        gap: var(--fusion-space-2);
       }
-      .header .who b {
-        color: var(--danger);
+      .header .who .dotlive {
+        background: var(--fusion-danger);
       }
-      .header .who.player b {
-        color: var(--ok);
+      .header .who.player .dotlive {
+        background: var(--fusion-success);
       }
       .header .btn {
-        background: var(--surface-alt);
-        border: 1px solid var(--border);
-        color: var(--text);
-        border-radius: var(--radius-sm);
-        padding: 0.2rem 0.6rem;
-        font: inherit;
-        font-size: 0.8rem;
+        background: var(--fusion-surface-alt);
+        border: 1px solid var(--fusion-border);
+        color: var(--fusion-text);
+        border-radius: var(--fusion-radius-sm);
+        min-height: var(--fusion-target);
+        padding: 0 var(--fusion-space-3);
+        font-size: var(--fusion-text-sm);
+        cursor: pointer;
       }
       .stage {
         position: absolute;
-        top: var(--header);
+        top: var(--fusion-header-height);
         left: 0;
         right: 0;
         bottom: 0;
-        background: #0b0b0f;
+        background: var(--fusion-input-bg);
         display: grid;
         place-items: center;
         overflow: hidden;
@@ -198,122 +448,114 @@
       .stage .art {
         width: 44vh;
         height: 44vh;
-        border-radius: 6px;
-        background: radial-gradient(circle at 50% 45%, #2f6bd6 0%, #1a3f8f 55%, #132c68 100%);
+        border-radius: var(--fusion-radius);
+        background: var(--fusion-info-dim);
+        border: 1px solid var(--fusion-border);
         display: grid;
         place-items: center;
-        box-shadow: 0 0 0 1px #21407f;
       }
       .stage .art .house {
         width: 60%;
         height: 60%;
-        background: #fff;
+        background: var(--fusion-text-muted);
         clip-path: polygon(50% 0, 100% 40%, 88% 40%, 88% 100%, 12% 100%, 12% 40%, 0 40%);
         display: grid;
         place-items: center;
       }
       .stage .art .star {
-        font-size: 9vh;
-        color: #e5b83b;
+        --ico: 9vh;
+        color: var(--fusion-accent);
         margin-top: 22%;
+        display: flex;
       }
       .stage .drop {
         position: absolute;
         left: calc(50% - 16vh);
         top: calc(50% + 7vh);
-        border: 2px dashed var(--accent);
-        border-radius: 6px;
-        padding: 0.25rem 0.6rem;
-        color: var(--accent-hover);
-        font-size: 0.72rem;
-        background: rgba(11, 11, 15, 0.85);
+        border: 2px dashed var(--fusion-accent);
+        border-radius: var(--fusion-radius);
+        padding: var(--fusion-space-1) var(--fusion-space-3);
+        color: var(--fusion-text);
+        font-size: var(--fusion-text-xs);
+        background: var(--fusion-input-bg);
         text-align: center;
-        line-height: 1.5;
+        line-height: var(--fusion-leading);
         min-width: 32vh;
       }
+      .stage .drop .drop-line {
+        display: inline-flex;
+        align-items: center;
+        gap: var(--fusion-space-1);
+      }
       .stage .drop b {
-        color: var(--warn);
+        color: var(--fusion-warning);
       }
       .stage .drop.hot {
-        border-color: var(--ok);
-        color: var(--ok);
+        border-color: var(--fusion-success);
+        color: var(--fusion-success);
       }
       .stage .scenepill {
         position: absolute;
-        left: 16px;
-        top: 16px;
-        background: rgba(11, 11, 15, 0.85);
-        border: 1px solid var(--border);
-        border-radius: 999px;
-        padding: 0.2rem 0.65rem;
-        font-size: 0.72rem;
-        color: var(--muted);
-      }
-      .stage .scenepill b {
-        color: var(--ok);
+        left: var(--fusion-space-4);
+        top: var(--fusion-space-4);
+        background: var(--fusion-surface);
+        border: 1px solid var(--fusion-border);
+        border-radius: var(--fusion-radius);
+        padding: var(--fusion-space-1) var(--fusion-space-3);
+        font-size: var(--fusion-text-sm);
+        color: var(--fusion-text-muted);
+        display: inline-flex;
+        align-items: center;
+        gap: var(--fusion-space-2);
       }
       .stage .chestmark {
         position: absolute;
         left: calc(50% + 9vh);
         top: calc(50% - 5vh);
-        color: var(--pin);
+        color: var(--fusion-warning);
         text-align: center;
-        filter: drop-shadow(0 0 6px rgba(245, 166, 35, 0.5));
+        --ico: 30px;
       }
-      .stage .chestmark .icon {
-        width: 30px;
-        height: 30px;
+      .stage .chestmark .svg-i {
+        display: block;
         margin: 0 auto;
       }
       .stage .chestmark small {
         display: block;
-        font-size: 0.6rem;
-        margin-top: 2px;
+        font-size: var(--fusion-text-xs);
+        margin-top: var(--fusion-space-1);
       }
 
       /* ---------- Chassi C (spec 36) ---------- */
-      .icon {
-        width: 20px;
-        height: 20px;
-        stroke: currentColor;
-        fill: none;
-        stroke-width: 1.8;
-        stroke-linecap: round;
-        stroke-linejoin: round;
-        display: block;
-      }
-      .icon.fill {
-        fill: currentColor;
-        stroke-width: 1.2;
-      }
       .tabbtn {
         position: relative;
         display: grid;
         place-items: center;
         background: none;
         border: 0;
-        color: var(--muted);
+        color: var(--fusion-text-muted);
         cursor: pointer;
         padding: 0;
+        --ico: 22px;
         transition:
-          color 0.12s,
-          background 0.12s;
+          color var(--fusion-transition),
+          background var(--fusion-transition);
       }
       .tabbtn:hover {
-        color: var(--text);
+        color: var(--fusion-text);
       }
       .tabbtn .badge {
         position: absolute;
-        top: 3px;
-        right: 3px;
-        min-width: 16px;
-        height: 16px;
-        padding: 0 4px;
-        border-radius: 999px;
-        background: var(--danger);
-        color: #fff;
-        font-size: 0.62rem;
-        font-weight: 700;
+        top: 2px;
+        right: 2px;
+        min-width: 18px;
+        height: 18px;
+        padding: 0 var(--fusion-space-1);
+        border-radius: var(--fusion-radius-pill);
+        background: var(--fusion-danger);
+        color: var(--fusion-bg);
+        font-size: var(--fusion-text-xs);
+        font-weight: var(--fusion-weight-bold);
         display: grid;
         place-items: center;
         line-height: 1;
@@ -323,104 +565,85 @@
         right: calc(100% + 10px);
         top: 50%;
         transform: translateY(-50%);
-        background: #0b0b0f;
-        border: 1px solid var(--border);
-        color: var(--text);
-        padding: 0.25rem 0.5rem;
-        border-radius: var(--radius-sm);
-        font-size: 0.75rem;
+        background: var(--fusion-surface-alt);
+        border: 1px solid var(--fusion-border);
+        color: var(--fusion-text);
+        padding: var(--fusion-space-1) var(--fusion-space-2);
+        border-radius: var(--fusion-radius-sm);
+        font-size: var(--fusion-text-sm);
         white-space: nowrap;
         opacity: 0;
         pointer-events: none;
-        transition: opacity 0.1s;
-        box-shadow: 0 4px 14px rgba(0, 0, 0, 0.5);
+        transition: opacity var(--fusion-transition);
+        box-shadow: var(--fusion-shadow-popover);
         z-index: 5;
       }
-      .tabbtn:hover .tip {
+      .tabbtn:hover .tip,
+      .tabbtn:focus-visible .tip {
         opacity: 1;
       }
       .sidebar {
         position: absolute;
-        top: var(--header);
+        top: var(--fusion-header-height);
         right: 0;
         bottom: 0;
         display: flex;
         z-index: 90;
       }
       .tabs {
-        width: var(--rail-w);
+        width: var(--fusion-sidebar-rail-width);
         display: flex;
         flex-direction: column;
-        padding: 10px 0;
-        gap: 3px;
+        padding: var(--fusion-space-3) 0;
+        gap: var(--fusion-space-1);
         align-items: flex-end;
       }
       .tabs .tabbtn {
-        width: 40px;
+        width: var(--fusion-sidebar-rail-width);
         height: 44px;
-        border: 1px solid var(--border);
+        border: 1px solid var(--fusion-border);
         border-right: 0;
-        border-radius: var(--radius) 0 0 var(--radius);
-        background: var(--surface-alt);
-        color: var(--muted);
+        border-radius: var(--fusion-radius) 0 0 var(--fusion-radius);
+        background: var(--fusion-surface-alt);
       }
       .tabs .tabbtn.is-active {
-        background: var(--surface);
-        color: var(--accent-hover);
-        width: 44px;
-        border-color: var(--accent);
+        background: var(--fusion-surface);
+        color: var(--fusion-text);
+        border-color: var(--fusion-accent);
         z-index: 2;
-      }
-      .is-open .tabs .tabbtn.is-active {
-        box-shadow: 1px 0 0 0 var(--surface);
-      }
-      .tabs .tabbtn.is-active .icon {
-        width: 22px;
-        height: 22px;
       }
       .tabs .grp {
         display: flex;
         flex-direction: column;
-        gap: 3px;
+        gap: var(--fusion-space-1);
         align-items: flex-end;
       }
       .tabs .grp.gm {
-        margin-top: 14px;
+        margin-top: var(--fusion-space-4);
         position: relative;
       }
-      .tabs .grp.gm::before {
+      .tabs .grp.gm::before,
+      .tabs .foot::before {
         content: "";
         position: absolute;
-        top: -8px;
+        top: -10px;
         right: 6px;
         width: 28px;
         height: 1px;
-        background: var(--border);
-      }
-      .tabs .grp.gm .tabbtn {
-        border-color: rgba(255, 92, 92, 0.35);
+        background: var(--fusion-border);
       }
       .tabs .foot {
         margin-top: auto;
         position: relative;
         display: flex;
         flex-direction: column;
-        gap: 3px;
+        gap: var(--fusion-space-1);
         align-items: flex-end;
       }
-      .tabs .foot::before {
-        content: "";
-        position: absolute;
-        top: -8px;
-        right: 6px;
-        width: 28px;
-        height: 1px;
-        background: var(--border);
-      }
       .panel {
-        width: var(--panel-w);
-        background: var(--surface);
-        border-left: 1px solid var(--accent);
+        width: var(--fusion-sidebar-width);
+        background: var(--fusion-surface);
+        border-left: 1px solid var(--fusion-accent);
         display: none;
         flex-direction: column;
         position: relative;
@@ -432,41 +655,32 @@
       .panel-head {
         display: flex;
         align-items: center;
-        gap: 0.35rem;
-        padding: 0.45rem 0.5rem;
-        border-bottom: 1px solid var(--accent-dim);
+        gap: var(--fusion-space-2);
+        padding: var(--fusion-space-2);
+        border-bottom: 1px solid var(--fusion-border);
         flex: 0 0 auto;
       }
       .panel-title {
-        font-size: 0.72rem;
-        font-weight: 700;
-        letter-spacing: 0.06em;
-        text-transform: uppercase;
-        color: var(--muted);
-        padding: 0.15rem 0.3rem;
+        font-size: var(--fusion-text-md);
+        font-weight: var(--fusion-weight-bold);
+        color: var(--fusion-text);
+        padding: var(--fusion-space-2) var(--fusion-space-1);
         flex: 1;
       }
       .panel-body {
         flex: 1;
         overflow: auto;
-        padding: 0.5rem 0.55rem 0.8rem;
-        font-size: 0.85rem;
+        padding: var(--fusion-space-2) var(--fusion-space-2) var(--fusion-space-4);
+        font-size: var(--fusion-text-base);
         min-height: 0;
-      }
-      .panel-body::-webkit-scrollbar {
-        width: 8px;
-      }
-      .panel-body::-webkit-scrollbar-thumb {
-        background: var(--surface-alt);
-        border-radius: 99px;
       }
       .panel-foot {
         flex: 0 0 auto;
-        border-top: 1px solid var(--border);
-        background: var(--surface-alt);
-        padding: 0.4rem 0.5rem;
+        border-top: 1px solid var(--fusion-border);
+        background: var(--fusion-surface-alt);
+        padding: var(--fusion-space-2);
         display: flex;
-        gap: 0.35rem;
+        gap: var(--fusion-space-2);
         align-items: center;
       }
 
@@ -474,631 +688,608 @@
       .search {
         flex: 1;
         min-width: 0;
+        min-height: var(--fusion-target);
         display: flex;
         align-items: center;
-        gap: 0.3rem;
-        background: var(--surface-alt);
-        border: 1px solid var(--border);
-        border-radius: var(--radius-sm);
-        padding: 0.15rem 0.4rem;
+        gap: var(--fusion-space-2);
+        background: var(--fusion-input-bg);
+        border: 1px solid var(--fusion-border);
+        border-radius: var(--fusion-radius-sm);
+        padding: 0 var(--fusion-space-2);
       }
       .search:focus-within {
-        border-color: var(--accent);
+        border-color: var(--fusion-accent);
       }
       .search input {
         flex: 1;
         min-width: 0;
+        min-height: var(--fusion-target);
         background: none;
         border: 0;
-        color: var(--text);
-        font: inherit;
-        font-size: 0.8rem;
-        padding: 0.15rem 0;
-        outline: none;
+        color: var(--fusion-text);
+        font-size: var(--fusion-text-base);
+        padding: 0;
       }
       .search .mag {
-        color: var(--subtle);
+        color: var(--fusion-text-subtle);
         display: grid;
         place-items: center;
-      }
-      .search .mag .icon {
-        width: 13px;
-        height: 13px;
+        --ico: 16px;
       }
       .hbtn {
-        background: var(--surface);
-        border: 1px solid var(--border);
-        color: var(--muted);
-        border-radius: var(--radius-sm);
-        height: 26px;
-        min-width: 26px;
-        padding: 0 0.45rem;
-        font: inherit;
-        font-size: 0.72rem;
+        background: var(--fusion-surface);
+        border: 1px solid var(--fusion-border);
+        color: var(--fusion-text-muted);
+        border-radius: var(--fusion-radius-sm);
+        min-height: var(--fusion-target);
+        min-width: var(--fusion-target);
+        padding: 0 var(--fusion-space-3);
+        font-size: var(--fusion-text-sm);
         cursor: pointer;
         display: inline-flex;
         align-items: center;
-        gap: 0.3rem;
+        gap: var(--fusion-space-2);
         justify-content: center;
       }
       .hbtn:hover {
-        color: var(--text);
-        border-color: var(--accent);
+        color: var(--fusion-text);
+        border-color: var(--fusion-accent);
       }
       .hbtn.wide {
         flex: 1;
       }
       .hbtn.pri {
-        border-color: var(--accent);
-        color: var(--accent-hover);
-        background: var(--accent-dim);
+        border-color: var(--fusion-accent);
+        color: var(--fusion-text);
+        background: var(--fusion-accent-dim);
       }
       .hbtn.chestb {
-        border-color: rgba(245, 166, 35, 0.5);
-        color: var(--pin);
+        border-color: var(--fusion-warning);
+        color: var(--fusion-warning);
       }
       .hbtn.chestb:hover {
-        background: rgba(245, 166, 35, 0.1);
-        border-color: var(--pin);
+        background: var(--fusion-warning-dim);
       }
-      .hbtn .icon {
-        width: 14px;
-        height: 14px;
+      .hbtn .svg-i {
+        --ico: 16px;
       }
 
       .sec {
-        margin: 0.7rem 0 0.3rem;
+        margin: var(--fusion-space-4) 0 var(--fusion-space-1);
         display: flex;
         align-items: center;
-        gap: 0.35rem;
-        padding: 0 0.2rem;
+        gap: var(--fusion-space-2);
+        padding: 0 var(--fusion-space-1);
+        min-height: 28px;
       }
       .sec:first-child {
-        margin-top: 0.1rem;
+        margin-top: var(--fusion-space-1);
       }
       .sec .lbl {
-        font-size: 0.66rem;
-        font-weight: 700;
-        letter-spacing: 0.07em;
-        text-transform: uppercase;
-        color: var(--subtle);
+        font-size: var(--fusion-text-sm);
+        font-weight: var(--fusion-weight-bold);
+        color: var(--fusion-text-muted);
         display: inline-flex;
         align-items: center;
-        gap: 0.25rem;
+        gap: var(--fusion-space-1);
       }
       .sec.pinned .lbl {
-        color: var(--pin);
-      }
-      .sec .lbl .icon {
-        width: 11px;
-        height: 11px;
+        color: var(--fusion-accent);
       }
       .sec .cnt {
-        font-size: 0.66rem;
-        color: var(--subtle);
-        background: var(--surface-alt);
-        border-radius: 999px;
-        padding: 0 0.35rem;
+        font-size: var(--fusion-text-xs);
+        font-family: var(--fusion-font-mono);
+        color: var(--fusion-text-muted);
+        background: var(--fusion-surface-alt);
+        border-radius: var(--fusion-radius-pill);
+        padding: 0 var(--fusion-space-2);
       }
       .sec .line {
         flex: 1;
         height: 1px;
-        background: var(--border);
+        background: var(--fusion-border);
       }
       .sec .add {
         background: none;
         border: 0;
-        color: var(--subtle);
+        color: var(--fusion-text-muted);
         cursor: pointer;
-        font: inherit;
-        font-size: 0.68rem;
-        padding: 0 0.15rem;
+        font-size: var(--fusion-text-sm);
+        min-height: var(--fusion-target);
+        padding: 0 var(--fusion-space-2);
         display: inline-flex;
         align-items: center;
-        gap: 0.2rem;
-      }
-      .sec .add .icon {
-        width: 12px;
-        height: 12px;
+        gap: var(--fusion-space-1);
       }
       .sec .add:hover {
-        color: var(--accent-hover);
+        color: var(--fusion-text);
       }
       .sec.drop-ok {
-        outline: 1px dashed var(--accent);
+        outline: 1px dashed var(--fusion-accent);
         outline-offset: 2px;
-        border-radius: var(--radius-sm);
+        border-radius: var(--fusion-radius-sm);
       }
 
       /* ---------- Árvore de pastas ---------- */
       .fold {
         display: flex;
         align-items: center;
-        gap: 0.3rem;
-        padding: 0.22rem 0.25rem;
-        border-radius: var(--radius-sm);
+        gap: var(--fusion-space-2);
+        padding: var(--fusion-space-1);
+        min-height: var(--fusion-target);
+        border-radius: var(--fusion-radius-sm);
         cursor: pointer;
-        color: var(--muted);
+        color: var(--fusion-text-muted);
         user-select: none;
+        position: relative;
       }
       .fold:hover {
-        background: var(--surface-alt);
-        color: var(--text);
+        background: var(--fusion-surface-alt);
+        color: var(--fusion-text);
       }
       .fold.drop-ok {
-        background: var(--accent-dim);
-        box-shadow: inset 0 0 0 1px var(--accent);
-        color: var(--text);
+        background: var(--fusion-accent-dim);
+        outline: 1px solid var(--fusion-accent);
+        color: var(--fusion-text);
       }
       .fold .chev {
-        color: var(--subtle);
+        color: var(--fusion-text-subtle);
         flex: 0 0 auto;
         display: grid;
         place-items: center;
+        --ico: 14px;
       }
-      .fold .chev .icon {
-        width: 12px;
-        height: 12px;
-        transition: transform 0.12s;
+      .fold .chev .svg-i {
+        transition: transform var(--fusion-transition);
       }
-      .fold .chev.open .icon {
+      .fold .chev.open .svg-i {
         transform: rotate(90deg);
       }
       .fold .pinmark {
-        color: var(--pin);
+        color: var(--fusion-accent);
         flex: 0 0 auto;
         display: grid;
         place-items: center;
-      }
-      .fold .pinmark .icon {
-        width: 12px;
-        height: 12px;
+        --ico: 14px;
       }
       .fold .fn {
-        font-size: 0.76rem;
-        font-weight: 600;
-        overflow: hidden;
-        text-overflow: ellipsis;
-        white-space: nowrap;
+        font-size: var(--fusion-text-base);
+        font-weight: var(--fusion-weight-bold);
+        min-width: 0;
+        overflow-wrap: anywhere;
       }
       .fold .path {
-        font-size: 0.6rem;
-        color: var(--subtle);
-        font-weight: 400;
+        font-size: var(--fusion-text-xs);
+        color: var(--fusion-text-subtle);
         flex: 0 0 auto;
       }
       .fold .cnt {
-        font-size: 0.64rem;
-        color: var(--subtle);
+        font-size: var(--fusion-text-xs);
+        font-family: var(--fusion-font-mono);
+        color: var(--fusion-text-muted);
         margin-left: auto;
         flex: 0 0 auto;
       }
+      /* ferramentas: sobrepõem o fim da linha em hover/foco; em toque entram no fluxo */
       .fold .tools {
         display: none;
-        gap: 0.05rem;
-        flex: 0 0 auto;
-        margin-left: auto;
+        position: absolute;
+        right: 0;
+        top: 0;
+        bottom: 0;
+        background: var(--fusion-surface-alt);
+        border-radius: var(--fusion-radius-sm);
+        align-items: center;
       }
-      .fold:hover .tools {
+      .fold:hover .tools,
+      .fold:focus-within .tools {
         display: flex;
       }
-      .fold:hover .cnt {
-        display: none;
-      }
-      .fold .tools button {
+      .tools button {
         background: none;
         border: 0;
-        color: var(--subtle);
+        color: var(--fusion-text-muted);
         cursor: pointer;
-        padding: 0.1rem;
-        line-height: 0;
-        border-radius: var(--radius-sm);
+        min-width: var(--fusion-target);
+        min-height: var(--fusion-target);
+        display: grid;
+        place-items: center;
+        --ico: 16px;
+        border-radius: var(--fusion-radius-sm);
       }
-      .fold .tools button .icon {
-        width: 13px;
-        height: 13px;
+      .tools button:hover {
+        color: var(--fusion-text);
+        background: var(--fusion-accent-dim);
       }
-      .fold .tools button:hover {
-        color: var(--accent-hover);
-        background: rgba(255, 255, 255, 0.06);
+      .tools button.del:hover {
+        color: var(--fusion-danger);
       }
-      .fold .tools button.del:hover {
-        color: var(--danger);
-      }
-      .fold .tools button.pinb.on {
-        color: var(--pin);
+      .tools button.pinb.on {
+        color: var(--fusion-accent);
       }
       .fold input {
-        background: #0b0b0f;
-        border: 1px solid var(--accent);
-        border-radius: var(--radius-sm);
-        color: var(--text);
-        font: inherit;
-        font-size: 0.74rem;
-        padding: 0.05rem 0.3rem;
-        outline: none;
+        background: var(--fusion-input-bg);
+        border: 1px solid var(--fusion-accent);
+        border-radius: var(--fusion-radius-sm);
+        color: var(--fusion-text);
+        font-size: var(--fusion-text-base);
+        min-height: 32px;
+        padding: 0 var(--fusion-space-2);
         flex: 1;
         min-width: 0;
       }
       .kids {
-        margin-left: 0.55rem;
-        padding-left: 0.35rem;
-        border-left: 1px solid var(--border);
+        margin-left: var(--fusion-space-3);
+        padding-left: var(--fusion-space-2);
+        border-left: 1px solid var(--fusion-border);
       }
 
       /* ---------- Linha de ator ---------- */
       .act {
-        display: flex;
+        display: grid;
+        grid-template-columns: 28px minmax(0, 1fr) auto;
+        column-gap: var(--fusion-space-2);
         align-items: center;
-        gap: 0.4rem;
-        padding: 0.28rem 0.3rem;
-        border-radius: var(--radius-sm);
+        padding: var(--fusion-space-1);
+        border-radius: var(--fusion-radius-sm);
         cursor: grab;
         position: relative;
       }
       .act:hover {
-        background: var(--surface-alt);
+        background: var(--fusion-surface-alt);
       }
       .act.sel {
-        background: var(--accent-dim);
-        box-shadow: inset 0 0 0 1px var(--accent);
+        background: var(--fusion-accent-dim);
+        outline: 1px solid var(--fusion-accent);
       }
       .act.dragging {
         opacity: 0.4;
       }
       .act .av {
-        width: 26px;
-        height: 26px;
-        border-radius: 50%;
-        flex: 0 0 auto;
+        grid-row: 1;
+        width: 28px;
+        height: 28px;
+        border-radius: var(--fusion-radius-pill);
         display: grid;
         place-items: center;
-        font-size: 0.66rem;
-        font-weight: 700;
-        color: #0b0b0f;
-        position: relative;
+        font-size: var(--fusion-text-xs);
+        font-weight: var(--fusion-weight-bold);
+        background: var(--fusion-surface-alt);
+        border: 2px solid currentColor;
       }
       .act .av.hz {
-        border-radius: var(--radius-sm);
+        border-radius: var(--fusion-radius-sm);
       }
       .act .idt {
-        flex: 1;
         min-width: 0;
+        grid-column: 2;
       }
       .act .nm {
-        font-size: 0.8rem;
-        color: var(--text);
-        overflow: hidden;
-        text-overflow: ellipsis;
-        white-space: nowrap;
+        font-size: var(--fusion-text-base);
+        color: var(--fusion-text);
+        display: block;
+        overflow-wrap: anywhere;
       }
       .act .ttl {
-        font-size: 0.68rem;
-        color: var(--muted);
+        font-size: var(--fusion-text-sm);
+        color: var(--fusion-text-muted);
         display: flex;
         align-items: center;
-        gap: 0.25rem;
+        gap: var(--fusion-space-1);
         min-width: 0;
       }
-      .act .ttl > span {
-        overflow: hidden;
-        text-overflow: ellipsis;
-        white-space: nowrap;
+      .act .ttl > span:first-child {
+        overflow-wrap: anywhere;
       }
       .act .ttl.fallback > span {
-        color: var(--subtle);
-        font-style: italic;
+        color: var(--fusion-text-subtle);
       }
       .act .ttl .pen {
-        color: var(--subtle);
+        background: none;
+        border: 0;
+        padding: 0;
+        color: var(--fusion-text-subtle);
         cursor: text;
         opacity: 0;
-        transition: opacity 0.12s;
+        transition: opacity var(--fusion-transition);
         flex: 0 0 auto;
         display: grid;
         place-items: center;
+        --ico: 14px;
+        position: relative;
       }
-      .act .ttl .pen .icon {
-        width: 11px;
-        height: 11px;
+      .act .ttl .pen::after {
+        content: "";
+        position: absolute;
+        inset: -12px -10px;
       }
-      .act:hover .ttl .pen {
+      .act:hover .ttl .pen,
+      .act:focus-within .ttl .pen {
         opacity: 1;
       }
       .act .ttl input {
         flex: 1;
         min-width: 0;
-        background: #0b0b0f;
-        border: 1px solid var(--accent);
-        border-radius: var(--radius-sm);
-        color: var(--text);
-        font: inherit;
-        font-size: 0.68rem;
-        padding: 0.05rem 0.25rem;
-        outline: none;
+        background: var(--fusion-input-bg);
+        border: 1px solid var(--fusion-accent);
+        border-radius: var(--fusion-radius-sm);
+        color: var(--fusion-text);
+        font-size: var(--fusion-text-sm);
+        min-height: 28px;
+        padding: 0 var(--fusion-space-2);
+      }
+      .act > .att {
+        grid-column: 3;
+        grid-row: 1;
+      }
+      .act .under {
+        grid-column: 2 / 4;
+        grid-row: 2;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: var(--fusion-space-2);
+        min-height: 24px;
       }
       .act .meta {
         display: flex;
         align-items: center;
-        gap: 0.3rem;
+        gap: var(--fusion-space-3);
         flex: 0 0 auto;
       }
+      /* ferramentas da linha: área de 40px, mas a linha continua baixa (margem negativa) */
       .act .tools {
-        display: none;
-        gap: 0.05rem;
-        flex: 0 0 auto;
-      }
-      .act:hover .tools {
         display: flex;
+        visibility: hidden;
+        margin-block: calc((var(--fusion-target) - 24px) / -2);
       }
-      .act:hover .meta.hide-on-hover {
-        display: none;
-      }
-      .act .tools button {
-        background: none;
-        border: 0;
-        color: var(--subtle);
-        cursor: pointer;
-        padding: 0.1rem;
-        line-height: 0;
-        border-radius: var(--radius-sm);
-      }
-      .act .tools button .icon {
-        width: 13px;
-        height: 13px;
-      }
-      .act .tools button:hover {
-        color: var(--accent-hover);
-        background: rgba(255, 255, 255, 0.06);
-      }
-      .act .tools button.del:hover {
-        color: var(--danger);
+      .act:hover .tools,
+      .act:focus-within .tools {
+        visibility: visible;
       }
 
-      /* atitude — sempre visível, cicla no clique */
+      /* atitude: sempre visível, cicla no clique */
       .att {
         background: none;
         border: 1px solid transparent;
         cursor: pointer;
-        padding: 0.08rem;
-        line-height: 0;
-        border-radius: var(--radius-sm);
+        min-width: var(--fusion-target);
+        min-height: var(--fusion-target);
+        margin: calc((var(--fusion-target) - 28px) / -2) 0;
+        display: grid;
+        place-items: center;
+        --ico: 18px;
+        border-radius: var(--fusion-radius-sm);
         flex: 0 0 auto;
-      }
-      .att .icon {
-        width: 14px;
-        height: 14px;
       }
       .att:hover {
         border-color: currentColor;
       }
       .att.ally {
-        color: var(--ok);
+        color: var(--fusion-success);
       }
       .att.neutral {
-        color: var(--muted);
+        color: var(--fusion-text-muted);
       }
       .att.foe {
-        color: var(--danger);
+        color: var(--fusion-danger);
       }
 
       .lvl {
-        font-size: 0.62rem;
-        color: var(--subtle);
-        font-variant-numeric: tabular-nums;
-        border: 1px solid var(--border);
-        border-radius: var(--radius-sm);
-        padding: 0 0.25rem;
+        font-size: var(--fusion-text-xs);
+        font-family: var(--fusion-font-mono);
+        color: var(--fusion-text-muted);
+        border-bottom: 1px solid var(--fusion-border-strong);
       }
       .tok {
-        font-size: 0.62rem;
-        color: var(--muted);
-        font-variant-numeric: tabular-nums;
+        font-size: var(--fusion-text-xs);
+        font-family: var(--fusion-font-mono);
+        color: var(--fusion-text-muted);
         cursor: default;
         display: inline-flex;
         align-items: center;
-        gap: 0.1rem;
-      }
-      .tok .icon {
-        width: 11px;
-        height: 11px;
+        gap: var(--fusion-space-1);
       }
       .know {
-        font-size: 0.62rem;
-        font-variant-numeric: tabular-nums;
+        font-size: var(--fusion-text-xs);
+        font-family: var(--fusion-font-mono);
         cursor: default;
         white-space: nowrap;
+        display: inline-flex;
+        align-items: center;
+        gap: var(--fusion-space-2);
       }
-      .know .k2 {
-        color: var(--ok);
-      }
-      .know .k1 {
-        color: var(--warn);
-      }
-      .know .k0 {
-        color: var(--subtle);
+      .know > span {
+        display: inline-flex;
+        align-items: center;
+        gap: 2px;
       }
 
       /* menu de mover para pasta (convive com o arraste) */
       .movemenu {
-        margin: 0.1rem 0 0.35rem 2rem;
-        padding: 0.35rem 0.4rem;
-        border: 1px solid var(--border);
-        border-radius: var(--radius-sm);
-        background: var(--surface-alt);
+        margin: var(--fusion-space-1) 0 var(--fusion-space-2) var(--fusion-space-6);
+        padding: var(--fusion-space-2) 0;
+        border-top: 1px solid var(--fusion-border);
+        border-bottom: 1px solid var(--fusion-border);
         display: flex;
         flex-wrap: wrap;
-        gap: 0.25rem;
+        gap: var(--fusion-space-1);
       }
       .movemenu button {
-        background: var(--surface);
-        border: 1px solid var(--border);
-        border-radius: 999px;
-        color: var(--muted);
-        font: inherit;
-        font-size: 0.64rem;
-        padding: 0.05rem 0.45rem;
+        background: none;
+        border: 1px solid var(--fusion-border);
+        border-radius: var(--fusion-radius-sm);
+        color: var(--fusion-text-muted);
+        font-size: var(--fusion-text-sm);
+        min-height: var(--fusion-target);
+        padding: 0 var(--fusion-space-3);
         cursor: pointer;
       }
       .movemenu button:hover {
-        border-color: var(--accent);
-        color: var(--text);
+        border-color: var(--fusion-accent);
+        color: var(--fusion-text);
       }
       .movemenu button.on {
-        border-color: var(--accent);
-        color: var(--accent-hover);
-        background: var(--accent-dim);
+        border-color: var(--fusion-accent);
+        color: var(--fusion-text);
+        background: var(--fusion-accent-dim);
       }
 
       /* --- condições (contrato herdado da 39) --- */
       .conds {
         display: flex;
-        gap: 0.22rem;
+        gap: var(--fusion-space-1);
         flex-wrap: wrap;
-        margin: 0.15rem 0 0.2rem 2rem;
+        margin: var(--fusion-space-1) 0 var(--fusion-space-2) var(--fusion-space-8);
       }
       .chip {
-        font-size: 0.62rem;
-        border-radius: 999px;
-        padding: 0.02rem 0.35rem;
-        border: 1px solid var(--border);
-        color: var(--muted);
+        font-size: var(--fusion-text-xs);
+        border-radius: var(--fusion-radius-sm);
+        padding: 0 var(--fusion-space-2);
+        border: 1px solid var(--fusion-border);
+        color: var(--fusion-text-muted);
         white-space: nowrap;
-        max-width: 118px;
-        overflow: hidden;
-        text-overflow: ellipsis;
         cursor: default;
+        position: relative;
       }
       .chip .v {
-        font-variant-numeric: tabular-nums;
-        font-weight: 700;
+        font-family: var(--fusion-font-mono);
+        font-weight: var(--fusion-weight-bold);
       }
       .chip.harm {
-        border-color: rgba(255, 92, 92, 0.5);
-        color: #ff9a9a;
-        background: rgba(255, 92, 92, 0.08);
+        border-color: var(--fusion-condition-harm);
+        color: var(--fusion-condition-harm);
+        background: var(--fusion-condition-harm-dim);
       }
       .chip.benefit {
-        border-color: rgba(61, 220, 132, 0.5);
-        color: var(--ok);
-        background: rgba(61, 220, 132, 0.08);
+        border-color: var(--fusion-condition-benefit);
+        color: var(--fusion-condition-benefit);
+        background: var(--fusion-condition-benefit-dim);
       }
       .chip.special {
-        border-color: rgba(185, 140, 255, 0.5);
-        color: var(--special);
-        background: rgba(185, 140, 255, 0.1);
+        border-color: var(--fusion-condition-special);
+        color: var(--fusion-condition-special);
+        background: var(--fusion-condition-special-dim);
       }
       .chip.crit {
-        background: var(--danger);
-        border-color: var(--danger);
-        color: #160608;
-        font-weight: 700;
+        background: var(--fusion-danger);
+        border-color: var(--fusion-danger);
+        color: var(--fusion-bg);
+        font-weight: var(--fusion-weight-bold);
       }
       .chip.more {
         cursor: pointer;
         border-style: dashed;
-        color: var(--subtle);
+        color: var(--fusion-text-muted);
+        background: none;
+        font-size: var(--fusion-text-xs);
+      }
+      .chip.more::after {
+        content: "";
+        position: absolute;
+        inset: -12px -8px;
       }
       .chip.more:hover {
-        color: var(--text);
-        border-color: var(--accent);
+        color: var(--fusion-text);
+        border-color: var(--fusion-accent);
       }
 
-      /* sub-personagem encapsulado (DEC-CTT-06) */
+      /* sub-personagem encapsulado (DEC-CTT-06): recuo + linha-guia, sem cartão */
       .sub {
         display: flex;
         align-items: center;
-        gap: 0.35rem;
-        margin: 0 0 0.15rem 1.65rem;
-        padding: 0.1rem 0.3rem 0.1rem 0.35rem;
-        border-left: 2px solid var(--border);
-        border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+        gap: var(--fusion-space-2);
+        margin: 0 0 var(--fusion-space-1) var(--fusion-space-8);
+        padding: var(--fusion-space-1) var(--fusion-space-2);
+        border-left: 2px solid var(--fusion-border);
         cursor: grab;
       }
       .sub:hover {
-        background: rgba(255, 255, 255, 0.03);
-        border-left-color: var(--accent);
+        border-left-color: var(--fusion-accent);
       }
       .sub .nm {
-        font-size: 0.72rem;
-        color: var(--text);
+        font-size: var(--fusion-text-sm);
+        color: var(--fusion-text);
       }
       .sub .sb {
-        font-size: 0.62rem;
-        color: var(--subtle);
+        font-size: var(--fusion-text-xs);
+        color: var(--fusion-text-subtle);
         margin-left: auto;
       }
 
       .vazio {
-        border: 1px dashed var(--border);
-        border-radius: var(--radius);
-        padding: 1rem 0.9rem;
+        border-top: 1px solid var(--fusion-border);
+        border-bottom: 1px solid var(--fusion-border);
+        padding: var(--fusion-space-4) var(--fusion-space-2);
         text-align: center;
-        color: var(--subtle);
-        font-size: 0.78rem;
-        line-height: 1.55;
-        margin: 0.6rem 0.1rem;
+        color: var(--fusion-text-subtle);
+        font-size: var(--fusion-text-base);
+        margin: var(--fusion-space-3) 0;
       }
       .vazio b {
-        color: var(--muted);
+        color: var(--fusion-text-muted);
       }
       .hint {
-        color: var(--subtle);
-        font-size: 0.7rem;
+        color: var(--fusion-text-subtle);
+        font-size: var(--fusion-text-sm);
         text-align: center;
-        padding: 0.6rem 0.3rem 0;
-        line-height: 1.45;
+        padding: var(--fusion-space-3) var(--fusion-space-1) 0;
       }
       .row {
         display: flex;
         align-items: center;
-        gap: 0.5rem;
-        padding: 0.4rem 0.5rem;
-        border-radius: var(--radius-sm);
-        color: var(--muted);
+        gap: var(--fusion-space-2);
+        padding: var(--fusion-space-2);
+        min-height: var(--fusion-target);
+        border-radius: var(--fusion-radius-sm);
+        color: var(--fusion-text-muted);
       }
       .row:hover {
-        background: var(--surface-alt);
+        background: var(--fusion-surface-alt);
       }
       .row .name {
-        color: var(--text);
-        font-size: 0.82rem;
+        color: var(--fusion-text);
+        font-size: var(--fusion-text-base);
       }
       .row .sub2 {
-        color: var(--subtle);
-        font-size: 0.75rem;
+        color: var(--fusion-text-subtle);
+        font-size: var(--fusion-text-sm);
         margin-left: auto;
+        display: inline-flex;
+        align-items: center;
       }
       .empty {
         text-align: center;
-        padding: 1.5rem 0 0.75rem;
-        color: var(--muted);
+        padding: var(--fusion-space-6) 0 var(--fusion-space-3);
+        color: var(--fusion-text-muted);
       }
 
       #tip {
         position: fixed;
         z-index: 9998;
-        max-width: 235px;
-        background: #0b0b0f;
-        border: 1px solid var(--border);
-        border-radius: var(--radius-sm);
-        padding: 0.35rem 0.5rem;
-        font-size: 0.72rem;
-        line-height: 1.4;
-        color: var(--text);
-        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.6);
+        max-width: 260px;
+        background: var(--fusion-surface-alt);
+        border: 1px solid var(--fusion-border);
+        border-radius: var(--fusion-radius-sm);
+        padding: var(--fusion-space-2) var(--fusion-space-3);
+        font-size: var(--fusion-text-sm);
+        color: var(--fusion-text);
+        box-shadow: var(--fusion-shadow-popover);
         pointer-events: none;
         display: none;
       }
       #tip b {
         display: block;
-        margin-bottom: 0.15rem;
+        margin-bottom: var(--fusion-space-1);
       }
       #tip .tone {
-        color: var(--subtle);
-        font-size: 0.66rem;
-        margin-top: 0.25rem;
+        color: var(--fusion-text-subtle);
+        font-size: var(--fusion-text-xs);
+        margin-top: var(--fusion-space-1);
         display: block;
+      }
+      #tip .nohelp {
+        color: var(--fusion-text-subtle);
       }
 
       /* janela (spec 11) */
@@ -1107,263 +1298,255 @@
         top: 84px;
         left: calc(50% - 300px);
         width: 600px;
-        background: var(--surface);
-        border: 1px solid var(--accent);
-        border-radius: var(--radius);
-        box-shadow: 0 18px 50px rgba(0, 0, 0, 0.6);
+        max-width: calc(100vw - 16px);
+        background: var(--fusion-surface);
+        border: 1px solid var(--fusion-border-strong);
+        border-radius: var(--fusion-radius);
+        box-shadow: var(--fusion-shadow-modal);
         z-index: 500;
         overflow: hidden;
       }
       .win.danger {
-        border-color: var(--danger);
+        border-color: var(--fusion-danger);
       }
       .win .wh {
         display: flex;
         align-items: center;
-        gap: 0.5rem;
-        padding: 0.45rem 0.6rem;
-        background: var(--surface-alt);
-        border-bottom: 1px solid var(--border);
-        font-size: 0.8rem;
-        font-weight: 600;
+        gap: var(--fusion-space-2);
+        padding: var(--fusion-space-1) var(--fusion-space-3);
+        min-height: 48px;
+        background: var(--fusion-surface-alt);
+        border-bottom: 1px solid var(--fusion-border);
+        font-size: var(--fusion-text-md);
+        font-weight: var(--fusion-weight-bold);
       }
       .win .wh .x {
         margin-left: auto;
         background: none;
         border: 0;
-        color: var(--muted);
+        color: var(--fusion-text-muted);
         cursor: pointer;
-        padding: 0.1rem;
-        line-height: 0;
-      }
-      .win .wh .x .icon {
-        width: 15px;
-        height: 15px;
+        min-width: var(--fusion-target);
+        min-height: var(--fusion-target);
+        display: grid;
+        place-items: center;
+        --ico: 18px;
       }
       .win .wb {
-        padding: 0.7rem 0.8rem 0.9rem;
-        color: var(--muted);
-        font-size: 0.8rem;
-        line-height: 1.5;
+        padding: var(--fusion-space-3) var(--fusion-space-4) var(--fusion-space-4);
+        color: var(--fusion-text-muted);
+        font-size: var(--fusion-text-base);
         max-height: 62vh;
         overflow: auto;
       }
       .win .wb b {
-        color: var(--text);
+        color: var(--fusion-text);
       }
       .win .note {
-        margin-top: 0.65rem;
-        color: var(--subtle);
-        font-size: 0.72rem;
-        line-height: 1.5;
+        margin-top: var(--fusion-space-3);
+        padding-top: var(--fusion-space-3);
+        border-top: 1px solid var(--fusion-border);
+        color: var(--fusion-text-subtle);
+        font-size: var(--fusion-text-sm);
       }
       .win .wf {
         display: flex;
-        gap: 0.4rem;
+        gap: var(--fusion-space-2);
         justify-content: flex-end;
-        padding: 0.5rem 0.8rem 0.7rem;
-        border-top: 1px solid var(--border);
+        padding: var(--fusion-space-3) var(--fusion-space-4);
+        border-top: 1px solid var(--fusion-border);
       }
       .field {
         display: flex;
         align-items: center;
-        gap: 0.5rem;
-        margin: 0.5rem 0;
+        gap: var(--fusion-space-2);
+        margin: var(--fusion-space-2) 0;
+        min-height: var(--fusion-target);
       }
       .field > label {
-        width: 74px;
-        color: var(--subtle);
-        font-size: 0.74rem;
+        width: 64px;
+        color: var(--fusion-text-subtle);
+        font-size: var(--fusion-text-sm);
         flex: 0 0 auto;
       }
       .field input,
       .field select {
         flex: 1;
-        background: #0b0b0f;
-        border: 1px solid var(--border);
-        border-radius: var(--radius-sm);
-        color: var(--text);
-        font: inherit;
-        font-size: 0.78rem;
-        padding: 0.25rem 0.4rem;
-        outline: none;
+        min-width: 0;
+        background: var(--fusion-input-bg);
+        border: 1px solid var(--fusion-border);
+        border-radius: var(--fusion-radius-sm);
+        color: var(--fusion-text);
+        font-size: var(--fusion-text-base);
+        min-height: var(--fusion-target);
+        padding: 0 var(--fusion-space-2);
       }
       .field input:focus,
       .field select:focus {
-        border-color: var(--accent);
+        border-color: var(--fusion-accent);
       }
       .pills {
         display: flex;
         flex-wrap: wrap;
-        gap: 0.3rem;
+        gap: var(--fusion-space-2);
         flex: 1;
       }
       .pills button {
-        background: var(--surface-alt);
-        border: 1px solid var(--border);
-        color: var(--muted);
-        border-radius: 999px;
-        font: inherit;
-        font-size: 0.72rem;
-        padding: 0.1rem 0.6rem;
+        background: var(--fusion-surface-alt);
+        border: 1px solid var(--fusion-border);
+        color: var(--fusion-text-muted);
+        border-radius: var(--fusion-radius-sm);
+        font-size: var(--fusion-text-sm);
+        min-height: var(--fusion-target);
+        padding: 0 var(--fusion-space-3);
         cursor: pointer;
         display: inline-flex;
         align-items: center;
-        gap: 0.25rem;
-      }
-      .pills button .icon {
-        width: 12px;
-        height: 12px;
+        gap: var(--fusion-space-2);
       }
       .pills button:hover {
-        color: var(--text);
-        border-color: var(--accent);
+        color: var(--fusion-text);
+        border-color: var(--fusion-accent);
       }
       .pills button.on {
-        background: var(--accent-dim);
-        border-color: var(--accent);
-        color: var(--accent-hover);
-        font-weight: 600;
+        background: var(--fusion-accent-dim);
+        border-color: var(--fusion-accent);
+        color: var(--fusion-text);
+        font-weight: var(--fusion-weight-bold);
       }
       .pills button.on.ally {
-        color: var(--ok);
-        border-color: var(--ok);
-        background: rgba(61, 220, 132, 0.1);
+        color: var(--fusion-success);
+        border-color: var(--fusion-success);
+        background: var(--fusion-success-dim);
       }
       .pills button.on.foe {
-        color: var(--danger);
-        border-color: var(--danger);
-        background: rgba(255, 92, 92, 0.1);
+        color: var(--fusion-danger);
+        border-color: var(--fusion-danger);
+        background: var(--fusion-danger-dim);
       }
       .wtabs {
         display: flex;
-        gap: 0.35rem;
-        border-bottom: 1px solid var(--border);
-        padding: 0 0.8rem;
-        background: var(--surface-alt);
+        gap: var(--fusion-space-2);
+        border-bottom: 1px solid var(--fusion-border);
+        padding: 0 var(--fusion-space-4);
+        background: var(--fusion-surface-alt);
       }
       .wtabs button {
         background: none;
         border: 0;
         border-bottom: 2px solid transparent;
-        color: var(--muted);
-        font: inherit;
-        font-size: 0.78rem;
-        padding: 0.4rem 0.5rem;
+        color: var(--fusion-text-muted);
+        font-size: var(--fusion-text-base);
+        min-height: var(--fusion-target);
+        padding: 0 var(--fusion-space-2);
         cursor: pointer;
       }
       .wtabs button:hover {
-        color: var(--text);
+        color: var(--fusion-text);
       }
       .wtabs button.on {
-        color: var(--accent-hover);
-        border-bottom-color: var(--accent);
-        font-weight: 600;
+        color: var(--fusion-text);
+        border-bottom-color: var(--fusion-accent);
+        font-weight: var(--fusion-weight-bold);
       }
       .browser {
-        border: 1px solid var(--border);
-        border-radius: var(--radius-sm);
-        max-height: 190px;
+        border-top: 1px solid var(--fusion-border);
+        border-bottom: 1px solid var(--fusion-border);
+        max-height: 240px;
         overflow: auto;
-        margin-top: 0.4rem;
+        margin-top: var(--fusion-space-2);
       }
       .brow {
         display: flex;
         align-items: center;
-        gap: 0.5rem;
-        padding: 0.28rem 0.45rem;
-        border-bottom: 1px solid var(--border);
+        gap: var(--fusion-space-2);
+        padding: var(--fusion-space-1) var(--fusion-space-2);
+        min-height: var(--fusion-target);
+        border-bottom: 1px solid var(--fusion-border);
         cursor: pointer;
       }
       .brow:last-child {
         border-bottom: 0;
       }
       .brow:hover {
-        background: var(--surface-alt);
+        background: var(--fusion-surface-alt);
       }
       .brow.on {
-        background: var(--accent-dim);
-        box-shadow: inset 2px 0 0 var(--accent);
+        background: var(--fusion-accent-dim);
+        outline: 1px solid var(--fusion-accent);
       }
       .brow .av {
-        width: 22px;
-        height: 22px;
-        border-radius: 50%;
+        width: 28px;
+        height: 28px;
+        border-radius: var(--fusion-radius-pill);
         display: grid;
         place-items: center;
-        font-size: 0.6rem;
-        font-weight: 700;
-        color: #0b0b0f;
+        font-size: var(--fusion-text-xs);
+        font-weight: var(--fusion-weight-bold);
+        background: var(--fusion-surface-alt);
+        border: 2px solid currentColor;
         flex: 0 0 auto;
       }
       .brow .bn {
-        color: var(--text);
-        font-size: 0.78rem;
+        color: var(--fusion-text);
+        font-size: var(--fusion-text-base);
         flex: 1;
         min-width: 0;
       }
       .brow .bs {
-        font-size: 0.66rem;
-        color: var(--subtle);
+        font-size: var(--fusion-text-xs);
+        color: var(--fusion-text-subtle);
+      }
+      .warnbox,
+      .stopbox {
+        margin-top: var(--fusion-space-3);
+        padding: var(--fusion-space-1) 0 var(--fusion-space-1) var(--fusion-space-3);
+        font-size: var(--fusion-text-sm);
       }
       .warnbox {
-        margin-top: 0.6rem;
-        border: 1px solid rgba(229, 184, 59, 0.4);
-        background: rgba(229, 184, 59, 0.07);
-        border-radius: var(--radius-sm);
-        padding: 0.45rem 0.55rem;
-        color: var(--warn);
-        font-size: 0.74rem;
-        line-height: 1.5;
-      }
-      .warnbox b {
-        color: var(--warn);
+        border-left: 3px solid var(--fusion-warning);
+        color: var(--fusion-warning);
       }
       .stopbox {
-        margin-top: 0.6rem;
-        border: 1px solid var(--danger);
-        background: rgba(255, 92, 92, 0.08);
-        border-radius: var(--radius-sm);
-        padding: 0.45rem 0.55rem;
-        color: #ff9a9a;
-        font-size: 0.74rem;
-        line-height: 1.5;
+        border-left: 3px solid var(--fusion-danger);
+        color: var(--fusion-danger);
       }
-      .stopbox b {
-        color: #ffc9c9;
+      .win .wb .warnbox b {
+        color: var(--fusion-warning);
+      }
+      .win .wb .stopbox b {
+        color: var(--fusion-danger);
       }
       .conseq {
         list-style: none;
-        margin: 0.4rem 0 0;
+        margin: var(--fusion-space-2) 0 0;
         padding: 0;
       }
       .conseq li {
         display: flex;
-        gap: 0.45rem;
+        gap: var(--fusion-space-2);
         align-items: flex-start;
-        padding: 0.25rem 0;
-        border-bottom: 1px solid var(--border);
-        font-size: 0.76rem;
+        padding: var(--fusion-space-2) 0;
+        border-bottom: 1px solid var(--fusion-border);
+        font-size: var(--fusion-text-base);
       }
       .conseq li:last-child {
         border-bottom: 0;
       }
-      .conseq li .icon {
-        width: 14px;
-        height: 14px;
-        flex: 0 0 auto;
-        margin-top: 2px;
-        color: var(--subtle);
+      .conseq li .svg-i {
+        --ico: 16px;
+        margin-top: 3px;
+        color: var(--fusion-text-subtle);
       }
       .btn-danger {
-        background: var(--danger);
-        border: 1px solid var(--danger);
-        color: #160608;
-        border-radius: var(--radius-sm);
-        padding: 0.25rem 0.7rem;
-        font: inherit;
-        font-size: 0.76rem;
-        font-weight: 700;
+        background: var(--fusion-danger);
+        border: 1px solid var(--fusion-danger);
+        color: var(--fusion-bg);
+        border-radius: var(--fusion-radius-sm);
+        min-height: var(--fusion-target);
+        padding: 0 var(--fusion-space-4);
+        font-size: var(--fusion-text-sm);
+        font-weight: var(--fusion-weight-bold);
         cursor: pointer;
       }
       .btn-danger[disabled] {
@@ -1371,69 +1554,73 @@
         cursor: not-allowed;
       }
       .btn-ghost {
-        background: var(--surface-alt);
-        border: 1px solid var(--border);
-        color: var(--muted);
-        border-radius: var(--radius-sm);
-        padding: 0.25rem 0.7rem;
-        font: inherit;
-        font-size: 0.76rem;
+        background: var(--fusion-surface-alt);
+        border: 1px solid var(--fusion-border);
+        color: var(--fusion-text-muted);
+        border-radius: var(--fusion-radius-sm);
+        min-height: var(--fusion-target);
+        padding: 0 var(--fusion-space-4);
+        font-size: var(--fusion-text-sm);
         cursor: pointer;
       }
       .btn-ghost:hover {
-        color: var(--text);
+        color: var(--fusion-text);
       }
       .keys {
         display: flex;
-        gap: 0.8rem;
+        gap: var(--fusion-space-4);
         flex-wrap: wrap;
-        margin: 0.5rem 0 0.2rem;
-        font-size: 0.74rem;
+        margin: var(--fusion-space-2) 0 var(--fusion-space-1);
+        font-size: var(--fusion-text-sm);
       }
       .keys span {
         display: flex;
         align-items: center;
-        gap: 0.3rem;
-        color: var(--subtle);
+        gap: var(--fusion-space-2);
+        color: var(--fusion-text-subtle);
       }
-      .keys i {
-        font-style: normal;
-        font-size: 0.95rem;
-        width: 1.1rem;
-        text-align: center;
+      .keys .kic {
+        display: inline-flex;
+        --ico: 18px;
+      }
+      .keys .kex {
+        display: inline-block;
+        width: 18px;
+        border-bottom: 2px solid currentColor;
+        height: 16px;
       }
       .k0 {
-        color: var(--subtle);
+        color: var(--fusion-text-subtle);
       }
       .k1 {
-        color: var(--warn);
+        color: var(--fusion-warning);
       }
       .k2 {
-        color: var(--ok);
+        color: var(--fusion-success);
       }
       .matrix {
         width: 100%;
         border-collapse: collapse;
-        font-size: 0.75rem;
-        margin-top: 0.5rem;
+        font-size: var(--fusion-text-sm);
+        margin-top: var(--fusion-space-2);
       }
       .matrix th,
       .matrix td {
-        border: 1px solid var(--border);
-        padding: 0.2rem 0.35rem;
+        border-bottom: 1px solid var(--fusion-border);
+        padding: var(--fusion-space-1) var(--fusion-space-2);
         text-align: center;
         vertical-align: middle;
       }
       .matrix thead th {
-        color: var(--muted);
-        font-weight: 600;
-        font-size: 0.72rem;
-        background: var(--surface-alt);
+        color: var(--fusion-text-muted);
+        font-weight: var(--fusion-weight-bold);
+        font-size: var(--fusion-text-sm);
+        background: var(--fusion-surface-alt);
         cursor: pointer;
         user-select: none;
       }
       .matrix thead th:hover {
-        color: var(--accent-hover);
+        color: var(--fusion-text);
       }
       .matrix thead th:first-child {
         cursor: default;
@@ -1441,134 +1628,215 @@
       }
       .matrix thead th small {
         display: block;
-        color: var(--subtle);
-        font-size: 0.62rem;
-        font-weight: 400;
+        color: var(--fusion-text-subtle);
+        font-size: var(--fusion-text-xs);
+        font-weight: var(--fusion-weight-regular);
       }
       .matrix td.nm {
         text-align: left;
-        color: var(--text);
+        color: var(--fusion-text);
         cursor: pointer;
-        white-space: nowrap;
       }
       .matrix td.nm:hover {
-        color: var(--accent-hover);
+        color: var(--fusion-accent-hover);
       }
       .matrix td.nm small {
         display: block;
-        color: var(--subtle);
-        font-size: 0.65rem;
+        color: var(--fusion-text-subtle);
+        font-size: var(--fusion-text-xs);
       }
       .matrix td button.cell {
         background: none;
         border: 0;
         cursor: pointer;
-        font-size: 1rem;
+        --ico: 20px;
         width: 100%;
-        line-height: 1.3;
-        border-radius: var(--radius-sm);
+        min-width: var(--fusion-target);
+        min-height: var(--fusion-target);
+        display: grid;
+        place-items: center;
+        border-radius: var(--fusion-radius-sm);
       }
       .matrix td button.cell:hover {
-        background: var(--surface-alt);
+        background: var(--fusion-surface-alt);
       }
-      .matrix td button.cell.ex {
-        text-decoration: underline;
-        text-underline-offset: 2px;
+      .matrix td button.cell.ex .svg-i {
+        border-bottom: 2px solid currentColor;
+        padding-bottom: 2px;
+        box-sizing: content-box;
       }
 
-      /* ---------- Switcher + legenda ---------- */
+      /* ---------- Switcher + legenda (ferramental do protótipo, camada flutuante) ---------- */
       .switcher {
         position: fixed;
         left: 50%;
-        bottom: 16px;
+        bottom: var(--fusion-space-4);
         transform: translateX(-50%);
         z-index: 9999;
         display: flex;
         align-items: center;
-        gap: 0.4rem;
-        background: #fff;
-        color: #111;
-        border-radius: 999px;
-        padding: 0.35rem 0.5rem;
-        box-shadow: 0 8px 30px rgba(0, 0, 0, 0.6);
-        font-size: 0.8rem;
-        font-weight: 600;
+        gap: var(--fusion-space-2);
+        background: var(--fusion-surface-alt);
+        color: var(--fusion-text);
+        border: 1px solid var(--fusion-border-strong);
+        border-radius: var(--fusion-radius-lg);
+        padding: var(--fusion-space-1) var(--fusion-space-2);
+        box-shadow: var(--fusion-shadow-popover);
+        font-size: var(--fusion-text-sm);
       }
       .switcher button {
-        border: 0;
-        background: #111;
-        color: #fff;
-        height: 28px;
-        padding: 0 0.7rem;
-        border-radius: 999px;
+        border: 1px solid var(--fusion-border);
+        background: var(--fusion-surface);
+        color: var(--fusion-text);
+        min-height: var(--fusion-target);
+        padding: 0 var(--fusion-space-3);
+        border-radius: var(--fusion-radius);
         cursor: pointer;
-        font-size: 0.76rem;
-        font-weight: 600;
+        font-size: var(--fusion-text-sm);
       }
       .switcher button.alt {
-        background: #5a4bd6;
+        border-color: var(--fusion-accent);
       }
       .legend {
         position: fixed;
-        left: 16px;
-        bottom: 16px;
+        left: var(--fusion-space-4);
+        bottom: var(--fusion-space-4);
         z-index: 9999;
-        background: rgba(255, 255, 255, 0.96);
-        color: #111;
-        border-radius: 10px;
-        padding: 0.6rem 0.7rem;
-        box-shadow: 0 8px 30px rgba(0, 0, 0, 0.55);
-        font-size: 0.72rem;
+        background: var(--fusion-surface-alt);
+        color: var(--fusion-text);
+        border: 1px solid var(--fusion-border-strong);
+        border-radius: var(--fusion-radius-lg);
+        padding: var(--fusion-space-3);
+        box-shadow: var(--fusion-shadow-popover);
+        font-size: var(--fusion-text-xs);
         max-width: 420px;
-        line-height: 1.45;
+        max-height: 60vh;
+        overflow: auto;
       }
       .legend h4 {
-        margin: 0 0 0.35rem;
-        font-size: 0.78rem;
+        margin: 0 0 var(--fusion-space-2);
+        font-size: var(--fusion-text-sm);
       }
       .legend td {
-        padding: 0.12rem 0.25rem;
+        padding: var(--fusion-space-1);
         vertical-align: top;
       }
       .legend td:first-child {
-        color: #666;
+        color: var(--fusion-text-muted);
         white-space: nowrap;
       }
       .legend b {
-        color: #111;
+        color: var(--fusion-text);
       }
       .legend .sw {
         display: inline-block;
         width: 9px;
         height: 9px;
-        border-radius: 50%;
-        margin-right: 0.2rem;
+        border-radius: var(--fusion-radius-pill);
+        margin-right: var(--fusion-space-1);
+      }
+      .legend .sw.harm {
+        background: var(--fusion-condition-harm);
+      }
+      .legend .sw.benefit {
+        background: var(--fusion-condition-benefit);
+      }
+      .legend .sw.special {
+        background: var(--fusion-condition-special);
       }
       .legend .q {
-        margin-top: 0.45rem;
-        padding-top: 0.4rem;
-        border-top: 1px solid #ddd;
-        color: #444;
+        margin-top: var(--fusion-space-2);
+        padding-top: var(--fusion-space-2);
+        border-top: 1px solid var(--fusion-border);
+        color: var(--fusion-text-muted);
+      }
+      .legend .q.last {
+        border: 0;
+        padding-top: var(--fusion-space-1);
+      }
+
+      /* ação revelada no hover também aparece em toque */
+      @media (hover: none) {
+        .act .tools {
+          visibility: visible;
+        }
+        .act .ttl .pen {
+          opacity: 1;
+        }
+        .fold .tools {
+          display: flex;
+          position: static;
+          width: 100%;
+          justify-content: flex-end;
+          background: none;
+        }
+        .fold {
+          flex-wrap: wrap;
+        }
+        .tabbtn .tip {
+          display: none;
+        }
       }
     </style>
   </head>
   <body>
+    <button type="button" class="theme-toggle" id="theme-toggle" aria-label="Alternar tema">Tema: escuro</button>
+    <script>
+      (function () {
+        var b = document.getElementById("theme-toggle");
+        function paint() { b.textContent = "Tema: " + (document.documentElement.dataset.theme === "light" ? "claro" : "escuro"); }
+        b.addEventListener("click", function () {
+          document.documentElement.dataset.theme = document.documentElement.dataset.theme === "light" ? "dark" : "light";
+          paint();
+        });
+        paint();
+      })();
+    </script>
+    <svg width="0" height="0" style="position:absolute" aria-hidden="true">
+      <symbol id="i-message-square" viewBox="0 0 24 24"><path d="M22 17a2 2 0 0 1-2 2H6.828a2 2 0 0 0-1.414.586l-2.202 2.202A.71.71 0 0 1 2 21.286V5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2z"/></symbol>
+      <symbol id="i-users" viewBox="0 0 24 24"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><path d="M16 3.128a4 4 0 0 1 0 7.744"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><circle cx="9" cy="7" r="4"/></symbol>
+      <symbol id="i-swords" viewBox="0 0 24 24"><path d="m13 19 6-6"/><path d="M14.5 17.5 3.586 6.586A2 2 0 013 5.172V3h2.172a2 2 0 011.414.586L17.5 14.5"/><path d="m14.828 6.172 2.586-2.586A2 2 0 0118.828 3H21v2.172a2 2 0 01-.586 1.414l-2.586 2.586"/><path d="m16 16 4 4"/><path d="m19 21 2-2"/><path d="m5 14 4 4"/><path d="m5 21-2-2"/><path d="M7.5 16.5 4 20"/></symbol>
+      <symbol id="i-book-open" viewBox="0 0 24 24"><path d="M12 5v16"/><path d="M20.001 19A2 2 0 0022 17V5a2 2 0 00-1.999-2L16 3.002A5 5 0 0012 5a5 5 0 00-4-2H4a2 2 0 00-2 2v12a2 2 0 001.999 2H8a5 5 0 014 2 5 5 0 014-2z"/></symbol>
+      <symbol id="i-drama" viewBox="0 0 24 24"><path d="M10 11h.01"/><path d="M14 6h.01"/><path d="M18 6h.01"/><path d="M6.5 13.1h.01"/><path d="M22 5c0 9-4 12-6 12s-6-3-6-12c0-2 2-3 6-3s6 1 6 3"/><path d="M17.4 9.9c-.8.8-2 .8-2.8 0"/><path d="M10.1 7.1C9 7.2 7.7 7.7 6 8.6c-3.5 2-4.7 3.9-3.7 5.6 4.5 7.8 9.5 8.4 11.2 7.4.9-.5 1.9-2.1 1.9-4.7"/><path d="M9.1 16.5c.3-1.1 1.4-1.7 2.4-1.4"/></symbol>
+      <symbol id="i-map" viewBox="0 0 24 24"><path d="M14.106 5.553a2 2 0 0 0 1.788 0l3.659-1.83A1 1 0 0 1 21 4.619v12.764a1 1 0 0 1-.553.894l-4.553 2.277a2 2 0 0 1-1.788 0l-4.212-2.106a2 2 0 0 0-1.788 0l-3.659 1.83A1 1 0 0 1 3 19.381V6.618a1 1 0 0 1 .553-.894l4.553-2.277a2 2 0 0 1 1.788 0z"/><path d="M15 5.764v15"/><path d="M9 3.236v15"/></symbol>
+      <symbol id="i-settings" viewBox="0 0 24 24"><path d="M9.671 4.136a2.34 2.34 0 0 1 4.659 0 2.34 2.34 0 0 0 3.319 1.915 2.34 2.34 0 0 1 2.33 4.033 2.34 2.34 0 0 0 0 3.831 2.34 2.34 0 0 1-2.33 4.033 2.34 2.34 0 0 0-3.319 1.915 2.34 2.34 0 0 1-4.659 0 2.34 2.34 0 0 0-3.32-1.915 2.34 2.34 0 0 1-2.33-4.033 2.34 2.34 0 0 0 0-3.831A2.34 2.34 0 0 1 6.35 6.051a2.34 2.34 0 0 0 3.319-1.915"/><circle cx="12" cy="12" r="3"/></symbol>
+      <symbol id="i-search" viewBox="0 0 24 24"><path d="m21 21-4.34-4.34"/><circle cx="11" cy="11" r="8"/></symbol>
+      <symbol id="i-file-text" viewBox="0 0 24 24"><path d="M6 22a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h8a2.4 2.4 0 0 1 1.704.706l3.588 3.588A2.4 2.4 0 0 1 20 8v12a2 2 0 0 1-2 2z"/><path d="M14 2v5a1 1 0 0 0 1 1h5"/><path d="M10 9H8"/><path d="M16 13H8"/><path d="M16 17H8"/></symbol>
+      <symbol id="i-grid-3x3" viewBox="0 0 24 24"><rect width="18" height="18" x="3" y="3" rx="2"/><path d="M3 9h18"/><path d="M3 15h18"/><path d="M9 3v18"/><path d="M15 3v18"/></symbol>
+      <symbol id="i-plus" viewBox="0 0 24 24"><path d="M5 12h14"/><path d="M12 5v14"/></symbol>
+      <symbol id="i-trash" viewBox="0 0 24 24"><path d="M10 11v6"/><path d="M14 11v6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/><path d="M3 6h18"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></symbol>
+      <symbol id="i-x" viewBox="0 0 24 24"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></symbol>
+      <symbol id="i-pencil" viewBox="0 0 24 24"><path d="M21.174 6.812a1 1 0 0 0-3.986-3.987L3.842 16.174a2 2 0 0 0-.5.83l-1.321 4.352a.5.5 0 0 0 .623.622l4.353-1.32a2 2 0 0 0 .83-.497z"/><path d="m15 5 4 4"/></symbol>
+      <symbol id="i-folder" viewBox="0 0 24 24"><path d="M20 20a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-7.9a2 2 0 0 1-1.69-.9L9.6 3.9A2 2 0 0 0 7.93 3H4a2 2 0 0 0-2 2v13a2 2 0 0 0 2 2Z"/></symbol>
+      <symbol id="i-folder-plus" viewBox="0 0 24 24"><path d="M12 10v6"/><path d="M9 13h6"/><path d="M20 20a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-7.9a2 2 0 0 1-1.69-.9L9.6 3.9A2 2 0 0 0 7.93 3H4a2 2 0 0 0-2 2v13a2 2 0 0 0 2 2Z"/></symbol>
+      <symbol id="i-chevron-right" viewBox="0 0 24 24"><path d="m9 18 6-6-6-6"/></symbol>
+      <symbol id="i-star" viewBox="0 0 24 24"><path d="M11.525 2.295a.53.53 0 0 1 .95 0l2.31 4.679a2.123 2.123 0 0 0 1.595 1.16l5.166.756a.53.53 0 0 1 .294.904l-3.736 3.638a2.123 2.123 0 0 0-.611 1.878l.882 5.14a.53.53 0 0 1-.771.56l-4.618-2.428a2.122 2.122 0 0 0-1.973 0L6.396 21.01a.53.53 0 0 1-.77-.56l.881-5.139a2.122 2.122 0 0 0-.611-1.879L2.16 9.795a.53.53 0 0 1 .294-.906l5.165-.755a2.122 2.122 0 0 0 1.597-1.16z"/></symbol>
+      <symbol id="i-map-pin" viewBox="0 0 24 24"><path d="M20 10c0 4.993-5.539 10.193-7.399 11.799a1 1 0 0 1-1.202 0C9.539 20.193 4 14.993 4 10a8 8 0 0 1 16 0"/><circle cx="12" cy="10" r="3"/></symbol>
+      <symbol id="i-package" viewBox="0 0 24 24"><path d="M11 21.73a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73z"/><path d="M12 22V12"/><polyline points="3.29 7 12 12 20.71 7"/><path d="m7.5 4.27 9 5.15"/></symbol>
+      <symbol id="i-shield-plus" viewBox="0 0 24 24"><path d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z"/><path d="M9 12h6"/><path d="M12 9v6"/></symbol>
+      <symbol id="i-shield-half" viewBox="0 0 24 24"><path d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z"/><path d="M12 22V2"/></symbol>
+      <symbol id="i-sword" viewBox="0 0 24 24"><path d="m11 19-6-6"/><path d="m5 21-2-2"/><path d="m8 16-4 4"/><path d="M9.5 17.5 20.414 6.586A2 2 0 0021 5.172V3h-2.172a2 2 0 00-1.414.586L6.5 14.5"/></symbol>
+      <symbol id="i-zap" viewBox="0 0 24 24"><path d="M15.914 4a1.5 1.5 0 00-2.474-1.561l-9 9A1.5 1.5 0 005.5 14h4.002a.5.5 0 01.471.666L8.086 20a1.5 1.5 0 002.475 1.56l9-9A1.5 1.5 0 0018.5 10h-3.997a.5.5 0 01-.472-.667z"/></symbol>
+      <symbol id="i-eye" viewBox="0 0 24 24"><path d="M2.062 12.348a1 1 0 0 1 0-.696 10.75 10.75 0 0 1 19.876 0 1 1 0 0 1 0 .696 10.75 10.75 0 0 1-19.876 0"/><circle cx="12" cy="12" r="3"/></symbol>
+      <symbol id="i-eye-off" viewBox="0 0 24 24"><path d="M10.733 5.076a10.744 10.744 0 0 1 11.205 6.575 1 1 0 0 1 0 .696 10.747 10.747 0 0 1-1.444 2.49"/><path d="M14.084 14.158a3 3 0 0 1-4.242-4.242"/><path d="M17.479 17.499a10.75 10.75 0 0 1-15.417-5.151 1 1 0 0 1 0-.696 10.75 10.75 0 0 1 4.446-5.143"/><path d="m2 2 20 20"/></symbol>
+      <symbol id="i-circle-check" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="m16 9-5.5 5.5L8 12"/></symbol>
+    </svg>
     <div class="header">
-      <span class="bolt">⚡</span><span class="world">teste_xande</span
-      ><span class="pill">🗺 aha</span>
+      <span class="bolt"><svg class="svg-i" aria-hidden="true"><use href="#i-zap"/></svg></span><span class="world">teste_xande</span
+      ><span class="pill"><svg class="svg-i" aria-hidden="true"><use href="#i-map"/></svg> aha</span>
       <span class="spacer"></span>
-      <span class="status"><span class="dot"></span>Conectado <sup>2ms</sup></span>
+      <span class="status"><span class="dotlive"></span>Conectado <span class="num">2 ms</span></span>
       <span class="who" id="who"></span>
-      <button class="btn">Sair</button>
+      <button class="btn" type="button">Sair</button>
     </div>
     <div class="stage">
-      <div class="scenepill">cena ativa: <b>●</b> Fortaleza</div>
+      <div class="scenepill"><span class="dotlive"></span> Cena ativa: Fortaleza</div>
       <div class="art">
-        <div class="house"><div class="star">★</div></div>
+        <div class="house"><div class="star"><svg class="svg-i fill" aria-hidden="true"><use href="#i-star"/></svg></div></div>
       </div>
       <div class="chestmark" id="chestmark" style="display: none"></div>
       <div class="drop" id="dropzone">
-        arraste um ator para cá → vira presença no mapa<br /><b id="droplink"></b>
+        <span class="drop-line">arraste um ator para cá: vira presença no mapa</span><br /><b id="droplink"></b>
       </div>
     </div>
 
@@ -1584,65 +1852,36 @@
     <div class="legend" id="legend"></div>
 
     <script>
-      /* ================= ícones — TODOS desenhados, nenhum emoji ================= */
-      const svg = (paths, extra) =>
-        `<svg class="icon${extra ? " " + extra : ""}" viewBox="0 0 24 24">${paths}</svg>`;
+      /* ================= ícones — TODOS desenhados (Lucide, sprite no topo do <body>), nenhum emoji ================= */
+      const svg = (name, extra) =>
+        `<svg class="svg-i${extra ? " " + extra : ""}" aria-hidden="true"><use href="#i-${name}"/></svg>`;
       const ICONS = {
-        chat: svg('<path d="M4 5h16v11H9l-5 4z"/>'),
-        contacts: svg('<circle cx="12" cy="8" r="4"/><path d="M4 21c1-4 4-6 8-6s7 2 8 6"/>'),
-        combat: svg(
-          '<path d="M4 4l11 11M20 4L9 15"/><path d="M14 16l2 2M10 16l-2 2M17 13l3 3-2 2-3-3M7 13l-3 3 2 2 3-3"/>',
-        ),
-        compendium: svg(
-          '<path d="M4 4h6a3 3 0 0 1 3 3v13a2 2 0 0 0-2-2H4z"/><path d="M20 4h-6a3 3 0 0 0-3 3v13a2 2 0 0 1 2-2h7z"/>',
-        ),
-        npcs: svg(
-          '<path d="M12 3l7 4v6c0 4-3 7-7 8-4-1-7-4-7-8V7z"/><circle cx="12" cy="11" r="2.2"/>',
-        ),
-        scenes: svg(
-          '<rect x="3" y="4" width="18" height="16" rx="2"/><path d="M3 16l5-5 4 4 3-3 6 6"/><circle cx="16" cy="9" r="1.5"/>',
-        ),
-        settings: svg(
-          '<path d="M4 7h10M18 7h2M4 12h4M12 12h8M4 17h12M20 17h0"/><circle cx="16" cy="7" r="2"/><circle cx="10" cy="12" r="2"/><circle cx="18" cy="17" r="2"/>',
-        ),
+        chat: svg("message-square"),
+        contacts: svg("users"),
+        combat: svg("swords"),
+        compendium: svg("book-open"),
+        npcs: svg("drama"),
+        scenes: svg("map"),
+        settings: svg("settings"),
       };
       const UI = {
-        search: svg('<circle cx="11" cy="11" r="6"/><path d="M20 20l-4.5-4.5"/>'),
-        sheet: svg(
-          '<rect x="5" y="3" width="14" height="18" rx="2"/><path d="M9 8h6M9 12h6M9 16h4"/>',
-        ),
-        grid: svg(
-          '<rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M3 15h18M9 3v18M15 3v18"/>',
-        ),
-        plus: svg('<path d="M12 5v14M5 12h14"/>'),
-        trash: svg('<path d="M4 7h16M9 7V5h6v2M6 7l1 13h10l1-13"/>'),
-        close: svg('<path d="M6 6l12 12M18 6L6 18"/>'),
-        pencil: svg('<path d="M4 20h4L20 8l-4-4L4 16z"/><path d="M14 6l4 4"/>'),
-        folder: svg(
-          '<path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>',
-        ),
-        folderPlus: svg(
-          '<path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><path d="M12 11v5M9.5 13.5h5"/>',
-        ),
-        chevron: svg('<path d="M9 6l6 6-6 6"/>'),
-        star: svg(
-          '<path d="M12 3.6l2.6 5.2 5.8.9-4.2 4.1 1 5.8-5.2-2.8-5.2 2.8 1-5.8-4.2-4.1 5.8-.9z"/>',
-        ),
-        starOn: svg(
-          '<path d="M12 3.6l2.6 5.2 5.8.9-4.2 4.1 1 5.8-5.2-2.8-5.2 2.8 1-5.8-4.2-4.1 5.8-.9z"/>',
-          "fill",
-        ),
-        hex: svg('<path d="M12 3l7.5 4.5v9L12 21l-7.5-4.5v-9z"/>'),
-        chest: svg(
-          '<rect x="3" y="8" width="18" height="11" rx="2"/><path d="M3 12.5h18"/><path d="M5.5 8V7a3 3 0 0 1 3-3h7a3 3 0 0 1 3 3v1"/><path d="M11 12.5h2v3h-2z"/>',
-        ),
-        ally: svg(
-          '<path d="M12 3.5l7 3v6c0 4-3 6.8-7 7.8-4-1-7-3.8-7-7.8v-6z"/><path d="M9 12l2 2 4-4"/>',
-        ),
-        neutral: svg('<circle cx="12" cy="12" r="8"/><path d="M8.5 12h7"/>'),
-        foe: svg(
-          '<path d="M5 4.5l9.5 9.5M19 4.5L9.5 14"/><path d="M13 15.5l3.2 3.2M11 15.5l-3.2 3.2"/>',
-        ),
+        search: svg("search"),
+        sheet: svg("file-text"),
+        grid: svg("grid-3x3"),
+        plus: svg("plus"),
+        trash: svg("trash"),
+        close: svg("x"),
+        pencil: svg("pencil"),
+        folder: svg("folder"),
+        folderPlus: svg("folder-plus"),
+        chevron: svg("chevron-right"),
+        star: svg("star"),
+        starOn: svg("star", "fill"),
+        hex: svg("map-pin"),
+        chest: svg("package"),
+        ally: svg("shield-plus"),
+        neutral: svg("shield-half"),
+        foe: svg("sword"),
       };
       const TABS = [
         { id: "chat", label: "Chat", group: "all", badge: "3" },
@@ -1666,13 +1905,13 @@
         chat: `<div class="row"><span class="name">Fofurinha</span><span class="sub2">21:14</span></div>`,
         contacts: `<div class="row"><span class="name">Tobias</span><span class="sub2">você</span></div>
     <div class="row"><span class="name">Fofurinha</span><span class="sub2">na mesa</span></div>
-    <p class="hint">A aba do jogador (spec 39).<br/>Personagem aparece aqui — mas nasce junto com o player,<br/>em Configurações › Usuários.</p>`,
+    <p class="hint">A aba do jogador (spec 39).<br/>Personagem aparece aqui — mas nasce junto com o player,<br/>em Configurações / Usuários.</p>`,
         combat: `<p class="empty">Nenhum combate ativo.</p>`,
         compendium: `<div class="row"><span class="name">Bestiário 1</span><span class="sub2">492</span></div>
     <div class="row"><span class="name">Talentos</span><span class="sub2">1.812</span></div>`,
-        scenes: `<div class="row"><span style="color:var(--ok)">●</span><span class="name">Fortaleza</span><span class="sub2">ativa</span></div>`,
-        settings: `<div class="row"><span class="name">Minhas preferências</span><span class="sub2">›</span></div>
-    <div class="row"><span class="name">Usuários</span><span class="sub2">›</span></div>
+        scenes: `<div class="row"><span class="dotlive"></span><span class="name">Fortaleza</span><span class="sub2">ativa</span></div>`,
+        settings: `<div class="row"><span class="name">Minhas preferências</span><span class="sub2">${svg("chevron-right")}</span></div>
+    <div class="row"><span class="name">Usuários</span><span class="sub2">${svg("chevron-right")}</span></div>
     <p class="hint">É aqui que nasce personagem:<br/>criar um player cria o personagem em branco dele.</p>`,
       };
 
@@ -1777,7 +2016,7 @@
           parts.unshift(cur.name);
           cur = cur.parent ? folderById(cur.parent) : null;
         }
-        return parts.join(" › ");
+        return parts.join(" / ");
       }
       const pinnedIds = () => FOLDERS.filter((f) => f.pin).map((f) => f.id);
 
@@ -1790,7 +2029,7 @@
           att: "ally",
           lvl: 5,
           folder: "f-vila",
-          color: "#c98b5e",
+          color: "warning",
           link: true,
           tok: {},
           know: { tobias: 2, fofurinha: 1, rurik: 0 },
@@ -1803,7 +2042,7 @@
           att: "neutral",
           lvl: 3,
           folder: "f-vila",
-          color: "#8a8f98",
+          color: "text-muted",
           link: true,
           tok: {},
           know: { tobias: 2, fofurinha: 2, rurik: 0 },
@@ -1816,7 +2055,7 @@
           att: "ally",
           lvl: 4,
           folder: "f-vila",
-          color: "#d6b3e8",
+          color: "magic",
           link: true,
           tok: {},
           know: { tobias: 1, fofurinha: 1, rurik: 0 },
@@ -1829,7 +2068,7 @@
           att: "foe",
           lvl: 8,
           folder: "f-corvo",
-          color: "#5b6b8c",
+          color: "info",
           link: true,
           tok: { Fortaleza: 1 },
           conds: [{ slug: "invisible" }, { slug: "quickened" }],
@@ -1844,7 +2083,7 @@
           att: "foe",
           lvl: 6,
           folder: "f-corvo",
-          color: "#3a3a4d",
+          color: "text-subtle",
           link: true,
           tok: {},
           know: { tobias: 1, fofurinha: 1, rurik: 1 },
@@ -1857,7 +2096,7 @@
           att: "foe",
           lvl: -1,
           folder: "f-gob",
-          color: "#6a9a3f",
+          color: "success",
           link: false,
           tok: { Fortaleza: 3 },
           conds: [
@@ -1877,7 +2116,7 @@
           att: "foe",
           lvl: 1,
           folder: "f-gob",
-          color: "#4f7a2e",
+          color: "accent",
           link: false,
           tok: { Fortaleza: 1 },
           conds: [{ slug: "unconscious" }],
@@ -1891,7 +2130,7 @@
           att: "foe",
           lvl: 1,
           folder: "f-gob",
-          color: "#9a5f3f",
+          color: "danger",
           link: false,
           tok: {},
           know: { tobias: 0, fofurinha: 0, rurik: 0 },
@@ -1904,7 +2143,7 @@
           att: "foe",
           lvl: 1,
           folder: "f-mortos",
-          color: "#6b7a5e",
+          color: "warning",
           link: false,
           tok: {},
           know: { tobias: 1, fofurinha: 0, rurik: 0 },
@@ -1917,7 +2156,7 @@
           att: "foe",
           lvl: 2,
           folder: "f-mortos",
-          color: "#c9c4b5",
+          color: "text-muted",
           link: false,
           tok: {},
           know: { tobias: 0, fofurinha: 0, rurik: 0 },
@@ -1930,7 +2169,7 @@
           att: "neutral",
           lvl: 0,
           folder: null,
-          color: "#a07c4f",
+          color: "magic",
           link: false,
           tok: {},
           know: { tobias: 2, fofurinha: 2, rurik: 2 },
@@ -1943,7 +2182,7 @@
           att: null /* perigo não tem atitude — a marca some */,
           lvl: 1,
           folder: null,
-          color: "#8a6b3f",
+          color: "info",
           link: false,
           tok: { Fortaleza: 1 },
           know: { tobias: 0, fofurinha: 0, rurik: 0 },
@@ -1984,7 +2223,7 @@
         att: "foe",
         lvl: (i % 12) - 1,
         folder: i % 2 ? "f-gob" : "f-mortos",
-        color: ["#6a9a3f", "#8a5f9a", "#9a5f3f", "#5f7a9a"][i % 4],
+        color: ["success", "text-subtle", "danger", "success"][i % 4],
         link: false,
         tok: {},
         know: { tobias: 0, fofurinha: 0, rurik: 0 },
@@ -1992,14 +2231,14 @@
       }));
 
       const PACK = [
-        { id: "p1", name: "Goblin Piromaníaco", lvl: 1, pack: "Bestiário 1", color: "#6a9a3f" },
-        { id: "p2", name: "Goblin Chefe de Guerra", lvl: 2, pack: "Bestiário 1", color: "#4f7a2e" },
-        { id: "p3", name: "Cão Goblin", lvl: 1, pack: "Bestiário 1", color: "#7a6a3f" },
-        { id: "p4", name: "Esqueleto Arqueiro", lvl: 1, pack: "Bestiário 1", color: "#c9c4b5" },
-        { id: "p5", name: "Zumbi Rastejante", lvl: 0, pack: "Bestiário 2", color: "#6b7a5e" },
-        { id: "p6", name: "Ogro Guerreiro", lvl: 3, pack: "Bestiário 1", color: "#9a7a5f" },
-        { id: "p7", name: "Lobo Comum", lvl: 1, pack: "Bestiário 1", color: "#7a7a8a" },
-        { id: "p8", name: "Bandido Veterano", lvl: 2, pack: "Bestiário 1", color: "#8a5f4f" },
+        { id: "p1", name: "Goblin Piromaníaco", lvl: 1, pack: "Bestiário 1", color: "success" },
+        { id: "p2", name: "Goblin Chefe de Guerra", lvl: 2, pack: "Bestiário 1", color: "accent" },
+        { id: "p3", name: "Cão Goblin", lvl: 1, pack: "Bestiário 1", color: "accent" },
+        { id: "p4", name: "Esqueleto Arqueiro", lvl: 1, pack: "Bestiário 1", color: "text-muted" },
+        { id: "p5", name: "Zumbi Rastejante", lvl: 0, pack: "Bestiário 2", color: "warning" },
+        { id: "p6", name: "Ogro Guerreiro", lvl: 3, pack: "Bestiário 1", color: "danger" },
+        { id: "p7", name: "Lobo Comum", lvl: 1, pack: "Bestiário 1", color: "warning" },
+        { id: "p8", name: "Bandido Veterano", lvl: 2, pack: "Bestiário 1", color: "text-muted" },
       ];
 
       /* ================= estado ================= */
@@ -2093,10 +2332,10 @@
             h:
               `<b>${k2}</b> conhece(m) · <b>${k1}</b> entreviu/entreviram · <b>${k0}</b> não vê(em).<br><br>` +
               `Repare no contraste: conhecimento é <b>por personagem</b>; atitude é da <b>party inteira</b>. Aqui é leitura — mudar é só na janela, pelo rodapé (<b>N7</b>).`,
-            tone: "conhecimento · par NPC × personagem",
+            tone: "conhecimento · par NPC e personagem",
           }),
         );
-        return `<span class="know" data-help="${help}"><span class="k2">✓${k2}</span> <span class="k1">◐${k1}</span> <span class="k0">·${k0}</span></span>`;
+        return `<span class="know" tabindex="0" data-help="${help}"><span class="k2" title="Conhecem">${svg("circle-check")}${k2}</span><span class="k1" title="Entreviram">${svg("eye")}${k1}</span><span class="k0" title="Não veem">${svg("eye-off")}${k0}</span></span>`;
       }
 
       function condsHtml(n) {
@@ -2118,10 +2357,10 @@
                 tone: (d.critical ? "crítica · " : "") + (TONE_LB[d.tone] || "situação"),
               }),
             );
-            return `<span class="chip ${tone}" data-help="${help}">${lb}${val}</span>`;
+            return `<span class="chip ${tone}" tabindex="0" data-help="${help}">${lb}${val}</span>`;
           })
           .join("");
-        const more = rest > 0 ? `<span class="chip more" data-more="${n.id}">+${rest}</span>` : "";
+        const more = rest > 0 ? `<button type="button" class="chip more" data-more="${n.id}" title="Mostrar mais condições" aria-label="Mostrar mais ${rest} condições">+${rest}</button>` : "";
         return `<div class="conds">${chips}${more}</div>`;
       }
 
@@ -2142,11 +2381,11 @@
         const help = encodeURIComponent(
           JSON.stringify({
             t: "Atitude: " + def.lb,
-            h: "Vale para a <b>party inteira</b> — não é por personagem, ao contrário do conhecimento. Clique para ciclar: aliado → neutro → inimigo.<br><br>Atributo simples; só passa a importar de verdade mais para a frente (combate, comportamento).",
+            h: "Vale para a <b>party inteira</b> — não é por personagem, ao contrário do conhecimento. Clique para ciclar: aliado, neutro, inimigo, e volta ao aliado.<br><br>Atributo simples; só passa a importar de verdade mais para a frente (combate, comportamento).",
             tone: "atitude · party inteira",
           }),
         );
-        return `<button class="att ${n.att}" data-att="${n.id}" data-help="${help}" aria-label="Atitude: ${def.lb}">${UI[def.icon]}</button>`;
+        return `<button class="att ${n.att}" data-att="${n.id}" data-help="${help}" aria-label="Atitude: ${def.lb}. Clique para mudar" title="Atitude: ${def.lb}">${UI[def.icon]}</button>`;
       }
 
       function actorRow(n) {
@@ -2156,8 +2395,8 @@
           editTitle === n.id
             ? `<div class="ttl"><input id="titleinput" value="${t || ""}" placeholder="um título para ${n.name}"/></div>`
             : t
-              ? `<div class="ttl"><span>${t}</span><span class="pen" data-title="${n.id}">${UI.pencil}</span></div>`
-              : `<div class="ttl fallback"><span>${SUBTYPES.find((s) => s.id === n.type)?.lb || n.type} · nível ${n.lvl}</span><span class="pen" data-title="${n.id}">${UI.pencil}</span></div>`;
+              ? `<div class="ttl"><span>${t}</span><button type="button" class="pen" data-title="${n.id}" title="Editar título" aria-label="Editar título">${UI.pencil}</button></div>`
+              : `<div class="ttl fallback"><span>${SUBTYPES.find((s) => s.id === n.type)?.lb || n.type} · nível ${n.lvl}</span><button type="button" class="pen" data-title="${n.id}" title="Editar título" aria-label="Editar título">${UI.pencil}</button></div>`;
         const tk = tokCount(n);
         const tkHelp = encodeURIComponent(
           JSON.stringify({
@@ -2168,19 +2407,19 @@
                   .join("<br>")
               : "não está em cena nenhuma",
             tone: n.link
-              ? "N8 · arrasta VINCULADO (um só, vida compartilhada)"
-              : "N8 · arrasta DESVINCULADO (cada um com sua vida)",
+              ? "N8 · arrasta vinculado (um só, vida compartilhada)"
+              : "N8 · arrasta desvinculado (cada um com sua vida)",
           }),
         );
-        const meta = `<span class="meta hide-on-hover">
-        <span class="lvl">${n.lvl}</span>
-        ${tk ? `<span class="tok" data-help="${tkHelp}">${UI.hex}${tk}</span>` : ""}
+        const meta = `<span class="meta">
+        <span class="lvl" title="Nível ${n.lvl}">${n.lvl}</span>
+        ${tk ? `<span class="tok" tabindex="0" data-help="${tkHelp}">${UI.hex}${tk}</span>` : ""}
         ${knowSummary(n)}
       </span>`;
         const tools = `<span class="tools">
-        <button data-sheet="${n.id}" title="abrir ficha">${UI.sheet}</button>
-        <button data-move="${n.id}" title="mudar de pasta">${UI.folder}</button>
-        <button class="del" data-del="${n.id}" title="excluir ator">${UI.trash}</button>
+        <button type="button" data-sheet="${n.id}" title="Abrir ficha" aria-label="Abrir ficha">${UI.sheet}</button>
+        <button type="button" data-move="${n.id}" title="Mudar de pasta" aria-label="Mudar de pasta">${UI.folder}</button>
+        <button type="button" class="del" data-del="${n.id}" title="Excluir ator" aria-label="Excluir ator">${UI.trash}</button>
       </span>`;
         const subs = (n.subs || [])
           .map(
@@ -2188,10 +2427,11 @@
               `<div class="sub"><span class="nm">${s.name}</span><span class="sb">${s.kind}</span></div>`,
           )
           .join("");
-        return `<div class="act ${sel === n.id ? "sel" : ""} ${dragActor === n.id ? "dragging" : ""}" data-act="${n.id}" draggable="true">
-        <span class="av ${hz}" style="background:${n.color}">${initials(n.name)}</span>
+        return `<div class="act ${sel === n.id ? "sel" : ""} ${dragActor === n.id ? "dragging" : ""}" data-act="${n.id}" draggable="true" tabindex="0">
+        <span class="av ${hz}" style="color:var(--fusion-${n.color})">${initials(n.name)}</span>
         <span class="idt"><span class="nm">${n.name}</span>${titleLine}</span>
-        ${attButton(n)}${meta}${tools}
+        ${attButton(n)}
+        <span class="under">${meta}${tools}</span>
       </div>${condsHtml(n)}${moveMenu(n)}${subs}`;
       }
 
@@ -2223,19 +2463,19 @@
               .map((k) => folderNode(k, list, o))
               .join("")}${mine.map((n) => actorRow(n)).join("")}</div>`
           : "";
-        const path = o.showPath && f.parent ? `<span class="path">${folderPath(f)} ›</span>` : "";
-        return `<div class="fold" data-fold="${f.id}" data-dropfolder="${f.id}">
+        const path = o.showPath && f.parent ? `<span class="path">${folderPath(f)} /</span>` : "";
+        return `<div class="fold" data-fold="${f.id}" data-dropfolder="${f.id}" tabindex="0" role="button" aria-expanded="${isOpen}">
         <span class="chev ${isOpen ? "open" : ""}">${UI.chevron}</span>
         ${f.pin ? `<span class="pinmark">${UI.starOn}</span>` : ""}
         ${path}
         ${renaming ? `<input id="renameinput" value="${f.name}"/>` : `<span class="fn">${f.name}</span>`}
         <span class="cnt">${total}</span>
         <span class="tools">
-          <button class="pinb ${f.pin ? "on" : ""}" data-pin="${f.id}" title="${f.pin ? "desafixar" : "fixar no topo"}">${f.pin ? UI.starOn : UI.star}</button>
-          <button data-newfolder="${f.id}" title="nova subpasta">${UI.folderPlus}</button>
-          <button data-newin="${f.id}" title="novo NPC aqui">${UI.plus}</button>
-          <button data-rename="${f.id}" title="renomear">${UI.pencil}</button>
-          <button class="del" data-delfolder="${f.id}" title="excluir pasta">${UI.close}</button>
+          <button type="button" class="pinb ${f.pin ? "on" : ""}" data-pin="${f.id}" title="${f.pin ? "Desafixar" : "Fixar no topo"}" aria-label="${f.pin ? "Desafixar" : "Fixar no topo"}">${f.pin ? UI.starOn : UI.star}</button>
+          <button type="button" data-newfolder="${f.id}" title="Nova subpasta" aria-label="Nova subpasta">${UI.folderPlus}</button>
+          <button type="button" data-newin="${f.id}" title="Novo NPC aqui" aria-label="Novo NPC aqui">${UI.plus}</button>
+          <button type="button" data-rename="${f.id}" title="Renomear" aria-label="Renomear">${UI.pencil}</button>
+          <button type="button" class="del" data-delfolder="${f.id}" title="Excluir pasta" aria-label="Excluir pasta">${UI.trash}</button>
         </span>
       </div>${inner}`;
       }
@@ -2247,16 +2487,16 @@
         const roots = FOLDERS.filter((f) => !f.parent && !f.pin);
         const loose = list.filter((n) => !n.folder).sort(byName);
         const pinnedBlock = pinned.length
-          ? `<div class="sec pinned"><span class="lbl">${UI.starOn} fixadas</span><span class="cnt">${pinned.length}</span><span class="line"></span></div>` +
+          ? `<div class="sec pinned"><span class="lbl">${UI.starOn} Fixadas</span><span class="cnt">${pinned.length}</span><span class="line"></span></div>` +
             pinned.map((f) => folderNode(f, list, { showPath: true })).join("")
           : "";
         const treeBlock =
-          `<div class="sec"><span class="lbl">pastas</span><span class="line"></span>
-            <button class="add" data-newfolder="">${UI.folderPlus} nova</button></div>` +
+          `<div class="sec"><span class="lbl">Pastas</span><span class="line"></span>
+            <button type="button" class="add" data-newfolder="" title="Nova pasta" aria-label="Nova pasta">${UI.folderPlus} Nova pasta</button></div>` +
           (newFolderIn === null ? newFolderInput() : "") +
           roots.map((f) => folderNode(f, list)).join("");
         const looseBlock =
-          `<div class="sec" data-dropfolder=""><span class="lbl">sem pasta</span><span class="cnt">${loose.length}</span><span class="line"></span></div>` +
+          `<div class="sec" data-dropfolder=""><span class="lbl">Sem pasta</span><span class="cnt">${loose.length}</span><span class="line"></span></div>` +
           loose.map((n) => actorRow(n)).join("");
         return pinnedBlock + treeBlock + looseBlock;
       }
@@ -2265,8 +2505,8 @@
         if (empty)
           return `<div class="vazio"><b>Nenhum NPC neste mundo ainda.</b><br/>
         Crie do zero, ou puxe um do bestiário.<br/><br/>
-        <button class="hbtn pri" id="newempty">${UI.plus} Novo NPC</button></div>
-        <p class="hint">Personagem de jogador não aparece aqui —<br/>ele nasce com o player, em Configurações › Usuários.</p>`;
+        <button type="button" class="hbtn pri" id="newempty">${UI.plus} Novo NPC</button></div>
+        <p class="hint">Personagem de jogador não aparece aqui —<br/>ele nasce com o player, em Configurações / Usuários.</p>`;
         return `<div class="vazio">Nada encontrado para <b>"${query}"</b>.</div>`;
       }
 
@@ -2285,7 +2525,7 @@
               ? hits
                   .map(
                     (p) => `<div class="brow ${p.id === packPick ? "on" : ""}" data-pack="${p.id}">
-              <span class="av" style="background:${p.color}">${initials(p.name)}</span>
+              <span class="av" style="color:var(--fusion-${p.color})">${initials(p.name)}</span>
               <span class="bn">${p.name}</span><span class="bs">${p.pack} · nv ${p.lvl}</span></div>`,
                   )
                   .join("")
@@ -2306,7 +2546,7 @@
             ).join("")}</div></div>
           <div class="field"><label>Nome</label><input placeholder="nome do NPC"/></div>`;
         return `<div class="win" style="width:520px;left:calc(50% - 260px)">
-      <div class="wh">${UI.plus} Novo NPC<button class="x" data-winclose>${UI.close}</button></div>
+      <div class="wh">${UI.plus} Novo NPC<button type="button" class="x" data-winclose title="Fechar" aria-label="Fechar">${UI.close}</button></div>
       <div class="wtabs">
         <button class="${newMode === "pack" ? "on" : ""}" data-mode="pack">Do bestiário</button>
         <button class="${newMode === "scratch" ? "on" : ""}" data-mode="scratch">Criar do zero</button>
@@ -2331,7 +2571,7 @@
           por isso não há etiqueta de "mercador" na lista. Os presets ainda não existem no projeto;
           a spec fixa o conceito e o ponto de extensão, não o catálogo.
           <br/><br/><b>Atitude</b>, ao contrário, é atributo do ator e vale para a party inteira.
-          <br/><br/>Só NPC e Perigo: <b>personagem</b> nasce com o player (Configurações › Usuários),
+          <br/><br/>Só NPC e Perigo: <b>personagem</b> nasce com o player (Configurações / Usuários),
           <b>familiar</b> nasce colado a um dono, e <b>veículo não existe no Fusion</b>.</div>
       </div>
       <div class="wf"><button class="btn-ghost" data-winclose>Cancelar</button>
@@ -2351,8 +2591,8 @@
           else if (v === 1) k1++;
         });
         return `<div class="win danger" style="width:500px;left:calc(50% - 250px)">
-      <div class="wh">${UI.trash} Excluir <b style="color:var(--text)">&nbsp;${n.name}</b>?
-        <button class="x" data-winclose>${UI.close}</button></div>
+      <div class="wh">${UI.trash} Excluir <b style="color:var(--fusion-text)">&nbsp;${n.name}</b>?
+        <button type="button" class="x" data-winclose title="Fechar" aria-label="Fechar">${UI.close}</button></div>
       <div class="wb">
         <b>O que vai junto:</b>
         <ul class="conseq">
@@ -2382,18 +2622,18 @@
       }
 
       const ST = ["oculto", "entrevisto", "conhecido"];
-      const SYM = ["·", "◐", "✓"];
+      const SYM = ["eye-off", "eye", "circle-check"];
       function matrixHtml() {
         const list = allNpcs()
           .filter((n) => !n.flood)
           .sort(byName);
         return `<div class="win"><div class="wh">${UI.grid} Quem conhece quem
-      <button class="x" data-winclose>${UI.close}</button></div>
+      <button type="button" class="x" data-winclose title="Fechar" aria-label="Fechar">${UI.close}</button></div>
     <div class="wb">
       A <b>mesma janela</b> da aba Contatos (spec 39, REQ-CTT-061), alcançável pelas duas abas porque o
       conhecimento se edita <b>num lugar só</b> — DEC-CTT-05.
-      <div class="keys"><span><i class="k0">·</i>oculto</span><span><i class="k1">◐</i>entrevisto</span>
-        <span><i class="k2">✓</i>conhecido</span><span><i>__</i>sublinhado = exceção</span></div>
+      <div class="keys"><span class="k0"><span class="kic">${svg("eye-off")}</span>oculto</span><span class="k1"><span class="kic">${svg("eye")}</span>entrevisto</span>
+        <span class="k2"><span class="kic">${svg("circle-check")}</span>conhecido</span><span><span class="kex"></span>linha embaixo = exceção</span></div>
       <table class="matrix"><thead><tr><th>NPC</th>
         ${PCS.map((p) => `<th data-col="${p.id}">${p.name}<small>coluna inteira</small></th>`).join("")}
       </tr></thead><tbody>
@@ -2403,14 +2643,14 @@
         <td class="nm" data-rowcycle="${n.id}">${n.name}<small>regra geral: ${ST[rule[n.id] ?? 0]}</small></td>
         ${PCS.map((p) => {
           const v = know(n.id, p.id);
-          return `<td><button class="cell k${v} ${isEx(n.id, p.id) ? "ex" : ""}" data-mx="${n.id}::${p.id}">${SYM[v]}</button></td>`;
+          return `<td><button class="cell k${v} ${isEx(n.id, p.id) ? "ex" : ""}" data-mx="${n.id}::${p.id}" aria-label="${n.name} para ${p.name}: ${ST[v]}" title="${ST[v]}">${svg(SYM[v])}</button></td>`;
         }).join("")}
       </tr>`,
         )
         .join("")}
       </tbody></table>
       <div class="note"><b>Por que esta grade existe e a atitude não tem uma:</b> conhecer é do par
-        NPC × personagem (o Tobias conhece o ferreiro, a Fofurinha só o entreviu); atitude é da
+        NPC e personagem (o Tobias conhece o ferreiro, a Fofurinha só o entreviu); atitude é da
         <b>party inteira</b>, então cabe num atributo do ator, editável na própria linha.
         <br/><br/><b>N7</b> — revelar exige vir até aqui. Vale o desvio, ou o cartão precisa de um
         "revelar a todos"?</div>
@@ -2420,7 +2660,7 @@
       function sheetWinHtml() {
         const n = findActor(win.replace("sheet:", ""));
         return `<div class="win" style="width:470px;left:calc(50% - 235px)">
-      <div class="wh">${UI.sheet} Ficha — ${n ? n.name : "?"}<button class="x" data-winclose>${UI.close}</button></div>
+      <div class="wh">${UI.sheet} Ficha — ${n ? n.name : "?"}<button type="button" class="x" data-winclose title="Fechar" aria-label="Fechar">${UI.close}</button></div>
       <div class="wb">A ficha abre <b>fora da gaveta</b>, como janela do window manager (spec 11).
       <div class="note">A ficha de NPC vai ser <b>muito mais maleável</b> que a de personagem, e ganha
       <b>spec própria</b>. Esta spec não a define: só diz que a aba abre a ficha que a spec dela
@@ -2440,8 +2680,8 @@
       function npcsHead() {
         return `<div class="panel-head">
       <div class="search"><span class="mag">${UI.search}</span>
-        <input id="q" placeholder="Procurar NPC" value="${query}"/></div>
-      <button class="hbtn pri" id="new" title="novo NPC">${UI.plus}</button>
+        <input id="q" placeholder="Procurar NPC" aria-label="Procurar NPC" value="${query}"/></div>
+      <button type="button" class="hbtn pri" id="new" title="Novo NPC" aria-label="Novo NPC">${UI.plus}</button>
     </div>`;
       }
       function tabButton(t) {
@@ -2464,7 +2704,7 @@
         const body = `<div class="panel-body">${isNpcs ? npcsBody() : OTHER[active] || ""}</div>`;
         const footer = isNpcs
           ? `<div class="panel-foot">
-          <button class="hbtn chestb" id="chest" title="põe um baú direto na cena ativa">${UI.chest} Baú</button>
+          <button class="hbtn chestb" id="chest" title="Põe um baú direto na cena ativa">${UI.chest} Baú</button>
           <button class="hbtn wide" id="matrix">${UI.grid} Quem conhece</button></div>`
           : "";
 
@@ -2482,14 +2722,14 @@
         const who = document.getElementById("who");
         who.className = isGm ? "who" : "who player";
         who.innerHTML = isGm
-          ? '<b>●</b> Gamemaster · <span style="color:var(--muted)">Mestre</span>'
-          : '<b>●</b> Alexandre · <span style="color:var(--muted)">Jogador (Fofurinha) — não vê esta aba</span>';
+          ? '<span class="dotlive"></span> Gamemaster · <span style="color:var(--fusion-text-muted)">Mestre</span>'
+          : '<span class="dotlive"></span> Alexandre · <span style="color:var(--fusion-text-muted)">Jogador (Fofurinha) — não vê esta aba</span>';
 
         const n = dragActor ? findActor(dragActor) : null;
         document.getElementById("droplink").textContent = n
           ? n.link
-            ? `${n.name}: VINCULADO (um só; a vida é a do ator)`
-            : `${n.name}: DESVINCULADO (cada um com sua vida)`
+            ? `${n.name}: vinculado (um só; a vida é a do ator)`
+            : `${n.name}: desvinculado (cada um com sua vida)`
           : "goblin desvinculado · Aldric vinculado — N8 em aberto";
         const cm = document.getElementById("chestmark");
         cm.style.display = chestOnScene ? "block" : "none";
@@ -2515,7 +2755,7 @@
           return;
         }
         const t = tipEl();
-        t.innerHTML = `<b>${d.t}</b>${d.h || '<i style="color:var(--subtle)">sem texto de ajuda declarado</i>'}<span class="tone">${d.tone}</span>`;
+        t.innerHTML = `<b>${d.t}</b>${d.h || '<span class="nohelp">sem texto de ajuda declarado</span>'}<span class="tone">${d.tone}</span>`;
         t.style.display = "block";
         const r = el.getBoundingClientRect(),
           tr = t.getBoundingClientRect();
@@ -2555,6 +2795,15 @@
               const id = f.dataset.fold;
               expanded[id] = !expanded[id];
               render();
+            }),
+        );
+        root.querySelectorAll("[data-fold]").forEach(
+          (f) =>
+            (f.onkeydown = (e) => {
+              if (e.target === f && (e.key === "Enter" || e.key === " ")) {
+                e.preventDefault();
+                f.click();
+              }
             }),
         );
         root.querySelectorAll("[data-pin]").forEach(
@@ -2645,6 +2894,9 @@
             sel = a.dataset.act;
             render();
           };
+          a.onkeydown = (e) => {
+            if (e.target === a && e.key === "Enter") a.click();
+          };
           a.ondblclick = () => {
             win = "sheet:" + a.dataset.act;
             render();
@@ -2661,8 +2913,8 @@
             const dl = document.getElementById("droplink");
             if (dl && n2)
               dl.textContent = n2.link
-                ? `${n2.name}: VINCULADO (um só; a vida é a do ator)`
-                : `${n2.name}: DESVINCULADO (cada um com sua vida)`;
+                ? `${n2.name}: vinculado (um só; a vida é a do ator)`
+                : `${n2.name}: desvinculado (cada um com sua vida)`;
           };
           a.ondragend = () => {
             dragActor = null;
@@ -2892,6 +3144,8 @@
         document.querySelectorAll("[data-help]").forEach((el) => {
           el.onmouseenter = () => showTip(el);
           el.onmouseleave = hideTip;
+          el.onfocus = () => showTip(el);
+          el.onblur = hideTip;
         });
 
         const q = document.getElementById("q");
@@ -2941,22 +3195,22 @@
         <tr><td>novo aqui</td><td><b>atitude</b> na linha (aliado · neutro · inimigo), que <b>cicla no
           clique</b> e vale para a <b>party inteira</b> · <b>preset</b> só na criação, sem etiqueta na
           lista · <b>zero emoji</b>: todo ícone desenhado (DEC-ACH-04)</td></tr>
-        <tr><td>atitude × conhecimento</td><td>atitude é da party toda (atributo do ator);
-          conhecimento é do par NPC × personagem (grade). Granularidades diferentes de propósito —
+        <tr><td>atitude e conhecimento</td><td>atitude é da party toda (atributo do ator);
+          conhecimento é do par NPC e personagem (grade). Granularidades diferentes de propósito —
           e a spec vai ter que dizer por quê.</td></tr>
         <tr><td>baú</td><td><b>não é ator</b>: some da cena e nunca entra no diretório. É atalho de
           narração do Mestre. O pf2e declara o subtipo <b>loot</b> — se o baú não é ator, ele fica
           sem uso ou é usado por baixo sem ser listado.</td></tr>
         <tr><td>veículo</td><td>não existe no Fusion — conferido: pf2e declara
-          <i>character, npc, hazard, loot, familiar</i>. Era invenção do protótipo.</td></tr>
-        <tr><td>condição</td><td><span class="sw" style="background:#ff5c5c"></span>penalidade
-          <span class="sw" style="background:#3ddc84"></span>benefício
-          <span class="sw" style="background:#b98cff"></span>situação · preenchido = tira da cena</td></tr>
+          <b>character, npc, hazard, loot, familiar</b>. Era invenção do protótipo.</td></tr>
+        <tr><td>condição</td><td><span class="sw harm"></span>penalidade
+          <span class="sw benefit"></span>benefício
+          <span class="sw special"></span>situação · preenchido = tira da cena</td></tr>
       </table>
       <div class="q"><b>experimente:</b> clique na marca de atitude do <b>Bram</b> e veja ciclar ·
         o <b>Fosso</b> (perigo) não tem atitude nenhuma · a estrela fixa/desafixa pasta ·
         arraste o <b>Zumbi</b> para "Vila de Pedra Alta" · o botão <b>Baú</b> põe e tira o baú da cena.</div>
-      <div class="q" style="border:0;padding-top:.3rem;color:#666">ainda aberto:
+      <div class="q last">ainda aberto:
         <b>N1</b> fixar · <b>N5</b> importar · <b>N6</b> excluir · <b>N7</b> revelar ·
         <b>N8</b> vínculo · <b>N9/N10</b> segundo personagem e excluir personagem</div>`;
       }
