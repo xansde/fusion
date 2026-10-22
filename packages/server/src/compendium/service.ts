@@ -915,6 +915,7 @@ export class CompendiumService {
         // only holds if BOTH import surfaces (world and sheet) snapshot the same
         // way before stripping `i18n` (code review, ajustes r1 Fase 4, 2026-08-17).
         snapshotPtBRLabel(worldDoc);
+        stampOriginSystemId(worldDoc, manifest.systemId);
 
         delete worldDoc["uuid"];
         delete worldDoc["i18n"];
@@ -1127,6 +1128,7 @@ export class CompendiumService {
         // That second mechanism is a real, separate defect (see openQuestions)
         // and is NOT fixed here.
         snapshotPtBRLabel(embedded);
+        stampOriginSystemId(embedded, manifest.systemId);
         delete embedded["uuid"];
         delete embedded["i18n"];
         delete embedded["mechanics"];
@@ -1850,6 +1852,22 @@ export function snapshotPtBRLabel(doc: Record<string, unknown>): void {
   fusion["i18n"] = { "pt-BR": label };
   flags["fusion"] = fusion;
   doc["flags"] = flags;
+}
+
+/**
+ * #264 (REQ-CMP-059): `(packName, sourceId)` is not a cross-system identity (36 vendor
+ * documents share it between pf2e and sf2e with different content). Stamp the ORIGIN
+ * `systemId` on `flags.fusion` of an imported document so a reader can pass it back to
+ * `getI18nBySourceRef`/`getDocumentBySourceRef`. Only documents that already carry an
+ * origin reference (`flags.fusion.sourceId`) are stamped; mutates `doc` in place.
+ */
+export function stampOriginSystemId(doc: Record<string, unknown>, systemId: string): void {
+  const flags = doc["flags"];
+  if (typeof flags !== "object" || flags === null) return;
+  const fusion = (flags as Record<string, unknown>)["fusion"];
+  if (typeof fusion !== "object" || fusion === null) return;
+  if (typeof (fusion as Record<string, unknown>)["sourceId"] !== "string") return;
+  doc["flags"] = { ...(flags as Record<string, unknown>), fusion: { ...fusion, systemId } };
 }
 
 function packed<T>(v: T | null): v is T {
