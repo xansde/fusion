@@ -697,7 +697,8 @@ export async function boot(options: BootOptions): Promise<BootResult> {
     // so compendium:list / index / get / import work over the real boot path
     // (not only when the service is wired manually in tests). REQ-CMP-006..012.
     // ----------------------------------------------------------------------
-    const { CompendiumService, resolveSystemPacksDir } = await import("./compendium/index.js");
+    const { CompendiumService, resolveSystemPacksDir, resolvePrivatePacksDir } =
+      await import("./compendium/index.js");
     const compendiumService = new CompendiumService(logger);
     if (netContext.systemId !== undefined) {
       // DEC-SYS-06-bis (spec 15, mundo misto): a composite system (e.g.
@@ -748,6 +749,31 @@ export async function boot(options: BootOptions): Promise<BootResult> {
         logger.warn(
           { systemId: netContext.systemId, sourceSystemIds },
           "No compendium packs directory found for any source system — compendium:list will be empty",
+        );
+      }
+
+      // Private packs (DEC-CMP-11, REQ-CMP-057/058): a second, non-versioned
+      // root the GM can point the server at (default
+      // `<dataDir>/private-packs/<systemId>/`, override via
+      // FUSION_PRIVATE_PACKS_DIR) to load content that must never reach git —
+      // e.g. Paizo playtest classes, same restriction as docs/etmos-fontes/.
+      // Discovered AFTER the official root above, so a colliding packId
+      // (REQ-CMP-058) never overwrites an official pack. Missing directory is
+      // the expected, silent common case — no warning log.
+      // Composite worlds (pf2e-sf2e) read one private root PER source system.
+      for (const sourceSystemId of sourceSystemIds) {
+        const privatePacksDir = resolvePrivatePacksDir(config.dataDir, sourceSystemId);
+        if (privatePacksDir === null) continue;
+        const beforeCount = compendiumService.listPacks(UserRole.GAMEMASTER).length;
+        compendiumService.discoverPacks(privatePacksDir, sourceSystemId);
+        logger.info(
+          {
+            systemId: netContext.systemId,
+            sourceSystemId,
+            privatePacksDir,
+            packs: compendiumService.listPacks(UserRole.GAMEMASTER).length - beforeCount,
+          },
+          "Private compendium packs discovered",
         );
       }
     } else {

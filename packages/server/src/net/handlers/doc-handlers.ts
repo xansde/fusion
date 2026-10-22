@@ -2273,6 +2273,19 @@ export function buildDocDeleteHandler(deps: DocHandlerDeps): HandlerFn {
       }
     }
 
+    // The settings about to go, read while they still exist: a deleted variant
+    // rule changes what every actor derives, exactly like an update would.
+    const deletedSettings: Record<string, unknown>[] = [];
+    if (documentType === "Setting") {
+      for (const id of ids) {
+        try {
+          deletedSettings.push(deps.store.get("settings", id));
+        } catch {
+          // Missing document — the delete loop below reports NOT_FOUND.
+        }
+      }
+    }
+
     const deletedIds: string[] = [];
     try {
       for (const id of ids) {
@@ -2294,6 +2307,12 @@ export function buildDocDeleteHandler(deps: DocHandlerDeps): HandlerFn {
     // Broadcast delete to all clients (no ownership filter for deletes — everyone
     // must remove). Scene deletes go per-socket: see broadcastToWorld.
     broadcastToWorld(deps.ns, envelope, documentType, onAirSceneIds);
+
+    // Deleting a variant-rules Setting puts the world back on the system's
+    // default for that rule: re-derive the actors, as the doc:update path does.
+    rederiveActorsForChangedVariantRules(deps, documentType, deletedSettings, {
+      userId: ctx.userId,
+    });
 
     // REQ-NPC-053: now the rows are gone, take the presences with them. The
     // delta travels the same `seq`/`OpBuffer`/redaction pipe as any other Scene

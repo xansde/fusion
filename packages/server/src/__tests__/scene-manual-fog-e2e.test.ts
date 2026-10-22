@@ -17,7 +17,7 @@
  * sockets, so every assertion reads the payload a socket actually received.
  */
 
-import { describe, it, expect, beforeAll, afterAll } from "vitest";
+import { describe, it, expect, beforeAll, afterAll, beforeEach } from "vitest";
 import { mkdirSync, rmSync } from "node:fs";
 import { join } from "node:path";
 import { tmpdir } from "node:os";
@@ -299,11 +299,52 @@ describe("manual fog of war — persistence, GM-only edit and token redaction", 
     await teardown(ctx);
   });
 
+  /**
+   * Both sockets have received everything the server emitted so far. Events
+   * reach a socket in emission order and a write that fails still gets an ack,
+   * so one such round-trip per socket drains whatever is still in flight
+   * before a test starts recording.
+   */
+  async function settle(): Promise<void> {
+    await Promise.all(
+      [gmSocket, playerSocket].map((socket) =>
+        sendOp(socket, "doc:update", {
+          documentType: "Scene",
+          updates: [{ _id: "noSuchScene000000", diff: { name: "x" } }],
+        }),
+      ),
+    );
+  }
+
+  /** The GM sets the scene's fog, and both sockets catch up with it. */
+  async function setFog(fog: Record<string, unknown>): Promise<void> {
+    const ack = await sendOp(gmSocket, "doc:update", {
+      documentType: "Scene",
+      updates: [{ _id: sceneId, diff: { manualFog: fog } }],
+    });
+    expect(ack["ok"], JSON.stringify(ack)).toBe(true);
+    await settle();
+  }
+
+  // Test independence: every test starts from the same table — fog off, the two
+  // tokens where they were created — whatever the previous test did to it.
+  beforeEach(async () => {
+    await setFog({ enabled: false, base: "revealed", ops: [] });
+    for (const [tokenId, x] of [
+      [seenTokenId, 0],
+      [fogTokenId, 800],
+    ] as const) {
+      const ack = await sendOp(gmSocket, "token:move", { sceneId, tokenId, x, y: 0 });
+      expect(ack["ok"], JSON.stringify(ack)).toBe(true);
+    }
+    await settle();
+  });
+
   it("a scene with no fog shows every token to the player (default off)", async () => {
     const traffic = recordEnvelopes(playerSocket);
     const ack = await sendOp(gmSocket, "doc:update", {
       documentType: "Scene",
-      updates: [{ _id: sceneId, diff: { name: "Masmorra" } }],
+      updates: [{ _id: sceneId, diff: { name: "Masmorra (plain)" } }],
     });
     expect(ack["ok"], JSON.stringify(ack)).toBe(true);
     await waitForSeq(traffic, seqOf(ack), "player copy of the plain scene update");
@@ -327,6 +368,7 @@ describe("manual fog of war — persistence, GM-only edit and token redaction", 
   });
 
   it("the GM still receives the covered token", async () => {
+    await setFog(fogWithRevealedLeft);
     const traffic = recordEnvelopes(gmSocket);
     const ack = await sendOp(gmSocket, "doc:update", {
       documentType: "Scene",
@@ -337,6 +379,7 @@ describe("manual fog of war — persistence, GM-only edit and token redaction", 
   });
 
   it("JOIN SNAPSHOT: a reconnecting player does not get the covered token, and keeps the fog", async () => {
+    await setFog(fogWithRevealedLeft);
     const joiner = connectClient(ctx, ctx.playerAToken);
     const traffic = recordEnvelopes(joiner);
     joiner.connect();
@@ -350,6 +393,7 @@ describe("manual fog of war — persistence, GM-only edit and token redaction", 
   });
 
   it("a token moved into the fog by the GM disappears from the player", async () => {
+    await setFog(fogWithRevealedLeft);
     const traffic = recordEnvelopes(playerSocket);
     const ack = await sendOp(gmSocket, "token:move", {
       sceneId,
@@ -364,6 +408,7 @@ describe("manual fog of war — persistence, GM-only edit and token redaction", 
   });
 
   it("a player cannot edit the fog", async () => {
+    await setFog(fogWithRevealedLeft);
     const ack = await sendOp(playerSocket, "doc:update", {
       documentType: "Scene",
       updates: [{ _id: sceneId, diff: { manualFog: { enabled: false } } }],
@@ -389,6 +434,7 @@ describe("manual fog of war — persistence, GM-only edit and token redaction", 
   });
 
   it("revealing everything brings the token back to the player", async () => {
+    await setFog(fogWithRevealedLeft);
     const traffic = recordEnvelopes(playerSocket);
     const ack = await sendOp(gmSocket, "doc:update", {
       documentType: "Scene",

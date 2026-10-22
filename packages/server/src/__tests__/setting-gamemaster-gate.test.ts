@@ -39,7 +39,7 @@
  *     is the one door.
  */
 
-import { describe, it, expect, beforeAll, afterAll } from "vitest";
+import { describe, it, expect, beforeAll, afterAll, beforeEach } from "vitest";
 import { mkdirSync, rmSync } from "node:fs";
 import { join } from "node:path";
 import { tmpdir } from "node:os";
@@ -567,6 +567,16 @@ describe("Setting document writes require GAMEMASTER strictly (REQ-CFG-070, REQ-
   // -------------------------------------------------------------------------
 
   describe("broadcastToWorld redacts Setting for non-GAMEMASTER sockets (REQ-GAV-034, DEC-CFG-05)", () => {
+    // Test independence: a socket's events arrive in emission order, so one
+    // query round-trip per socket drains every broadcast an earlier test left
+    // in flight (those tests only await some of the sockets) before this
+    // test's listener attaches — otherwise it could match a stale envelope.
+    beforeEach(async () => {
+      await Promise.all(
+        [gm, player, assistant].map((socket) => sendQuery(socket, "settings:permissions", {})),
+      );
+    });
+
     it("a player's socket receives an empty-body envelope on doc:create Setting; the GM's socket receives the full body", async () => {
       const isSettingCreate = (env: Record<string, unknown>): boolean =>
         env["type"] === "doc:create" &&
