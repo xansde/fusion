@@ -50,6 +50,7 @@
   import { activeSceneState } from "../../lib/docs/activeScene.svelte.js";
   import { untrack } from "svelte";
   import { t } from "../../lib/i18n/i18n.js";
+  import Icon from "../common/Icon.svelte";
   import { pickLocalizedName } from "../../lib/compendium/documentDetails.js";
 
   const {
@@ -423,7 +424,7 @@
               disabled={busy}
               title={t("FUSION.Combat.PreviousTurn")}
               aria-label={t("FUSION.Combat.PreviousTurn")}
-            >&#x276E;</button>
+            ><Icon name="chevron-left" size={18} /></button>
           {/if}
 
           {#if controls.canNext && !showTurnHead}
@@ -433,7 +434,7 @@
               disabled={busy}
               title={t("FUSION.Combat.NextTurn")}
               aria-label={t("FUSION.Combat.NextTurn")}
-            >&#x276F;</button>
+            ><Icon name="chevron-right" size={18} /></button>
           {/if}
 
           {#if controls.canEnd && !showTurnHead}
@@ -628,13 +629,15 @@
   }
 
   .combat-panel__empty-text {
-    color: var(--fusion-text-subtle);
-    font-size: 0.8125rem;
+    color: var(--fusion-text-muted);
+    font-size: var(--fusion-text-sm);
   }
 
   .combat-panel__empty-actions {
     display: flex;
-    gap: 0.5rem;
+    flex-direction: column;
+    gap: var(--fusion-space-2);
+    width: 100%;
   }
 
   /* ---- Candidates block (REQ-CBA-060/061) ----
@@ -656,15 +659,13 @@
 
   .candidates__title {
     color: var(--fusion-text);
-    font-size: 0.75rem;
+    font-size: var(--fusion-text-xs);
     font-weight: 600;
-    letter-spacing: 0.03em;
-    text-transform: uppercase;
   }
 
   .candidates__empty {
     color: var(--fusion-text-subtle);
-    font-size: 0.75rem;
+    font-size: var(--fusion-text-xs);
     padding: 0.4rem 0;
   }
 
@@ -689,7 +690,7 @@
 
   .candidates__name {
     color: var(--fusion-text);
-    font-size: 0.75rem;
+    font-size: var(--fusion-text-xs);
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
@@ -708,17 +709,15 @@
 
   .combat-panel__round {
     color: var(--fusion-text);
-    font-size: 0.8125rem;
+    font-size: var(--fusion-text-xs);
     font-weight: 600;
-    letter-spacing: 0.04em;
-    text-transform: uppercase;
   }
 
   /* REQ-CBA-011: the montagem count, next to the state, in the same header. */
   .combat-panel__count {
     color: var(--fusion-text-muted);
     flex: 1;
-    font-size: 0.6875rem;
+    font-size: var(--fusion-text-xs);
     font-variant-numeric: tabular-nums;
     overflow: hidden;
     text-align: right;
@@ -736,6 +735,7 @@
     border-bottom: 1px solid var(--fusion-border);
     display: flex;
     flex-shrink: 0;
+    flex-wrap: wrap;
     gap: 0.25rem;
     padding: 0.3rem 0.5rem;
   }
@@ -743,7 +743,7 @@
   /* ---- Error ---- */
   .combat-panel__error {
     color: var(--fusion-danger);
-    font-size: 0.75rem;
+    font-size: var(--fusion-text-xs);
     padding: 0.4rem 0.75rem;
   }
 
@@ -759,7 +759,7 @@
   .combat-panel__turn-notice {
     color: var(--fusion-text-muted);
     flex: none;
-    font-size: 0.75rem;
+    font-size: var(--fusion-text-xs);
     margin: 0;
     overflow: hidden;
     padding: 0.25rem 0.5rem;
@@ -775,7 +775,7 @@
     cursor: pointer;
     display: inline-flex;
     font-family: var(--fusion-font);
-    font-size: 0.875rem;
+    font-size: var(--fusion-text-sm);
     font-weight: 500;
     justify-content: center;
     padding: 0.5rem 1.25rem;
@@ -790,7 +790,7 @@
 
   .btn--primary {
     background: var(--fusion-accent);
-    color: #fff;
+    color: var(--fusion-on-accent);
   }
 
   .btn--primary:hover:not(:disabled) {
@@ -809,13 +809,13 @@
   }
 
   .btn--accent {
-    background: rgba(255, 215, 0, 0.15);
-    border-color: #ffd700;
-    color: #ffd700;
+    background: var(--fusion-accent-dim);
+    border-color: var(--fusion-accent);
+    color: var(--fusion-accent);
   }
 
   .btn--accent:hover:not(:disabled) {
-    background: rgba(255, 215, 0, 0.25);
+    background: var(--fusion-accent-dim);
   }
 
   .btn--danger {
@@ -825,16 +825,19 @@
   }
 
   .btn--danger:hover:not(:disabled) {
-    background: rgba(255, 92, 92, 0.1);
+    background: var(--fusion-danger-dim);
   }
 
   .btn--sm {
-    font-size: 0.8125rem;
+    font-size: var(--fusion-text-sm);
+    min-height: var(--fusion-target);
     padding: 0.3rem 0.75rem;
   }
 
   .btn--xs {
-    font-size: 0.75rem;
+    font-size: var(--fusion-text-xs);
+    min-height: var(--fusion-target);
+    min-width: var(--fusion-target);
     padding: 0.2rem 0.5rem;
   }
 </style>
