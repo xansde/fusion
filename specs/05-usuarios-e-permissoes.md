@@ -343,6 +343,12 @@ e `ownership.<userId do novo usuário> = owner` (REQ-DOC-027), mesmo tendo sido 
 uma exceção declarada ao default de criação por GM de REQ-DOC-029, porque o dono pretendido não é o
 criador. O GM continua resolvendo `owner` pelo papel (REQ-DOC-028), sem entrada explícita no mapa.
 
+> **Emenda provisória de 21/10/2026 (xansde/fusion#240, revisar no beta):** o nascimento com
+> `default = none` vale também para a emissão: o personagem só chega a outro jogador quando o
+> nível efetivo dele sobre o Actor é `LIMITED` ou mais, no snapshot de join e nos demais
+> caminhos de REQ-NET-096. Compartilhar o personagem com a mesa é ato do Mestre
+> (`ownership.default` ≥ `limited`); a spec 39 (Q-CTT-03) descreve o efeito em "Na mesa".
+
 **REQ-USR-025b** [MVP] "Em branco" significa que o personagem nasce apenas com nome (derivado do
 nome do usuário) e subtipo `character`, sem preenchimento de sistema de jogo. A criação NÃO DEVE
 abrir ficha, janela flutuante nem qualquer tela além da que o GM já estava operando.
@@ -357,6 +363,12 @@ usuário (REQ-USR-026, inclusive mudança de papel), resetar senha (REQ-USR-027)
 (REQ-USR-028) e fazer kick (REQ-USR-029) NÃO DEVEM criar um segundo personagem nem excluir o
 existente. Dar um **segundo** personagem a um jogador que já tem um é [V2] e não é gesto desta tela
 (REQ-NPC-055a); excluir personagem de jogador segue sem tela em lugar nenhum do produto (Q-NPC-06).
+
+**REQ-USR-025e** [MVP] O personagem criado por REQ-USR-025 DEVE ser anunciado, no mesmo gesto, aos clientes
+já conectados do World como um `doc:create` de Actor (com `seq` do mundo, guardado no buffer de ops e pelo mesmo
+funil de redação de qualquer outra escrita), para que a seção "Na mesa" de Contatos o mostre sem recarregar a
+página. Uma falha no anúncio NÃO DEVE desfazer a criação do usuário nem do personagem. _Implementado em 21/10/2026
+(`SocketManager.broadcastDocCreated`; issue #254)._
 
 **REQ-USR-026** [MVP] O GM deve poder editar os campos `name`, `role`, `color`, `avatar` e `active`
 de qualquer usuário (inclusive outros GMs). Não é possível rebaixar o único GM ativo do World para
@@ -406,6 +418,15 @@ GM e não exige a senha atual.
 **REQ-USR-042** [MVP] Ao trocar a própria senha com sucesso, o servidor deve revogar todas as demais
 sessões ativas do usuário (mesma régua de REQ-USR-027), mantendo válida apenas a sessão que originou a
 troca.
+
+> **Implementada em 2026-10-21** (`POST /api/users/me/password`, `AuthService.changeOwnPassword`; testes em
+> `auth.test.ts`). Decisões **provisórias** de 21/10, a revisar no beta: (a) usuário **sem senha** define uma
+> sem informar a atual (não há o que provar); (b) a senha atual errada ou ausente soma ao mesmo bloqueio por
+> tentativas do login (`(userId, ip)`, REQ-SEC-011) e devolve 429 + `Retry-After` quando bloqueado — o token de
+> acesso roubado não vira oráculo de senha; (c) a nova senha tem piso de **8 caracteres** (as specs não fixam
+> política; o reset pelo GM, REQ-USR-027, segue aceitando qualquer senha não vazia); (d) a sessão "atual" é a do
+> cookie de refresh enviado; sem cookie (ou de outro usuário) não há como distingui-la e **todas** as sessões
+> do usuário caem.
 
 ### Presença e Estado Online
 

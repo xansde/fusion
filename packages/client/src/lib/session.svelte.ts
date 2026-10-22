@@ -26,7 +26,9 @@ import { SocketManager, type ConnectionState } from "./socket.js";
 import type { Socket } from "socket.io-client";
 import { attachWorldSync } from "./docs/worldSync.js";
 import { attachSceneListSync } from "./scenes/scenesState.svelte.js";
+import { attachSoundSync } from "./sound/soundStore.svelte.js";
 import { attachContactsKnowledgeBadge } from "./contacts/knowledgeBadge.js";
+import { attachTargetingSync } from "./combat/combatStore.svelte.js";
 import { classifyWorldFetchError } from "./worldFetchErrorClassifier.js";
 import { clearAssetGrantCache } from "./assets/assetGrants.svelte.js";
 
@@ -69,7 +71,10 @@ export const session: {
 // Socket manager singleton
 // ---------------------------------------------------------------------------
 
-const socketManager = new SocketManager(() => fusionApi.getToken());
+const socketManager = new SocketManager(
+  () => fusionApi.getToken(),
+  () => fusionApi.getFreshToken(),
+);
 
 // Subscribe to socket state changes and feed them into reactive state
 socketManager.subscribe((state: ConnectionState, rttMs?: number) => {
@@ -211,8 +216,12 @@ export function getSocket(): Socket | null {
 let _detachWorldSync: (() => void) | null = null;
 /** Active scene-list sync cleanup, called on disconnect/logout. */
 let _detachSceneSync: (() => void) | null = null;
+/** Active ambient-track sync cleanup, called on disconnect/logout. */
+let _detachSoundSync: (() => void) | null = null;
 /** Active Contatos state-dot tracking cleanup (REQ-CTT-003). */
 let _detachContactsBadge: (() => void) | null = null;
+/** Live targeting listener (REQ-CBT-056); must exist as soon as the socket does — see `attachTargetingSync`. */
+let _detachTargetingSync: (() => void) | null = null;
 
 /**
  * Lowest role the server treats as privileged (`isRolePrivileged`, spec 05). Mirrored
@@ -231,9 +240,21 @@ function _connectSocket(worldId: string): void {
   if (socket) {
     _detachWorldSync?.();
     _detachWorldSync = attachWorldSync(socket);
+    // The server replays the live aim to a reconnecting seat the instant it connects; the table screen mounts too
+    // late to hear it, so this listener is born with the socket (L2 round 2, D5).
+    _detachTargetingSync?.();
+    _detachTargetingSync = attachTargetingSync(socket);
     // Attach scene list mirror subscription
     _detachSceneSync?.();
     _detachSceneSync = attachSceneListSync();
+    // Ambient table track: socket sync + player wiring. getAuth is resolved
+    // fresh on every restart-worthy sync since the access token can rotate.
+    _detachSoundSync?.();
+    _detachSoundSync = attachSoundSync(socket, () => {
+      const accessToken = fusionApi.getToken();
+      const userId = session.user?.id;
+      return accessToken && userId ? { accessToken, userId } : null;
+    });
     // The Contatos state dot has to work with the tab CLOSED (REQ-CTT-003), and the
     // drawer mounts a panel only while its tab is open (REQ-GAV-017) — so the badge
     // follows the mirror from here, beside the other world-level subscriptions.
@@ -251,6 +272,10 @@ function _disconnectSync(): void {
   _detachWorldSync = null;
   _detachSceneSync?.();
   _detachSceneSync = null;
+  _detachSoundSync?.();
+  _detachSoundSync = null;
   _detachContactsBadge?.();
   _detachContactsBadge = null;
+  _detachTargetingSync?.();
+  _detachTargetingSync = null;
 }

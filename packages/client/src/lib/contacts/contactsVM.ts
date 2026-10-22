@@ -15,7 +15,7 @@
  *  - **Presence changes the presentation, never the position** (REQ-CTT-015):
  *    `present` is a field of the card, and it is not part of any sort key.
  *  - **Knowledge is redacted on the server** (REQ-CTT-081/083). A contact the
- *    viewer has only glimpsed arrives with no `name` and no `system`, carrying
+ *    viewer has only glimpsed arrives with no `name` and no `system` but its size, carrying
  *    `flags.fusion.glimpsed` — so it cannot be found by name here (REQ-CTT-013)
  *    as a consequence of the payload, not of a screen rule. `img` DOES travel,
  *    since TK003 (spec 41-token.md DEC-TOK-09/§12): a token on the map needs
@@ -134,6 +134,10 @@ export interface SubContactCard {
   readonly img: string | null;
   /** Kind of companion as the system stored it ("familiar", "animalCompanion", …). */
   readonly kind: string;
+  /** Whether the viewer may open this companion's own sheet: the GM or its owner. */
+  readonly canOpenSheet: boolean;
+  /** The sub-character itself (not its master) may be dragged onto the canvas (REQ-CTT-028). */
+  readonly draggable: boolean;
   readonly conditions: readonly ConditionView[];
 }
 
@@ -303,11 +307,14 @@ export function canEditContactTitle(
 }
 
 /**
- * Dragging a card onto the canvas to create a token belongs to the GM alone
- * (REQ-CTT-028, DEC-CTT-12) — the player's card is not draggable at all.
+ * Dragging a card onto the canvas to create a token (REQ-CTT-028, DEC-CTT-12): the
+ * Master drags any card; a player drags only the card of an actor he owns
+ * (REQ-TOK-030a) — his character and the sub-characters nested in it. The cards of
+ * the Conhecidos section pass `ownsActor = false` and so stay the Master's alone.
+ * Hiding the gesture is ergonomics: the server refuses anyone else on its own.
  */
-export function canDragContactToCanvas(isPrivileged: boolean): boolean {
-  return isPrivileged;
+export function canDragContactToCanvas(isPrivileged: boolean, ownsActor = false): boolean {
+  return isPrivileged || ownsActor;
 }
 
 // ---------------------------------------------------------------------------
@@ -470,6 +477,8 @@ function byName(a: { name: string }, b: { name: string }): number {
 function buildSubCard(
   doc: ContactActorDoc,
   declarations: ReadonlyMap<string, ConditionDisplayContract> | undefined,
+  userId: string,
+  isPrivileged: boolean,
 ): SubContactCard {
   const kind = text(record(doc.system)["companionKind"]) || COMPANION_ACTOR_SUBTYPE;
   return {
@@ -477,6 +486,8 @@ function buildSubCard(
     name: displayName(doc),
     img: doc.img ?? null,
     kind,
+    canOpenSheet: isPrivileged || ownsContact(doc, userId),
+    draggable: canDragContactToCanvas(isPrivileged, ownsContact(doc, userId)),
     conditions: buildContactConditions(doc, declarations),
   };
 }
@@ -532,9 +543,11 @@ export function buildTableSection(input: TableSectionInput): TableSection {
       present: isContactPresent(doc, online),
       title: resolveTitleLine(doc),
       canEditTitle: canEditContactTitle(doc, input.userId, input.isPrivileged),
-      draggable: canDragContactToCanvas(input.isPrivileged),
+      draggable: canDragContactToCanvas(input.isPrivileged, isMine),
       conditions: buildContactConditions(doc, declarations),
-      subCharacters: [...subs].map((sub) => buildSubCard(sub, declarations)).sort(byName),
+      subCharacters: [...subs]
+        .map((sub) => buildSubCard(sub, declarations, input.userId, input.isPrivileged))
+        .sort(byName),
     };
     (isMine ? mine : others).push(card);
   }

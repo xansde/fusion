@@ -217,5 +217,36 @@ export function ownershipForCreator(creatorId: string | null, role: UserRole): O
   return { ...base, [creatorId]: OwnershipLevel.OWNER };
 }
 
+// ---------------------------------------------------------------------------
+// Companion link (DEC-BHR-09 / DC-06) — owner <-> companion
+// ---------------------------------------------------------------------------
+
+/**
+ * The master a companion actor is linked to (`type: "familiar"` +
+ * `system.masterActorId`, spec 29), or null when `actor` is not a linked
+ * companion. The link itself is only writable by the GM or by the guarded
+ * companion-create path of `doc:update`/`doc:create`, never by a free player
+ * write, so it is safe to authorize on.
+ */
+export function companionMasterOf(actor: Record<string, unknown>): string | null {
+  if (actor["type"] !== "familiar") return null;
+  const system = actor["system"];
+  if (!system || typeof system !== "object" || Array.isArray(system)) return null;
+  const master = (system as Record<string, unknown>)["masterActorId"];
+  return typeof master === "string" && master.length > 0 ? master : null;
+}
+
+/**
+ * Are two actors tied by a companion link, in either direction (the master and
+ * its companion)? An actor is not "linked" to itself here; callers that allow
+ * self-targeting check that separately.
+ */
+export function areCompanionLinked(
+  a: { _id: string; doc: Record<string, unknown> },
+  b: { _id: string; doc: Record<string, unknown> },
+): boolean {
+  return companionMasterOf(a.doc) === b._id || companionMasterOf(b.doc) === a._id;
+}
+
 export { OwnershipLevel, defaultOwnership };
 export type { Ownership };

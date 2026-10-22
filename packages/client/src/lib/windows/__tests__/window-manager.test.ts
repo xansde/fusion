@@ -537,3 +537,86 @@ describe("Cascade positioning", () => {
     expect(unique.size).toBe(6);
   });
 });
+
+// ---------------------------------------------------------------------------
+// Narrow screens (phone): the window never sits outside the viewport
+// ---------------------------------------------------------------------------
+
+describe("narrow viewport (phone)", () => {
+  const PHONE: ViewportSize = { width: 390, height: 780 };
+
+  function insideViewport(g: { top: number; left: number; width: number; height: number }): void {
+    expect(g.left).toBeGreaterThanOrEqual(0);
+    expect(g.top).toBeGreaterThanOrEqual(0);
+    expect(g.left + g.width).toBeLessThanOrEqual(PHONE.width);
+    expect(g.top + g.height).toBeLessThanOrEqual(PHONE.height);
+  }
+
+  it("a sheet-sized window is shrunk to the screen and pinned to its left edge", () => {
+    const r = clampToViewport({ top: 80, left: 80, width: 640, height: 480 }, PHONE);
+    expect(r.width).toBe(PHONE.width);
+    expect(r.left).toBe(0);
+    insideViewport(r);
+  });
+
+  it("a minimum width larger than the screen does not push the window out", () => {
+    const r = clampToViewport({ top: 0, left: 0, width: 300, height: 300 }, PHONE, 40, 620, 100);
+    expect(r.width).toBe(PHONE.width);
+    insideViewport(r);
+  });
+
+  it("left and top cannot go negative or past the far edges", () => {
+    const a = clampToViewport({ top: -40, left: -300, width: 300, height: 300 }, PHONE);
+    expect(a.left).toBe(0);
+    expect(a.top).toBe(0);
+    const b = clampToViewport({ top: 900, left: 900, width: 300, height: 300 }, PHONE);
+    insideViewport(b);
+  });
+
+  it("open() with the default cascade position lands fully on screen", () => {
+    localStorageMock.clear();
+    const mgr = new WindowManager();
+    mgr.viewport = PHONE;
+    for (let i = 0; i < 5; i += 1) {
+      const h = mgr.open({ title: `W${String(i)}`, position: { width: 640, height: 480 } });
+      insideViewport(mgr.windows.get(h.id)!);
+    }
+  });
+
+  it("a saved position from a big screen comes back inside the phone screen", () => {
+    localStorageMock.clear();
+    const big = new WindowManager();
+    big.viewport = { width: 2560, height: 1440 };
+    const h = big.open({ title: "Sheet", singletonKey: "persist:phone" });
+    big.setPosition(h.id, { top: 900, left: 1800, width: 700, height: 500 });
+    big.close(h.id);
+
+    const phone = new WindowManager();
+    phone.viewport = PHONE;
+    const h2 = phone.open({ title: "Sheet", singletonKey: "persist:phone" });
+    insideViewport(phone.windows.get(h2.id)!);
+  });
+
+  it("dragging or resizing on a phone keeps the window inside", () => {
+    localStorageMock.clear();
+    const mgr = new WindowManager();
+    mgr.viewport = PHONE;
+    const h = mgr.open({ title: "A", position: { width: 300, height: 300 } });
+    mgr.setPosition(h.id, { left: 5000, top: 5000 });
+    insideViewport(mgr.windows.get(h.id)!);
+    mgr.setPosition(h.id, { left: -5000, top: -5000, width: 2000, height: 2000 });
+    insideViewport(mgr.windows.get(h.id)!);
+  });
+
+  it("rotating or shrinking to a phone re-fits every open window", () => {
+    const mgr = freshManager();
+    mgr.open({ title: "A", position: { width: 640, height: 480, top: 300, left: 600 } });
+    mgr.onViewportResize(PHONE);
+    for (const w of mgr.windows.values()) insideViewport(w);
+  });
+
+  it("a desktop viewport keeps letting a window hang partly off the edge", () => {
+    const r = clampToViewport({ top: 100, left: -500, width: 400, height: 300 }, VP);
+    expect(r.left).toBe(-360);
+  });
+});

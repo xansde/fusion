@@ -40,8 +40,16 @@ export function isOutsideTarget(node: ContainsCapable, target: EventTarget | nul
   return !node.contains(target as unknown as Node);
 }
 
+/**
+ * What the action calls. Receives the `pointerdown` that landed outside so a caller can
+ * look at its target (BAR-F1-03: a floating layer treats its trigger and any nested layer
+ * as "inside", which `node.contains` alone cannot say). Existing callers pass `() => void`
+ * and ignore the argument, so this stays source-compatible.
+ */
+export type ClickOutsideCallback = (event: PointerEvent) => void;
+
 export interface ClickOutsideAction {
-  update(callback: () => void): void;
+  update(callback: ClickOutsideCallback): void;
   destroy(): void;
 }
 
@@ -55,19 +63,22 @@ export interface ClickOutsideAction {
  * new closure passed on re-render (Svelte calls `update()` for a changed action argument)
  * is honoured without re-registering the listener.
  */
-export function clickOutside(node: HTMLElement, callback: () => void): ClickOutsideAction {
+export function clickOutside(
+  node: HTMLElement,
+  callback: ClickOutsideCallback,
+): ClickOutsideAction {
   let current = callback;
 
   function handlePointerDown(event: PointerEvent): void {
     if (isOutsideTarget(node, event.target)) {
-      current();
+      current(event);
     }
   }
 
   document.addEventListener("pointerdown", handlePointerDown, true);
 
   return {
-    update(next: () => void): void {
+    update(next: ClickOutsideCallback): void {
       current = next;
     },
     destroy(): void {

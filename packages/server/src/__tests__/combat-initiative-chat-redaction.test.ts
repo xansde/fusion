@@ -336,7 +336,7 @@ describe("iniciativa de criatura no chat (REQ-CBA-067)", { timeout: 30000 }, () 
 
     // The GM must still get the message — this is redaction, not deletion.
     const gmChat = gmTape.chatContents();
-    expect(gmChat.some((c) => c.includes(CREATURE_NAME) && c.includes("initiative"))).toBe(true);
+    expect(gmChat.some((c) => c.includes(CREATURE_NAME) && c.includes("iniciativa"))).toBe(true);
 
     // The player must not read a single word of it — neither the name nor the
     // number (only the creature was rolled, so ANY initiative line is a leak).
@@ -349,7 +349,7 @@ describe("iniciativa de criatura no chat (REQ-CBA-067)", { timeout: 30000 }, () 
 
     const playerChat = playerTape.chatContents();
     expect(playerChat.some((c) => c.includes(CREATURE_NAME))).toBe(false);
-    expect(playerChat.some((c) => c.includes("initiative"))).toBe(false);
+    expect(playerChat.some((c) => c.includes("iniciativa"))).toBe(false);
     expect(playerChat.some((c) => c.includes(`: ${String(creatureTotal)}`))).toBe(false);
   });
 
@@ -392,6 +392,6 @@ describe("iniciativa de criatura no chat (REQ-CBA-067)", { timeout: 30000 }, () 
     playerTape.stop();
 
     const playerChat = playerTape.chatContents();
-    expect(playerChat.some((c) => c.includes(PC_NAME) && c.includes("initiative"))).toBe(true);
+    expect(playerChat.some((c) => c.includes(PC_NAME) && c.includes("iniciativa"))).toBe(true);
   });
 });

@@ -60,6 +60,32 @@ describe("WorldSection — REQ-CFG-030: enum row draws a <select> with the curre
   });
 });
 
+describe("WorldSection — REQ-CFG-037: enum-list row draws one checkbox per option", () => {
+  it("renders every option labelled, with only the row's chosen ones checked", () => {
+    seedWorldSettingsRegistry({
+      systemId: "fake-system",
+      settings: [
+        {
+          id: "setting-list-1",
+          key: "fake-system:favouriteColours",
+          kind: "enumList",
+          options: ["red", "green"],
+          optionLabels: { red: "Vermelho" },
+          label: "Cores",
+          value: ["green"],
+        },
+      ],
+    });
+
+    const html = renderSection();
+
+    expect(html).toContain("Vermelho");
+    expect(html).toContain("green");
+    expect(html).toMatch(/<input[^>]*type="checkbox"[^>]*value="green"[^>]*checked/);
+    expect(html).not.toMatch(/<input[^>]*type="checkbox"[^>]*value="red"[^>]*checked/);
+  });
+});
+
 describe("WorldSection — REQ-CFG-030: number row draws a numeric <input>", () => {
   it("renders a numeric input with the row's value", () => {
     seedWorldSettingsRegistry({

@@ -22,7 +22,7 @@
 // Wire shape (client's own copy — see module docstring)
 // ---------------------------------------------------------------------------
 
-export type WorldSettingKind = "boolean" | "enum" | "number";
+export type WorldSettingKind = "boolean" | "enum" | "enumList" | "number";
 
 export interface WorldSettingRow {
   /** `Setting` document `_id`, or `null` when nothing has been written yet. */
@@ -30,8 +30,10 @@ export interface WorldSettingRow {
   /** Namespaced by the declaring system (REQ-CFG-071), e.g. `"pf2e:freeArchetype"`. */
   readonly key: string;
   readonly kind: WorldSettingKind;
-  /** Present only when `kind === "enum"`. */
+  /** Present only when `kind === "enum"` or `"enumList"`. */
   readonly options?: readonly string[];
+  /** Display text per option of an `enumList` row, keyed by the option value; an option without one shows as itself (HJ-09). */
+  readonly optionLabels?: Readonly<Record<string, string>>;
   readonly label: string;
   readonly hint?: string;
   readonly requiresReload?: boolean;
@@ -57,7 +59,40 @@ export interface WorldSettingsDeclarationsResult {
 export type WorldSettingControl =
   | { readonly kind: "boolean"; readonly checked: boolean }
   | { readonly kind: "enum"; readonly value: string; readonly options: readonly string[] }
+  | {
+      readonly kind: "enumList";
+      /** The chosen option values, in the declared option order, unknown values dropped. */
+      readonly selected: readonly string[];
+      readonly options: readonly SettingOptionView[];
+    }
   | { readonly kind: "number"; readonly value: number };
+
+/** One option of an enum / enum-list row: the stored `value` and the text drawn for it. */
+export interface SettingOptionView {
+  readonly value: string;
+  readonly label: string;
+}
+
+function optionViews(row: WorldSettingRow): SettingOptionView[] {
+  return (row.options ?? []).map((value) => ({ value, label: row.optionLabels?.[value] ?? value }));
+}
+
+/**
+ * The list a toggle of `option` produces: the declared option order is kept
+ * (not click order), so the stored value is stable and two GMs ticking the same
+ * boxes write the same list.
+ */
+export function toggleListOption(
+  row: WorldSettingRow,
+  current: readonly string[],
+  option: string,
+  on: boolean,
+): string[] {
+  const next = new Set(current);
+  if (on) next.add(option);
+  else next.delete(option);
+  return (row.options ?? []).filter((o) => next.has(o));
+}
 
 /**
  * Turn a declared row into what the tab draws. The ONLY thing read is
@@ -74,6 +109,14 @@ export function controlForRow(row: WorldSettingRow): WorldSettingControl {
         value: typeof row.value === "string" ? row.value : "",
         options: row.options ?? [],
       };
+    case "enumList": {
+      const chosen = new Set(Array.isArray(row.value) ? (row.value as unknown[]) : []);
+      return {
+        kind: "enumList",
+        selected: (row.options ?? []).filter((option) => chosen.has(option)),
+        options: optionViews(row),
+      };
+    }
     case "number":
       return { kind: "number", value: typeof row.value === "number" ? row.value : 0 };
   }
@@ -106,6 +149,70 @@ export function buildSettingWriteOp(row: WorldSettingRow, nextValue: unknown): S
     payload: {
       documentType: "Setting",
       updates: [{ _id: row.id, diff: { value: nextValue } }],
+    },
+  };
+}
+
+// ---------------------------------------------------------------------------
+// Serialized writes per key (HJ-RH, review finding M2)
+// ---------------------------------------------------------------------------
+
+export interface SettingWriterDeps {
+  /** Sends the generic Setting op and resolves with the ack's `result`. */
+  readonly send: (op: SettingWriteOp) => Promise<{ documents?: Array<{ _id: string }> }>;
+  /** The row as it is NOW (after every earlier write's ack was folded in). */
+  readonly getRow: (key: string) => WorldSettingRow | undefined;
+  /** Folds an accepted write (id + value) back into the row. */
+  readonly apply: (key: string, id: string, value: unknown) => void;
+}
+
+export type SettingWriteOutcome =
+  | { readonly ok: true }
+  | { readonly ok: false; readonly error: unknown };
+
+export interface SettingWriter {
+  /**
+   * Queue a write to `key`. `nextFor` runs only when it is this write's turn,
+   * against the row as the previous write left it, so a second quick tick of an
+   * enum-list builds on the first one's accepted list instead of on the stale
+   * row both clicks saw (which made the second overwrite the first), and a
+   * first write to a key that has no `Setting` document yet is the only one
+   * that sends `doc:create` (the later ones see the new id and `doc:update`).
+   * Never rejects: a refusal comes back as `{ ok: false }` and does not stop
+   * the writes queued behind it.
+   */
+  write(key: string, nextFor: (row: WorldSettingRow) => unknown): Promise<SettingWriteOutcome>;
+}
+
+export function createSettingWriter(deps: SettingWriterDeps): SettingWriter {
+  const tails = new Map<string, Promise<unknown>>();
+
+  async function run(
+    key: string,
+    nextFor: (row: WorldSettingRow) => unknown,
+  ): Promise<SettingWriteOutcome> {
+    const row = deps.getRow(key);
+    if (row === undefined) return { ok: false, error: new Error(`unknown setting ${key}`) };
+    try {
+      const nextValue = nextFor(row);
+      const result = await deps.send(buildSettingWriteOp(row, nextValue));
+      const id = row.id ?? result.documents?.[0]?._id;
+      if (id !== undefined) deps.apply(key, id, nextValue);
+      return { ok: true };
+    } catch (error) {
+      return { ok: false, error };
+    }
+  }
+
+  return {
+    write(key, nextFor) {
+      const previous = tails.get(key) ?? Promise.resolve();
+      const outcome = previous.then(() => run(key, nextFor));
+      tails.set(
+        key,
+        outcome.then(() => undefined),
+      );
+      return outcome;
     },
   };
 }

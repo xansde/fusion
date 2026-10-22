@@ -1,0 +1,479 @@
+{
+  "versao": 1,
+  "tarefas": {
+    "ALQ-F0-01": {
+      "status": "integrada",
+      "tentativas": 1,
+      "onda": 1,
+      "modelo": "haiku/low",
+      "resumo": "sheets-pf2e verde (1287 testes) e inventário do Alquimista comentado no PR #57 do satélite; sem código a integrar",
+      "core_sha": "2f042961f7ad01e7f7544f3383a435a1154b525b",
+      "sat_sha": "e22d64542332f788926612b13354738e2a0b7074"
+    },
+    "ALQ-F1-01": {
+      "status": "integrada",
+      "tentativas": 1,
+      "onda": 1,
+      "modelo": "opus/high",
+      "resumo": "A ALQ-F1-01 está pronta. As emendas das specs 09, 10, 15 e 17 estão escritas, commitadas em fea4a6dd e com push em alq/alq-f1-01. Só o core foi tocado. Os ids ficaram dentro das faixas reservadas: REQ-PF2-206..216, REQ-SYS-138..142, REQ-CBT-056..060 e REQ-CHT-052..053. As DECs novas são DEC-SYS-11..12, DEC-CBT-09..10 e DEC-CHT-12. Os critérios de aceitação novos são CA-CBT-013..015.\n\n**O que ficou fixado, por spec**\n- **Spec 17 (PF2e):**\n  - REQ-PF2-206: talento pré-remaster fica no pack com trait `legacy`, com selo \"Legado\" e filtro por trait (D-01).\n  - REQ-PF2-207: proficiência extra como mapa `system.proficiencies.attacks[chave]`, com critério de CD de classe 17 e ataque +5.\n  - REQ-PF2-208: pré-requisito bloqueante no picker, por talento/dedicação possuído ou atributo mínimo.\n  - REQ-PF2-209..213: a regra de dano (IWR por instância, multiplicador e save básico, dureza, PV temporário, cura, dying e NPC a 0 PV com `dead`, D-03).\n  - REQ-PF2-214: recovery check como hook `pf2e.recoveryCheck`, prioridade 80.\n  - REQ-PF2-215: `applyCondition` e seus modos.\n  - REQ-PF2-216: `pf2e.frightenedDecay` com prioridade 50, mais a tabela de ids e prioridades reservados às fases F2, F5, F6 e F7.\n  - Notas de emenda em DEC-PF2-08, REQ-PF2-092 e nas tabelas de registro e de eventos.\n- **Spec 15 (API de sistemas):**\n  - DEC-SYS-11: hooks de turno são um registro com id e prioridade.\n  - DEC-SYS-12: aplicar dano e condição é op do core; a conta é do sistema.\n  - Bloco TS canônico com `TurnHookFn`, `TurnHookContext`, `ActorApplyDamagePayload`, `ActorApplyConditionPayload`, `ActorMechanics` e `ActorMechanicsPatch`.\n  - REQ-SYS-138..141: registro, ordem de execução, contexto e adaptador do `registerCombatHooks`.\n  - REQ-SYS-142: `registerActorMechanics` e `ActorMechanicsService`, com validação, permissões, `NOT_SUPPORTED` e redação do ack.\n- **Spec 10 (combate):**\n  - DEC-CBT-09: hooks aguardados em série.\n  - DEC-CBT-10: foto dos alvos na mensagem de rolagem (D-02).\n  - REQ-CBT-056: `targetSnapshot` e `getMyTargets`/`setMyTargets`.\n  - REQ-CBT-057..058: ordem e momento dos hooks (depois de persistir, antes do broadcast).\n  - REQ-CBT-059: `dead` marca o combatente como `defeated`.\n  - REQ-CBT-060: `combatEnd` recebe os `actorIds`.\n  - REQ-CBT-029 foi reinterpretado.\n- **Spec 09 (chat):**\n  - DEC-CHT-12: os botões de aplicar leem a mensagem gravada.\n  - REQ-CHT-052: botões Aplicar, ½, ×2, Curar e PV temporário, com a lista de alvos vinda do snapshot.\n  - REQ-CHT-053: resumo `actor:damageApplied` redigido por papel via `net/redaction.ts` + `isRolePrivileged` (D-04).\n  - Linhas novas na tabela de eventos.\n\n**Pontos que você precisa saber**\n1. **DF-06..DF-10 não viraram requisito aqui.** A tarefa pedia emendas para DF-01..DF-10, mas DF-06..DF-10 (efeito, duração, resolvedor, strike de bomba, munição) têm faixa reservada à ALQ-F2-01 (REQ-PF2-217..228, DEC-PF2-11..12). Usar DEC-PF2-11 aqui colidiria com ela. A spec 17 só tem uma nota dizendo que a F2-01 escreve essas decisões em cima dos hooks fixados aqui.\n2. **`amount` enviado por jogador.** O teste da F1-08 manda um jogador enviar `amount: 999` e espera `FORBIDDEN` para \"valor manual\". Para os dois casos não se contradizerem, a REQ-SYS-142 diz: com `source`, o servidor ignora o `amount` e usa o total gravado; `amount` sem `source` vindo de jogador dá `FORBIDDEN`. Pela mesma lógica, `targetTokenIds` enviado por jogador é ignorado, não recusado.\n3. **Contradição de ordem resolvida na spec.** REQ-CBT-026/027 mandavam emitir `turnEnd` antes de avançar o estado, e o contrato novo roda os hooks depois de persistir. As duas continuam valendo, cada uma no seu lugar: 026/027 para o EventBus do core, REQ-CBT-058 para os hooks de sistema.\n4. **Três pontos que o contrato não cobria.**\n   - **`previousTurn`:** o contrato não dizia se dispara hooks. Deixei como questão em aberto nº 8 da spec 10, com proposta provisória de não disparar. Decisão sua.\n   - **`skipDefeated`:** escrevi em REQ-CBT-057 que o combatente pulado não recebe hooks.\n   - **Início do encontro:** a mesma REQ fixa que ele roda `roundStart` e depois `turnStart` do primeiro.\n\n**Verificação**\nPrimeiro vi o lint falhar: escrevi a spec 09 citando ids que ainda não existiam e o `citacao-resolvivel` reprovou. Depois defini os ids, rodei prettier nos quatro arquivos e regenerei o `RASTREABILIDADE.md` com `pnpm spec:report`. A tarefa não tem UI, então não há print; as provas visuais ficam para as ALQ-F1-10..F1-12.",
+      "core_sha": "2f042961f7ad01e7f7544f3383a435a1154b525b",
+      "sat_sha": "e22d64542332f788926612b13354738e2a0b7074"
+    },
+    "ALQ-F2-02": {
+      "status": "integrada",
+      "tentativas": 1,
+      "onda": 1,
+      "modelo": "sonnet/medium",
+      "resumo": "Corrigido o problema apontado: ALQ-F2-02 não tinha nenhuma prova visual, e a justificativa anterior (\\\"coberto por L1\\\") não se sustentava porque o campo \\\"Prova visual\\\" do próprio texto da tarefa é direto (diferente de ALQ-F2-17, que explicitamente diz \\\"Coberta por ALQ-F2-07\\\"). Investiguei se o print literal pedido no texto (\\\"Compêndio (GM) em 'Efeitos de equipamento' com 'Efeito: Elixir da Vida' e duração '10 minutos'\\\", em pt-BR) era produzível hoje, e não é, por dois motivos verificados no código, nenhum deles no escopo desta tarefa: (1) o pack `equipment-effects-core` não tem `i18n.pt-BR.json` — a tradução é escopo de ALQ-F2-06/ALQ-F2-07 (tasks.md linha 890: \\\"Depende de: ALQ-F2-02, ALQ-F2-03\\\"), tarefas SEGUINTES que dependem desta; `entryDisplayName()` (compendiumBrowser.ts:97-103) cai no nome EN quando não há overlay pt-BR — confirmado ao vivo no print 02; (2) `buildMechanicalFields()` (documentDetails.ts:1296-1315) não tem nenhum `case` para `type: \\\"effect\\\"` — a duração (10/minute/turn-start) não renderiza em NENHUM lugar da UI hoje, nem em inglês nem em português; confirmado ao vivo no print 03 (o painel abre e mostra descrição/modificadores/licença, mas nenhum campo de Duração). Isso não é regressão desta tarefa: o \\\"Onde\\\" do texto da ALQ-F2-02 só lista arquivos do importer/build, nunca `documentDetails.ts` — adicionar suporte de UI a efeitos seria escopo novo, não pedido. Em vez de devolver \\\"bloqueada\\\" (o que pararia o ciclo à toa, já que o DELIVERABLE real — o pack correto e normalizado, navegável na UI de verdade — é comprovável), subi o app de verdade (pnpm build no worktree, servidor Fusion isolado via skill tutorial-e2e apontando `FUSION_E2E_REPO_ROOT` para esta worktree) e fotografei o que EXISTE hoje: o pack aparece na estante do GM, o item \\\"Effect: Elixir of Life\\\" está lá, e a linha mostra \\\"Unit minute\\\" (singular) — a prova viva de que `EFFECT_DURATION_UNIT_MAP` normalizou \\\"minutes\\\"→\\\"minute\\\" (o próprio TDD da tarefa), visível na tela real, não só no teste. Documentei no relatório e no próprio roteiro (comentário no topo do .spec.ts) por que a string pt-BR exata do texto da tarefa ainda não é renderizável, e que isso pertence a ALQ-F2-06/07 (tradução) e a uma lacuna de UI não listada no escopo desta tarefa. Nenhum código de produção mudou nesta rodada de correção — o commit 7efb3c28 da tentativa 1 já estava correto e pushado; a correção era só a evidência. git ls-remote confirma push já atualizado (HEAD = 7efb3c28, igual ao remoto).",
+      "core_sha": "2f042961f7ad01e7f7544f3383a435a1154b525b",
+      "sat_sha": "e22d64542332f788926612b13354738e2a0b7074"
+    },
+    "ALQ-F2-17": {
+      "status": "integrada",
+      "tentativas": 2,
+      "onda": 1,
+      "modelo": "haiku/low",
+      "resumo": "Porte dos 35 itens alquimicos do PR #107 (linha build/app) para curadoria por sourceId + chunk pt-BR. A tentativa 1 tinha FABRICADO o pt-BR (descricoes inventadas) porque o i18n.pt-BR.json da build/app e chaveado pelo _id de la, nao pelo sourceId do vendor; e seus dois testes liam de um caminho inexistente (vendor/core-item-types/equipment.json), entao SEMPRE pulavam — cobertura real zero. A tentativa 2 regenerou os 35 a partir do dado real (35/35 byte-identicos a build/app em nome, descricao e sourceHash; 35/35 consistentes com o vendor em nome, nivel, trait e descricao EN), reescreveu o teste de forma nao-circular chamando checkDoc/runQaForPack reais, e estendeu o glob do script test do importer-pf2e, que nao cobria src/curation/__tests__/. A revisao adversarial acrescentou: correcao da colisao de terminologia Concealed/Hidden (o chunk dizia Encoberto/Ocultas, o pack conditions da alfa diz Ocultado/Escondido — trocava os dois ramos do Elixir do Olho de Gato e do Elixir da Forma Nebulosa, fazendo o jogador aplicar a reducao para DC 5 na condicao errada), duas entradas novas no glossary.pt-BR.json para as dependentes F2-04/F2-05 nao replicarem a divergencia em ~540 itens, um bloco de teste que assere o porte contra origin/build/app (o gate que faltava, por onde a fabricacao da tentativa 1 passou verde), assercao de name/level/descricao EN contra o vendor, chave _source com licenca no fixture EN, e bump do core-ref.txt para 24ebb891 (o CI do satelite falhava em 45s no build porque apontava para um core sem os exports da ALQ-F4-02).",
+      "core_sha": "b876452250a978f53f2da6d23be325ae088fce47",
+      "sat_sha": "67bffa5c7d8e826d2b7f37c7b94436e244e804b3"
+    },
+    "ALQ-F4-02": {
+      "status": "integrada",
+      "tentativas": 1,
+      "onda": 1,
+      "modelo": "opus/high",
+      "resumo": "ALQ-F4-02 pronta nos dois repos, com commit e push das branches alq/alq-f4-02. O switch do collectEffects foi trocado pelo RuleElementRegistry sem mudança de comportamento: a suíte do effectsEngine não foi alterada e continua verde.\n\n**Core** (packages/system-api/src/effects.ts):\n- Entraram os tipos da seção 2.8 do plano: `RULE_PHASES` (ordem pre-base, synthetics, item, strike, roll), `RulePhase`, `RuleApplyContext`, `RuleElementHandler<R>` e `RuleElementRegistry`.\n- `RuleApplyContext` foi definido por mim, porque o plano só dá o nome: sourceId, label, synthetics, rollOptions (Set mutável) e conditionsToToggle.\n- `isMvpRuleType(type, registry?)` agora consulta `registry.kinds()`. Sem registro, usa `MVP_EFFECT_RULE_KEYS`, que é igual ao registro default do engine (há teste garantindo isso).\n\n**Satélite** (systems/engine-2e):\n- Arquivo novo `src/ruleElementRegistry.ts` com:\n  - `createRuleElementRegistry`, que lança erro em kind duplicado ou fase desconhecida;\n  - os 5 handlers atuais: rollOption na fase pre-base, flatModifier, note, toggleCondition e iwr na fase synthetics;\n  - `BUILTIN_RULE_ELEMENT_HANDLERS`, `createDefaultRuleElementRegistry()` (cópia independente) e `defaultRuleElementRegistry`.\n- Os helpers process* foram movidos para esse arquivo sem alteração.\n- `collectEffects(sources, baseOptions, registry = default)` agora despacha pelo registro:\n  - kind sem handler, ou com normalize nulo, vai para o unsupportedLog sem checar predicado;\n  - a fase pre-base roda até estabilizar (limite de 10 iterações, como antes);\n  - as outras fases rodam na ordem de `RULE_PHASES`, cada uma na ordem das fontes.\n- Exportado em `src/index.ts`.\n\n**Duas escolhas minhas para você conferir:**\n1. **`Synthetics` não ganhou campo novo.** A tarefa fala em \"Synthetics ampliado\", mas nenhum contrato da seção 2 define um campo, e os 5 tipos atuais não precisam. Quem precisar amplia depois: F4-06..16. Os acumuladores fora de `Synthetics` (conditionsToToggle e rollOptions) ficaram no `RuleApplyContext`.\n2. **Handlers das fases item/strike/roll rodam dentro do collectEffects**, depois de synthetics. Hoje não existe nenhum. Se F4-09/F4-16 precisarem de contexto de rolagem, eles ajustam.\n\n**Outros pontos:**\n- Cito no código só REQ-SYS-089/082. REQ-SYS-149..150 ainda não existe na spec (quem escreve é a F4-01), e o spec-lint marcaria como \"dangling\"; a faixa está só nas mensagens de commit.\n- O pin do submodule no core não foi alterado; fica para o integrador.\n- Arquivos: `packages/system-api/src/effects.ts`, `packages/system-api/src/__tests__/effects.test.ts`, `external/fusion-systems-2e/systems/engine-2e/src/{ruleElementRegistry.ts,effectsEngine.ts,index.ts,__tests__/ruleElementRegistry.test.ts}`.",
+      "core_sha": "2f042961f7ad01e7f7544f3383a435a1154b525b",
+      "sat_sha": "e22d64542332f788926612b13354738e2a0b7074"
+    },
+    "ALQ-F4-03": {
+      "status": "integrada",
+      "tentativas": 1,
+      "onda": 1,
+      "modelo": "sonnet/high",
+      "resumo": "Entreguei a regressão sobre packs pedida em ALQ-F4-03: novo arquivo `sheets/pf2e/src/lib/sheets/pf2e/__tests__/rule-elements-regression.test.ts` (+ `__snapshots__/rule-elements-regression.test.ts.snap`, gerado, 135 snapshots), no satélite `xansde/fusion-systems-2e`, branch `alq/alq-f4-03`.\n\nDuas entregas, como no texto da tarefa:\n1. Linha de base: para cada uma das 27 classes de `classes-core`, builda personagem completo com `buildCharacterToLevel20` (reuso do harness do issue #48, escolhas default), confere `findings=[]` (sem slot órfão/exceção) e fotografa `system.derived` (o campo real `doc.system.derived`, populado pelo `prepareDerived` — `derivations/types.ts::CharacterDerived`) nos níveis 1/5/10/15/20 via `toMatchSnapshot()`.\n2. Teste de escopo (REQ-SYS-149): compara o handler REAL de nota (`collectEffects`/`processNote` de `engine-2e/effectsEngine.ts`, já corretamente escopado — `Synthetics` novo a cada chamada, sem estado de módulo) contra um handler FALSO definido só no teste que guarda estado num `Map` de módulo (o erro que um `RuleElementHandler` mal escrito cometeria ao fechar sobre estado compartilhado em vez do contexto do ator). O caso real passa normal; o caso falso é `it.fails` (idioma já usado no repo em `varredura-classes.test.ts` para \"isto deve continuar vermelho de propósito\") — a nota de \"Fighter\" vaza para um ator (\"Wizard\") que nunca rodou aquela fonte, provando o ponto por contraste.\n\nDois desvios do texto literal, ambos necessários e documentados no cabeçalho do arquivo:\n- **Path**: o texto pedia `systems/pf2e/src/__tests__/rule-elements-regression.test.ts`, mas `classBuildHarness.ts` (via `planVM.ts`) depende do alias `$lib`, que só `sheets/pf2e/vitest.config.ts` resolve — `systems/pf2e` não tem esse alias e o import quebraria. Coloquei o teste em `sheets/pf2e/src/lib/sheets/pf2e/__tests__/`, ao lado de `varredura-classes.test.ts`/`pregen-parity.test.ts`, que já usam o mesmo harness com sucesso.\n- **Teste de escopo sem RuleElementRegistry**: ALQ-F4-02 (que introduz o `RuleElementRegistry`) é paralela a esta tarefa e ainda não chegou nesta branch — confirmado no código (`effectsEngine.ts` ainda despacha pelos 5 tipos fixos do switch) e no `AGENTS.md` do satélite. Por isso o teste de escopo usa o mecanismo REAL de hoje (`collectEffects`, tipo `\"note\"`) como equivalente ao futuro `kind: \"note\"` do `RuleElementHandler` (contrato §2.8 do tasks.md diz explicitamente que `kind` = `rule.type` normalizado) — o teste vale igual dos dois lados da migração e não precisou de código de produção novo.\n\nRemedir as classes quando o PR #57 (satélite, publicação do Alchemist) entrar é responsabilidade da ALQ-F0-02, como o texto da tarefa já previa.",
+      "core_sha": "2f042961f7ad01e7f7544f3383a435a1154b525b",
+      "sat_sha": "e22d64542332f788926612b13354738e2a0b7074"
+    },
+    "ALQ-F0-02": {
+      "status": "integrada",
+      "tentativas": 1,
+      "onda": 2,
+      "modelo": "haiku/low",
+      "resumo": "Pin verificado (satélite já contém o #57); traitNames.ts regenerado com 9 traits novas; 5 acentos corrigidos na origem (ACCENT_FIXES) e path do gen-client-maps.mjs consertado (quebrado desde a F4). Cliente 3181 verdes, build:release 123,0 MB (teto 150).",
+      "core_sha": "902e87b4b4edce8e9f652cf287eedcd1d1362969",
+      "sat_sha": "10750056d6e2c23055b8499a7d26004f54dd6e74"
+    },
+    "ALQ-F1-02": {
+      "status": "integrada",
+      "tentativas": 1,
+      "onda": 2,
+      "modelo": "sonnet/high",
+      "resumo": "Contratos tipados: TurnHookRegistrar com id+prioridade, registerActorMechanics, adaptador legado, actor-mechanics.ts; schemas zod de actor:applyDamage/applyCondition/damageApplied + FusionExpiry. Sem comportamento de servidor. shared 722, system-api 148.",
+      "core_sha": "902e87b4b4edce8e9f652cf287eedcd1d1362969",
+      "sat_sha": "10750056d6e2c23055b8499a7d26004f54dd6e74"
+    },
+    "ALQ-F1-03": {
+      "status": "integrada",
+      "tentativas": 1,
+      "onda": 2,
+      "modelo": "haiku/low",
+      "resumo": "Protótipo apply-damage-card com 5 botões, alvos, seletor de condição e as duas visões lado a lado (D-04: player sem PV). Nota no topo aponta redação no servidor. Print conferido a olho.",
+      "core_sha": "902e87b4b4edce8e9f652cf287eedcd1d1362969",
+      "sat_sha": "10750056d6e2c23055b8499a7d26004f54dd6e74"
+    },
+    "ALQ-F2-01": {
+      "status": "integrada",
+      "tentativas": 1,
+      "onda": 2,
+      "modelo": "opus/high",
+      "resumo": "Specs 17/15: DEC-PF2-11/12, REQ-PF2-217..228 (221 pulado), REQ-PF2-212a (dano massivo), REQ-SYS-143/144, emendas de REQ-PF2-055 e DEC-SYS-12. spec-lint 0 violações; prioridade 40 bate com a tabela da F1-01.",
+      "core_sha": "902e87b4b4edce8e9f652cf287eedcd1d1362969",
+      "sat_sha": "10750056d6e2c23055b8499a7d26004f54dd6e74"
+    },
+    "ALQ-F2-03": {
+      "status": "integrada",
+      "tentativas": 1,
+      "onda": 2,
+      "modelo": "sonnet/medium",
+      "resumo": "Pack alchemical-items-core com 579 docs (recontagem independente confere), ponte pt-BR dos 35 itens do #107 byte-idênticos, assert de cobertura provado vermelho. effectRefs corrigidos depois pela revisão (B1).",
+      "core_sha": "902e87b4b4edce8e9f652cf287eedcd1d1362969",
+      "sat_sha": "10750056d6e2c23055b8499a7d26004f54dd6e74"
+    },
+    "ALQ-F2-16": {
+      "status": "integrada",
+      "tentativas": 1,
+      "onda": 2,
+      "modelo": "haiku/low",
+      "resumo": "Guard de skip por arquivo (14 suítes) + guarda de execução do main() no transform.mjs. Comando do CI: 283 testes / 279 pass / 0 fail / 4 skip com motivo. Destrava a issue #68.",
+      "core_sha": "902e87b4b4edce8e9f652cf287eedcd1d1362969",
+      "sat_sha": "10750056d6e2c23055b8499a7d26004f54dd6e74"
+    },
+    "ALQ-F4-19": {
+      "status": "integrada",
+      "tentativas": 1,
+      "onda": 2,
+      "modelo": "sonnet/high",
+      "resumo": "Reconhecimento de flat-modifier e item-alteration unificado no RuleElementRegistry; snapshot byte-idêntico (166/166). Os scanners NÃO saíram do código — execução segue em hp.ts/speed.ts/equipment.ts. Risco de contagem dupla transferido à F2-08 (tasks.md emendado, issue #75).",
+      "core_sha": "902e87b4b4edce8e9f652cf287eedcd1d1362969",
+      "sat_sha": "10750056d6e2c23055b8499a7d26004f54dd6e74"
+    },
+    "ALQ-F0-07": {
+      "status": "integrada",
+      "tentativas": 1,
+      "onda": 3,
+      "modelo": "sonnet/high",
+      "resumo": "GrantItem dinâmico resolve as duas raízes de placeholder: {item|flags...} (111 grants) e {actor|flags...} (9 grants: Field Discovery/Advanced Vials/GFD do Alquimista + 6 Doctrines do Cleric), via parser compartilhado; sem seleção vira GrantFailure{unresolved-selection}. Escopo estendido pelo orquestrador.",
+      "core_sha": "d0660d823da9999229c12a9bdd4d6aeb0eeb5217",
+      "sat_sha": "d7eedbbb291487ef0045cfef9ad37ca7336f4f6c"
+    },
+    "ALQ-F0-08": {
+      "status": "integrada",
+      "tentativas": 1,
+      "onda": 3,
+      "modelo": "sonnet/medium",
+      "resumo": "Class DC do Alquimista (17 no nív. 1 com Int +4) e proficiência de bombas como mapa por chave system.proficiencies.attacks['weapon-base-alchemical-bomb']; importer passou a preservar attacks.other do vendor.",
+      "core_sha": "d0660d823da9999229c12a9bdd4d6aeb0eeb5217",
+      "sat_sha": "d7eedbbb291487ef0045cfef9ad37ca7336f4f6c"
+    },
+    "ALQ-F1-04": {
+      "status": "integrada",
+      "tentativas": 1,
+      "onda": 3,
+      "modelo": "sonnet/high",
+      "resumo": "TurnHookRunner aguardado em série (turnEnd→roundEnd?→roundStart?→turnStart) e combatEnd antes de arquivar; erro de callback isolado e logado; ack só volta depois do await.",
+      "core_sha": "d0660d823da9999229c12a9bdd4d6aeb0eeb5217",
+      "sat_sha": "d7eedbbb291487ef0045cfef9ad37ca7336f4f6c"
+    },
+    "ALQ-F1-05": {
+      "status": "integrada",
+      "tentativas": 1,
+      "onda": 3,
+      "modelo": "sonnet/medium",
+      "resumo": "resolveTargetSelection no server e foto imutável dos alvos em flags.fusion.targetSnapshot (D-02); client com getMyTargets/setMyTargets reativos. Vazamento de token oculto no snapshot achado pela revisão e corrigido via redaction.ts.",
+      "core_sha": "d0660d823da9999229c12a9bdd4d6aeb0eeb5217",
+      "sat_sha": "d7eedbbb291487ef0045cfef9ad37ca7336f4f6c"
+    },
+    "ALQ-F1-06": {
+      "status": "integrada",
+      "tentativas": 1,
+      "onda": 3,
+      "modelo": "sonnet/high",
+      "resumo": "resolveDamageApplication puro: IWR com exceções/materiais, PV temp. não-cumulativo, dying/wounded/doomed, dead no NPC a 0 (D-03), unconscious em não-letal. Correções da revisão: escala sobre o total por tipo e só a maior fraqueza/resistência.",
+      "core_sha": "d0660d823da9999229c12a9bdd4d6aeb0eeb5217",
+      "sat_sha": "d7eedbbb291487ef0045cfef9ad37ca7336f4f6c"
+    },
+    "ALQ-F2-08": {
+      "status": "integrada",
+      "tentativas": 1,
+      "onda": 3,
+      "modelo": "sonnet/high",
+      "resumo": "Materializador pf2e leva efeitos, feats, classFeature, ancestry, heritage e equipamento equipado ao RuleElementRegistry; grantedConditions sem item órfão; gatilho SCAFFOLDING na ficha. Scanners hp/speed/damage-dice-faces ficaram como exceção em vez de migrar (D-10 pendente).",
+      "core_sha": "d0660d823da9999229c12a9bdd4d6aeb0eeb5217",
+      "sat_sha": "d7eedbbb291487ef0045cfef9ad37ca7336f4f6c"
+    },
+    "ALQ-F2-18": {
+      "status": "integrada",
+      "tentativas": 1,
+      "onda": 3,
+      "modelo": "sonnet/medium",
+      "resumo": "buildMechanicalFields ganhou case 'effect' e mostra a duração em linguagem de mesa (minuto/rodada/encontro/ilimitado), respeitando expiry e sustained.",
+      "core_sha": "d0660d823da9999229c12a9bdd4d6aeb0eeb5217",
+      "sat_sha": "d7eedbbb291487ef0045cfef9ad37ca7336f4f6c"
+    },
+    "ALQ-F2-19": {
+      "status": "integrada",
+      "tentativas": 1,
+      "onda": 3,
+      "modelo": "sonnet/medium",
+      "resumo": "Descrição da pré-visualização convertida para texto limpo reusando sanitizeDescriptionToText; sem {@html}, 13 vetores de XSS testados sem sobreviventes.",
+      "core_sha": "d0660d823da9999229c12a9bdd4d6aeb0eeb5217",
+      "sat_sha": "d7eedbbb291487ef0045cfef9ad37ca7336f4f6c"
+    },
+    "ALQ-F0-03": {
+      "status": "integrada",
+      "tentativas": 1,
+      "onda": 4,
+      "modelo": "sonnet/medium",
+      "resumo": "16 dos 67 talentos do Alquimista com trait `legacy` por publication.remaster (curadoria genérica, sem lista de nomes); selo 'Legado' e filtro real 'Esconder legado' no CompendiumPickerDialog. Correção da revisão estendeu para 491/491 docs do feats-core.",
+      "core_sha": "5ad38f41",
+      "sat_sha": "d905c4ea"
+    },
+    "ALQ-F1-07": {
+      "status": "integrada",
+      "tentativas": 1,
+      "onda": 4,
+      "modelo": "sonnet/medium",
+      "resumo": "resolveConditionApplication (add/remove/set/increase/decrease), imunidade bloqueia com nota, maior valor prevalece, dying>0 traz unconscious; registrou registerActorMechanics e fiou o applyDamage da F1-06. Duração da condição corrigida na revisão (I5).",
+      "core_sha": "5ad38f41",
+      "sat_sha": "d905c4ea"
+    },
+    "ALQ-F1-08": {
+      "status": "integrada",
+      "tentativas": 1,
+      "onda": 4,
+      "modelo": "sonnet/high",
+      "resumo": "Handler actor:applyDamage + ActorMechanicsService: relê o total da rolagem gravada, alvos de não-privilegiado só via targetSnapshot, damageApplied redigido por papel. Revisão fechou B1 (dono da rolagem), B2 (idempotência), B3 parcial, I1 (token oculto) e I4 (defeated).",
+      "core_sha": "5ad38f41",
+      "sat_sha": "d905c4ea"
+    },
+    "ALQ-F2-09": {
+      "status": "integrada",
+      "tentativas": 1,
+      "onda": 4,
+      "modelo": "sonnet/high",
+      "resumo": "resolveExpirations puro no engine-2e (duração pelo turno do ator de origem) + hook pf2e.effectExpiry. Estava inerte em produção (deleteEmbedded stub); a correção B4 ligou deleteEmbedded/chat no TurnHookContext com e2e provando a remoção na borda de turno.",
+      "core_sha": "5ad38f41",
+      "sat_sha": "d905c4ea"
+    },
+    "ALQ-F2-13": {
+      "status": "integrada",
+      "tentativas": 1,
+      "onda": 4,
+      "modelo": "sonnet/medium",
+      "resumo": "ItemStrike de bomba pela trait (consumable canônico e weapon cadastrado à mão), sem equipar; proficiência nomeada weapon-base-alchemical-bomb via predicate. I6 da revisão corrigiu a queda para Destreinado: bomba é arma marcial.",
+      "core_sha": "5ad38f41",
+      "sat_sha": "d905c4ea"
+    },
+    "ALQ-F2-20": {
+      "status": "integrada",
+      "tentativas": 1,
+      "onda": 4,
+      "modelo": "haiku/low",
+      "resumo": "Os dois Aeon Stones confirmados OGL/pré-remaster contra o vendor real e mantidos no subset MVP; a revisão cobrou o teste de política do pack, entregue em pack-remaster-policy.test.mjs.",
+      "core_sha": "5ad38f41",
+      "sat_sha": "d905c4ea"
+    },
+    "ALQ-F3-01": {
+      "status": "integrada",
+      "tentativas": 1,
+      "onda": 4,
+      "modelo": "opus/high",
+      "resumo": "Spec 47 (FAB) com 40 REQ [MVP], 6 DEC-FAB, 3 RNF, 12 CA; D-06/07/08 refletidas. Emendas: REQ-SYS-145..148 na 15 e Craft saindo do [V2] na 17 (para REQ-FAB-039). spec-lint zerado.",
+      "core_sha": "5ad38f41",
+      "sat_sha": "d905c4ea"
+    },
+    "ALQ-F0-04": {
+      "status": "bloqueada",
+      "tentativas": 1,
+      "onda": 5,
+      "modelo": "haiku/low",
+      "resumo": "Tradução dos 66 talentos entregue e integrada, depois REVERTIDA pela revisão adversarial: as descrições pt-BR eram fabricadas (Combine Elixirs, Wish Alchemy e Perfect Mutagen descrevem regra diferente do inglês; 3 com fórmula de dado inventada) e o qa.mjs do próprio tools/translate-packs reprova 53/67. O teste que a cobria era tautológico (só asseria PT !== EN), classe da issue #48.",
+      "motivo": "Tradução fabricada, não traduzida: 53/67 reprovados no qa.mjs do próprio pipeline, teste tautológico (PT !== EN). Merge revertido no satélite. Issue xansde/fusion-systems-2e#87 com os dois requisitos para refazer: qa.mjs no gate e teste que confere a regra."
+    },
+    "ALQ-F0-09": {
+      "status": "integrada",
+      "tentativas": 1,
+      "onda": 5,
+      "modelo": "sonnet/medium",
+      "resumo": "evaluateFeatPickerPrerequisite bloqueia no picker o talento cujo prereq reconhecido falha (feat/dedicação possuído por sourceId, ou atributo mínimo); texto livre desconhecido vira aviso não bloqueante. isFeatEligible intocado (DEC-BC-05). 7/7 no teste novo, 1488/1488 em sheets-pf2e. 3 prints conferidos pelo orquestrador. Correção pós-revisão: prereq com alternativas (\"A, B, C, or D Dedication\") era casado pelo sufixo e dava falso bloqueio em 17 talentos reais — agora decomposto com semântica OU.",
+      "core_sha": "3a419437",
+      "sat_sha": "a2c9eb77"
+    },
+    "ALQ-F1-09": {
+      "status": "integrada",
+      "tentativas": 1,
+      "onda": 5,
+      "modelo": "sonnet/medium",
+      "resumo": "Handler actor:applyCondition + ActorMechanicsService.applyCondition (GM: qualquer ator; player: OWNER via selfActorId ou targetTokenIds validado por assertTargetsSelected), ctx.applyCondition ligado no turnHookRunner. 8/8 no teste novo. Correção pós-revisão: readActorIwrBlock lia system.iwr (caminho inexistente; o schema é system.attributes.iwr), então imunidade a condição (REQ-PF2-053) nunca bloqueava — alvo imune recebia frightened.",
+      "core_sha": "3a419437",
+      "sat_sha": "a2c9eb77"
+    },
+    "ALQ-F1-10": {
+      "status": "integrada",
+      "tentativas": 1,
+      "onda": 5,
+      "modelo": "sonnet/high",
+      "resumo": "Botões Aplicar/½/×2/Curar/PV temp. no card + linha de alvos por rolagem; card-resumo actor:damageApplied no core via chatCardExtensionRegistry, com redação player×GM (D-04). A lane achou e corrigiu 2 defeitos pré-existentes de ondas anteriores: damage.ts lia/escrevia system.hp/system.iwr no caminho errado e devolvia diff com chaves dotted que o deepMerge nunca expandia (PV nunca persistia de verdade), e computeByType comparava tipo de dano contra nome de etapa do pipeline (resistanceApplied nunca aparecia). 4 prints conferidos pelo orquestrador. Correções pós-revisão: resistanceApplied confundia escala com resistência (½ em alvo sem resistência exibia \"(resistência 5)\"); \"Alvos: eagleToken000001\" no player (nome agora resolvido pelo token da cena); dano multi-tipo atribuía o total ao primeiro tipo; texto do card fora do t(); gatilho SCAFFOLDING de alvo nunca limpava e excluía o GM.",
+      "core_sha": "3a419437",
+      "sat_sha": "a2c9eb77"
+    },
+    "ALQ-F2-10": {
+      "status": "integrada",
+      "tentativas": 1,
+      "onda": 5,
+      "modelo": "sonnet/medium",
+      "resumo": "Item físico com system.fusion.expiry reusando 100% o resolvedor/hook da F2-09 (zero mudança de produção em expiry.ts/effect-expiry.ts, confirmado por teste); TempItemBadge.svelte no inventário + gatilho SCAFFOLDING \"Criar cópia temporária\". A lane achou e corrigiu um bug de CSS ao tirar os prints (flexbox espremia o nome do item a largura zero). engine-2e 196/196, system-pf2e 784/784. 5 prints, 2 conferidos pelo orquestrador.",
+      "core_sha": "3a419437",
+      "sat_sha": "a2c9eb77"
+    },
+    "ALQ-F2-11": {
+      "status": "integrada",
+      "tentativas": 1,
+      "onda": 5,
+      "modelo": "sonnet/high",
+      "resumo": "Op item:consume nos dois repos (payload/contratos/handler com escrita atômica por expectedVersion em transação IMMEDIATE; consume.ts no satélite). 6/6 no teste do server, 17/17 no unitário, 799/799 em system-pf2e. Pendência do conversor de regra kind:\"strike\" dentro de Effect registrada como issue xansde/fusion-systems-2e#86, por decisão do orquestrador (generalizar o conversor não entrou no escopo). Correção pós-revisão: o efeito era resolvido com getDocumentBySourceRef(viewerRole), então o resultado MECÂNICO dependia do papel do chamador — furo de autoridade do servidor, agora resolvido com papel privilegiado.",
+      "core_sha": "3a419437",
+      "sat_sha": "a2c9eb77"
+    }
+  },
+  "rodadas": [
+    {
+      "onda": 1,
+      "tarefas": ["ALQ-F0-01", "ALQ-F1-01", "ALQ-F2-02", "ALQ-F2-17", "ALQ-F4-02", "ALQ-F4-03"],
+      "integradas": ["ALQ-F0-01", "ALQ-F1-01", "ALQ-F2-02", "ALQ-F4-02", "ALQ-F4-03"],
+      "gate": true,
+      "revisao": {
+        "achados": 17,
+        "abertos": [
+          "[importante][satélite] build-mvp-subset.mjs — os dois itens 'Effect: Aeon Stone (Pink Rhomboid)' e 'Effect: Aeon Stone Resonance (Black Disc)' citados pela revisão como pré-remaster/Core Rulebook NÃO puderam ser verificados nesta máquina: tools/importer-pf2e/vendor/ está ausente (gitignored, third-party) e tools/importer-pf2e/samples/equipment-effects/ só tem 3 amostras commitadas, nenhuma delas esses dois ids. Diferente de Demon's Knot (verificável via sample-1.json e mantido/documentado), não tenho como confirmar ou substituir esses dois sem vendor real — fica para quem tiver o clone do vendor rodar extract+transform e decidir.",
+          "[importante][satélite] build-mvp-subset.mjs — a finding também aponta que equipment-effects-core não cobre os efeitos que o futuro alchemical-items-core (ALQ-F2-03, 575 itens) vai referenciar por effectRefs. Esse pack ainda não existe (não está na onda 1: ALQ-F2-03 não faz parte das tarefas ALQ-F0-01/F1-01/F2-02/F2-17/F4-02/F4-03 desta rodada) — curar efeitos hoje para um consumidor que não existe seria especulativo, e exigiria vendor/ para achar mais ids ORC. Fica para a tarefa F2-03/F2-08 quando forem abertas.",
+          "[menor] sheets/pf2e/src/lib/sheets/pf2e/__tests__/rule-elements-regression.test.ts: Os snapshots dos níveis 1/5/10/15 são a build de nível 20 (com todas as escolhas até o 20) com `system.level.value` sobrescrito (linha 88), e não 'cada classe no nível N com escolhas default'. Os itens de nível acima de N continuam no documento, então o snapshot só é fiel se toda derivação filtrar por nível. O arquivo também ficou em `sheets/pf2e`, e não em `systems/pf2e/src/__tests__` como o plano previa (aceitável pelo reuso do harness, mas vale registrar no plano).",
+          "[menor] specs/10-combate-e-iniciativa.md: REQ-CBT-057 (linha 292) diz que um combatente pulado por `skipDefeated` não recebe `turnStart`/`turnEnd`. Se o GM marcar como derrotado um PC `dying` (uso comum para 'caído'), o recovery check de REQ-PF2-214 e o dano persistente param sem aviso, e pelo RAW remaster o personagem morrendo continua testando no início do turno. Vale uma exceção explícita (hooks rodam para `dying`) ou uma nota na spec.",
+          "[menor] specs/15-api-de-sistemas.md: Contratos um pouco divergentes da seção 2. A spec adiciona `opts` a `onCombatEnd` e define `RoundHookFn = {combat, round}`, que o plano não fixa (superconjunto, mas precisa refletir na §2.2). `assertTargetsSelected(userId, role, tokenIds)` da §2.3 não aparece na spec. A REQ-SYS-141 promete que 'nenhum sistema existente muda', mas o adaptador troca o momento dos hooks legados (antes era pelo EventBus, antes de persistir, REQ-CBT-026). Hoje nenhum sistema chama `registerCombatHooks` (só `system-module.ts` o define), então o risco é baixo. Por fim, REQ-SYS-142 responde FORBIDDEN para 'mensagem sem snapshot' e REQ-CHT-052 trata snapshot `[]` como botão desabilitado: falta dizer o que o servidor faz com `[]`.",
+          "[menor] specs/17-sistema-pf2e.md: A F2-02 escreveu REQ-PF2-221 (linha 734) no meio da faixa 217..228, que pertence à ALQ-F2-01. Quem escrever a F2-01 precisa pular o 221, senão o spec-lint acusa duplicata. Pela regra de colisão do plano, `specs/17` também deveria serializar a F1-01 e a F2-02 em ondas diferentes. As regras PF2e das emendas conferem com o remaster: CD de classe 17 e bomba +5 no nível 1; dying 2+wounded 1=3; recovery check CD 10+dying com dying 3→5 morto; cura tira dying e dá wounded +1; multiplicador antes do IWR; frightened decai no fim do próprio turno; Alchemist Dedication pede Int +2. Uma lacuna: dano massivo (dano ≥ 2× PV máximo mata na hora) não foi especificado em REQ-PF2-212.",
+          "[menor] tools/importer-pf2e/src/__tests__/transform.test.mjs: Os testes de normalização da F2-02 (e o que cita REQ-PF2-221) ficam atrás de `{ skip: OUT_MISSING }`: sem o `out/` do extract/transform, que não é versionado, eles não rodam. No CI a REQ entra como citada por teste sem ser exercitada. Falta um teste unitário de `normalizeEffectDuration` com entrada literal: `minutes`→`minute`, `unlimited`→-1/null, `encounter`→expiry null.",
+          "[menor] packages/system-api/src/effects.ts: `isMvpRuleType(type, registry?)` sem registro cai no `MVP_EFFECT_RULE_KEYS` estático. Hoje os dois coincidem, mas nada impede a divergência quando a F4-04+ registrar kinds novos, e aí um consumidor que chame sem registro reporta 'não suportado' para um kind que o motor aplica. O 'Synthetics ampliado' da entrega da F4-02 também não aparece no diff. Verificado: engine-2e 153/153, regressão 164/164, packs-validation 129/129, effects do system-api 21/21, spec-lint 29/29, e o `spec:report` regenera sem diff (piso 712)."
+        ]
+      },
+      "core_sha": "2f042961f7ad01e7f7544f3383a435a1154b525b",
+      "sat_sha": "e22d64542332f788926612b13354738e2a0b7074"
+    },
+    {
+      "onda": 1,
+      "tarefas": ["ALQ-F2-17"],
+      "integradas": ["ALQ-F2-17"],
+      "gate": true,
+      "revisao": {
+        "achados": 11,
+        "abertos": [
+          "ALQ17-09 — teste fora da convencao de pasta; sem efeito colateral, nao mexido por decisao.",
+          "ALQ17-10 — no-new-enrichers unidirecional; risco para os ~540 itens das F2-04/F2-05.",
+          "ALQ17-11 — README secao Legal desatualizado; e o documento que a F2-03 vai ler.",
+          "ALQ-F2-16 — o bug de higiene da suite em si (guard inerte + destruicao de arquivo rastreado) segue aberto, com dono.",
+          "CI do satelite vermelho no step Test tools/importer-pf2e, que nao tem continue-on-error ao contrario do step irmao de translate-packs; ficou invisivel enquanto o build falhava antes. Issue xansde/fusion-systems-2e#68."
+        ]
+      },
+      "core_sha": "b876452250a978f53f2da6d23be325ae088fce47",
+      "sat_sha": "67bffa5c7d8e826d2b7f37c7b94436e244e804b3"
+    },
+    {
+      "onda": 2,
+      "tarefas": [
+        "ALQ-F0-02",
+        "ALQ-F1-02",
+        "ALQ-F1-03",
+        "ALQ-F2-01",
+        "ALQ-F2-03",
+        "ALQ-F2-16",
+        "ALQ-F4-19"
+      ],
+      "integradas": [
+        "ALQ-F0-02",
+        "ALQ-F1-02",
+        "ALQ-F1-03",
+        "ALQ-F2-01",
+        "ALQ-F2-03",
+        "ALQ-F2-16",
+        "ALQ-F4-19"
+      ],
+      "gate": true,
+      "revisao": {
+        "achados": 3,
+        "abertos": [
+          "B2 [BLOQUEANTE, DECISÃO DO ALEXANDRE] As 95 bombas entraram como type:'weapon', que a DEC-PF2-12 (mesma onda) registra como alternativa REJEITADA. Peso técnico favorece manter weapon+trait bomb (schema e os 96 docs já nessa forma; deriveStrikeFromWeapon exige); mudar para consumable exige duplicar bloco de dano e reimportar com vendor (ausente na máquina). Sem decisão, a F2-13 não implementa o strike sem quebrar uma das duas.",
+          "10 achados importantes + 10 menores da revisão adversarial, não endereçados nesta onda — ver revisao.md",
+          "issue #75 (satélite): F4-19 migrou só o reconhecimento; execução segue nos scanners. Pré-requisito da F2-08.",
+          "issue #76 (satélite): WeaponDamageSchema aceita dice>0 sem die e strikes.ts cai em '1d1' silencioso. Inerte no pack atual.",
+          "Vendor do importer é clone de 2026-08-24; 18/579 docs diferem do upstream só em campos não lidos (img, price.per, coloration). Atualizar antes da próxima tarefa de importer.",
+          "eslint.config.js do core não cobre external/fusion-systems-2e/systems/*/src/**."
+        ]
+      },
+      "core_sha": "902e87b4b4edce8e9f652cf287eedcd1d1362969",
+      "sat_sha": "10750056d6e2c23055b8499a7d26004f54dd6e74"
+    },
+    {
+      "onda": 3,
+      "tarefas": [
+        "ALQ-F0-07",
+        "ALQ-F0-08",
+        "ALQ-F1-04",
+        "ALQ-F1-05",
+        "ALQ-F1-06",
+        "ALQ-F2-08",
+        "ALQ-F2-18",
+        "ALQ-F2-19"
+      ],
+      "integradas": [
+        "ALQ-F0-07",
+        "ALQ-F0-08",
+        "ALQ-F1-04",
+        "ALQ-F1-05",
+        "ALQ-F1-06",
+        "ALQ-F2-08",
+        "ALQ-F2-18",
+        "ALQ-F2-19"
+      ],
+      "gate": true,
+      "revisao": {
+        "achados": 4,
+        "abertos": [
+          "14 achados menores catalogados em REVISAO.md, sem cenário de falha que justifique consertar agora",
+          "D-10 não cumprida: scanners hp/speed/damage-dice-faces viraram exceção em vez de migrar para o registro; a revisão confirmou que nenhum seletor escapa contando em dobro, mas a justificativa numérica da lane (119/97) não reproduz (medido 134/111) e a interseção real com os scanners é de 3 regras",
+          "Field Discovery não chega a funcionar na tela: falta handler ActiveEffectLike/set-property no RuleElementRegistry para escrever a flag, e os 12 documentos-alvo do Alquimista não existem no pack (o Cleric só tem o primeiro gap)",
+          "Label da proficiência de bombas cai no fallback da chave até o pack classes-core ser regerado",
+          "Entidade duplamente codificada não decodifica 100% em documentDetails.ts (inofensivo hoje: o componente não usa {@html})",
+          "Sub-item de I1: multiplier+basicSave juntos são descartados em silêncio fora do Zod em vez de lançar erro; sem consumidor até F1-08/F5-03"
+        ]
+      },
+      "core_sha": "d0660d823da9999229c12a9bdd4d6aeb0eeb5217",
+      "sat_sha": "d7eedbbb291487ef0045cfef9ad37ca7336f4f6c"
+    },
+    {
+      "onda": 4,
+      "tarefas": [
+        "ALQ-F0-03",
+        "ALQ-F1-07",
+        "ALQ-F1-08",
+        "ALQ-F2-09",
+        "ALQ-F2-13",
+        "ALQ-F2-20",
+        "ALQ-F3-01"
+      ],
+      "integradas": [
+        "ALQ-F0-03",
+        "ALQ-F1-07",
+        "ALQ-F1-08",
+        "ALQ-F2-09",
+        "ALQ-F2-13",
+        "ALQ-F2-20",
+        "ALQ-F3-01"
+      ],
+      "gate": true,
+      "revisao": {
+        "achados": 12,
+        "abertos": [
+          "B3 parcial: type/category/traits/materials do payload de dano seguem sem verificação contra a rolagem — RollResultData não carrega esses campos, fechá-los é mudança de contrato. Issue xansde/fusion#225.",
+          "B4 parcial: roll/updateActor/createEmbedded continuam stub no TurnHookContext. Issue xansde/fusion#226.",
+          "Expiração cross-actor: o hook só recebe o ator cujo turno transiciona, nunca o de origem quando são diferentes. Issue xansde/fusion-systems-2e#84.",
+          "Trait legacy ausente em outros 9 packs (1033 documentos). Issue xansde/fusion-systems-2e#85.",
+          "Dívida SF2e do applyCondition. Issue xansde/fusion-systems-2e#83.",
+          "1 citação de REQ sobrevivente na spec 47 (REQ-SEC-020 x DEC-SEC-03) e 7 achados menores em .fusion-build/alquimista/onda-4/REVISAO.md."
+        ]
+      },
+      "core_sha": "5ad38f41",
+      "sat_sha": "d905c4ea"
+    },
+    {
+      "onda": 5,
+      "tarefas": ["ALQ-F0-04", "ALQ-F0-09", "ALQ-F1-09", "ALQ-F1-10", "ALQ-F2-10", "ALQ-F2-11"],
+      "integradas": ["ALQ-F0-09", "ALQ-F1-09", "ALQ-F1-10", "ALQ-F2-10", "ALQ-F2-11"],
+      "gate": true,
+      "revisao": {
+        "achados": 24,
+        "abertos": [
+          "ALQ-F0-04 revertida: refazer a tradução pt-BR dos 66 talentos com qa.mjs no gate e teste que confere a regra. Issue xansde/fusion-systems-2e#87.",
+          "DECISÃO DO ALEXANDRE: gate GAMEMASTER-strict impede o jogador de ler pf2e:freeArchetype — inviabiliza a prova visual de player da F0-09 e trava a ALQ-F0-10. Issue xansde/fusion#230, registrada sem conserto.",
+          "REQ-PF2-224 sem emenda: a prosa cita system.charges/system.autoDestroy, o pack real usa system.uses.{value,max,autoDestroy} (461/579 com uses, 0 com charges). O código seguiu o pack. Issue xansde/fusion#228.",
+          "dead via actor:applyCondition não marca o combatente defeated — dívida legítima (REQ-CBT-059 se auto-escopa a dano). Issue xansde/fusion#229.",
+          "Regra kind:\"strike\" dentro de Effect não tem conversor (stepCharInstinctStrikes só processa classFeature) — mutágeno consumido aplica o efeito mas o golpe não materializa. Issue xansde/fusion-systems-2e#86.",
+          "Ressalva do I1: token sem nome próprio e actor fora do mirror ainda caem no tokenId — gap de visibilidade de servidor, fora do escopo da onda.",
+          "11 achados menores não corrigidos, listados em .fusion-build/alquimista/onda-5/REVISAO.md."
+        ]
+      },
+      "core_sha": "3a419437",
+      "sat_sha": "a2c9eb77"
+    }
+  ],
+  "lotes": {}
+}

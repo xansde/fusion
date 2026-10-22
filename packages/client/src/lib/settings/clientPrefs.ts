@@ -16,6 +16,15 @@
  * is the only writer.
  */
 
+import {
+  CANTOS,
+  TAMANHO_MAXIMO,
+  TAMANHO_MINIMO,
+  TAMANHO_PADRAO,
+  type CantoDoAvatar,
+  type PosicaoLivre,
+} from "../avatar/posicao.js";
+
 /** The three audio channels REQ-AUD-015 defines. */
 export type VolumeChannel = "music" | "environment" | "interface";
 
@@ -44,11 +53,26 @@ export interface TokenDisplayPreferences {
   readonly showBars: boolean;
 }
 
+/**
+ * The avatar overlay on THIS viewer's screen (spec 35): whether it shows, how
+ * big, and where — a corner, or a spot dragged by hand (`livre`, the box's
+ * top-left as a fraction of the viewport, so it survives a resize). Same
+ * client-only contract: it changes what this screen draws, nothing else.
+ */
+export interface AvatarOverlayPreferences {
+  readonly visivel: boolean;
+  /** Side of the box in px, {@link TAMANHO_MINIMO}..{@link TAMANHO_MAXIMO}. */
+  readonly tamanho: number;
+  readonly canto: CantoDoAvatar;
+  readonly livre: PosicaoLivre | null;
+}
+
 /** The whole shape of "Minhas preferências". */
 export interface ClientPreferences {
   readonly volume: Readonly<Record<VolumeChannel, number>>;
   readonly notifications: NotificationPreferences;
   readonly tokenDisplay: TokenDisplayPreferences;
+  readonly avatarOverlay: AvatarOverlayPreferences;
 }
 
 /** Volume is a `[0, 1]` multiplier (REQ-AUD-017); sliders in the UI show 0–100%. */
@@ -65,10 +89,18 @@ export const DEFAULT_TOKEN_DISPLAY: TokenDisplayPreferences = {
   showBars: true,
 };
 
+export const DEFAULT_AVATAR_OVERLAY: AvatarOverlayPreferences = {
+  visivel: true,
+  tamanho: TAMANHO_PADRAO,
+  canto: "inferior-direito",
+  livre: null,
+};
+
 export const DEFAULT_CLIENT_PREFERENCES: ClientPreferences = {
   volume: { music: DEFAULT_VOLUME, environment: DEFAULT_VOLUME, interface: DEFAULT_VOLUME },
   notifications: DEFAULT_NOTIFICATIONS,
   tokenDisplay: DEFAULT_TOKEN_DISPLAY,
+  avatarOverlay: DEFAULT_AVATAR_OVERLAY,
 };
 
 /** Key prefix, following the `fusion:<thing>` convention used across the client. */
@@ -132,6 +164,42 @@ function parseTokenDisplay(record: Record<string, unknown>): TokenDisplayPrefere
   };
 }
 
+function clampFraction(v: number): number {
+  return Math.min(1, Math.max(0, v));
+}
+
+function parseAvatarOverlay(record: Record<string, unknown>): AvatarOverlayPreferences {
+  const raw = record["avatarOverlay"];
+  const source = typeof raw === "object" && raw !== null ? (raw as Record<string, unknown>) : {};
+  const tamanho =
+    typeof source["tamanho"] === "number" && Number.isFinite(source["tamanho"])
+      ? Math.round(Math.min(TAMANHO_MAXIMO, Math.max(TAMANHO_MINIMO, source["tamanho"])))
+      : DEFAULT_AVATAR_OVERLAY.tamanho;
+  const canto = CANTOS.includes(source["canto"] as CantoDoAvatar)
+    ? (source["canto"] as CantoDoAvatar)
+    : DEFAULT_AVATAR_OVERLAY.canto;
+  const livreRaw = source["livre"];
+  const livre =
+    typeof livreRaw === "object" &&
+    livreRaw !== null &&
+    typeof (livreRaw as Record<string, unknown>)["x"] === "number" &&
+    typeof (livreRaw as Record<string, unknown>)["y"] === "number" &&
+    Number.isFinite((livreRaw as Record<string, number>)["x"]) &&
+    Number.isFinite((livreRaw as Record<string, number>)["y"])
+      ? {
+          x: clampFraction((livreRaw as Record<string, number>)["x"] ?? 0),
+          y: clampFraction((livreRaw as Record<string, number>)["y"] ?? 0),
+        }
+      : null;
+  return {
+    visivel:
+      typeof source["visivel"] === "boolean" ? source["visivel"] : DEFAULT_AVATAR_OVERLAY.visivel,
+    tamanho,
+    canto,
+    livre,
+  };
+}
+
 /**
  * This user's saved preferences in this world, or the defaults when there is nothing
  * usable (never saved, storage unavailable, corrupt JSON, no world/user identity yet).
@@ -151,6 +219,7 @@ export function loadClientPreferences(worldId: string, userId: string): ClientPr
       volume: parseVolume(record),
       notifications: parseNotifications(record),
       tokenDisplay: parseTokenDisplay(record),
+      avatarOverlay: parseAvatarOverlay(record),
     };
   } catch {
     /* localStorage unavailable or unparseable — fall back to defaults. */
@@ -226,6 +295,25 @@ export function setTokenDisplayPreference(
   const next: ClientPreferences = {
     ...current,
     tokenDisplay: { ...current.tokenDisplay, [key]: value },
+  };
+  persist(worldId, userId, next);
+  return next;
+}
+
+/**
+ * Change part of the avatar overlay preference and persist the whole object.
+ * The patch goes through the same parser as a load, so junk is repaired on the
+ * way in too (size clamped, unknown corner dropped). Client-only, like the rest.
+ */
+export function setAvatarOverlayPreference(
+  worldId: string,
+  userId: string,
+  patch: Partial<AvatarOverlayPreferences>,
+): ClientPreferences {
+  const current = loadClientPreferences(worldId, userId);
+  const next: ClientPreferences = {
+    ...current,
+    avatarOverlay: parseAvatarOverlay({ avatarOverlay: { ...current.avatarOverlay, ...patch } }),
   };
   persist(worldId, userId, next);
   return next;

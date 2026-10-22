@@ -60,6 +60,7 @@ import {
 } from "../../documents/store.js";
 import {
   validateEmbeddedItemForSystem,
+  validateActorCurrencyForSystem,
   augmentationSlotLimitViolation,
 } from "../../documents/embedded-item.js";
 import { recomputeDerivedIfNeeded } from "../../documents/derive.js";
@@ -79,10 +80,14 @@ import {
 } from "../../documents/world-permissions.js";
 import {
   companionGrantAllows,
+  companionGrantLimit,
   companionGroupOf,
+  getCompanionType,
   validateCharacterBuild,
+  type BuildValidationVariants,
 } from "@fusion/system-pf2e";
 import { deepMerge } from "../../documents/merge.js";
+import { resolveWorldVariantRules } from "../../documents/world-variant-rules.js";
 import {
   DocCreatePayloadSchema,
   DocUpdatePayloadSchema,
@@ -90,14 +95,27 @@ import {
   TokenDocumentSchema,
 } from "@fusion/shared";
 import type { DocUpdatePayload, Ack, Ownership, Envelope, ErrorCode } from "@fusion/shared";
-import { createDocumentId, touchesKnowledgeFlag, KNOWLEDGE_FLAG_PATH } from "@fusion/shared";
+import {
+  createDocumentId,
+  touchesKnowledgeFlag,
+  touchesTokenMarksFlag,
+  stripTokenMarksOnCreate,
+  KNOWLEDGE_FLAG_PATH,
+} from "@fusion/shared";
 import { touchesAttitudeFlag, ATTITUDE_FLAG_PATH } from "@fusion/shared";
 import {
   sweepCharactersFromKnowledge,
   sanitizeKnowledgeOnCreate,
   isCharacterActor,
 } from "../../documents/knowledge.js";
+import { stripGmExceptionsOnCreate } from "../../documents/gm-exceptions.js";
+import {
+  actionBarFlagsCreateProblem,
+  actionBarFlagsWriteProblem,
+} from "../../documents/action-bar-flags.js";
 import { rejectAttitudeWrite, sanitizeAttitudeOnCreate } from "../../documents/attitude.js";
+import { lembrarImagemAnterior } from "../../documents/actor-image-history.js";
+import { applyMountMovement } from "../../combat/mount-follow.js";
 import {
   findBlockingCombats,
   blockingCombatMessage,
@@ -125,8 +143,10 @@ import {
 // The augmentation-slot rule itself moved to `documents/embedded-item.ts` (spec 43
 // §5.7, DEC-CPD-05) so `compendium:importToActor` runs the SAME predicate this file
 // runs — only the payload type is still read here.
+import { isPlayerReadableSettingKey } from "./settings-handlers.js";
 import type { AugmentationLikeItem } from "@fusion/system-sf2e";
 import type { SystemModule } from "@fusion/system-api";
+import { systemIncludes } from "@fusion/system-api";
 
 // ---------------------------------------------------------------------------
 // Ack builder helpers
@@ -364,6 +384,132 @@ const EMBEDDED_COLLECTION_BY_PARENT: Record<string, string> = Object.fromEntries
  * them here as well would only trade one rejection for another, so the guard
  * stays narrow: it names the shape that would otherwise succeed.
  */
+/**
+ * Does this expanded `doc:update` diff write the companion's link to its master
+ * (`system.companionKind`, `system.masterActorId`, `system.companion.grantSlotId`) or flips
+ * `system.companion.active`?
+ * A `system` (or `system.companion`) set to a non-object counts: it would replace them whole.
+ */
+function touchesCompanionLink(expanded: Record<string, unknown>): boolean {
+  if (!("system" in expanded)) return false;
+  const system = expanded["system"];
+  if (typeof system !== "object" || system === null || Array.isArray(system)) return true;
+  const sys = system as Record<string, unknown>;
+  if ("companionKind" in sys || "masterActorId" in sys) return true;
+  if (!("companion" in sys)) return false;
+  const companion = sys["companion"];
+  if (typeof companion !== "object" || companion === null || Array.isArray(companion)) return true;
+  // `active` is the server's call (DC-07: one active companion per master); swapping it is BHR-F4-10.
+  return "grantSlotId" in companion || "active" in companion;
+}
+
+/** `flags.fusion.mount` of a raw token, or undefined when absent. */
+function readTokenMountFlag(token: Record<string, unknown>): unknown {
+  const flags = token["flags"];
+  if (typeof flags !== "object" || flags === null) return undefined;
+  const fusion = (flags as Record<string, unknown>)["fusion"];
+  if (typeof fusion !== "object" || fusion === null) return undefined;
+  return (fusion as Record<string, unknown>)["mount"];
+}
+
+/**
+ * Does this expanded `doc:update` diff write an INPUT of the animal companion's derivation that a player
+ * may NOT touch: the master cache (`system.master.*`) or the companion's `stage` or `track`? Its whole
+ * statblock is a function of those (master level + stage + track + type + size), so letting the owner write
+ * them is letting the owner pick the statblock (onda-6 review I-9, REQ-PET-106). Stage and track belong to
+ * the Plan and the server; the master level is written by the server from the owner actor (BHR-F4-03).
+ * `typeSlug` and `size` are the owner's own choice ("Trocar tipo", D-B09) but only within what the type
+ * allows — see `companionTypeChoiceViolation`.
+ * A `system` / `system.companion` set to a non-object counts: it would replace them whole.
+ */
+function touchesCompanionDerivationInputs(expanded: Record<string, unknown>): boolean {
+  if (!("system" in expanded)) return false;
+  const system = expanded["system"];
+  if (typeof system !== "object" || system === null || Array.isArray(system)) return true;
+  const sys = system as Record<string, unknown>;
+  if ("master" in sys) return true;
+  if (!("companion" in sys)) return false;
+  const companion = sys["companion"];
+  if (typeof companion !== "object" || companion === null || Array.isArray(companion)) return true;
+  return "stage" in companion || "track" in companion;
+}
+
+/**
+ * The owner's "Trocar tipo" (BHR-F4-03 extension, D-B09): a diff that writes `system.companion.typeSlug` or
+ * `.size` is valid only if the RESULTING link names a type the system knows and a size that type allows
+ * (antelope: medium or large; the others: their one fixed size). `size` null/absent means "the type's
+ * default" and is always fine. Returns the refusal message, or null when the diff does not touch either
+ * field or is valid. Judged on the merged link so a diff that only changes the type is checked against the
+ * size already stored.
+ */
+function companionTypeChoiceViolation(
+  expanded: Record<string, unknown>,
+  existing: Record<string, unknown>,
+): string | null {
+  const system = expanded["system"];
+  if (typeof system !== "object" || system === null || Array.isArray(system)) return null;
+  const diffLink = (system as Record<string, unknown>)["companion"];
+  if (typeof diffLink !== "object" || diffLink === null || Array.isArray(diffLink)) return null;
+  if (!("typeSlug" in diffLink) && !("size" in diffLink)) return null;
+  const storedLink = (existing["system"] as Record<string, unknown> | undefined)?.["companion"];
+  const merged = {
+    ...(typeof storedLink === "object" && storedLink !== null ? storedLink : {}),
+    ...(diffLink as Record<string, unknown>),
+  } as Record<string, unknown>;
+  const slug = merged["typeSlug"];
+  const type = typeof slug === "string" ? getCompanionType(slug) : undefined;
+  if (!type) return `Unknown companion type "${String(slug)}"`;
+  const size = merged["size"];
+  if (size !== null && size !== undefined && !(type.sizes as readonly unknown[]).includes(size)) {
+    return `Size ${JSON.stringify(size)} is not allowed for companion type "${type.slug}" (allowed: ${type.sizes.join(", ")})`;
+  }
+  return null;
+}
+
+/**
+ * What a PLAYER may put in the `system.companion` link of a NEW animal companion (wave 7 review I-2): an
+ * existing `typeSlug`, a `size` that type allows (null/absent = the type's default), the initial `stage`
+ * ("young", or absent) and no `track`. Returns the refusal message, or null when the link is acceptable.
+ */
+function companionCreateViolation(companion: Record<string, unknown>): string | null {
+  const system = companion["system"];
+  const link =
+    typeof system === "object" && system !== null && !Array.isArray(system)
+      ? (system as Record<string, unknown>)["companion"]
+      : undefined;
+  if (typeof link !== "object" || link === null || Array.isArray(link)) {
+    return "An animal companion needs a system.companion link";
+  }
+  const fields = link as Record<string, unknown>;
+  if (typeof fields["typeSlug"] !== "string") return "An animal companion needs a typeSlug";
+  const typeViolation = companionTypeChoiceViolation({ system: { companion: link } }, {});
+  if (typeViolation) return typeViolation;
+  if (fields["stage"] !== undefined && fields["stage"] !== "young") {
+    return "A new animal companion starts Young: the stage is set by the server";
+  }
+  if (fields["track"] !== undefined && fields["track"] !== null) {
+    return "A new animal companion has no track: the track is set by the server";
+  }
+  return null;
+}
+
+/**
+ * Does this expanded `doc:update` diff write `system.build.gmExceptions` (BHR-F7-02, D-B12)? The Plan's
+ * "liberado pelo Mestre" marks live on the actor, but only the Mestre may grant one. A `system` or
+ * `system.build` set to a non-object counts: it would replace the field whole. Dotted keys are already
+ * expanded by `applyDotPathDiff` before this runs, so both diff shapes land here.
+ */
+function touchesGmExceptions(expanded: Record<string, unknown>): boolean {
+  if (!("system" in expanded)) return false;
+  const system = expanded["system"];
+  if (typeof system !== "object" || system === null || Array.isArray(system)) return true;
+  const sys = system as Record<string, unknown>;
+  if (!("build" in sys)) return false;
+  const build = sys["build"];
+  if (typeof build !== "object" || build === null || Array.isArray(build)) return true;
+  return "gmExceptions" in build;
+}
+
 function rejectUnwritableField(
   documentType: string,
   expandedDiff: Record<string, unknown>,
@@ -412,6 +558,87 @@ function rejectUnwritableField(
     return ackError(
       "VALIDATION_FAILED",
       `${KNOWLEDGE_FLAG_PATH} is not writable through doc:update — use the actor:setKnowledge operation`,
+    );
+  }
+
+  // `Actor.flags.fusion.tokenMarks` (BHR-F3-06, REQ-BHR-087/088): the Prey is
+  // checked on `mark:set` (own actor, own live target, exclusive forced) — and
+  // this path authorizes on `ownership` only, so an owner could write the array
+  // whole and skip every one of those rules. Only a privileged writer may.
+  if (documentType === "Actor" && !isPrivileged(role) && touchesTokenMarksFlag(expandedDiff)) {
+    return ackError(
+      "PERMISSION_DENIED",
+      "flags.fusion.tokenMarks is not writable through doc:update — use mark:set / mark:clear",
+    );
+  }
+
+  // `system.build.gmExceptions` (BHR-F7-02, D-B12, REQ-BHR-226..229): the Mestre's exceptions to the Plan.
+  // Authorizes on `ownership` here, so an owner could grant themselves any "liberado pelo Mestre" talent.
+  // The wallet (`system.currency`) deliberately stays player-writable (DC-10).
+  if (documentType === "Actor" && !isPrivileged(role) && touchesGmExceptions(expandedDiff)) {
+    return ackError(
+      "PERMISSION_DENIED",
+      "system.build.gmExceptions may only be written by a privileged role",
+    );
+  }
+
+  // The companion's link to its master (BHR-F4-04, REQ-PET-110/111, DC-07): the kind, the master and the
+  // grant slot are fixed when the companion is CREATED (where the cap, the mount refusal and the slot
+  // uniqueness are checked) — an owner rewriting them here would free a slot, turn a pet into a mount, or
+  // void the unique slot. The Mestre keeps full control. The subtype is read off the STORED document.
+  if (
+    documentType === "Actor" &&
+    !isPrivileged(role) &&
+    existing?.["type"] === "familiar" &&
+    touchesCompanionLink(expandedDiff)
+  ) {
+    return ackError(
+      "PERMISSION_DENIED",
+      "system.companionKind, system.masterActorId, system.companion.grantSlotId and system.companion.active are not writable through doc:update by a player",
+    );
+  }
+
+  // The inputs of an ANIMAL companion's derivation (onda-6 review I-9). Scoped to `animalCompanion`: the
+  // familiar and the eidolon legitimately mirror their master through a client-written `system.master` cache
+  // (petsVM), and have no stage/track.
+  if (
+    documentType === "Actor" &&
+    !isPrivileged(role) &&
+    existing?.["type"] === "familiar" &&
+    (existing["system"] as { companionKind?: unknown } | undefined)?.companionKind ===
+      "animalCompanion" &&
+    touchesCompanionDerivationInputs(expandedDiff)
+  ) {
+    return ackError(
+      "PERMISSION_DENIED",
+      "system.master and system.companion.{stage,track} are not writable through doc:update by a player",
+    );
+  }
+
+  // BHR-F4-03 extension (D-B09): the owner swaps the companion's type/size on their own, validated here.
+  if (
+    documentType === "Actor" &&
+    !isPrivileged(role) &&
+    existing?.["type"] === "familiar" &&
+    (existing["system"] as { companionKind?: unknown } | undefined)?.companionKind ===
+      "animalCompanion"
+  ) {
+    const violation = companionTypeChoiceViolation(expandedDiff, existing);
+    if (violation) return ackError("VALIDATION_FAILED", violation);
+  }
+
+  // The guard above reads the STORED subtype, so a player could skip it by turning an actor they own
+  // into a "familiar" in the same diff — and then pass for a companion of anyone (`effect:apply`
+  // authorizes on that link). Minting a companion is the guarded create path's job, never a retype.
+  if (
+    documentType === "Actor" &&
+    !isPrivileged(role) &&
+    expandedDiff["type"] === "familiar" &&
+    existing?.["type"] !== "familiar"
+  ) {
+    return ackError(
+      "PERMISSION_DENIED",
+      "an Actor cannot be turned into a companion through doc:update by a player",
     );
   }
 
@@ -464,12 +691,19 @@ function getOwnershipFromDoc(doc: Record<string, unknown>): Ownership {
 //         THAT companionKind (companionGrantAllows, read live from the
 //         master's embedded items on the SERVER — the client CTA is advisory,
 //         this is authoritative): a familiar-granting feat for familiar/pet,
-//         the Summoner class (by sourceId) for eidolon; a kind with no
-//         detector (animalCompanion, mount) is never granted to a player
+//         the Summoner class (by sourceId) for eidolon, an Animal Companion
+//         feat or the Beastmaster Dedication for animalCompanion (REQ-PET-109);
+//         a kind with no detector (mount) is never granted to a player
 //         (spec 29 DEC-PET-03, REQ-PET-092);
-//     (d) the master has no companion of the same GROUP linked yet
-//         (familiar+pet share one slot, eidolon is its own; a second is
-//         rejected as a duplicate — REQ-PET-093).
+//     (d) the master has fewer companions of the same GROUP than its cap
+//         (familiar+pet share one slot, eidolon is its own, both capped at 1;
+//         animalCompanion is capped at the NUMBER OF GRANTS the master carries,
+//         counted here on the server — REQ-PET-093, REQ-PET-110, DC-07). The
+//         companions of the SAME batch count too, so one doc:create cannot
+//         step over the cap;
+//     (e) an animalCompanion carries the `grantSlotId` of the Plan slot that
+//         creates it and no other companion of that master already holds it
+//         (REQ-PET-111). The GM skips (c)-(e): it never reaches this gate.
 //     On success the created familiar's ownership is FORCED to the master's
 //     ownership map (the master's owners become the familiar's owners), never
 //     trusting a client-supplied ownership.
@@ -491,6 +725,48 @@ function readMasterActorId(doc: Record<string, unknown>): string | null {
   return typeof raw === "string" && raw.length > 0 ? raw : null;
 }
 
+/**
+ * REQ-ATR-083 (#243): an Actor must not name itself as `system.masterActorId`, and the chain of masters
+ * must not close a cycle (A -> B -> A). `docId` is the id the document has (or will have) — a create that
+ * does not carry one gets a fresh server id nobody can reference yet, so it cannot close a cycle.
+ * `system` is the (expanded) `system` value of the create payload or of the update diff.
+ */
+function masterLinkRejection(
+  store: DocumentStore,
+  docId: unknown,
+  system: unknown,
+): Ack<never> | null {
+  if (typeof docId !== "string" || docId.length === 0) return null;
+  if (!system || typeof system !== "object" || Array.isArray(system)) return null;
+  const raw = (system as Record<string, unknown>)["masterActorId"];
+  if (typeof raw !== "string" || raw.length === 0) return null;
+  if (raw === docId) {
+    return ackError("VALIDATION_FAILED", "system.masterActorId must not point at the actor itself");
+  }
+  const visited = new Set<string>([raw]);
+  let current = raw;
+  // The walk is bounded by the visited set: a pre-existing cycle that does not include `docId` ends it.
+  for (;;) {
+    let linked: Record<string, unknown>;
+    try {
+      linked = store.get("actors", current);
+    } catch (err) {
+      if (err instanceof DocumentNotFoundError) return null; // soft reference (REQ-ATR-081)
+      throw err;
+    }
+    const next = readMasterActorId(linked);
+    if (next === docId) {
+      return ackError(
+        "VALIDATION_FAILED",
+        "system.masterActorId would close a cycle between actors",
+      );
+    }
+    if (next === null || visited.has(next)) return null;
+    visited.add(next);
+    current = next;
+  }
+}
+
 /** Read `system.companionKind` from a raw doc, or null when absent/blank. */
 function readCompanionKind(doc: Record<string, unknown>): string | null {
   const sys = doc["system"];
@@ -508,19 +784,63 @@ function isCompanionDoc(doc: Record<string, unknown>): boolean {
   );
 }
 
-/**
- * Whether the master already has a companion of `kind`'s group linked
- * (condition d, REQ-PET-093). Scans the actors table filtered to companions
- * and matches masterActorId + group.
- */
-function masterHasCompanionOfGroup(store: DocumentStore, masterId: string, kind: string): boolean {
+/** The companions of `kind`'s group already linked to the master. */
+function companionsOfGroup(
+  store: DocumentStore,
+  masterId: string,
+  kind: string,
+): Array<Record<string, unknown>> {
   const group = companionGroupOf(kind);
-  const companions = store.getAll("actors", { type: COMPANION_ACTOR_TYPE });
-  return companions.some(
-    (c) =>
-      readMasterActorId(c) === masterId &&
-      companionGroupOf(readCompanionKind(c) ?? "familiar") === group,
-  );
+  return store
+    .getAll("actors", { type: COMPANION_ACTOR_TYPE })
+    .filter(
+      (c) =>
+        readMasterActorId(c) === masterId &&
+        companionGroupOf(readCompanionKind(c) ?? "familiar") === group,
+    );
+}
+
+/** Read `system.companion.grantSlotId` (CompanionLink) from a raw doc, or null. */
+function readGrantSlotId(doc: Record<string, unknown>): string | null {
+  const sys = doc["system"];
+  if (!sys || typeof sys !== "object" || Array.isArray(sys)) return null;
+  const link = (sys as Record<string, unknown>)["companion"];
+  if (!link || typeof link !== "object" || Array.isArray(link)) return null;
+  const raw = (link as Record<string, unknown>)["grantSlotId"];
+  return typeof raw === "string" && raw.length > 0 ? raw : null;
+}
+
+/**
+ * DEC-BHR-10 / DC-07: a master has ONE active animal companion, and the server decides which — never
+ * the client. The first companion created is born active; any later one is born inactive and the
+ * companion that was already active stays active (switching is the owner's explicit action,
+ * BHR-F4-10). Applies to every creator (player and GM) of a companion carrying a
+ * `system.companion` link; runs per item, so a batch sees the items persisted before it.
+ */
+function decideCompanionActiveOnCreate(
+  store: DocumentStore,
+  item: Record<string, unknown>,
+): Record<string, unknown> {
+  if (!isCompanionDoc(item) || readCompanionKind(item) !== "animalCompanion") return item;
+  const sys = item["system"] as Record<string, unknown>;
+  const link = sys["companion"];
+  if (!link || typeof link !== "object" || Array.isArray(link)) return item;
+  const masterId = readMasterActorId(item);
+  if (!masterId) return item;
+  const hasActive = companionsOfGroup(store, masterId, "animalCompanion").some((c) => {
+    const l = (c["system"] as Record<string, unknown>)["companion"];
+    return !!l && typeof l === "object" && (l as Record<string, unknown>)["active"] === true;
+  });
+  return {
+    ...item,
+    system: { ...sys, companion: { ...(link as Record<string, unknown>), active: !hasActive } },
+  };
+}
+
+/** Companions of one master+group already accepted earlier in the SAME create batch. */
+interface BatchCompanions {
+  count: number;
+  slotIds: Set<string>;
 }
 
 /** Outcome of the player-companion create authorization. */
@@ -533,13 +853,20 @@ type CompanionCreateAuth =
  * (a)–(d). Only ever called for a doc that already passed isCompanionDoc.
  */
 function authorizePlayerCompanionCreate(
-  deps: Pick<DocHandlerDeps, "store" | "systemId">,
+  deps: Pick<DocHandlerDeps, "store" | "systemId" | "systemModule">,
   ctx: HandlerContext,
   companion: Record<string, unknown>,
+  batch: Map<string, BatchCompanions> = new Map(),
 ): CompanionCreateAuth {
-  // (c-guard) Only pf2e worlds grant familiars; other systems keep Actor
-  // strictly GM-only.
-  if (deps.systemId !== "pf2e") {
+  // (c-guard) Only worlds whose system includes pf2e grant familiars — the
+  // literal pf2e system, or the pf2e+sf2e composite (DEC-SYS-06-bis, I4);
+  // other systems keep Actor strictly GM-only.
+  if (
+    !systemIncludes(
+      { systemId: deps.systemId, sourceSystemIds: deps.systemModule?.manifest.sourceSystemIds },
+      "pf2e",
+    )
+  ) {
     return { ok: false, code: "PERMISSION_DENIED", message: "Only GM/Assistant can create Actor" };
   }
 
@@ -577,16 +904,208 @@ function authorizePlayerCompanionCreate(
     };
   }
 
-  // (d) One companion per group per master (REQ-PET-093).
-  if (masterHasCompanionOfGroup(deps.store, masterId, kind)) {
+  // (d) The group's cap: 1 for familiar/pet/eidolon, the number of grants for
+  // animalCompanion (REQ-PET-093, REQ-PET-110). Batch-mates count.
+  const existing = companionsOfGroup(deps.store, masterId, kind);
+  const batchKey = `${masterId}:${companionGroupOf(kind)}`;
+  const inBatch = batch.get(batchKey) ?? { count: 0, slotIds: new Set<string>() };
+  if (existing.length + inBatch.count >= companionGrantLimit(kind, master)) {
     return {
       ok: false,
       code: "VALIDATION_FAILED",
-      message: `Master already has a companion of kind "${kind}"`,
+      message: `Master already has the allowed number of companions of kind "${kind}"`,
     };
   }
 
+  // (f) The statblock of an animal companion is a function of type + size + stage + track + master level
+  // (REQ-PET-106): a player picks only a type the system knows and a size that type allows. The stage is
+  // the server's — a new companion is Young and has no track — so anything else is refused, not trusted
+  // (the update path already refuses the same fields: onda-6 I-9, D-B09).
+  if (kind === "animalCompanion") {
+    const violation = companionCreateViolation(companion);
+    if (violation) return { ok: false, code: "VALIDATION_FAILED", message: violation };
+  }
+
+  // (e) An animal companion is born from one Plan slot (REQ-PET-111).
+  const slotId = readGrantSlotId(companion);
+  if (kind === "animalCompanion") {
+    if (slotId === null) {
+      return {
+        ok: false,
+        code: "VALIDATION_FAILED",
+        message: "An animal companion needs system.companion.grantSlotId",
+      };
+    }
+    if (inBatch.slotIds.has(slotId) || existing.some((c) => readGrantSlotId(c) === slotId)) {
+      return {
+        ok: false,
+        code: "VALIDATION_FAILED",
+        message: `Grant slot "${slotId}" already created a companion`,
+      };
+    }
+    inBatch.slotIds.add(slotId);
+  }
+  inBatch.count += 1;
+  batch.set(batchKey, inBatch);
+
   return { ok: true, master };
+}
+
+// ---------------------------------------------------------------------------
+// Animal companion: the server owns `system.master.level` (BHR-F4-03, D-B02, REQ-PET-107..108)
+// ---------------------------------------------------------------------------
+
+/** The owner's character level (`system.level.value`, default 1 like the character schema). */
+function readActorLevel(doc: Record<string, unknown>): number {
+  const sys = doc["system"];
+  if (!sys || typeof sys !== "object" || Array.isArray(sys)) return 1;
+  const level = (sys as Record<string, unknown>)["level"];
+  if (!level || typeof level !== "object" || Array.isArray(level)) return 1;
+  const value = (level as Record<string, unknown>)["value"];
+  return typeof value === "number" && Number.isFinite(value) ? value : 1;
+}
+
+/** `system.master.level` as stored on a companion, or undefined when never cached. */
+function readCachedMasterLevel(doc: Record<string, unknown>): unknown {
+  const sys = doc["system"];
+  if (!sys || typeof sys !== "object" || Array.isArray(sys)) return undefined;
+  const master = (sys as Record<string, unknown>)["master"];
+  if (!master || typeof master !== "object" || Array.isArray(master)) return undefined;
+  return (master as Record<string, unknown>)["level"];
+}
+
+/** The owner actor of a linked animal companion, or null (not a linked animal companion / dangling). */
+function masterOfAnimalCompanion(
+  store: DocumentStore,
+  companion: Record<string, unknown>,
+): Record<string, unknown> | null {
+  if (readCompanionKind(companion) !== "animalCompanion") return null;
+  const masterId = readMasterActorId(companion);
+  if (!masterId) return null;
+  try {
+    return store.get("actors", masterId);
+  } catch (err) {
+    if (err instanceof DocumentNotFoundError) return null;
+    throw err;
+  }
+}
+
+/**
+ * CREATE path: stamp the owner's level onto the payload before it is persisted, so a companion is
+ * never born without the cache (it would carry `derived.companion.error` instead of a statblock).
+ * Overrides whatever the creator sent: `system.master.level` is the server's field.
+ */
+function stampMasterLevelOnCreate(
+  store: DocumentStore,
+  item: Record<string, unknown>,
+): Record<string, unknown> {
+  const master = masterOfAnimalCompanion(store, item);
+  if (!master) return item;
+  const sys = (item["system"] ?? {}) as Record<string, unknown>;
+  const cache = sys["master"];
+  const cacheObj =
+    cache && typeof cache === "object" && !Array.isArray(cache)
+      ? (cache as Record<string, unknown>)
+      : {};
+  return {
+    ...item,
+    system: { ...sys, master: { ...cacheObj, level: readActorLevel(master) } },
+  };
+}
+
+/**
+ * UPDATE path: make a persisted animal companion's `system.master.level` match its owner's level.
+ * Returns the very same reference when nothing changed (no write, nothing to broadcast).
+ */
+function syncAnimalCompanionMasterLevel(
+  store: DocumentStore,
+  companion: Record<string, unknown>,
+  authorCtx: { userId: string },
+): Record<string, unknown> {
+  const master = masterOfAnimalCompanion(store, companion);
+  const id = companion["_id"];
+  if (!master || typeof id !== "string") return companion;
+  const level = readActorLevel(master);
+  if (readCachedMasterLevel(companion) === level) return companion;
+  return store.update("actors", id, { system: { master: { level } } }, authorCtx) ?? companion;
+}
+
+/**
+ * D-B02: an Actor update that reaches an owner re-derives every animal companion linked to it
+ * (`system.masterActorId`) and puts the ones that changed into the SAME broadcast. A companion whose
+ * cache and derived block already match stays out (same reference, nothing re-sent). Mutates `updated`.
+ */
+function rederiveCompanionsOfUpdatedMasters(
+  deps: DocHandlerDeps,
+  documentType: string,
+  updated: Record<string, unknown>[],
+  authorCtx: { userId: string },
+): void {
+  if (documentType !== "Actor" || updated.length === 0) return;
+  const masterIds = new Set(updated.map((d) => d["_id"]).filter((x) => typeof x === "string"));
+  const companions = deps.store.getAll("actors", { type: COMPANION_ACTOR_TYPE }).filter((c) => {
+    const masterId = readMasterActorId(c);
+    return (
+      masterId !== null && masterIds.has(masterId) && readCompanionKind(c) === "animalCompanion"
+    );
+  });
+  for (const companion of companions) {
+    const synced = syncAnimalCompanionMasterLevel(deps.store, companion, authorCtx);
+    const recomputed = recomputeDerivedIfNeeded(deps, "Actor", synced, authorCtx);
+    if (recomputed === companion) continue;
+    const at = updated.findIndex((d) => d["_id"] === companion["_id"]);
+    if (at >= 0) updated[at] = recomputed;
+    else updated.push(recomputed);
+  }
+}
+
+/**
+ * BHR-F4-10 (DC-07): a write that turns `system.companion.active` ON for an animal companion turns every
+ * other companion of the same master OFF in the same write; the ones that changed ride the SAME broadcast
+ * (`updated`). Only a privileged writer can set the flag through doc:update (the player guard refuses it),
+ * and `companion:setActive` already does this for the owner's op. Mutates `updated`.
+ */
+function deactivateSiblingsOfActivatedCompanion(
+  deps: DocHandlerDeps,
+  written: Record<string, unknown>,
+  expandedDiff: Record<string, unknown>,
+  updated: Record<string, unknown>[],
+  authorCtx: { userId: string },
+): void {
+  const sys = expandedDiff["system"];
+  const link =
+    typeof sys === "object" && sys !== null ? (sys as Record<string, unknown>)["companion"] : null;
+  if (
+    typeof link !== "object" ||
+    link === null ||
+    (link as Record<string, unknown>)["active"] !== true
+  )
+    return;
+  if (readCompanionKind(written) !== "animalCompanion") return;
+  const masterId = readMasterActorId(written);
+  if (masterId === null) return;
+  for (const other of deps.store.getAll("actors", { type: COMPANION_ACTOR_TYPE })) {
+    if (other["_id"] === written["_id"]) continue;
+    if (readCompanionKind(other) !== "animalCompanion" || readMasterActorId(other) !== masterId)
+      continue;
+    const otherLink = (other["system"] as Record<string, unknown> | undefined)?.["companion"];
+    if (
+      typeof otherLink === "object" &&
+      otherLink !== null &&
+      (otherLink as Record<string, unknown>)["active"] === false
+    )
+      continue;
+    const off = deps.store.update(
+      "actors",
+      String(other["_id"]),
+      { system: { companion: { active: false } } },
+      authorCtx,
+    );
+    if (off === null) continue;
+    const at = updated.findIndex((d) => d["_id"] === other["_id"]);
+    if (at >= 0) updated[at] = off;
+    else updated.push(off);
+  }
 }
 
 /**
@@ -728,6 +1247,11 @@ export interface DocHandlerDeps {
    * being silently swallowed — see recomputeDerivedIfNeeded.
    */
   logger?: Logger;
+  /**
+   * A rider stepped off its mount because the GM moved it (BHR-F5-03): the Montado effect leaves the
+   * rider and the group's MAP is republished — what `mount:dismount` does besides clearing the flag.
+   */
+  onRiderDismounted?: (info: { sceneId: string; riderTokenId: string; userId: string }) => void;
 }
 
 // ---------------------------------------------------------------------------
@@ -757,16 +1281,43 @@ export interface DocHandlerDeps {
  * slot at a time, and the merge still carries every other pre-existing
  * issue, so even the repair op was refused.
  */
+function asRecordOrEmpty(value: unknown): Record<string, unknown> {
+  return value !== null && typeof value === "object" && !Array.isArray(value)
+    ? (value as Record<string, unknown>)
+    : {};
+}
+
 function rejectIllegalCharacterBuild(
+  deps: Pick<DocHandlerDeps, "store" | "systemModule">,
   mergedDoc: Record<string, unknown>,
   existingDoc?: Record<string, unknown>,
 ): Ack<never> | null {
-  const result = validateCharacterBuild(mergedDoc);
+  // House rules (A Queda, 2026-10-05): the world's variants relax slot/level
+  // checks, so the server validates with the SAME flags the client's picker
+  // and the derivation use (resolved from the world's Settings, absent = RAW).
+  const world = resolveWorldVariantRules(deps.store, deps.systemModule);
+  const variants: BuildValidationVariants = {};
+  if (world.bonusGeneralFeatLevel1 !== undefined)
+    variants.bonusGeneralFeatLevel1 = world.bonusGeneralFeatLevel1;
+  if (world.ancestryFeatsInGeneralSlots !== undefined)
+    variants.ancestryFeatsInGeneralSlots = world.ancestryFeatsInGeneralSlots;
+  if (world.ancestryFeatLevelMinus2 !== undefined)
+    variants.ancestryFeatLevelMinus2 = world.ancestryFeatLevelMinus2;
+  if (world.skillFeatInClassSlot !== undefined)
+    variants.skillFeatInClassSlot = world.skillFeatInClassSlot;
+  // D5/D12 (19/10/2026): under multiclass-by-levels the table forbids multiclass dedications and class
+  // archetypes. Same precedence the client sheet and the derivation use: the world setting, else the actor's own
+  // legacy field (a world that never opened Configurações → Mundo).
+  const legacyBuild = asRecordOrEmpty(asRecordOrEmpty(mergedDoc["system"])["build"]);
+  const legacyClassLevels = asRecordOrEmpty(legacyBuild["variantRules"])["classLevels"] === true;
+  const classLevels = world.classLevels ?? legacyClassLevels;
+  if (classLevels) variants.classLevels = true;
+  const result = validateCharacterBuild(mergedDoc, variants);
   if (result.ok) return null;
 
   let newIssues = result.issues;
   if (existingDoc) {
-    const before = validateCharacterBuild(existingDoc);
+    const before = validateCharacterBuild(existingDoc, variants);
     const beforeKeys = new Set(before.issues.map((issue) => `${issue.code}|${issue.path}`));
     newIssues = result.issues.filter((issue) => !beforeKeys.has(`${issue.code}|${issue.path}`));
   }
@@ -955,10 +1506,11 @@ export function buildDocCreateHandler(deps: DocHandlerDeps): HandlerFn {
         } else {
           // Every item must be an authorized companion, else deny the whole
           // batch (O6 fixer C6: the own-character branch was removed here).
+          const companionsInBatch = new Map<string, BatchCompanions>();
           for (let i = 0; i < data.length; i++) {
             const item = data[i] as Record<string, unknown>;
             if (isCompanionDoc(item)) {
-              const auth = authorizePlayerCompanionCreate(deps, ctx, item);
+              const auth = authorizePlayerCompanionCreate(deps, ctx, item, companionsInBatch);
               if (!auth.ok) {
                 return ackError(auth.code, auth.message);
               }
@@ -1006,6 +1558,16 @@ export function buildDocCreateHandler(deps: DocHandlerDeps): HandlerFn {
       }
     }
 
+    // BAR-F3-05 / BAR-F3-01 (tasks.md §2.5): an Actor born with an invalid action bar is refused, for
+    // every role, and BEFORE the loop below writes anything — the loop persists as it goes, so a
+    // refusal inside it would leave the earlier items of the batch written and unannounced.
+    if (documentType === "Actor") {
+      for (const rawItem of data) {
+        const actionBarProblem = actionBarFlagsCreateProblem(rawItem as Record<string, unknown>);
+        if (actionBarProblem) return ackError("VALIDATION_FAILED", actionBarProblem);
+      }
+    }
+
     const authorCtx = { userId: ctx.userId };
     const created: Record<string, unknown>[] = [];
 
@@ -1036,11 +1598,27 @@ export function buildDocCreateHandler(deps: DocHandlerDeps): HandlerFn {
           // (a hazard, CA-NPC-010) — otherwise the create path would author a
           // field `doc:update` refuses.
           item = sanitizeAttitudeOnCreate(item, isPrivileged(ctx.role));
+          // BHR-F3-06: marks are authored by mark:set only (doc:update refuses them too).
+          item = stripTokenMarksOnCreate(item, isPrivileged(ctx.role));
+          // BHR-F7-02: gmExceptions is the Mestre's to write, on create as on update.
+          item = stripGmExceptionsOnCreate(item, isPrivileged(ctx.role));
           // O6/T6.2: a create payload IS the full document (no `existing` to
           // merge onto), so it can be validated as-is — same gate the update
           // path applies to the merged document.
-          const rejectionBuild = rejectIllegalCharacterBuild(item);
+          const rejectionBuild = rejectIllegalCharacterBuild(deps, item);
           if (rejectionBuild) return rejectionBuild;
+          // I2 (revisão adversarial 3): system.currency was accepted
+          // unchecked (any shape, any keys) — validate it against the
+          // active system's registered Actor model before it is persisted.
+          const currencyValidation = validateActorCurrencyForSystem(deps.systemModule, item);
+          if (!currencyValidation.ok) {
+            return ackError("VALIDATION_FAILED", currencyValidation.message);
+          }
+          item = currencyValidation.doc;
+          // REQ-ATR-083 (#243): no self-reference and no cycle, the GM path and the batch included
+          // (an earlier item of the batch is already persisted when a later one is checked).
+          const masterRejection = masterLinkRejection(deps.store, item["_id"], item["system"]);
+          if (masterRejection) return masterRejection;
         }
         // r17-P1: for a player-authorized companion create, force the master's
         // ownership map onto the payload so the master's owners own the
@@ -1051,6 +1629,9 @@ export function buildDocCreateHandler(deps: DocHandlerDeps): HandlerFn {
         } else if (documentType === "Actor") {
           item = inheritMasterOwnershipOnCreate(deps.store, item);
         }
+        if (documentType === "Actor") item = decideCompanionActiveOnCreate(deps.store, item);
+        // BHR-F4-03: the server (never the client) writes the owner's level into the cache.
+        if (documentType === "Actor") item = stampMasterLevelOnCreate(deps.store, item);
         let doc = deps.store.create(table as never, item, authorCtx);
         // WIRING-DERIVE: populate system.derived for newly created Actors.
         doc = recomputeDerivedIfNeeded(deps, documentType, doc, authorCtx);
@@ -1066,6 +1647,11 @@ export function buildDocCreateHandler(deps: DocHandlerDeps): HandlerFn {
       throw err;
     }
 
+    // REQ-CFG-035: a world's FIRST `variantRules.classLevels`/`freeArchetype`
+    // Setting is a doc:create (no Setting document existed yet), not a
+    // doc:update — needs the same re-derivation as the update path below.
+    rederiveActorsForChangedVariantRules(deps, documentType, created, authorCtx);
+
     const seq = deps.seqStore.next();
     const broadcastPayload = { documentType, documents: created };
     const envelope = buildBroadcastEnvelope("doc:create", broadcastPayload, seq);
@@ -1076,6 +1662,73 @@ export function buildDocCreateHandler(deps: DocHandlerDeps): HandlerFn {
 
     return ackOk({ documentType, documents: created }, seq);
   };
+}
+
+/**
+ * Key suffixes `resolveWorldVariantRules` reads (`documents/
+ * world-variant-rules.ts`) — any system id can prefix them (`pf2e:...`,
+ * `pf2e-sf2e:...`), so this matches by suffix, never a hardcoded full key.
+ */
+const VARIANT_RULES_KEY_SUFFIXES = [
+  ":variantRules.classLevels",
+  ":variantRules.freeArchetype",
+  // HJ-09 (#434): same overlay, same re-derivation on change.
+  ":campaign.trainedSkills",
+  // House rules of A Queda (2026-10-05): same overlay, same re-derivation.
+  ":variantRules.bonusGeneralFeatLevel1",
+  ":variantRules.freeOccultismOrReligion",
+  ":variantRules.ancestryFeatsInGeneralSlots",
+  ":variantRules.ancestryFeatLevelMinus2",
+  ":variantRules.skillFeatInClassSlot",
+];
+
+function isVariantRulesSettingKey(key: unknown): boolean {
+  return typeof key === "string" && VARIANT_RULES_KEY_SUFFIXES.some((s) => key.endsWith(s));
+}
+
+/**
+ * REQ-CFG-035: when a just-persisted `doc:update` batch touched a
+ * `variantRules.classLevels`/`variantRules.freeArchetype` Setting, re-derive
+ * every Actor in the world and broadcast the ones that actually changed as
+ * a second `doc:update("Actor", ...)` envelope.
+ *
+ * No-op for anything else (documentType !== "Setting", or a Setting update
+ * that didn't touch either key) — this never fires on the far more common
+ * path of an ordinary Actor/Item/Scene write.
+ *
+ * `recomputeDerivedIfNeeded` is the single existing entry point for "derive
+ * this Actor and persist `system.derived` if it changed" (documents/
+ * derive.ts) — reused here rather than re-implemented, so this gets its
+ * clone/prune/version-bump correctness for free. It returns the exact same
+ * object reference it was given when nothing changed, which is what tells
+ * this loop whether to include a given actor in the broadcast.
+ */
+function rederiveActorsForChangedVariantRules(
+  deps: DocHandlerDeps,
+  documentType: string,
+  updatedSettings: Record<string, unknown>[],
+  authorCtx: { userId: string },
+): void {
+  if (documentType !== "Setting" || !deps.systemModule) return;
+  if (!updatedSettings.some((doc) => isVariantRulesSettingKey(doc["key"]))) return;
+
+  const actors = deps.store.getAll("actors");
+  const rederived: Record<string, unknown>[] = [];
+  for (const actor of actors) {
+    const recomputed = recomputeDerivedIfNeeded(deps, "Actor", actor, authorCtx);
+    if (recomputed !== actor) rederived.push(recomputed);
+  }
+
+  if (rederived.length === 0) return;
+
+  const seq = deps.seqStore.next();
+  const envelope = buildBroadcastEnvelope(
+    "doc:update",
+    { documentType: "Actor", documents: rederived },
+    seq,
+  );
+  deps.opBuffer.push(envelope);
+  broadcastToWorld(deps.ns, envelope, "Actor");
 }
 
 // ---------------------------------------------------------------------------
@@ -1090,6 +1743,18 @@ export function buildDocUpdateHandler(deps: DocHandlerDeps): HandlerFn {
     }
     const payload = parsed.data;
     const { documentType, updates } = payload;
+
+    // Prototype pollution: refuse before anything is looked up or expanded. Covers the three
+    // applyDotPathDiff entry points (primary, embedded, token) because they all pass through here.
+    for (const upd of updates) {
+      const polluting = findPollutingKey(upd.diff);
+      if (polluting !== null) {
+        return ackError(
+          "VALIDATION_FAILED",
+          `Diff for ${documentType}/${upd._id} contains the forbidden key segment "${polluting}"`,
+        );
+      }
+    }
 
     // Types the chat handlers own (REQ-CHT-005 / REQ-ACH-080 / REQ-ACH-090).
     // Checked against every embedded type in the batch as well, so an
@@ -1150,6 +1815,24 @@ export function buildDocUpdateHandler(deps: DocHandlerDeps): HandlerFn {
       return ackError("NOT_FOUND", `Document not found: ${documentType}/${probed}`);
     }
 
+    // A primary batch names each document ONCE. The pre-flight below judges every
+    // entry against the same stored snapshot, and the write loop checks every
+    // `expectedVersion` against that same snapshot, so two entries for one `_id`
+    // were each validated alone and then both written: three entries of 64 icons
+    // stored 192 past a schema capped at 64 (BAR-F3-05 adversarial review), and
+    // the same hole weakens every merged-document check here (build, currency).
+    // Refused whole, before any document is read — so it says nothing about ids.
+    const batchIds = new Set<string>();
+    for (const upd of updates) {
+      if (batchIds.has(upd._id)) {
+        return ackError(
+          "VALIDATION_FAILED",
+          `doc:update batch names ${documentType}/${upd._id} more than once — send one entry per document`,
+        );
+      }
+      batchIds.add(upd._id);
+    }
+
     // Pre-flight: judge the whole batch before writing anything. The loop below
     // persists as it goes, so a rejection fired mid-loop would leave the
     // earlier entries written, skip the broadcast, and still ack ok:false —
@@ -1207,6 +1890,16 @@ export function buildDocUpdateHandler(deps: DocHandlerDeps): HandlerFn {
       );
       if (rejection) return rejection;
 
+      // REQ-ATR-083 (#243): the master link may not point at the actor itself nor close a cycle.
+      if (documentType === "Actor") {
+        const masterRejection = masterLinkRejection(
+          deps.store,
+          upd._id,
+          expandedDiffForChecks["system"],
+        );
+        if (masterRejection) return masterRejection;
+      }
+
       // REQ-CFG-042: same domain validation as doc:create's guard above,
       // applied to the `fusion.permissions` Setting's `value` diff before it
       // is merged in. `existing` (loaded just above) is what tells us this
@@ -1248,8 +1941,23 @@ export function buildDocUpdateHandler(deps: DocHandlerDeps): HandlerFn {
         );
         if (rejectionBuildDeletion) return rejectionBuildDeletion;
         const merged = deepMerge(existing, expandedDiffForChecks);
-        const rejectionBuild = rejectIllegalCharacterBuild(merged, existing);
+        const rejectionBuild = rejectIllegalCharacterBuild(deps, merged, existing);
         if (rejectionBuild) return rejectionBuild;
+
+        // I2 (revisão adversarial 3): same currency check as doc:create,
+        // applied to the FULLY MERGED document — a diff that only touches
+        // `system.currency` still gets validated together with the type it
+        // is merging onto.
+        const currencyValidation = validateActorCurrencyForSystem(deps.systemModule, merged);
+        if (!currencyValidation.ok) {
+          return ackError("VALIDATION_FAILED", currencyValidation.message);
+        }
+
+        // BAR-F3-05 / BAR-F3-01 (tasks.md §2.5): the action bar's state is judged on the RESULT,
+        // for every role — the ownership check above already decided WHO (REQ-BAR-072/073); this
+        // closes WHAT: one icon-area path per icon, at most ACTION_BAR_ICON_CAP of them.
+        const actionBarProblem = actionBarFlagsWriteProblem(existing, merged);
+        if (actionBarProblem) return ackError("VALIDATION_FAILED", actionBarProblem);
       }
     }
 
@@ -1302,6 +2010,9 @@ export function buildDocUpdateHandler(deps: DocHandlerDeps): HandlerFn {
       // overwrite it (recomputeDerivedIfNeeded below is the sole writer).
       if (documentType === "Actor") {
         expandedDiff = stripSystemDerived(expandedDiff);
+        // The image being replaced is remembered server-side, whoever replaces it
+        // (documents/actor-image-history.ts — the 18/10 lost-token incident).
+        expandedDiff = lembrarImagemAnterior(existing, expandedDiff);
       }
       let result: Record<string, unknown> | null;
       try {
@@ -1319,10 +2030,35 @@ export function buildDocUpdateHandler(deps: DocHandlerDeps): HandlerFn {
       if (result !== null) {
         // WIRING-DERIVE: keep system.derived in sync with authored-field updates
         // (e.g. an ability score edit changes AC/saves/skills totals).
+        // BHR-F4-03: an animal companion edited directly (e.g. "Trocar tipo", a GM link) gets the
+        // owner's level refreshed first, so the derivation never runs on a missing/stale cache.
+        if (documentType === "Actor") {
+          result = syncAnimalCompanionMasterLevel(deps.store, result, authorCtx);
+        }
         result = recomputeDerivedIfNeeded(deps, documentType, result, authorCtx);
         updated.push(result);
+        // BHR-F4-10 (DC-07): exactly one ACTIVE animal companion per master, even on a GM write.
+        if (documentType === "Actor") {
+          deactivateSiblingsOfActivatedCompanion(deps, result, expandedDiff, updated, authorCtx);
+        }
       }
     }
+
+    // BHR-F4-03 (D-B02): the owner changed -> re-derive its animal companions in the same broadcast.
+    rederiveCompanionsOfUpdatedMasters(deps, documentType, updated, authorCtx);
+
+    // REQ-CFG-035: a `variantRules.classLevels`/`variantRules.freeArchetype`
+    // Setting is read by EVERY Actor's derivation (world-variant-rules.ts),
+    // not just the Setting document itself — before this, flipping the
+    // toggle in Configurações → Mundo changed nothing until each actor's
+    // NEXT unrelated write (achado 6, revisão core#273/satélite#278,
+    // 26/09/2026): `system.derived` stayed stale (wrong HP/proficiencies)
+    // for everyone until then, silently. Re-derive every character Actor
+    // right here, in the same handler call that persisted the setting, and
+    // broadcast the results as a second `doc:update` envelope so every
+    // connected client (not just whoever reloads) sees the corrected
+    // numbers immediately.
+    rederiveActorsForChangedVariantRules(deps, documentType, updated, authorCtx);
 
     if (updated.length === 0) {
       // All no-ops — return current seq without incrementing
@@ -1609,6 +2345,76 @@ export function buildDocDeleteHandler(deps: DocHandlerDeps): HandlerFn {
 // Embedded document operations (tokens inside scenes)
 // ---------------------------------------------------------------------------
 
+/**
+ * What the client of a PLAYER sends about a token: `{ x, y }` (plus `rotation`, which BHR-F5-03 lets a player
+ * set) when it drags its own character and
+ * `{ actorId, x, y }` when it drops it (`TokenInteractionManager._sendMoveOp`, `buildTokenFromActorFields`).
+ * Everything else — light, vision, seenBy, disposition, elevation, flags, ... — belongs to the Mestre, so the
+ * owner path refuses it (REQ-TOK-030a/032, mesa 21/10/2026). A dotted key counts by its first segment.
+ */
+const PLAYER_TOKEN_UPDATE_FIELDS: ReadonlySet<string> = new Set(["x", "y", "rotation"]);
+const PLAYER_TOKEN_DROP_FIELDS: ReadonlySet<string> = new Set(["actorId", "x", "y"]);
+
+/** First key of `diff` (by first dotted segment) that is not in `allowed`, or null. */
+function firstDisallowedTokenField(
+  diff: Record<string, unknown>,
+  allowed: ReadonlySet<string>,
+): string | null {
+  for (const key of Object.keys(diff)) {
+    const head = key.split(".")[0] ?? key;
+    if (!allowed.has(head)) return head;
+  }
+  return null;
+}
+
+// ---------------------------------------------------------------------------
+// Owner drops their own character on the active scene (REQ-TOK-030a)
+// ---------------------------------------------------------------------------
+
+/**
+ * REQ-TOK-030a: besides the privileged-role rule of REQ-TOK-030, a player may
+ * put a token on the scene when EVERY token of the batch manifests an Actor the
+ * player holds at OWNER (3) — the same ownership test as moving (REQ-TOK-032,
+ * `testOwnership`, never a second predicate, REQ-TOK-034) — AND is not hidden
+ * AND the scene is the one on air. Anything else keeps falling to the role rule.
+ *
+ * The scene itself is not owned by the player, so a true result also stands in
+ * for the "OWNER of the parent scene" check of the generic path; nothing else
+ * about the create is relaxed (derived/refused fields, mount flag, schema).
+ */
+function isOwnerTokenDrop(
+  deps: DocHandlerDeps,
+  ctx: HandlerContext,
+  embeddedType: string,
+  data: unknown[],
+  parent: { type: string; id: string },
+): boolean {
+  if (embeddedType !== "Token" || parent.type !== "Scene" || data.length === 0) return false;
+  let sceneDoc: Record<string, unknown>;
+  try {
+    sceneDoc = deps.store.getRaw("scenes", parent.id);
+  } catch {
+    return false;
+  }
+  if (!sceneIsOnAir(sceneDoc)) return false;
+  for (const item of data) {
+    if (item === null || typeof item !== "object" || Array.isArray(item)) return false;
+    const raw = item as Record<string, unknown>;
+    if (raw["hidden"] === true) return false;
+    const actorId = raw["actorId"];
+    if (typeof actorId !== "string" || actorId.length === 0) return false;
+    try {
+      const actor = deps.store.getRaw("actors", actorId);
+      if (!testOwnership(getOwnershipFromDoc(actor), ctx.userId, ctx.role, OwnershipLevel.OWNER)) {
+        return false;
+      }
+    } catch {
+      return false;
+    }
+  }
+  return true;
+}
+
 function handleEmbeddedCreate(
   deps: DocHandlerDeps,
   ctx: HandlerContext,
@@ -1637,15 +2443,24 @@ function handleEmbeddedCreate(
   // `role === GAMEMASTER` is the one unconditional pass, everyone else is
   // measured against the resolved floor (fixed TRUSTED for Combatant, so this
   // changes nothing for that type).
+  //
+  // REQ-TOK-030a: the owner of the manifested Actor dropping a non-hidden token on
+  // the scene on air is the one other way in (see `isOwnerTokenDrop`).
+  const ownerTokenDrop = isOwnerTokenDrop(deps, ctx, embeddedType, data, parent);
+  // True when the owner drop is the ONLY thing letting this caller in: a role that meets TOKEN_CREATE's
+  // floor was granted full creation by the Mestre, so the field allowlist below is for the other case.
+  let ownerDropOnly = false;
   if (parent.type !== "Actor") {
     const minRole =
       embeddedType === "Token"
         ? resolvePermissionMinRole(deps.store, "TOKEN_CREATE")
         : UserRole.TRUSTED;
     // eslint-disable-next-line @typescript-eslint/no-unsafe-enum-comparison
-    if (ctx.role !== UserRole.GAMEMASTER && ctx.role < minRole) {
+    const roleFloorMet = ctx.role === UserRole.GAMEMASTER || ctx.role >= minRole;
+    if (!ownerTokenDrop && !roleFloorMet) {
       return ackError("PERMISSION_DENIED", "Insufficient role to create embedded documents");
     }
+    ownerDropOnly = ownerTokenDrop && !roleFloorMet;
   }
 
   // Load parent — RAW (REQ-TOK-002): the embedded collection below is
@@ -1672,7 +2487,7 @@ function handleEmbeddedCreate(
   }
 
   // Check parent ownership (must be able to edit the parent scene)
-  if (!isPrivileged(ctx.role)) {
+  if (!isPrivileged(ctx.role) && !ownerTokenDrop) {
     const ownership = getOwnershipFromDoc(parentDoc);
     const level = resolveOwnership(ownership, ctx.userId, ctx.role);
     if (level < OwnershipLevel.OWNER) {
@@ -1705,6 +2520,28 @@ function handleEmbeddedCreate(
 
     // Validate against Token schema if applicable
     if (embeddedType === "Token") {
+      // Owner drop (REQ-TOK-030a): only what the player's client sends, and one token of the same actor
+      // per scene — counting what an earlier item of this very batch already added. Judged on the wire
+      // payload (`item`): `raw` already carries the server-generated `_id`.
+      if (ownerDropOnly) {
+        const extra = firstDisallowedTokenField(
+          item as Record<string, unknown>,
+          PLAYER_TOKEN_DROP_FIELDS,
+        );
+        if (extra !== null) {
+          return ackError(
+            "PERMISSION_DENIED",
+            `Field "${extra}" is not writable by a player when dropping a token`,
+          );
+        }
+        const dropActorId = raw["actorId"];
+        if ([...existing, ...created].some((t) => t["actorId"] === dropActorId)) {
+          return ackError(
+            "VALIDATION_FAILED",
+            "This scene already has a token for that actor — a player puts at most one",
+          );
+        }
+      }
       // REQ-TOK-002/CA-TOK-003/DEC-TOK-05: checked BEFORE the generic schema
       // parse so a null/absent/dangling actorId gets our explicit message
       // ("actorId is required and must resolve to an existing Actor")
@@ -1721,6 +2558,14 @@ function handleEmbeddedCreate(
       const contractError = validateTokenCreateContract(raw);
       if (contractError) {
         return ackError(contractError.code, contractError.message);
+      }
+      // `flags.fusion.mount` (MountState, spec 52 §2.5) is written by the mount handler only: a token a
+      // player creates cannot be born already mounted (wave 7 review). The GM may.
+      if (!isPrivileged(ctx.role) && readTokenMountFlag(raw) !== undefined) {
+        return ackError(
+          "PERMISSION_DENIED",
+          "flags.fusion.mount is not writable through doc:create by a player",
+        );
       }
       // §7.2 overridable rows whose "inherit when absent" default is more
       // than a Zod literal: `actorLink` by the base actor's subtype
@@ -1752,7 +2597,7 @@ function handleEmbeddedCreate(
       // a single doc:create call with several augmentations is capped too.
       if (embeddedType === "Item" && parent.type === "Actor") {
         const augViolation = augmentationSlotLimitViolation(
-          deps.systemId,
+          { systemId: deps.systemId, sourceSystemIds: deps.systemModule?.manifest.sourceSystemIds },
           [...existing, ...created] as AugmentationLikeItem[],
           raw,
         );
@@ -1795,7 +2640,7 @@ function handleEmbeddedCreate(
   // doesn't block an unrelated embedded create (C3's same reasoning).
   if (parent.type === "Actor" && parentDoc["type"] === "character") {
     const mergedForValidation = { ...parentDoc, [collectionKey]: updatedCollection };
-    const rejectionBuild = rejectIllegalCharacterBuild(mergedForValidation, parentDoc);
+    const rejectionBuild = rejectIllegalCharacterBuild(deps, mergedForValidation, parentDoc);
     if (rejectionBuild) return rejectionBuild;
   }
 
@@ -1864,6 +2709,7 @@ function handleEmbeddedUpdate(
   }
 
   const allUpdatedParents: Record<string, unknown>[] = [];
+  const dismountedRiders: Array<{ sceneId: string; riderTokenId: string }> = [];
 
   for (const [parentId, parentUpdates] of byParent) {
     // RAW (REQ-TOK-002) — see handleEmbeddedCreate's comment: `collection`
@@ -1986,7 +2832,24 @@ function handleEmbeddedUpdate(
 
       // Build the updated token by applying dot-path diff (uses sanitized diff)
       const existingToken = collection[idx] ?? {};
+      // Snapshot BEFORE patching: applyDotPathDiff copies the top level only, so a dotted path walks
+      // into (and mutates) the nested objects `existingToken` still shares.
+      const mountBefore = JSON.stringify(readTokenMountFlag(existingToken));
       const patchedToken = applyDotPathDiff(existingToken, sanitizedDiff);
+
+      // BHR-F4-03 extension: `flags.fusion.mount` (MountState, spec 52 §2.5) is written by the mount
+      // handler only. Judged on the RESULT, so `flags.fusion.mount` itself, a `-=mount`/null, and a
+      // replacement of `flags` / `flags.fusion` that alters it are all caught the same way. The GM may.
+      if (
+        embeddedType === "Token" &&
+        !isPrivileged(ctx.role) &&
+        mountBefore !== JSON.stringify(readTokenMountFlag(patchedToken))
+      ) {
+        return ackError(
+          "PERMISSION_DENIED",
+          `flags.fusion.mount on token ${tokenId} is not writable through doc:update by a player`,
+        );
+      }
 
       // REQ-TOK-002/CA-TOK-003/DEC-TOK-05: the diff was only barred from
       // TOUCHING actorId when the caller is non-privileged (above). A
@@ -2018,6 +2881,18 @@ function handleEmbeddedUpdate(
         }
       }
 
+      // REQ-TOK-032 (mesa 21/10/2026): a player moves (and turns) his token and nothing else — x and y
+      // are the only fields his client sends, rotation the one a table may add. Light, vision, seenBy, disposition, elevation and flags are the Mestre's.
+      if (embeddedType === "Token" && !isPrivileged(ctx.role)) {
+        const extra = firstDisallowedTokenField(sanitizedDiff, PLAYER_TOKEN_UPDATE_FIELDS);
+        if (extra !== null) {
+          return ackError(
+            "PERMISSION_DENIED",
+            `Field "${extra}" of token ${tokenId} is not writable through doc:update by a player`,
+          );
+        }
+      }
+
       // Schema validation of embedded Items against the active system's
       // registered data models (R10-C, see validateEmbeddedItemForSystem).
       // Validated on the DIFF-APPLIED doc, not just the diff — a partial
@@ -2032,6 +2907,25 @@ function handleEmbeddedUpdate(
         continue;
       }
 
+      // BHR-F5-03 (D-B03): a mounted pair is one body — the mount drags its rider in this same write; a
+      // mounted rider is not movable by a player (and the GM moving him takes him off the mount).
+      if (embeddedType === "Token") {
+        const moved = applyMountMovement(
+          deps.store,
+          parentId,
+          collection,
+          idx,
+          patchedToken,
+          isPrivileged(ctx.role),
+        );
+        if (!moved.ok) return ackError(moved.code, moved.message);
+        collection.splice(0, collection.length, ...moved.tokens);
+        if (moved.dismounted) {
+          dismountedRiders.push({ sceneId: parentId, riderTokenId: moved.dismounted.riderTokenId });
+        }
+        continue;
+      }
+
       collection[idx] = patchedToken;
     }
 
@@ -2041,7 +2935,7 @@ function handleEmbeddedUpdate(
     // same reasoning as handleEmbeddedCreate above.
     if (resolvedParentType === "Actor" && parentDoc["type"] === "character") {
       const mergedForValidation = { ...parentDoc, [collectionKey]: collection };
-      const rejectionBuild = rejectIllegalCharacterBuild(mergedForValidation, parentDoc);
+      const rejectionBuild = rejectIllegalCharacterBuild(deps, mergedForValidation, parentDoc);
       if (rejectionBuild) return rejectionBuild;
     }
 
@@ -2084,6 +2978,10 @@ function handleEmbeddedUpdate(
 
   // resolvedParentType is "Scene" for token ops — hidden-token filtering applied.
   broadcastToWorld(deps.ns, envelope, resolvedParentType);
+
+  for (const rider of dismountedRiders) {
+    deps.onRiderDismounted?.({ ...rider, userId: ctx.userId });
+  }
 
   return {
     ok: true as const,
@@ -2461,15 +3359,33 @@ function broadcastToWorld(
   // GAMEMASTER" for these sections — ASSISTANT does not qualify either.
   // Non-eligible sockets get an empty-body envelope (never swallowed) for the
   // same reason Scene's does: the client mirror needs a contiguous seq.
+  //
+  // Achado 1 (revisão adversarial 26/09 do #277): create/update do NOT
+  // blanket-empty the player envelope anymore — issue #266 already lets a
+  // non-GAMEMASTER role READ the handful of settings on
+  // `PLAYER_READABLE_SETTING_KEYS` (variant-rule flags the ficha itself
+  // derives from), but this broadcast still zeroed them out, so a player
+  // already on the sheet kept the STALE value until a manual reload. Filter
+  // to that same allowlist (`isPlayerReadableSettingKey`, the one exported
+  // predicate settings-handlers.ts also reads through — never a duplicated
+  // key list) instead of dropping every document. `doc:delete` keeps the
+  // blanket empty-ids envelope below: deleting a Setting document is not a
+  // path any UI exposes today, and reconstructing "was this deleted key
+  // player-readable" would need the pre-delete document, which the delete
+  // handler does not thread through here.
   if (documentType === "Setting") {
     if (envelope.type === "doc:create" || envelope.type === "doc:update") {
       const payload = envelope.payload as {
         documentType: string;
         documents: Record<string, unknown>[];
       };
+      const readableDocuments = payload.documents.filter((doc) => {
+        const key = doc["key"];
+        return typeof key === "string" && isPlayerReadableSettingKey(key);
+      });
       const playerEnvelope: Envelope = {
         ...envelope,
-        payload: { ...payload, documents: [] },
+        payload: { ...payload, documents: readableDocuments },
       };
       emitByRole(ns, envelope, playerEnvelope, socketIsGamemasterStrict);
       return;
@@ -2522,6 +3438,32 @@ function stripSystemDerived(diff: Record<string, unknown>): Record<string, unkno
   return result;
 }
 
+const POLLUTING_SEGMENTS = new Set(["__proto__", "constructor", "prototype"]);
+
+/**
+ * First key segment in a client diff that could reach Object.prototype, or null. Checks every dotted
+ * segment of every key and every nested object/array key in the values, at any depth.
+ */
+export function findPollutingKey(value: unknown, depth = 0): string | null {
+  if (depth > 64) return "<too deep>";
+  if (Array.isArray(value)) {
+    for (const item of value) {
+      const found = findPollutingKey(item, depth + 1);
+      if (found !== null) return found;
+    }
+    return null;
+  }
+  if (value === null || typeof value !== "object") return null;
+  for (const [key, child] of Object.entries(value as Record<string, unknown>)) {
+    for (const segment of key.split(".")) {
+      if (POLLUTING_SEGMENTS.has(segment)) return segment;
+    }
+    const found = findPollutingKey(child, depth + 1);
+    if (found !== null) return found;
+  }
+  return null;
+}
+
 // ---------------------------------------------------------------------------
 // Utility: apply dot-path diff to an object
 // ---------------------------------------------------------------------------
@@ -2531,7 +3473,7 @@ function stripSystemDerived(diff: Record<string, unknown>): Record<string, unkno
  * Example: diff = { "x": 100, "y": 200 } on token → sets token.x and token.y.
  * Also handles simple top-level key updates.
  */
-function applyDotPathDiff(
+export function applyDotPathDiff(
   target: Record<string, unknown>,
   diff: Record<string, unknown>,
 ): Record<string, unknown> {
@@ -2539,6 +3481,12 @@ function applyDotPathDiff(
 
   for (const [path, value] of Object.entries(diff)) {
     const parts = path.split(".");
+    // Defense in depth (#297): callers already run `findPollutingKey` on the raw diff, but the expander
+    // is the place that walks the path, so it refuses a polluting segment by itself too.
+    const pollutingSegment = parts.find((segment) => POLLUTING_SEGMENTS.has(segment));
+    if (pollutingSegment !== undefined) {
+      throw new Error(`applyDotPathDiff: polluting key segment "${pollutingSegment}" refused`);
+    }
     if (parts.length === 1) {
       result[path] = value;
     } else {

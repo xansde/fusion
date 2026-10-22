@@ -19,6 +19,7 @@ import {
   buildSpellFields,
   buildFeatFields,
   buildClassFeatureFields,
+  buildEffectFields,
   buildMechanicalFields,
   buildDetailsHeader,
   DocumentDetailsCache,
@@ -90,7 +91,7 @@ describe("sanitizeDescriptionToText", () => {
 
   it("rewrites @Damage[...] with a nested bracketed type into readable text", () => {
     const html = "<p>Deals @Damage[((@item.level+2)*2)d6[poison]] damage.</p>";
-    const result = sanitizeDescriptionToText(html)[0];
+    const result = sanitizeDescriptionToText(html, "en")[0];
     expect(result).toContain("poison");
     expect(result).not.toContain("@Damage");
     expect(result).not.toContain("[poison]"); // bracket syntax itself should not leak through
@@ -98,12 +99,12 @@ describe("sanitizeDescriptionToText", () => {
 
   it("rewrites a save @Check[...] with a DC into '<Save> save (DC N)'", () => {
     const html = "<p>Attempt a @Check[fortitude|dc:29] save.</p>";
-    expect(sanitizeDescriptionToText(html)[0]).toBe("Attempt a Fortitude save (DC 29) save.");
+    expect(sanitizeDescriptionToText(html, "en")[0]).toBe("Attempt a Fortitude save (DC 29) save.");
   });
 
   it("rewrites a skill @Check[...] without a DC into the capitalized skill", () => {
     const html = "<p>Roll @Check[athletics] to climb.</p>";
-    expect(sanitizeDescriptionToText(html)[0]).toBe("Roll Athletics to climb.");
+    expect(sanitizeDescriptionToText(html, "en")[0]).toBe("Roll Athletics to climb.");
   });
 
   it("never leaves an @Tag[ fragment in the output for known or unknown tags", () => {
@@ -122,7 +123,7 @@ describe("sanitizeDescriptionToText", () => {
 
 describe("Foundry enricher humanization (via sanitizeDescriptionToText)", () => {
   /** Convenience: humanize a bare (already tag-free) enricher string. */
-  const humanize = (s: string): string => sanitizeDescriptionToText(`<p>${s}</p>`)[0] ?? "";
+  const humanize = (s: string): string => sanitizeDescriptionToText(`<p>${s}</p>`, "en")[0] ?? "";
 
   describe("@Damage", () => {
     it("renders formula + damage type, dropping bracket/flag syntax", () => {
@@ -287,7 +288,7 @@ describe("Foundry enricher humanization (via sanitizeDescriptionToText)", () => 
         "@Check[fortitude|against:spell|basic|options:area-effect] save against your spell DC; " +
         "creatures that critically fail are " +
         "@UUID[Compendium.pf2e.conditionitems.Item.Blinded] for 1 round.</p>";
-      const out = sanitizeDescriptionToText(html)[0] ?? "";
+      const out = sanitizeDescriptionToText(html, "en")[0] ?? "";
 
       expect(out).toBe(
         "Each creature in a 10-foot burst takes max(16,(2*(floor(level/2))))d6 fire damage with a " +
@@ -324,6 +325,18 @@ describe("sanitizeDescriptionHtml", () => {
     expect(sanitizeDescriptionHtml(null)).toBe("");
     expect(sanitizeDescriptionHtml(undefined)).toBe("");
     expect(sanitizeDescriptionHtml("")).toBe("");
+  });
+
+  // "Artista virtuoso está estranho" (Alexandre, 18/10/2026): the vendor's specialty table (Virtuosic Performer,
+  // and 30 other pack documents) lost every table tag and read as one run-on line
+  // ("EspecialidadeExemplosAtuaçãoDrama, pantomima…"). Table structure is kept, bare like every allowed tag.
+  it("keeps a vendor table's structure, attributes stripped", () => {
+    const html =
+      '<table class="pf2e remaster"><thead><tr><th>Specialty</th><th>Examples</th></tr></thead>' +
+      '<tbody><tr><td style="x">Acting</td><td>Drama</td></tr></tbody></table>';
+    expect(sanitizeDescriptionHtml(html)).toBe(
+      "<table><thead><tr><th>Specialty</th><th>Examples</th></tr></thead><tbody><tr><td>Acting</td><td>Drama</td></tr></tbody></table>",
+    );
   });
 
   it("keeps allow-listed tags bare (no attributes)", () => {
@@ -516,6 +529,69 @@ describe("action-glyph inline icon conversion (r16-G2)", () => {
       );
       expect(blocks.some((b) => /^\d/.test(b))).toBe(false);
     });
+  });
+});
+
+// ---------------------------------------------------------------------------
+// I3 (onda-3 adversarial review): `withBreaks` only emitted a separator for
+// br/hr/p/li/div — an inline tag (strong/em/b/i, and the action-glyph span)
+// or a table tag (table/tr/td/th) disappeared with NOTHING in its place,
+// gluing whatever text sat on either side of it. Fixtures below are VERBATIM
+// excerpts from the committed packs (cited per doc), not invented HTML.
+// ---------------------------------------------------------------------------
+
+describe("sanitizeDescriptionToText — tags inline e de tabela não colam palavras (I3, onda-3 review)", () => {
+  it("alchemical-items-core, 'Crackling Bubble Gum': </strong> colado no <span> do glifo não gruda mais a palavra no ícone", () => {
+    // Verbatim from the pack: no whitespace at all between </strong> and the
+    // action-glyph <span> in the source HTML.
+    const html = '<p><strong>Activate</strong><span class="action-glyph">1</span> (manipulate)</p>';
+    const blocks = sanitizeDescriptionToText(html);
+
+    // Hand-derived: <strong>/</strong>/<span>/</span> each become ONE space,
+    // consecutive spaces collapse to one, and the block is trimmed — so the
+    // action glyph reads as its own word, never glued to "Activate".
+    expect(blocks).toEqual(["Activate ◆ (manipulate)"]);
+    expect(blocks[0]).not.toContain("Activate◆");
+  });
+
+  it("spells-core, 'Demon Form': </strong><span> sem espaço nenhum (Ranged) fica igual ao caso que já tinha espaço (Melee)", () => {
+    // Verbatim excerpt: the vendor source has a literal space between Melee's
+    // </strong> and its glyph <span>, and NONE between Ranged's — both must
+    // read identically after the fix (a single space), proving the collapse
+    // handles pre-existing whitespace and the fully-glued case the same way.
+    const html =
+      '<ul><li><strong>Melee</strong> <span class="action-glyph">1</span> claw (agile, magic, unholy), <strong>Damage</strong> 2d6+12 slashing;</li>' +
+      '<li><strong>Ranged</strong><span class="action-glyph">1</span> hurled debris (range increment 20 feet, unholy)</li></ul>';
+    const blocks = sanitizeDescriptionToText(html);
+    const text = blocks.join(" ");
+
+    expect(text).toContain("Melee ◆ claw");
+    expect(text).toContain("Ranged ◆ hurled debris");
+    expect(text).not.toContain("Ranged◆");
+    expect(text).not.toContain("Activate◆");
+    expect(text).not.toMatch(/ {2,}/); // no double spaces left over from the collapse
+  });
+
+  it("actions-core, 'Earn Income' Table 4-2 (truncated to 2 rows): células de tabela não colam dígitos", () => {
+    // Verbatim excerpt of the real table (rows truncated for test size; cell
+    // text is byte-for-byte from the pack).
+    const html =
+      '<table class="pf2e remaster"><thead><tr><th>Task Level</th><th>Failure</th><th>Trained</th>' +
+      "<th>Expert</th><th>Master</th><th>Legendary</th></tr></thead><tbody>" +
+      "<tr><td>0</td><td>1 cp</td><td>5 cp</td><td>5 cp</td><td>5 cp</td><td>5 cp</td></tr>" +
+      "<tr><td>1</td><td>2 cp</td><td>2 sp</td><td>2 sp</td><td>2 sp</td><td>2 sp</td></tr>" +
+      "</tbody></table>";
+    const blocks = sanitizeDescriptionToText(html);
+
+    // Hand-derived: <table> opening and every </tr> (plus </table>) are
+    // paragraph breaks; every <td>/<th> (open AND close) becomes a space, so
+    // each row is its own block with cells space-separated — never the
+    // "015 cp5 cp5 cp..." digit-glued mess the bug produced.
+    expect(blocks).toEqual([
+      "Task Level Failure Trained Expert Master Legendary",
+      "0 1 cp 5 cp 5 cp 5 cp 5 cp",
+      "1 2 cp 2 sp 2 sp 2 sp 2 sp",
+    ]);
   });
 });
 
@@ -808,6 +884,156 @@ describe("buildClassFeatureFields", () => {
   });
 });
 
+// ALQ-F2-18: system.duration is a structured { value, unit, sustained,
+// expiry } (EffectItemSystem, Alquimista plan §2.5) — never the free-text
+// string a spell's duration uses — so these fixtures mirror the real shapes
+// found in equipment-effects-core (`external/fusion-systems-2e/systems/pf2e/
+// packs/equipment-effects-core/documents.json`), not an invented shape:
+//   - "Effect: Elixir of Life"                    -> minute, value 10
+//   - "Aura: Demon's Knot"                        -> round, value 1
+//   - "Effect: Magnetic Bola (Speed Penalty)"     -> encounter, value -1 (sentinel)
+//   - "Effect: Aeon Stone Resonance (Black Disc)" -> unlimited, value -1 (sentinel)
+//   - "Effect: Ablative Armor Plating (Greater)"  -> hour, value 1
+//   - "Effect: Aeon Stone (Pink Rhomboid)"        -> day, value 1
+describe("buildEffectFields (EN, default locale)", () => {
+  it("renders a countable minute duration", () => {
+    const fields = buildEffectFields({
+      duration: { value: 10, unit: "minute", sustained: false, expiry: "turn-start" },
+    });
+    expect(noKey(fields)).toEqual([{ label: "Duration", value: "10 minutes" }]);
+  });
+
+  it("renders a countable round duration, singular", () => {
+    const fields = buildEffectFields({
+      duration: { value: 1, unit: "round", sustained: false, expiry: "turn-start" },
+    });
+    expect(noKey(fields)).toEqual([{ label: "Duration", value: "1 round" }]);
+  });
+
+  it("renders the semantic 'encounter' duration without its -1 sentinel value", () => {
+    const fields = buildEffectFields({
+      duration: { value: -1, unit: "encounter", sustained: false, expiry: null },
+    });
+    expect(noKey(fields)).toEqual([{ label: "Duration", value: "until the encounter ends" }]);
+  });
+
+  it("renders the semantic 'unlimited' duration without its -1 sentinel value", () => {
+    const fields = buildEffectFields({
+      duration: { value: -1, unit: "unlimited", sustained: false, expiry: null },
+    });
+    expect(noKey(fields)).toEqual([{ label: "Duration", value: "unlimited" }]);
+  });
+
+  it("pluralizes countable units for value > 1 (never hardcodes the singular)", () => {
+    const fields = buildEffectFields({
+      duration: { value: 2, unit: "round", sustained: false, expiry: "turn-start" },
+    });
+    expect(noKey(fields)).toEqual([{ label: "Duration", value: "2 rounds" }]);
+  });
+
+  it("renders the hour and day units too (same countable branch, real pack data)", () => {
+    expect(
+      noKey(
+        buildEffectFields({
+          duration: { value: 1, unit: "hour", sustained: false, expiry: "turn-start" },
+        }),
+      ),
+    ).toEqual([{ label: "Duration", value: "1 hour" }]);
+    expect(
+      noKey(
+        buildEffectFields({
+          duration: { value: 1, unit: "day", sustained: false, expiry: "turn-start" },
+        }),
+      ),
+    ).toEqual([{ label: "Duration", value: "1 day" }]);
+  });
+
+  it("appends a sustained suffix when duration.sustained is true", () => {
+    const fields = buildEffectFields({
+      duration: { value: 1, unit: "minute", sustained: true, expiry: "turn-start" },
+    });
+    expect(noKey(fields)).toEqual([{ label: "Duration", value: "1 minute (sustained)" }]);
+  });
+
+  it("omits the duration field when system.duration is missing or not an object", () => {
+    expect(buildEffectFields({})).toEqual([]);
+    expect(buildEffectFields({ duration: "1 minute" })).toEqual([]);
+  });
+});
+
+describe("buildEffectFields (pt-BR)", () => {
+  // The four shapes ALQ-F2-18 asks for, asserted against the PF2e remaster
+  // table-language text a GM/player reads at the table — never the raw
+  // vendor/importer label ("Unit minute") the picker used to fall back to.
+  it("renders '10 minutos' for the Elixir of Life shape (minute, value 10)", () => {
+    const fields = buildEffectFields(
+      { duration: { value: 10, unit: "minute", sustained: false, expiry: "turn-start" } },
+      "pt-BR",
+    );
+    expect(fields).toEqual([
+      { labelKey: "FUSION.Sheet.Details.Field.Duration", label: "Duração", value: "10 minutos" },
+    ]);
+  });
+
+  it("renders '1 rodada' for the Demon's Knot shape (round, value 1)", () => {
+    const fields = buildEffectFields(
+      { duration: { value: 1, unit: "round", sustained: false, expiry: "turn-start" } },
+      "pt-BR",
+    );
+    expect(fields).toEqual([
+      { labelKey: "FUSION.Sheet.Details.Field.Duration", label: "Duração", value: "1 rodada" },
+    ]);
+  });
+
+  it("renders 'enquanto durar o encontro' for the encounter shape", () => {
+    const fields = buildEffectFields(
+      { duration: { value: -1, unit: "encounter", sustained: false, expiry: null } },
+      "pt-BR",
+    );
+    expect(fields).toEqual([
+      {
+        labelKey: "FUSION.Sheet.Details.Field.Duration",
+        label: "Duração",
+        value: "enquanto durar o encontro",
+      },
+    ]);
+  });
+
+  it("renders 'ilimitado' for the unlimited shape", () => {
+    const fields = buildEffectFields(
+      { duration: { value: -1, unit: "unlimited", sustained: false, expiry: null } },
+      "pt-BR",
+    );
+    expect(fields).toEqual([
+      { labelKey: "FUSION.Sheet.Details.Field.Duration", label: "Duração", value: "ilimitado" },
+    ]);
+  });
+
+  it("pluralizes countable units in pt-BR (2 rodadas, not 2 rodada)", () => {
+    const fields = buildEffectFields(
+      { duration: { value: 2, unit: "round", sustained: false, expiry: "turn-start" } },
+      "pt-BR",
+    );
+    expect(fields).toEqual([
+      { labelKey: "FUSION.Sheet.Details.Field.Duration", label: "Duração", value: "2 rodadas" },
+    ]);
+  });
+
+  it("appends '(sustentada)' when duration.sustained is true", () => {
+    const fields = buildEffectFields(
+      { duration: { value: 1, unit: "minute", sustained: true, expiry: "turn-start" } },
+      "pt-BR",
+    );
+    expect(fields).toEqual([
+      {
+        labelKey: "FUSION.Sheet.Details.Field.Duration",
+        label: "Duração",
+        value: "1 minuto (sustentada)",
+      },
+    ]);
+  });
+});
+
 describe("buildMechanicalFields (dispatch)", () => {
   it("dispatches to buildSpellFields for type 'spell'", () => {
     const fields = buildMechanicalFields({ type: "spell", system: { range: "touch" } });
@@ -832,6 +1058,17 @@ describe("buildMechanicalFields (dispatch)", () => {
   it("dispatches to buildClassFeatureFields for type 'classFeature'", () => {
     const fields = buildMechanicalFields({ type: "classFeature", system: { level: 3 } });
     expect(noKey(fields)).toEqual([{ label: "Level", value: "3" }]);
+  });
+
+  // ALQ-F2-18: before this task, "effect" fell through to the `default: []`
+  // branch below — a document with `duration: {unit:'minute', value:10}`
+  // opened with no duration field at all.
+  it("dispatches to buildEffectFields for type 'effect'", () => {
+    const fields = buildMechanicalFields({
+      type: "effect",
+      system: { duration: { value: 10, unit: "minute", sustained: false, expiry: "turn-start" } },
+    });
+    expect(noKey(fields)).toEqual([{ label: "Duration", value: "10 minutes" }]);
   });
 
   it("threads contextLevel through to buildClassFeatureFields for type 'classFeature' (issue #58)", () => {
@@ -1045,7 +1282,9 @@ describe("value translation helpers (r15-A1)", () => {
   it("translateDamageType maps damage slugs", () => {
     expect(translateDamageType("electricity", "pt-BR")).toBe("eletricidade");
     expect(translateDamageType("fire", "pt-BR")).toBe("fogo");
-    expect(translateDamageType("bludgeoning", "pt-BR")).toBe("concussão");
+    expect(translateDamageType("bludgeoning", "pt-BR")).toBe("contundente");
+    expect(translateDamageType("piercing", "pt-BR")).toBe("perfurante");
+    expect(translateDamageType("slashing", "pt-BR")).toBe("cortante");
     expect(translateDamageType("fire", "en")).toBe("fire");
     expect(translateDamageType("unknownType", "pt-BR")).toBe("unknownType");
   });
@@ -1071,7 +1310,7 @@ describe("trait/rarity display names (r15-A1)", () => {
     expect(traitDisplayName("some-new-trait", "pt-BR")).toBe("some new trait");
   });
 
-  it("covers all 228 glossary traits with a non-empty accented value", () => {
+  it("covers all 296 glossary traits with a non-empty accented value", () => {
     // 177 (r15) + 13 sincronizados na r20 (ancestrias planares, overflow,
     // potion, talisman...) + 27 sincronizados na r24 (rage e outros 26 traits
     // — ancestrias elf/human/ghoran, class, oath, consecration entre eles —
@@ -1081,12 +1320,28 @@ describe("trait/rarity display names (r15-A1)", () => {
     // modification, mindshift, amp, evolution: traits das 2 classes
     // Necromancer/Runesmith, atrás desde o merge #57 porque o gerador
     // gen-client-maps.mjs escrevia no caminho errado desde a extração F4 —
-    // ver o próprio script). Ver traitNames.sync.test.ts para o gate vivo
-    // que evita essa deriva daqui em diante. Count exato de propósito: trait
-    // novo no glossário exige regenerar via
+    // ver o próprio script) + 9 sincronizados no bump para o satélite
+    // v0.3.1 (alchemical, daredevil, impossible, invocation, possession,
+    // relentless, risky, slayer, thrall — traits das 5 classes de playtest
+    // publicadas no PR #190 do satélite) + 9 no bump para v0.3.13 (aeon,
+    // aiuvarin, changeling, dhampir, dragonblood, dromaar, duskwalker,
+    // hobgoblin, yaoguai — Conrasu/Yaoguai/PC2/versáteis, satélite #285) +
+    // 8 no bump para v0.3.15 (amphibious, athamaru, awakened-animal, beast,
+    // construct, inhaled, merfolk, yaksha — ancestrias Automaton, Athamaru,
+    // Awakened Animal, Merfolk, Minotaur e Yaksha, Bloco A, satélite #290) +
+    // 1 no bump para v0.3.16 (grapple — a Pinça do Armamento de Autômato,
+    // satélite #361; o mesmo bump reescreveu os rótulos de amphibious e
+    // awakened-animal, sem mudar a contagem).
+    // + 21 do merge da base do Alquimista em alfa (BHR-F0-02: legacy, ALQ-F0-02 e onda
+    // 2 do Alquimista — additive1, adjustment, bomb, as traits de entrega de
+    // veneno contact/ingested/injury, mutagen, elixir, splash, infused,
+    // virulent e as demais de alchemical-items-core).
+    // Ver traitNames.sync.test.ts para
+    // o gate vivo que evita essa deriva daqui em diante. Count exato de
+    // propósito: trait novo no glossário exige regenerar via
     // tools/translate-packs/gen-client-maps.mjs e revisar.
     const keys = Object.keys(TRAIT_NAMES_PT);
-    expect(keys.length).toBe(228);
+    expect(keys.length).toBe(296);
     for (const slug of keys) {
       const pt = traitDisplayName(slug, "pt-BR");
       expect(pt.length).toBeGreaterThan(0);
@@ -1096,7 +1351,12 @@ describe("trait/rarity display names (r15-A1)", () => {
   it("has no ASCII-folded leftovers where an accent is required (spot checks)", () => {
     // These specific slugs were unaccented in the raw glossary and must be fixed.
     expect(TRAIT_NAMES_PT["acid"]).toBe("ácido");
+    expect(TRAIT_NAMES_PT["apparition"]).toBe("aparição");
     expect(TRAIT_NAMES_PT["consumable"]).toBe("consumível");
+    expect(TRAIT_NAMES_PT["evolution"]).toBe("evolução");
+    expect(TRAIT_NAMES_PT["ikon"]).toBe("ícone");
+    expect(TRAIT_NAMES_PT["mindshift"]).toBe("mudança-de-mente");
+    expect(TRAIT_NAMES_PT["modification"]).toBe("modificação");
     expect(TRAIT_NAMES_PT["skill"]).toBe("perícia");
     expect(TRAIT_NAMES_PT["water"]).toBe("água");
   });
@@ -1303,5 +1563,202 @@ describe("DocumentDetailsCache", () => {
     const cacheB = new DocumentDetailsCache();
     cacheA.set("uuid-1", { name: "A" });
     expect(cacheB.has("uuid-1")).toBe(false);
+  });
+});
+
+describe("pickLocalizedName reads the import snapshot (reprint L1)", () => {
+  // `CompendiumService.importToActor` keeps the pt-BR label as `flags.fusion.i18n["pt-BR"]`, not as `i18n.ptBR`.
+  const snapshotOnly = {
+    name: "War Flail",
+    flags: { fusion: { i18n: { "pt-BR": { name: "Mangual de Guerra" } } } },
+  };
+
+  it("an item with only the snapshot shows the pt-BR name; the EN locale keeps the EN name", () => {
+    expect(pickLocalizedName(snapshotOnly, "pt-BR")).toBe("Mangual de Guerra");
+    expect(pickLocalizedName(snapshotOnly, "en")).toBe("War Flail");
+  });
+
+  it("the picker overlay (`i18n.ptBR`) still wins when both exist, and an empty snapshot name falls back to EN", () => {
+    expect(
+      pickLocalizedName({ ...snapshotOnly, i18n: { ptBR: { name: "Mangual" } } }, "pt-BR"),
+    ).toBe("Mangual");
+    expect(
+      pickLocalizedName(
+        { name: "Chain Mail", flags: { fusion: { i18n: { "pt-BR": { name: "" } } } } },
+        "pt-BR",
+      ),
+    ).toBe("Chain Mail");
+  });
+});
+
+// ---------------------------------------------------------------------------
+// Pacote de 21/10 (core-cliente): #223, #292, #298, #302
+// ---------------------------------------------------------------------------
+
+describe("#223 — entities are decoded BEFORE tags are stripped", () => {
+  it("an entity-encoded tag does not survive as a literal tag", () => {
+    const out = sanitizeDescriptionToText("<p>&lt;script&gt;alert(1)&lt;/script&gt;</p>", "en");
+    expect(out).toEqual(["alert(1)"]);
+    expect(out.join(" ")).not.toMatch(/<\/?script/i);
+  });
+
+  it("decodes once: '&amp;lt;' stays the text '&lt;' instead of becoming '<'", () => {
+    expect(sanitizeDescriptionToText("<p>a &amp;lt; b</p>", "en")).toEqual(["a &lt; b"]);
+  });
+
+  it("a plain less-than sign in prose is not eaten as if it opened a tag", () => {
+    expect(sanitizeDescriptionToText("<p>DC &lt; 10 or &gt; 20</p>", "en")).toEqual([
+      "DC < 10 or > 20",
+    ]);
+  });
+
+  it("an encoded line break becomes a real one, like the raw tag would", () => {
+    expect(sanitizeDescriptionToText("<p>one&lt;br&gt;two</p>", "en")).toEqual(["one two"]);
+  });
+});
+
+describe("#292 — slugs that are Object.prototype keys never resolve to inherited members", () => {
+  it.each(["constructor", "toString", "__proto__", "hasOwnProperty", "valueOf"])(
+    "trait, rarity and damage type '%s' fall back to text",
+    (slug) => {
+      expect(typeof traitDisplayName(slug, "pt-BR")).toBe("string");
+      expect(typeof rarityDisplayName(slug, "pt-BR")).toBe("string");
+      expect(typeof translateDamageType(slug, "pt-BR")).toBe("string");
+    },
+  );
+
+  it("an unknown slug still humanizes", () => {
+    expect(traitDisplayName("constructor", "pt-BR")).toBe("constructor");
+    expect(traitDisplayName("my-odd-trait", "pt-BR")).toBe("my odd trait");
+  });
+});
+
+describe("#298 — frequency and duration words are translated", () => {
+  it.each([
+    ["1 per turn", "1 per turno"],
+    ["turn", "turno"],
+    ["turns", "turnos"],
+    ["encounter", "encontro"],
+    ["encounters", "encontros"],
+    ["week", "semana"],
+    ["weeks", "semanas"],
+    ["month", "mês"],
+    ["months", "meses"],
+  ])("'%s'", (en, pt) => {
+    expect(translateValueTokens(en, "pt-BR")).toBe(pt);
+  });
+
+  it("the Frequência field of a feat prints the translated period", () => {
+    for (const [per, pt] of [
+      ["round", "rodada"],
+      ["minute", "minuto"],
+      ["hour", "hora"],
+      ["day", "dia"],
+      ["turn", "turno"],
+      ["encounter", "encontro"],
+      ["week", "semana"],
+      ["month", "mês"],
+    ] as const) {
+      const fields = buildFeatFields({ frequency: { max: 1, per } }, "pt-BR");
+      const freq = fields.find((f) => f.labelKey?.endsWith("Frequency"));
+      expect(freq?.value).toBe(`1 por ${pt}`);
+    }
+  });
+
+  it("the existing 'until the end of your turn' phrase is not broken by the new word", () => {
+    expect(translateValueTokens("until the end of your next turn", "pt-BR")).toBe(
+      "até o fim do seu próximo turno",
+    );
+  });
+});
+
+describe("#302 — @Embed and the language of unlabelled enrichers", () => {
+  const embed = "@Embed[Compendium.pf2e.actionspf2e.Item.OpiIzr7h1EKY8wKh inline]";
+
+  it("@Embed never leaks its UUID, in either language", () => {
+    for (const locale of ["pt-BR", "en"] as const) {
+      const out = sanitizeDescriptionToText(`<p>Before.</p><p>${embed}</p><p>After.</p>`, locale);
+      expect(out).toEqual(["Before.", "After."]);
+      expect(out.join(" ")).not.toMatch(/Compendium|OpiIzr7h1EKY8wKh|inline/);
+    }
+  });
+
+  it("@Embed in the middle of a sentence leaves the sentence readable", () => {
+    expect(sanitizeDescriptionToText(`<p>See ${embed} for details.</p>`, "en")).toEqual([
+      "See for details.",
+    ]);
+  });
+
+  it("an explicit {Label} on an @Embed still wins", () => {
+    expect(sanitizeDescriptionToText(`<p>${embed}{Ver ação}</p>`, "pt-BR")).toEqual(["Ver ação"]);
+  });
+
+  it("sanitizeDescriptionHtml drops the @Embed too", () => {
+    expect(sanitizeDescriptionHtml(`<p>Before.</p><p>${embed}</p>`, "pt-BR")).not.toMatch(
+      /Compendium|OpiIzr7h1EKY8wKh/,
+    );
+  });
+
+  describe("pt-BR", () => {
+    const pt = (s: string): string => sanitizeDescriptionToText(`<p>${s}</p>`, "pt-BR")[0] ?? "";
+
+    it("@Check names the save in Portuguese and does not repeat the word 'save'", () => {
+      expect(pt("@Check[fortitude|dc:29]")).toBe("Fortitude (CD 29)");
+      expect(pt("@Check[reflex]")).toBe("Reflexos");
+      expect(pt("@Check[will|dc:20]")).toBe("Vontade (CD 20)");
+      expect(pt("@Check[fortitude|against:spell|basic|options:area-effect]")).toBe(
+        "Fortitude básica",
+      );
+    });
+
+    it("@Check names a skill in Portuguese", () => {
+      expect(pt("@Check[athletics|dc:15]")).toBe("Atletismo (CD 15)");
+      expect(pt("@Check[acrobatics]")).toBe("Acrobacia");
+    });
+
+    it("@Check with a statistic the glossary does not know keeps the capitalized slug", () => {
+      expect(pt("@Check[flat|dc:3]")).toBe("Flat (CD 3)");
+    });
+
+    it("@Template speaks Portuguese: shape and feet", () => {
+      expect(pt("@Template[type:burst|distance:10]")).toBe("explosão de 10 pés");
+      expect(pt("@Template[cone|distance:30]")).toBe("cone de 30 pés");
+      expect(pt("@Template[emanation|distance:20]")).toBe("emanação de 20 pés");
+      expect(pt("@Template[line|distance:30]")).toBe("linha de 30 pés");
+      expect(pt("@Template[burst]")).toBe("explosão");
+    });
+
+    it("@Damage translates the type through the glossary, categories included", () => {
+      expect(pt("@Damage[6d6[fire]]")).toBe("6d6 fogo");
+      expect(pt("@Damage[2d6[persistent,acid]]")).toBe("2d6 persistente ácido");
+      expect(pt("@Damage[(1d4+2)[force]]")).toBe("(1d4+2) força");
+      expect(pt("@Damage[1d6[spirit]]")).toBe("1d6 espírito");
+    });
+
+    it("@Damage keeps a roll-data type reference untouched", () => {
+      expect(pt("@Damage[ceil(@actor.level/2)d6[@actor.flags.system.x.damageType]]")).toBe(
+        "ceil(level/2)d6 damageType",
+      );
+    });
+
+    it("a [[/r ...]] inline roll translates its damage type too", () => {
+      expect(pt("[[/br 2d6[fire]]]")).toBe("2d6 fogo");
+      expect(pt("[[/r 1d20+5]]")).toBe("1d20+5");
+    });
+
+    it("an explicit {Label} still wins over the localized form", () => {
+      expect(pt("@Check[fortitude|dc:29]{um teste especial}")).toBe("um teste especial");
+    });
+
+    it("a whole sentence no longer mixes the two languages", () => {
+      const out = pt(
+        "Cada criatura em @Template[type:burst|distance:10] sofre @Damage[4d6[fire]] " +
+          "(@Check[reflex|dc:25|basic]).",
+      );
+      expect(out).toBe(
+        "Cada criatura em explosão de 10 pés sofre 4d6 fogo (Reflexos básica (CD 25)).",
+      );
+      expect(out).not.toMatch(/save|foot|fire/);
+    });
   });
 });

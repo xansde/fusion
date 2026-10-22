@@ -634,3 +634,29 @@ describe("buildTokenMoveDiff", () => {
     expect(`tokens.${id}.rotation` in diff).toBe(false);
   });
 });
+
+describe("SceneDocumentSchema — grid origin offset", () => {
+  it("defaults the offset to null (align to the padding border)", () => {
+    const r = SceneDocumentSchema.safeParse(baseSceneInput());
+    expect(r.success).toBe(true);
+    if (r.success) {
+      expect(r.data.gridOffsetX).toBeNull();
+      expect(r.data.gridOffsetY).toBeNull();
+    }
+  });
+
+  it("accepts a calibrated offset", () => {
+    const r = SceneDocumentSchema.safeParse({
+      ...baseSceneInput(),
+      gridOffsetX: 31,
+      gridOffsetY: 77.5,
+    });
+    expect(r.success).toBe(true);
+    if (r.success) expect(r.data.gridOffsetX).toBe(31);
+  });
+
+  it("rejects a non-finite offset", () => {
+    const r = SceneDocumentSchema.safeParse({ ...baseSceneInput(), gridOffsetX: Number.NaN });
+    expect(r.success).toBe(false);
+  });
+});

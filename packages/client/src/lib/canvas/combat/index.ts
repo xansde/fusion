@@ -18,4 +18,7 @@ export type { CombatTurnMarkerConfig } from "./CombatTurnMarker.js";
 export { TargetingMarkerLayer } from "./TargetingMarker.js";
 export type { TargetingMarkerConfig, TargetedTokenPosition } from "./TargetingMarker.js";
 
+export { PreyMarkerLayer } from "./PreyMarker.js";
+export type { PreyMarkerConfig, PreySealPosition } from "./PreyMarker.js";
+
 export { CombatCanvasController } from "./combatCanvasController.js";

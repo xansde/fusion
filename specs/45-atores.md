@@ -454,6 +454,10 @@ nasce pela regra geral (DEC-ATR-12), sem cópia forçada.
   documento, lido pelos predicados de redação sem consultar outro documento (RNF-ATR-01;
   `packages/server/src/net/redaction.ts`). Mudar a posse do dono depois **não** propaga; se
   isso vier a ser preciso, é uma operação explícita, não uma leitura através do vínculo.
+  _(Confirmado em 21/10/2026, xansde/fusion#236: a troca de dono do personagem não migra o
+  companheiro já criado — é por desenho. Quem transfere o personagem ajusta o `ownership` do
+  companheiro à mão (ou o recria); propagar automaticamente exigiria a operação explícita acima,
+  que não existe e não foi pedida.)_
 - **Não é faceta:** a posse herdada não dá `player` ao companheiro (DEC-ATR-18).
 
 ## 5. Requisitos funcionais

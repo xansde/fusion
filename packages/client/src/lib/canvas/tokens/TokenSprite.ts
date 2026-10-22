@@ -25,6 +25,7 @@
  * REQ-CNV-037: remote updates animate; local drag does not re-animate.
  */
 
+import { ehArteDeAvatar } from "../../avatar/arteDeAvatar.js";
 import {
   Container,
   Graphics,
@@ -37,6 +38,7 @@ import {
 } from "pixi.js";
 
 import type { TokenDocument, ActorAttitude } from "@fusion/shared";
+import type { MountStackPlacement } from "./token-interaction.js";
 import { resolveEffectiveActor, readActorAttitude } from "@fusion/shared";
 import { resolveAssetUrl } from "../../assets/assetApi.js";
 import { fusionApi } from "../../api.js";
@@ -106,11 +108,14 @@ const ELEVATION_STYLE = new TextStyle({
 // TokenSprite
 // ---------------------------------------------------------------------------
 
+const NO_STACK: MountStackPlacement = { offsetX: 0, offsetY: 0, scale: 1 };
+
 export class TokenSprite {
   // Root container — placed at (token.x, token.y) in scene coords.
   readonly container: Container;
 
   private _doc: TokenDocument;
+  private _stack: MountStackPlacement = NO_STACK;
   private _gridSize: number;
   private _isGm: boolean;
   /**
@@ -240,7 +245,7 @@ export class TokenSprite {
     this._applyRotation(doc);
 
     // Load art (async, non-blocking)
-    void this._loadArt(doc, pixelW, pixelH);
+    void this._loadArt(doc);
   }
 
   // ---------------------------------------------------------------------------
@@ -259,6 +264,34 @@ export class TokenSprite {
    */
   markLocalPending(): void {
     this._localPending = true;
+  }
+
+  /** Pixel size of the token's footprint (the layer needs it to stack a rider on this mount). */
+  get pixelSize(): { w: number; h: number } {
+    const { pixelW, pixelH } = tokenPixelSize(
+      this._footprint.width,
+      this._footprint.height,
+      this._gridSize,
+    );
+    return { w: pixelW, h: pixelH };
+  }
+
+  /**
+   * BHR-F5-03 (REQ-CNV-107): draw this token stacked on its mount (`placement`), or back in its own
+   * square (`null`). The stored position is untouched; only what is drawn changes.
+   */
+  setMountStack(placement: MountStackPlacement | null): void {
+    const next = placement ?? NO_STACK;
+    if (
+      next.offsetX === this._stack.offsetX &&
+      next.offsetY === this._stack.offsetY &&
+      next.scale === this._stack.scale
+    ) {
+      return;
+    }
+    this._stack = next;
+    this.container.scale.set(next.scale);
+    this._applyPosition(this._renderX, this._renderY);
   }
 
   /**
@@ -402,7 +435,17 @@ export class TokenSprite {
       this._applyRotation(newDoc);
 
       if (artChanged) {
-        void this._loadArt(newDoc, pixelW, pixelH);
+        void this._loadArt(newDoc);
+      } else if (
+        oldGridSize !== gridSize ||
+        this._footprint.width !== oldFootprint.width ||
+        this._footprint.height !== oldFootprint.height
+      ) {
+        // REQ-TOK-017: the ring, the hit rectangle, the bars and the nameplate follow the new footprint
+        // above; the ART is measured in pixels too, and is only reloaded when the portrait changes.
+        // Without this a creature that grows or shrinks (a heritage swap, a feat that enlarges) kept
+        // drawing its old size on the table while everything around it moved (core #288).
+        this._refitArt(newDoc, pixelW, pixelH);
       }
     } else if (barsChanged) {
       // Bar-only change: repaint just the bars (REQ-CNV-092), not the whole sprite.
@@ -480,20 +523,8 @@ export class TokenSprite {
       this._footprint.height,
       this._gridSize,
     );
-    // Re-draw the ring, adding a selection highlight on top when selected.
+    // The highlight is part of the ring, so a repaint from anywhere keeps it (#296).
     this._drawRing(pixelW, pixelH);
-    if (this._selected) {
-      // Second pass: bright white outline, slightly inset, to create a "selected" glow.
-      const inset = RING_THICKNESS + 1;
-      this._ringGraphics.roundRect(
-        inset,
-        inset,
-        pixelW - inset * 2,
-        pixelH - inset * 2,
-        Math.max(2, Math.min(pixelW, pixelH) * 0.08),
-      );
-      this._ringGraphics.stroke({ width: 2, color: 0xffffff, alpha: 0.85 });
-    }
   }
 
   /**
@@ -530,7 +561,7 @@ export class TokenSprite {
   // ---------------------------------------------------------------------------
 
   private _applyPosition(x: number, y: number): void {
-    this.container.position.set(x, y);
+    this.container.position.set(x + this._stack.offsetX, y + this._stack.offsetY);
   }
 
   // ---------------------------------------------------------------------------
@@ -587,13 +618,16 @@ export class TokenSprite {
   // Private — art loading (REQ-CNV-025, D7, RNF-TOK-01)
   // ---------------------------------------------------------------------------
 
-  private async _loadArt(doc: TokenDocument, pixelW: number, pixelH: number): Promise<void> {
+  private async _loadArt(doc: TokenDocument): Promise<void> {
     // Remove existing art
     this._sprite?.destroy({ texture: false });
     this._sprite = null;
-    this._placeholder?.destroy();
     this._placeholder = null;
+    // removeChildren() only DETACHES: destroy each child, or the placeholder's initials label
+    // (a Text, with its own texture) leaks on every art swap (#296).
+    const stale = [...this._artContainer.children];
     this._artContainer.removeChildren();
+    for (const child of stale) if (!child.destroyed) child.destroy();
 
     const actor = this._actor;
     const rawImg = actor?.img;
@@ -607,7 +641,8 @@ export class TokenSprite {
         // is the ACTOR, because the art IS the actor's `img` (its effective
         // value, once TK021's delta applies). This replaces the old T025 scene
         // grant (a token no longer carries its own `texture`).
-        const accessToken = fusionApi.getToken();
+        // Fresh, not the snapshot: see sceneLoader.ts — the 15-min JWT may have lapsed.
+        const accessToken = await fusionApi.getFreshToken();
         const userId = session.user?.id;
         const loadUrl =
           accessToken && userId
@@ -617,16 +652,21 @@ export class TokenSprite {
               })
             : rawImg;
         const texture = await Assets.load<Texture>(loadUrl);
+        // Avatar pixel art (avatar creator's "Usar como token") is drawn without smoothing.
+        if (ehArteDeAvatar(rawImg)) texture.source.scaleMode = "nearest";
         const sprite = new Sprite(texture);
+        // The size NOW, not the one the load started with: the creature may have grown or shrunk
+        // while the texture was on its way (REQ-TOK-017).
+        const fit = this._currentPixelSize();
         // Position sprite centered within the footprint bounding box
         sprite.anchor.set(0.5, 0.5);
-        sprite.x = pixelW / 2;
-        sprite.y = pixelH / 2;
+        sprite.x = fit.pixelW / 2;
+        sprite.y = fit.pixelH / 2;
         // Art scale is independent of footprint (D7 / REQ-CNV-025)
         // The sprite fills the footprint by default (scale=1).
         // Additional art scale from future token.scale field would be applied here.
-        sprite.width = pixelW;
-        sprite.height = pixelH;
+        sprite.width = fit.pixelW;
+        sprite.height = fit.pixelH;
         sprite.eventMode = "none";
 
         // Apply tint if set (spec REQ-CNV-026)
@@ -641,7 +681,37 @@ export class TokenSprite {
 
     // Placeholder: colored rectangle with initials (REQ-CNV-025 fallback —
     // also the "actor not in the mirror yet" and "actor has no img" cases).
-    this._drawPlaceholder(doc, pixelW, pixelH);
+    const fit = this._currentPixelSize();
+    this._drawPlaceholder(doc, fit.pixelW, fit.pixelH);
+  }
+
+  /** This token's pixel size right now: footprint (cells) × grid cell size. */
+  private _currentPixelSize(): { pixelW: number; pixelH: number } {
+    return tokenPixelSize(this._footprint.width, this._footprint.height, this._gridSize);
+  }
+
+  /**
+   * Fit the art that is ALREADY on the sprite to a new pixel size — the footprint changed (a creature
+   * that grew or shrank, REQ-TOK-017) or the grid's cell size did (R4). A portrait is re-measured in
+   * place: the texture is never reloaded, so nothing flickers and no request goes out. The placeholder
+   * — a drawn rectangle plus its initials, both sized in pixels — is drawn again. Art still loading
+   * has nothing to refit: `_loadArt` reads the size when the texture lands.
+   */
+  private _refitArt(doc: TokenDocument, pixelW: number, pixelH: number): void {
+    if (this._sprite) {
+      this._sprite.x = pixelW / 2;
+      this._sprite.y = pixelH / 2;
+      this._sprite.width = pixelW;
+      this._sprite.height = pixelH;
+      return;
+    }
+    if (this._placeholder) {
+      const stale = [...this._artContainer.children];
+      this._artContainer.removeChildren();
+      for (const child of stale) child.destroy();
+      this._placeholder = null;
+      this._drawPlaceholder(doc, pixelW, pixelH);
+    }
   }
 
   private _drawPlaceholder(doc: TokenDocument, pixelW: number, pixelH: number): void {
@@ -697,6 +767,22 @@ export class TokenSprite {
       Math.min(pixelW, pixelH) * 0.12,
     );
     g.stroke({ width: RING_THICKNESS, color, alpha: 0.95 });
+
+    // Selected: a second pass, a bright white outline slightly inset, as a "selected" glow.
+    // Drawn HERE (not by setSelected alone) because every repaint of the ring — a new
+    // disposition, grid size or footprint — clears the graphics, and the highlight of a
+    // token that is still selected must not disappear with it.
+    if (this._selected) {
+      const inset = RING_THICKNESS + 1;
+      g.roundRect(
+        inset,
+        inset,
+        pixelW - inset * 2,
+        pixelH - inset * 2,
+        Math.max(2, Math.min(pixelW, pixelH) * 0.08),
+      );
+      g.stroke({ width: 2, color: 0xffffff, alpha: 0.85 });
+    }
   }
 
   // ---------------------------------------------------------------------------

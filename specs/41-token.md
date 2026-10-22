@@ -367,6 +367,11 @@ decisão é de quem for dono dessa tela.
   o que muda é **onde** isso aparece, não que exista.
 - **O que motivou tirar:** uma peça de 1×1 com nome, duas barras, indicador de elevação, borda de
   disposição e até seis ícones de condição não é legível em nenhum zoom de mesa.
+- **Primeiro espaço dedicado (emenda da spec 53, 2026-10-11):** a faixa de estado da barra de
+  ações (`53-barra-de-acoes.md`, REQ-BAR-028) mostra as condições do ator ativo como
+  chips só com o nome, e o efeito aparece ao clicar. Ela decide só o que aparece para o ator
+  ativo: a peça continua sem ícones de condição (REQ-TOK-083), e o espaço dedicado das demais
+  peças segue por decidir.
 
 ### DEC-TOK-20 — O sistema estende a peça por `flags` namespaced, e a engine não lê
 
@@ -480,10 +485,31 @@ sendo do ator, e esta spec não define nenhuma "ficha de token".
 
 - **REQ-TOK-030** [MVP] Criar um token DEVE exigir papel privilegiado; o servidor DEVE recusar a
   criação pedida por qualquer outro papel, inclusive pelo OWNER do ator manifestado (DEC-TOK-06).
+- **REQ-TOK-030a** [MVP] _(Emenda de 2026-10-11, pedido do Alexandre.)_ Além do papel
+  privilegiado de REQ-TOK-030, o servidor DEVE aceitar a criação de token por quem for OWNER
+  (3) do ator manifestado, desde que, para TODOS os tokens do pedido: (a) o usuário seja OWNER
+  do ator de `actorId`, pelo mesmo teste de posse de REQ-TOK-032 (sem predicado novo,
+  REQ-TOK-034); (b) o token NÃO seja oculto (`hidden` ausente ou `false`); e (c) a cena seja a
+  cena ativa do mundo (a que está no ar). Qualquer outro caso continua recusado por
+  REQ-TOK-030. Nenhuma outra checagem é afrouxada (campos derivados, `actorDelta`, estado de
+  montaria, schema) e NÃO existe setting para ligar ou desligar essa via. Duplicar e excluir
+  seguem só pela régua de REQ-TOK-031. _(A frase "inclusive pelo OWNER" de REQ-TOK-030 vale
+  hoje apenas para os casos fora desta emenda; DEC-TOK-06 e DEC-CTT-12 ficam emendadas por
+  ela.)_ _(Emenda provisória de 21/10/2026, revisar no beta: por essa via o pedido carrega SÓ
+  `actorId`, `x` e `y` — o que o cliente do jogador manda — e o servidor recusa qualquer outro
+  campo (`light`, `vision`, `seenBy`, `disposition`, `elevation`, `flags`...) com
+  `PERMISSION_DENIED`; o jogador NÃO DEVE pôr mais de um token do mesmo ator na mesma cena
+  (`VALIDATION_FAILED`, contando o próprio lote). Vale para quem só entra por esta via: papel que
+  já alcança o piso de `TOKEN_CREATE` segue sem a restrição.)_
 - **REQ-TOK-031** [MVP] Duplicar e excluir um token DEVEM exigir papel privilegiado, com a mesma
   régua de REQ-TOK-030.
 - **REQ-TOK-032** [MVP] Mover um token DEVE exigir OWNER (3) sobre o ator efetivo, ou papel
-  privilegiado (REQ-USR-013).
+  privilegiado (REQ-USR-013). _(Emenda da spec 52, 2026-10-05: OWNER deixa de bastar para o
+  cavaleiro montado, que só se move com a montaria ou por papel privilegiado, REQ-TOK-117.)_
+  _(Emenda provisória de 21/10/2026, revisar no beta: o `doc:update` de token por quem NÃO tem papel
+  privilegiado só pode escrever `x`, `y` e `rotation` — o resto (`light`, `vision`, `seenBy`,
+  `disposition`, `elevation`, `flags`, também em chave pontilhada) é do Mestre e volta
+  `PERMISSION_DENIED`, nada gravado.)_
 - **REQ-TOK-033** [MVP] A avaliação de permissão DEVE ser feita no servidor em todos os casos; a
   interface PODE antecipar o resultado, mas NÃO DEVE ser a única guarda.
 - **REQ-TOK-034** [MVP] Não DEVE existir, em spec nem em código, um predicado de "controle de
@@ -498,7 +524,8 @@ sendo do ator, e esta spec não define nenhuma "ficha de token".
   movimento por teclado.
 - **REQ-TOK-042** [MVP] O movimento DEVE validar **apenas** a permissão de REQ-TOK-032 e a
   permanência dentro dos limites da cena; NÃO DEVE validar colisão, elevação nem distância
-  percorrida (DEC-TOK-07, DEC-TOK-18).
+  percorrida (DEC-TOK-07, DEC-TOK-18). _(Emenda da spec 52, 2026-10-05: a única exceção é o
+  cavaleiro montado, REQ-TOK-117.)_
 - **REQ-TOK-043** [MVP] O token com footprint maior que uma célula DEVE encaixar no conjunto de
   células ocupadas (REQ-CNV-023), inclusive ao ser movido pelo teclado.
 - **REQ-TOK-044** [MVP] Esta spec NÃO DEVE definir limite de deslocamento por regra de jogo.
@@ -607,6 +634,24 @@ sendo do ator, e esta spec não define nenhuma "ficha de token".
 - **REQ-TOK-114** [MVP] O gesto DEVE estar ligado à cena que está no ar — não basta existir como
   função: a peça na tela DEVE ser o gatilho (REQ-UIF-046 e a lição do #194, em que a interação com
   peças existia em código e não estava instanciada em tela alguma).
+
+### 5.13 Marca e montaria _(emenda da spec 52, 2026-10-05)_
+
+- **REQ-TOK-115** [MVP] A marca de Presa NÃO DEVE ser gravada na peça: vive no ator que marcou
+  (`Actor.flags.fusion.tokenMarks`, `52-cacador-companheiro-e-montaria.md` §7.1) e só aponta para o
+  token; o selo dela é camada de combate do canvas (REQ-CNV-105), como a retícula de alvo, e não
+  ícone de status da peça (DEC-TOK-19, DEC-TOK-22).
+- **REQ-TOK-116** [MVP] O estado montado DEVE ser gravado nas duas peças em `flags.fusion.mount`
+  (`MountState`, spec 52 §7.6) — namespace do próprio núcleo, não o de um sistema —, escrito só pelas
+  ops `mount:mount` e `mount:dismount`, pelo servidor ao mover o par (`movedTurn`, REQ-TOK-117a) e pelo
+  desmonte do Mestre (REQ-TOK-118).
+- **REQ-TOK-117** [MVP] Mover a montaria DEVE mover o cavaleiro montado no **mesmo write**; o servidor
+  DEVE recusar a usuário não privilegiado o movimento do cavaleiro montado.
+- **REQ-TOK-117a** [MVP] Ao mover o par durante um combate em andamento, o servidor DEVE carimbar a peça
+  da montaria com `movedTurn { combatId, round, turn }` no mesmo write; o carimbo é lido pela regra do
+  Apoio (spec 52, REQ-BHR-178 e REQ-BHR-183) e limpo com o resto da flag.
+- **REQ-TOK-118** [MVP] Papel privilegiado PODE mover o cavaleiro montado, e esse movimento DEVE
+  desmontá-lo, limpando `flags.fusion.mount` das duas peças no mesmo write.
 
 ## 6. Requisitos não-funcionais
 

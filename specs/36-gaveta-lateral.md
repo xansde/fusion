@@ -203,7 +203,7 @@ GM vê também mundo, permissões, usuários e mods (spec 37).
   e por tooltip ao passar o ponteiro/focar; o tooltip é o único texto do trilho.
 - **REQ-GAV-003** [MVP] O trilho DEVE renderizar as abas do usuário na ordem de
   DEC-GAV-01, em três blocos: primeiro o grupo de todos (Chat, Contatos, Combate,
-  Compêndio); em seguida, separado visualmente, o grupo GM (NPCs, Cenas); e ancorada no
+  Compêndio, Som); em seguida, separado visualmente, o grupo GM (NPCs, Cenas); e ancorada no
   rodapé do trilho, a aba Configurações (DEC-GAV-09). Abas registradas por mods
   (REQ-GAV-031) entram ao fim do seu grupo, nunca no rodapé.
 - **REQ-GAV-004** [MVP] Abas do grupo GM NÃO DEVEM ser renderizadas para usuário cujo

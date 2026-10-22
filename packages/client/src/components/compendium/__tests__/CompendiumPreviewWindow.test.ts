@@ -27,6 +27,7 @@ import {
   previewReady,
   type PreviewLoadState,
 } from "../../../lib/compendium/previewWindow.js";
+import { sanitizeDescriptionToText } from "../../../lib/compendium/documentDetails.js";
 import "../../../lib/i18n/index.js";
 import { i18n, t } from "../../../lib/i18n/i18n.js";
 
@@ -61,6 +62,32 @@ function withPublication(publication: Record<string, unknown>): Record<string, u
     system: { ...(FIREBALL["system"] as Record<string, unknown>), publication },
   };
 }
+
+/**
+ * ALQ-F2-19 fixture: a document whose description is raw vendor HTML,
+ * exactly the shape that leaked literal tags onto the screen
+ * (`03-preview-elixir-of-life.png`, onda 1) — block tags, an inline
+ * enricher tag, AND a handful of classic XSS payloads riding along in the
+ * same markup, to prove the fix does not just hide the bug behind a
+ * fixture that happens to be safe.
+ */
+const HTML_DESCRIPTION_DOC: Record<string, unknown> = {
+  name: "Elixir of Life",
+  img: null,
+  type: "consumable",
+  i18n: {
+    ptBR: {
+      description:
+        "<p>Concedido por @UUID[Compendium.pf2e.classfeatures.Item.abc123]{Dedicação Alquimista}. " +
+        "<em>Beba para curar.</em></p><p><script>alert(1)</script>" +
+        '<img src="x" onerror="alert(2)">' +
+        '<a href="javascript:alert(3)">clique aqui</a></p>',
+    },
+  },
+  system: {
+    publication: { license: "ORC" },
+  },
+};
 
 function renderWindow(
   props: Record<string, unknown> = {},
@@ -312,5 +339,77 @@ describe("the panel no longer previews inside itself (REQ-CPD-050, REQ-CPD-054)"
     // open previews alone — so the panel never reaches into the registry.
     expect(src).not.toContain("windowManager");
     expect(src).not.toContain("closeAll");
+  });
+});
+
+// ---------------------------------------------------------------------------
+// ALQ-F2-19 — the description shows no raw HTML/enricher syntax
+// ---------------------------------------------------------------------------
+//
+// `preview.description` (compendiumBrowser.ts) is the vendor's
+// `system.description` / `i18n.ptBR.description` STRING verbatim — it was
+// never plain text despite its own doc comment saying "the browser preview
+// does not render prose HTML". Interpolating it directly as
+// `{preview.description}` made Svelte's auto-escaping show the literal tags
+// (`<p>`, `<em>`, `@UUID[...]`) to the player instead of hiding them.
+//
+// Decision (security-first, per the task's own note): convert to CLEAN TEXT
+// rather than sanitize-and-render HTML. `sanitizeDescriptionHtml` (also in
+// documentDetails.ts) would need `{@html ...}` to have any visual effect —
+// a second XSS surface this window does not need, on top of the one being
+// fixed. `sanitizeDescriptionToText` strips EVERY tag unconditionally (no
+// allow-list branch at all) and hands back plain strings that Svelte's
+// ordinary `{...}` interpolation escapes like any other text — so there is
+// no HTML-injection surface even if a future vendor payload slipped past the
+// tag-strip regex. This reuses the existing, already-tested helper in
+// documentDetails.ts (see its own describe block) instead of adding a
+// second sanitizer.
+describe("ALQ-F2-19: the description never shows raw HTML or vendor enricher syntax", () => {
+  it("strips every vendor tag and payload, and rewrites @UUID[...]{Label} to its label", () => {
+    const html = renderWindow({}, previewReady(HTML_DESCRIPTION_DOC));
+
+    // The wrapper itself still exists...
+    expect(html).toContain("compendium-preview__description");
+    // ...but nothing inside it is raw markup or an executable payload.
+    expect(html).not.toContain("<script>");
+    expect(html).not.toContain("</script>");
+    expect(html).not.toContain("<em>");
+    expect(html).not.toContain("<p>Concedido");
+    expect(html).not.toContain("<img");
+    expect(html).not.toContain("<a ");
+    expect(html).not.toContain("onerror=");
+    expect(html).not.toContain("javascript:");
+    expect(html).not.toContain("@UUID[");
+
+    // The prose and the resolved enricher label both survive, as plain text.
+    expect(html).toContain("Concedido por Dedicação Alquimista.");
+    expect(html).toContain("Beba para curar.");
+    // The inert payload bodies may survive AS TEXT (e.g. the literal string
+    // "alert(1)") — that is fine, since nothing renders them as markup;
+    // only the tags that could execute them must be gone (asserted above).
+  });
+
+  it("matches sanitizeDescriptionToText's own output — no extra escaping/markup added by the component", () => {
+    const description = (
+      HTML_DESCRIPTION_DOC["i18n"] as { ptBR: { description: string } }
+    ).ptBR.description.toString();
+    const expectedParagraphs = sanitizeDescriptionToText(description, "pt-BR");
+    expect(expectedParagraphs.length).toBeGreaterThan(0);
+
+    const html = renderWindow({}, previewReady(HTML_DESCRIPTION_DOC));
+    for (const paragraph of expectedParagraphs) {
+      expect(html).toContain(paragraph);
+    }
+  });
+
+  it("draws nothing for a document with no description, same as before", () => {
+    const noDescription: Record<string, unknown> = {
+      name: "Sem Descrição",
+      img: null,
+      type: "consumable",
+      system: { publication: { license: "ORC" } },
+    };
+    const html = renderWindow({}, previewReady(noDescription));
+    expect(html).not.toContain("compendium-preview__description");
   });
 });

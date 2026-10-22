@@ -12,14 +12,19 @@
 
 As 29 fichas usam **exatamente a mesma** ancestralidade, antecedente e distribuição de atributos. Isso torna as divergências atribuíveis à classe, não à combinação.
 
-**Atualmente proposto:**
+**Fixado (2026-09-22, Onda 7 fixer — achado C4, Alexandre indisponível, decidido pela regra do PF2e e registrado em `ficha3-reports/o7/fix-r1.md`; corrigido de novo na rodada 2, `fix-r2.md`, porque a rodada 1 ainda era ilegal em três pontos):**
 
-- **Ancestralidade:** Human (Humano) — ✏️ editar se o Alexandre preferir
-- **Antecedente:** Scholar (Erudito) — ✏️ editar se o Alexandre preferir
-- **Atributos no nível 1** (exemplo proposto; editar):
-  - STR: 10, DEX: 12, CON: 14, INT: 13, WIS: 12, CHA: 11
+- **Ancestralidade:** Human (Humano)
+- **Herança:** Skilled Human (Humano Habilidoso) — treinado em Diplomacia no nível 1; Perito na mesma perícia a partir do nível 5. **Correção da rodada 2:** NÃO concede talento de perícia geral (isso é Versatile Human, uma herança diferente — a rodada 1 confundiu as duas).
+- **Talento de ancestralidade (nível 1):** Cooperative Nature (+4 de circunstância em Auxiliar; a rodada 1 registrava +2, errado — conferido no pack)
+- **Antecedente:** Scholar (Erudito) — treina Erudição Acadêmica (Lore, sempre) + uma perícia à escolha entre Arcana/Natureza/Ocultismo/Religião (Arcana escolhida arbitrariamente). **Correção da rodada 2:** o antecedente NUNCA treina Sociedade — a rodada 1 afirmava isso, errado (conferido no pack: a lista de escolha do Scholar é Arcana/Nature/Occultism/Religion). Scholar também concede o talento Assurance na perícia escolhida, mas essa escolha é um `ChoiceSet` ainda não implementado no motor (mesma limitação da perícia da Skilled Human) — pendência registrada, não bloqueia o resto do chassi.
+- **Idiomas:** Comum + 2 extras (Élfico + Anão) — **correção da rodada 2:** Human ganha `additionalLanguages.count: 1` da própria ancestralidade SOMADO ao modificador de INT (aqui +1) = 2 extras, não 1 como a rodada 1 registrava. Para as 4 classes de habilidade-chave Inteligência (Wizard, Investigator, Inventor, Witch), o total sobe para 3 extras (INT do chassi vira 14, mod +2, +1 da ancestralidade). "Elvish" também foi corrigido para "Elven" — é o slug real do pack.
+- **Atributos no nível 1** (antes do boost de habilidade-chave de cada classe, que soma +2 por cima e varia por classe):
+  - STR: 14, DEX: 12, CON: 14, INT: 12, WIS: 14, CHA: 10
+  - Boosts: ancestralidade em FOR/CON (2 — RAW, Player Core Remaster p. 55), antecedente em INT (obrigatório)/SAB (livre), 4 boosts livres em FOR/DES/CON/SAB. Todos os valores são pares e alcançáveis (nenhum atinge 18, então nenhum boost cai para +1) — os valores anteriores (INT 13, CAR 11) eram ilegais: a partir de 10, só boosts de +2 (ou +1 acima de 18) são possíveis.
+  - **Corrigido na Onda 0 (T0.2, fusion-systems-2e#151):** a rodada 2 do fixer da Onda 7 tinha absorvido um 3º boost de ancestralidade em Destreza (DEX 14) para contornar um defeito do pack `ancestries-core` "Human" (`boosts: ["free","free","free"]`, 3 boosts livres, e uma `flaws: ["free"]` inerte). Isso tornava o aceite circular — o comparador escondia a divergência em vez de acusá-la. O defeito foi corrigido NA FONTE (fusion-systems-2e#152, `tools/importer-pf2e/src/transform.mjs`), o pack regenerado agora bate com o RAW (`boosts: ["free","free"]`, `flaws: []`), e o chassi comum voltou a refletir exatamente isso: 2 boosts de ancestralidade, DEX 12. Se o app produzir DEX 14, o comparador acusa a divergência.
 
-Aplicar o chassi a **todas as 29 classes** sem variação.
+Aplicar o chassi a **todas as 29 classes** sem variação. O boost de habilidade-chave de cada classe (+2, específico por classe) soma-se a estes valores e fica para T7.4 (preenchimento por classe).
 
 ### 2. O Que Preencher
 
@@ -71,9 +76,8 @@ Barbarian, Rogue, Monk, Gunslinger, Swashbuckler, Investigator, Guardian, Wizard
 
 ## Ordem de Execução do Preenchimento
 
-1. Decidir o **chassis comum** (ancestralidade, antecedente, atributos)
-   - Ou aceitar a proposta: Human, Scholar, STR/DEX/CON/INT/WIS/CHA = 10/12/14/13/12/11
-   - Ou editar no arquivo `metadata.chassis_common`
+1. O **chassis comum** já está fixado (ver seção 1 acima): Human/Skilled Human/Cooperative Nature, Scholar, STR/DEX/CON/INT/WIS/CHA = 14/12/14/12/14/10 (antes do boost de habilidade-chave da classe)
+   - Só reabrir (`metadata.chassis_common`) com instrução literal do Alexandre
 
 2. **Lote 1 (8 classes):** preencher manualmente, um por um, lendo o Player Core Remaster
    - Cada entrada pode levar 10–15 min

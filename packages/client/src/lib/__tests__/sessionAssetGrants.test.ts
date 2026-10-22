@@ -37,6 +37,7 @@ vi.mock("../socket.js", () => ({
 vi.mock("../docs/worldSync.js", () => ({ attachWorldSync: () => () => {} }));
 vi.mock("../scenes/scenesState.svelte.js", () => ({ attachSceneListSync: () => () => {} }));
 vi.mock("../contacts/knowledgeBadge.js", () => ({ attachContactsKnowledgeBadge: () => () => {} }));
+vi.mock("../combat/combatStore.svelte.js", () => ({ attachTargetingSync: () => () => {} }));
 
 import { sessionActions } from "../session.svelte.js";
 import {
