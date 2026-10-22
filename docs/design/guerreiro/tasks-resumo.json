@@ -47,9 +47,7 @@
     "esforco": "medium",
     "onda": 2,
     "lote": "L1",
-    "depende": [
-      "GUE-F0-03"
-    ],
+    "depende": ["GUE-F0-03"],
     "dependeExterno": [],
     "decisoes": []
   },
@@ -75,9 +73,7 @@
     "esforco": "medium",
     "onda": 2,
     "lote": "L1",
-    "depende": [
-      "GUE-F0-01"
-    ],
+    "depende": ["GUE-F0-01"],
     "dependeExterno": [],
     "decisoes": []
   },
@@ -90,13 +86,7 @@
     "esforco": "medium",
     "onda": 3,
     "lote": "L1",
-    "depende": [
-      "GUE-F0-02",
-      "GUE-F0-03",
-      "GUE-F0-04",
-      "GUE-F0-05",
-      "GUE-F0-06"
-    ],
+    "depende": ["GUE-F0-02", "GUE-F0-03", "GUE-F0-04", "GUE-F0-05", "GUE-F0-06"],
     "dependeExterno": [],
     "decisoes": []
   },
@@ -109,15 +99,9 @@
     "esforco": "high",
     "onda": 2,
     "lote": "L2",
-    "depende": [
-      "GUE-F0-01"
-    ],
-    "dependeExterno": [
-      "ALQ-F1-05"
-    ],
-    "decisoes": [
-      "D-G01"
-    ]
+    "depende": ["GUE-F0-01"],
+    "dependeExterno": ["ALQ-F1-05"],
+    "decisoes": ["D-G01"]
   },
   {
     "id": "GUE-F1-02",
@@ -128,9 +112,7 @@
     "esforco": "medium",
     "onda": 3,
     "lote": "L2",
-    "depende": [
-      "GUE-F1-01"
-    ],
+    "depende": ["GUE-F1-01"],
     "dependeExterno": [],
     "decisoes": []
   },
@@ -143,13 +125,9 @@
     "esforco": "high",
     "onda": 4,
     "lote": "L2",
-    "depende": [
-      "GUE-F1-02"
-    ],
+    "depende": ["GUE-F1-02"],
     "dependeExterno": [],
-    "decisoes": [
-      "D-G02"
-    ]
+    "decisoes": ["D-G02"]
   },
   {
     "id": "GUE-F1-04",
@@ -160,15 +138,9 @@
     "esforco": "high",
     "onda": 2,
     "lote": "L2",
-    "depende": [
-      "GUE-F0-01"
-    ],
-    "dependeExterno": [
-      "ALQ-F1-04"
-    ],
-    "decisoes": [
-      "D-G03"
-    ]
+    "depende": ["GUE-F0-01"],
+    "dependeExterno": ["ALQ-F1-04"],
+    "decisoes": ["D-G03"]
   },
   {
     "id": "GUE-F1-05",
@@ -179,9 +151,7 @@
     "esforco": "medium",
     "onda": 3,
     "lote": "L2",
-    "depende": [
-      "GUE-F1-04"
-    ],
+    "depende": ["GUE-F1-04"],
     "dependeExterno": [],
     "decisoes": []
   },
@@ -194,10 +164,7 @@
     "esforco": "medium",
     "onda": 5,
     "lote": "L2",
-    "depende": [
-      "GUE-F1-03",
-      "GUE-F1-04"
-    ],
+    "depende": ["GUE-F1-03", "GUE-F1-04"],
     "dependeExterno": [],
     "decisoes": []
   },
@@ -210,10 +177,7 @@
     "esforco": "medium",
     "onda": 6,
     "lote": "L2",
-    "depende": [
-      "GUE-F1-05",
-      "GUE-F1-06"
-    ],
+    "depende": ["GUE-F1-05", "GUE-F1-06"],
     "dependeExterno": [],
     "decisoes": []
   },
@@ -226,13 +190,8 @@
     "esforco": "high",
     "onda": 2,
     "lote": "L3",
-    "depende": [
-      "GUE-F0-01"
-    ],
-    "dependeExterno": [
-      "ALQ-F2-08",
-      "ALQ-F4-19"
-    ],
+    "depende": ["GUE-F0-01"],
+    "dependeExterno": ["ALQ-F2-08", "ALQ-F4-19"],
     "decisoes": []
   },
   {
@@ -244,11 +203,7 @@
     "esforco": "high",
     "onda": 5,
     "lote": "L3",
-    "depende": [
-      "GUE-F2-01",
-      "GUE-F5-04",
-      "GUE-F6-02"
-    ],
+    "depende": ["GUE-F2-01", "GUE-F5-04", "GUE-F6-02"],
     "dependeExterno": [],
     "decisoes": []
   },
@@ -261,10 +216,7 @@
     "esforco": "high",
     "onda": 6,
     "lote": "L3",
-    "depende": [
-      "GUE-F2-01",
-      "GUE-F2-02"
-    ],
+    "depende": ["GUE-F2-01", "GUE-F2-02"],
     "dependeExterno": [],
     "decisoes": []
   },
@@ -277,9 +229,7 @@
     "esforco": "medium",
     "onda": 7,
     "lote": "L3",
-    "depende": [
-      "GUE-F2-03"
-    ],
+    "depende": ["GUE-F2-03"],
     "dependeExterno": [],
     "decisoes": []
   },
@@ -292,9 +242,7 @@
     "esforco": "high",
     "onda": 2,
     "lote": "L2",
-    "depende": [
-      "GUE-F0-01"
-    ],
+    "depende": ["GUE-F0-01"],
     "dependeExterno": [],
     "decisoes": []
   },
@@ -307,14 +255,9 @@
     "esforco": "high",
     "onda": 5,
     "lote": "L2",
-    "depende": [
-      "GUE-F3-01",
-      "GUE-F1-03"
-    ],
+    "depende": ["GUE-F3-01", "GUE-F1-03"],
     "dependeExterno": [],
-    "decisoes": [
-      "D-G06"
-    ]
+    "decisoes": ["D-G06"]
   },
   {
     "id": "GUE-F3-03",
@@ -325,10 +268,7 @@
     "esforco": "medium",
     "onda": 5,
     "lote": "L2",
-    "depende": [
-      "GUE-F3-01",
-      "GUE-F1-03"
-    ],
+    "depende": ["GUE-F3-01", "GUE-F1-03"],
     "dependeExterno": [],
     "decisoes": []
   },
@@ -341,10 +281,7 @@
     "esforco": "medium",
     "onda": 6,
     "lote": "L2",
-    "depende": [
-      "GUE-F3-02",
-      "GUE-F3-03"
-    ],
+    "depende": ["GUE-F3-02", "GUE-F3-03"],
     "dependeExterno": [],
     "decisoes": []
   },
@@ -357,17 +294,9 @@
     "esforco": "high",
     "onda": 3,
     "lote": "L4",
-    "depende": [
-      "GUE-F0-01"
-    ],
-    "dependeExterno": [
-      "ALQ-F7-05",
-      "ALQ-F1-04",
-      "ALQ-F4-02"
-    ],
-    "decisoes": [
-      "D-G14"
-    ]
+    "depende": ["GUE-F0-01"],
+    "dependeExterno": ["ALQ-F7-05", "ALQ-F1-04", "ALQ-F4-02"],
+    "decisoes": ["D-G14"]
   },
   {
     "id": "GUE-F4-02",
@@ -378,17 +307,9 @@
     "esforco": "high",
     "onda": 5,
     "lote": "L4",
-    "depende": [
-      "GUE-F4-01",
-      "GUE-F3-01",
-      "GUE-F1-03"
-    ],
-    "dependeExterno": [
-      "ALQ-F7-05"
-    ],
-    "decisoes": [
-      "D-G05"
-    ]
+    "depende": ["GUE-F4-01", "GUE-F3-01", "GUE-F1-03"],
+    "dependeExterno": ["ALQ-F7-05"],
+    "decisoes": ["D-G05"]
   },
   {
     "id": "GUE-F4-03",
@@ -399,15 +320,9 @@
     "esforco": "medium",
     "onda": 6,
     "lote": "L4",
-    "depende": [
-      "GUE-F4-02"
-    ],
-    "dependeExterno": [
-      "ALQ-F6-10"
-    ],
-    "decisoes": [
-      "D-G04"
-    ]
+    "depende": ["GUE-F4-02"],
+    "dependeExterno": ["ALQ-F6-10"],
+    "decisoes": ["D-G04"]
   },
   {
     "id": "GUE-F4-04",
@@ -418,16 +333,8 @@
     "esforco": "high",
     "onda": 7,
     "lote": "L4",
-    "depende": [
-      "GUE-F4-01",
-      "GUE-F4-02",
-      "GUE-F4-03",
-      "GUE-F1-04",
-      "GUE-F3-01"
-    ],
-    "dependeExterno": [
-      "ALQ-F7-05"
-    ],
+    "depende": ["GUE-F4-01", "GUE-F4-02", "GUE-F4-03", "GUE-F1-04", "GUE-F3-01"],
+    "dependeExterno": ["ALQ-F7-05"],
     "decisoes": []
   },
   {
@@ -439,9 +346,7 @@
     "esforco": "medium",
     "onda": 8,
     "lote": "L4",
-    "depende": [
-      "GUE-F4-04"
-    ],
+    "depende": ["GUE-F4-04"],
     "dependeExterno": [],
     "decisoes": []
   },
@@ -454,15 +359,9 @@
     "esforco": "medium",
     "onda": 3,
     "lote": "L4",
-    "depende": [
-      "GUE-F0-01"
-    ],
-    "dependeExterno": [
-      "ALQ-F2-09"
-    ],
-    "decisoes": [
-      "D-G07"
-    ]
+    "depende": ["GUE-F0-01"],
+    "dependeExterno": ["ALQ-F2-09"],
+    "decisoes": ["D-G07"]
   },
   {
     "id": "GUE-F5-02",
@@ -473,16 +372,8 @@
     "esforco": "high",
     "onda": 7,
     "lote": "L4",
-    "depende": [
-      "GUE-F5-01",
-      "GUE-F4-01",
-      "GUE-F4-02",
-      "GUE-F4-03"
-    ],
-    "dependeExterno": [
-      "ALQ-F1-06",
-      "ALQ-F1-08"
-    ],
+    "depende": ["GUE-F5-01", "GUE-F4-01", "GUE-F4-02", "GUE-F4-03"],
+    "dependeExterno": ["ALQ-F1-06", "ALQ-F1-08"],
     "decisoes": []
   },
   {
@@ -494,18 +385,9 @@
     "esforco": "high",
     "onda": 6,
     "lote": "L4",
-    "depende": [
-      "GUE-F5-01",
-      "GUE-F5-05",
-      "GUE-F1-01"
-    ],
-    "dependeExterno": [
-      "ALQ-F1-09",
-      "ALQ-F1-11"
-    ],
-    "decisoes": [
-      "D-G08"
-    ]
+    "depende": ["GUE-F5-01", "GUE-F5-05", "GUE-F1-01"],
+    "dependeExterno": ["ALQ-F1-09", "ALQ-F1-11"],
+    "decisoes": ["D-G08"]
   },
   {
     "id": "GUE-F5-04",
@@ -516,13 +398,9 @@
     "esforco": "medium",
     "onda": 3,
     "lote": "L4",
-    "depende": [
-      "GUE-F0-01"
-    ],
+    "depende": ["GUE-F0-01"],
     "dependeExterno": [],
-    "decisoes": [
-      "D-G11"
-    ]
+    "decisoes": ["D-G11"]
   },
   {
     "id": "GUE-F5-05",
@@ -533,10 +411,7 @@
     "esforco": "high",
     "onda": 5,
     "lote": "L4",
-    "depende": [
-      "GUE-F1-03",
-      "GUE-F1-01"
-    ],
+    "depende": ["GUE-F1-03", "GUE-F1-01"],
     "dependeExterno": [],
     "decisoes": []
   },
@@ -549,13 +424,7 @@
     "esforco": "medium",
     "onda": 8,
     "lote": "L4",
-    "depende": [
-      "GUE-F5-01",
-      "GUE-F5-02",
-      "GUE-F5-03",
-      "GUE-F5-04",
-      "GUE-F5-05"
-    ],
+    "depende": ["GUE-F5-01", "GUE-F5-02", "GUE-F5-03", "GUE-F5-04", "GUE-F5-05"],
     "dependeExterno": [],
     "decisoes": []
   },
@@ -568,17 +437,9 @@
     "esforco": "medium",
     "onda": 4,
     "lote": "L3",
-    "depende": [
-      "GUE-F0-01",
-      "GUE-F2-01",
-      "GUE-F5-04"
-    ],
-    "dependeExterno": [
-      "ANI-F3-03"
-    ],
-    "decisoes": [
-      "D-G12"
-    ]
+    "depende": ["GUE-F0-01", "GUE-F2-01", "GUE-F5-04"],
+    "dependeExterno": ["ANI-F3-03"],
+    "decisoes": ["D-G12"]
   },
   {
     "id": "GUE-F6-02",
@@ -589,17 +450,9 @@
     "esforco": "high",
     "onda": 4,
     "lote": "L3",
-    "depende": [
-      "GUE-F0-01",
-      "GUE-F0-03"
-    ],
-    "dependeExterno": [
-      "ALQ-F1-01",
-      "ALQ-F0-07"
-    ],
-    "decisoes": [
-      "D-G09"
-    ]
+    "depende": ["GUE-F0-01", "GUE-F0-03"],
+    "dependeExterno": ["ALQ-F1-01", "ALQ-F0-07"],
+    "decisoes": ["D-G09"]
   },
   {
     "id": "GUE-F6-03",
@@ -610,14 +463,9 @@
     "esforco": "high",
     "onda": 6,
     "lote": "L3",
-    "depende": [
-      "GUE-F6-02",
-      "GUE-F1-03"
-    ],
+    "depende": ["GUE-F6-02", "GUE-F1-03"],
     "dependeExterno": [],
-    "decisoes": [
-      "D-G10"
-    ]
+    "decisoes": ["D-G10"]
   },
   {
     "id": "GUE-F6-04",
@@ -628,15 +476,9 @@
     "esforco": "high",
     "onda": 4,
     "lote": "L3",
-    "depende": [
-      "GUE-F1-01",
-      "GUE-F1-02",
-      "GUE-F3-01"
-    ],
+    "depende": ["GUE-F1-01", "GUE-F1-02", "GUE-F3-01"],
     "dependeExterno": [],
-    "decisoes": [
-      "D-G13"
-    ]
+    "decisoes": ["D-G13"]
   },
   {
     "id": "GUE-F6-05",
@@ -647,12 +489,7 @@
     "esforco": "medium",
     "onda": 7,
     "lote": "L3",
-    "depende": [
-      "GUE-F6-01",
-      "GUE-F6-02",
-      "GUE-F6-03",
-      "GUE-F6-04"
-    ],
+    "depende": ["GUE-F6-01", "GUE-F6-02", "GUE-F6-03", "GUE-F6-04"],
     "dependeExterno": [],
     "decisoes": []
   },
@@ -665,16 +502,9 @@
     "esforco": "high",
     "onda": 4,
     "lote": "L3",
-    "depende": [
-      "GUE-F0-01",
-      "GUE-F2-01"
-    ],
-    "dependeExterno": [
-      "ALQ-F3-05"
-    ],
-    "decisoes": [
-      "D-G15"
-    ]
+    "depende": ["GUE-F0-01", "GUE-F2-01"],
+    "dependeExterno": ["ALQ-F3-05"],
+    "decisoes": ["D-G15"]
   },
   {
     "id": "GUE-F7-02",
@@ -685,10 +515,7 @@
     "esforco": "medium",
     "onda": 4,
     "lote": "L3",
-    "depende": [
-      "GUE-F0-01",
-      "GUE-F2-01"
-    ],
+    "depende": ["GUE-F0-01", "GUE-F2-01"],
     "dependeExterno": [],
     "decisoes": []
   },
@@ -701,10 +528,7 @@
     "esforco": "medium",
     "onda": 7,
     "lote": "L3",
-    "depende": [
-      "GUE-F7-01",
-      "GUE-F7-02"
-    ],
+    "depende": ["GUE-F7-01", "GUE-F7-02"],
     "dependeExterno": [],
     "decisoes": []
   }
