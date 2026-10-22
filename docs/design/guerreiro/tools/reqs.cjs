@@ -28,7 +28,16 @@ const BLOCO = { 0: 1, 1: 40, 2: 80, 3: 100, 4: 130, 5: 170, 6: 220, 7: 260 };
  * o que os planos do Alquimista e do Animista já reservaram (eles vão até
  * REQ-PF2-244, REQ-CBT-062, REQ-CNV-099, REQ-CHT-053, REQ-SYS-158).
  */
-const EMPRESTADO = { PF2: 245, CBT: 63, CNV: 100, CHT: 54, SYS: 159, ACH: 93 };
+const EMPRESTADO = { PF2: 284, CBT: 72, CNV: 108, CHT: 65, SYS: 166, ACH: 93 };
+
+/**
+ * Corte da reatribuição: número >= corte é id reservado POR ESTE PLANO (a faixa
+ * antiga, de antes da convergência com a mesa) e é renumerado a partir de
+ * `EMPRESTADO`. Abaixo do corte é citação a requisito existente. Na reexecução de
+ * 21/10/2026 (alfa já em PF2 283, CBT 071, CNV 107, CHT 064, SYS 165) os dois
+ * mapas diferem; numa primeira execução seriam iguais.
+ */
+const CORTE = { PF2: 245, CBT: 63, CNV: 100, CHT: 54, SYS: 159, ACH: 93 };
 
 let md = fs.readFileSync(mdPath, "utf8");
 const RE_FICHA = /^### (GUE-F(\d)-\d\d) —.*$/gm;
@@ -65,7 +74,7 @@ for (const f of fichas) {
   });
 
   nova = nova.replace(/`REQ-(PF2|CBT|CNV|CHT|SYS|ACH)-(\d+)(?:\.\.(\d+))?`/g, (all, pfx, a, b) => {
-    if (Number(a) < EMPRESTADO[pfx]) return all; // citação a requisito já existente
+    if (Number(a) < CORTE[pfx]) return all; // citação a requisito já existente
     const qtd = b ? Number(b) - Number(a) + 1 : 1;
     const ini = proximoEmp[pfx];
     proximoEmp[pfx] += qtd;
