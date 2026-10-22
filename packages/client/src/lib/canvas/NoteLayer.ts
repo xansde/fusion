@@ -10,12 +10,13 @@
 import { Container, Graphics, Text, TextStyle } from "pixi.js";
 import type { MapNote } from "@fusion/shared";
 import { labelCounterScale } from "./RulerLayer.js";
+import { CANVAS_FONT, CANVAS_TEXT } from "./canvasType.js";
 
 const PUBLIC_COLOR = 0xffcc44;
 const GM_ONLY_COLOR = 0xb08cff;
 /** Radius of the pin marker in screen pixels (also the click target). */
 export const PIN_RADIUS_PX = 11;
-const FONT_PX = 14;
+const FONT_PX = CANVAS_TEXT.base;
 
 export class NoteLayer {
   private _root: Container;
@@ -67,7 +68,7 @@ export class NoteLayer {
       const label = new Text({
         text: note.gmOnly ? `${note.title} (Mestre)` : note.title,
         style: new TextStyle({
-          fontFamily: "sans-serif",
+          fontFamily: CANVAS_FONT,
           fontSize: FONT_PX,
           fontWeight: "bold",
           fill: color,

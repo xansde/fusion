@@ -33,3 +33,30 @@ it and license the derivative work under the same terms.
 
 This is a project decision, not legal advice (provisional, 2026-10-21; see
 specs/35-avatar-do-personagem.md section 6.1).
+
+
+Interface font (Atkinson Hyperlegible Next / Mono)
+--------------------------------------------------
+
+The client's text face is Atkinson Hyperlegible Next, and its monospace face Atkinson
+Hyperlegible Mono, by the Braille Institute of America (Copyright 2020-2024 The Atkinson
+Hyperlegible Next Project Authors and The Atkinson Hyperlegible Mono Project Authors):
+
+  https://github.com/googlefonts/atkinson-hyperlegible-next
+  https://github.com/googlefonts/atkinson-hyperlegible-next-mono
+
+Licensed under the SIL Open Font License, Version 1.1. The woff2 subsets come from the
+Fontsource packages @fontsource-variable/atkinson-hyperlegible-next@5.3.0 and
+@fontsource-variable/atkinson-hyperlegible-mono@5.3.0 and are bundled with the client
+(packages/client/src/styles/fonts/, licence in OFL.txt there). The fonts are not sold
+by themselves.
+
+
+Icons (Lucide)
+--------------
+
+The interface icons are a subset of Lucide (https://lucide.dev), lucide-static@1.61.0,
+Copyright (c) Lucide Icons and Contributors, ISC License; parts derived from Feather
+(Copyright (c) 2013-present Cole Bemis, MIT License). The full licence text is in
+packages/shared/src/ui/LUCIDE-LICENSE.txt. The Fusion mark and favicon are original
+drawings for Fusion.

@@ -321,7 +321,7 @@ describe("ScenesTab — the head that says what is on air", () => {
       const css = styleOfScenesTab();
       const flagRule = ruleFor(css, ".scene-head__flag");
 
-      expect(flagRule).toMatch(/background:\s*rgba\(0,\s*0,\s*0/);
+      expect(flagRule).toMatch(/background:\s*var\(--fusion-surface/);
       expect(flagRule).toMatch(/left:\s*[\d.]/);
     });
 

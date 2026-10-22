@@ -47,6 +47,7 @@
   import { publicarMiniatura } from "$lib/avatar/publicarMiniatura.js";
   import { liberarPixelsDoAvatar } from "$lib/avatar/desenhar.js";
   import { getSocket } from "$lib/session.svelte.js";
+  import Icon from "../common/Icon.svelte";
   import { atualizarAtor } from "$lib/avatar/escrita.js";
   import { FilaDeSalvamento } from "$lib/avatar/salvamento.js";
   import { caminhoDeArteValido, podeRestaurar, precisaConfirmarSubstituicao } from "$lib/avatar/imagemDoAtor.js";
@@ -475,7 +476,7 @@
                     class="equipados__tirar"
                     onclick={() => tirar(linha.slot)}
                     aria-label={t("FUSION.Avatar.Unequip", { slot: linha.rotulo })}
-                  >×</button>
+                  ><Icon name="x" size={16} /></button>
                 {/if}
               </li>
             {/each}
@@ -522,7 +523,7 @@
                 <ActorPortrait img={imgAtual} docRef={{ table: "actors", id: actorId }} name={nome} size={64} />
                 <figcaption>{t("FUSION.Avatar.ReplaceCurrent")}</figcaption>
               </figure>
-              <span aria-hidden="true">→</span>
+              <span aria-hidden="true"><Icon name="arrow-right" size={24} /></span>
               <figure>
                 <img class="substituir__nova" src={pendente.url} width="64" height="64" alt="" />
                 <figcaption>{t("FUSION.Avatar.ReplaceNew")}</figcaption>
@@ -621,7 +622,7 @@
             onclick={() => { slotAtivo = s.slot; busca = ""; }}
           >
             {s.rotulo} <span class="chip__contador">{s.itens.length}</span>
-            {#if selecao[s.slot] !== undefined}<span class="chip__marca" aria-hidden="true">●</span>{/if}
+            {#if selecao[s.slot] !== undefined}<span class="chip__marca" aria-hidden="true"><Icon name="check" size={14} /></span>{/if}
           </button>
         {/each}
       </div>
@@ -764,8 +765,8 @@
   .palco__boneco {
     align-items: center;
     background:
-      linear-gradient(45deg, rgba(255, 255, 255, 0.04) 25%, transparent 25%, transparent 75%, rgba(255, 255, 255, 0.04) 75%),
-      linear-gradient(45deg, rgba(255, 255, 255, 0.04) 25%, transparent 25%, transparent 75%, rgba(255, 255, 255, 0.04) 75%);
+      linear-gradient(45deg, var(--fusion-surface-alt) 25%, transparent 25%, transparent 75%, var(--fusion-surface-alt) 75%),
+      linear-gradient(45deg, var(--fusion-surface-alt) 25%, transparent 25%, transparent 75%, var(--fusion-surface-alt) 75%);
     background-position: 0 0, 8px 8px;
     background-size: 16px 16px;
     border: 1px solid var(--fusion-border);
@@ -783,9 +784,7 @@
 
   .grupo__rotulo {
     color: var(--fusion-text-subtle);
-    font-size: 0.6875rem;
-    letter-spacing: 0.06em;
-    text-transform: uppercase;
+    font-size: var(--fusion-text-xs);
   }
 
   .chips,
@@ -802,12 +801,12 @@
     border-radius: var(--fusion-radius-pill);
     color: var(--fusion-text);
     cursor: pointer;
-    font-size: 0.75rem;
+    font-size: var(--fusion-text-sm);
     padding: 0.2rem 0.55rem;
   }
 
   .chip--pequeno {
-    font-size: 0.6875rem;
+    font-size: var(--fusion-text-xs);
   }
 
   .chip:hover:not(:disabled) {
@@ -829,12 +828,12 @@
 
   .chip__contador {
     opacity: 0.6;
-    font-size: 0.625rem;
+    font-size: var(--fusion-text-xs);
   }
 
   .chip__marca {
     color: var(--fusion-success);
-    font-size: 0.5rem;
+    font-size: var(--fusion-text-xs);
     vertical-align: middle;
   }
 
@@ -855,7 +854,7 @@
     align-items: baseline;
     border-bottom: 1px dotted var(--fusion-border);
     display: flex;
-    font-size: 0.6875rem;
+    font-size: var(--fusion-text-xs);
     gap: 0.35rem;
     padding: 0.1rem 0;
   }
@@ -887,7 +886,7 @@
   .aviso,
   .mensagem {
     color: var(--fusion-text-subtle);
-    font-size: 0.6875rem;
+    font-size: var(--fusion-text-xs);
     margin: 0;
   }
 
@@ -907,7 +906,7 @@
     border-radius: var(--fusion-radius-sm);
     color: var(--fusion-text);
     cursor: pointer;
-    font-size: 0.6875rem;
+    font-size: var(--fusion-text-xs);
     line-height: 1.2;
     overflow: hidden;
     padding: 0.3rem 0.4rem;
@@ -943,7 +942,7 @@
   }
 
   .substituir__titulo {
-    font-size: 0.75rem;
+    font-size: var(--fusion-text-sm);
     font-weight: 600;
     margin: 0;
   }
@@ -966,7 +965,7 @@
   .substituir__lados figcaption,
   .substituir__dica {
     color: var(--fusion-text-subtle);
-    font-size: 0.625rem;
+    font-size: var(--fusion-text-xs);
     margin: 0;
   }
 
@@ -985,7 +984,7 @@
     border-radius: var(--fusion-radius-sm);
     color: var(--fusion-text);
     cursor: pointer;
-    font-size: 0.75rem;
+    font-size: var(--fusion-text-sm);
     padding: 0.3rem 0.6rem;
   }
 
@@ -999,10 +998,8 @@
   .na-tela summary {
     color: var(--fusion-text-subtle);
     cursor: pointer;
-    font-size: 0.6875rem;
-    letter-spacing: 0.06em;
+    font-size: var(--fusion-text-xs);
     margin-bottom: 0.35rem;
-    text-transform: uppercase;
   }
 
   .creditos__botao {
@@ -1011,14 +1008,14 @@
     border: 0;
     color: var(--fusion-text-subtle);
     cursor: pointer;
-    font-size: 0.625rem;
+    font-size: var(--fusion-text-xs);
     padding: 0;
     text-decoration: underline;
   }
 
   .creditos {
     color: var(--fusion-text-subtle);
-    font-size: 0.5625rem;
+    font-size: var(--fusion-text-xs);
     line-height: 1.4;
   }
 
@@ -1067,7 +1064,7 @@
   .cores__rotulo {
     color: var(--fusion-text-subtle);
     flex: none;
-    font-size: 0.625rem;
+    font-size: var(--fusion-text-xs);
     width: 6rem;
   }
 
@@ -1083,7 +1080,7 @@
     border-radius: var(--fusion-radius-sm);
     color: var(--fusion-text-subtle);
     cursor: pointer;
-    font-size: 0.5rem;
+    font-size: var(--fusion-text-xs);
     height: 20px;
     overflow: hidden;
     padding: 0;
@@ -1109,7 +1106,7 @@
     border: 1px solid var(--fusion-border);
     border-radius: var(--fusion-radius-sm);
     color: var(--fusion-text);
-    font-size: 0.75rem;
+    font-size: var(--fusion-text-sm);
     margin: 0.4rem 0.6rem 0;
     padding: 0.25rem 0.4rem;
   }
@@ -1151,7 +1148,7 @@
 
   .cel__nome {
     color: var(--fusion-text-subtle);
-    font-size: 0.5625rem;
+    font-size: var(--fusion-text-xs);
     line-height: 1.15;
     max-width: 100%;
     overflow: hidden;
@@ -1162,7 +1159,7 @@
 
   .grade__vazia {
     color: var(--fusion-text-subtle);
-    font-size: 0.75rem;
+    font-size: var(--fusion-text-sm);
     grid-column: 1 / -1;
   }
 </style>

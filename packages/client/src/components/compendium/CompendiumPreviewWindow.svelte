@@ -51,6 +51,8 @@
   } from "../../lib/compendium/compendiumApi.js";
   import { getSocket } from "../../lib/session.svelte.js";
   import { i18n, t } from "../../lib/i18n/i18n.js";
+  import Icon from "../common/Icon.svelte";
+  import CostGlyphs from "../common/CostGlyphs.svelte";
 
   interface Props {
     /** Compendium uuid of the document to show — the window's identity. */
@@ -257,20 +259,7 @@
             }}
           />
         {:else}
-          <!-- Drawn, never a pictograph: an emoji changes shape per OS. -->
-          <svg
-            class="compendium-preview__icon"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            stroke-width="1.7"
-            stroke-linecap="round"
-            stroke-linejoin="round"
-            aria-hidden="true"
-            focusable="false"
-          >
-            <path d="M6 3h8l4 4v14H6V3Zm8 0v4h4M9 12h6M9 16h6" />
-          </svg>
+          <span class="compendium-preview__icon" aria-hidden="true"><Icon name="file-text" size={28} /></span>
         {/if}
       </span>
       <div class="compendium-preview__titles">
@@ -299,7 +288,9 @@
         {#each preview.fields as field (field.key)}
           <div class="compendium-preview__field">
             <dt class="compendium-preview__field-label">{resolveFieldLabel(field, t)}</dt>
-            <dd class="compendium-preview__field-value">{field.value}</dd>
+            <dd class="compendium-preview__field-value" title={field.value}>
+              {#if /[◆◇⟳↺]/u.test(field.value)}<CostGlyphs glyphs={field.value} size={14} />{:else}{field.value}{/if}
+            </dd>
           </div>
         {/each}
       </dl>
@@ -381,12 +372,12 @@
   .compendium-preview {
     display: flex;
     flex-direction: column;
-    gap: 0.6rem;
+    gap: var(--fusion-space-3);
     height: 100%;
     overflow-y: auto;
-    padding: 0.6rem;
-    font-size: 0.85rem;
-    color: var(--fusion-text, #eee);
+    padding: var(--fusion-space-3);
+    font-size: var(--fusion-text-base);
+    color: var(--fusion-text);
   }
 
   .compendium-preview__status,
@@ -398,24 +389,26 @@
   .compendium-preview__error {
     display: flex;
     flex-direction: column;
-    gap: 0.35rem;
-    color: var(--fusion-danger, #e06c6c);
+    gap: var(--fusion-space-2);
+    color: var(--fusion-danger);
   }
 
   .compendium-preview__error-detail {
-    color: var(--fusion-text-muted, #9aa);
-    font-size: 0.78rem;
+    color: var(--fusion-text-muted);
+    font-size: var(--fusion-text-sm);
+    overflow-wrap: anywhere;
   }
 
   .compendium-preview__retry {
     align-self: flex-start;
-    background: var(--fusion-surface-alt, #2a2a2a);
-    border: 1px solid var(--fusion-border, #444);
-    border-radius: var(--fusion-radius-sm, 3px);
-    color: var(--fusion-text, #eee);
+    background: var(--fusion-surface-alt);
+    border: 1px solid var(--fusion-border);
+    border-radius: var(--fusion-radius-sm);
+    color: var(--fusion-text);
     cursor: pointer;
     font: inherit;
-    padding: 0.2rem 0.6rem;
+    min-height: var(--fusion-target);
+    padding: 0 var(--fusion-space-3);
   }
 
   .compendium-preview__head {
@@ -431,14 +424,19 @@
     justify-content: center;
     height: 2.6rem;
     width: 2.6rem;
-    color: var(--fusion-text-subtle, #778);
+    background: var(--fusion-surface-alt);
+    border-radius: var(--fusion-radius-sm);
+    color: var(--fusion-text-subtle);
   }
 
-  .compendium-preview__img,
-  .compendium-preview__icon {
+  .compendium-preview__img {
     height: 100%;
     width: 100%;
     object-fit: contain;
+  }
+
+  .compendium-preview__icon {
+    display: inline-flex;
   }
 
   .compendium-preview__titles {
@@ -446,23 +444,24 @@
   }
 
   .compendium-preview__name {
-    font-size: 1rem;
-    font-weight: 600;
+    font-size: var(--fusion-text-lg);
+    font-weight: 500;
+    overflow-wrap: anywhere;
     margin: 0;
   }
 
   .compendium-preview__name-original {
-    color: var(--fusion-text-muted, #9aa);
+    color: var(--fusion-text-muted);
     display: block;
-    font-size: 0.78rem;
+    font-size: var(--fusion-text-xs);
   }
 
   .compendium-preview__meta {
-    color: var(--fusion-text-subtle, #778);
+    color: var(--fusion-text-subtle);
     display: flex;
     flex-wrap: wrap;
-    gap: 0.4rem;
-    font-size: 0.75rem;
+    gap: var(--fusion-space-2);
+    font-size: var(--fusion-text-xs);
   }
 
   .compendium-preview__description {
@@ -473,17 +472,22 @@
   .compendium-preview__fields {
     display: flex;
     flex-direction: column;
-    gap: 0.15rem;
+    gap: var(--fusion-space-1);
     margin: 0;
   }
 
   .compendium-preview__field {
     display: flex;
-    gap: 0.35rem;
+    gap: var(--fusion-space-2);
+  }
+
+  .compendium-preview__field-value {
+    display: inline-flex;
+    align-items: center;
   }
 
   .compendium-preview__field-label {
-    color: var(--fusion-text-subtle, #778);
+    color: var(--fusion-text-subtle);
   }
 
   .compendium-preview__field-value {
@@ -496,23 +500,21 @@
    * material notice is exactly the failure this project cannot afford.
    */
   .compendium-preview__license {
-    border-top: 1px solid var(--fusion-border, #444);
+    border-top: 1px solid var(--fusion-border);
     display: flex;
     flex-direction: column;
-    gap: 0.2rem;
-    padding-top: 0.4rem;
-    font-size: 0.75rem;
+    gap: var(--fusion-space-1);
+    padding-top: var(--fusion-space-3);
+    font-size: var(--fusion-text-xs);
     overflow-wrap: anywhere;
     white-space: normal;
   }
 
   .compendium-preview__license-title {
-    color: var(--fusion-text-subtle, #778);
-    font-size: 0.72rem;
+    color: var(--fusion-text-subtle);
+    font-size: var(--fusion-text-xs);
     font-weight: 600;
-    letter-spacing: 0.04em;
     margin: 0;
-    text-transform: uppercase;
   }
 
   .compendium-preview__license-line,
@@ -524,26 +526,27 @@
   }
 
   .compendium-preview__license-label {
-    color: var(--fusion-text-subtle, #778);
+    color: var(--fusion-text-subtle);
   }
 
   .compendium-preview__license-value {
-    color: var(--fusion-text, #eee);
+    color: var(--fusion-text);
   }
 
   .compendium-preview__actions {
     display: flex;
-    gap: 0.4rem;
+    gap: var(--fusion-space-2);
   }
 
   .compendium-preview__import {
-    background: var(--fusion-accent, #3a6ea5);
+    background: var(--fusion-accent);
     border: none;
-    border-radius: var(--fusion-radius-sm, 3px);
-    color: #fff;
+    border-radius: var(--fusion-radius-sm);
+    color: var(--fusion-on-accent);
     cursor: pointer;
     font: inherit;
-    padding: 0.25rem 0.7rem;
+    min-height: var(--fusion-target);
+    padding: 0 var(--fusion-space-4);
   }
 
   .compendium-preview__import:disabled {
@@ -552,12 +555,12 @@
   }
 
   .compendium-preview__import-msg {
-    color: var(--fusion-success, #6ea55a);
+    color: var(--fusion-success);
     margin: 0;
-    font-size: 0.78rem;
+    font-size: var(--fusion-text-sm);
   }
 
   .compendium-preview__import-msg--failed {
-    color: var(--fusion-danger, #e06c6c);
+    color: var(--fusion-danger);
   }
 </style>

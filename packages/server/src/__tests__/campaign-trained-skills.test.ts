@@ -19,7 +19,7 @@
  * in the satellite's own tests, `campaign-trained-skills.test.ts` there).
  */
 
-import { describe, it, expect, beforeAll, afterAll } from "vitest";
+import { describe, it, expect, beforeAll, afterAll, beforeEach } from "vitest";
 import { mkdirSync, rmSync } from "node:fs";
 import { join } from "node:path";
 import { tmpdir } from "node:os";
@@ -247,7 +247,7 @@ describe("REQ-CFG-038 — campaign.trainedSkills, world setting crossing the ser
   let gm: ClientSocket;
   let player: ClientSocket;
   let actorId: string;
-  let settingId: string;
+  let settingId: string | null = null;
   /** Latest `_stats.version` of the actor the server broadcast (a non-GM write needs it). */
   let actorVersion = 0;
 
@@ -282,6 +282,38 @@ describe("REQ-CFG-038 — campaign.trainedSkills, world setting crossing the ser
     await teardown(ctx);
   });
 
+  /**
+   * Both sockets have received everything the server emitted so far: events of
+   * one socket arrive in emission order, so one query round-trip each drains
+   * the broadcasts a previous step left in flight before a test listens.
+   */
+  async function settle(): Promise<void> {
+    await Promise.all([gm, player].map((s) => sendQuery(s, "settings:declarations", {})));
+  }
+
+  // Test independence: every test starts with no campaign setting stored, and
+  // the ones that need one seed it themselves.
+  beforeEach(async () => {
+    if (settingId !== null) {
+      const ack = await sendOp(gm, "doc:delete", { documentType: "Setting", ids: [settingId] });
+      expect(ack["ok"]).toBe(true);
+      settingId = null;
+    }
+    await settle();
+  });
+
+  /** The GM stores the campaign setting with `value`, then everything settles. */
+  async function seedSetting(value: string[]): Promise<string> {
+    const ack = await sendOp(gm, "doc:create", {
+      documentType: "Setting",
+      data: [{ key: CAMPAIGN_KEY, value }],
+    });
+    expect(ack["ok"]).toBe(true);
+    settingId = (ack["result"] as { documents: Array<{ _id: string }> }).documents[0]!._id;
+    await settle();
+    return settingId;
+  }
+
   it("a PLAYER cannot create the setting (GAMEMASTER-strict write)", async () => {
     const ack = await sendOp(player, "doc:create", {
       documentType: "Setting",
@@ -308,15 +340,17 @@ describe("REQ-CFG-038 — campaign.trainedSkills, world setting crossing the ser
   });
 
   it("a PLAYER cannot update the setting, even when the document is theirs to read", async () => {
+    const id = await seedSetting(["occultism"]);
     const ack = await sendOp(player, "doc:update", {
       documentType: "Setting",
-      updates: [{ _id: settingId, diff: { value: ["arcana", "stealth"] } }],
+      updates: [{ _id: id, diff: { value: ["arcana", "stealth"] } }],
     });
     expect(ack["ok"]).toBe(false);
     expect(ack["code"]).toBe("PERMISSION_DENIED");
   });
 
   it("the PLAYER reads the list through settings:declarations — and only it, not the sibling setting", async () => {
+    await seedSetting(["occultism"]);
     const ack = await sendQuery(player, "settings:declarations", {});
     expect(ack["ok"]).toBe(true);
     const settings = (
@@ -333,6 +367,7 @@ describe("REQ-CFG-038 — campaign.trainedSkills, world setting crossing the ser
   });
 
   it("the GM's update reaches the PLAYER's socket live (allowlisted key) and re-derives the actor", async () => {
+    const id = await seedSetting(["occultism"]);
     const playerSetting = waitForOp(
       player,
       (env) => env.type === "doc:update" && env.payload["documentType"] === "Setting",
@@ -341,7 +376,7 @@ describe("REQ-CFG-038 — campaign.trainedSkills, world setting crossing the ser
 
     const ack = await sendOp(gm, "doc:update", {
       documentType: "Setting",
-      updates: [{ _id: settingId, diff: { value: ["arcana", "stealth"] } }],
+      updates: [{ _id: id, diff: { value: ["arcana", "stealth"] } }],
     });
     expect(ack["ok"]).toBe(true);
 
@@ -357,20 +392,42 @@ describe("REQ-CFG-038 — campaign.trainedSkills, world setting crossing the ser
     ]);
   });
 
+  it("deleting the setting re-derives the actor back to 'no opinion', broadcast right then", async () => {
+    const id = await seedSetting(["occultism"]);
+    const rederived = waitForOp(gm, isActorUpdate);
+    const ack = await sendOp(gm, "doc:delete", { documentType: "Setting", ids: [id] });
+    expect(ack["ok"]).toBe(true);
+    settingId = null;
+
+    const env = await rederived;
+    const docs = env.payload["documents"] as Record<string, unknown>[];
+    expect(docs).toHaveLength(1);
+    expect(docs[0]?.["_id"]).toBe(actorId);
+    // "No opinion": the key is gone (the derived block prunes a null), no list.
+    expect(seen(docs[0]) ?? null).toBeNull();
+  });
+
   it("clearing the list (an explicit []) re-derives to empty, not to 'no opinion'", async () => {
+    const id = await seedSetting(["arcana", "stealth"]);
     const rederived = waitForOp(gm, isActorUpdate);
     const ack = await sendOp(gm, "doc:update", {
       documentType: "Setting",
-      updates: [{ _id: settingId, diff: { value: [] } }],
+      updates: [{ _id: id, diff: { value: [] } }],
     });
     expect(ack["ok"]).toBe(true);
     const env = await rederived;
     const cleared = (env.payload["documents"] as Record<string, unknown>[])[0];
     expect(seen(cleared)).toEqual([]);
-    rememberVersion(cleared);
   });
 
   it("an OWNER cannot grant their own actor skills: a self-written system.build.campaignSkills is dropped by the derivation", async () => {
+    // The world value is an explicit empty list.
+    await seedSetting([]);
+    // A non-GM write needs the version the server last stored for the actor.
+    const row = ctx.fusionDb.raw.prepare("SELECT data FROM actors WHERE id = ?").get(actorId) as {
+      data: string;
+    };
+    rememberVersion(JSON.parse(row.data) as Record<string, unknown>);
     const ack = await sendOp(player, "doc:update", {
       documentType: "Actor",
       updates: [

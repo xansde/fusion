@@ -17,7 +17,7 @@
  * Spec: 18-sistema-sf2e.md REQ-SF2-024, CA-SF2-05.
  */
 
-import { describe, it, expect, beforeAll, afterAll } from "vitest";
+import { describe, it, expect, beforeAll, afterAll, beforeEach } from "vitest";
 import { mkdirSync, rmSync } from "node:fs";
 import { join } from "node:path";
 import { tmpdir } from "node:os";
@@ -167,7 +167,16 @@ describe("SF2e augmentation slot limit — enforced on the real doc:create handl
     gm = connectClient(ctx.port, ctx.worldId, ctx.gmToken);
     gm.connect();
     await waitForConnect(gm);
+  }, 30000);
 
+  afterAll(async () => {
+    gm?.disconnect();
+    await teardown(ctx);
+  });
+
+  // Test independence: each test gets its own actor, so the augmentations one
+  // test installs never count against the slots of another.
+  beforeEach(async () => {
     const actorAck = await sendOp(gm, "doc:create", {
       documentType: "Actor",
       data: [
@@ -183,15 +192,10 @@ describe("SF2e augmentation slot limit — enforced on the real doc:create handl
     const docs = (actorAck["result"] as { documents: Array<{ _id: string }> }).documents;
     actorId = docs[0]!._id;
     expect(actorId).toBeTruthy();
-  }, 30000);
-
-  afterAll(async () => {
-    gm?.disconnect();
-    await teardown(ctx);
   });
 
-  it("allows installing 4 non-apex augmentations", async () => {
-    for (let i = 1; i <= 4; i++) {
+  async function installNonApex(count: number): Promise<void> {
+    for (let i = 1; i <= count; i++) {
       const ack = await sendOp(gm, "doc:create", {
         documentType: "Item",
         parent: { type: "Actor", id: actorId },
@@ -199,9 +203,14 @@ describe("SF2e augmentation slot limit — enforced on the real doc:create handl
       });
       expect(ack["ok"]).toBe(true);
     }
+  }
+
+  it("allows installing 4 non-apex augmentations", async () => {
+    await installNonApex(4);
   });
 
   it("rejects the 5th non-apex augmentation with the slot-limit i18n key", async () => {
+    await installNonApex(4);
     const ack = await sendOp(gm, "doc:create", {
       documentType: "Item",
       parent: { type: "Actor", id: actorId },
@@ -213,6 +222,8 @@ describe("SF2e augmentation slot limit — enforced on the real doc:create handl
   });
 
   it("apex augmentations do not count toward the limit", async () => {
+    // All 4 non-apex slots taken: apex ones must still fit.
+    await installNonApex(4);
     const ack = await sendOp(gm, "doc:create", {
       documentType: "Item",
       parent: { type: "Actor", id: actorId },
@@ -230,8 +241,7 @@ describe("SF2e augmentation slot limit — enforced on the real doc:create handl
   });
 
   it("a single batch of multiple non-apex augmentations is capped by the same limit", async () => {
-    // At this point the actor already has 4 non-apex + 2 apex installed.
-    // A fresh actor lets us test intra-batch counting cleanly.
+    // A second, empty actor tests intra-batch counting on its own.
     const freshActorAck = await sendOp(gm, "doc:create", {
       documentType: "Actor",
       data: [

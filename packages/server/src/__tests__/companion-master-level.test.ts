@@ -8,7 +8,7 @@
  * Runs on the REAL doc:create / doc:update handlers (boot()), over a socket.
  */
 
-import { describe, it, expect, beforeAll, afterAll } from "vitest";
+import { describe, it, expect, beforeAll, afterAll, beforeEach } from "vitest";
 import { mkdirSync, readFileSync, rmSync } from "node:fs";
 import { join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -509,9 +509,6 @@ describe("Owner change re-derives the animal companion on the server (BHR-F4-03)
         data: [{ name: "Mount Scene" }],
       });
       sceneId = docsOf(sceneAck)[0]!["_id"] as string;
-      // A player only reaches the scene that is on air.
-      const onAir = await sendOp(gm, "world:activeScene", { sceneId });
-      expect(onAir["ok"], JSON.stringify(onAir)).toBe(true);
       const tokenAck = await sendOp(gm, "doc:create", {
         documentType: "Token",
         data: [{ name: "Rider", actorId: masterId, x: 0, y: 0 }],
@@ -521,6 +518,14 @@ describe("Owner change re-derives the animal companion on the server (BHR-F4-03)
         (tokenAck["result"] as Record<string, unknown>)["parent"] as Record<string, unknown>
       )["tokens"] as Array<{ _id: string }>;
       tokenId = tokens[0]!._id;
+    });
+
+    // A player only reaches the scene that is on air, and only one scene is
+    // (the nested block below puts its own on air): every test of this block
+    // puts ITS scene on air first, whatever ran before.
+    beforeEach(async () => {
+      const onAir = await sendOp(gm, "world:activeScene", { sceneId });
+      expect(onAir["ok"], JSON.stringify(onAir)).toBe(true);
     });
 
     it("the token owner writing flags.fusion.mount is refused, whatever the spelling", async () => {
@@ -580,8 +585,6 @@ describe("Owner change re-derives the animal companion on the server (BHR-F4-03)
           data: [{ name: "Owned Scene", ownership: { default: 3 } }],
         });
         ownedSceneId = docsOf(sceneAck)[0]!["_id"] as string;
-        const onAir = await sendOp(gm, "world:activeScene", { sceneId: ownedSceneId });
-        expect(onAir["ok"], JSON.stringify(onAir)).toBe(true);
         const tokenAck = await sendOp(gm, "doc:create", {
           documentType: "Token",
           data: [{ name: "Rider2", actorId: masterId, x: 0, y: 0 }],
@@ -591,7 +594,14 @@ describe("Owner change re-derives the animal companion on the server (BHR-F4-03)
         ownedTokenId = rawTokens()[0]!["_id"] as string;
       });
 
+      // Runs after the outer beforeEach, so this scene is the one on air.
+      beforeEach(async () => {
+        const onAir = await sendOp(gm, "world:activeScene", { sceneId: ownedSceneId });
+        expect(onAir["ok"], JSON.stringify(onAir)).toBe(true);
+      });
+
       it("a player cannot create a token that already carries flags.fusion.mount", async () => {
+        const tokensBefore = rawTokens().length;
         const ack = await sendOp(ownerSocket, "doc:create", {
           documentType: "Token",
           data: [{ name: "Forged", actorId: masterId, x: 100, y: 0, flags: mountFlag }],
@@ -600,7 +610,7 @@ describe("Owner change re-derives the animal companion on the server (BHR-F4-03)
         expect(ack["ok"], JSON.stringify(ack)).toBe(false);
         expect(ack["code"]).toBe("PERMISSION_DENIED");
         expect(String(ack["message"])).toMatch(/flags\.fusion\.mount/);
-        expect(rawTokens()).toHaveLength(1);
+        expect(rawTokens()).toHaveLength(tokensBefore);
       });
 
       it("a player can still create an ordinary token there", async () => {

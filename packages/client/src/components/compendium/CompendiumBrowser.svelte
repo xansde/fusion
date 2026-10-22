@@ -95,6 +95,8 @@
   } from "../../lib/compendium/resultLine.js";
   import { openCompendiumPreviewWindow } from "../../lib/compendium/previewWindow.js";
   import CompendiumResultLine from "./CompendiumResultLine.svelte";
+  import Icon from "../common/Icon.svelte";
+  import type { IconName } from "@fusion/shared";
   import { worldMirror } from "../../lib/docs/index.js";
   import {
     backToShelf,
@@ -204,10 +206,10 @@
   const scopeKind = $derived<"shelf" | "results" | "pack">(
     openPackId !== null ? "pack" : mode === "results" ? "results" : "shelf",
   );
-  const SCOPE_ICON_PATHS: Record<"shelf" | "results" | "pack", string> = {
-    shelf: "M4 4h6a3 3 0 0 1 3 3v13a2 2 0 0 0-2-2H4Zm16 0h-6a3 3 0 0 0-3 3v13a2 2 0 0 1 2-2h7Z",
-    results: "M11 4a7 7 0 1 0 0 14 7 7 0 0 0 0-14Zm10 17-5.7-5.7",
-    pack: "M4 4h16v16H4Zm0 0 8 4 8-4M12 8v12",
+  const SCOPE_ICONS: Record<"shelf" | "results" | "pack", IconName> = {
+    shelf: "library",
+    results: "search",
+    pack: "package",
   };
 
   // ---- Shelf state ----
@@ -815,9 +817,10 @@
     }
   }
 
-  function sortArrow(field: SortField): string {
-    if (effectiveSortField !== field) return "";
-    return sortAsc ? " ▲" : " ▼";
+  /** The chevron that marks the active sort column, or null for an inactive one. */
+  function sortArrow(field: SortField): IconName | null {
+    if (effectiveSortField !== field) return null;
+    return sortAsc ? "chevron-up" : "chevron-down";
   }
 
   // ---- Image fallback (REQ-CPD-045) ----
@@ -876,19 +879,9 @@
     looking at is not the one you started from.
   -->
   <div class="compendium-browser__scope" data-mode={mode} data-scope-kind={scopeKind}>
-    <svg
-      class="compendium-browser__scope-icon"
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      stroke-width="1.8"
-      stroke-linecap="round"
-      stroke-linejoin="round"
-      aria-hidden="true"
-      focusable="false"
-    >
-      <path d={SCOPE_ICON_PATHS[scopeKind]} />
-    </svg>
+    <span class="compendium-browser__scope-icon" aria-hidden="true">
+      <Icon name={SCOPE_ICONS[scopeKind]} size={18} />
+    </span>
     <span class="compendium-browser__scope-label">
       {scopeInfo.packLabel === null
         ? t(scopeInfo.labelKey)
@@ -896,14 +889,13 @@
     </span>
     {#if scopeInfo.canGoBack}
       <!--
-        A040/A042 fix: the chevron is already the first character of the i18n
-        string (`FUSION.Compendium.BackToShelf` = "‹ Estante"/"‹ Shelf") — a
-        second, SVG-drawn chevron here rendered two of them side by side. The
-        prototype's own back gesture (`compendium-tab.prototype.html`, `bodyA`,
-        `.crumb .back`) is plain text, no icon, so this stays text-only too.
+        The chevron is the set's own icon. The i18n string may still carry a
+        leading "‹" (`FUSION.Compendium.BackToShelf`): stripped defensively so
+        the two never show side by side.
       -->
-      <button class="compendium-browser__back" onclick={goBackToShelf}>
-        {t("FUSION.Compendium.BackToShelf")}
+      <button class="compendium-browser__back" type="button" onclick={goBackToShelf}>
+        <Icon name="chevron-left" size={16} />
+        <span>{t("FUSION.Compendium.BackToShelf").replace(/^‹\s*/u, "")}</span>
       </button>
     {/if}
   </div>
@@ -1121,10 +1113,7 @@
             aria-label={t("FUSION.Compendium.Facet.Remove", { facet: chipLabel(chip) })}
           >
             <span>{chipLabel(chip)}</span>
-            <!-- Drawn, not typed: an emoji or a bare "x" is not an icon. -->
-            <svg class="compendium-browser__chip-x" viewBox="0 0 12 12" aria-hidden="true">
-              <path d="M3 3 L9 9 M9 3 L3 9" stroke="currentColor" stroke-width="1.6" fill="none" />
-            </svg>
+            <Icon name="x" size={14} />
           </button>
         </li>
       {/each}
@@ -1209,11 +1198,23 @@
             REQ-CPD-031's).
           -->
           <div class="entries-sort" role="toolbar" aria-label={t("FUSION.Compendium.SortBy")}>
-            <button class="sort-btn" onclick={() => toggleSort("name")}>
-              {t("FUSION.Compendium.SortName")}{sortArrow("name")}
+            <button
+              class="sort-btn"
+              type="button"
+              aria-pressed={sortArrow("name") !== null}
+              onclick={() => toggleSort("name")}
+            >
+              {t("FUSION.Compendium.SortName")}
+              {#if sortArrow("name")}<Icon name={sortArrow("name") ?? "chevron-up"} size={14} />{/if}
             </button>
-            <button class="sort-btn" onclick={() => toggleSort("type")}>
-              {t("FUSION.Compendium.SortType")}{sortArrow("type")}
+            <button
+              class="sort-btn"
+              type="button"
+              aria-pressed={sortArrow("type") !== null}
+              onclick={() => toggleSort("type")}
+            >
+              {t("FUSION.Compendium.SortType")}
+              {#if sortArrow("type")}<Icon name={sortArrow("type") ?? "chevron-up"} size={14} />{/if}
             </button>
           </div>
           {#each sortedAggregated.groups as group (group.documentType)}
@@ -1328,16 +1329,34 @@
           <p class="compendium-browser__loading" role="status">{t("FUSION.Compendium.Loading")}</p>
         {:else if selectedPack}
           <div class="entries-sort" role="toolbar" aria-label={t("FUSION.Compendium.SortBy")}>
-            <button class="sort-btn" onclick={() => toggleSort("name")}>
-              {t("FUSION.Compendium.SortName")}{sortArrow("name")}
+            <button
+              class="sort-btn"
+              type="button"
+              aria-pressed={sortArrow("name") !== null}
+              onclick={() => toggleSort("name")}
+            >
+              {t("FUSION.Compendium.SortName")}
+              {#if sortArrow("name")}<Icon name={sortArrow("name") ?? "chevron-up"} size={14} />{/if}
             </button>
             {#if selectedPack.indexFields.includes("system.level.value")}
-              <button class="sort-btn" onclick={() => toggleSort("level")}>
-                {t("FUSION.Compendium.SortLevel")}{sortArrow("level")}
+              <button
+                class="sort-btn"
+                type="button"
+                aria-pressed={sortArrow("level") !== null}
+                onclick={() => toggleSort("level")}
+              >
+                {t("FUSION.Compendium.SortLevel")}
+                {#if sortArrow("level")}<Icon name={sortArrow("level") ?? "chevron-up"} size={14} />{/if}
               </button>
             {/if}
-            <button class="sort-btn" onclick={() => toggleSort("type")}>
-              {t("FUSION.Compendium.SortType")}{sortArrow("type")}
+            <button
+              class="sort-btn"
+              type="button"
+              aria-pressed={sortArrow("type") !== null}
+              onclick={() => toggleSort("type")}
+            >
+              {t("FUSION.Compendium.SortType")}
+              {#if sortArrow("type")}<Icon name={sortArrow("type") ?? "chevron-up"} size={14} />{/if}
             </button>
           </div>
 
@@ -1396,113 +1415,83 @@
   .compendium-browser {
     display: flex;
     flex-direction: column;
-    gap: 0.35rem;
+    gap: var(--fusion-space-2);
     height: 100%;
     overflow: hidden;
-    padding: 0.5rem;
-    /*
-     * A042: the whole panel reads a step larger than before (0.85rem base) —
-     * this is a 300px-wide reading surface, not a dense settings form, and
-     * the old 0.65–0.85rem range left every line the same visual weight.
-     * Facets and metadata stay small on purpose (see below); this is the
-     * floor everything else is measured against.
-     */
-    font-size: 0.88rem;
+    padding: var(--fusion-space-2);
+    font-size: var(--fusion-text-base);
   }
 
   /*
-   * A042 — level 1 of the hierarchy (estante / resultado agregado / pack
-   * aberto): a tinted bar with its own icon, the boldest label in the
-   * header, and — once a pack is open — an accent "back" control right next
-   * to it. This is the one line that always answers "why did the list
-   * change", so it is drawn to be noticed, not just present.
+   * Level 1 of the hierarchy (shelf / aggregated result / open pack): the
+   * strongest line of the header, with its own icon (never colour alone,
+   * REQ-CPD-094). Flat, split from the controls below by a divider.
    */
   .compendium-browser__scope {
     display: flex;
     align-items: center;
-    gap: 0.4rem;
+    gap: var(--fusion-space-2);
     flex-shrink: 0;
-    padding: 0.3rem 0.5rem;
-    background: var(--fusion-surface-alt, #2a2a2a);
-    border-left: 3px solid var(--fusion-accent, #6aa9ff);
-    border-radius: var(--fusion-radius-sm, 4px);
+    padding-bottom: var(--fusion-space-2);
+    border-bottom: 1px solid var(--fusion-border);
   }
 
   .compendium-browser__scope-icon {
-    width: 1rem;
-    height: 1rem;
+    display: inline-flex;
     flex-shrink: 0;
-    color: var(--fusion-accent, #6aa9ff);
+    color: var(--fusion-accent);
   }
 
   .compendium-browser__scope-label {
     flex: 1;
     min-width: 0;
-    font-size: 0.95rem;
-    font-weight: 700;
-    color: var(--fusion-text, #eee);
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
+    font-size: var(--fusion-text-lg);
+    font-weight: 500;
+    color: var(--fusion-text);
+    overflow-wrap: anywhere;
   }
 
-  /*
-   * The way back (REQ-CPD-015) drawn as its own accent control, not a ghost
-   * button lost in the row: the accent colour makes it legible even at a
-   * glance. The chevron is text, the first character of the i18n string
-   * itself (`FUSION.Compendium.BackToShelf`) — matching the prototype's
-   * plain-text `.crumb .back`, no icon drawn on top of it.
-   */
+  /* The way back (REQ-CPD-015): icon + text, drawn as an accent control. */
   .compendium-browser__back {
-    display: flex;
+    display: inline-flex;
     align-items: center;
-    gap: 0.15rem;
+    gap: var(--fusion-space-1);
     flex-shrink: 0;
+    min-height: var(--fusion-target);
+    padding: 0 var(--fusion-space-3) 0 var(--fusion-space-2);
     font: inherit;
-    font-size: 0.75rem;
-    font-weight: 600;
-    color: var(--fusion-accent, #6aa9ff);
+    font-size: var(--fusion-text-sm);
+    color: var(--fusion-accent);
     background: none;
-    border: 1px solid var(--fusion-accent, #6aa9ff);
-    border-radius: var(--fusion-radius-sm, 4px);
-    padding: 0.2rem 0.45rem;
+    border: 1px solid var(--fusion-accent);
+    border-radius: var(--fusion-radius-sm);
     cursor: pointer;
   }
 
   .compendium-browser__back:hover {
-    color: var(--fusion-accent-hover, #8cc0ff);
-    border-color: var(--fusion-accent-hover, #8cc0ff);
+    color: var(--fusion-accent-hover);
+    border-color: var(--fusion-accent-hover);
   }
 
-  /*
-   * Generic panel button (fixes A042 leaving four buttons on native browser
-   * chrome: `.btn` was used in the markup but never defined anywhere reachable
-   * — not in `base.css`, not in this component's own `<style>`). Same visual
-   * family as `.compendium-browser__back`/`.sort-btn` above and the
-   * prototype's `.b`/`.b.g` (`compendium-tab.prototype.html`), so the panel
-   * never mixes two button languages.
-   */
+  /* Generic panel button. */
   .btn {
     display: inline-flex;
     align-items: center;
-    gap: 0.3rem;
+    justify-content: center;
+    gap: var(--fusion-space-2);
+    min-height: var(--fusion-target);
     font: inherit;
-    font-size: 0.75rem;
-    color: var(--fusion-text, #eee);
-    background: var(--fusion-surface-alt, #2a2a2a);
-    border: 1px solid var(--fusion-border, #444);
-    border-radius: var(--fusion-radius-sm, 4px);
-    padding: 0.3rem 0.6rem;
+    font-size: var(--fusion-text-sm);
+    color: var(--fusion-text);
+    background: var(--fusion-surface-alt);
+    border: 1px solid var(--fusion-border);
+    border-radius: var(--fusion-radius-sm);
+    padding: 0 var(--fusion-space-3);
     cursor: pointer;
   }
 
   .btn:hover {
-    border-color: var(--fusion-accent, #6aa9ff);
-  }
-
-  .btn--sm {
-    padding: 0.2rem 0.45rem;
-    font-size: 0.7rem;
+    border-color: var(--fusion-accent);
   }
 
   .btn--ghost {
@@ -1512,23 +1501,19 @@
   .compendium-browser__search {
     display: flex;
     flex-direction: column;
-    gap: 0.25rem;
+    gap: var(--fusion-space-2);
     flex-shrink: 0;
   }
 
   /*
-   * A042: destination and batch used to be two stacked rows, each with its
-   * own vertical padding, before the search bar even started. The import bar
-   * lives with the header, outside the scrolling area — a batch that is
-   * running must stay visible while the user keeps reading the list
-   * (REQ-CPD-016, REQ-CPD-065) — but it is now ONE row of controls plus, only
-   * when there is something to say, a slim notice line under it. Like
-   * everything else here it declares no width.
+   * Destination and batch live on ONE row, outside the scrolling area: a batch
+   * that is running must stay visible while the user keeps reading the list
+   * (REQ-CPD-016, REQ-CPD-065). Declares no width.
    */
   .compendium-browser__import {
     display: flex;
     flex-direction: column;
-    gap: 0.25rem;
+    gap: var(--fusion-space-2);
     flex-shrink: 0;
   }
 
@@ -1536,37 +1521,39 @@
     display: flex;
     align-items: center;
     flex-wrap: wrap;
-    gap: 0.4rem;
+    gap: var(--fusion-space-2);
   }
 
   .compendium-browser__destination {
     display: flex;
     align-items: center;
-    gap: 0.35rem;
+    gap: var(--fusion-space-2);
     flex: 1 1 auto;
     min-width: 8rem;
-    font-size: 0.75rem;
-    color: var(--fusion-text-muted, #aaa);
+    font-size: var(--fusion-text-sm);
+    color: var(--fusion-text-muted);
   }
 
   .compendium-browser__destination-select {
     flex: 1;
     min-width: 0;
-    padding: 0.2rem 0.3rem;
-    background: var(--fusion-surface-alt, #2a2a2a);
-    border: 1px solid var(--fusion-border, #444);
-    border-radius: var(--fusion-radius-sm, 4px);
-    color: var(--fusion-text, #eee);
-    font-size: 0.75rem;
+    min-height: var(--fusion-target);
+    padding: 0 var(--fusion-space-2);
+    background: var(--fusion-surface-alt);
+    border: 1px solid var(--fusion-border);
+    border-radius: var(--fusion-radius-sm);
+    color: var(--fusion-text);
+    font: inherit;
+    font-size: var(--fusion-text-sm);
   }
 
   .compendium-browser__batch {
     display: flex;
     align-items: center;
-    gap: 0.35rem;
+    gap: var(--fusion-space-2);
     flex: 1 1 auto;
-    font-size: 0.75rem;
-    color: var(--fusion-text-muted, #aaa);
+    font-size: var(--fusion-text-sm);
+    color: var(--fusion-text-muted);
   }
 
   .compendium-browser__batch-bar {
@@ -1577,20 +1564,20 @@
 
   .compendium-browser__batch-start,
   .compendium-browser__batch-cancel {
+    min-height: var(--fusion-target);
     font: inherit;
-    font-size: 0.75rem;
-    background: var(--fusion-surface-alt, #2a2a2a);
-    border: 1px solid var(--fusion-border, #444);
-    border-radius: var(--fusion-radius-sm, 4px);
-    color: var(--fusion-text, #eee);
-    padding: 0.2rem 0.5rem;
+    font-size: var(--fusion-text-sm);
+    background: var(--fusion-surface-alt);
+    border: 1px solid var(--fusion-border);
+    border-radius: var(--fusion-radius-sm);
+    color: var(--fusion-text);
+    padding: 0 var(--fusion-space-3);
     cursor: pointer;
-    white-space: nowrap;
   }
 
   .compendium-browser__batch-start:hover,
   .compendium-browser__batch-cancel:hover {
-    border-color: var(--fusion-accent, #6aa9ff);
+    border-color: var(--fusion-accent);
   }
 
   .compendium-browser__batch-cancel:disabled {
@@ -1599,76 +1586,74 @@
   }
 
   /*
-   * A042: every notice this panel can show above the fold — the batch
-   * outcome AND the one-line import success/failure — shares this compact
-   * banner instead of a full-padding centred paragraph each. A coloured left
-   * border carries the kind (info/success/error) alongside the text and the
-   * `role`, never colour alone (REQ-CPD-094); it wraps and is never
-   * truncated, because REQ-CPD-065's partial-state warning names a count
-   * that must stay readable in full.
+   * Every notice above the fold (batch outcome, one-line import success or
+   * failure) shares this banner. Its tint carries the kind alongside the text
+   * and the `role`, never colour alone (REQ-CPD-094); it wraps and is never
+   * truncated, because REQ-CPD-065's partial-state warning names a count that
+   * must stay readable in full.
    */
   .compendium-browser__notice {
     margin: 0;
-    padding: 0.25rem 0.4rem;
-    border-left: 3px solid var(--fusion-border, #444);
-    background: var(--fusion-surface-alt, #2a2a2a);
-    border-radius: var(--fusion-radius-sm, 4px);
-    font-size: 0.75rem;
-    color: var(--fusion-text-muted, #aaa);
+    padding: var(--fusion-space-2) var(--fusion-space-3);
+    background: var(--fusion-surface-alt);
+    border-radius: var(--fusion-radius-sm);
+    font-size: var(--fusion-text-sm);
+    color: var(--fusion-text-muted);
     white-space: normal;
     overflow-wrap: anywhere;
   }
 
   .compendium-browser__notice--success {
-    border-left-color: var(--fusion-success, #27ae60);
-    color: var(--fusion-success, #27ae60);
+    background: var(--fusion-success-dim);
+    color: var(--fusion-text);
   }
 
   .compendium-browser__notice--error {
-    border-left-color: var(--fusion-danger, #e74c3c);
-    color: var(--fusion-danger, #e74c3c);
+    background: var(--fusion-danger-dim);
+    color: var(--fusion-text);
   }
 
   .compendium-browser__search-input,
   .entries-filter__input {
     /* Stretches to whatever the drawer gives it — never asks for a size. */
     width: 100%;
+    min-height: var(--fusion-target);
     box-sizing: border-box;
-    padding: 0.3rem 0.5rem;
-    background: var(--fusion-surface-alt, #2a2a2a);
-    border: 1px solid var(--fusion-border, #444);
-    border-radius: var(--fusion-radius-sm, 4px);
-    color: var(--fusion-text, #eee);
-    font-size: 0.8rem;
+    padding: 0 var(--fusion-space-3);
+    background: var(--fusion-surface-alt);
+    border: 1px solid var(--fusion-border);
+    border-radius: var(--fusion-radius-sm);
+    color: var(--fusion-text);
+    font: inherit;
+    font-size: var(--fusion-text-base);
   }
 
   /*
-   * A042: facets used to stack one full-width row per facet — three or four
-   * rows of chrome before a single result. They wrap inline now, each one as
-   * narrow as its own label/select needs to be, which is most of the height
-   * this redesign gives back. They stay deliberately the smallest text in
-   * the panel (REQ-CPD-016: a filter you cannot see is a filter you cannot
-   * remove, REQ-CPD-034) — level 1 (scope) leads, level 3 (result lines)
-   * reads, facets are the quiet control row in between. No width is declared
-   * on the group either — the drawer owns it.
+   * Facets wrap inline, each as narrow as its own label/select needs. They
+   * must stay visible in both scopes (REQ-CPD-016): a filter you cannot see is
+   * a filter you cannot remove (REQ-CPD-034). No width is declared on the
+   * group — the drawer owns it.
    */
   .compendium-browser__facets {
     display: flex;
     flex-direction: row;
     flex-wrap: wrap;
     align-items: center;
-    gap: 0.3rem 0.5rem;
+    gap: var(--fusion-space-2);
     flex-shrink: 0;
   }
 
+  /* Label above its select: side by side, "Raridade" + a select did not fit half of the
+     300px drawer and the select was cut ("Qualc…"). */
   .compendium-browser__facet {
     display: flex;
-    align-items: center;
-    gap: 0.3rem;
+    flex-direction: column;
+    align-items: stretch;
+    gap: var(--fusion-space-1);
     flex: 1 1 8rem;
-    min-width: 6rem;
-    font-size: 0.7rem;
-    color: var(--fusion-text-muted, #aaa);
+    min-width: 0;
+    font-size: var(--fusion-text-sm);
+    color: var(--fusion-text-muted);
   }
 
   .compendium-browser__facet-label {
@@ -1679,18 +1664,20 @@
   .compendium-browser__facet-level {
     flex: 1;
     min-width: 0;
+    min-height: var(--fusion-target);
     box-sizing: border-box;
-    padding: 0.15rem 0.3rem;
-    background: var(--fusion-surface-alt, #2a2a2a);
-    border: 1px solid var(--fusion-border, #444);
-    border-radius: var(--fusion-radius-sm, 4px);
-    color: var(--fusion-text, #eee);
-    font-size: 0.7rem;
+    padding: 0 var(--fusion-space-2);
+    background: var(--fusion-surface-alt);
+    border: 1px solid var(--fusion-border);
+    border-radius: var(--fusion-radius-sm);
+    color: var(--fusion-text);
+    font: inherit;
+    font-size: var(--fusion-text-sm);
   }
 
   .compendium-browser__facet-row {
     display: flex;
-    gap: 0.25rem;
+    gap: var(--fusion-space-2);
     flex: 1 1 10rem;
     min-width: 8rem;
   }
@@ -1699,7 +1686,7 @@
     list-style: none;
     display: flex;
     flex-wrap: wrap;
-    gap: 0.2rem;
+    gap: var(--fusion-space-2);
     margin: 0;
     padding: 0;
     flex-shrink: 0;
@@ -1713,25 +1700,20 @@
   .compendium-browser__chip {
     display: inline-flex;
     align-items: center;
-    gap: 0.2rem;
+    gap: var(--fusion-space-2);
+    min-height: var(--fusion-target);
     font: inherit;
-    font-size: 0.65rem;
-    color: var(--fusion-text, #eee);
-    background: var(--fusion-surface-alt, #2a2a2a);
-    border: 1px solid var(--fusion-border, #444);
-    border-radius: 9999px;
-    padding: 0.1rem 0.4rem;
+    font-size: var(--fusion-text-sm);
+    color: var(--fusion-text);
+    background: var(--fusion-accent-dim);
+    border: none;
+    border-radius: var(--fusion-radius-sm);
+    padding: 0 var(--fusion-space-3);
     cursor: pointer;
   }
 
   .compendium-browser__chip:hover {
-    border-color: var(--fusion-accent, #6aa9ff);
-  }
-
-  .compendium-browser__chip-x {
-    width: 0.6rem;
-    height: 0.6rem;
-    flex-shrink: 0;
+    color: var(--fusion-accent);
   }
 
   .compendium-browser__scroll {
@@ -1743,13 +1725,13 @@
   .compendium-browser__loading,
   .compendium-browser__empty,
   .compendium-browser__error {
-    padding: 0.5rem;
+    padding: var(--fusion-space-3);
     text-align: center;
-    color: var(--fusion-text-muted, #888);
+    color: var(--fusion-text-muted);
   }
 
   .compendium-browser__error {
-    color: var(--fusion-danger, #e74c3c);
+    color: var(--fusion-danger);
   }
 
   /* ---- Bodies: same box, different content (REQ-CPD-010, REQ-CPD-017) ---- */
@@ -1757,134 +1739,129 @@
   .compendium-browser__results {
     display: flex;
     flex-direction: column;
-    gap: 0.3rem;
+    gap: var(--fusion-space-2);
   }
 
   /*
    * The shelf's own rules live in CompendiumShelf.svelte, which draws it.
-   * A042: level 2 of the hierarchy (the aggregated result) — bigger than the
-   * facets, still clearly under the scope label above it.
+   * Level 2 (the aggregated result's groups) reads like the shelf's groups:
+   * a section heading with a discreet counter.
    */
   .result-group__heading {
-    font-size: 0.75rem;
-    font-weight: 700;
-    text-transform: uppercase;
-    letter-spacing: 0.05em;
-    color: var(--fusion-text-muted, #888);
-    margin: 0 0 0.3rem;
-    padding: 0 0.25rem;
+    font-size: var(--fusion-text-lg);
+    font-weight: 500;
+    color: var(--fusion-text);
+    margin: 0 0 var(--fusion-space-1);
+    padding: 0 var(--fusion-space-1);
     display: flex;
+    align-items: baseline;
     justify-content: space-between;
-    gap: 0.4rem;
+    gap: var(--fusion-space-2);
   }
 
   .result-group__count {
-    font-size: 0.7rem;
-    color: var(--fusion-text-muted, #888);
-    background: var(--fusion-surface, #222);
-    border-radius: 9999px;
-    padding: 0.1rem 0.4rem;
+    font-size: var(--fusion-text-xs);
+    font-weight: 400;
+    color: var(--fusion-text-muted);
   }
 
   /* ---- Results (both scopes) ---- */
   .result-group {
-    margin-bottom: 0.75rem;
+    margin-bottom: var(--fusion-space-4);
   }
 
   .result-group__omitted {
-    font-size: 0.7rem;
-    color: var(--fusion-text-muted, #888);
-    margin: 0.2rem 0 0;
-    padding: 0 0.25rem;
+    font-size: var(--fusion-text-sm);
+    color: var(--fusion-text-muted);
+    margin: var(--fusion-space-2) 0 0;
+    padding: 0 var(--fusion-space-1);
   }
 
   .result-group__packs {
     list-style: none;
     display: flex;
     flex-wrap: wrap;
-    gap: 0.25rem;
-    margin: 0.15rem 0 0;
-    padding: 0 0.25rem;
+    gap: var(--fusion-space-2);
+    margin: var(--fusion-space-2) 0 0;
+    padding: 0 var(--fusion-space-1);
   }
 
   .result-group__open-pack {
+    min-height: var(--fusion-target);
     font: inherit;
-    font-size: 0.7rem;
-    color: var(--fusion-accent, #6aa9ff);
+    font-size: var(--fusion-text-sm);
+    color: var(--fusion-accent);
     background: none;
-    border: 1px solid var(--fusion-border, #333);
-    border-radius: var(--fusion-radius-sm, 3px);
-    padding: 0.1rem 0.35rem;
+    border: 1px solid var(--fusion-border);
+    border-radius: var(--fusion-radius-sm);
+    padding: 0 var(--fusion-space-3);
     cursor: pointer;
   }
 
   .result-group__open-pack:hover {
-    color: var(--fusion-accent-hover, #8cc0ff);
-    border-color: var(--fusion-accent, #6aa9ff);
+    color: var(--fusion-accent-hover);
+    border-color: var(--fusion-accent);
   }
 
   .entries-filter {
     display: flex;
     flex-direction: column;
-    gap: 0.25rem;
-    margin-bottom: 0.3rem;
-  }
-
-  .entries-filter__input--sm {
-    font-size: 0.75rem;
-    padding: 0.2rem 0.4rem;
+    gap: var(--fusion-space-2);
+    margin-bottom: var(--fusion-space-2);
   }
 
   .entries-sort {
     display: flex;
-    gap: 0.25rem;
-    padding: 0.2rem 0;
+    flex-wrap: wrap;
+    gap: var(--fusion-space-2);
+    padding: var(--fusion-space-1) 0;
   }
 
   .sort-btn {
-    padding: 0.2rem 0.4rem;
+    display: inline-flex;
+    align-items: center;
+    gap: var(--fusion-space-1);
+    min-height: var(--fusion-target);
+    padding: 0 var(--fusion-space-3);
     background: none;
-    border: 1px solid var(--fusion-border, #444);
-    border-radius: var(--fusion-radius-sm, 4px);
-    color: var(--fusion-text-muted, #888);
+    border: 1px solid var(--fusion-border);
+    border-radius: var(--fusion-radius-sm);
+    color: var(--fusion-text-muted);
     cursor: pointer;
-    font-size: 0.7rem;
+    font: inherit;
+    font-size: var(--fusion-text-sm);
   }
 
   .sort-btn:hover {
-    background: var(--fusion-surface-alt, #2a2a2a);
+    background: var(--fusion-surface-alt);
   }
 
+  .sort-btn[aria-pressed="true"] {
+    color: var(--fusion-text);
+    border-color: var(--fusion-border-strong);
+  }
+
+  /* Flat list: a divider between lines, no card around each one. */
   .entry-list {
     list-style: none;
     margin: 0;
     padding: 0;
-    display: flex;
-    flex-direction: column;
-    gap: 0.25rem;
+  }
+
+  .entry-list > :global(* + *) {
+    border-top: 1px solid var(--fusion-border);
   }
 
   .entry-list__empty {
-    padding: 0.5rem;
+    padding: var(--fusion-space-3);
     text-align: center;
-    color: var(--fusion-text-muted, #888);
-    font-size: 0.8rem;
+    color: var(--fusion-text-muted);
+    font-size: var(--fusion-text-sm);
   }
 
   /*
    * The line's own rules live in CompendiumResultLine.svelte, which draws it
-   * (G093). What stays here is the list that holds the lines.
-   */
-
-  /*
-   * Preview is not drawn here at all (G094, DEC-CPD-03): it opens in a
-   * window of the window manager, so this panel has no rule for it — and no
-   * way for it to push the list aside.
-   */
-
-  /*
-   * The search highlight is drawn by the line itself
-   * (`.result-line__match` in CompendiumResultLine.svelte), so this panel no
-   * longer reaches into its children to style a `<mark>`.
+   * (G093), and the preview opens in a window of the window manager (G094,
+   * DEC-CPD-03), so this panel has no rule for either.
    */
 </style>

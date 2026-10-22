@@ -250,8 +250,8 @@ function _connectSocket(worldId: string): void {
     // Ambient table track: socket sync + player wiring. getAuth is resolved
     // fresh on every restart-worthy sync since the access token can rotate.
     _detachSoundSync?.();
-    _detachSoundSync = attachSoundSync(socket, () => {
-      const accessToken = fusionApi.getToken();
+    _detachSoundSync = attachSoundSync(socket, async () => {
+      const accessToken = await fusionApi.getFreshToken();
       const userId = session.user?.id;
       return accessToken && userId ? { accessToken, userId } : null;
     });

@@ -252,7 +252,7 @@
 
   .world-section__empty {
     color: var(--fusion-text-subtle);
-    font-size: 0.8125rem;
+    font-size: var(--fusion-text-base);
     padding: 1.5rem 0;
     text-align: center;
   }
@@ -282,17 +282,17 @@
 
   .world-section__label {
     color: var(--fusion-text);
-    font-size: 0.8125rem;
+    font-size: var(--fusion-text-base);
   }
 
   .world-section__hint {
     color: var(--fusion-text-subtle);
-    font-size: 0.75rem;
+    font-size: var(--fusion-text-sm);
   }
 
   .world-section__error {
     color: var(--fusion-danger);
-    font-size: 0.75rem;
+    font-size: var(--fusion-text-sm);
   }
 
   .world-section__select,
@@ -304,6 +304,7 @@
     flex-shrink: 0;
     font: inherit;
     padding: 0.25rem 0.4rem;
+    min-height: var(--fusion-target);
   }
 
   .world-section__number {
@@ -322,7 +323,7 @@
     align-items: center;
     color: var(--fusion-text);
     display: flex;
-    font-size: 0.75rem;
+    font-size: var(--fusion-text-sm);
     gap: 0.35rem;
   }
 

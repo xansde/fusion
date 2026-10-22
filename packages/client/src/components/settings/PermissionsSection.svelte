@@ -137,7 +137,7 @@
 
   .permissions-section__empty {
     color: var(--fusion-text-subtle);
-    font-size: 0.8125rem;
+    font-size: var(--fusion-text-base);
     padding: 1.5rem 0;
     text-align: center;
   }
@@ -167,20 +167,18 @@
 
   .permissions-section__label {
     color: var(--fusion-text);
-    font-size: 0.8125rem;
+    font-size: var(--fusion-text-base);
   }
 
   .permissions-section__changed {
     color: var(--fusion-accent);
-    font-size: 0.6875rem;
+    font-size: var(--fusion-text-sm);
     font-weight: 600;
-    letter-spacing: 0.03em;
-    text-transform: uppercase;
   }
 
   .permissions-section__error {
     color: var(--fusion-danger);
-    font-size: 0.75rem;
+    font-size: var(--fusion-text-sm);
   }
 
   .permissions-section__select {
@@ -191,5 +189,6 @@
     flex-shrink: 0;
     font: inherit;
     padding: 0.25rem 0.4rem;
+    min-height: var(--fusion-target);
   }
 </style>

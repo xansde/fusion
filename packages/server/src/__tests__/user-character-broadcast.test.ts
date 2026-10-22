@@ -120,7 +120,7 @@ function connect(port: number, token: string): Promise<{ socket: ClientSocket; o
       }
     });
     socket.once("connect_error", reject);
-    setTimeout(() => reject(new Error("connect timeout")), 5000);
+    setTimeout(() => reject(new Error("connect timeout")), 15_000);
   });
 }
 

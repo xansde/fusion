@@ -224,14 +224,14 @@
     max-width: min(360px, calc(100vw - 16px));
     max-height: calc(100vh - 16px);
     overflow-y: auto;
-    padding: 4px;
+    padding: var(--fusion-space-1);
     border: 1px solid var(--fusion-border);
     border-radius: var(--fusion-radius);
     background: var(--fusion-surface-alt);
     color: var(--fusion-text);
     font-family: var(--fusion-font);
-    font-size: 12px;
-    box-shadow: var(--fusion-shadow-modal);
+    font-size: var(--fusion-text-sm);
+    box-shadow: var(--fusion-shadow-popover);
   }
 
   /* The menu holds the focus itself only until the first arrow key; the ring belongs to the
@@ -241,18 +241,16 @@
   }
 
   .fusion-menu__title {
-    padding: 4px 8px 3px;
-    font-size: 12px;
-    font-weight: 700;
+    padding: var(--fusion-space-1) var(--fusion-space-2);
+    font-size: var(--fusion-text-sm);
+    font-weight: 600;
   }
 
   .fusion-menu__heading {
-    padding: 4px 8px 5px;
+    padding: var(--fusion-space-1) var(--fusion-space-2);
     color: var(--fusion-text-muted);
-    font-size: 10px;
-    font-weight: 700;
-    letter-spacing: 0.04em;
-    text-transform: uppercase;
+    font-size: var(--fusion-text-xs);
+    font-weight: 600;
   }
 
   .fusion-menu__sep {
@@ -265,10 +263,12 @@
     display: grid;
     grid-template-columns: 1fr auto;
     align-items: center;
-    column-gap: 14px;
+    column-gap: var(--fusion-space-3);
     box-sizing: border-box;
     width: 100%;
-    padding: 5px 8px;
+    /* Items meet the 40px target: the menu is also opened by touch. */
+    min-height: var(--fusion-target);
+    padding: var(--fusion-space-1) var(--fusion-space-2);
     border: 0;
     border-radius: var(--fusion-radius-sm);
     background: transparent;
@@ -291,7 +291,7 @@
   }
 
   .fusion-menu__item:focus-visible {
-    outline: 2px solid var(--fusion-accent-hover);
+    outline: 2px solid var(--fusion-focus);
     outline-offset: -2px;
   }
 
@@ -301,7 +301,7 @@
 
   .fusion-menu__detail {
     color: var(--fusion-text-muted);
-    font-size: 11px;
+    font-size: var(--fusion-text-xs);
     font-variant-numeric: tabular-nums;
   }
 
@@ -312,7 +312,7 @@
     grid-column: 1 / -1;
     margin-top: 1px;
     color: var(--fusion-text-muted);
-    font-size: 10.5px;
+    font-size: var(--fusion-text-xs);
   }
 
   /* Disabled: dimmed text, never a see-through item — the reason is the point. */

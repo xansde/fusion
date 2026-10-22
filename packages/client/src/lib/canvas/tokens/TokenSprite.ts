@@ -70,6 +70,7 @@ import {
   type AnimState,
   type LodState,
 } from "./token-visuals.js";
+import { CANVAS_FONT, CANVAS_FONT_MONO, CANVAS_TEXT } from "../canvasType.js";
 
 // ---------------------------------------------------------------------------
 // Effective actor (RNF-TOK-01 — resolveEffectiveActor is the ONLY function
@@ -90,15 +91,16 @@ interface TokenSpriteActor {
 
 const RING_THICKNESS = 3;
 const NAMEPLATE_STYLE = new TextStyle({
-  fontFamily: "ui-sans-serif, system-ui, sans-serif",
-  fontSize: 14,
+  fontFamily: CANVAS_FONT,
+  fontSize: CANVAS_TEXT.base,
+  fontWeight: "700",
   fill: 0xffffff,
   stroke: { color: 0x000000, width: 3 },
   align: "center",
 });
 const ELEVATION_STYLE = new TextStyle({
-  fontFamily: "ui-monospace, monospace",
-  fontSize: 11,
+  fontFamily: CANVAS_FONT_MONO,
+  fontSize: CANVAS_TEXT.xs,
   fill: 0xffffff,
   stroke: { color: 0x000000, width: 2 },
   align: "right",
@@ -727,8 +729,8 @@ export class TokenSprite {
     // Initials label
     const initials = placeholderInitials(name);
     const style = new TextStyle({
-      fontFamily: "ui-sans-serif, system-ui, sans-serif",
-      fontSize: Math.max(12, Math.min(pixelW * 0.35, 40)),
+      fontFamily: CANVAS_FONT,
+      fontSize: Math.max(CANVAS_TEXT.xs, Math.min(pixelW * 0.35, 40)),
       fontWeight: "700",
       fill: 0xffffff,
       stroke: { color: 0x00000044, width: 2 },

@@ -40,6 +40,7 @@
   import type { ActionBarEntry } from "../../lib/actionbar/types.js";
   import { isKeyboardFocus } from "../../lib/ui/triggerWiring.js";
   import { iconKeyFor, iconSvg } from "./icons.js";
+  import CostGlyphs from "../common/CostGlyphs.svelte";
   import {
     SLOT_ICON_SOURCE,
     resolveSlotIconUrl,
@@ -62,6 +63,11 @@
     Details?: Component<{ entry: ActionBarEntry }> | undefined;
     /** The slot menu of THIS slot is open: its tooltip steps aside. */
     menuOpen?: boolean | undefined;
+    /**
+     * `tile` (icon over the name, the Favorites row and most tabs) or `row` (icon, name and bonus on
+     * one line, 40 px tall — the Testes tab, where eighteen names must be read whole).
+     */
+    layout?: "tile" | "row" | undefined;
     onrun: (entry: ActionBarEntry) => void;
     oncontext: (
       entry: ActionBarEntry,
@@ -81,6 +87,7 @@
     altHeld = false,
     Details,
     menuOpen = false,
+    layout = "tile",
     onrun,
     oncontext,
     onhover,
@@ -119,10 +126,9 @@
     const actorId = iconActorId;
     if (path === null || actorId === null) return;
     let cancelled = false;
-    void resolveSlotIconUrl(path, actorId, {
-      token: fusionApi.getToken(),
-      userId: session.user?.id,
-    })
+    void fusionApi
+      .getFreshToken()
+      .then((token) => resolveSlotIconUrl(path, actorId, { token, userId: session.user?.id }))
       .then((url) => {
         if (cancelled) return;
         if (url === null) imageFailed = true;
@@ -203,6 +209,7 @@
   bind:this={button}
   type="button"
   class="slot"
+  class:slot--row={layout === "row"}
   class:slot--off={view.state === "unavailable"}
   class:slot--spent={view.state === "spent"}
   class:slot--on={view.state === "active"}
@@ -225,7 +232,7 @@
   onblur={blur}
 >
   {#if view.costGlyph !== null}
-    <i class="slot__c" aria-hidden="true">{view.costGlyph}</i>
+    <i class="slot__c" aria-hidden="true" data-cost={view.costGlyph}><CostGlyphs glyphs={view.costGlyph} /></i>
   {/if}
   {#if view.seal !== null}
     <i class="slot__seal slot__seal--{view.seal.kind}" aria-hidden="true">{view.seal.text}</i>
@@ -244,7 +251,8 @@
   {:else}
     <span class="slot__ic" aria-hidden="true">{@html iconMarkup}</span>
   {/if}
-  <span class="slot__name" aria-hidden="true">{view.shortLabel}</span>
+  <!-- A row has room for the whole name; a tile shows the short one (DEC-BAR-15). -->
+  <span class="slot__name" aria-hidden="true">{layout === "row" ? entry.label : view.shortLabel}</span>
   {#if keyLabel !== undefined}
     <i class="slot__k" aria-hidden="true">{keyLabel}</i>
   {/if}
@@ -257,7 +265,7 @@
   <div class="tip__h">
     <b>{tip.title}</b>
     {#if tip.cost !== null}
-      <span class="tip__c">{tip.cost.glyphs} {tip.cost.label}</span>
+      <span class="tip__c"><CostGlyphs glyphs={tip.cost.glyphs} /> {tip.cost.label}</span>
     {/if}
   </div>
   {#if tip.subtitle !== ""}
@@ -317,22 +325,27 @@
 />
 
 <style>
-  /* The prototype's `.slot` (docs/design/barra-de-acoes/prototipo-barra-fiel.html), 64 px tall to
-     make room for the short name under the icon (DEC-BAR-15). A grid cell or a fixed column sets
-     the width. */
+  /* A tile: the icon over the entry's name (DEC-BAR-15), the cost and the seal in the top corners,
+     the key of a Favorites slot and the bonus on the bottom line. Laid out in flow, so a tab column
+     is as wide as its longest name (nothing is cut there); a Favorites cell sets the width and a name
+     longer than it ends in "…", whole in the tooltip and in the accessible name. Every text is at
+     least 13 px (ui-mesa-hud, 22/10/2026: the old 9–10.5 px marks were the worst read of the table). */
   .slot {
     position: relative;
-    display: block;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
     box-sizing: border-box;
     width: 100%;
-    min-width: 52px;
-    height: 64px;
-    padding: 0;
+    min-width: 64px;
+    height: 80px;
+    padding: 20px 6px 4px;
     border: 1px solid var(--fusion-border);
     border-radius: var(--fusion-radius);
     background: var(--fusion-surface-alt);
     color: var(--fusion-text-muted);
     font-family: var(--fusion-font);
+    line-height: var(--fusion-leading-tight);
     /* A faded slot is still clickable (REQ-BAR-104): never a `not-allowed` pointer. */
     cursor: pointer;
     transition:
@@ -343,21 +356,13 @@
 
   .slot:hover {
     color: var(--fusion-text);
-    border-color: var(--fusion-text-muted);
-  }
-
-  .slot:focus-visible {
-    outline: 2px solid var(--fusion-accent);
-    outline-offset: 2px;
+    border-color: var(--fusion-border-strong);
   }
 
   .slot__ic {
-    position: absolute;
-    left: 50%;
-    top: 9px;
+    flex: none;
     width: 22px;
     height: 22px;
-    margin-left: -11px;
   }
 
   /* The icon is injected markup, so it carries no scope class. */
@@ -367,60 +372,13 @@
     height: 22px;
   }
 
-  /* BAR-F3-05: the entry's custom image fills the slot under a gradient that darkens its top and its
-     base (prototype T1); the marks stay above it, with a shadow, so the cost, the key, the bonus, the
-     seal and the name read on any picture. */
-  .slot__img {
-    position: absolute;
-    inset: 2px;
-    overflow: hidden;
-    border-radius: 5px;
-  }
-
-  .slot__img img {
-    display: block;
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-  }
-
-  .slot__img::after {
-    content: "";
-    position: absolute;
-    inset: 0;
-    /* The prototype's slot (52 px) has no name; here the short name sits at 55–73% of 64 px, so the
-       base ramp starts earlier (38%) and is already dark under the name. */
-    background: linear-gradient(
-      to bottom,
-      rgba(0, 0, 0, 0.55),
-      rgba(0, 0, 0, 0) 30%,
-      rgba(0, 0, 0, 0) 38%,
-      rgba(0, 0, 0, 0.8) 72%
-    );
-  }
-
-  .slot--img .slot__c,
-  .slot--img .slot__k,
-  .slot--img .slot__v,
-  .slot--img .slot__seal,
-  .slot--img .slot__name {
-    z-index: 1;
-    text-shadow: 0 1px 2px #000;
-  }
-
-  .slot--img .slot__name {
-    color: var(--fusion-text);
-  }
-
   .slot__name {
-    position: absolute;
-    left: 3px;
-    right: 3px;
-    top: 35px;
+    max-width: 100%;
+    margin-top: 3px;
     overflow: hidden;
-    font-size: 10px;
-    font-weight: 500;
-    line-height: 12px;
+    color: var(--fusion-text);
+    font-size: var(--fusion-text-xs);
+    font-weight: var(--fusion-weight-medium);
     text-align: center;
     text-overflow: ellipsis;
     white-space: nowrap;
@@ -432,95 +390,146 @@
 
   .slot__c {
     position: absolute;
-    left: 4px;
-    top: 3px;
+    left: 5px;
+    top: 4px;
     color: var(--fusion-text);
-    font-size: 9px;
-    line-height: 1;
-    letter-spacing: -0.4px;
-    white-space: nowrap;
   }
 
   .slot__k {
     position: absolute;
-    left: 4px;
+    left: 5px;
     bottom: 4px;
-    color: var(--fusion-text-muted);
-    font: 600 9px/1 var(--fusion-font-mono);
+    color: var(--fusion-text-subtle);
+    font: var(--fusion-text-xs) / 1.2 var(--fusion-font-mono);
   }
 
   .slot__v {
-    position: absolute;
-    left: 0;
-    right: 0;
-    bottom: 4px;
+    margin-top: auto;
     color: var(--fusion-text);
-    font: 700 10.5px/1 var(--fusion-font);
-    font-variant-numeric: tabular-nums;
-    text-align: center;
+    font: var(--fusion-weight-bold) var(--fusion-text-xs) / 1.2 var(--fusion-font-mono);
     white-space: nowrap;
   }
 
   .slot__seal {
     position: absolute;
-    right: 3px;
+    right: 4px;
     top: 3px;
-    min-width: 14px;
-    height: 14px;
-    padding: 0 3px;
+    min-width: 18px;
+    padding: 0 4px;
     box-sizing: border-box;
     border: 1px solid var(--fusion-border);
-    border-radius: 7px;
+    border-radius: var(--fusion-radius-sm);
     background: var(--fusion-surface);
     color: var(--fusion-text);
-    font: 700 9px/12px var(--fusion-font);
+    font: var(--fusion-weight-bold) var(--fusion-text-xs) / 1.2 var(--fusion-font-mono);
     text-align: center;
   }
 
-  /* Spell rank: round, accent. */
+  /* Spell rank. */
   .slot__seal--rank {
-    width: 14px;
-    padding: 0;
     border-color: var(--fusion-accent);
-    color: var(--fusion-accent-hover);
+    color: var(--fusion-accent);
   }
 
   /* Counts for the multiple attack penalty (T4). */
   .slot__seal--map {
     border-color: var(--fusion-warning);
-    border-radius: var(--fusion-radius-sm);
     color: var(--fusion-warning);
-    font-size: 8px;
+  }
+
+  /* BAR-F3-05: the entry's custom image fills the slot; the name sits on a plain band of the
+     surface at its base, and the corner marks on small plates, so they read on any picture
+     without a gradient or a text shadow. */
+  .slot__img {
+    position: absolute;
+    inset: 2px;
+    overflow: hidden;
+    border-radius: var(--fusion-radius-sm);
+  }
+
+  .slot__img img {
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  .slot--img .slot__c,
+  .slot--img .slot__k,
+  .slot--img .slot__v,
+  .slot--img .slot__seal,
+  .slot--img .slot__name {
+    z-index: 1;
+    padding: 0 3px;
+    border-radius: var(--fusion-radius-sm);
+    background: var(--fusion-surface);
+  }
+
+  .slot--img .slot__name {
+    margin-top: auto;
+  }
+
+  .slot--img .slot__v {
+    margin-top: 2px;
+  }
+
+  /* A row: icon, name and bonus on one line, 44 px tall (REQ-A11-044). The Testes tab uses it, so
+     "Sobrevivência" is read whole, left to right, next to its number. */
+  .slot--row {
+    flex-direction: row;
+    justify-content: flex-start;
+    gap: var(--fusion-space-2);
+    height: 44px;
+    padding: 0 var(--fusion-space-2);
+  }
+
+  .slot--row .slot__ic,
+  .slot--row .slot__ic :global(svg) {
+    width: 20px;
+    height: 20px;
+  }
+
+  /* The name never shrinks here: the column grows to the longest one. */
+  .slot--row .slot__name {
+    flex: 1 0 auto;
+    margin: 0;
+    overflow: visible;
+    font-size: var(--fusion-text-sm);
+    text-align: left;
+  }
+
+  .slot--row .slot__v {
+    margin: 0;
+    font-size: var(--fusion-text-sm);
   }
 
   /* Faded: dimmed, with the reason in the tooltip (REQ-BAR-031). Spent until it recharges is the
      same dimming with a dashed edge. Neither is a lock (REQ-BAR-104). */
   .slot--off,
   .slot--spent {
-    opacity: 0.45;
+    opacity: 0.5;
   }
 
   .slot--spent {
     border-style: dashed;
   }
 
-  /* A toggle that is on: edge and a lit dot (T1, "Esgueirar"). */
+  /* A toggle that is on: accent edge and wash, and a filled dot. */
   .slot--on {
     border-color: var(--fusion-accent);
     background: var(--fusion-accent-dim);
-    color: var(--fusion-accent-hover);
+    color: var(--fusion-accent);
   }
 
   .slot--on::after {
     content: "";
     position: absolute;
-    right: 4px;
-    bottom: 5px;
-    width: 7px;
-    height: 7px;
+    right: 5px;
+    bottom: 6px;
+    width: 8px;
+    height: 8px;
     border-radius: 50%;
     background: var(--fusion-accent);
-    box-shadow: 0 0 0 2px var(--fusion-accent-dim);
   }
 
   /* Its own `execute` is running: a second click does nothing, and the slot says so. */
@@ -535,43 +544,44 @@
     display: flex;
     align-items: baseline;
     justify-content: space-between;
-    gap: 8px;
+    gap: var(--fusion-space-2);
   }
 
   .tip__h b {
-    font-size: 12.5px;
+    font-size: var(--fusion-text-base);
   }
 
   .tip__c {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--fusion-space-1);
     color: var(--fusion-text);
-    font-size: 11px;
+    font-size: var(--fusion-text-sm);
     white-space: nowrap;
   }
 
   .tip__sub {
-    margin-top: 1px;
+    margin-top: 2px;
     color: var(--fusion-text-muted);
   }
 
   .tip__tr {
     display: flex;
     flex-wrap: wrap;
-    gap: 4px;
-    margin-top: 5px;
+    gap: var(--fusion-space-1);
+    margin-top: 6px;
   }
 
   .tip__tr span {
     padding: 0 6px;
     border: 1px solid var(--fusion-border);
     border-radius: var(--fusion-radius-sm);
-    background: var(--fusion-surface);
     color: var(--fusion-text-muted);
-    font-size: 10px;
+    font-size: var(--fusion-text-xs);
   }
 
   .tip__nm {
-    margin-top: 5px;
-    font-variant-numeric: tabular-nums;
+    margin-top: 6px;
   }
 
   .tip__nm b {
@@ -584,8 +594,8 @@
   }
 
   .tip__hint {
-    margin-top: 3px;
-    color: var(--fusion-accent-hover);
+    margin-top: 4px;
+    color: var(--fusion-accent);
   }
 
   .tip__fx {
@@ -603,9 +613,9 @@
 
   .tip__foot {
     margin-top: 6px;
-    padding-top: 5px;
+    padding-top: 6px;
     border-top: 1px solid var(--fusion-border);
     color: var(--fusion-text-muted);
-    font-size: 10.5px;
+    font-size: var(--fusion-text-xs);
   }
 </style>

@@ -230,11 +230,13 @@ describe("the title line under the name (REQ-CTT-023)", () => {
     expect(other).toContain("contact-card__title--fallback");
   });
 
-  it("REQ-CTT-023: the fallback modifier carries its own type in the stylesheet", () => {
+  it("REQ-CTT-023: the fallback modifier carries its own (quieter) colour in the stylesheet", () => {
     const css = styleBlock();
     const rule = css.slice(css.indexOf(".contact-card__title--fallback"));
 
-    expect(rule).toContain("font-style: italic");
+    // No italic in block text (ui-fundacao): the fallback is told apart by a quieter colour.
+    expect(rule).not.toContain("font-style: italic");
+    expect(rule).toContain("color: var(--fusion-text-subtle)");
   });
 });
 

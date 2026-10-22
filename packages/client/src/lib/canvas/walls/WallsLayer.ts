@@ -28,7 +28,7 @@
  *   door (locked):  #884400 (dark brown)
  */
 
-import { Container, Graphics, Text, TextStyle } from "pixi.js";
+import { Container, Graphics } from "pixi.js";
 import type { Wall, DoorState } from "@fusion/shared";
 import type { Socket } from "socket.io-client";
 import { sendOp } from "../../docs/sendOp.js";
@@ -358,20 +358,20 @@ export class WallsLayer {
     g.circle(0, 0, radius).fill({ color: doorColor, alpha: 0.9 });
     g.circle(0, 0, radius).stroke({ color: 0x000000, width: 1.5, alpha: 0.6 });
 
-    // Lock icon for locked doors
+    // Door state drawn as a small mark of our own (no emoji: it changes shape per system and
+    // ignores the theme): a padlock for locked, a ring for open.
     if (wall.doorState === "locked") {
-      const lockStyle = new TextStyle({ fontSize: 10, fill: 0x000000 });
-      const lockText = new Text({ text: "🔒", style: lockStyle });
-      lockText.anchor.set(0.5);
-      lockText.eventMode = "none";
-      c.addChild(lockText);
+      const lock = new Graphics();
+      lock.moveTo(-2, -0.5).lineTo(-2, -2.5).arc(0, -2.5, 2, Math.PI, 0).lineTo(2, -0.5);
+      lock.stroke({ width: 1.4, color: 0x000000, alpha: 1 });
+      lock.roundRect(-3.5, -0.5, 7, 5.5, 1).fill({ color: 0x000000, alpha: 1 });
+      lock.eventMode = "none";
+      c.addChild(lock);
     } else if (wall.doorState === "open") {
-      // Open indicator
-      const openStyle = new TextStyle({ fontSize: 10, fill: 0x000000 });
-      const openText = new Text({ text: "○", style: openStyle });
-      openText.anchor.set(0.5);
-      openText.eventMode = "none";
-      c.addChild(openText);
+      const ring = new Graphics();
+      ring.circle(0, 0, 2.5).stroke({ width: 1.4, color: 0x000000, alpha: 1 });
+      ring.eventMode = "none";
+      c.addChild(ring);
     }
 
     c.addChild(g);

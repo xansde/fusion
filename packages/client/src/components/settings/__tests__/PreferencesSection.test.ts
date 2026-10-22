@@ -7,7 +7,7 @@
  * itself (`lib/settings/clientPrefs.ts`) already carries the exhaustive behavioral
  * coverage, including the "never touches a socket" proof for RNF-CFG-01.
  *
- * Covers REQ-CFG-020, REQ-CFG-021, REQ-CFG-023, REQ-TOK-074 (TK080).
+ * Covers REQ-CFG-020, REQ-CFG-021, REQ-CFG-023 (emendado por DEC-CFG-11), REQ-TOK-074 (TK080).
  */
 
 import { beforeEach, describe, expect, it } from "vitest";
@@ -134,10 +134,39 @@ describe("PreferencesSection — REQ-TOK-074: token display preferences", () => 
   });
 });
 
-describe("PreferencesSection — REQ-CFG-023: no locale or theme control", () => {
-  it("renders no <select> and no idiom/theme labels", () => {
+describe("PreferencesSection — REQ-CFG-023: no locale control", () => {
+  it("renders no <select> and no idiom/locale label", () => {
     const html = renderSection("world-1", "user-1");
     expect(html).not.toMatch(/<select/);
-    expect(html.toLowerCase()).not.toMatch(/idioma|tema|locale|theme/);
+    expect(html.toLowerCase()).not.toMatch(/idioma|locale/);
+  });
+});
+
+describe("PreferencesSection — REQ-CFG-023 (emenda DEC-CFG-11): the theme choice", () => {
+  function themeRadios(html: string): { value: string; checked: boolean }[] {
+    return [...html.matchAll(/<input type="radio"([^>]*)>/g)].map((m) => ({
+      value: /value="([^"]*)"/.exec(m[1] ?? "")?.[1] ?? "",
+      checked: /\schecked/.test(m[1] ?? ""),
+    }));
+  }
+
+  it("offers dark, light and system as one radio group, with a title", () => {
+    const html = renderSection("world-1", "user-1");
+    expect(html).toContain(t("FUSION.Settings.Preferences.ThemeTitle"));
+    expect(themeRadios(html).map((r) => r.value)).toEqual(["dark", "light", "system"]);
+    expect(html).toContain(t("FUSION.Settings.Preferences.Theme.Dark"));
+    expect(html).toContain(t("FUSION.Settings.Preferences.Theme.Light"));
+    expect(html).toContain(t("FUSION.Settings.Preferences.Theme.System"));
+  });
+
+  it("marks dark when this browser never chose", () => {
+    const radios = themeRadios(renderSection("world-1", "user-1"));
+    expect(radios.filter((r) => r.checked).map((r) => r.value)).toEqual(["dark"]);
+  });
+
+  it("marks the choice this browser stored, whatever the world or seat", () => {
+    store.set("fusion.theme", "light");
+    const radios = themeRadios(renderSection("world-2", "user-9"));
+    expect(radios.filter((r) => r.checked).map((r) => r.value)).toEqual(["light"]);
   });
 });

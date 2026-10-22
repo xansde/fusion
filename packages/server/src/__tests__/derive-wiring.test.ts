@@ -28,7 +28,7 @@
  * 18-sistema-sf2e.md.
  */
 
-import { describe, it, expect, beforeAll, afterAll } from "vitest";
+import { describe, it, expect, beforeAll, afterAll, beforeEach } from "vitest";
 import { mkdirSync, rmSync } from "node:fs";
 import { join } from "node:path";
 import { tmpdir } from "node:os";
@@ -332,7 +332,6 @@ describe("Derivation pipeline wired on the real doc:create/doc:update handler pa
   let ctx: Ctx;
   let gm: ClientSocket;
   let actorId: string;
-  let frightenedItemId: string;
 
   beforeAll(async () => {
     ctx = await buildCtx("derive_wiring_pf2e", "pf2e", pf2eSystem);
@@ -346,6 +345,34 @@ describe("Derivation pipeline wired on the real doc:create/doc:update handler pa
     await teardown(ctx);
   });
 
+  // Test independence: every test works on its own freshly created fighter
+  // (AC 20, DEX 16), so an ability score or condition one test sets never
+  // shifts what the next one derives.
+  beforeEach(async () => {
+    const ack = await sendOp(gm, "doc:create", {
+      documentType: "Actor",
+      data: [makeFighterCharacterData("Wiring Fighter")],
+    });
+    expect(ack["ok"]).toBe(true);
+    actorId = (ack["result"] as { documents: Array<Record<string, unknown>> }).documents[0]![
+      "_id"
+    ] as string;
+  });
+
+  /** Applies Frightened 2 as a real embedded Item create; returns the item id. */
+  async function applyFrightened(): Promise<{ itemId: string; ack: Record<string, unknown> }> {
+    const ack = await sendOp(gm, "doc:create", {
+      documentType: "Item",
+      parent: { type: "Actor", id: actorId },
+      data: [{ name: "Frightened", type: "condition", system: { slug: "frightened", value: 2 } }],
+    });
+    expect(ack["ok"]).toBe(true);
+    const items = (ack["result"] as { documents: Array<Record<string, unknown>> }).documents;
+    const itemId = items[0]!["_id"] as string;
+    expect(itemId).toBeTruthy();
+    return { itemId, ack };
+  }
+
   it("doc:create Actor populates system.derived.ac/saves/perception on the persisted+broadcast doc", async () => {
     const ack = await sendOp(gm, "doc:create", {
       documentType: "Actor",
@@ -355,8 +382,7 @@ describe("Derivation pipeline wired on the real doc:create/doc:update handler pa
     const docs = (ack["result"] as { documents: Array<Record<string, unknown>> }).documents;
     expect(docs).toHaveLength(1);
     const doc = docs[0]!;
-    actorId = doc["_id"] as string;
-    expect(actorId).toBeTruthy();
+    expect(doc["_id"]).toBeTruthy();
 
     const sys = doc["system"] as Record<string, unknown>;
     const derived = sys["derived"] as Record<string, unknown> | undefined;
@@ -426,29 +452,13 @@ describe("Derivation pipeline wired on the real doc:create/doc:update handler pa
   });
 
   it("applying a Frightened condition (real embedded Item create) reduces system.derived.ac.total", async () => {
-    const createAck = await sendOp(gm, "doc:create", {
-      documentType: "Item",
-      parent: { type: "Actor", id: actorId },
-      data: [
-        {
-          name: "Frightened",
-          type: "condition",
-          system: { slug: "frightened", value: 2 },
-        },
-      ],
-    });
-    expect(createAck["ok"]).toBe(true);
+    const { ack: createAck } = await applyFrightened();
     const parentDoc = (createAck["result"] as { parent: Record<string, unknown> }).parent;
     const sys = parentDoc["system"] as Record<string, unknown>;
     const derived = sys["derived"] as Record<string, unknown>;
     const ac = derived["ac"] as { total: number };
-    // AC was 22 (post DEX-20 update) — frightened 2 → -2 status penalty → 20.
-    expect(ac.total).toBe(20);
-
-    const createdItems = (createAck["result"] as { documents: Array<Record<string, unknown>> })
-      .documents;
-    frightenedItemId = createdItems[0]!["_id"] as string;
-    expect(frightenedItemId).toBeTruthy();
+    // AC was 20 (the fighter's unarmored base) — frightened 2 → -2 status penalty → 18.
+    expect(ac.total).toBe(18);
   });
 
   // -------------------------------------------------------------------------
@@ -458,6 +468,7 @@ describe("Derivation pipeline wired on the real doc:create/doc:update handler pa
   // -------------------------------------------------------------------------
 
   it("removing the Frightened condition (real embedded Item delete) restores system.derived.ac.total", async () => {
+    const { itemId: frightenedItemId } = await applyFrightened();
     const deleteAck = await sendOp(gm, "doc:delete", {
       documentType: "Item",
       parent: { type: "Actor", id: actorId },
@@ -468,8 +479,8 @@ describe("Derivation pipeline wired on the real doc:create/doc:update handler pa
     const sys = parentDoc["system"] as Record<string, unknown>;
     const derived = sys["derived"] as Record<string, unknown>;
     const ac = derived["ac"] as { total: number };
-    // Frightened removed — AC returns to 22 (post DEX-20 update, pre-condition).
-    expect(ac.total).toBe(22);
+    // Frightened removed — AC returns to 20 (the pre-condition base).
+    expect(ac.total).toBe(20);
   });
 
   // -------------------------------------------------------------------------
@@ -620,7 +631,7 @@ describe("Derivation pipeline wired on the real doc:create/doc:update handler pa
       unknown
     >;
 
-    // DEX 18 → mod +4 (was +5 from the earlier DEX-20 update): 10 + 4 + 7 = 21.
+    // DEX 18 → mod +4 (was +3 at DEX 16): 10 + 4 + 7 = 21.
     expect((derived["ac"] as { total: number }).total).toBe(21);
     // All 16 canonical skills still there (nothing was over-pruned).
     expect(Object.keys(derived["skills"] as Record<string, unknown>).length).toBeGreaterThanOrEqual(
@@ -644,8 +655,8 @@ describe("Derivation pipeline wired on the real doc:create/doc:update handler pa
   // this handler path and the persisted/broadcast copy came back 0/0. This
   // regression-guards against exactly that gap: a fresh actor with a
   // Bard-shaped focus-granting spellcastingEntry item, created through the
-  // real socket handler, exercised via a SEPARATE actor (not the shared
-  // `actorId` the rest of this describe block mutates in sequence).
+  // real socket handler, exercised via a SEPARATE actor (not the per-test
+  // `actorId` fighter).
   // -------------------------------------------------------------------------
 
   it("a focus-granting spellcastingEntry (isFocusPool:true) populates system.derived.focusPoints.max on the real doc:create path", async () => {

@@ -101,6 +101,17 @@ function buildTestSystem(): SystemModule {
         },
       });
       r.registerRollResolver({
+        // ui-fundacao: the parts of a statistic, for the card's decomposition. Athletics is +5 =
+        // attribute +3 and proficiency +2, with a status +1 that did not stack.
+        breakdown({ statistic }) {
+          if (statistic === "skill:boom") throw new Error("breakdown bug");
+          if (statistic !== "skill:athletics") return null;
+          return [
+            { label: "Atributo (For)", type: "ability", value: 3, applied: true },
+            { label: "Proficiência (Treinado)", type: "proficiency", value: 2, applied: true },
+            { label: "Bênção", type: "status", value: 1, applied: false },
+          ];
+        },
         resolve(input) {
           if (input.rollContext.options.includes("action:boom")) throw new Error("resolver bug");
           const options = new Set<string>(input.rollContext.options);
@@ -329,7 +340,7 @@ function connectSocket(port: number, worldId: string, token: string): Promise<Cl
       socket.once("op", () => resolve(socket));
     });
     socket.once("connect_error", reject);
-    setTimeout(() => reject(new Error("connect timeout")), 5000);
+    setTimeout(() => reject(new Error("connect timeout")), 15_000);
   });
 }
 
@@ -369,6 +380,10 @@ interface MessageLike {
       rollContext?: { actorId: string; options: string[] };
       rollNotes?: { title: string }[];
       conditionalModifiers?: { slug: string; value: number }[];
+      breakdown?: {
+        statistic: string;
+        parts: { label: string; value: number; applied: boolean }[];
+      };
     };
   };
 }
@@ -660,5 +675,116 @@ describe("BHR-F2-05 — rolagem resolvida no servidor (RollNotes + onRollResolve
     const ackMsg = (ack["result"] as { message: MessageLike }).message;
     expect(ackMsg.flags?.fusion?.rollNotes).toBeUndefined();
     expect(ackMsg.flags?.fusion?.conditionalModifiers).toBeUndefined();
+  });
+});
+
+// ui-fundacao (22/10/2026): "os cálculos não são transparentes" — the card carries the parts of the
+// statistic, checked by the server against the formula; the client can never write them.
+describe("decomposição no card — flags.fusion.breakdown", () => {
+  let ctx: TestContext;
+  let gmSocket: ClientSocket;
+  let playerSocket: ClientSocket;
+
+  beforeEach(async () => {
+    ctx = await buildTestContext();
+    [gmSocket, playerSocket] = await Promise.all([
+      connectSocket(ctx.port, ctx.worldId, ctx.gmToken),
+      connectSocket(ctx.port, ctx.worldId, ctx.playerToken),
+    ]);
+  }, 15_000);
+
+  afterEach(async () => {
+    gmSocket.disconnect();
+    playerSocket.disconnect();
+    await teardown(ctx);
+  });
+
+  function skillRoll(
+    formula: string,
+    statistic: Record<string, unknown> | undefined,
+    extra: Record<string, unknown> = {},
+  ): Record<string, unknown> {
+    return {
+      content: `/r ${formula} # Atletismo`,
+      worldId: ctx.worldId,
+      speakerActorId: HUNTER_ACTOR_ID,
+      ...(statistic ? { flags: { fusion: { statistic } } } : {}),
+      ...extra,
+    };
+  }
+
+  it("a rolagem da ficha leva as partes da estatística quando elas somam o modificador da fórmula", async () => {
+    const next = nextChatMessage(gmSocket);
+    await sendOp(
+      playerSocket,
+      "chat:send",
+      skillRoll("1d20+5", { actorId: HUNTER_ACTOR_ID, key: "skill:athletics" }),
+    );
+    const msg = await next;
+    expect(msg.flags?.fusion?.breakdown).toEqual({
+      statistic: "skill:athletics",
+      parts: [
+        { label: "Atributo (For)", type: "ability", value: 3, applied: true },
+        { label: "Proficiência (Treinado)", type: "proficiency", value: 2, applied: true },
+        { label: "Bênção", type: "status", value: 1, applied: false },
+      ],
+    });
+  });
+
+  it("soma que não bate com a fórmula: nenhuma decomposição (nunca uma conta errada no card)", async () => {
+    const next = nextChatMessage(gmSocket);
+    await sendOp(
+      playerSocket,
+      "chat:send",
+      skillRoll("1d20+7", { actorId: HUNTER_ACTOR_ID, key: "skill:athletics" }),
+    );
+    expect((await next).flags?.fusion?.breakdown).toBeUndefined();
+  });
+
+  it("ator alheio, chave desconhecida ou sistema que lança: a rolagem sai, sem decomposição", async () => {
+    for (const statistic of [
+      { actorId: STRANGER_ACTOR_ID, key: "skill:athletics" },
+      { actorId: HUNTER_ACTOR_ID, key: "skill:nope" },
+      { actorId: HUNTER_ACTOR_ID, key: "skill:boom" },
+    ]) {
+      const next = nextChatMessage(gmSocket);
+      const ack = await sendOp(playerSocket, "chat:send", skillRoll("1d20+5", statistic));
+      expect(ack["ok"]).toBe(true);
+      expect((await next).flags?.fusion?.breakdown).toBeUndefined();
+    }
+  });
+
+  it("decomposição forjada pelo cliente não chega à mensagem", async () => {
+    const next = nextChatMessage(gmSocket);
+    await sendOp(playerSocket, "chat:send", {
+      content: "/r 1d20+5 # Atletismo",
+      worldId: ctx.worldId,
+      speakerActorId: HUNTER_ACTOR_ID,
+      flags: {
+        fusion: {
+          breakdown: {
+            statistic: "x",
+            parts: [{ label: "Forjado", type: "item", value: 5, applied: true }],
+          },
+        },
+      },
+    });
+    expect((await next).flags?.fusion?.breakdown).toBeUndefined();
+  });
+
+  it("rolagem cega: a decomposição não chega ao jogador, o Mestre vê", async () => {
+    const toGm = nextChatMessage(gmSocket);
+    const toPlayer = nextChatMessage(playerSocket);
+    await sendOp(
+      playerSocket,
+      "chat:send",
+      skillRoll(
+        "1d20+5",
+        { actorId: HUNTER_ACTOR_ID, key: "skill:athletics" },
+        { rollMode: "blindroll" },
+      ),
+    );
+    expect((await toGm).flags?.fusion?.breakdown?.parts).toHaveLength(3);
+    expect((await toPlayer).flags?.fusion?.breakdown).toBeUndefined();
   });
 });

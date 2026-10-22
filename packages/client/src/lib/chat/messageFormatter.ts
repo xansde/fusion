@@ -226,3 +226,20 @@ export function getRollTotalClass(roll: FormattedRoll): "crit" | "fumble" | "" {
   if (die.isFumble) return "fumble";
   return "";
 }
+
+/**
+ * True when a roll message's text is only the server's own summary of its roll (`Atletismo: 14`, or
+ * `14` with no flavor — `chat-handler` writes it for search and for clients that do not draw the
+ * card). The card already shows the name and the total, so printing the text above it says the same
+ * thing twice (ui-chat). Anything else — words a person typed with the roll — is kept.
+ */
+export function isRedundantRollContent(
+  content: string,
+  rolls: readonly Pick<RollResultData, "flavor" | "total">[],
+): boolean {
+  const first = rolls[0];
+  if (first === undefined) return false;
+  const text = content.trim();
+  if (text === "" || text === String(first.total)) return true;
+  return first.flavor !== undefined && text === `${first.flavor}: ${String(first.total)}`;
+}

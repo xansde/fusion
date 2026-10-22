@@ -31,6 +31,7 @@
   import type { TurnView } from "../../lib/actionbar/turn.js";
   import type { ActionBarStatus } from "../../lib/actionbar/types.js";
   import ConditionEffect from "./ConditionEffect.svelte";
+  import Icon from "../common/Icon.svelte";
 
   interface Props {
     status: ActionBarStatus;
@@ -107,7 +108,7 @@
   </div>
 
   <!-- Life -->
-  <div class="col">
+  <div class="col col--life">
     <div
       class="hp"
       role="img"
@@ -153,7 +154,7 @@
   </div>
 
   <!-- Situation -->
-  <div class="col">
+  <div class="col col--sit">
     <div class="chips" role="group" aria-label={t("FUSION.ActionBar.Conditions")}>
       {#each status.conditions as condition (condition.id)}
         {@const label = labelOf(condition)}
@@ -233,9 +234,7 @@
       data-action="expand"
       onclick={expand}
     >
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.25" stroke-linecap="round" stroke-linejoin="round" focusable="false" aria-hidden="true">
-        <path d="M6 15l6-6 6 6" />
-      </svg>
+      <Icon name="chevron-up" size={20} />
     </button>
   {/if}
 </div>
@@ -278,7 +277,7 @@
 
   .who__name {
     overflow: hidden;
-    font-size: 0.8125rem;
+    font-size: var(--fusion-text-base);
     font-weight: 600;
     text-overflow: ellipsis;
     white-space: nowrap;
@@ -287,7 +286,7 @@
   .who__cls {
     overflow: hidden;
     color: var(--fusion-text-muted);
-    font-size: 11px;
+    font-size: var(--fusion-text-xs);
     text-overflow: ellipsis;
     white-space: nowrap;
   }
@@ -302,15 +301,14 @@
 
   .hp__lb {
     color: var(--fusion-text-muted);
-    font-size: 10px;
+    font-size: var(--fusion-text-xs);
     font-weight: 700;
-    letter-spacing: 0.04em;
   }
 
   .hp__track {
     display: flex;
     flex: 1;
-    height: 0.375rem;
+    height: 8px;
     overflow: hidden;
     border-radius: var(--fusion-radius-pill);
     background: var(--fusion-surface);
@@ -342,7 +340,7 @@
   .hp__txt {
     color: var(--fusion-text-muted);
     font-family: var(--fusion-font-mono);
-    font-size: 0.6875rem;
+    font-size: var(--fusion-text-sm);
     font-variant-numeric: tabular-nums;
     white-space: nowrap;
   }
@@ -366,7 +364,7 @@
     gap: 2px 12px;
     min-width: 0;
     color: var(--fusion-text-muted);
-    font-size: 11px;
+    font-size: var(--fusion-text-xs);
     white-space: nowrap;
   }
 
@@ -390,8 +388,8 @@
 
   .pip {
     display: inline-block;
-    width: 8px;
-    height: 8px;
+    width: 10px;
+    height: 10px;
     margin-right: 2px;
     border: 1px solid currentColor;
     border-radius: 50%;
@@ -412,10 +410,8 @@
     border-radius: var(--fusion-radius-sm);
     background: var(--fusion-accent-dim);
     color: var(--fusion-accent-hover);
-    font-size: 10px;
+    font-size: var(--fusion-text-xs);
     font-weight: 700;
-    letter-spacing: 0.03em;
-    text-transform: uppercase;
     vertical-align: 1px;
   }
 
@@ -437,17 +433,24 @@
     display: inline-flex;
     align-items: center;
     box-sizing: border-box;
-    min-height: 24px;
+    min-height: 32px;
     padding: 1px 7px;
     border: 1px solid var(--ink);
     border-radius: var(--fusion-radius-pill);
     background: var(--wash);
     color: var(--ink);
     font-family: var(--fusion-font);
-    font-size: 11px;
-    line-height: 16px;
+    font-size: var(--fusion-text-xs);
+    line-height: 1.2;
     white-space: nowrap;
     cursor: pointer;
+  }
+
+  /* The chip draws 32 px, but its hit area reaches the 40 px target floor. */
+  .chip::before {
+    content: "";
+    position: absolute;
+    inset: -4px 0;
   }
 
   .chip--special {
@@ -461,14 +464,14 @@
 
   .chip:focus-visible,
   .chip.is-open {
-    outline: 2px solid var(--fusion-accent-hover);
+    outline: 2px solid var(--fusion-focus);
     outline-offset: 1px;
   }
 
   .tgt {
     overflow: hidden;
     color: var(--fusion-text-muted);
-    font-size: 11px;
+    font-size: var(--fusion-text-xs);
     text-overflow: ellipsis;
     white-space: nowrap;
   }
@@ -489,7 +492,7 @@
     display: inline-block;
     padding: 1px 8px;
     border-radius: var(--fusion-radius-sm);
-    font-size: 11px;
+    font-size: var(--fusion-text-xs);
     font-weight: 700;
     white-space: nowrap;
   }
@@ -516,7 +519,7 @@
     border: 1px solid transparent;
     border-radius: var(--fusion-radius-sm);
     color: var(--fusion-text-muted);
-    font-size: 11px;
+    font-size: var(--fusion-text-xs);
     white-space: nowrap;
   }
 
@@ -541,8 +544,8 @@
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    width: 28px;
-    height: 28px;
+    width: var(--fusion-target);
+    height: var(--fusion-target);
     padding: 0;
     border: 1px solid var(--fusion-border);
     border-radius: var(--fusion-radius-sm);
@@ -555,15 +558,46 @@
     color: var(--fusion-text);
   }
 
-  .ab-expand:focus-visible {
-    outline: 2px solid var(--fusion-accent);
-    outline-offset: 2px;
-  }
 
-  .ab-expand svg {
-    display: block;
-    width: 16px;
-    height: 16px;
+
+  /* Narrow bar (a phone, ui-mesa-hud 22/10/2026): the four columns stack instead of running over
+     one another — who and the expand button, then life, then the situation and the turn. The bar
+     is the size container (`.abar`), so this follows the bar's width, not the window's. */
+  @container (max-width: 560px) {
+    .ab-state,
+    .ab-state--collapsed {
+      grid-template-columns: minmax(0, 1fr) auto;
+      row-gap: var(--fusion-space-2);
+    }
+
+    .who {
+      grid-column: 1;
+      grid-row: 1;
+    }
+
+    .who__id {
+      max-width: none;
+    }
+
+    .ab-expand {
+      grid-column: 2;
+      grid-row: 1;
+    }
+
+    .col--life {
+      grid-column: 1 / -1;
+      grid-row: 2;
+    }
+
+    .col--sit {
+      grid-column: 1;
+      grid-row: 3;
+    }
+
+    .ab-turn {
+      grid-column: 2;
+      grid-row: 3;
+    }
   }
 
   .sr-only {

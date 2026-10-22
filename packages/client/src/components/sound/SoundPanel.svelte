@@ -30,6 +30,7 @@
   import { listAssets } from "../../lib/assets/assetApi.js";
   import { fusionApi } from "../../lib/api.js";
   import { t } from "../../lib/i18n/i18n.js";
+  import Icon from "../common/Icon.svelte";
   import type { SidebarPanelProps } from "../../lib/sidebar/registry.js";
 
   const { socket, isGm }: SidebarPanelProps = $props();
@@ -48,8 +49,9 @@
   const quickTracks = $derived(orderQuickTracks(library, soundStore.recent));
 
   async function loadLibrary(): Promise<void> {
-    const token = fusionApi.getToken();
-    if (!isGm || !token) return;
+    if (!isGm) return;
+    const token = await fusionApi.getFreshToken();
+    if (!token) return;
     try {
       const entries = await listAssets(token);
       library = entries.filter((e) => e.mime_type.startsWith("audio/")).map((e) => e.name);
@@ -148,6 +150,7 @@
         data-testid="sound-unlock"
         onclick={() => void soundActions.unlock()}
       >
+        <Icon name="volume-x" size={18} />
         {t("FUSION.Sound.UnlockBadge")}
       </button>
     {/if}
@@ -215,6 +218,7 @@
           onclick={() => { showFilePicker = true; }}
           disabled={busy}
         >
+          <Icon name="list-music" size={18} />
           {t("FUSION.Sound.ChooseTrack")}
         </button>
         <button
@@ -224,6 +228,7 @@
           disabled={busy || !effectiveSrc}
           title={t("FUSION.Sound.PlayTitle")}
         >
+          <Icon name="play" size={18} />
           {t("FUSION.Sound.Play")}
         </button>
         <button
@@ -232,6 +237,7 @@
           onclick={handleStop}
           disabled={busy || !trackName}
         >
+          <Icon name="square" size={18} />
           {t("FUSION.Sound.Stop")}
         </button>
       </div>
@@ -242,7 +248,6 @@
 {#if showFilePicker && isGm}
   <FilePicker
     category="audio"
-    token={fusionApi.getToken() ?? ""}
     kinds={["audio"]}
     onSelect={handleFilePicked}
     onClose={() => {
@@ -273,10 +278,8 @@
 
   .sound-panel__title {
     color: var(--fusion-text);
-    font-size: 0.8125rem;
+    font-size: var(--fusion-text-base);
     font-weight: 600;
-    letter-spacing: 0.04em;
-    text-transform: uppercase;
   }
 
   /* ---- Body ---- */
@@ -296,15 +299,13 @@
   }
 
   .sound-panel__now-playing-label {
-    color: var(--fusion-text-subtle);
-    font-size: 0.7rem;
-    text-transform: uppercase;
-    letter-spacing: 0.03em;
+    color: var(--fusion-text-muted);
+    font-size: var(--fusion-text-sm);
   }
 
   .sound-panel__now-playing-value {
     color: var(--fusion-text);
-    font-size: 0.875rem;
+    font-size: var(--fusion-text-md);
     font-weight: 500;
     overflow: hidden;
     text-overflow: ellipsis;
@@ -319,10 +320,8 @@
   }
 
   .sound-panel__quick-label {
-    color: var(--fusion-text-subtle);
-    font-size: 0.7rem;
-    letter-spacing: 0.03em;
-    text-transform: uppercase;
+    color: var(--fusion-text-muted);
+    font-size: var(--fusion-text-sm);
   }
 
   .sound-panel__quick-list {
@@ -341,9 +340,10 @@
     color: var(--fusion-text-muted);
     cursor: pointer;
     font-family: var(--fusion-font);
-    font-size: 0.8125rem;
+    font-size: var(--fusion-text-sm);
+    min-height: var(--fusion-target);
     overflow: hidden;
-    padding: 0.3rem 0.6rem;
+    padding: 0.3rem 0.75rem;
     text-align: left;
     text-overflow: ellipsis;
     white-space: nowrap;
@@ -361,21 +361,25 @@
   }
 
   .sound-panel__unlock-badge {
+    align-items: center;
     cursor: pointer;
+    display: flex;
+    gap: var(--fusion-space-2);
+    min-height: var(--fusion-target);
     font-family: var(--fusion-font);
     text-align: left;
-    background: rgba(255, 215, 0, 0.12);
-    border: 1px solid #ffd700;
+    background: var(--fusion-accent-dim);
+    border: 1px solid var(--fusion-accent);
     border-radius: var(--fusion-radius-sm);
-    color: #ffd700;
-    font-size: 0.75rem;
-    padding: 0.4rem 0.6rem;
+    color: var(--fusion-accent);
+    font-size: var(--fusion-text-sm);
+    padding: 0.4rem 0.75rem;
   }
 
   /* ---- Pending selection (GM staged a track via FilePicker, not yet sent) ---- */
   .sound-panel__pending {
     color: var(--fusion-text-muted);
-    font-size: 0.75rem;
+    font-size: var(--fusion-text-xs);
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
@@ -389,10 +393,8 @@
   }
 
   .sound-panel__volume-label {
-    color: var(--fusion-text-subtle);
-    font-size: 0.7rem;
-    text-transform: uppercase;
-    letter-spacing: 0.03em;
+    color: var(--fusion-text-muted);
+    font-size: var(--fusion-text-sm);
   }
 
   .sound-panel__volume-row {
@@ -404,11 +406,12 @@
   .sound-panel__volume-row input[type="range"] {
     accent-color: var(--fusion-accent);
     flex: 1;
+    min-height: var(--fusion-target);
   }
 
   .sound-panel__volume-pct {
     color: var(--fusion-text-muted);
-    font-size: 0.75rem;
+    font-size: var(--fusion-text-sm);
     font-variant-numeric: tabular-nums;
     min-width: 2.5rem;
     text-align: right;
@@ -417,7 +420,7 @@
   /* ---- Error ---- */
   .sound-panel__error {
     color: var(--fusion-danger);
-    font-size: 0.75rem;
+    font-size: var(--fusion-text-xs);
   }
 
   /* ---- GM controls ---- */
@@ -437,9 +440,11 @@
     cursor: pointer;
     display: inline-flex;
     font-family: var(--fusion-font);
-    font-size: 0.875rem;
+    font-size: var(--fusion-text-sm);
     font-weight: 500;
+    gap: var(--fusion-space-2);
     justify-content: center;
+    min-height: var(--fusion-target);
     padding: 0.5rem 1.25rem;
     transition: background-color var(--fusion-transition), opacity var(--fusion-transition);
     white-space: nowrap;
@@ -452,7 +457,7 @@
 
   .btn--primary {
     background: var(--fusion-accent);
-    color: #fff;
+    color: var(--fusion-on-accent);
   }
 
   .btn--primary:hover:not(:disabled) {
@@ -471,7 +476,7 @@
   }
 
   .btn--sm {
-    font-size: 0.8125rem;
+    font-size: var(--fusion-text-sm);
     padding: 0.3rem 0.75rem;
   }
 </style>

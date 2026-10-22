@@ -202,6 +202,7 @@ const FAMILIAR_FEAT: Record<string, unknown> = {
   _id: "feat-familiar",
   name: "Familiar",
   type: "feat",
+  flags: { fusion: { sourceId: "bcxIg7wi8ZAhvhOD" } }, // feats-core "Familiar" (identity is the sourceId, #130)
   system: { rules: [] },
 };
 
@@ -256,7 +257,6 @@ describe("Eidolon as a linked companion Actor (T3.1)", () => {
   let wizardId = "";
   /** Summoner whose eidolon the GM creates. */
   let gmSummonerId = "";
-  let eidolonId = "";
 
   async function createAs(socket: ClientSocket, data: Record<string, unknown>): Promise<Ack> {
     return sendOp(socket, "doc:create", { documentType: "Actor", data: [data] });
@@ -317,26 +317,37 @@ describe("Eidolon as a linked companion Actor (T3.1)", () => {
   });
 
   it("ALLOWS the owner to create the eidolon as its own linked Actor, owned like the master (REQ-PET-091, REQ-ATR-064)", async () => {
+    // Own Summoner: the one-eidolon-per-master rule must not see another test's.
+    const ownSummonerId = await createMaster(
+      character(ctx.ownerUserId, "Summoner Own", [summonerClassItem()]),
+    );
     const ack = await createAs(
       ownerSocket,
       // A forged ownership in the payload must not widen access.
-      companionPayload(summonerId, "eidolon", "Aurora", {
+      companionPayload(ownSummonerId, "eidolon", "Aurora", {
         ownership: { default: 3, [ctx.outsiderUserId]: 3 },
       }),
     );
     expect(ack["ok"]).toBe(true);
     const doc = firstDoc(ack);
-    eidolonId = doc["_id"] as string;
-    expect(eidolonId).not.toBe(summonerId);
+    expect(doc["_id"]).not.toBe(ownSummonerId);
     expect(doc["type"]).toBe("familiar");
     const system = doc["system"] as Record<string, unknown>;
     expect(system["companionKind"]).toBe("eidolon");
-    expect(system["masterActorId"]).toBe(summonerId);
+    expect(system["masterActorId"]).toBe(ownSummonerId);
     expect(doc["ownership"]).toEqual({ default: 0, [ctx.ownerUserId]: 3 });
   });
 
   it("DENIES a second eidolon for the same Summoner (REQ-PET-093)", async () => {
-    const ack = await createAs(ownerSocket, companionPayload(summonerId, "eidolon", "Twin"));
+    const twinSummonerId = await createMaster(
+      character(ctx.ownerUserId, "Summoner Twin", [summonerClassItem()]),
+    );
+    const first = await createAs(
+      ownerSocket,
+      companionPayload(twinSummonerId, "eidolon", "Original"),
+    );
+    expect(first["ok"]).toBe(true);
+    const ack = await createAs(ownerSocket, companionPayload(twinSummonerId, "eidolon", "Twin"));
     expect(ack["ok"]).toBe(false);
     expect(ack["code"]).toBe("VALIDATION_FAILED");
   });
@@ -376,6 +387,7 @@ describe("Eidolon as a linked companion Actor (T3.1)", () => {
   });
 
   it("the eidolon reaches its owner with HP and never reaches another player (redaction.ts)", () => {
+    const eidolonId = "eidolonDoc00001";
     const doc: Record<string, unknown> = {
       _id: eidolonId,
       type: "familiar",

@@ -228,7 +228,9 @@ let _stopPlayerEffect: (() => void) | null = null;
  * worldSync.ts, so importing session.svelte.ts here would close a cycle.
  * See ambientPlayer.ts's module doc for the full chain.
  */
-function _ensurePlayerWiring(getAuth: (() => AmbientPlayerAuth | null) | undefined): () => void {
+function _ensurePlayerWiring(
+  getAuth: (() => AmbientPlayerAuth | null | Promise<AmbientPlayerAuth | null>) | undefined,
+): () => void {
   if (_player && _stopPlayerEffect) return _stopPlayerEffect;
 
   const player = new AmbientPlayer({
@@ -279,7 +281,7 @@ function _ensurePlayerWiring(getAuth: (() => AmbientPlayerAuth | null) | undefin
  */
 export function attachSoundSync(
   socket: Socket,
-  getAuth?: () => AmbientPlayerAuth | null,
+  getAuth?: () => AmbientPlayerAuth | null | Promise<AmbientPlayerAuth | null>,
 ): () => void {
   // Wires the AmbientPlayer once, session-lifetime — recreating it on every
   // reconnect would drop in-flight playback. Intentionally NOT torn down by

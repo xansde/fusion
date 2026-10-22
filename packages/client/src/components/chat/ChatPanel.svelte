@@ -59,6 +59,7 @@
   import ChatLog from "./ChatLog.svelte";
   import ChatInput from "./ChatInput.svelte";
   import DiceTray from "./DiceTray.svelte";
+  import Icon from "../common/Icon.svelte";
 
   const {
     socket,
@@ -162,16 +163,7 @@
   -->
   <div class="chat-panel__bar">
     <div class="chat-panel__search">
-      <svg class="chat-panel__search-icon" viewBox="0 0 16 16" aria-hidden="true" focusable="false">
-        <circle cx="7" cy="7" r="4.25" fill="none" stroke="currentColor" stroke-width="1.5" />
-        <path
-          d="m10.2 10.2 3.3 3.3"
-          fill="none"
-          stroke="currentColor"
-          stroke-width="1.5"
-          stroke-linecap="round"
-        />
-      </svg>
+      <span class="chat-panel__search-icon"><Icon name="search" size={18} /></span>
       <input
         class="chat-panel__search-input"
         type="search"
@@ -190,15 +182,7 @@
           title={t("FUSION.Chat.Search.Clear")}
           aria-label={t("FUSION.Chat.Search.Clear")}
         >
-          <svg viewBox="0 0 12 12" aria-hidden="true" focusable="false">
-            <path
-              d="m3 3 6 6M9 3l-6 6"
-              fill="none"
-              stroke="currentColor"
-              stroke-width="1.5"
-              stroke-linecap="round"
-            />
-          </svg>
+          <Icon name="x" size={18} />
         </button>
       {/if}
     </div>
@@ -219,11 +203,7 @@
         title={t("FUSION.Chat.Menu.More")}
         aria-label={t("FUSION.Chat.Menu.More")}
       >
-        <svg viewBox="0 0 16 16" aria-hidden="true" focusable="false">
-          <circle cx="3" cy="8" r="1.4" fill="currentColor" />
-          <circle cx="8" cy="8" r="1.4" fill="currentColor" />
-          <circle cx="13" cy="8" r="1.4" fill="currentColor" />
-        </svg>
+        <Icon name="ellipsis" size={20} />
       </button>
 
       <div
@@ -352,8 +332,8 @@
   .chat-panel__bar {
     display: flex;
     align-items: center;
-    gap: 0.35rem;
-    padding: 0.35rem 0.5rem;
+    gap: var(--fusion-space-2);
+    padding: var(--fusion-space-2) var(--fusion-space-3);
     border-bottom: 1px solid var(--fusion-border);
     flex-shrink: 0;
   }
@@ -361,24 +341,25 @@
   .chat-panel__search {
     flex: 1;
     min-width: 0;
+    min-height: var(--fusion-target);
     display: flex;
     align-items: center;
-    gap: 0.35rem;
-    background: var(--fusion-surface-alt);
-    border: 1px solid var(--fusion-border);
-    border-radius: var(--fusion-radius-sm);
-    padding: 0 0.4rem;
+    gap: var(--fusion-space-2);
+    background: var(--fusion-input-bg);
+    border: 1px solid var(--fusion-border-strong);
+    border-radius: var(--fusion-radius);
+    padding: 0 0 0 var(--fusion-space-2);
   }
 
   .chat-panel__search:focus-within {
-    border-color: var(--fusion-accent);
+    outline: 2px solid var(--fusion-focus);
+    outline-offset: 1px;
   }
 
   .chat-panel__search-icon {
-    width: 0.85rem;
-    height: 0.85rem;
+    display: inline-flex;
     flex-shrink: 0;
-    color: var(--fusion-text-subtle);
+    color: var(--fusion-text-muted);
   }
 
   .chat-panel__search-input {
@@ -388,10 +369,15 @@
     border: none;
     color: var(--fusion-text);
     font-family: var(--fusion-font);
-    font-size: 0.8125rem;
-    padding: 0.3rem 0;
+    font-size: var(--fusion-text-base);
+    padding: var(--fusion-space-1) 0;
   }
 
+  .chat-panel__search-input::placeholder {
+    color: var(--fusion-text-subtle);
+  }
+
+  /* The ring sits on the whole field (above), not on the bare input inside it. */
   .chat-panel__search-input:focus {
     outline: none;
   }
@@ -400,40 +386,32 @@
   .chat-panel__more {
     background: none;
     border: none;
-    color: var(--fusion-text-subtle);
+    color: var(--fusion-text-muted);
     cursor: pointer;
     display: flex;
     align-items: center;
     justify-content: center;
-    padding: 0.2rem;
-    border-radius: var(--fusion-radius-sm);
+    min-width: var(--fusion-target);
+    min-height: var(--fusion-target);
+    border-radius: var(--fusion-radius);
     flex-shrink: 0;
-  }
-
-  .chat-panel__search-clear svg {
-    width: 0.7rem;
-    height: 0.7rem;
-  }
-
-  .chat-panel__more svg {
-    width: 1rem;
-    height: 1rem;
   }
 
   .chat-panel__search-clear:hover,
   .chat-panel__more:hover {
     color: var(--fusion-text);
+    background: var(--fusion-surface-alt);
   }
 
   .chat-panel__search-clear:focus-visible,
   .chat-panel__more:focus-visible,
   .chat-panel__menu-item:focus-visible,
   .chat-panel__result:focus-visible {
-    outline: 2px solid var(--fusion-accent);
+    outline: 2px solid var(--fusion-focus);
     outline-offset: 1px;
   }
 
-  /* ---- "⋯" menu (REQ-ACH-015) ---- */
+  /* ---- "Mais opções" menu (REQ-ACH-015) ---- */
 
   .chat-panel__menu-anchor {
     position: relative;
@@ -442,17 +420,17 @@
 
   .chat-panel__menu {
     position: absolute;
-    top: calc(100% + 0.25rem);
+    top: calc(100% + var(--fusion-space-1));
     right: 0;
     z-index: 20;
-    min-width: 12rem;
+    min-width: 14rem;
     display: flex;
     flex-direction: column;
-    background: var(--fusion-surface-alt);
+    background: var(--fusion-surface);
     border: 1px solid var(--fusion-border);
-    border-radius: var(--fusion-radius-sm);
-    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.4);
-    padding: 0.2rem;
+    border-radius: var(--fusion-radius);
+    box-shadow: var(--fusion-shadow-popover);
+    padding: var(--fusion-space-1);
   }
 
   .chat-panel__menu[hidden] {
@@ -460,19 +438,20 @@
   }
 
   .chat-panel__menu-item {
+    min-height: var(--fusion-target);
     background: none;
     border: none;
     border-radius: var(--fusion-radius-sm);
     color: var(--fusion-text);
     cursor: pointer;
     font-family: var(--fusion-font);
-    font-size: 0.8125rem;
-    padding: 0.35rem 0.5rem;
+    font-size: var(--fusion-text-base);
+    padding: 0 var(--fusion-space-3);
     text-align: left;
   }
 
   .chat-panel__menu-item:not(:disabled):hover {
-    background: var(--fusion-surface);
+    background: var(--fusion-surface-alt);
   }
 
   .chat-panel__menu-item:disabled {
@@ -491,10 +470,10 @@
   }
 
   .chat-panel__results-note {
-    color: var(--fusion-text-subtle);
-    font-size: 0.8125rem;
+    color: var(--fusion-text-muted);
+    font-size: var(--fusion-text-base);
     text-align: center;
-    padding: 1.25rem 1rem;
+    padding: var(--fusion-space-5) var(--fusion-space-4);
     margin: 0;
   }
 
@@ -516,9 +495,9 @@
     cursor: pointer;
     display: flex;
     flex-direction: column;
-    gap: 0.15rem;
+    gap: var(--fusion-space-1);
     font-family: var(--fusion-font);
-    padding: 0.4rem 0.6rem;
+    padding: var(--fusion-space-2) var(--fusion-space-3);
     text-align: left;
     width: 100%;
   }
@@ -530,26 +509,28 @@
   .chat-panel__result-head {
     display: flex;
     align-items: baseline;
-    gap: 0.4rem;
-    font-size: 0.7rem;
+    gap: var(--fusion-space-2);
+    font-size: var(--fusion-text-xs);
     color: var(--fusion-text-subtle);
   }
 
   .chat-panel__result-alias {
     color: var(--fusion-text);
-    font-weight: 600;
+    font-size: var(--fusion-text-sm);
+    font-weight: var(--fusion-weight-bold);
   }
 
   .chat-panel__result-snippet {
-    font-size: 0.8125rem;
-    line-height: 1.35;
-    word-break: break-word;
+    font-size: var(--fusion-text-base);
+    line-height: var(--fusion-leading);
+    overflow-wrap: anywhere;
   }
 
+  /* The match: a marker under the letters, never white text on the accent (AA on both themes). */
   .chat-panel__result-mark {
-    background: var(--fusion-accent);
-    color: #fff;
-    border-radius: 2px;
-    padding: 0 0.1rem;
+    background: var(--fusion-accent-dim);
+    color: var(--fusion-text);
+    border-bottom: 2px solid var(--fusion-accent);
+    padding: 0 1px;
   }
 </style>

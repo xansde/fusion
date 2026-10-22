@@ -16,6 +16,8 @@
   } from "$lib/avatar/preferenciasDoAvatar.svelte.js";
   import { CANTOS, TAMANHO_MAXIMO, TAMANHO_MINIMO, type CantoDoAvatar } from "$lib/avatar/posicao.js";
   import { t } from "$lib/i18n/i18n.js";
+  import type { IconName } from "@fusion/shared";
+  import Icon from "../common/Icon.svelte";
 
   interface Props {
     /** Omit the show/hide checkbox (the overlay's own menu has a "Hide" button instead). */
@@ -33,11 +35,11 @@
     "inferior-direito": "FUSION.Avatar.Overlay.CornerBottomRight",
   };
 
-  const SETA_DO_CANTO: Record<CantoDoAvatar, string> = {
-    "superior-esquerdo": "↖",
-    "superior-direito": "↗",
-    "inferior-esquerdo": "↙",
-    "inferior-direito": "↘",
+  const SETA_DO_CANTO: Record<CantoDoAvatar, IconName> = {
+    "superior-esquerdo": "arrow-up-left",
+    "superior-direito": "arrow-up-right",
+    "inferior-esquerdo": "arrow-down-left",
+    "inferior-direito": "arrow-down-right",
   };
 </script>
 
@@ -77,7 +79,7 @@
           title={t(ROTULO_DO_CANTO[canto])}
           aria-label={t(ROTULO_DO_CANTO[canto])}
           onclick={() => mudarPreferenciasDoAvatar({ canto, livre: null })}
-        >{SETA_DO_CANTO[canto]}</button>
+        ><Icon name={SETA_DO_CANTO[canto]} size={20} /></button>
       {/each}
     </div>
     <span class="dica">
@@ -90,7 +92,7 @@
   .avatar-overlay-controles {
     display: flex;
     flex-direction: column;
-    font-size: 0.75rem;
+    font-size: var(--fusion-text-sm);
     gap: 0.5rem;
   }
 
@@ -108,7 +110,7 @@
 
   .rotulo {
     color: var(--fusion-text-subtle);
-    font-size: 0.6875rem;
+    font-size: var(--fusion-text-xs);
   }
 
   .valor {
@@ -127,7 +129,7 @@
     border-radius: var(--fusion-radius-sm);
     color: var(--fusion-text);
     cursor: pointer;
-    font-size: 0.875rem;
+    font-size: var(--fusion-text-base);
     height: 1.6rem;
     padding: 0;
   }
@@ -140,6 +142,6 @@
 
   .dica {
     color: var(--fusion-text-subtle);
-    font-size: 0.625rem;
+    font-size: var(--fusion-text-xs);
   }
 </style>

@@ -9,6 +9,7 @@
     "lint": "eslint .",
     "lint:boundaries": "depcruise --config .dependency-cruiser.cjs packages systems tools external/fusion-systems-2e/systems external/fusion-systems-2e/sheets",
     "test": "vitest run --workspace vitest.workspace.ts",
+    "test:server:shuffle": "vitest run --workspace vitest.workspace.ts --project server --project server-isolated --sequence.shuffle",
     "test:watch": "vitest --workspace vitest.workspace.ts",
     "spec:report": "node --experimental-strip-types tools/spec-lint/bin/report.ts",
     "format": "prettier --write \"**/*.{ts,tsx,json,md}\"",

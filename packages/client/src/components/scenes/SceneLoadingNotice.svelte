@@ -19,12 +19,12 @@
 <style>
   .scene-loading-notice {
     align-items: center;
-    background: var(--fusion-surface-raised, rgba(24, 24, 36, 0.92));
-    border: 1px solid rgba(124, 92, 252, 0.35);
-    border-radius: 999px;
-    color: var(--fusion-text, #e8e8f0);
+    background: var(--fusion-surface-alt);
+    border: 1px solid var(--fusion-magic);
+    border-radius: var(--fusion-radius-lg);
+    color: var(--fusion-text);
     display: flex;
-    font-size: 0.8rem;
+    font-size: var(--fusion-text-sm);
     gap: 0.45rem;
     left: 50%;
     margin: 0;
@@ -38,7 +38,7 @@
 
   .scene-loading-notice__dot {
     animation: scene-loading-pulse 0.9s ease-in-out infinite;
-    background: var(--fusion-accent, #7c5cfc);
+    background: var(--fusion-accent);
     border-radius: 50%;
     height: 0.5rem;
     width: 0.5rem;

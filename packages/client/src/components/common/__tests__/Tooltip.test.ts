@@ -169,7 +169,7 @@ describe("the layer scale (REQ-UIF-008, spec 53 §2.7)", () => {
   it("uses the shell's tokens for colour, border and shadow (the ConditionChip tooltip's look)", () => {
     expect(layer).toContain("background: var(--fusion-surface-alt)");
     expect(layer).toContain("border: 1px solid var(--fusion-border)");
-    expect(layer).toContain("box-shadow: var(--fusion-shadow-modal)");
+    expect(layer).toContain("box-shadow: var(--fusion-shadow-popover)");
   });
 });
 

@@ -197,16 +197,16 @@
        change size as it moves, and the measurement would be wrong the moment it applied. */
     width: max-content;
     max-width: min(272px, calc(100vw - 16px));
-    padding: 8px 10px;
+    padding: var(--fusion-space-2) var(--fusion-space-3);
     border: 1px solid var(--fusion-border);
     border-radius: var(--fusion-radius-sm);
     background: var(--fusion-surface-alt);
     color: var(--fusion-text);
     font-family: var(--fusion-font);
-    font-size: 11px;
+    font-size: var(--fusion-text-sm);
     font-weight: 400;
-    line-height: 1.4;
-    box-shadow: var(--fusion-shadow-modal);
+    line-height: var(--fusion-leading);
+    box-shadow: var(--fusion-shadow-popover);
     overflow-wrap: anywhere;
   }
 

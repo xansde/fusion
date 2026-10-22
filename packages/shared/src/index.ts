@@ -40,3 +40,4 @@ export * from "./token/actorSize.js";
 export * from "./actionbar.js";
 export * from "./manual-fog.js";
 export * from "./avatar.js";
+export * from "./ui/icons.js";

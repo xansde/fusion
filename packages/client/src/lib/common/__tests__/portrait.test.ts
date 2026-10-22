@@ -17,6 +17,11 @@ describe("portraitInitials", () => {
     expect(portraitInitials("Bigodes")).toBe("BI");
   });
 
+  it("skips punctuation: an acronym-like name still gets two letters", () => {
+    expect(portraitInitials("C.L.A.U.D.E.")).toBe("CL");
+    expect(portraitInitials("(Huo) Jinwu")).toBe("HJ");
+  });
+
   it("returns first-of-first + first-of-last for a two-word name", () => {
     expect(portraitInitials("Tobias Grimwald")).toBe("TG");
   });

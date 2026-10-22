@@ -79,8 +79,15 @@ describe("SettingsTab — the index (REQ-CFG-003..005)", () => {
     const indexMatch = /<ul class="settings-tab__index[^"]*">([\s\S]*?)<\/ul>/.exec(html);
     expect(indexMatch).not.toBeNull();
     const indexHtml = indexMatch?.[1] ?? "";
-    // No SVG pictograph identifying a section (the prohibitive half of the requirement).
-    expect(indexHtml).not.toContain("<svg");
+    // No SVG pictograph identifying a section (the prohibitive half of the requirement):
+    // the only drawing in a row is the shared advance chevron, inside the indicator.
+    const withoutIndicators = indexHtml.replace(
+      /<span class="settings-tab__index-item-indicator[^"]*"[^>]*>[\s\S]*?<\/span>/g,
+      "",
+    );
+    expect(withoutIndicators).not.toContain("<svg");
+    const chevrons = indexHtml.match(/<svg[^>]*fusion-icon[^>]*>/g) ?? [];
+    expect(chevrons).toHaveLength(SETTINGS_SECTIONS.length);
     // Every row still carries the advance indicator (the mandatory half): one
     // indicator per rendered row, none of them the section's own SVG icon.
     const rowCount = SETTINGS_SECTIONS.length;

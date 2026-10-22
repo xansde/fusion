@@ -18,57 +18,15 @@
  * sole OWNER), not against the CLI's own output.
  */
 
-import { describe, it, expect, beforeAll, afterEach, vi } from "vitest";
-// Each test spawns the real CLI as a cold Node child process (two per test:
-// world create + user add); under concurrent suite load these legitimately
-// take longer than the package default of 30s (see world-commands.test.ts).
-vi.setConfig({ testTimeout: 120_000 });
-import { spawnSync } from "node:child_process";
+import { describe, it, expect, beforeAll, afterAll } from "vitest";
+import { CLI_ENTRY, runCli } from "../helpers/run-cli.js";
 import { mkdirSync, rmSync, existsSync } from "node:fs";
 import { join } from "node:path";
 import { tmpdir } from "node:os";
-import { fileURLToPath } from "node:url";
-import { resolve } from "node:path";
 import { openDatabase, applyMigrations } from "../../db/index.js";
 import { DocumentStore } from "../../documents/store.js";
 import { UserStore } from "../../auth/user-store.js";
 import { OwnershipLevel } from "@fusion/shared";
-
-const __dirname = fileURLToPath(new URL(".", import.meta.url));
-const SERVER_ROOT = resolve(__dirname, "..", "..", "..");
-const CLI_ENTRY = join(SERVER_ROOT, "dist", "cli", "index.js");
-
-interface RunResult {
-  exitCode: number;
-  stdout: string;
-  stderr: string;
-}
-
-function runCli(args: string[], dataDir: string): RunResult {
-  const result = spawnSync(process.execPath, [CLI_ENTRY, ...args, "--data-dir", dataDir], {
-    encoding: "utf8",
-    timeout: 30_000,
-    env: {
-      ...process.env,
-      FORCE_COLOR: "0",
-      NO_COLOR: "1",
-    },
-  });
-
-  if (result.error || result.status === null) {
-    throw new Error(
-      `CLI process did not exit cleanly: signal=${result.signal ?? "none"} error=${
-        result.error ? result.error.message : "none"
-      }`,
-    );
-  }
-
-  return {
-    exitCode: result.status,
-    stdout: result.stdout ?? "",
-    stderr: result.stderr ?? "",
-  };
-}
 
 const tempDirs: string[] = [];
 
@@ -82,7 +40,8 @@ function makeTempDir(): string {
   return dir;
 }
 
-afterEach(() => {
+// afterAll: the two tests run concurrently (own data dirs, CLI cold start).
+afterAll(() => {
   for (const d of tempDirs.splice(0)) {
     try {
       rmSync(d, { recursive: true, force: true });
@@ -101,17 +60,20 @@ beforeAll(() => {
   }
 });
 
-describe("CLI — user add (C2, REQ-USR-025 via CLI)", () => {
-  it("fusion user add --role PLAYER creates a blank character Actor owned by the new user", () => {
+// Each test spawns the real CLI as a cold Node child process (two per test:
+// world create + user add); under concurrent suite load these legitimately
+// take longer than the package default of 30s (see world-commands.test.ts).
+describe.concurrent("CLI — user add (C2, REQ-USR-025 via CLI)", { timeout: 120_000 }, () => {
+  it("fusion user add --role PLAYER creates a blank character Actor owned by the new user", async () => {
     const dataDir = makeTempDir();
 
-    const createRes = runCli(
+    const createRes = await runCli(
       ["world", "create", "cli_user_add_world", "--system", "stub", "--title", "CLI User Add"],
       dataDir,
     );
     expect(createRes.exitCode).toBe(0);
 
-    const addRes = runCli(
+    const addRes = await runCli(
       [
         "user",
         "add",
@@ -157,16 +119,16 @@ describe("CLI — user add (C2, REQ-USR-025 via CLI)", () => {
     }
   });
 
-  it("fusion user add --role GAMEMASTER creates no character Actor (DEC-USR-01, privileged role)", () => {
+  it("fusion user add --role GAMEMASTER creates no character Actor (DEC-USR-01, privileged role)", async () => {
     const dataDir = makeTempDir();
 
-    const createRes = runCli(
+    const createRes = await runCli(
       ["world", "create", "cli_user_add_gm_world", "--system", "stub", "--title", "CLI GM Add"],
       dataDir,
     );
     expect(createRes.exitCode).toBe(0);
 
-    const addRes = runCli(
+    const addRes = await runCli(
       [
         "user",
         "add",

@@ -276,7 +276,10 @@ describe("ActionBar — a faixa, as abas e os 12 slots (T1)", () => {
   it("custo no canto, selo de grau e bônus", () => {
     const html = bar();
 
-    expect(html).toMatch(/<i class="slot__c[^"]*"[^>]*>◆<\/i>/);
+    // O custo é desenhado em SVG próprio (◆ → losango cheio); o glifo fica no atributo.
+    expect(html).toMatch(
+      /<i class="slot__c[^"]*"[^>]*data-cost="◆"[^>]*>[\s\S]*?<svg class="cost__d/,
+    );
     expect(html).toMatch(/<i class="slot__seal slot__seal--rank[^"]*"[^>]*>1<\/i>/);
     expect(html).toMatch(/<i class="slot__v[^"]*"[^>]*>\+9<\/i>/);
   });
@@ -300,6 +303,31 @@ describe("ActionBar — a faixa, as abas e os 12 slots (T1)", () => {
     expect(slotTag(html, "toggle:stub-guard")).toContain('data-state="active"');
     expect(slotTag(html, "toggle:stub-guard")).toContain('aria-pressed="true"');
     expect(slotIds(bar())).not.toContain("toggle:stub-guard");
+  });
+
+  it("aba Testes: cada teste é uma linha com o nome inteiro, nunca abreviado (ui-mesa-hud)", () => {
+    const html = render(SlotGrid, {
+      props: {
+        tab: "checks",
+        entries: [
+          makeEntry("check:survival", { label: "Sobrevivência", icon: "tent", badge: "+7" }),
+          makeEntry("check:computers", { label: "Computadores", icon: "monitor", badge: "+1" }),
+        ],
+        favorites: [],
+        isBusy: () => false,
+        altHeld: false,
+        menuEntryId: null,
+        onrun: () => undefined,
+        oncontext: () => undefined,
+        onhover: () => undefined,
+        onleave: () => undefined,
+      },
+    }).body;
+
+    expect(slotTag(html, "check:survival")).toContain("slot--row");
+    expect(html).toMatch(/<span class="slot__name[^"]*"[^>]*>Sobrevivência<\/span>/);
+    expect(html).toMatch(/<span class="slot__name[^"]*"[^>]*>Computadores<\/span>/);
+    expect(html).not.toContain("…");
   });
 
   it("o botão de recolher existe e a barra não vem recolhida", () => {
@@ -583,7 +611,7 @@ describe("ActionBar — a faixa de estado (REQ-BAR-027, REQ-BAR-036..040)", () =
     expect(text).toContain("Herói");
     expect(text).toContain("Alvo: Alvo Stub");
     expect(text).toContain("Próximo ataque:");
-    expect(text).toContain("MAP −5");
+    expect(text).toContain("PAM −5");
   });
 
   it("REQ-BAR-040: fora de combate, a faixa diz 'Fora de combate' e não há Encerrar turno", () => {
@@ -1154,9 +1182,9 @@ describe("ActionBar — o lugar e a escala de z (REQ-BAR-022, REQ-UIF-008)", () 
   it("centralizada na área livre: com a gaveta fechada, no meio de (tela − 44 px)", () => {
     const html = bar();
 
-    // Tela padrão de 1280 px no servidor: (1280 − 44) / 2 = 618; 780 px de largura.
+    // Tela padrão de 1280 px no servidor: (1280 − 44) / 2 = 618; 920 px de largura.
     expect(html).toMatch(/style="[^"]*left:\s*618px/);
-    expect(html).toMatch(/style="[^"]*width:\s*780px/);
+    expect(html).toMatch(/style="[^"]*width:\s*920px/);
   });
 
   it("com a gaveta aberta, o centro anda para a esquerda: (1280 − 344) / 2 = 468", () => {
@@ -1571,7 +1599,8 @@ describe("ActionBar — a fiação que o SSR não roda (lida do fonte)", () => {
   });
 
   it("REQ-A11-044: o chip que abre o efeito tem pelo menos 24 px de alvo", () => {
-    expect(read("../StatusStrip.svelte")).toMatch(/\.chip \{[^}]*min-height: 24px/);
+    const chip = /\.chip \{[^}]*min-height: (\d+)px/.exec(read("../StatusStrip.svelte"));
+    expect(Number(chip?.[1])).toBeGreaterThanOrEqual(24);
   });
 });
 
@@ -1690,14 +1719,16 @@ describe("ActionBar — o ícone customizado da entrada (BAR-F3-05)", () => {
   it("custo, tecla, bônus, selo e nome continuam legíveis sobre a imagem (protótipo T1)", () => {
     const css = slotSource();
 
-    // A imagem preenche o slot, sob um degradê que escurece o alto e a base.
+    // A imagem preenche o slot; sem degradê (ui-mesa-hud): cada marca ganha uma plaquinha da
+    // superfície do tema por cima dela, legível em qualquer imagem e nos dois temas.
     expect(css).toMatch(/\.slot__img\s*\{[^}]*position:\s*absolute;[^}]*inset:\s*2px;/);
-    expect(css).toMatch(/\.slot__img::after\s*\{[^}]*linear-gradient\(/);
-    // Por cima dela, cada marca ganha camada e sombra.
+    expect(css).not.toMatch(/linear-gradient\(/);
     for (const mark of ["slot__c", "slot__k", "slot__v", "slot__seal", "slot__name"]) {
       expect(css, mark).toMatch(new RegExp(`\\.slot--img \\.${mark}`));
     }
-    expect(css).toMatch(/\.slot--img [^{]*\{[^}]*z-index:\s*1;[^}]*text-shadow:/);
+    expect(css).toMatch(
+      /\.slot--img [^{]*\{[^}]*z-index:\s*1;[^}]*background:\s*var\(--fusion-surface\)/,
+    );
   });
 
   it("a barra entrega a cada slot a fonte do ícone e abre o seletor no modo de ícones", () => {

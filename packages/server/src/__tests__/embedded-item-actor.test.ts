@@ -305,8 +305,26 @@ describe("Embedded Item-in-Actor — real doc:create/doc:update/doc:delete handl
   // Ownership-gated CRUD + re-derivation (OWNER player)
   // -------------------------------------------------------------------------
 
-  let entryId: string;
-  let spellId: string;
+  // Each test creates the entry/spell it works on: none consumes another's.
+  async function createEntry(): Promise<string> {
+    const ack = await sendOp(ownerSocket, "doc:create", {
+      documentType: "Item",
+      parent: { type: "Actor", id: actorId },
+      data: [makeSpellcastingEntry("Arcane Repertoire")],
+    });
+    expect(ack["ok"]).toBe(true);
+    return (ack["result"] as { documents: Array<{ _id: string }> }).documents[0]!._id;
+  }
+
+  async function createSpell(entryId: string): Promise<string> {
+    const ack = await sendOp(ownerSocket, "doc:create", {
+      documentType: "Item",
+      parent: { type: "Actor", id: actorId },
+      data: [makeSpell("Magic Missile", entryId)],
+    });
+    expect(ack["ok"]).toBe(true);
+    return (ack["result"] as { documents: Array<{ _id: string }> }).documents[0]!._id;
+  }
 
   it("OWNER player can create a spellcastingEntry embedded on their Actor", async () => {
     const ack = await sendOp(ownerSocket, "doc:create", {
@@ -319,14 +337,14 @@ describe("Embedded Item-in-Actor — real doc:create/doc:update/doc:delete handl
       documents: Array<{ _id: string }>;
       parent: Record<string, unknown>;
     };
-    entryId = result.documents[0]!._id;
-    expect(entryId).toBeTruthy();
+    expect(result.documents[0]!._id).toBeTruthy();
     // Re-derivation ran on the parent (system.derived exists after the op).
     const system = result.parent["system"] as Record<string, unknown>;
     expect(system["derived"]).toBeDefined();
   });
 
   it("OWNER player can create a spell embedded with location = entryId", async () => {
+    const entryId = await createEntry();
     const ack = await sendOp(ownerSocket, "doc:create", {
       documentType: "Item",
       parent: { type: "Actor", id: actorId },
@@ -335,12 +353,13 @@ describe("Embedded Item-in-Actor — real doc:create/doc:update/doc:delete handl
     expect(ack["ok"]).toBe(true);
     const result = ack["result"] as { documents: Array<Record<string, unknown>> };
     const spell = result.documents[0]!;
-    spellId = spell["_id"] as string;
-    expect(spellId).toBeTruthy();
+    expect(spell["_id"]).toBeTruthy();
     expect((spell["system"] as Record<string, unknown>)["location"]).toEqual({ value: entryId });
   });
 
   it("OWNER player can update the spellcastingEntry's slots.prepared via doc:update embedded", async () => {
+    const entryId = await createEntry();
+    const spellId = await createSpell(entryId);
     const ack = await sendOp(ownerSocket, "doc:update", {
       documentType: "Item",
       updates: [
@@ -368,6 +387,7 @@ describe("Embedded Item-in-Actor — real doc:create/doc:update/doc:delete handl
   });
 
   it("rejects a diff-applied update that would make the embedded Item schema-invalid", async () => {
+    const entryId = await createEntry();
     const ack = await sendOp(ownerSocket, "doc:update", {
       documentType: "Item",
       updates: [
@@ -384,6 +404,7 @@ describe("Embedded Item-in-Actor — real doc:create/doc:update/doc:delete handl
   });
 
   it("OWNER player can delete the spell embedded on their Actor", async () => {
+    const spellId = await createSpell(await createEntry());
     const ack = await sendOp(ownerSocket, "doc:delete", {
       documentType: "Item",
       ids: [spellId],
@@ -402,6 +423,7 @@ describe("Embedded Item-in-Actor — real doc:create/doc:update/doc:delete handl
   // -------------------------------------------------------------------------
 
   it("rejects embedded Item create from a player without OWNER ownership on the Actor", async () => {
+    const entryId = await createEntry();
     const ack = await sendOp(outsiderSocket, "doc:create", {
       documentType: "Item",
       parent: { type: "Actor", id: actorId },
@@ -412,6 +434,7 @@ describe("Embedded Item-in-Actor — real doc:create/doc:update/doc:delete handl
   });
 
   it("rejects embedded Item update from a player without OWNER ownership on the Actor", async () => {
+    const entryId = await createEntry();
     const ack = await sendOp(outsiderSocket, "doc:update", {
       documentType: "Item",
       updates: [
@@ -427,6 +450,7 @@ describe("Embedded Item-in-Actor — real doc:create/doc:update/doc:delete handl
   });
 
   it("rejects embedded Item delete from a player without OWNER ownership on the Actor", async () => {
+    const entryId = await createEntry();
     const ack = await sendOp(outsiderSocket, "doc:delete", {
       documentType: "Item",
       ids: [entryId],

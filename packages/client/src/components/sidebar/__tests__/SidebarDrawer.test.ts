@@ -224,12 +224,17 @@ describe("Sidebar / SidebarDrawer", () => {
       seedPreferences(true, "chat");
       const html = renderSidebar();
 
-      const buttons = [...html.matchAll(/<button[^>]*>/g)].map((m) => m[0]);
+      const all = [...html.matchAll(/<button[^>]*>/g)].map((m) => m[0]);
+      // The phone peek strip (REQ-GAV-040, emenda 22/10/2026) is the one exception: shown
+      // only under 600px, it does what clicking the active tab does.
+      const peek = all.filter((tag) => tag.includes("fusion-sidebar__peek"));
+      const buttons = all.filter((tag) => !tag.includes("fusion-sidebar__peek"));
       const railButtons = buttons.filter((tag) => tag.includes("data-tab-id="));
       // Five registered tabs for the GM, and not one control beyond them: no chevron
       // in the rail, no ✕ in the panel (DEC-GAV-03).
       expect(railButtons).toHaveLength(5);
       expect(buttons).toHaveLength(railButtons.length);
+      expect(peek).toHaveLength(1);
       expect(html).not.toMatch(/close|collapse|toggle/i);
     });
 

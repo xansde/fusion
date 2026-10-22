@@ -116,7 +116,7 @@
 
   .scene-delete__question {
     color: var(--fusion-text-muted);
-    font-size: 0.875rem;
+    font-size: var(--fusion-text-sm);
     line-height: 1.5;
     margin: 0;
   }
@@ -127,7 +127,7 @@
 
   .scene-delete__cascade-title {
     color: var(--fusion-text);
-    font-size: 0.8125rem;
+    font-size: var(--fusion-text-xs);
     font-weight: 600;
     margin: 0.2rem 0 0;
   }
@@ -136,7 +136,7 @@
     color: var(--fusion-text-muted);
     display: flex;
     flex-direction: column;
-    font-size: 0.8125rem;
+    font-size: var(--fusion-text-xs);
     gap: 0.15rem;
     line-height: 1.4;
     margin: 0;
@@ -145,14 +145,14 @@
 
   .scene-delete__kept {
     color: var(--fusion-text-subtle);
-    font-size: 0.8125rem;
+    font-size: var(--fusion-text-xs);
     line-height: 1.4;
     margin: 0.2rem 0 0;
   }
 
   /* REQ-CEN-064: the refusal is a message, not a disabled control with no words. */
   .scene-delete__blocked {
-    background: rgba(255, 92, 92, 0.1);
+    background: var(--fusion-danger-dim);
     border: 1px solid var(--fusion-danger);
     border-radius: var(--fusion-radius-sm);
     padding: 0.7rem 0.8rem;
@@ -160,24 +160,24 @@
 
   .scene-delete__reason {
     color: var(--fusion-text);
-    font-size: 0.8125rem;
+    font-size: var(--fusion-text-xs);
     line-height: 1.45;
     margin: 0;
   }
 
   .scene-delete__path {
     color: var(--fusion-text-muted);
-    font-size: 0.8125rem;
+    font-size: var(--fusion-text-xs);
     line-height: 1.45;
     margin: 0.35rem 0 0;
   }
 
   .server-error {
-    background: rgba(255, 92, 92, 0.12);
+    background: var(--fusion-danger-dim);
     border: 1px solid var(--fusion-danger);
     border-radius: var(--fusion-radius-sm);
     color: var(--fusion-danger);
-    font-size: 0.8125rem;
+    font-size: var(--fusion-text-xs);
     padding: 0.6rem 0.75rem;
   }
 
@@ -191,13 +191,14 @@
   }
 
   .btn {
+    min-height: var(--fusion-target);
     align-items: center;
     border: 1px solid transparent;
     border-radius: var(--fusion-radius-sm);
     cursor: pointer;
     display: inline-flex;
     font-family: var(--fusion-font);
-    font-size: 0.875rem;
+    font-size: var(--fusion-text-sm);
     font-weight: 500;
     justify-content: center;
     padding: 0.45rem 1rem;
@@ -212,7 +213,7 @@
   }
 
   .btn:focus-visible {
-    outline: 2px solid var(--fusion-accent);
+    outline: 2px solid var(--fusion-focus);
     outline-offset: 2px;
   }
 
@@ -229,10 +230,10 @@
 
   .btn--danger {
     background: var(--fusion-danger);
-    color: #fff;
+    color: var(--fusion-on-accent);
   }
 
   .btn--danger:hover:not(:disabled) {
-    background: #e04040;
+    background: var(--fusion-danger);
   }
 </style>
