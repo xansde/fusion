@@ -492,7 +492,7 @@ const NODES = {
         d: "M2.586 17.414A2 2 0 0 0 2 18.828V21a1 1 0 0 0 1 1h3a1 1 0 0 0 1-1v-1a1 1 0 0 1 1-1h1a1 1 0 0 0 1-1v-1a1 1 0 0 1 1-1h.172a2 2 0 0 0 1.414-.586l.814-.814a6.5 6.5 0 1 0-4-4z",
       },
     ],
-    ["circle", { cx: "16.5", cy: "7.5", r: ".5", fill: "currentColor" }],
+    ["circle", { cx: "16.5", cy: "7.5", r: ".5" }],
   ],
   "layout-grid": [
     ["rect", { width: "7", height: "7", x: "3", y: "3", rx: "1" }],
@@ -618,18 +618,6 @@ const NODES = {
     ["path", { d: "M12 22V12" }],
     ["polyline", { points: "3.29 7 12 12 20.71 7" }],
     ["path", { d: "m7.5 4.27 9 5.15" }],
-  ],
-  palette: [
-    [
-      "path",
-      {
-        d: "M12 22a1 1 0 0 1 0-20 10 9 0 0 1 10 9 5 5 0 0 1-5 5h-2.25a1.75 1.75 0 0 0-1.4 2.8l.3.4a1.75 1.75 0 0 1-1.4 2.8z",
-      },
-    ],
-    ["circle", { cx: "13.5", cy: "6.5", r: ".5", fill: "currentColor" }],
-    ["circle", { cx: "17.5", cy: "10.5", r: ".5", fill: "currentColor" }],
-    ["circle", { cx: "6.5", cy: "12.5", r: ".5", fill: "currentColor" }],
-    ["circle", { cx: "8.5", cy: "7.5", r: ".5", fill: "currentColor" }],
   ],
   pause: [
     ["rect", { x: "14", y: "3", width: "5", height: "18", rx: "1" }],
