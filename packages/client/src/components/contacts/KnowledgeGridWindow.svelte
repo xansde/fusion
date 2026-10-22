@@ -33,6 +33,7 @@
   import { getSocket } from "../../lib/session.svelte.js";
   import { sendOp, OpError } from "../../lib/docs/sendOp.js";
   import { t } from "../../lib/i18n/i18n.js";
+  import Icon from "../common/Icon.svelte";
   import type { ContactActorDoc } from "../../lib/contacts/contactsVM.js";
   import {
     KNOWLEDGE_OP_TYPE,
@@ -102,37 +103,17 @@
 </script>
 
 <!--
-  One SVG icon per state (dot / half-filled circle / check), matching the
-  prototype's dense matrix (`SYM = ["·", "◐", "✓"]` in npcs-tab.prototype.html)
-  in shape, not in glyph: this window is reachable from both the Contatos
-  footer and the NPCs footer (REQ-NPC-072), so DEC-ACH-04's "drawn icons,
-  never emoji" — cited by spec 42 as a principle of the whole gaveta, not only
-  its own tab — reaches it too. A `·`/`◐`/`✓` text character sits inside the
-  Unicode ranges the repo already treats as emoji-ish (see the EMOJI regex in
-  NpcsFooter.test.ts); an SVG path never does. The full word still never
-  leaves the accessible name (REQ-CTT-094 — never colour alone).
+  One shared-set icon per state: minus (oculto) / circle-dot (entrevisto) /
+  check (conhecido). Never a text character (DEC-ACH-04, spec 42). The full word
+  never leaves the accessible name (REQ-CTT-094 — never colour alone).
 -->
 {#snippet stateIcon(state: number)}
   {#if state === 0}
-    <svg viewBox="0 0 12 12" width="11" height="11" aria-hidden="true" focusable="false">
-      <circle cx="6" cy="6" r="1.4" fill="currentColor" />
-    </svg>
+    <Icon name="minus" size={16} />
   {:else if state === 1}
-    <svg viewBox="0 0 12 12" width="11" height="11" aria-hidden="true" focusable="false">
-      <circle cx="6" cy="6" r="4.3" fill="none" stroke="currentColor" stroke-width="1.3" />
-      <path d="M6 1.7A4.3 4.3 0 0 1 6 10.3Z" fill="currentColor" />
-    </svg>
+    <Icon name="circle-dot" size={16} />
   {:else}
-    <svg viewBox="0 0 12 12" width="11" height="11" aria-hidden="true" focusable="false">
-      <path
-        d="M2.3 6.2 5 8.9 9.7 3.3"
-        fill="none"
-        stroke="currentColor"
-        stroke-width="1.5"
-        stroke-linecap="round"
-        stroke-linejoin="round"
-      />
-    </svg>
+    <Icon name="check" size={16} />
   {/if}
 {/snippet}
 
@@ -272,7 +253,7 @@
   .knowledge-grid__error {
     margin: 0;
     color: var(--fusion-danger);
-    font-size: 0.75rem;
+    font-size: var(--fusion-text-xs);
   }
 
   .knowledge-grid__legend {
@@ -281,7 +262,7 @@
     align-items: center;
     gap: 0.6rem;
     flex: 0 0 auto;
-    font-size: 0.68rem;
+    font-size: var(--fusion-text-xs);
     color: var(--fusion-text-muted);
   }
 
@@ -298,7 +279,7 @@
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    width: 1.1rem;
+    width: 1.25rem;
     color: var(--fusion-text-subtle);
   }
 
@@ -321,13 +302,13 @@
      lost focus ring is a lost place — the outline is on the element itself so a
      control added later cannot be born without it. */
   .knowledge-grid button:focus-visible {
-    outline: 2px solid var(--fusion-accent);
+    outline: 2px solid var(--fusion-focus);
     outline-offset: -2px;
   }
 
   .knowledge-grid__empty {
     margin: 0.6rem 0.2rem;
-    font-size: 0.78rem;
+    font-size: var(--fusion-text-xs);
     color: var(--fusion-text-muted);
   }
 
@@ -343,7 +324,7 @@
   .knowledge-grid__table {
     border-collapse: separate;
     border-spacing: 0;
-    font-size: 0.75rem;
+    font-size: var(--fusion-text-xs);
   }
 
   .knowledge-grid__corner,
@@ -383,9 +364,7 @@
 
   .knowledge-grid__corner {
     z-index: 3;
-    font-size: 0.62rem;
-    letter-spacing: 0.06em;
-    text-transform: uppercase;
+    font-size: var(--fusion-text-xs);
     color: var(--fusion-text-subtle);
   }
 
@@ -423,7 +402,7 @@
   }
 
   .knowledge-grid__general {
-    font-size: 0.62rem;
+    font-size: var(--fusion-text-xs);
     color: var(--fusion-text-subtle);
   }
 
@@ -433,8 +412,8 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    width: 1.5rem;
-    height: 1.5rem;
+    width: var(--fusion-target);
+    height: var(--fusion-target);
     padding: 0;
     margin: 0 auto;
     background: none;

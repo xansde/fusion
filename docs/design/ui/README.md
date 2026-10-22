@@ -54,6 +54,8 @@ provisória: o Alexandre pode mandar trocar.
 `lib/ui/theme.ts` escreve `data-theme="dark" | "light"` no `<html>` (preferência por
 navegador, em `localStorage`; "sistema" segue o sistema operacional). Padrão: escuro.
 Os tokens do claro ficam em `:root[data-theme="light"]` em `base.css`.
+O seletor fica em Configurações → Minhas preferências (Escuro / Claro / Seguir o sistema;
+spec 37, DEC-CFG-11, provisória).
 
 ## Acessibilidade geral
 

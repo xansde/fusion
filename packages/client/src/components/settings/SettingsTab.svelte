@@ -47,6 +47,7 @@
   import PermissionsSection from "./PermissionsSection.svelte";
   import UsersSection from "./UsersSection.svelte";
   import ModsSection from "./ModsSection.svelte";
+  import Icon from "../common/Icon.svelte";
 
   interface Props extends SidebarPanelProps {
     /** Injectable so tests own their own (mirrors `TurnHead.svelte`'s `state` prop). */
@@ -66,7 +67,7 @@
     <!-- REQ-CFG-011: "voltar" + the section's name, and nothing else. -->
     <header class="settings-tab__header">
       <button type="button" class="settings-tab__back" onclick={() => nav.back()}>
-        <span aria-hidden="true">‹</span>
+        <Icon name="chevron-left" size={18} />
         {t("FUSION.Settings.Nav.Back")}
       </button>
       <span class="settings-tab__section-title">{t(activeSection.titleKey)}</span>
@@ -96,9 +97,9 @@
       <span class="settings-tab__title">{t("FUSION.Sidebar.Settings.Title")}</span>
     </header>
     <!-- REQ-CFG-003/004: one line per section, title + description + advance
-         indicator, no per-section icon. The indicator is a plain "›" glyph (same
-         family as the section header's own "‹" back control below), not an SVG
-         pictograph identifying the section — REQ-CFG-004 only bans the latter. -->
+         indicator, no per-section icon. The indicator is the shared chevron of the
+         icon set (same family as the header's "voltar" chevron), never a pictograph
+         identifying the section — REQ-CFG-004 only bans the latter. -->
     <ul class="settings-tab__index">
       {#each sections as section (section.id)}
         <li>
@@ -113,7 +114,9 @@
                 >{t(section.descriptionKey)}</span
               >
             </span>
-            <span class="settings-tab__index-item-indicator" aria-hidden="true">›</span>
+            <span class="settings-tab__index-item-indicator" aria-hidden="true"
+              ><Icon name="chevron-right" size={18} /></span
+            >
           </button>
         </li>
       {/each}
@@ -133,48 +136,45 @@
     align-items: center;
     border-bottom: 1px solid var(--fusion-border);
     display: flex;
-    gap: 0.5rem;
-    justify-content: flex-start;
-    padding: 0.6rem 0.75rem;
     flex-shrink: 0;
+    gap: var(--fusion-space-2);
+    justify-content: flex-start;
+    min-height: 48px;
+    padding: var(--fusion-space-1) var(--fusion-space-4);
   }
 
-  .settings-tab__title {
+  .settings-tab__title,
+  .settings-tab__section-title {
     color: var(--fusion-text);
-    font-size: 0.8125rem;
-    font-weight: 600;
-    letter-spacing: 0.04em;
-    text-transform: uppercase;
+    font-size: var(--fusion-text-lg);
+    font-weight: var(--fusion-weight-bold);
   }
 
   .settings-tab__back {
     align-items: center;
     background: none;
     border: none;
+    border-radius: var(--fusion-radius);
     color: var(--fusion-text-muted);
     cursor: pointer;
     display: flex;
     font: inherit;
-    gap: 0.25rem;
-    padding: 0;
+    font-size: var(--fusion-text-base);
+    gap: var(--fusion-space-1);
+    margin-left: calc(-1 * var(--fusion-space-2));
+    min-height: var(--fusion-target);
+    padding: 0 var(--fusion-space-2);
   }
 
   .settings-tab__back:hover {
+    background: var(--fusion-surface-alt);
     color: var(--fusion-text);
-  }
-
-  .settings-tab__section-title {
-    color: var(--fusion-text);
-    font-size: 0.8125rem;
-    font-weight: 600;
-    letter-spacing: 0.04em;
-    text-transform: uppercase;
   }
 
   .settings-tab__body {
     flex: 1;
     overflow-y: auto;
-    padding: 0.5rem 0;
+    padding: var(--fusion-space-2) 0;
   }
 
   .settings-tab__index {
@@ -188,12 +188,14 @@
     background: none;
     border: none;
     border-bottom: 1px solid var(--fusion-border);
+    color: inherit;
     cursor: pointer;
     display: flex;
     flex-direction: row;
     font: inherit;
-    gap: 0.5rem;
-    padding: 0.6rem 0.75rem;
+    gap: var(--fusion-space-3);
+    min-height: 56px;
+    padding: var(--fusion-space-3) var(--fusion-space-4);
     text-align: left;
     width: 100%;
   }
@@ -206,24 +208,24 @@
     display: flex;
     flex: 1;
     flex-direction: column;
-    gap: 0.15rem;
+    gap: var(--fusion-space-1);
     min-width: 0;
   }
 
   .settings-tab__index-item-indicator {
     color: var(--fusion-text-subtle);
+    display: flex;
     flex-shrink: 0;
-    font-size: 1rem;
   }
 
   .settings-tab__index-item-title {
     color: var(--fusion-text);
-    font-size: 0.8125rem;
-    font-weight: 600;
+    font-size: var(--fusion-text-md);
+    font-weight: var(--fusion-weight-bold);
   }
 
   .settings-tab__index-item-description {
-    color: var(--fusion-text-subtle);
-    font-size: 0.75rem;
+    color: var(--fusion-text-muted);
+    font-size: var(--fusion-text-sm);
   }
 </style>
