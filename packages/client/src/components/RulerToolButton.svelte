@@ -142,13 +142,13 @@
     color: var(--fusion-text-muted);
     cursor: pointer;
     display: inline-flex;
-    height: 2.25rem;
+    height: var(--fusion-target);
     justify-content: center;
     transition:
       background-color var(--fusion-transition),
       color var(--fusion-transition),
       border-color var(--fusion-transition);
-    width: 2.25rem;
+    width: var(--fusion-target);
   }
 
   .ruler-tool__main:hover {

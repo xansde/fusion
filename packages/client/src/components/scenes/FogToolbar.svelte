@@ -37,30 +37,19 @@
 
   const open = $derived(cornerPanel.open === "fog");
 
-  // Glyphs the shared set already has go through <Icon>; the three it lacks (polygon,
-  // brush, snap-to-grid) and the on/off switch keep their own path in the same 24 grid.
-  const SHARED: Partial<Record<string, IconName>> = {
+  // Every glyph comes from the shared set (ui-acabamento: the four hand-drawn paths of the
+  // polygon, brush, snap and on/off switch became Lucide's pentagon, brush, magnet and toggle).
+  const ICON = {
     cloud: "cloud-fog",
     rect: "square",
+    poly: "pentagon",
+    brush: "brush",
     reveal: "eye",
     cover: "eye-off",
+    snap: "magnet",
     undo: "undo-2",
     sun: "sun",
-  };
-
-  const ICON = {
-    cloud: "",
-    toggle: "M7 8h10a4 4 0 0 1 0 8H7A4 4 0 0 1 7 8z M7 10a2 2 0 1 0 0 4 2 2 0 0 0 0-4z",
-    rect: "",
-    poly: "M12 3l8.5 6.2-3.2 10H6.7L3.5 9.2z",
-    brush:
-      "M18.4 3.6a2 2 0 0 1 0 2.8L11 13.8 8.2 11l7.4-7.4a2 2 0 0 1 2.8 0z M8 12.5c-2.5 0-3 2.5-4 5 2.5 1 6 .5 6-2.5",
-    reveal: "",
-    cover: "",
-    snap: "M4 4h16v16H4z M4 9.3h16 M4 14.7h16 M9.3 4v16 M14.7 4v16",
-    undo: "",
-    sun: "",
-  } as const;
+  } as const satisfies Record<string, IconName>;
 
   function toggleOpen(): void {
     toggleCornerPanel("fog");
@@ -111,21 +100,7 @@
 </script>
 
 {#snippet icon(name: keyof typeof ICON)}
-  {@const shared = SHARED[name]}
-  {#if shared}
-    <Icon name={shared} size={20} />
-  {:else}
-    <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" focusable="false">
-      <path
-        d={ICON[name]}
-        fill="none"
-        stroke="currentColor"
-        stroke-width="1.75"
-        stroke-linejoin="round"
-        stroke-linecap="round"
-      />
-    </svg>
-  {/if}
+  <Icon name={ICON[name]} size={20} />
 {/snippet}
 
 <div class="fog-dock">
@@ -153,7 +128,7 @@
         title={t("FUSION.Fog.Enabled")}
         onclick={() => {
           setEnabled(!fog.enabled);
-        }}>{@render icon("toggle")}</button
+        }}><Icon name={fog.enabled ? "toggle-right" : "toggle-left"} size={20} /></button
       >
 
       <span class="fog-sep" aria-hidden="true"></span>
@@ -263,7 +238,7 @@
     position: absolute;
     /* Same row as the ruler / show-players / pin buttons (the fourth slot). */
     top: calc(var(--fusion-header-height) + 0.75rem);
-    left: calc(0.75rem + 3 * (2.25rem + 0.4rem));
+    left: calc(0.75rem + 3 * (var(--fusion-target) + 0.4rem));
     z-index: 90;
     display: flex;
     flex-direction: column;
@@ -279,9 +254,9 @@
     color: var(--fusion-text-muted);
     cursor: pointer;
     display: inline-flex;
-    height: 2.25rem; /* aligned with the other corner buttons of the row (their offset is 2.25rem) */
+    height: var(--fusion-target); /* the whole corner row is 40px targets */
     justify-content: center;
-    width: 2.25rem;
+    width: var(--fusion-target);
   }
 
   .fog-dock__toggle:hover {

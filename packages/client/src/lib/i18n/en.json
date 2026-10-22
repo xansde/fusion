@@ -110,7 +110,7 @@
   "FUSION.Settings.Preferences.Volume.Interface": "Interface — {{percent}}%",
   "FUSION.Settings.Preferences.ThemeTitle": "Theme",
   "FUSION.Settings.Preferences.Theme.Dark": "Dark",
-  "FUSION.Settings.Preferences.Theme.Light": "Light (experimental)",
+  "FUSION.Settings.Preferences.Theme.Light": "Light",
   "FUSION.Settings.Preferences.Theme.System": "Follow the system",
   "FUSION.Settings.Preferences.ThemeHint": "Applies to this browser only. The light theme is still being tuned on some screens.",
   "FUSION.Settings.Preferences.NotificationsTitle": "Notifications",

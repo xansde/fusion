@@ -141,7 +141,7 @@
     display: flex;
     flex-direction: column;
     gap: 0.4rem;
-    left: calc(0.75rem + 2.25rem + 0.4rem);
+    left: calc(0.75rem + var(--fusion-target) + 0.4rem);
     position: absolute;
     top: calc(var(--fusion-header-height) + 0.75rem);
     z-index: 90;
@@ -160,9 +160,9 @@
     color: var(--fusion-text-muted);
     cursor: pointer;
     display: inline-flex;
-    height: 2.25rem;
+    height: var(--fusion-target);
     justify-content: center;
-    width: 2.25rem;
+    width: var(--fusion-target);
   }
 
   .show-tool__main:hover {

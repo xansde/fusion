@@ -3,6 +3,8 @@
  * control, and it only shows when the shared corner panel state says "fog".
  */
 import { beforeEach, describe, expect, it } from "vitest";
+import { readFileSync } from "node:fs";
+import { fileURLToPath } from "node:url";
 import { render } from "svelte/server";
 import type { ManualFog } from "@fusion/shared";
 
@@ -56,5 +58,27 @@ describe("FogToolbar", () => {
     cornerPanel.open = "fog";
     fogToolState.tool = "brush";
     expect(html()).toContain('type="range"');
+  });
+});
+
+describe("FogToolbar — one icon set, one target size (ui-acabamento)", () => {
+  const source = readFileSync(
+    fileURLToPath(new URL("../FogToolbar.svelte", import.meta.url)),
+    "utf8",
+  );
+
+  it("draws no glyph of its own: every icon comes from the shared set", () => {
+    expect(source).not.toMatch(/<path\b/);
+    cornerPanel.open = "fog";
+    const body = html();
+    const svgs = body.match(/<svg\b[^>]*>/g) ?? [];
+    expect(svgs.length).toBeGreaterThan(0);
+    for (const svg of svgs) expect(svg).toContain("fusion-icon");
+  });
+
+  it("the toggle is a 40px target like the rest of the row", () => {
+    const toggle = /\.fog-dock__toggle \{[^}]*\}/.exec(source)?.[0] ?? "";
+    expect(toggle).toContain("var(--fusion-target)");
+    expect(toggle).not.toContain("2.25rem");
   });
 });

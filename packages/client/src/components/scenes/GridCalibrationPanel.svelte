@@ -309,7 +309,7 @@
     left: 0.75rem;
     padding: 0.8rem 0.9rem;
     position: absolute;
-    top: calc(var(--fusion-header-height) + 0.75rem + 2.25rem + 0.5rem);
+    top: calc(var(--fusion-header-height) + 0.75rem + var(--fusion-target) + 0.5rem);
     width: min(20rem, calc(100vw - 1.5rem));
     z-index: 95;
   }
