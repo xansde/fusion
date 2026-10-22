@@ -211,7 +211,8 @@ export function redactBlindRollForNonPrivileged(msg: ChatMessage): ChatMessage {
  * BHR-F2-05 (ALQ-F4-09: "blind/privada seguem a redação do resultado"): the
  * notes the server kept for a roll are FILTERED BY ITS DEGREE, and the
  * conditional modifiers are part of its total — either one hands the hidden
- * result over; so are the extra damage dice the server added to a damage roll (`extraDamage`). A blind roll's
+ * result over; so are the extra damage dice the server added to a damage roll (`extraDamage`), and the damage
+ * components it recorded (`damage`, #225: what weapon or spell, and whether the hit was critical). A blind roll's
  * non-privileged body carries none of them.
  */
 const BLIND_HIDDEN_FUSION_FLAG_KEYS = [
@@ -219,6 +220,7 @@ const BLIND_HIDDEN_FUSION_FLAG_KEYS = [
   "conditionalModifiers",
   "extraDamage",
   "breakdown",
+  "damage",
 ] as const;
 
 function stripBlindRollResolution(flags: ChatMessage["flags"]): ChatMessage["flags"] {

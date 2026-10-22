@@ -50,9 +50,12 @@ import type {
   ResolvedRollNote,
   RollBreakdownFlag,
   RollBreakdownPart,
+  RollDamageComponent,
+  RollDamageFlag,
 } from "@fusion/shared";
 import type {
   ResolvedExtraDamage,
+  RollDamageInput,
   RollResolutionParty,
   RollTargetSnapshotEntry,
   SystemModule,
@@ -96,6 +99,8 @@ export const ROLL_CONTEXT_FLAG_KEY = "rollContext" as const;
 export const ROLL_NOTES_FLAG_KEY = "rollNotes" as const;
 export const CONDITIONAL_MODIFIERS_FLAG_KEY = "conditionalModifiers" as const;
 export const ROLL_BREAKDOWN_FLAG_KEY = "breakdown" as const;
+/** `flags.fusion.damage` — the damage components of a damage roll, server-written (#225, REQ-SYS-166). */
+export const ROLL_DAMAGE_FLAG_KEY = "damage" as const;
 
 /**
  * The only options the client may DESCRIBE a roll with (I2, DF-17). Everything
@@ -374,6 +379,138 @@ export function attachRollBreakdown(msg: ChatMessage, breakdown: RollBreakdownFl
   msg.flags = {
     ...msg.flags,
     [FUSION_FLAG_NAMESPACE]: { ...fusion, [ROLL_BREAKDOWN_FLAG_KEY]: breakdown },
+  };
+}
+
+// ---------------------------------------------------------------------------
+// 4. Damage components (#225, REQ-SYS-166)
+// ---------------------------------------------------------------------------
+
+/** The ability card a damage roll nests under, as the server stored it (`flags.pf2e.abilityCard`). */
+export interface StoredDamageCard {
+  readonly kind: string;
+  readonly casterActorId: string;
+  readonly name: string;
+  readonly nameEn?: string;
+  readonly rank?: number;
+  readonly damageType?: string;
+  readonly damageStatistic?: string;
+}
+
+/** What a damage roll was made with, as the chat handler read it from the payload and the stored parent. */
+export interface RollDamageRef {
+  /** The roll's speaker actor (already checked: the roller may act as it). */
+  readonly speakerActorId: string | undefined;
+  /** `flags.fusion.statistic` of the roll payload. */
+  readonly statistic: FusionStatisticRef | undefined;
+  /** The stored card the roll nests under, if any. */
+  readonly card: StoredDamageCard | undefined;
+  /** The server itself graded the Strike this damage nests under as a critical success. */
+  readonly criticalHit: boolean;
+}
+
+const DAMAGE_CATEGORIES: ReadonlySet<string> = new Set(["persistent", "splash", "precision"]);
+
+function stringList(raw: unknown): string[] | undefined {
+  if (!Array.isArray(raw)) return undefined;
+  const list = raw.filter((v): v is string => typeof v === "string" && v.length > 0);
+  return list.length > 0 ? list : undefined;
+}
+
+/** The system's answer, kept to the shape the flag promises (system code is trusted, not its typing). */
+function sanitizeDamageFlag(raw: unknown): RollDamageFlag | null {
+  if (!raw || typeof raw !== "object") return null;
+  const rec = raw as Record<string, unknown>;
+  const source = rec["source"] as Record<string, unknown> | undefined;
+  if (!source || typeof source["kind"] !== "string" || typeof source["label"] !== "string") {
+    return null;
+  }
+  const components: RollDamageComponent[] = [];
+  for (const entry of Array.isArray(rec["components"]) ? (rec["components"] as unknown[]) : []) {
+    if (!entry || typeof entry !== "object") continue;
+    const c = entry as Record<string, unknown>;
+    if (typeof c["type"] !== "string" || c["type"].length === 0) continue;
+    const category = c["category"];
+    const traits = stringList(c["traits"]);
+    const materials = stringList(c["materials"]);
+    components.push({
+      type: c["type"],
+      ...(typeof category === "string" && DAMAGE_CATEGORIES.has(category)
+        ? { category: category as RollDamageComponent["category"] & string }
+        : {}),
+      ...(traits !== undefined ? { traits } : {}),
+      ...(materials !== undefined ? { materials } : {}),
+    });
+  }
+  if (components.length === 0) return null;
+  return {
+    source: {
+      kind: source["kind"],
+      label: source["label"],
+      ...(typeof source["itemId"] === "string" ? { itemId: source["itemId"] } : {}),
+    },
+    components,
+  };
+}
+
+/**
+ * The damage components of a roll (#225, REQ-SYS-166): the SYSTEM derives them from what the roll was made
+ * with — the statistic the roll names, or the card it nests under — for the roll's own speaker actor, re-derived
+ * by the server. A statistic or card of ANOTHER actor describes nothing (a player cannot borrow another actor's
+ * weapon). `null` = nothing proven: the roll carries no components and only a privileged caller can apply it.
+ */
+export function resolveRollDamage(
+  deps: RollResolutionDeps,
+  ref: RollDamageRef,
+  roller: { userId: string; role: UserRole },
+): RollDamageFlag | null {
+  const actorId = ref.speakerActorId;
+  if (actorId === undefined) return null;
+  const { store, systemModule } = deps;
+  const resolver = systemModule?.rollResolver;
+  if (!store || !systemModule || !resolver?.damageComponents) return null;
+  const card = ref.card?.casterActorId === actorId ? ref.card : undefined;
+  const statistic = ref.statistic?.actorId === actorId ? ref.statistic.key : card?.damageStatistic;
+  if (statistic === undefined && card === undefined) return null;
+  const actor = readActor(store, actorId);
+  if (actor === null || !mayRollFor(actor, roller)) return null;
+  const input: RollDamageInput = {
+    actor: rederive(actor, store, systemModule),
+    ...(statistic !== undefined ? { statistic } : {}),
+    ...(card !== undefined
+      ? {
+          card: {
+            kind: card.kind,
+            name: card.name,
+            ...(card.nameEn !== undefined ? { nameEn: card.nameEn } : {}),
+            ...(card.rank !== undefined ? { rank: card.rank } : {}),
+            ...(card.damageType !== undefined ? { damageType: card.damageType } : {}),
+          },
+        }
+      : {}),
+  };
+  let answer: unknown;
+  try {
+    answer = resolver.damageComponents(input);
+  } catch (err) {
+    deps.logger?.error(
+      { err, systemId: systemModule.manifest.id, actorId, statistic },
+      "[roll-resolution] damage components threw — roll delivered without recorded components",
+    );
+    return null;
+  }
+  const flag = sanitizeDamageFlag(answer);
+  if (flag === null) return null;
+  return ref.criticalHit ? { ...flag, critical: true } : flag;
+}
+
+/** Write the server-derived components onto the message (`flags.fusion.damage`). */
+export function attachRollDamage(msg: ChatMessage, damage: RollDamageFlag | null): void {
+  if (damage === null) return;
+  const fusion = msg.flags[FUSION_FLAG_NAMESPACE] ?? {};
+  msg.flags = {
+    ...msg.flags,
+    [FUSION_FLAG_NAMESPACE]: { ...fusion, [ROLL_DAMAGE_FLAG_KEY]: damage },
   };
 }
 

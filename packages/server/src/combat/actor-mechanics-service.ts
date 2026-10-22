@@ -57,13 +57,20 @@
  * KNOWN, DOCUMENTED GAPS still open against the full REQ-SYS-142 text
  * (registered here rather than silently skipped — same discipline ALQ-F1-02
  * used for its own divergences):
- *   - #225 (21/10/2026, partial): step 2b's reread of `type`/`category`/`traits`/`materials` is closed as far
- *     as the recorded roll allows. `RollResultData` still has no field for them, so a non-privileged caller's
- *     `category`/`traits`/`materials` are DROPPED (nothing to reread them from — like `nonlethal`), and its
- *     `type` must match a `[type]` annotation of the roll's terms when the roll has one. A roll with no
- *     annotation gives nothing to check `type` against: that case still trusts the payload. Closing it fully
- *     means the damage roll recording its own type/traits/materials (a richer persisted shape, with the pf2e
- *     mechanic), which is not done here.
+ *   - none for step 2b since #225 (22/10/2026): see "RECORDED DAMAGE COMPONENTS" below.
+ *
+ * RECORDED DAMAGE COMPONENTS (#225, REQ-SYS-142 step 2b, REQ-SYS-166): the damage roll records, server-side,
+ * what the damage IS — `flags.fusion.damage` on the roll message, derived by the SYSTEM from the strike/item/
+ * spell the roll was made with (`RollResolverDefinition.damageComponents`, chat-handler). For a non-privileged
+ * caller with `source`, this service takes `type`/`category`/`traits`/`materials` from those components and
+ * NEVER from the payload: the payload's `type` only selects — `healing`/`temp-hp` (the Curar / PV temporário
+ * buttons, a mode, no IWR), a recorded component's own type, or `untyped` (a card that names no type) for the
+ * primary component; any other type is `FORBIDDEN`. A roll with no recorded components (a free `/r`, a roll
+ * from before #225 — a `[fire]` annotation is the client's own text, never proof) is `FORBIDDEN` for a
+ * non-privileged caller: only the GM applies it, with the payload as before (provisional decision, lane
+ * dano-225). A privileged caller's payload still wins field by field; what it leaves out is filled from the
+ * recorded component of the same type. A non-privileged caller must also be the AUTHOR of the source message:
+ * a roll the GM fired speaking as the player's character froze the GM's targets, not the player's.
  *
  * `ActorMechanicsPatch.breakdown` → `DamageAppliedTarget.byType` convention
  * (undocumented anywhere upstream — `DamageBreakdownStep.step` is explicitly
@@ -127,6 +134,8 @@ import type {
   DamageAppliedTarget,
   DamageAppliedTypeBreakdown,
   Envelope,
+  RollDamageComponent,
+  RollDamageFlag,
 } from "@fusion/shared";
 import type {
   ActorMechanicsPatch,
@@ -236,33 +245,45 @@ function readRollTotal(msg: Record<string, unknown>, rollIndex: number): number 
   return typeof total === "number" ? total : undefined;
 }
 
-/**
- * The damage types a recorded roll names: the `[flavor]` annotations of its terms (`2d6[fire]+1d6[cold]`),
- * lowercased. Empty when the roll carries none — then there is nothing to check a claimed type against.
- */
-function readRollDamageTypes(msg: Record<string, unknown>, rollIndex: number): Set<string> {
-  const types = new Set<string>();
-  const terms = readRoll(msg, rollIndex)?.["terms"];
-  if (!Array.isArray(terms)) return types;
-  const add = (raw: unknown): void => {
-    if (typeof raw === "string" && raw.trim().length > 0) types.add(raw.trim().toLowerCase());
-  };
-  for (const term of terms) {
-    if (!term || typeof term !== "object") continue;
-    const record = term as Record<string, unknown>;
-    add(record["flavor"]);
-    // The engine keeps a die's annotation inside its expression ("2d6 [fire]"), not in `flavor`.
-    const expression = record["expression"];
-    if (typeof expression === "string") {
-      for (const match of expression.matchAll(/\[([^\]]+)\]/g)) add(match[1]);
-    }
-  }
-  return types;
-}
-
 function readRollDegree(msg: Record<string, unknown>, rollIndex: number): string | undefined {
   const degree = readRoll(msg, rollIndex)?.["degreeOfSuccess"];
   return typeof degree === "string" ? degree : undefined;
+}
+
+/**
+ * The server-recorded damage components of a roll (#225, `flags.fusion.damage`). The flag describes the
+ * message's first roll — a `/r` message holds one — so any other `rollIndex` has none.
+ */
+function readRecordedDamage(
+  msg: Record<string, unknown>,
+  rollIndex: number,
+): RollDamageFlag | undefined {
+  if (rollIndex !== 0) return undefined;
+  const flags = msg["flags"];
+  if (!flags || typeof flags !== "object") return undefined;
+  const fusion = (flags as Record<string, unknown>)["fusion"];
+  if (!fusion || typeof fusion !== "object") return undefined;
+  const damage = (fusion as Record<string, unknown>)["damage"] as RollDamageFlag | undefined;
+  if (!damage || !Array.isArray(damage.components) || damage.components.length === 0) {
+    return undefined;
+  }
+  return damage;
+}
+
+/** The apply modes that are not damage at all: the Curar / PV temporário buttons (no IWR, no type). */
+const NON_DAMAGE_MODES: ReadonlySet<string> = new Set(["healing", "temp-hp"]);
+
+/** "No claim": a card that names no damage type sends this; it selects the primary recorded component. */
+const UNTYPED = "untyped";
+
+/** The recorded component a payload `type` selects: its own type, or the primary one for `untyped`. */
+function selectComponent(
+  recorded: RollDamageFlag,
+  claimedType: string,
+): RollDamageComponent | undefined {
+  const claim = claimedType.trim().toLowerCase();
+  if (claim === UNTYPED) return recorded.components[0];
+  return recorded.components.find((c) => c.type.toLowerCase() === claim);
 }
 
 /** `speaker.userId` of a chat message: the user who actually sent it (the message's author). */
@@ -989,6 +1010,17 @@ async function applyDamage(
   if (!targetResolution.ok) return targetResolution.ack;
   const { targets, primaryMessage } = targetResolution;
 
+  // #225: a non-privileged caller applies only rolls they SENT. Owning the speaker actor is not enough: a roll
+  // the GM (or a co-owner) fired speaking as that actor froze someone else's targets and decisions.
+  if (
+    !privileged &&
+    userCtx !== undefined &&
+    primaryMessage &&
+    readSpeakerUserId(primaryMessage) !== userCtx.userId
+  ) {
+    return forbidden("the source message was sent by another user");
+  }
+
   // B2 fix (idempotency emenda): a non-privileged caller may never reapply
   // the same (messageId, rollIndex, multiplier) to the same target twice.
   // Checked BEFORE calling the mechanic; privileged/system callers are exempt
@@ -1042,6 +1074,7 @@ async function applyDamage(
   for (const instance of payload.instances) {
     let amount: number;
     let recordedDegree: string | undefined;
+    let recorded: RollDamageFlag | undefined;
     if (instance.source !== undefined) {
       let msg = messageCache.get(instance.source.messageId);
       if (msg === undefined) {
@@ -1063,15 +1096,7 @@ async function applyDamage(
       }
       amount = total;
       recordedDegree = msg ? readRollDegree(msg, instance.source.rollIndex) : undefined;
-      // #225 (REQ-SYS-142 step 2b): a non-privileged caller cannot claim a damage type the recorded roll
-      // contradicts. A roll with no `[type]` annotation gives nothing to check against, so it is left to
-      // the payload (the residual gap, see the module header).
-      if (!privileged && msg) {
-        const rolledTypes = readRollDamageTypes(msg, instance.source.rollIndex);
-        if (rolledTypes.size > 0 && !rolledTypes.has(instance.type.trim().toLowerCase())) {
-          return forbidden("damage type does not match the recorded roll");
-        }
-      }
+      recorded = msg ? readRecordedDamage(msg, instance.source.rollIndex) : undefined;
     } else {
       // DamageInstanceInputSchema's refine guarantees `amount` when `source`
       // is absent (zod refinements are runtime-only — they cannot narrow the
@@ -1082,35 +1107,57 @@ async function applyDamage(
       amount = instance.amount;
     }
 
-    // B3 fix (REQ-SYS-142 step 2b): a non-privileged caller's `critical` is
-    // REREAD from the recorded roll, never trusted from the payload —
-    // `criticalSuccess` is the same generic d20 vocabulary `basicSave.degree`
-    // already grades against, so this needs no game-specific mapping
-    // (DEC-SYS-12). `nonlethal` has no persisted carrier on a roll at all
-    // (see the module doc comment's KNOWN GAP), so the safe "reread" of "no
-    // data" is `false` — a non-privileged caller can never make a hit look
-    // nonlethal by simply claiming it. Privileged/system callers keep the
-    // payload's own value, unchanged.
-    const critical =
-      !privileged && instance.source !== undefined
-        ? recordedDegree === "criticalSuccess"
-        : instance.critical;
-    const nonlethal = !privileged && instance.source !== undefined ? false : instance.nonlethal;
+    // The server's own word on a critical hit: the roll's recorded degree (a d20 roll graded critical — core
+    // vocabulary, REQ-ROL-030-family) or the damage flag the server wrote under a Strike it graded critical.
+    const recordedCritical = recordedDegree === "criticalSuccess" || recorded?.critical === true;
 
-    // #225: `category`/`traits`/`materials` have no persisted carrier on a roll, so a non-privileged
-    // caller's claim cannot be verified — the safe reread of "no data" is none (like `nonlethal` above): a
-    // player can never fake a material or trait to dodge a resistance. Privileged/system callers keep them.
-    const unverifiable = !privileged && instance.source !== undefined;
+    if (!privileged && instance.source !== undefined) {
+      // #225 (REQ-SYS-142 step 2b): everything but the mode comes from the components the server recorded.
+      if (recorded === undefined) {
+        return forbidden(
+          "no damage components recorded for the source roll: only the GM can apply it (#225)",
+        );
+      }
+      // B3 fix: `critical` is REREAD, never trusted; `nonlethal` has no recorded carrier, so the safe reread of
+      // "no data" is `false` — a non-privileged caller can never make a hit look nonlethal by claiming it.
+      const reread = { critical: recordedCritical, nonlethal: false };
+      if (NON_DAMAGE_MODES.has(instance.type)) {
+        resolvedInstances.push({ type: instance.type, amount, ...reread });
+        continue;
+      }
+      const component = selectComponent(recorded, instance.type);
+      if (component === undefined) {
+        return forbidden("damage type does not match the recorded roll");
+      }
+      resolvedInstances.push({
+        type: component.type,
+        amount,
+        ...(component.category !== undefined ? { category: component.category } : {}),
+        ...(component.traits !== undefined ? { traits: component.traits } : {}),
+        ...(component.materials !== undefined ? { materials: component.materials } : {}),
+        ...reread,
+      });
+      continue;
+    }
+
+    // Privileged / "system": the payload wins field by field (a GM override); what it leaves out is filled
+    // from the recorded component its type selects (#225) — the apply buttons never send traits/materials.
+    const component =
+      recorded !== undefined && !NON_DAMAGE_MODES.has(instance.type)
+        ? selectComponent(recorded, instance.type)
+        : undefined;
+    const category = instance.category ?? component?.category;
+    const traits = instance.traits ?? component?.traits;
+    const materials = instance.materials ?? component?.materials;
+    const critical = instance.critical ?? (recordedCritical ? true : undefined);
     resolvedInstances.push({
-      type: instance.type,
+      type: component?.type ?? instance.type,
       amount,
-      ...(!unverifiable && instance.category !== undefined ? { category: instance.category } : {}),
-      ...(!unverifiable && instance.traits !== undefined ? { traits: instance.traits } : {}),
-      ...(!unverifiable && instance.materials !== undefined
-        ? { materials: instance.materials }
-        : {}),
+      ...(category !== undefined ? { category } : {}),
+      ...(traits !== undefined ? { traits } : {}),
+      ...(materials !== undefined ? { materials } : {}),
       ...(critical !== undefined ? { critical } : {}),
-      ...(nonlethal !== undefined ? { nonlethal } : {}),
+      ...(instance.nonlethal !== undefined ? { nonlethal: instance.nonlethal } : {}),
     });
   }
 
