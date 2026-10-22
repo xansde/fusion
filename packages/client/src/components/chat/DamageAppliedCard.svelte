@@ -68,61 +68,49 @@
 </div>
 
 <style>
+  /* ui-chat: same box as the roll card; one row per target, divided by a hairline. */
   .damage-applied-card {
+    margin-top: var(--fusion-space-2);
+    padding: var(--fusion-space-2) var(--fusion-space-3);
     background: var(--fusion-surface-alt);
     border: 1px solid var(--fusion-border);
+    border-left: 4px solid var(--fusion-chat-sys);
     border-radius: var(--fusion-radius);
-    max-width: 340px;
-    margin-top: 0.35rem;
-    padding: 0.5rem 0.7rem;
+    max-width: 360px;
     display: flex;
     flex-direction: column;
-    gap: 6px;
+    gap: var(--fusion-space-2);
+    font-size: var(--fusion-text-sm);
+    color: var(--fusion-text);
   }
 
   .damage-applied-card__row {
     display: flex;
     flex-direction: column;
-    gap: 2px;
   }
 
   .damage-applied-card__row + .damage-applied-card__row {
-    padding-top: 6px;
+    padding-top: var(--fusion-space-2);
     border-top: 1px solid var(--fusion-border);
   }
 
   .damage-applied-card__name {
-    font-weight: 600;
-    font-size: 0.8125rem;
-    color: var(--fusion-text);
+    font-weight: var(--fusion-weight-bold);
+    font-size: var(--fusion-text-base);
   }
 
   .damage-applied-card__hp {
     font-family: var(--fusion-font-mono);
-    font-size: 0.85rem;
-    color: var(--fusion-warn);
-  }
-
-  .damage-applied-card__amount {
-    font-size: 0.78rem;
-    color: var(--fusion-text);
-  }
-
-  .damage-applied-card__player-line {
-    font-size: 0.8125rem;
-    color: var(--fusion-text);
+    font-size: var(--fusion-text-base);
+    font-weight: var(--fusion-weight-bold);
   }
 
   .damage-applied-card__note {
-    font-size: 0.72rem;
     color: var(--fusion-text-muted);
   }
 
   .damage-applied-card__death {
-    font-size: 0.72rem;
-    font-weight: 600;
-    text-transform: uppercase;
-    letter-spacing: 0.03em;
+    font-weight: var(--fusion-weight-bold);
     color: var(--fusion-danger);
   }
 </style>

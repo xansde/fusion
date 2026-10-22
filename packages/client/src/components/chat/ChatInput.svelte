@@ -37,6 +37,7 @@
   import { session } from "../../lib/session.svelte.js";
   import { t } from "../../lib/i18n/i18n.js";
   import RollModeSelector from "./RollModeSelector.svelte";
+  import Icon from "../common/Icon.svelte";
   import type { RollMode, ChatSendPayload } from "@fusion/shared";
 
   const {
@@ -235,8 +236,10 @@
       disabled={disabled || sending || !chatSession.draft.trim()}
       title={t("FUSION.Chat.Compose.SendHint")}
       aria-label={t("FUSION.Chat.Compose.SendHint")}
+      aria-busy={sending ? "true" : undefined}
     >
-      {sending ? "…" : t("FUSION.Chat.Compose.Send")}
+      <Icon name="send" size={18} />
+      <span>{t("FUSION.Chat.Compose.Send")}</span>
     </button>
   </div>
 
@@ -248,8 +251,8 @@
   .chat-input {
     display: flex;
     flex-direction: column;
-    gap: 0.35rem;
-    padding: 0.5rem 0.6rem;
+    gap: var(--fusion-space-2);
+    padding: var(--fusion-space-2) var(--fusion-space-3);
     border-top: 1px solid var(--fusion-border);
     background: var(--fusion-surface);
     flex-shrink: 0;
@@ -258,7 +261,7 @@
   .chat-input__line {
     display: flex;
     align-items: flex-start;
-    gap: 0.4rem;
+    gap: var(--fusion-space-2);
   }
 
   .chat-input__field-wrap {
@@ -269,14 +272,15 @@
 
   .chat-input__textarea {
     width: 100%;
-    background: var(--fusion-surface-alt);
-    border: 1px solid var(--fusion-border);
-    border-radius: var(--fusion-radius-sm);
+    min-height: var(--fusion-target);
+    background: var(--fusion-input-bg);
+    border: 1px solid var(--fusion-border-strong);
+    border-radius: var(--fusion-radius);
     color: var(--fusion-text);
     font-family: var(--fusion-font);
-    font-size: 0.875rem;
-    line-height: 1.5;
-    padding: 0.35rem 0.55rem;
+    font-size: var(--fusion-text-base);
+    line-height: var(--fusion-leading);
+    padding: var(--fusion-space-2) var(--fusion-space-3);
     resize: none;
     /* Grows to MAX_COMPOSE_ROWS via the `rows` attribute; only then does it scroll
        (REQ-ACH-031). The ceiling is set inline from the same constant. */
@@ -284,13 +288,17 @@
     transition: border-color var(--fusion-transition);
   }
 
-  .chat-input__textarea:focus {
-    outline: none;
-    border-color: var(--fusion-accent);
+  .chat-input__textarea::placeholder {
+    color: var(--fusion-text-subtle);
+  }
+
+  .chat-input__textarea:focus-visible {
+    outline: 2px solid var(--fusion-focus);
+    outline-offset: 1px;
   }
 
   .chat-input__textarea:disabled {
-    opacity: 0.5;
+    opacity: 0.6;
     cursor: not-allowed;
   }
 
@@ -304,41 +312,42 @@
 
   .chat-input__formula-hint {
     display: block;
-    font-size: 0.7rem;
-    margin-top: 0.2rem;
-    padding-left: 0.15rem;
+    font-size: var(--fusion-text-sm);
+    margin-top: var(--fusion-space-1);
+    color: var(--fusion-text-muted);
   }
 
   .chat-input__formula-hint--error {
     color: var(--fusion-danger);
   }
 
-  .chat-input__formula-hint--ok {
-    color: var(--fusion-success);
-  }
-
   .chat-input__send-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--fusion-space-1);
+    min-height: var(--fusion-target);
+    padding: 0 var(--fusion-space-3);
     background: var(--fusion-accent);
-    border: none;
-    border-radius: var(--fusion-radius-sm);
-    color: #fff;
+    border: 1px solid var(--fusion-accent);
+    border-radius: var(--fusion-radius);
+    color: var(--fusion-on-accent);
     cursor: pointer;
     font-family: var(--fusion-font);
-    font-size: 0.8125rem;
-    font-weight: 600;
-    padding: 0.35rem 0.8rem;
-    transition: background-color var(--fusion-transition), opacity var(--fusion-transition);
+    font-size: var(--fusion-text-base);
+    font-weight: var(--fusion-weight-bold);
+    transition: background-color var(--fusion-transition);
     flex-shrink: 0;
-    align-self: flex-start;
-    margin-top: 0.05rem;
   }
 
   .chat-input__send-btn:not(:disabled):hover {
     background: var(--fusion-accent-hover);
   }
 
+  /* Disabled reads as a quiet outline, never as a washed-out accent nobody can read. */
   .chat-input__send-btn:disabled {
-    opacity: 0.4;
+    background: transparent;
+    border-color: var(--fusion-border);
+    color: var(--fusion-text-subtle);
     cursor: not-allowed;
   }
 </style>
