@@ -52,7 +52,7 @@
 
   .note-tool__main {
     align-items: center;
-    background: rgba(24, 24, 31, 0.85);
+    background: var(--fusion-bg);
     backdrop-filter: blur(6px);
     border: 1px solid var(--fusion-border);
     border-radius: var(--fusion-radius-sm);
@@ -76,11 +76,11 @@
   }
 
   .note-tool__hint {
-    background: rgba(24, 24, 31, 0.85);
+    background: var(--fusion-bg);
     border: 1px solid var(--fusion-border);
     border-radius: var(--fusion-radius-sm);
     color: var(--fusion-text-muted);
-    font-size: 0.7rem;
+    font-size: var(--fusion-text-sm);
     margin: 0.4rem 0 0;
     max-width: 11rem;
     padding: 0.3rem 0.5rem;
