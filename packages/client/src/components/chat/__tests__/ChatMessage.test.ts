@@ -15,6 +15,11 @@ import { describe, expect, it } from "vitest";
 import { render } from "svelte/server";
 
 import ChatMessage from "../ChatMessage.svelte";
+import EmptyCardFixture from "./EmptyCardFixture.svelte";
+import {
+  registerChatCardExtension,
+  resetChatCardExtensions,
+} from "../../../lib/chat/chatCardExtensionRegistry.svelte.js";
 // Importing the barrel pre-loads the pt-BR/en bundles, so `t()` resolves real labels.
 import "../../../lib/i18n/index.js";
 import { t } from "../../../lib/i18n/i18n.js";
@@ -415,5 +420,35 @@ describe("ui-chat — the roll card explains the modifier and says nothing twice
     const nested = body.slice(body.indexOf('class="nested '));
     expect(nested).toContain("Ataques múltiplos (2º ataque)");
     expect(nested).toContain("-5");
+  });
+});
+
+// ---------------------------------------------------------------------------
+// ui-login-admin: the cost in a stored spell announcement is drawn, not a font glyph
+// ---------------------------------------------------------------------------
+
+describe("ChatMessage — announcement above a system card", () => {
+  it("draws the ◆ of a stored announcement as Fusion marks, with the words for screen readers", () => {
+    registerChatCardExtension({
+      recognize: (m) => (m.flags["test"] === undefined ? null : {}),
+      component: EmptyCardFixture,
+    });
+    try {
+      const body = renderMsg(
+        msg("cast", {
+          type: "system",
+          content: "lança Raio de Fogo (grau 2) ◆◆ (CD 18 Reflexos)",
+          flags: { test: {} },
+        }),
+      );
+      const announce = body.slice(body.indexOf("msg__content--announce"));
+      expect(announce).toContain("lança Raio de Fogo (grau 2)");
+      expect(announce).toContain("(CD 18 Reflexos)");
+      expect(announce).toMatch(/class="cost__d[ "]/);
+      expect(announce).toContain("2 ações");
+      expect(announce.slice(0, announce.indexOf("</p>"))).not.toContain("◆");
+    } finally {
+      resetChatCardExtensions();
+    }
   });
 });

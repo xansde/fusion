@@ -62,7 +62,7 @@
 
   import type { Socket } from "socket.io-client";
   import type { ChatMessage as ChatMessageType } from "@fusion/shared";
-  import { t } from "$lib/i18n/i18n.js";
+  import { t, i18n } from "$lib/i18n/i18n.js";
   import {
     getMessageDisplayMeta,
     formatRoll,
@@ -85,6 +85,8 @@
   import { presenceState } from "../../lib/presence/presenceStore.svelte.js";
   import ChatCard from "./ChatCard.svelte";
   import Icon from "../common/Icon.svelte";
+  import CostGlyphs from "../common/CostGlyphs.svelte";
+  import { splitCostGlyphs } from "../../lib/chat/costGlyphText.js";
   import { rollModeIcons, rollModeI18nStem } from "./rollModeIcons.js";
   import { resolveChatCardExtension } from "../../lib/chat/chatCardExtensionRegistry.svelte.js";
 
@@ -453,7 +455,14 @@
     <!-- System interactive card extension (e.g. PF2e's ability card) —
          text announcement + save/damage buttons, mounted via the registry. -->
     {#if message.content}
-      <p class="msg__content msg__content--announce">{message.content}</p>
+      <!-- The cost in a stored announcement ("lança X (grau 2) ◆◆") is drawn by Fusion's own
+           marks with its words for screen readers — at render time, no migration. -->
+      <p class="msg__content msg__content--announce">
+        {#each splitCostGlyphs(message.content, i18n.locale) as part, pi (pi)}{#if part.kind === "text"}{part.text}{:else}<CostGlyphs
+              glyphs={part.glyphs}
+              size={13}
+            /><span class="msg__sr">{part.label}</span>{/if}{/each}
+      </p>
     {/if}
     {@const CardExtensionComponent = cardExtension.component}
     <CardExtensionComponent
@@ -760,6 +769,16 @@
   .msg__content--announce {
     font-size: var(--fusion-text-sm);
     color: var(--fusion-text-muted);
+  }
+
+  /* Read by screen readers only (the drawn cost is aria-hidden). */
+  .msg__sr {
+    clip-path: inset(50%);
+    height: 1px;
+    overflow: hidden;
+    position: absolute;
+    white-space: nowrap;
+    width: 1px;
   }
 
   /* ---- Roll card: one box per roll (direção A) ---- */
