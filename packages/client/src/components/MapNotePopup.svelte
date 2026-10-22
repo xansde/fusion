@@ -5,6 +5,7 @@
    * pin where the GM clicked while placing.
    */
   import { onMount } from "svelte";
+  import Icon from "./common/Icon.svelte";
   import type { MapNote } from "@fusion/shared";
   import { worldMirror } from "../lib/docs/worldSync.js";
   import { activeSceneState } from "../lib/docs/activeScene.svelte.js";
@@ -121,7 +122,7 @@
         {#if open?.gmOnly}<span class="note-win__tag">só o Mestre</span>{/if}
       </h2>
       <button type="button" class="note-win__x" aria-label="Fechar" onclick={closeNoteWindow}>
-        &times;
+        <Icon name="x" size={20} />
       </button>
     </header>
 
@@ -193,7 +194,7 @@
     background: var(--fusion-surface);
     border: 1px solid var(--fusion-border);
     border-radius: var(--fusion-radius-sm);
-    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+    box-shadow: var(--fusion-shadow-popover);
     color: var(--fusion-text);
     display: flex;
     flex-direction: column;
@@ -215,17 +216,17 @@
   }
 
   .note-win__title {
-    font-size: 1rem;
+    font-size: var(--fusion-text-md);
     margin: 0;
     overflow-wrap: anywhere;
   }
 
   .note-win__tag {
-    background: rgba(176, 140, 255, 0.2);
-    border: 1px solid rgba(176, 140, 255, 0.6);
-    border-radius: 999px;
-    color: #cdb6ff;
-    font-size: 0.65rem;
+    background: var(--fusion-magic-dim);
+    border: 1px solid var(--fusion-magic);
+    border-radius: var(--fusion-radius-pill);
+    color: var(--fusion-magic);
+    font-size: var(--fusion-text-xs);
     font-weight: 600;
     margin-left: 0.4rem;
     padding: 0.05rem 0.4rem;
@@ -233,12 +234,18 @@
   }
 
   .note-win__x {
-    background: transparent;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex: none;
+    width: var(--fusion-target);
+    height: var(--fusion-target);
+    padding: 0;
     border: 0;
+    border-radius: var(--fusion-radius);
+    background: transparent;
     color: var(--fusion-text-muted);
     cursor: pointer;
-    font-size: 1.4rem;
-    line-height: 1;
   }
 
   .note-win__text {
@@ -251,7 +258,7 @@
   .note-win__form {
     display: flex;
     flex-direction: column;
-    font-size: 0.8125rem;
+    font-size: var(--fusion-text-sm);
     gap: 0.45rem;
   }
 
@@ -291,7 +298,7 @@
     color: var(--fusion-text);
     cursor: pointer;
     font-family: var(--fusion-font);
-    font-size: 0.8125rem;
+    font-size: var(--fusion-text-sm);
     padding: 0.25rem 0.6rem;
   }
 
@@ -307,8 +314,8 @@
   }
 
   .note-win__err {
-    color: #ff8a8a;
-    font-size: 0.75rem;
+    color: var(--fusion-danger);
+    font-size: var(--fusion-text-sm);
     margin: 0;
   }
 </style>

@@ -14,6 +14,8 @@
   import type { Socket } from "socket.io-client";
   import type { TokenDocument } from "@fusion/shared";
   import { sendOp } from "../../lib/docs/sendOp.js";
+  import { t } from "../../lib/i18n/i18n.js";
+  import Icon from "../common/Icon.svelte";
   import { tokenDiffPath } from "@fusion/shared";
 
   // ---- Props ----
@@ -137,7 +139,14 @@
 >
   <header class="dialog__header">
     <h2 class="dialog__title">Token Config — {token.name}</h2>
-    <button class="dialog__close" onclick={onClose} aria-label="Close">&#x2715;</button>
+    <button
+      class="dialog__close"
+      onclick={onClose}
+      aria-label={t("FUSION.Dialog.Close")}
+      title={t("FUSION.Dialog.Close")}
+    >
+      <Icon name="x" size={18} />
+    </button>
   </header>
 
   <form class="dialog__body" onsubmit={handleSubmit} novalidate>
@@ -279,7 +288,7 @@
   .dialog-backdrop {
     position: fixed;
     inset: 0;
-    background: rgba(0, 0, 0, 0.55);
+    background: color-mix(in srgb, var(--fusion-bg) 72%, transparent);
     z-index: 200;
   }
 
@@ -292,7 +301,7 @@
     background: var(--fusion-surface);
     border: 1px solid var(--fusion-border);
     border-radius: var(--fusion-radius-lg);
-    box-shadow: 0 24px 64px rgba(0, 0, 0, 0.6);
+    box-shadow: var(--fusion-shadow-modal);
     color: var(--fusion-text);
     font-family: var(--fusion-font);
     padding: 0;
@@ -315,7 +324,7 @@
   }
 
   .dialog__title {
-    font-size: 1rem;
+    font-size: var(--fusion-text-md);
     font-weight: 600;
     margin: 0;
   }
@@ -324,10 +333,14 @@
     background: transparent;
     border: none;
     color: var(--fusion-text-muted);
+    align-items: center;
+    border-radius: var(--fusion-radius-sm);
     cursor: pointer;
-    font-size: 1.1rem;
-    padding: 0.25rem;
-    line-height: 1;
+    display: inline-flex;
+    justify-content: center;
+    min-height: var(--fusion-target);
+    min-width: var(--fusion-target);
+    padding: 0;
   }
 
   .dialog__body {
@@ -349,10 +362,8 @@
 
   .section__title {
     color: var(--fusion-text-muted);
-    font-size: 0.75rem;
+    font-size: var(--fusion-text-xs);
     font-weight: 600;
-    letter-spacing: 0.06em;
-    text-transform: uppercase;
   }
 
   .checkbox-row {
@@ -360,7 +371,7 @@
     cursor: pointer;
     display: flex;
     gap: 0.5rem;
-    font-size: 0.875rem;
+    font-size: var(--fusion-text-sm);
   }
 
   .field-row {
@@ -377,7 +388,7 @@
 
   .field__label {
     color: var(--fusion-text-muted);
-    font-size: 0.8125rem;
+    font-size: var(--fusion-text-xs);
     font-weight: 500;
   }
 
@@ -387,14 +398,13 @@
     border-radius: var(--fusion-radius-sm);
     color: var(--fusion-text);
     font-family: var(--fusion-font);
-    font-size: 0.875rem;
+    font-size: var(--fusion-text-sm);
     padding: 0.45rem 0.6rem;
     width: 100%;
   }
 
   .field__input:focus {
     border-color: var(--fusion-accent);
-    outline: none;
   }
 
   .field__input--color {
@@ -409,17 +419,17 @@
     border-radius: var(--fusion-radius-sm);
     color: var(--fusion-text);
     font-family: var(--fusion-font);
-    font-size: 0.875rem;
+    font-size: var(--fusion-text-sm);
     padding: 0.45rem 0.6rem;
     width: 100%;
   }
 
   .server-error {
-    background: rgba(255, 92, 92, 0.12);
+    background: var(--fusion-danger-dim);
     border: 1px solid var(--fusion-danger);
     border-radius: var(--fusion-radius-sm);
     color: var(--fusion-danger);
-    font-size: 0.8125rem;
+    font-size: var(--fusion-text-xs);
     padding: 0.6rem 0.75rem;
   }
 
@@ -432,13 +442,14 @@
   }
 
   .btn {
+    min-height: var(--fusion-target);
     align-items: center;
     border: 1px solid transparent;
     border-radius: var(--fusion-radius-sm);
     cursor: pointer;
     display: inline-flex;
     font-family: var(--fusion-font);
-    font-size: 0.875rem;
+    font-size: var(--fusion-text-sm);
     font-weight: 500;
     justify-content: center;
     padding: 0.45rem 1rem;
@@ -452,7 +463,7 @@
 
   .btn--primary {
     background: var(--fusion-accent);
-    color: #fff;
+    color: var(--fusion-on-accent);
   }
 
   .btn--ghost {

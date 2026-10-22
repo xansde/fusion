@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32">
+  <!-- Fusion mark (original drawing): a twenty-sided die in brass on warm charcoal. -->
+  <rect width="32" height="32" rx="7" fill="#1c1b18"/>
+  <g fill="none" stroke="#d6a24a" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round" transform="translate(4 4)">
+    <path d="M12 2.5 20.5 7.25v9.5L12 21.5 3.5 16.75v-9.5z"/>
+    <path d="M12 7.5 16.5 15h-9z"/>
+    <path d="M12 2.5v5M20.5 16.75 16.5 15M3.5 16.75 7.5 15"/>
+  </g>
+</svg>

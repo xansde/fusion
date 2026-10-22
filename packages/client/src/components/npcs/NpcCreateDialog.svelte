@@ -417,18 +417,18 @@
   .npc-create {
     display: flex;
     flex-direction: column;
-    gap: 0.75rem;
-    padding: 0.75rem;
+    gap: var(--fusion-space-3);
+    padding: var(--fusion-space-3);
     font-family: var(--fusion-font);
-    font-size: 0.8125rem;
+    font-size: var(--fusion-text-sm);
     color: var(--fusion-text);
   }
 
   .npc-create__block {
     display: flex;
     flex-direction: column;
-    gap: 0.375rem;
-    padding-bottom: 0.5rem;
+    gap: var(--fusion-space-2);
+    padding-bottom: var(--fusion-space-2);
     border-bottom: 1px solid var(--fusion-border);
   }
 
@@ -437,9 +437,9 @@
      dialog's own padding. */
   .npc-create__tabs {
     display: flex;
-    gap: 0.375rem;
-    margin: -0.75rem -0.75rem 0;
-    padding: 0 0.75rem;
+    gap: var(--fusion-space-2);
+    margin: calc(-1 * var(--fusion-space-3)) calc(-1 * var(--fusion-space-3)) 0;
+    padding: 0 var(--fusion-space-3);
     background: var(--fusion-surface-alt);
     border-bottom: 1px solid var(--fusion-border);
   }
@@ -450,8 +450,9 @@
     border-bottom: 2px solid transparent;
     color: var(--fusion-text-muted);
     font: inherit;
-    font-size: 0.8125rem;
-    padding: 0.4rem 0.5rem;
+    font-size: var(--fusion-text-sm);
+    min-height: var(--fusion-target);
+    padding: 0 var(--fusion-space-2);
     cursor: pointer;
   }
 
@@ -469,12 +470,12 @@
     display: flex;
     align-items: center;
     justify-content: space-between;
-    gap: 0.5rem;
+    gap: var(--fusion-space-2);
   }
 
   .npc-create__row {
     display: flex;
-    gap: 0.375rem;
+    gap: var(--fusion-space-2);
   }
 
   .npc-create__row--end {
@@ -484,7 +485,8 @@
   .npc-create__input,
   .npc-create__field select {
     font: inherit;
-    font-size: 0.8125rem;
+    font-size: var(--fusion-text-sm);
+    min-height: var(--fusion-target);
     padding: 0.25rem 0.5rem;
     border: 1px solid var(--fusion-border);
     border-radius: var(--fusion-radius-sm);
@@ -499,8 +501,9 @@
 
   .npc-create__btn {
     font: inherit;
-    font-size: 0.8125rem;
-    padding: 0.25rem 0.625rem;
+    font-size: var(--fusion-text-sm);
+    min-height: var(--fusion-target);
+    padding: 0.25rem var(--fusion-space-3);
     border: 1px solid var(--fusion-border);
     border-radius: var(--fusion-radius-sm);
     background: var(--fusion-surface-alt);
@@ -536,20 +539,20 @@
   .npc-create__hit {
     display: flex;
     align-items: center;
-    gap: 0.375rem;
-    padding: 0.1875rem 0;
+    flex-wrap: wrap;
+    gap: var(--fusion-space-1) var(--fusion-space-2);
+    padding: var(--fusion-space-1) 0;
   }
 
   .npc-create__hit-name {
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
+    min-width: 0;
+    overflow-wrap: anywhere;
   }
 
   .npc-create__hit-alt,
   .npc-create__hit-level,
   .npc-create__hit-pack {
-    font-size: 0.6875rem;
+    font-size: var(--fusion-text-xs);
     color: var(--fusion-text-subtle);
   }
 
@@ -560,13 +563,13 @@
   .npc-create__hint,
   .npc-create__note {
     margin: 0;
-    font-size: 0.6875rem;
+    font-size: var(--fusion-text-sm);
     color: var(--fusion-text-muted);
   }
 
   .npc-create__error {
     margin: 0;
-    font-size: 0.75rem;
+    font-size: var(--fusion-text-sm);
     color: var(--fusion-danger);
   }
 </style>

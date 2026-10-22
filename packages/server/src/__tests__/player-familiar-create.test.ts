@@ -204,7 +204,15 @@ function masterWithFamiliarFeat(ownerId: string): Record<string, unknown> {
     type: "character",
     system: { details: { level: { value: 3 } } },
     ownership: { default: 0, [ownerId]: 3 },
-    items: [{ _id: "feat-familiar", name: "Familiar", type: "feat", system: { rules: [] } }],
+    items: [
+      {
+        _id: "feat-familiar",
+        name: "Familiar",
+        type: "feat",
+        flags: { fusion: { sourceId: "bcxIg7wi8ZAhvhOD" } },
+        system: { rules: [] },
+      },
+    ],
   };
 }
 

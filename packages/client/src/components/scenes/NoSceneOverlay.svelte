@@ -5,6 +5,7 @@
    */
 
   import { t } from "../../lib/i18n/i18n.js";
+  import Icon from "../common/Icon.svelte";
 
   const {
     isGm,
@@ -15,7 +16,7 @@
 
 <div class="no-scene" aria-live="polite" aria-atomic="true">
   <div class="no-scene__card">
-    <span class="no-scene__icon" aria-hidden="true">&#x1F5FA;</span>
+    <span class="no-scene__icon" aria-hidden="true"><Icon name="map" size={40} /></span>
     <p class="no-scene__title">{t("FUSION.NoScene.Title")}</p>
     <p class="no-scene__hint">
       {#if isGm}
@@ -40,34 +41,31 @@
 
   .no-scene__card {
     align-items: center;
-    background: rgba(24, 24, 31, 0.82);
-    backdrop-filter: blur(8px);
+    background: var(--fusion-surface);
     border: 1px solid var(--fusion-border);
     border-radius: var(--fusion-radius-lg);
     display: flex;
     flex-direction: column;
-    gap: 0.6rem;
-    padding: 2rem 2.5rem;
+    gap: var(--fusion-space-3);
+    padding: var(--fusion-space-8) var(--fusion-space-8);
     text-align: center;
     max-width: 320px;
   }
 
   .no-scene__icon {
-    font-size: 2.5rem;
-    line-height: 1;
-    opacity: 0.4;
+    color: var(--fusion-text-subtle);
+    display: inline-flex;
   }
 
   .no-scene__title {
     color: var(--fusion-text);
-    font-size: 1rem;
+    font-size: var(--fusion-text-md);
     font-weight: 600;
   }
 
   .no-scene__hint {
     color: var(--fusion-text-muted);
-    font-size: 0.8125rem;
-    line-height: 1.55;
+    font-size: var(--fusion-text-sm);
   }
 
   .no-scene__hint strong {

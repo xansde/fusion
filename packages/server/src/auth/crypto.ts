@@ -62,6 +62,32 @@ const ARGON2_OPTIONS = {
   parallelism: 4,
 } satisfies Argon2Options;
 
+/**
+ * Minimum Argon2id cost, for the test suite only. Every server test file
+ * bootstraps users and logs them in (often once per test), and at the
+ * production cost each hash/verify is 64 MiB x 3 passes — that alone was most
+ * of the server suite's wall-clock time. Still Argon2id (the stored PHC string
+ * carries its own parameters, so verify works across both costs).
+ */
+const ARGON2_TEST_OPTIONS = {
+  algorithm: argon2Native.Algorithm.Argon2id,
+  memoryCost: 1024,
+  timeCost: 1,
+  parallelism: 1,
+} satisfies Argon2Options;
+
+/**
+ * The Argon2id options to hash with. Production cost (REQ-SEC-010) unless the
+ * process runs under vitest (`VITEST=true`, set by the runner itself) AND the
+ * test config opted in with `FUSION_TEST_FAST_ARGON2=1` — both are required,
+ * so a stray env var on a real install cannot weaken the hashes.
+ */
+export function argon2Options(env: NodeJS.ProcessEnv = process.env): typeof ARGON2_OPTIONS {
+  return env["VITEST"] === "true" && env["FUSION_TEST_FAST_ARGON2"] === "1"
+    ? ARGON2_TEST_OPTIONS
+    : ARGON2_OPTIONS;
+}
+
 // ---------------------------------------------------------------------------
 // JWT configuration
 // ---------------------------------------------------------------------------
@@ -89,7 +115,7 @@ export interface AccessTokenPayload {
  * Returns the PHC-format hash string.
  */
 export async function hashPassword(password: string): Promise<string> {
-  return argon2hash(password, ARGON2_OPTIONS);
+  return argon2hash(password, argon2Options());
 }
 
 /**
@@ -98,7 +124,7 @@ export async function hashPassword(password: string): Promise<string> {
  */
 export async function verifyPassword(password: string, hash: string): Promise<boolean> {
   try {
-    return await argon2verify(hash, password, ARGON2_OPTIONS);
+    return await argon2verify(hash, password, argon2Options());
   } catch {
     return false;
   }

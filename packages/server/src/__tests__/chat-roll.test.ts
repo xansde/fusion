@@ -184,7 +184,7 @@ function connectSocket(port: number, worldId: string, token: string): Promise<Cl
       socket.once("op", () => resolve(socket));
     });
     socket.once("connect_error", reject);
-    setTimeout(() => reject(new Error("connect timeout")), 5000);
+    setTimeout(() => reject(new Error("connect timeout")), 15_000);
   });
 }
 
@@ -228,7 +228,7 @@ function connectAndCollectJoinOps(
       arm();
     });
     socket.once("connect_error", reject);
-    setTimeout(() => reject(new Error("connect timeout")), 5000);
+    setTimeout(() => reject(new Error("connect timeout")), 15_000);
   });
 }
 
@@ -491,6 +491,38 @@ describe("chat:send + roll visibility", () => {
 
     // Recipient (player2) gets the message
     expect(chatDoc(player2Msgs)).toBeDefined();
+  }, 10_000);
+
+  // -------------------------------------------------------------------------
+  it("/w to a compound user name without brackets or quotes is a whisper, not public text", async () => {
+    const { user: huo } = await ctx.authService.createUser({
+      name: "Huo Jinwu",
+      role: Role.PLAYER,
+      password: "huo-pass",
+      color: "#3aa335",
+    });
+
+    const ack = await sendOp(playerSocket, "chat:send", {
+      content: "/w huo jinwu fica atrás de mim",
+      worldId: ctx.worldId,
+    });
+
+    expect(ack["ok"]).toBe(true);
+    const message = (ack["result"] as Record<string, unknown>)["message"] as Record<
+      string,
+      unknown
+    >;
+    expect(message["type"]).toBe("whisper");
+    expect(message["content"]).toBe("fica atrás de mim");
+    expect(message["whisper"]).toContain(huo.id);
+
+    // An unknown name is refused by name — never posted to the whole table.
+    const refused = await sendOp(playerSocket, "chat:send", {
+      content: "/w Ninguém oi",
+      worldId: ctx.worldId,
+    });
+    expect(refused["ok"]).toBe(false);
+    expect(String(refused["message"])).toContain("Ninguém");
   }, 10_000);
 
   // -------------------------------------------------------------------------

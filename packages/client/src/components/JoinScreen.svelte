@@ -7,11 +7,19 @@
    * REQ-SEC-014: access token is NEVER stored in localStorage.
    * REQ-USR-023: shows lockout state + retry countdown.
    * REQ-NET-014: surface PROTOCOL_MISMATCH with a reload prompt.
+   *
+   * ui-login-admin (22/10/2026): the language of docs/design/ui — each user is a
+   * 56px row with an initials avatar on their colour ring, the selection is a
+   * thicker accent border plus a check (never colour alone), the disabled button
+   * keeps AA text, and the protocol/system id moved to the title's tooltip.
    */
 
   import { session, sessionActions } from "../lib/session.svelte.js";
+  import FusionMark from "./common/FusionMark.svelte";
+  import Icon from "./common/Icon.svelte";
   import { PROTOCOL_VERSION } from "@fusion/shared";
   import { t } from "../lib/i18n/i18n.js";
+  import { portraitInitials } from "../lib/common/portrait.js";
 
   // ---- Local state ----
   let selectedUserId = $state<string | null>(null);
@@ -52,6 +60,14 @@
   // Protocol mismatch means the server rejected the WS handshake
   const protocolMismatch = $derived(session.connection === "protocol_mismatch");
 
+  // Technical detail (protocol, system id) is not reading material for the
+  // table: it lives in the title's tooltip for whoever needs to debug.
+  const techDetail = $derived(
+    [`protocolo ${String(PROTOCOL_VERSION)}`, session.worldInfo?.systemId]
+      .filter((part): part is string => typeof part === "string" && part !== "")
+      .join(" · "),
+  );
+
   // NOTE: role is intentionally NOT displayed in the join list.
   // The public endpoint (REQ-USR-037) does not expose role; showing it would
   // require either leaking it from the server or using a misleading hard-coded
@@ -60,43 +76,37 @@
 
 <div class="join-shell">
   <div class="join-card">
-    <!-- Header -->
     <header class="join-card__header">
-      <div class="join-card__logo" aria-hidden="true">&#9889;</div>
+      <FusionMark size={40} />
       <div class="join-card__titles">
-        <h1 class="join-card__world-name">
-          {session.worldInfo?.title ?? "Fusion VTT"}
+        <h1 class="join-card__world-name" title={techDetail}>
+          {session.worldInfo?.title ?? "Fusion"}
         </h1>
-        <p class="join-card__meta">
-          protocol&nbsp;{PROTOCOL_VERSION}
-          {#if session.worldInfo?.systemId}
-            &middot; {session.worldInfo.systemId}
-          {/if}
-        </p>
+        <p class="join-card__lead">{t("FUSION.Join.Lead")}</p>
       </div>
     </header>
 
-    <!-- Protocol mismatch banner -->
     {#if protocolMismatch}
       <div class="alert alert--warning" role="alert">
-        <strong>{t("FUSION.Join.VersionMismatch")}</strong>
-        {t("FUSION.Join.VersionMismatchDetail")}
-        <button
-          class="alert__link"
-          onclick={() => window.location.reload()}
-        >{t("FUSION.Join.ReloadPage")}</button>
-        {t("FUSION.Join.VersionMismatchEnd")}
+        <Icon name="triangle-alert" size={20} />
+        <p>
+          <strong>{t("FUSION.Join.VersionMismatch")}</strong>
+          {t("FUSION.Join.VersionMismatchDetail")}
+          <button class="alert__link" onclick={() => window.location.reload()}
+            >{t("FUSION.Join.ReloadPage")}</button
+          >
+          {t("FUSION.Join.VersionMismatchEnd")}
+        </p>
       </div>
     {/if}
 
-    <!-- Error banner -->
     {#if session.error && !protocolMismatch}
       <div class="alert alert--danger" role="alert">
-        {session.error}
+        <Icon name="triangle-alert" size={20} />
+        <p>{session.error}</p>
       </div>
     {/if}
 
-    <!-- User picker -->
     <form class="join-form" onsubmit={handleSubmit}>
       <fieldset class="join-form__fieldset" disabled={loading}>
         <legend class="join-form__legend">{t("FUSION.Join.ChooseCharacter")}</legend>
@@ -116,17 +126,22 @@
                   class:user-item--selected={isSelected}
                   onclick={() => selectUser(user.id)}
                 >
-                  <!-- Color swatch -->
-                  <span
-                    class="user-item__swatch"
-                    style="background-color: {user.color}"
-                    aria-hidden="true"
-                  ></span>
-                  <!-- Name only — role is not a public field (REQ-USR-037) -->
-                  <span class="user-item__name">{user.name}</span>
-                  <!-- Lock icon when password required -->
-                  {#if user.hasPassword}
-                    <span class="user-item__lock" aria-label={t("FUSION.Join.PasswordPlaceholder")}>&#128274;</span>
+                  <!-- Initials on the user's colour ring: the colour the table knows them by
+                       (cursor, chat dot). Role is not a public field (REQ-USR-037). -->
+                  <span class="user-item__avatar" style:border-color={user.color} aria-hidden="true"
+                    >{portraitInitials(user.name)}</span
+                  >
+                  <span class="user-item__text">
+                    <span class="user-item__name">{user.name}</span>
+                    {#if user.hasPassword}
+                      <span class="user-item__note">
+                        <Icon name="lock" size={16} />
+                        {t("FUSION.Join.NeedsPassword")}
+                      </span>
+                    {/if}
+                  </span>
+                  {#if isSelected}
+                    <span class="user-item__check"><Icon name="check" size={22} /></span>
                   {/if}
                 </button>
               </li>
@@ -152,11 +167,7 @@
         {/if}
       </fieldset>
 
-      <button
-        class="btn btn--primary btn--wide"
-        type="submit"
-        disabled={!canSubmit}
-      >
+      <button class="btn btn--primary btn--wide" type="submit" disabled={!canSubmit}>
         {#if loading}
           {t("FUSION.Join.Connecting")}
         {:else if session.lockedOut}
@@ -176,225 +187,260 @@
 
 <style>
   .join-shell {
-    height: 100%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
+    /* html/body never scroll (the table fills the viewport), so the screen scrolls
+       itself; the card centres with margin: auto, which never clips its top. */
     background-color: var(--fusion-bg);
-    padding: 1rem;
+    color: var(--fusion-text);
+    display: flex;
+    height: 100%;
+    overflow-y: auto;
+    padding: var(--fusion-space-4);
   }
 
   .join-card {
+    margin: auto;
     background: var(--fusion-surface);
     border: 1px solid var(--fusion-border);
     border-radius: var(--fusion-radius-lg);
-    padding: 2rem;
+    padding: var(--fusion-space-8) var(--fusion-space-6);
     width: 100%;
-    max-width: 440px;
+    max-width: 460px;
     display: flex;
     flex-direction: column;
-    gap: 1.5rem;
+    gap: var(--fusion-space-6);
   }
 
-  /* Header */
   .join-card__header {
     display: flex;
     align-items: center;
-    gap: 0.75rem;
-  }
-
-  .join-card__logo {
-    font-size: 2rem;
-    line-height: 1;
-    flex-shrink: 0;
+    gap: var(--fusion-space-4);
+    color: var(--fusion-accent);
   }
 
   .join-card__world-name {
-    font-size: 1.25rem;
-    font-weight: 700;
+    font-size: var(--fusion-text-xl);
+    font-weight: var(--fusion-weight-bold);
     color: var(--fusion-text);
-    line-height: 1.2;
+    line-height: var(--fusion-leading-tight);
   }
 
-  .join-card__meta {
-    font-size: 0.75rem;
-    color: var(--fusion-text-subtle);
-    font-family: var(--fusion-font-mono);
+  .join-card__lead {
+    font-size: var(--fusion-text-sm);
+    color: var(--fusion-text-muted);
+    margin-top: var(--fusion-space-1);
   }
 
-  /* Alert banners */
   .alert {
-    border-radius: var(--fusion-radius-sm);
-    font-size: 0.8125rem;
-    padding: 0.6rem 0.875rem;
-    line-height: 1.4;
+    display: flex;
+    align-items: flex-start;
+    gap: var(--fusion-space-2);
+    border: 1px solid currentColor;
+    border-radius: var(--fusion-radius);
+    font-size: var(--fusion-text-sm);
+    padding: var(--fusion-space-3);
+  }
+
+  .alert p {
+    color: var(--fusion-text);
   }
 
   .alert--danger {
-    background: rgba(255, 92, 92, 0.12);
-    border: 1px solid rgba(255, 92, 92, 0.35);
+    background: var(--fusion-danger-dim);
     color: var(--fusion-danger);
   }
 
   .alert--warning {
-    background: rgba(255, 200, 87, 0.12);
-    border: 1px solid rgba(255, 200, 87, 0.35);
+    background: var(--fusion-warning-dim);
     color: var(--fusion-warning);
   }
 
   .alert__link {
     background: none;
     border: none;
-    color: inherit;
+    color: var(--fusion-accent);
     cursor: pointer;
-    font-weight: 600;
+    font: inherit;
+    font-weight: var(--fusion-weight-bold);
     padding: 0;
     text-decoration: underline;
   }
 
-  /* Form */
+  .join-form {
+    display: flex;
+    flex-direction: column;
+    gap: var(--fusion-space-5);
+  }
+
   .join-form__fieldset {
     border: none;
     padding: 0;
     display: flex;
     flex-direction: column;
-    gap: 0.75rem;
+    gap: var(--fusion-space-3);
   }
 
   .join-form__legend {
-    font-size: 0.8125rem;
-    font-weight: 500;
-    color: var(--fusion-text-muted);
-    margin-bottom: 0.5rem;
+    font-size: var(--fusion-text-base);
+    font-weight: var(--fusion-weight-medium);
+    color: var(--fusion-text);
+    margin-bottom: var(--fusion-space-3);
     float: left;
     width: 100%;
   }
 
   .join-form__empty {
-    font-size: 0.875rem;
-    color: var(--fusion-text-subtle);
-    text-align: center;
-    padding: 1rem;
+    font-size: var(--fusion-text-base);
+    color: var(--fusion-text-muted);
+    padding: var(--fusion-space-4) 0;
   }
 
-  /* User list */
   .user-list {
     list-style: none;
     display: flex;
     flex-direction: column;
-    gap: 0.35rem;
+    gap: var(--fusion-space-2);
   }
 
   .user-item {
     align-items: center;
     background: var(--fusion-surface-alt);
     border: 1px solid var(--fusion-border);
-    border-radius: var(--fusion-radius-sm);
+    border-radius: var(--fusion-radius);
     color: var(--fusion-text);
     cursor: pointer;
     display: flex;
-    font-family: var(--fusion-font);
-    font-size: 0.875rem;
-    gap: 0.6rem;
-    padding: 0.55rem 0.75rem;
+    font-size: var(--fusion-text-base);
+    gap: var(--fusion-space-3);
+    min-height: 56px;
+    padding: var(--fusion-space-2) var(--fusion-space-3);
     text-align: left;
-    transition: border-color var(--fusion-transition), background-color var(--fusion-transition);
+    transition:
+      border-color var(--fusion-transition),
+      background-color var(--fusion-transition);
     width: 100%;
   }
 
   .user-item:hover {
-    border-color: var(--fusion-accent);
-    background-color: var(--fusion-accent-dim);
+    border-color: var(--fusion-border-strong);
   }
 
-  .user-item--selected {
-    border-color: var(--fusion-accent);
+  /* Selected: thicker accent border + wash + a check — never colour alone. */
+  .user-item--selected,
+  .user-item--selected:hover {
+    border: 2px solid var(--fusion-accent);
     background-color: var(--fusion-accent-dim);
+    padding: calc(var(--fusion-space-2) - 1px) calc(var(--fusion-space-3) - 1px);
   }
 
-  .user-item__swatch {
+  .user-item__avatar {
+    display: inline-grid;
+    place-items: center;
+    flex: none;
+    width: 40px;
+    height: 40px;
+    border: 3px solid;
     border-radius: 50%;
-    display: block;
-    flex-shrink: 0;
-    height: 12px;
-    width: 12px;
+    background: var(--fusion-bg);
+    color: var(--fusion-text);
+    font-size: var(--fusion-text-sm);
+    font-weight: var(--fusion-weight-bold);
+  }
+
+  .user-item__text {
+    display: flex;
+    flex: 1;
+    flex-direction: column;
+    min-width: 0;
   }
 
   .user-item__name {
-    flex: 1;
-    font-weight: 500;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
+    font-weight: var(--fusion-weight-bold);
+    overflow-wrap: anywhere;
   }
 
-  .user-item__lock {
-    flex-shrink: 0;
-    font-size: 0.75rem;
+  .user-item__note {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--fusion-space-1);
+    color: var(--fusion-text-muted);
+    font-size: var(--fusion-text-sm);
   }
 
-  /* Password field */
+  .user-item__check {
+    display: inline-flex;
+    flex: none;
+    color: var(--fusion-accent);
+  }
+
   .join-form__field {
     display: flex;
     flex-direction: column;
-    gap: 0.25rem;
+    gap: var(--fusion-space-2);
   }
 
   .join-form__label {
-    color: var(--fusion-text-muted);
-    font-size: 0.8125rem;
-    font-weight: 500;
+    color: var(--fusion-text);
+    font-size: var(--fusion-text-sm);
   }
 
   .join-form__input {
-    background: var(--fusion-surface-alt);
-    border: 1px solid var(--fusion-border);
-    border-radius: var(--fusion-radius-sm);
+    background: var(--fusion-input-bg);
+    border: 1px solid var(--fusion-border-strong);
+    border-radius: var(--fusion-radius);
     color: var(--fusion-text);
-    font-family: var(--fusion-font);
-    font-size: 0.875rem;
-    outline: none;
-    padding: 0.5rem 0.75rem;
+    font-size: var(--fusion-text-base);
+    min-height: var(--fusion-target);
+    padding: var(--fusion-space-2) var(--fusion-space-3);
     transition: border-color var(--fusion-transition);
     width: 100%;
   }
 
   .join-form__input:focus {
     border-color: var(--fusion-accent);
-    box-shadow: 0 0 0 3px var(--fusion-accent-dim);
   }
 
-  /* Submit button */
   .btn {
     align-items: center;
     border: 1px solid transparent;
-    border-radius: var(--fusion-radius-sm);
+    border-radius: var(--fusion-radius);
     cursor: pointer;
     display: inline-flex;
-    font-family: var(--fusion-font);
-    font-size: 0.875rem;
-    font-weight: 500;
+    font-size: var(--fusion-text-base);
+    font-weight: var(--fusion-weight-bold);
     justify-content: center;
-    padding: 0.55rem 1.25rem;
-    transition: background-color var(--fusion-transition), opacity var(--fusion-transition);
-    white-space: nowrap;
-  }
-
-  .btn:disabled {
-    cursor: not-allowed;
-    opacity: 0.45;
+    min-height: 44px;
+    padding: var(--fusion-space-2) var(--fusion-space-5);
+    transition: background-color var(--fusion-transition);
   }
 
   .btn--primary {
     background-color: var(--fusion-accent);
-    color: #fff;
+    color: var(--fusion-on-accent);
   }
 
   .btn--primary:hover:not(:disabled) {
     background-color: var(--fusion-accent-hover);
   }
 
+  /* Disabled reads as "not yet", with AA text — not a faded accent. */
+  .btn:disabled {
+    background-color: var(--fusion-surface-alt);
+    border-color: var(--fusion-border);
+    color: var(--fusion-text-muted);
+    cursor: not-allowed;
+  }
+
   .btn--wide {
     width: 100%;
+  }
+
+  @media (max-width: 480px) {
+    .join-shell {
+      padding: var(--fusion-space-3);
+    }
+
+    .join-card {
+      padding: var(--fusion-space-6) var(--fusion-space-4);
+    }
   }
 </style>

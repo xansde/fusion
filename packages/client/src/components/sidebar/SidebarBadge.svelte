@@ -130,14 +130,14 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    min-width: 15px;
-    height: 15px;
-    padding: 0 3px;
-    border-radius: 8px;
+    min-width: 18px;
+    height: 18px;
+    padding: 0 5px;
+    border-radius: var(--fusion-radius-pill);
     background: var(--fusion-accent);
-    color: var(--fusion-surface);
+    color: var(--fusion-on-accent);
     font-family: var(--fusion-font);
-    font-size: 9px;
+    font-size: var(--fusion-text-xs);
     font-weight: 700;
     line-height: 1;
   }
@@ -151,13 +151,14 @@
   }
 
   /* REQ-CBA-004: the loud emphasis of a lit dot — `--fusion-warning` is the amber of
-     the palette. The static ring is a second, non-colour cue for the same state, and
+     the palette. The larger size is a second, non-colour cue for the same state, and
      the hidden description says it in words; there is no transition and no animation
      here, because a badge only appears, disappears and changes tone (REQ-GAV-024,
      REQ-CBA-005). */
   .sidebar-badge--amber {
     background: var(--fusion-warning);
-    box-shadow: 0 0 0 2px var(--fusion-warning-dim);
+    width: 11px;
+    height: 11px;
   }
 
   /* Reachable by assistive tech, invisible on screen and out of the layout — the

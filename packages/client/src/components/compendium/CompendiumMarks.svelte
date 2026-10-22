@@ -25,6 +25,7 @@
     CompendiumRecentEntry,
   } from "../../lib/compendium/compendiumPrefs.js";
   import { t } from "../../lib/i18n/i18n.js";
+  import Icon from "../common/Icon.svelte";
 
   interface Props {
     /** Pinned entries, newest first, already filtered by visible pack. */
@@ -61,20 +62,7 @@
             title={t("FUSION.Compendium.Marks.Unpin", { name: entry.name })}
             onclick={() => onUnpin(entry)}
           >
-            <!-- Drawn glyph, never an emoji (DEC-ACH-04): a pin with a stroke. -->
-            <svg
-              viewBox="0 0 24 24"
-              width="12"
-              height="12"
-              fill="none"
-              stroke="currentColor"
-              stroke-width="2"
-              stroke-linecap="round"
-              aria-hidden="true"
-              focusable="false"
-            >
-              <path d="M6 6l12 12M18 6L6 18" />
-            </svg>
+            <Icon name="x" size={16} />
           </button>
         </li>
       {/each}
@@ -105,74 +93,75 @@
 <style>
   /* No width anywhere — the drawer owns it (REQ-GAV-012, REQ-CPD-017). */
   .compendium-marks {
-    margin-bottom: 0.75rem;
+    margin-bottom: var(--fusion-space-4);
   }
 
   .compendium-marks__heading {
-    margin: 0 0 0.25rem;
-    padding: 0 0.25rem;
-    font-size: 0.7rem;
-    font-weight: 700;
-    text-transform: uppercase;
-    letter-spacing: 0.05em;
-    color: var(--fusion-text-muted, #888);
+    margin: 0 0 var(--fusion-space-1);
+    padding: 0 var(--fusion-space-1);
+    font-size: var(--fusion-text-lg);
+    font-weight: 500;
+    color: var(--fusion-text);
   }
 
   .compendium-marks__list {
     list-style: none;
     margin: 0;
     padding: 0;
-    display: flex;
-    flex-direction: column;
-    gap: 0.15rem;
   }
 
   .compendium-marks__item {
     display: flex;
     align-items: stretch;
-    gap: 0.15rem;
     min-width: 0;
+  }
+
+  .compendium-marks__item + .compendium-marks__item {
+    border-top: 1px solid var(--fusion-border);
   }
 
   .compendium-marks__row {
     flex: 1;
     min-width: 0;
-    padding: 0.25rem 0.5rem;
-    background: var(--fusion-surface-alt, #2a2a2a);
-    border: 1px solid var(--fusion-border, #444);
-    border-radius: var(--fusion-radius-sm, 4px);
+    min-height: var(--fusion-target);
+    padding: var(--fusion-space-2) var(--fusion-space-1);
+    background: none;
+    border: none;
+    border-radius: var(--fusion-radius-sm);
     cursor: pointer;
-    color: var(--fusion-text, #eee);
+    color: var(--fusion-text);
     font: inherit;
-    font-size: 0.82rem;
+    font-size: var(--fusion-text-base);
     text-align: left;
   }
 
   .compendium-marks__row:hover {
-    background: var(--fusion-border, #444);
+    background: var(--fusion-surface-alt);
   }
 
+  /* The whole name; it breaks onto a second line instead of being cut. */
   .compendium-marks__name {
     display: block;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
+    overflow-wrap: anywhere;
   }
 
   .compendium-marks__unpin {
     flex-shrink: 0;
     display: flex;
     align-items: center;
-    padding: 0 0.35rem;
+    justify-content: center;
+    min-width: var(--fusion-target);
+    min-height: var(--fusion-target);
+    padding: 0;
     background: none;
-    border: 1px solid transparent;
-    border-radius: var(--fusion-radius-sm, 4px);
+    border: none;
+    border-radius: var(--fusion-radius-sm);
     cursor: pointer;
-    color: var(--fusion-text-muted, #888);
+    color: var(--fusion-text-muted);
   }
 
   .compendium-marks__unpin:hover {
-    color: var(--fusion-text, #eee);
-    border-color: var(--fusion-border, #444);
+    color: var(--fusion-text);
+    background: var(--fusion-surface-alt);
   }
 </style>

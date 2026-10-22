@@ -436,6 +436,7 @@
   <section
     class="abar"
     class:abar--collapsed={controller.collapsed}
+    class:abar--covered={layout.width <= 0}
     aria-label={t("FUSION.ActionBar.Label")}
     data-action-bar
     data-actor-id={resolved.ctx.actorId}
@@ -552,7 +553,7 @@
 
 <style>
   /* The prototype's `.abar`: centred in the free area (the left and the width come from the
-     layout), translucent, over the canvas. `--fusion-z-actionbar` puts it under the drawer and the
+     layout), over the canvas, on the theme's surface (opaque: a map under the text hurt reading). `--fusion-z-actionbar` puts it under the drawer and the
      windows and above the canvas and the prepare notice. */
   .abar {
     position: absolute;
@@ -562,18 +563,25 @@
     transform: translateX(-50%);
     border: 1px solid var(--fusion-border);
     border-radius: var(--fusion-radius-lg);
-    background: rgba(24, 24, 31, 0.94);
-    backdrop-filter: blur(6px);
+    background: var(--fusion-surface);
+    /* The strip and the slots answer to the bar's own width (a phone folds its columns). */
+    container-type: inline-size;
     color: var(--fusion-text);
     font-family: var(--fusion-font);
     box-shadow: var(--fusion-shadow-modal);
+  }
+
+  /* A drawer that covers the whole table (narrow screen, REQ-GAV-040) leaves the bar no room:
+     it steps out instead of showing its edges under the drawer. */
+  .abar--covered {
+    display: none;
   }
 
   .ab-slots {
     display: flex;
     align-items: flex-end;
     gap: 12px;
-    min-height: 70px;
+    min-height: 86px;
     padding: 2px 8px 10px 10px;
     overflow-x: auto;
   }
@@ -581,15 +589,15 @@
   .ab-end {
     flex: none;
     align-self: flex-end;
-    width: 88px;
-    height: 64px;
+    width: 96px;
+    height: 80px;
     margin-left: auto;
     border: 1px solid transparent;
     border-radius: var(--fusion-radius-sm);
     background: var(--fusion-accent);
     color: var(--fusion-on-accent);
     font-family: var(--fusion-font);
-    font-size: 0.75rem;
+    font-size: var(--fusion-text-sm);
     font-weight: 600;
     line-height: 1.2;
     cursor: pointer;
@@ -597,11 +605,6 @@
 
   .ab-end:hover {
     background: var(--fusion-accent-hover);
-  }
-
-  .ab-end:focus-visible {
-    outline: 2px solid var(--fusion-accent-hover);
-    outline-offset: 2px;
   }
 
   /* The toast above the bar (prototype `.toast`). The region is always there, so a screen reader
@@ -621,7 +624,7 @@
     border-radius: var(--fusion-radius-sm);
     background: var(--fusion-surface-alt);
     color: var(--fusion-text);
-    font-size: 12px;
+    font-size: var(--fusion-text-sm);
     white-space: nowrap;
     box-shadow: var(--fusion-shadow-modal);
   }

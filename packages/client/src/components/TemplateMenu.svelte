@@ -57,7 +57,7 @@
 
 <style>
   .template-menu {
-    background: rgba(24, 24, 31, 0.95);
+    background: var(--fusion-bg);
     backdrop-filter: blur(6px);
     border: 1px solid var(--fusion-border);
     border-radius: var(--fusion-radius-sm);
@@ -76,11 +76,11 @@
     color: var(--fusion-text);
     cursor: pointer;
     font-family: var(--fusion-font);
-    font-size: 0.8rem;
+    font-size: var(--fusion-text-sm);
     padding: 0.25rem;
   }
   .template-menu__remove:hover {
-    border-color: #ff3b30;
-    color: #ff3b30;
+    border-color: var(--fusion-danger);
+    color: var(--fusion-danger);
   }
 </style>

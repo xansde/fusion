@@ -10,8 +10,9 @@
    * which never leaves the device (REQ-CFG-022, REQ-CFG-072, RNF-CFG-01). The ONE exception
    * is the own-password form (REQ-CFG-090, REQ-USR-040..042): a separate component that talks
    * plain HTTP to `POST /api/users/me/password` — authentication is not a device preference.
-   * Deliberately no locale or theme control either (REQ-CFG-023) — those are portable, server-side
-   * preferences owned by a different section entirely.
+   * Deliberately no locale control (REQ-CFG-023). The theme (dark / light / system) IS here since
+   * the 22/10/2026 amendment (DEC-CFG-11, provisional): it is a per-browser choice written by
+   * `lib/ui/theme.ts` — not per world, not per seat, never on the server.
    *
    * The token-display toggle ALSO writes through `tokenDisplayPrefsStore.svelte.ts` (not
    * just `clientPrefs.ts` directly) so the already-rendered canvas updates immediately —
@@ -32,6 +33,7 @@
   import { setTokenDisplayPref } from "../../lib/canvas/tokens/tokenDisplayPrefsStore.svelte.js";
   import AvatarOverlayControles from "../avatar/AvatarOverlayControles.svelte";
   import OwnPasswordForm from "./OwnPasswordForm.svelte";
+  import { applyTheme, readThemePreference, type ThemePreference } from "../../lib/ui/theme.js";
 
   interface Props {
     worldId: string;
@@ -53,6 +55,27 @@
   // svelte-ignore state_referenced_locally
   let prefs = $state(loadClientPreferences(worldId, userId));
 
+  const THEME_OPTIONS: readonly { value: ThemePreference; labelKey: string }[] = [
+    { value: "dark", labelKey: "FUSION.Settings.Preferences.Theme.Dark" },
+    { value: "light", labelKey: "FUSION.Settings.Preferences.Theme.Light" },
+    { value: "system", labelKey: "FUSION.Settings.Preferences.Theme.System" },
+  ];
+
+  function deviceStorage(): Storage | null {
+    try {
+      return globalThis.localStorage ?? null;
+    } catch {
+      return null;
+    }
+  }
+
+  let theme = $state<ThemePreference>(readThemePreference(deviceStorage()));
+
+  function handleThemeChange(value: ThemePreference): void {
+    theme = value;
+    applyTheme(value);
+  }
+
   function percentOf(channel: VolumeChannel): number {
     return Math.round(prefs.volume[channel] * 100);
   }
@@ -72,6 +95,28 @@
 </script>
 
 <div class="preferences-section">
+  <!-- DEC-CFG-11 (emenda provisória de REQ-CFG-023): tema por navegador. -->
+  <fieldset class="section">
+    <legend class="section__title">{t("FUSION.Settings.Preferences.ThemeTitle")}</legend>
+    <div class="theme-options">
+      {#each THEME_OPTIONS as option (option.value)}
+        <label class="choice-row">
+          <input
+            type="radio"
+            name="preferences-theme"
+            value={option.value}
+            checked={theme === option.value}
+            onchange={() => {
+              handleThemeChange(option.value);
+            }}
+          />
+          <span>{t(option.labelKey)}</span>
+        </label>
+      {/each}
+    </div>
+    <p class="section__hint">{t("FUSION.Settings.Preferences.ThemeHint")}</p>
+  </fieldset>
+
   <fieldset class="section">
     <legend class="section__title">{t("FUSION.Settings.Preferences.VolumeTitle")}</legend>
 
@@ -165,51 +210,73 @@
   .preferences-section {
     display: flex;
     flex-direction: column;
-    gap: 1rem;
-    padding: 0.5rem 0.75rem;
+    gap: var(--fusion-space-6);
+    padding: var(--fusion-space-3) var(--fusion-space-4);
   }
 
   .section {
     border: none;
     display: flex;
     flex-direction: column;
-    gap: 0.6rem;
+    gap: var(--fusion-space-2);
     margin: 0;
     padding: 0;
   }
 
   .section__title {
-    color: var(--fusion-text-muted);
-    font-size: 0.75rem;
-    font-weight: 600;
-    letter-spacing: 0.04em;
+    color: var(--fusion-text);
+    font-size: var(--fusion-text-md);
+    font-weight: var(--fusion-weight-bold);
     padding: 0;
-    text-transform: uppercase;
+    margin-bottom: var(--fusion-space-1);
+  }
+
+  .section__hint {
+    color: var(--fusion-text-muted);
+    font-size: var(--fusion-text-sm);
+    margin: 0;
+  }
+
+  .theme-options {
+    display: flex;
+    flex-direction: column;
   }
 
   .field {
     display: flex;
     flex-direction: column;
-    gap: 0.25rem;
+    gap: var(--fusion-space-1);
   }
 
   .field__label {
     color: var(--fusion-text);
-    font-size: 0.8125rem;
+    font-size: var(--fusion-text-base);
   }
 
   .field__input[type="range"] {
+    accent-color: var(--fusion-accent);
     cursor: pointer;
-    padding: 0.25rem 0;
+    min-height: var(--fusion-target);
     width: 100%;
   }
 
-  .checkbox-row {
+  .checkbox-row,
+  .choice-row {
     align-items: center;
     color: var(--fusion-text);
     cursor: pointer;
     display: flex;
-    font-size: 0.8125rem;
-    gap: 0.5rem;
+    font-size: var(--fusion-text-base);
+    gap: var(--fusion-space-3);
+    min-height: var(--fusion-target);
+  }
+
+  .checkbox-row input,
+  .choice-row input {
+    accent-color: var(--fusion-accent);
+    flex: none;
+    height: 18px;
+    margin: 0;
+    width: 18px;
   }
 </style>

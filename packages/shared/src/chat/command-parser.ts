@@ -190,28 +190,78 @@ export function extractInlineRolls(text: string): InlineRollSpan[] {
 // ---------------------------------------------------------------------------
 
 /**
- * Parse whisper targets from the format `[Name1, Name2] message`.
- * Returns null if the format is invalid.
+ * Parse the part of a whisper after the command into targets + message.
+ *
+ * Three forms, tried in order (REQ-CHT-014):
+ *   1. `[Name1, Name2] message` — the spec's bracket list.
+ *   2. `"Nome Composto" message` — one quoted target, spaces allowed.
+ *   3. `Nome Composto message` — no delimiters: the longest of `knownNames`
+ *      (case-insensitive, whole words) that starts the text, or the keywords
+ *      `gm`/`players`; with no such match, the first word. Matching the longest
+ *      known name is what lets a compound user name ("Huo Jinwu") be whispered
+ *      to without quotes.
+ *
+ * Returns null only when there is no target at all or a bracket/quote is left
+ * open. A whisper must never degrade into public text because of how the name
+ * was typed: an unknown target is still returned, and the server refuses it
+ * by name (WHISPER_TARGET_NOT_FOUND).
  */
-function parseWhisperPart(rest: string): { targets: string[]; message: string } | null {
+function parseWhisperPart(
+  rest: string,
+  knownNames: readonly string[],
+): { targets: string[]; message: string } | null {
   const trimmed = rest.trim();
-  if (!trimmed.startsWith("[")) {
-    return null;
+  if (trimmed === "") return null;
+
+  if (trimmed.startsWith("[")) {
+    const closeIdx = trimmed.indexOf("]");
+    if (closeIdx === -1) return null;
+    const targets = trimmed
+      .slice(1, closeIdx)
+      .split(",")
+      .map((t) => t.trim())
+      .filter((t) => t.length > 0);
+    if (targets.length === 0) return null;
+    return { targets, message: trimmed.slice(closeIdx + 1).trim() };
   }
-  const closeIdx = trimmed.indexOf("]");
-  if (closeIdx === -1) {
-    return null;
+
+  if (trimmed.startsWith('"')) {
+    const closeIdx = trimmed.indexOf('"', 1);
+    if (closeIdx === -1) return null;
+    const target = trimmed.slice(1, closeIdx).trim();
+    if (target === "") return null;
+    return { targets: [target], message: trimmed.slice(closeIdx + 1).trim() };
   }
-  const targetsPart = trimmed.slice(1, closeIdx);
-  const targets = targetsPart
-    .split(",")
-    .map((t) => t.trim())
-    .filter((t) => t.length > 0);
-  if (targets.length === 0) {
-    return null;
+
+  const lower = trimmed.toLowerCase();
+  let best: string | null = null;
+  for (const name of [...knownNames, "gm", "players"]) {
+    const candidate = name.trim();
+    if (candidate === "" || (best !== null && candidate.length <= best.length)) continue;
+    if (!lower.startsWith(candidate.toLowerCase())) continue;
+    const next = trimmed.charAt(candidate.length);
+    if (next !== "" && !/\s/.test(next)) continue;
+    best = candidate;
   }
-  const message = trimmed.slice(closeIdx + 1).trim();
-  return { targets, message };
+  if (best !== null) {
+    // The canonical spelling of the known name, not what was typed.
+    return { targets: [best], message: trimmed.slice(best.length).trim() };
+  }
+
+  const spaceIdx = trimmed.search(/\s/);
+  return spaceIdx === -1
+    ? { targets: [trimmed], message: "" }
+    : { targets: [trimmed.slice(0, spaceIdx)], message: trimmed.slice(spaceIdx + 1).trim() };
+}
+
+/** Context the parser cannot know by itself. */
+export interface ParseChatCommandOptions {
+  /**
+   * Names a whisper may be addressed to without brackets or quotes (the
+   * world's user names). The server passes them; a caller without them still
+   * gets a whisper, addressed to the first word.
+   */
+  knownNames?: readonly string[];
 }
 
 // ---------------------------------------------------------------------------
@@ -230,7 +280,10 @@ function parseWhisperPart(rest: string): { targets: string[]; message: string } 
  *
  * This function is pure and side-effect free — no RNG, no I/O.
  */
-export function parseChatCommand(input: string): ParsedChatCommand {
+export function parseChatCommand(
+  input: string,
+  options: ParseChatCommandOptions = {},
+): ParsedChatCommand {
   const trimmed = input.trim();
 
   if (!trimmed.startsWith("/")) {
@@ -261,7 +314,7 @@ export function parseChatCommand(input: string): ParsedChatCommand {
 
   // --- Whisper ---
   if (WHISPER_PREFIXES.has(prefix)) {
-    const parsed = parseWhisperPart(rest);
+    const parsed = parseWhisperPart(rest, options.knownNames ?? []);
     if (parsed) {
       return {
         kind: "whisper",

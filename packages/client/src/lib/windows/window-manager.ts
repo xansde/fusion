@@ -52,6 +52,8 @@ export interface WindowGeometry {
 export interface WindowHeaderAction {
   id: string;
   label: string;
+  /** A glyph of the shared icon set (`@fusion/shared` `IconName`) drawn before the label. */
+  icon?: string;
   title?: string;
   onclick: () => void;
 }

@@ -151,9 +151,13 @@ describe("sidebar on a narrow screen and from the keyboard", () => {
   });
 
   describe("narrow viewport (REQ-GAV-040)", () => {
-    it("REQ-GAV-040: the narrow rule fires below 900px, and it is the only breakpoint", () => {
+    it("REQ-GAV-040: the narrow rule fires below 900px; the phone rule (600px) only adds the peek strip", () => {
+      // Two blocks: the narrow rule (900px) and, under it, the phone peek strip (600px,
+      // REQ-GAV-040 emenda 22/10/2026) — which only narrows the panel and shows the strip.
       const blocks = mediaBlocks("Sidebar.svelte");
-      expect(blocks).toHaveLength(1);
+      expect(blocks).toHaveLength(2);
+      expect(blocks[1]!.condition).toBe("(max-width: 599.98px)");
+      expect(blocks[1]!.body).toContain(".fusion-sidebar__peek");
 
       const threshold = /max-width:\s*([\d.]+)px/.exec(blocks[0]!.condition)?.[1];
       expect(threshold, `unexpected media condition: ${blocks[0]!.condition}`).toBeDefined();
@@ -186,9 +190,7 @@ describe("sidebar on a narrow screen and from the keyboard", () => {
     it("REQ-GAV-040: the rail keeps 44px and its single gesture at any width", () => {
       // No breakpoint at all in the rail, and its width is the 44px token.
       expect(mediaBlocks("SidebarRail.svelte")).toHaveLength(0);
-      expect(codeOf("SidebarRail.svelte")).toMatch(
-        /width:\s*var\(--fusion-sidebar-rail-width,\s*44px\)/,
-      );
+      expect(codeOf("SidebarRail.svelte")).toMatch(/width:\s*var\(--fusion-sidebar-rail-width\)/);
 
       // And the narrow rule does not touch the rail or its token.
       const [narrow] = mediaBlocks("Sidebar.svelte");
@@ -217,7 +219,9 @@ describe("sidebar on a narrow screen and from the keyboard", () => {
 
       seedPreferences(true, "chat");
       const html = renderSidebar();
-      const buttons = [...html.matchAll(/<button[^>]*>/g)].map((tag) => tag[0]);
+      const buttons = [...html.matchAll(/<button[^>]*>/g)]
+        .map((tag) => tag[0])
+        .filter((tag) => !tag.includes("fusion-sidebar__peek"));
       expect(buttons).toHaveLength(CORE_TABS.length);
       for (const tag of buttons) {
         expect(tag).toContain("data-tab-id=");
@@ -246,7 +250,9 @@ describe("sidebar on a narrow screen and from the keyboard", () => {
       seedPreferences(true, "chat");
       const html = renderSidebar();
 
-      const buttons = [...html.matchAll(/<button[^>]*>/g)].map((tag) => tag[0]);
+      const buttons = [...html.matchAll(/<button[^>]*>/g)]
+        .map((tag) => tag[0])
+        .filter((tag) => !tag.includes("fusion-sidebar__peek"));
       expect(buttons).toHaveLength(CORE_TABS.length);
       for (const tag of buttons) {
         expect(tag).toMatch(/type="button"/);

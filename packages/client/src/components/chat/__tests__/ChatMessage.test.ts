@@ -15,6 +15,11 @@ import { describe, expect, it } from "vitest";
 import { render } from "svelte/server";
 
 import ChatMessage from "../ChatMessage.svelte";
+import EmptyCardFixture from "./EmptyCardFixture.svelte";
+import {
+  registerChatCardExtension,
+  resetChatCardExtensions,
+} from "../../../lib/chat/chatCardExtensionRegistry.svelte.js";
 // Importing the barrel pre-loads the pt-BR/en bundles, so `t()` resolves real labels.
 import "../../../lib/i18n/index.js";
 import { t } from "../../../lib/i18n/i18n.js";
@@ -343,5 +348,107 @@ describe("REQ-ACH-025 — a continuation drops the header", () => {
     expect(body).toContain("msg--continued");
     // The content itself is untouched — only the repeated header goes away.
     expect(body).toContain("m2");
+  });
+});
+
+// ---------------------------------------------------------------------------
+// ui-chat — one card per roll, with where the modifier came from
+// ---------------------------------------------------------------------------
+
+describe("ui-chat — the roll card explains the modifier and says nothing twice", () => {
+  const PARTS = {
+    fusion: {
+      breakdown: {
+        statistic: "skill:athletics",
+        parts: [
+          { label: "Atributo (For)", type: "ability", value: 4, applied: true },
+          { label: "Proficiência (Treinado)", type: "proficiency", value: 5, applied: true },
+          { label: "Bênção", type: "status", value: 1, applied: false },
+        ],
+      },
+    },
+  };
+  const skillRoll = (content: string): ChatMessageType =>
+    msg("m1", {
+      type: "roll",
+      content,
+      flags: PARTS,
+      rolls: [rollData({ formula: "1d20+9", total: 21, flavor: "Atletismo" })],
+    });
+
+  it("lists every part inside the card, the one that did not stack included and said so", () => {
+    const body = renderMsg(skillRoll("Atletismo: 21"));
+    const card = body.slice(body.indexOf('class="roll-card '));
+    expect(card).toContain('data-testid="roll-card-parts"');
+    expect(card).toContain("Atributo (For)");
+    expect(card).toContain("+5");
+    expect(card).toContain(t("FUSION.Chat.Breakdown.NotApplied"));
+  });
+
+  it("drops the server's own summary above the card, but keeps words a person wrote", () => {
+    expect(renderMsg(skillRoll("Atletismo: 21"))).not.toContain('class="msg__content');
+    expect(renderMsg(skillRoll("Pulo o muro"))).toContain("Pulo o muro");
+  });
+
+  it("names a private roll's audience in pt-BR, never the raw mode", () => {
+    const body = renderMsg(
+      msg("m2", { type: "roll", content: "", rolls: [rollData({ rollMode: "gmroll" })] }),
+    );
+    expect(body).toContain(t("FUSION.Chat.RollMode.Gm.Label"));
+    expect(body).not.toContain(">gmroll<");
+  });
+
+  it("a nested attack under a card explains its modifier too, the PAM included", () => {
+    const parent = msg("p1", { type: "text", content: "Bico (PAM 1)" });
+    const attack = msg("a1", {
+      type: "roll",
+      flags: {
+        fusion: {
+          parentMessageId: "p1",
+          breakdown: {
+            statistic: "strike:w1@1",
+            parts: [
+              { label: "Atributo (For)", type: "ability", value: 4, applied: true },
+              { label: "Ataques múltiplos (2º ataque)", type: "map", value: -5, applied: true },
+            ],
+          },
+        },
+      },
+      rolls: [rollData({ formula: "1d20-1", total: 9, flavor: "Bico (PAM 1)" })],
+    });
+    const body = renderMsg(parent, { children: [attack] });
+    const nested = body.slice(body.indexOf('class="nested '));
+    expect(nested).toContain("Ataques múltiplos (2º ataque)");
+    expect(nested).toContain("-5");
+  });
+});
+
+// ---------------------------------------------------------------------------
+// ui-login-admin: the cost in a stored spell announcement is drawn, not a font glyph
+// ---------------------------------------------------------------------------
+
+describe("ChatMessage — announcement above a system card", () => {
+  it("draws the ◆ of a stored announcement as Fusion marks, with the words for screen readers", () => {
+    registerChatCardExtension({
+      recognize: (m) => (m.flags["test"] === undefined ? null : {}),
+      component: EmptyCardFixture,
+    });
+    try {
+      const body = renderMsg(
+        msg("cast", {
+          type: "system",
+          content: "lança Raio de Fogo (grau 2) ◆◆ (CD 18 Reflexos)",
+          flags: { test: {} },
+        }),
+      );
+      const announce = body.slice(body.indexOf("msg__content--announce"));
+      expect(announce).toContain("lança Raio de Fogo (grau 2)");
+      expect(announce).toContain("(CD 18 Reflexos)");
+      expect(announce).toMatch(/class="cost__d[ "]/);
+      expect(announce).toContain("2 ações");
+      expect(announce.slice(0, announce.indexOf("</p>"))).not.toContain("◆");
+    } finally {
+      resetChatCardExtensions();
+    }
   });
 });

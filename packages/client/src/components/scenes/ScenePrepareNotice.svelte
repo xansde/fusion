@@ -15,6 +15,7 @@
 
   import type { Socket } from "socket.io-client";
   import { t } from "../../lib/i18n/i18n.js";
+  import Icon from "../common/Icon.svelte";
   import { OpError } from "../../lib/scenes/sceneController.js";
   import {
     SCENE_PREPARE_KEYS,
@@ -66,25 +67,8 @@
   data-prepared-scene={notice.preparedSceneId}
   style:bottom={bottomOffset > 0 ? `${String(bottomOffset)}px` : undefined}
 >
-  <!-- Drawn glyph (REQ-NPC-094): a workbench square with a corner cut, meaning "off
-       stage". Never an emoji. -->
-  <svg
-    class="scene-prepare__icon"
-    viewBox="0 0 16 16"
-    width="16"
-    height="16"
-    fill="none"
-    stroke="currentColor"
-    stroke-width="1.4"
-    stroke-linecap="round"
-    stroke-linejoin="round"
-    aria-hidden="true"
-    focusable="false"
-  >
-    <path d="M2.5 3.5h11v9h-11z" />
-    <path d="M2.5 6.5h11" />
-    <path d="M6 9.5h4" />
-  </svg>
+  <!-- Same eye as the row action that opens this prepare: "I am looking at this". -->
+  <Icon name="eye" size={18} class="scene-prepare__icon" />
 
   <div class="scene-prepare__text">
     <span class="scene-prepare__title">{t(notice.title.key, notice.title.vars)}</span>
@@ -116,11 +100,11 @@
      screen the table shell passes `bottomOffset`, which replaces the default `bottom` below. */
   .scene-prepare {
     align-items: center;
-    background: rgba(24, 24, 31, 0.9);
-    backdrop-filter: blur(8px);
+    background: var(--fusion-surface);
     border: 1px solid var(--fusion-accent);
     border-radius: var(--fusion-radius-lg);
     bottom: 1.25rem;
+    box-shadow: var(--fusion-shadow-popover);
     display: flex;
     gap: 0.75rem;
     left: 50%;
@@ -132,7 +116,7 @@
     z-index: 60;
   }
 
-  .scene-prepare__icon {
+  .scene-prepare :global(.scene-prepare__icon) {
     color: var(--fusion-accent);
     flex-shrink: 0;
   }
@@ -146,7 +130,7 @@
 
   .scene-prepare__title {
     color: var(--fusion-text);
-    font-size: 0.8125rem;
+    font-size: var(--fusion-text-sm);
     font-weight: 600;
     overflow: hidden;
     text-overflow: ellipsis;
@@ -155,7 +139,7 @@
 
   .scene-prepare__on-air {
     color: var(--fusion-text-muted);
-    font-size: 0.75rem;
+    font-size: var(--fusion-text-xs);
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
@@ -163,7 +147,7 @@
 
   .scene-prepare__error {
     color: var(--fusion-danger);
-    font-size: 0.75rem;
+    font-size: var(--fusion-text-xs);
   }
 
   .scene-prepare__actions {
@@ -182,7 +166,7 @@
     cursor: pointer;
     display: inline-flex;
     font-family: var(--fusion-font);
-    font-size: 0.875rem;
+    font-size: var(--fusion-text-sm);
     font-weight: 500;
     justify-content: center;
     padding: 0.45rem 1rem;
@@ -198,13 +182,13 @@
   }
 
   .btn:focus-visible {
-    outline: 2px solid var(--fusion-accent);
+    outline: 2px solid var(--fusion-focus);
     outline-offset: 2px;
   }
 
   .btn--primary {
     background: var(--fusion-accent);
-    color: #fff;
+    color: var(--fusion-on-accent);
   }
 
   .btn--primary:hover:not(:disabled) {
@@ -223,6 +207,7 @@
   }
 
   .btn--sm {
-    padding: 0.3rem 0.6rem;
+    min-height: var(--fusion-target);
+    padding: 0.3rem 0.75rem;
   }
 </style>

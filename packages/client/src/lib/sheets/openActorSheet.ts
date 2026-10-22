@@ -87,7 +87,7 @@ export function openActorSheet(
     windowManager.open({
       singletonKey,
       title: `${name} (${subtypeLabel(subtype)})`,
-      icon: "📋",
+      icon: "scroll",
       resizable: true,
       minimizable: true,
       position: {

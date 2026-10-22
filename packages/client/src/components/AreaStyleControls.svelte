@@ -88,8 +88,8 @@
     width: 1.2rem;
   }
   .area-style__swatch--on {
-    border-color: #fff;
-    box-shadow: 0 0 0 1px #000;
+    border-color: var(--fusion-surface);
+    outline: 2px solid var(--fusion-text);
   }
   .area-style__borders {
     display: flex;
@@ -103,7 +103,7 @@
     cursor: pointer;
     flex: 1;
     font-family: var(--fusion-font);
-    font-size: 0.7rem;
+    font-size: var(--fusion-text-sm);
     padding: 0.15rem 0.2rem;
   }
   .area-style__border--on {
@@ -115,7 +115,7 @@
     color: var(--fusion-text-muted);
     display: flex;
     flex-direction: column;
-    font-size: 0.7rem;
+    font-size: var(--fusion-text-sm);
     gap: 0.15rem;
   }
   .area-style__fill input {

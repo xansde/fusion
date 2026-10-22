@@ -326,6 +326,12 @@ export const AbilityCardSchema = z.object({
   damageFormula: z.string().max(200).optional(),
   /** Critical damage formula (strike only) — the "Rolar dano crítico" button. */
   critDamageFormula: z.string().max(200).optional(),
+  /**
+   * The statistic the card's (non-critical) damage roll names (ui-chat, 22/10/2026), e.g.
+   * `strikeDamage:<id>`: the damage button sends it as `flags.fusion.statistic` so the server can explain
+   * the flat part of the damage on the roll card. A DESCRIPTION, never a number (see FusionStatisticRef).
+   */
+  damageStatistic: z.string().min(1).max(160).optional(),
   /** Damage type (e.g. "fire", "electricity"). */
   damageType: z.string().max(40).optional(),
   /** Traits (display only). */
@@ -535,6 +541,37 @@ export interface ResolvedRollModifier {
 }
 
 /**
+ * The statistic a sheet roll is made with (ui-fundacao, 22/10/2026): `key` names it in the system's
+ * own terms (`skill:athletics`, `perception`, `save:will`, `strike:<id>`...). A DESCRIPTION, never a
+ * number: the server re-derives the actor, asks the system for the parts of that statistic and
+ * records them as `flags.fusion.breakdown` only when they add up to the flat part of the formula.
+ */
+export const FusionStatisticRefSchema = z.object({
+  actorId: z.string().min(1).max(120),
+  key: z.string().min(1).max(160),
+});
+
+export type FusionStatisticRef = z.infer<typeof FusionStatisticRefSchema>;
+
+/**
+ * One part of the number a roll was made with (`flags.fusion.breakdown.parts`): the attribute, the
+ * proficiency, an item, a status... `label` is already the system's reading text; `applied: false`
+ * is a part that did not stack (a better bonus of the same type won) and does not count.
+ */
+export interface RollBreakdownPart {
+  label: string;
+  type: string;
+  value: number;
+  applied: boolean;
+}
+
+/** `flags.fusion.breakdown`, written by the server only (the client cannot send it). */
+export interface RollBreakdownFlag {
+  statistic: string;
+  parts: RollBreakdownPart[];
+}
+
+/**
  * Flags a client may attach to a chat:send payload (r17-P2 / r17.1 / r18-N1).
  * Whitelisted paths:
  *   - `pf2e.spellCast`    — the interactive spell-cast card (r17-P2);
@@ -567,13 +604,15 @@ export const ChatSendFlagsSchema = z.object({
    */
   parentMessageId: z.string().min(1).max(120).optional(),
   /**
-   * Core-namespaced flags (BHR-F2-05). Only `rollContext` is read; any other key
+   * Core-namespaced flags (BHR-F2-05). Only `rollContext` and `statistic` are read; any other key
    * (a forged `rollNotes`, a pre-computed bonus) is stripped by this schema and
    * never reaches the stored message (DF-17).
    */
   fusion: z
     .object({
       rollContext: FusionRollContextSchema.optional(),
+      /** The statistic of a sheet roll, for the card's decomposition (ui-fundacao). */
+      statistic: FusionStatisticRefSchema.optional(),
     })
     .optional(),
 });

@@ -12,6 +12,7 @@
   import { t } from "../../lib/i18n/i18n.js";
   import { releaseFocusAfterPointer } from "../../lib/actionbar/slotFocus.js";
   import type { ActionBarTab } from "../../lib/actionbar/types.js";
+  import Icon from "../common/Icon.svelte";
   import { TAB_ICON, iconSvg } from "./icons.js";
 
   interface Props {
@@ -67,82 +68,81 @@
     data-action="collapse"
     onclick={collapse}
   >
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.25" stroke-linecap="round" stroke-linejoin="round" focusable="false" aria-hidden="true">
-      <path d="M6 9l6 6 6-6" />
-    </svg>
+    <Icon name="chevron-down" size={20} />
   </button>
 </div>
 
 <style>
   .ab-tabs {
     display: flex;
+    flex-wrap: wrap;
     align-items: center;
-    gap: 4px;
+    gap: var(--fusion-space-1);
     padding: 6px 10px;
     border-top: 1px solid var(--fusion-border);
   }
 
+  /* 40 px tall: the touch-target floor (`--fusion-target`). */
   .tab {
     display: inline-flex;
     align-items: center;
     gap: 6px;
-    height: 26px;
-    padding: 0 10px;
-    border: 1px solid var(--fusion-border);
-    border-radius: var(--fusion-radius-sm);
-    background: var(--fusion-surface-alt);
+    height: var(--fusion-target);
+    padding: 0 var(--fusion-space-3);
+    border: 1px solid transparent;
+    border-radius: var(--fusion-radius);
+    background: transparent;
     color: var(--fusion-text-muted);
     font-family: var(--fusion-font);
-    font-size: 12px;
+    font-size: var(--fusion-text-sm);
     cursor: pointer;
-    transition: var(--fusion-transition);
+    transition:
+      color var(--fusion-transition),
+      background-color var(--fusion-transition);
   }
 
-  .tab :global(svg) {
+  .tab__ic {
     display: block;
-    width: 14px;
-    height: 14px;
+  }
+
+  .tab__ic :global(svg) {
+    display: block;
+    width: 18px;
+    height: 18px;
   }
 
   .tab:hover {
+    background: var(--fusion-surface-alt);
     color: var(--fusion-text);
   }
 
   .tab.is-active {
     border-color: var(--fusion-accent);
     background: var(--fusion-accent-dim);
-    color: var(--fusion-accent-hover);
+    color: var(--fusion-text);
   }
 
-  .tab:focus-visible,
-  .ab-collapse:focus-visible {
-    outline: 2px solid var(--fusion-accent);
-    outline-offset: 2px;
+  .tab.is-active .tab__ic {
+    color: var(--fusion-accent);
   }
 
   .ab-collapse {
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    width: 28px;
-    height: 26px;
+    width: var(--fusion-target);
+    height: var(--fusion-target);
     margin-left: auto;
     padding: 0;
-    border: 1px solid var(--fusion-border);
-    border-radius: var(--fusion-radius-sm);
+    border: 1px solid transparent;
+    border-radius: var(--fusion-radius);
     background: transparent;
     color: var(--fusion-text-muted);
     cursor: pointer;
   }
 
   .ab-collapse:hover {
-    border-color: var(--fusion-text-muted);
+    background: var(--fusion-surface-alt);
     color: var(--fusion-text);
-  }
-
-  .ab-collapse svg {
-    display: block;
-    width: 16px;
-    height: 16px;
   }
 </style>

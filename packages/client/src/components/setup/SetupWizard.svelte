@@ -22,6 +22,8 @@
    */
 
   import { onMount } from "svelte";
+  import FusionMark from "../common/FusionMark.svelte";
+  import Icon from "../common/Icon.svelte";
   import { setupApi, SetupApiError, isFullSetupState, type SetupState } from "./setupApi.js";
   import QrCode from "./QrCode.svelte";
   import { t } from "../../lib/i18n/i18n.js";
@@ -270,9 +272,9 @@
 <div class="setup-shell">
   <div class="setup-card">
     <header class="setup-card__header">
-      <div class="setup-card__logo" aria-hidden="true">&#9889;</div>
+      <FusionMark size={40} />
       <div>
-        <h1>{t("FUSION.Setup.Title")}</h1>
+        <h1 class="setup-card__title">{t("FUSION.Setup.Title")}</h1>
         {#if initialState}
           <p class="setup-card__meta">{t("FUSION.Setup.Version", { version: initialState.serverVersion })}</p>
         {/if}
@@ -282,39 +284,57 @@
     {#if phase === "loading"}
       <p class="setup-status" role="status">{t("FUSION.Setup.Loading")}</p>
     {:else if phase === "fatal-error"}
-      <div class="alert alert--danger" role="alert">{fatalMessage}</div>
+      <div class="alert alert--danger" role="alert">
+        <Icon name="triangle-alert" size={20} />
+        <p>{fatalMessage}</p>
+      </div>
     {:else if phase === "reconfig-auth"}
       <form class="setup-form" onsubmit={submitReconfigAuth}>
-        <p>{t("FUSION.Setup.Reconfig.Intro")}</p>
+        <p class="setup-step__hint">{t("FUSION.Setup.Reconfig.Intro")}</p>
         {#if reconfigError}
-          <div class="alert alert--danger" role="alert">{reconfigError}</div>
+          <div class="alert alert--danger" role="alert">
+            <Icon name="triangle-alert" size={20} />
+            <p>{reconfigError}</p>
+          </div>
         {/if}
         <label class="field">
-          <span>{t("FUSION.Setup.Reconfig.AdminKey")}</span>
+          <span class="field__label">{t("FUSION.Setup.Reconfig.AdminKey")}</span>
           <input type="password" bind:value={reconfigAdminKey} autocomplete="current-password" />
         </label>
-        <button type="submit" class="btn btn--primary" disabled={reconfigLoading}>
-          {reconfigLoading ? t("FUSION.Setup.Reconfig.Verifying") : t("FUSION.Setup.Reconfig.Continue")}
-        </button>
+        <div class="setup-nav setup-nav--end">
+          <button type="submit" class="btn btn--primary" disabled={reconfigLoading}>
+            {reconfigLoading ? t("FUSION.Setup.Reconfig.Verifying") : t("FUSION.Setup.Reconfig.Continue")}
+            <Icon name="arrow-right" size={18} />
+          </button>
+        </div>
       </form>
     {:else if phase === "form"}
-      <div class="setup-steps" role="tablist" aria-label="Setup steps">
-        {#each STEPS as step, i (step)}
-          <div class="setup-steps__dot" class:setup-steps__dot--active={i === stepIndex} class:setup-steps__dot--done={i < stepIndex}></div>
-        {/each}
+      <!-- Where am I: words first ("Passo 2 de 4"), the bar only repeats it. -->
+      <div class="setup-progress">
+        <p class="setup-progress__text">
+          {t("FUSION.Setup.Progress", { step: stepIndex + 1, total: STEPS.length })}
+        </p>
+        <div class="setup-progress__bar" aria-hidden="true">
+          {#each STEPS as step, i (step)}
+            <span class="setup-progress__seg" class:setup-progress__seg--on={i <= stepIndex}></span>
+          {/each}
+        </div>
       </div>
 
       {#if applyError}
-        <div class="alert alert--danger" role="alert">{applyError}</div>
+        <div class="alert alert--danger" role="alert">
+          <Icon name="triangle-alert" size={20} />
+          <p>{applyError}</p>
+        </div>
       {/if}
 
       {#if currentStep === "dataDir"}
         <section class="setup-step">
-          <h2>{t("FUSION.Setup.Step.DataDir.Title")}</h2>
+          <h2 class="setup-step__title">{t("FUSION.Setup.Step.DataDir.Title")}</h2>
           <p class="setup-step__hint">{t("FUSION.Setup.Step.DataDir.Hint")}</p>
           <label class="field">
-            <span>{t("FUSION.Setup.Step.DataDir.Path")}</span>
-            <input type="text" bind:value={dataDir} />
+            <span class="field__label">{t("FUSION.Setup.Step.DataDir.Path")}</span>
+            <input type="text" bind:value={dataDir} spellcheck="false" />
           </label>
           <div class="setup-step__actions-inline">
             <button type="button" class="btn btn--secondary" onclick={resetToDefault}>
@@ -327,68 +347,85 @@
         </section>
       {:else if currentStep === "port"}
         <section class="setup-step">
-          <h2>{t("FUSION.Setup.Step.Port.Title")}</h2>
+          <h2 class="setup-step__title">{t("FUSION.Setup.Step.Port.Title")}</h2>
           <p class="setup-step__hint">{t("FUSION.Setup.Step.Port.Hint")}</p>
-          <label class="field">
-            <span>{t("FUSION.Setup.Step.Port.Label")}</span>
+          <label class="field field--narrow">
+            <span class="field__label">{t("FUSION.Setup.Step.Port.Label")}</span>
             <input
               type="number"
+              inputmode="numeric"
               min="1024"
               max="65535"
               bind:value={port}
               oninput={handlePortInput}
             />
           </label>
-          {#if portCheckStatus === "checking"}
-            <p class="setup-step__status">{t("FUSION.Setup.Step.Port.Checking")}</p>
-          {:else if portCheckStatus === "available"}
-            <p class="setup-step__status setup-step__status--ok">{t("FUSION.Setup.Step.Port.Available", { port })}</p>
-          {:else if portCheckStatus === "unavailable"}
-            <p class="setup-step__status setup-step__status--error">
-              {t("FUSION.Setup.Step.Port.Unavailable", { port })}
+          <div aria-live="polite">
+            {#if portCheckStatus === "checking"}
+              <p class="setup-step__status">{t("FUSION.Setup.Step.Port.Checking")}</p>
+            {:else if portCheckStatus === "available"}
+              <p class="setup-step__status setup-step__status--ok">
+                <Icon name="check" size={18} />
+                {t("FUSION.Setup.Step.Port.Available", { port })}
+              </p>
+            {:else if portCheckStatus === "unavailable"}
+              <p class="setup-step__status setup-step__status--error">
+                <Icon name="triangle-alert" size={18} />
+                {t("FUSION.Setup.Step.Port.Unavailable", { port })}
+              </p>
               {#if portSuggestion !== null}
-                <button type="button" class="link-btn" onclick={useSuggestedPort}>
+                <button type="button" class="btn btn--secondary" onclick={useSuggestedPort}>
                   {t("FUSION.Setup.Step.Port.UseSuggestion", { port: portSuggestion })}
                 </button>
               {/if}
-            </p>
-          {/if}
+            {/if}
+          </div>
         </section>
       {:else if currentStep === "adminKey"}
         <section class="setup-step">
-          <h2>{t("FUSION.Setup.Step.AdminKey.Title")}</h2>
-          <p class="setup-step__hint">
-            {t("FUSION.Setup.Step.AdminKey.Hint")}
-          </p>
+          <h2 class="setup-step__title">{t("FUSION.Setup.Step.AdminKey.Title")}</h2>
+          <p class="setup-step__hint">{t("FUSION.Setup.Step.AdminKey.Hint")}</p>
           <label class="field">
-            <span>{t("FUSION.Setup.Step.AdminKey.Label")}</span>
+            <span class="field__label">{t("FUSION.Setup.Step.AdminKey.Label")}</span>
             <input type="password" bind:value={adminKey} autocomplete="new-password" />
           </label>
           <label class="field">
-            <span>{t("FUSION.Setup.Step.AdminKey.Confirm")}</span>
+            <span class="field__label">{t("FUSION.Setup.Step.AdminKey.Confirm")}</span>
             <input type="password" bind:value={adminKeyConfirm} autocomplete="new-password" />
           </label>
-          {#if adminKey.length > 0 && !adminKeyValid}
-            <p class="setup-step__status setup-step__status--error">
-              {t("FUSION.Setup.Step.AdminKey.TooShort")}
-            </p>
-          {:else if adminKeyConfirm.length > 0 && !adminKeyMatches}
-            <p class="setup-step__status setup-step__status--error">{t("FUSION.Setup.Step.AdminKey.Mismatch")}</p>
-          {/if}
+          <div aria-live="polite">
+            {#if adminKey.length > 0 && !adminKeyValid}
+              <p class="setup-step__status setup-step__status--error">
+                <Icon name="triangle-alert" size={18} />
+                {t("FUSION.Setup.Step.AdminKey.TooShort")}
+              </p>
+            {:else if adminKeyConfirm.length > 0 && !adminKeyMatches}
+              <p class="setup-step__status setup-step__status--error">
+                <Icon name="triangle-alert" size={18} />
+                {t("FUSION.Setup.Step.AdminKey.Mismatch")}
+              </p>
+            {/if}
+          </div>
         </section>
       {:else if currentStep === "connectivity"}
         <section class="setup-step">
-          <h2>{t("FUSION.Setup.Step.Connectivity.Title")}</h2>
+          <h2 class="setup-step__title">{t("FUSION.Setup.Step.Connectivity.Title")}</h2>
           <p class="setup-step__hint">{t("FUSION.Setup.Step.Connectivity.Hint")}</p>
-          <ul class="setup-summary">
-            <li><strong>{t("FUSION.Setup.Step.Connectivity.DataDir")}:</strong> {dataDir}</li>
-            <li><strong>{t("FUSION.Setup.Step.Connectivity.Port")}:</strong> {port}</li>
-          </ul>
+          <dl class="setup-summary">
+            <div>
+              <dt>{t("FUSION.Setup.Step.Connectivity.DataDir")}</dt>
+              <dd class="setup-summary__path">{dataDir}</dd>
+            </div>
+            <div>
+              <dt>{t("FUSION.Setup.Step.Connectivity.Port")}</dt>
+              <dd>{port}</dd>
+            </div>
+          </dl>
           {#if initialState && initialState.lanUrls.length > 0}
             <div class="setup-lan">
               {#each initialState.lanUrls as url (url)}
                 <div class="setup-lan__entry">
-                  <QrCode value={url} size={140} />
+                  <QrCode value={url} size={140} label={t("FUSION.Setup.QrLabel", { url })} />
                   <code>{url}</code>
                 </div>
               {/each}
@@ -401,6 +438,7 @@
 
       <div class="setup-nav">
         <button type="button" class="btn btn--secondary" onclick={prevStep} disabled={stepIndex === 0 || applying}>
+          <Icon name="arrow-left" size={18} />
           {t("FUSION.Setup.Nav.Back")}
         </button>
         <button type="button" class="btn btn--primary" onclick={nextStep} disabled={!canAdvance || applying}>
@@ -408,26 +446,32 @@
             {t("FUSION.Setup.Nav.Applying")}
           {:else if stepIndex === STEPS.length - 1}
             {t("FUSION.Setup.Nav.Finish")}
+            <Icon name="check" size={18} />
           {:else}
             {t("FUSION.Setup.Nav.Next")}
+            <Icon name="arrow-right" size={18} />
           {/if}
         </button>
       </div>
     {:else if phase === "done"}
       <div class="setup-done">
-        <div class="alert alert--success" role="status">{t("FUSION.Setup.Done.Complete")}</div>
+        <div class="alert alert--success" role="status">
+          <Icon name="check" size={20} />
+          <p>{t("FUSION.Setup.Done.Complete")}</p>
+        </div>
 
         {#if applyResult?.restartRequired}
           <div class="alert alert--warning" role="alert">
-            {t("FUSION.Setup.Done.RestartRequired")}
+            <Icon name="triangle-alert" size={20} />
+            <p>{t("FUSION.Setup.Done.RestartRequired")}</p>
           </div>
         {/if}
 
-        <h2>{t("FUSION.Setup.Done.InvitePlayers")}</h2>
+        <h2 class="setup-step__title">{t("FUSION.Setup.Done.InvitePlayers")}</h2>
         {#if primaryLanUrl}
           <div class="setup-lan">
             <div class="setup-lan__entry">
-              <QrCode value={primaryLanUrl} size={180} />
+              <QrCode value={primaryLanUrl} size={180} label={t("FUSION.Setup.QrLabel", { url: primaryLanUrl })} />
               <code>{primaryLanUrl}</code>
             </div>
           </div>
@@ -437,13 +481,18 @@
           <button type="button" class="btn btn--secondary" onclick={createShortcut} disabled={shortcutStatus === "creating"}>
             {shortcutStatus === "creating" ? t("FUSION.Setup.Done.CreatingShortcut") : t("FUSION.Setup.Done.CreateShortcut")}
           </button>
-          <a class="btn btn--primary" href="/">{t("FUSION.Setup.Done.GoToFusion")}</a>
+          <a class="btn btn--primary" href="/">
+            {t("FUSION.Setup.Done.GoToFusion")}
+            <Icon name="arrow-right" size={18} />
+          </a>
         </div>
-        {#if shortcutStatus === "done"}
-          <p class="setup-step__status setup-step__status--ok">{shortcutMessage}</p>
-        {:else if shortcutStatus === "error"}
-          <p class="setup-step__status setup-step__status--error">{shortcutMessage}</p>
-        {/if}
+        <div aria-live="polite">
+          {#if shortcutStatus === "done"}
+            <p class="setup-step__status setup-step__status--ok">{shortcutMessage}</p>
+          {:else if shortcutStatus === "error"}
+            <p class="setup-step__status setup-step__status--error">{shortcutMessage}</p>
+          {/if}
+        </div>
       </div>
     {/if}
   </div>
@@ -451,93 +500,111 @@
 
 <style>
   .setup-shell {
-    align-items: center;
-    background: var(--fusion-bg);
+    /* html/body never scroll (the table fills the viewport), so the screen scrolls
+       itself; the card centres with margin: auto, which never clips its top. */
+    background-color: var(--fusion-bg);
     color: var(--fusion-text);
     display: flex;
-    font-family: var(--fusion-font);
-    justify-content: center;
-    min-height: 100vh;
-    padding: 2rem 1rem;
+    height: 100%;
+    overflow-y: auto;
+    padding: var(--fusion-space-8) var(--fusion-space-4);
   }
 
   .setup-card {
+    margin: auto;
     background: var(--fusion-surface);
     border: 1px solid var(--fusion-border);
     border-radius: var(--fusion-radius-lg);
-    max-width: 480px;
-    padding: 2rem;
+    display: flex;
+    flex-direction: column;
+    gap: var(--fusion-space-5);
+    max-width: 520px;
+    padding: var(--fusion-space-8) var(--fusion-space-6);
     width: 100%;
   }
 
   .setup-card__header {
     align-items: center;
+    color: var(--fusion-accent);
     display: flex;
-    gap: 0.75rem;
-    margin-bottom: 1.5rem;
+    gap: var(--fusion-space-4);
   }
 
-  .setup-card__logo {
-    font-size: 1.75rem;
-  }
-
-  .setup-card__header h1 {
-    font-size: 1.15rem;
-    font-weight: 600;
+  .setup-card__title {
+    color: var(--fusion-text);
+    font-size: var(--fusion-text-xl);
+    font-weight: var(--fusion-weight-bold);
+    line-height: var(--fusion-leading-tight);
   }
 
   .setup-card__meta {
     color: var(--fusion-text-subtle);
-    font-size: 0.75rem;
+    font-size: var(--fusion-text-xs);
+    margin-top: var(--fusion-space-1);
   }
 
   .setup-status {
     color: var(--fusion-text-muted);
   }
 
-  .setup-steps {
+  .setup-form,
+  .setup-step,
+  .setup-done {
     display: flex;
-    gap: 0.5rem;
-    justify-content: center;
-    margin-bottom: 1.5rem;
+    flex-direction: column;
+    gap: var(--fusion-space-3);
   }
 
-  .setup-steps__dot {
+  .setup-progress {
+    display: flex;
+    flex-direction: column;
+    gap: var(--fusion-space-2);
+  }
+
+  .setup-progress__text {
+    color: var(--fusion-text-muted);
+    font-size: var(--fusion-text-sm);
+  }
+
+  .setup-progress__bar {
+    display: grid;
+    gap: var(--fusion-space-1);
+    grid-auto-flow: column;
+  }
+
+  .setup-progress__seg {
     background: var(--fusion-border);
-    border-radius: 50%;
-    height: 8px;
-    width: 8px;
+    border-radius: var(--fusion-radius-sm);
+    height: 4px;
   }
 
-  .setup-steps__dot--active {
+  .setup-progress__seg--on {
     background: var(--fusion-accent);
   }
 
-  .setup-steps__dot--done {
-    background: var(--fusion-accent-dim);
-  }
-
-  .setup-step h2 {
-    font-size: 1rem;
-    margin-bottom: 0.25rem;
+  .setup-step__title {
+    font-size: var(--fusion-text-lg);
+    font-weight: var(--fusion-weight-bold);
   }
 
   .setup-step__hint {
     color: var(--fusion-text-muted);
-    font-size: 0.8125rem;
-    margin-bottom: 1rem;
+    font-size: var(--fusion-text-base);
+    max-width: var(--fusion-measure);
   }
 
   .setup-step__actions-inline {
     display: flex;
     flex-wrap: wrap;
-    gap: 0.5rem;
-    margin-top: 0.5rem;
+    gap: var(--fusion-space-2);
   }
 
   .setup-step__status {
-    font-size: 0.8125rem;
-    margin-top: 0.5rem;
+    align-items: center;
+    display: flex;
+    font-size: var(--fusion-text-sm);
+    gap: var(--fusion-space-2);
+    margin-bottom: var(--fusion-space-2);
   }
 
   .setup-step__status--ok {
@@ -551,85 +618,103 @@
   .field {
     display: flex;
     flex-direction: column;
-    gap: 0.25rem;
-    margin-bottom: 0.75rem;
+    gap: var(--fusion-space-1);
   }
 
-  .field span {
-    color: var(--fusion-text-muted);
-    font-size: 0.75rem;
+  .field--narrow {
+    max-width: 12rem;
+  }
+
+  .field__label {
+    color: var(--fusion-text);
+    font-size: var(--fusion-text-sm);
+    font-weight: var(--fusion-weight-medium);
   }
 
   .field input {
-    background: var(--fusion-surface-alt);
-    border: 1px solid var(--fusion-border);
-    border-radius: var(--fusion-radius-sm);
+    background: var(--fusion-input-bg);
+    border: 1px solid var(--fusion-border-strong);
+    border-radius: var(--fusion-radius);
     color: var(--fusion-text);
-    font-family: inherit;
-    padding: 0.5rem 0.625rem;
+    font-size: var(--fusion-text-base);
+    min-height: var(--fusion-target);
+    min-width: 0;
+    padding: var(--fusion-space-2) var(--fusion-space-3);
+  }
+
+  .field input:focus {
+    border-color: var(--fusion-accent);
   }
 
   .setup-summary {
-    font-size: 0.8125rem;
-    list-style: none;
-    margin-bottom: 1rem;
+    display: flex;
+    flex-direction: column;
+    gap: var(--fusion-space-2);
   }
 
-  .setup-summary li {
-    padding: 0.25rem 0;
+  .setup-summary dt {
+    color: var(--fusion-text-muted);
+    font-size: var(--fusion-text-sm);
+  }
+
+  .setup-summary__path {
+    font-family: var(--fusion-font-mono);
+    font-size: var(--fusion-text-sm);
+    overflow-wrap: anywhere;
   }
 
   .setup-lan {
     display: flex;
-    flex-direction: column;
-    gap: 0.75rem;
+    flex-wrap: wrap;
+    gap: var(--fusion-space-5);
+    justify-content: center;
   }
 
   .setup-lan__entry {
     align-items: center;
     display: flex;
     flex-direction: column;
-    gap: 0.5rem;
+    gap: var(--fusion-space-2);
   }
 
   .setup-lan__entry code {
-    color: var(--fusion-text-muted);
+    color: var(--fusion-text);
     font-family: var(--fusion-font-mono);
-    font-size: 0.8125rem;
+    font-size: var(--fusion-text-sm);
+    overflow-wrap: anywhere;
   }
 
   .setup-nav {
     display: flex;
-    gap: 0.5rem;
+    gap: var(--fusion-space-2);
     justify-content: space-between;
-    margin-top: 1.5rem;
+    margin-top: var(--fusion-space-2);
   }
 
-  .setup-done {
-    display: flex;
-    flex-direction: column;
-    gap: 1rem;
+  .setup-nav--end {
+    justify-content: flex-end;
   }
 
   .btn {
+    align-items: center;
     border: 1px solid transparent;
-    border-radius: var(--fusion-radius-sm);
+    border-radius: var(--fusion-radius);
     cursor: pointer;
-    font-family: inherit;
-    font-size: 0.8125rem;
-    padding: 0.5rem 1rem;
+    display: inline-flex;
+    font-size: var(--fusion-text-base);
+    font-weight: var(--fusion-weight-medium);
+    gap: var(--fusion-space-2);
+    justify-content: center;
+    min-height: var(--fusion-target);
+    padding: var(--fusion-space-2) var(--fusion-space-4);
     text-decoration: none;
-    transition: background var(--fusion-transition);
-  }
-
-  .btn:disabled {
-    cursor: not-allowed;
-    opacity: 0.5;
+    transition: background-color var(--fusion-transition);
   }
 
   .btn--primary {
     background: var(--fusion-accent);
-    color: #fff;
+    color: var(--fusion-on-accent);
+    font-weight: var(--fusion-weight-bold);
   }
 
   .btn--primary:not(:disabled):hover {
@@ -638,39 +723,58 @@
 
   .btn--secondary {
     background: var(--fusion-surface-alt);
-    border-color: var(--fusion-border);
+    border-color: var(--fusion-border-strong);
     color: var(--fusion-text);
   }
 
-  .link-btn {
-    background: none;
-    border: none;
-    color: var(--fusion-accent);
-    cursor: pointer;
-    font-size: inherit;
-    padding: 0;
-    text-decoration: underline;
+  .btn--secondary:not(:disabled):hover {
+    border-color: var(--fusion-accent);
+  }
+
+  /* Disabled keeps AA text: "not yet", not a faded accent. */
+  .btn:disabled {
+    background: var(--fusion-surface-alt);
+    border-color: var(--fusion-border);
+    color: var(--fusion-text-subtle);
+    cursor: not-allowed;
   }
 
   .alert {
-    border-radius: var(--fusion-radius-sm);
-    font-size: 0.8125rem;
-    margin-bottom: 1rem;
-    padding: 0.625rem 0.75rem;
+    align-items: flex-start;
+    border: 1px solid currentColor;
+    border-radius: var(--fusion-radius);
+    display: flex;
+    font-size: var(--fusion-text-sm);
+    gap: var(--fusion-space-2);
+    padding: var(--fusion-space-3);
+  }
+
+  .alert p {
+    color: var(--fusion-text);
   }
 
   .alert--danger {
-    background: rgba(255, 92, 92, 0.12);
+    background: var(--fusion-danger-dim);
     color: var(--fusion-danger);
   }
 
   .alert--warning {
-    background: rgba(255, 200, 87, 0.12);
+    background: var(--fusion-warning-dim);
     color: var(--fusion-warning);
   }
 
   .alert--success {
-    background: rgba(61, 220, 132, 0.12);
+    background: var(--fusion-success-dim);
     color: var(--fusion-success);
+  }
+
+  @media (max-width: 480px) {
+    .setup-shell {
+      padding: var(--fusion-space-3);
+    }
+
+    .setup-card {
+      padding: var(--fusion-space-6) var(--fusion-space-4);
+    }
   }
 </style>
