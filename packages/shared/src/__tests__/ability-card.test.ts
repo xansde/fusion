@@ -89,6 +89,16 @@ describe("AbilityCardSchema — accepts", () => {
     }
   });
 
+  it("keeps the statistic its damage roll names, for the card's decomposition (ui-chat)", () => {
+    const r = AbilityCardSchema.safeParse({ ...STRIKE, damageStatistic: "strikeDamage:w1" });
+    expect(r.success).toBe(true);
+    if (r.success) expect(r.data.damageStatistic).toBe("strikeDamage:w1");
+    expect(AbilityCardSchema.safeParse({ ...STRIKE, damageStatistic: "" }).success).toBe(false);
+    expect(
+      AbilityCardSchema.safeParse({ ...STRIKE, damageStatistic: "k".repeat(161) }).success,
+    ).toBe(false);
+  });
+
   it("accepts a minimal card (only kind + caster + name)", () => {
     expect(
       AbilityCardSchema.safeParse({ kind: "impulse", casterActorId: "a", name: "X" }).success,

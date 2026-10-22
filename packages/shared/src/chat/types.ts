@@ -326,6 +326,12 @@ export const AbilityCardSchema = z.object({
   damageFormula: z.string().max(200).optional(),
   /** Critical damage formula (strike only) — the "Rolar dano crítico" button. */
   critDamageFormula: z.string().max(200).optional(),
+  /**
+   * The statistic the card's (non-critical) damage roll names (ui-chat, 22/10/2026), e.g.
+   * `strikeDamage:<id>`: the damage button sends it as `flags.fusion.statistic` so the server can explain
+   * the flat part of the damage on the roll card. A DESCRIPTION, never a number (see FusionStatisticRef).
+   */
+  damageStatistic: z.string().min(1).max(160).optional(),
   /** Damage type (e.g. "fire", "electricity"). */
   damageType: z.string().max(40).optional(),
   /** Traits (display only). */
