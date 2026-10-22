@@ -681,7 +681,7 @@ export class CompendiumService {
    */
   getI18nBySourceRef(
     viewerRole: number,
-    ref: { packName: string; sourceId: string; systemId?: string },
+    ref: { packName: string; sourceId: string; systemId?: string | undefined },
   ): DocI18n | null {
     const hit = this._resolveSourceRef(ref);
     if (!hit) return null;
@@ -712,7 +712,7 @@ export class CompendiumService {
    */
   getDocumentBySourceRef(
     viewerRole: number,
-    ref: { packName: string; sourceId: string; systemId?: string },
+    ref: { packName: string; sourceId: string; systemId?: string | undefined },
   ): Record<string, unknown> | null {
     const hit = this._resolveSourceRef(ref);
     if (!hit) return null;
@@ -1446,7 +1446,7 @@ export class CompendiumService {
   private _resolveSourceRef(ref: {
     packName: string;
     sourceId: string;
-    systemId?: string;
+    systemId?: string | undefined;
   }): { packId: string; docId: string } | undefined {
     const index = this._getSourceRefIndex();
     const key = buildSourceRefKey(ref.packName, ref.sourceId);
