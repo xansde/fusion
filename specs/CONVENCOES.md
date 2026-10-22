@@ -94,6 +94,12 @@ Regras:
   `035` e `036` — em vez de renumerar os seguintes. Renumerar invalida citações já feitas.
 - **Toda citação tem que resolver** para um id definido em alguma spec. _(regra
   `citacao-resolvivel`, com o débito congelado em `DEBITO-CITACOES.txt`)_
+- **Citação que quer provar que aponta para o requisito certo traz o termo** entre
+  parênteses e crases logo depois do id — `REQ-CBT-056 (`targetSnapshot`)` —, e o termo
+  precisa aparecer no texto desse requisito (sem diferenciar maiúsculas). O id sozinho só
+  prova que o item existe; a anotação é o que deixa o lint conferir o sentido. Citação sem
+  anotação não é checada, e ponteiro de arquivo (`(NN-spec.md)`) é ignorado. _(regra
+  `citacao-coerente`)_
 - **Id de área não registrada é referência externa** (pesquisa em `docs/research/`, outro
   projeto) e não é resolvido — ex.: `Q-WF-05`. A contrapartida é que uma área errada passa
   despercebida na citação; só a definição é barrada.

@@ -629,7 +629,7 @@ sendo do ator, e esta spec não define nenhuma "ficha de token".
   nunca o ator-base quando há delta (REQ-CNV-094, REQ-DOC-033).
 - **REQ-TOK-113** [MVP] A janela aberta a partir de peça **desvinculada com delta** DEVE ser
   identificada pela **peça**, não pelo ator (REQ-CNV-094), e DEVE abrir sem escrita enquanto
-  REQ-DOC-034 (`token:updateActor`) não existir; NÃO DEVE, em nenhuma hipótese, gravar a edição no
+  REQ-DOC-034 (o canal `token:updateActor`) não existir; NÃO DEVE, em nenhuma hipótese, gravar a edição no
   ator-base (DEC-TOK-23).
 - **REQ-TOK-114** [MVP] O gesto DEVE estar ligado à cena que está no ar — não basta existir como
   função: a peça na tela DEVE ser o gatilho (REQ-UIF-046 e a lição do #194, em que a interação com
