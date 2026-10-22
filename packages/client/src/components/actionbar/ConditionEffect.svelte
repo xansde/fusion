@@ -71,7 +71,7 @@
     background: var(--fusion-surface-alt);
     color: var(--fusion-text);
     font-family: var(--fusion-font);
-    font-size: 11px;
+    font-size: var(--fusion-text-xs);
     line-height: 1.4;
     box-shadow: var(--fusion-shadow-modal);
     overflow-wrap: anywhere;

@@ -7,7 +7,7 @@
  *
  *   - never under the side drawer, the header, or past the viewport edge;
  *   - never over the action bar: a box that would overlap the (centred, up to
- *     780 px) bar is lifted above it;
+ *     920 px) bar is lifted above it;
  *   - hidden when the free area cannot hold it at all.
  *
  * Pure: the component feeds it the viewport and the preferences and applies
@@ -63,7 +63,7 @@ export interface EntradaPosicao {
   /**
    * The action bar as measured on screen (`[data-action-bar]`'s rect), or null
    * when there is no bar. Omitted: estimated from the layout (centred, up to
-   * 780 px, {@link ALTURA_BARRA_ACOES} tall) — the estimate misses the bar's tab
+   * 920 px, {@link ALTURA_BARRA_ACOES} tall) — the estimate misses the bar's tab
    * row, so the component passes the real rect whenever it has one.
    */
   barra?: { left: number; right: number; top: number } | null;
