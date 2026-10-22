@@ -1,5 +1,6 @@
 <!--
   CostGlyphs.svelte — the action cost drawn as Fusion's own marks (ui-mesa-hud, 22/10/2026).
+  Shared since ui-gaveta (22/10/2026): the action bar, the compendium and anything else that shows a cost.
 
   The cost formatter (`formatActionCost`) speaks in characters — ◆ ◇ ⟳ — and a font draws them
   differently on every system (and the PF2e font is Paizo's, which we never ship). Here each mark
@@ -8,7 +9,7 @@
   words of a time) stays text. Decorative: the slot's and the tooltip's text carry the cost.
 -->
 <script lang="ts">
-  import Icon from "../common/Icon.svelte";
+  import Icon from "./Icon.svelte";
 
   interface Props {
     glyphs: string;
