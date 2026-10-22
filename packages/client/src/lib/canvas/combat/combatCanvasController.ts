@@ -139,14 +139,16 @@ export class CombatCanvasController {
       return;
     }
 
-    // Update marker position (TokenSprite.container is at the token's top-left)
+    // Update marker position (TokenSprite.container is at the token's top-left). The ring wraps the whole
+    // footprint: a Large token's marker on its top-left cell only was seen live (fechamento 22/10/2026).
     const pos = sprite.container;
-    this._marker.setActiveToken(pos.x, pos.y, this._gridSize);
+    const size = this._footprintSize(sprite);
+    this._marker.setActiveToken(pos.x, pos.y, size);
 
     // Auto-pan on turn change (REQ-CBT-045)
     if (turnChanged && combat.autoPan) {
-      const cx = pos.x + this._gridSize / 2;
-      const cy = pos.y + this._gridSize / 2;
+      const cx = pos.x + size / 2;
+      const cy = pos.y + size / 2;
       this._canvas.zoomTo({ x: cx, y: cy, scale: this._canvas.camera.scale }, 400);
     }
 
@@ -177,6 +179,15 @@ export class CombatCanvasController {
   // ---------------------------------------------------------------------------
 
   /**
+   * Side of the square a marker wraps, in scene pixels: the token's footprint (2 cells for a Large token), the grid
+   * cell when the sprite does not say (a 1x1 token, or a fake without `pixelSize`).
+   */
+  private _footprintSize(sprite: { pixelSize?: { w: number; h: number } }): number {
+    const px = sprite.pixelSize;
+    return px !== undefined && px.w > 0 ? Math.max(px.w, px.h) : this._gridSize;
+  }
+
+  /**
    * Reconcile the targeting reticles with the current targeting state.
    *
    * Resolves each targeted token's footprint from the TokenLayer (skipping
@@ -189,7 +200,7 @@ export class CombatCanvasController {
       const sprite = this._tokenLayer.getSprite(tokenId);
       if (!sprite) return null;
       const pos = sprite.container;
-      return { x: pos.x, y: pos.y, gridSize: this._gridSize };
+      return { x: pos.x, y: pos.y, gridSize: this._footprintSize(sprite) };
     };
 
     const positions = computeReticlePositions(getTargetingState(), this._userId, resolve);
