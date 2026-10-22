@@ -8,6 +8,7 @@
 
   import type { SceneDocument } from "@fusion/shared";
   import Icon from "../common/Icon.svelte";
+  import { t } from "../../lib/i18n/i18n.js";
 
   const {
     scene,
@@ -17,7 +18,7 @@
 </script>
 
 {#if scene}
-  <div class="active-scene-badge" aria-label="Active scene: {scene.name}">
+  <div class="active-scene-badge" title={scene.name} aria-label="{t('FUSION.Sidebar.Scenes.ActiveScene')}: {scene.name}">
     <span class="badge__icon" aria-hidden="true"><Icon name="map" size={16} /></span>
     <span class="badge__name">{scene.name}</span>
   </div>
@@ -27,26 +28,27 @@
   .active-scene-badge {
     align-items: center;
     background: var(--fusion-accent-dim);
-    border: 1px solid rgba(124, 92, 252, 0.35);
+    border: 1px solid var(--fusion-accent);
     border-radius: var(--fusion-radius-sm);
     display: flex;
-    gap: 0.35rem;
+    gap: var(--fusion-space-2);
+    min-height: 32px;
+    min-width: 0;
     overflow: hidden;
-    padding: 0.2rem 0.55rem;
+    padding: 0 var(--fusion-space-2);
   }
 
   .badge__icon {
     color: var(--fusion-accent);
+    display: inline-flex;
     flex-shrink: 0;
-    font-size: 0.85rem;
-    line-height: 1;
   }
 
   .badge__name {
     color: var(--fusion-text);
-    font-size: 0.8rem;
-    font-weight: 500;
-    max-width: 140px;
+    font-size: var(--fusion-text-sm);
+    font-weight: var(--fusion-weight-medium);
+    max-width: 220px;
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;

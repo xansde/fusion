@@ -617,6 +617,8 @@
   "FUSION.Role.Player": "Player",
   "FUSION.Header.Leave": "Leave",
   "FUSION.Header.Leaving": "…",
+  "FUSION.Sidebar.CloseDrawer": "Close drawer",
+  "FUSION.Header.Latency": "Latency: {{ms}} ms",
   "FUSION.Header.CollapsePanel": "Collapse panel",
   "FUSION.Header.ExpandPanel": "Expand panel",
   "FUSION.Header.UnreadMessages": "{{count}} unread messages",

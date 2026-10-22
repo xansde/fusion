@@ -18,6 +18,7 @@
 
 import { Container, Graphics, Text, TextStyle } from "pixi.js";
 import type { MapPing } from "../presence/types.js";
+import { CANVAS_FONT, CANVAS_TEXT } from "./canvasType.js";
 
 /** Outer radius the ripple reaches, as a multiple of the grid cell. */
 const MAX_RADIUS_CELLS = 0.9;
@@ -200,8 +201,8 @@ export class PingLayer {
       const label = new Text({
         text,
         style: new TextStyle({
-          fontFamily: "sans-serif",
-          fontSize: 16,
+          fontFamily: CANVAS_FONT,
+          fontSize: CANVAS_TEXT.md,
           fontWeight: "bold",
           fill: color,
         }),

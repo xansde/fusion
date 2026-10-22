@@ -20,6 +20,7 @@ import {
 import { unitLabel, type RulerSnapshot } from "../presence/rulerState.js";
 import type { DragRulerView } from "../presence/dragRuler.js";
 import type { RulerState } from "../presence/types.js";
+import { CANVAS_FONT } from "./canvasType.js";
 
 const LOCAL_COLOR = 0xffcc44;
 const REMOTE_COLOR = 0x66aaff;
@@ -221,7 +222,7 @@ export class RulerLayer {
     const label = new Text({
       text,
       style: new TextStyle({
-        fontFamily: "sans-serif",
+        fontFamily: CANVAS_FONT,
         fontSize: LABEL_FONT_PX,
         fontWeight: "bold",
         fill: color,
