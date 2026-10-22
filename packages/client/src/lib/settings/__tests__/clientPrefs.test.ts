@@ -141,7 +141,7 @@ describe("REQ-CFG-022 / REQ-CFG-072 / RNF-CFG-01: no network operation, ever", (
   });
 });
 
-describe("REQ-CFG-023: no locale or theme control lives in this module", () => {
+describe("REQ-CFG-023: no locale control lives in this module (the theme is per browser, lib/ui/theme.ts — DEC-CFG-11)", () => {
   it("the preference shape has exactly volume + notifications + tokenDisplay + avatarOverlay — nothing else", () => {
     const prefs = loadClientPreferences("world-a", "user-1");
     expect(Object.keys(prefs).sort()).toEqual([

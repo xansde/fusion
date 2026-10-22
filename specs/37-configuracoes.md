@@ -140,6 +140,8 @@ sistema de temas.
   sala). Sem servidor, a seção não precisa de rede, de permissão nem de documento.
 - **Consequência:** o campo `preferences` de REQ-USR-003 continua existindo no modelo e
   segue **sem UI** no MVP; `locale` não é oferecido a ninguém.
+- **Emenda de 22/10/2026 (provisória):** a parte "sem tema" foi substituída por
+  DEC-CFG-11; idioma continua fora.
 
 ### DEC-CFG-07 — A seção Mundo é renderizador puro do que o sistema declarou
 
@@ -198,6 +200,23 @@ Toda escrita das seções Mundo, Permissões, Usuários e Mods exige `role === G
   `ASSISTANT` da spec 05 com o GM — foi removido; o papel `ASSISTANT` (REQ-USR-005)
   continua ativo e privilegiado para ações de jogo, só não para administração de mesa.
 
+### DEC-CFG-11 — Tema escuro, claro ou do sistema, escolhido por navegador (emenda provisória de 22/10/2026)
+
+Minhas preferências oferece o tema: **Escuro** (padrão), **Claro** e **Seguir o sistema**.
+A escolha vale para o navegador em que foi feita (`localStorage`, chave `fusion.theme`,
+escrita por `lib/ui/theme.ts`), não para o mundo nem para o assento, e nunca vai ao
+servidor. Enquanto houver tela que ainda pinta cor fixa, o claro aparece como
+"Claro (experimental)".
+
+- **Racional:** a fundação visual de 22/10 (lane ui-fundacao) pôs as cores dos dois temas
+  em tokens únicos (`styles/base.css`); um jogador da mesa tem dislexia e lê melhor em
+  papel claro, enquanto o Mestre mantém a mesa escura por causa dos mapas. É ergonomia de
+  aparelho, a mesma régua de DEC-UIF-10 e DEC-CFG-06: o tema do celular não é o da TV.
+- **Consequência:** REQ-CFG-023 passa a proibir só o idioma; o seletor não gera operação
+  de rede nem Document (REQ-CFG-022 intacto). Provisória: o Alexandre pode reverter na
+  revisão do pacote de melhoria.
+- **Supera:** a parte "sem tema" de DEC-CFG-06.
+
 ## 5. Requisitos funcionais
 
 > Blocos de dezena: 001–009 identidade e índice; 010–019 navegação; 020–029 Minhas
@@ -242,7 +261,13 @@ Toda escrita das seções Mundo, Permissões, Usuários e Mods exige `role === G
   no cliente (DEC-UIF-10); nenhuma DEVE gerar operação de rede ou Document — exceto o
   formulário de troca de senha (REQ-CFG-090), que afeta autenticação e por isso é a
   única exceção explícita a esta regra.
-- **REQ-CFG-023** [MVP] A seção NÃO DEVE oferecer seleção de idioma nem de tema.
+- **REQ-CFG-023** [MVP] A seção NÃO DEVE oferecer seleção de idioma. DEVE oferecer a
+  seleção de tema — Escuro (padrão), Claro e Seguir o sistema — gravada só no navegador
+  e aplicada na hora, sem operação de rede (DEC-CFG-11).
+
+  > **Emenda de 22/10/2026** (provisória, lane ui-gaveta) — a redação anterior proibia
+  > também o tema; DEC-CFG-11 o libera como preferência do aparelho.
+
 - **REQ-CFG-024** [MVP] Preferências declaradas por um mod ativo DEVEM aparecer nesta
   seção quando seu escopo for de cliente, identificadas com o nome do mod de origem, e
   DEVEM desaparecer quando o mod for desligado. [V2] enquanto não houver mods.
@@ -458,6 +483,7 @@ Toda escrita das seções Mundo, Permissões, Usuários e Mods exige `role === G
 | Volume dos três canais                          | `localStorage` do cliente              | o próprio    | REQ-AUD-016, DEC-AUD-02              |
 | Notificações (som de chat, aviso de turno)      | `localStorage` do cliente              | o próprio    | DEC-CFG-06, DEC-UIF-10               |
 | Exibição de nome/barras de token na cena        | `localStorage` do cliente              | o próprio    | REQ-CFG-025/026, REQ-TOK-074         |
+| Tema (escuro, claro, sistema)                   | `localStorage` do navegador            | o próprio    | REQ-CFG-023, DEC-CFG-11              |
 | Avatar (seleção de peças e cores)               | `flags.fusion.avatar` do Actor         | o próprio    | REQ-CFG-027, REQ-AVT-001, DEC-AVT-07 |
 | Settings declaradas com escopo `world`          | `Setting` (chave namespaceada)         | GAMEMASTER   | REQ-CFG-071, REQ-SYS-047             |
 | Regras variantes (arquétipo livre, multiclasse) | `Setting` de mundo                     | GAMEMASTER   | DEC-CFG-08                           |
