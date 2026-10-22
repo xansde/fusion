@@ -769,7 +769,15 @@ describe("Contact knowledge — REQ-CTT-070..076 over the real socket (G060)", (
       type: "character",
       system: { details: { level: { value: 3 } } },
       ownership: { default: 0, [ctx.playerAId]: 3 },
-      items: [{ _id: "feat-familiar", name: "Familiar", type: "feat", flags: { fusion: { sourceId: "bcxIg7wi8ZAhvhOD" } }, system: { rules: [] } }],
+      items: [
+        {
+          _id: "feat-familiar",
+          name: "Familiar",
+          type: "feat",
+          flags: { fusion: { sourceId: "bcxIg7wi8ZAhvhOD" } },
+          system: { rules: [] },
+        },
+      ],
     });
 
     // The player creates the familiar — legitimately — and forges a knowledge

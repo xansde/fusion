@@ -206,7 +206,15 @@ describe("I4 — systemIncludes gates hold under the pf2e+sf2e composite system"
           type: "character",
           system: { details: { level: { value: 3 } } },
           ownership: { default: 0, [ctx.ownerUserId]: 3 },
-          items: [{ _id: "feat-familiar", name: "Familiar", type: "feat", flags: { fusion: { sourceId: "bcxIg7wi8ZAhvhOD" } }, system: { rules: [] } }],
+          items: [
+            {
+              _id: "feat-familiar",
+              name: "Familiar",
+              type: "feat",
+              flags: { fusion: { sourceId: "bcxIg7wi8ZAhvhOD" } },
+              system: { rules: [] },
+            },
+          ],
         },
       ],
     });
