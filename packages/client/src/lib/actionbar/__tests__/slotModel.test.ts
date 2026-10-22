@@ -135,7 +135,7 @@ describe("slotView — o que o slot desenha", () => {
     it("MAP: Agarrar, Empurrar e Derrubar contam no próximo ataque", () => {
       expect(slotView(makeEntry("action:grab", { countsForMap: true })).seal).toEqual({
         kind: "map",
-        text: "MAP",
+        text: "PAM",
       });
     });
 

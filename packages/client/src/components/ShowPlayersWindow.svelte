@@ -4,6 +4,7 @@
    * Closing only hides it for this client (Esc, the button or a click outside).
    */
   import { presenceState, dismissShown } from "../lib/presence/presenceStore.svelte.js";
+  import Icon from "./common/Icon.svelte";
 
   const shown = $derived(presenceState.shown);
 
@@ -31,7 +32,7 @@
       <header class="show-window__head">
         <h2 class="show-window__title">{shown.title ?? "Mostrado pelo Mestre"}</h2>
         <button type="button" class="show-window__close" aria-label="Fechar" onclick={dismissShown}>
-          &times;
+          <Icon name="x" size={20} />
         </button>
       </header>
       {#if shown.imageUrl}
@@ -50,7 +51,7 @@
 <style>
   .show-backdrop {
     align-items: center;
-    background: rgba(0, 0, 0, 0.62);
+    background: var(--fusion-surface-alt);
     display: flex;
     inset: 0;
     justify-content: center;
@@ -62,7 +63,7 @@
     background: var(--fusion-surface);
     border: 1px solid var(--fusion-border);
     border-radius: var(--fusion-radius-sm);
-    box-shadow: 0 12px 40px rgba(0, 0, 0, 0.55);
+    box-shadow: var(--fusion-shadow-modal);
     color: var(--fusion-text);
     display: flex;
     flex-direction: column;
@@ -80,17 +81,23 @@
   }
 
   .show-window__title {
-    font-size: 1.1rem;
+    font-size: var(--fusion-text-lg);
     margin: 0;
   }
 
   .show-window__close {
-    background: transparent;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex: none;
+    width: var(--fusion-target);
+    height: var(--fusion-target);
+    padding: 0;
     border: 0;
+    border-radius: var(--fusion-radius);
+    background: transparent;
     color: var(--fusion-text-muted);
     cursor: pointer;
-    font-size: 1.5rem;
-    line-height: 1;
   }
 
   .show-window__close:hover {
@@ -113,7 +120,7 @@
 
   .show-window__from {
     color: var(--fusion-text-subtle);
-    font-size: 0.75rem;
+    font-size: var(--fusion-text-sm);
     margin: 0;
   }
 </style>

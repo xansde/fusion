@@ -45,8 +45,11 @@ import { extractFlavor } from "@fusion/shared";
 import type {
   ChatMessage,
   FusionRollContext,
+  FusionStatisticRef,
   ResolvedRollModifier,
   ResolvedRollNote,
+  RollBreakdownFlag,
+  RollBreakdownPart,
 } from "@fusion/shared";
 import type {
   ResolvedExtraDamage,
@@ -92,6 +95,7 @@ const FUSION_FLAG_NAMESPACE = "fusion" as const;
 export const ROLL_CONTEXT_FLAG_KEY = "rollContext" as const;
 export const ROLL_NOTES_FLAG_KEY = "rollNotes" as const;
 export const CONDITIONAL_MODIFIERS_FLAG_KEY = "conditionalModifiers" as const;
+export const ROLL_BREAKDOWN_FLAG_KEY = "breakdown" as const;
 
 /**
  * The only options the client may DESCRIBE a roll with (I2, DF-17). Everything
@@ -295,6 +299,82 @@ export async function runRollResolvedHooks(
       );
     }
   }
+}
+
+// ---------------------------------------------------------------------------
+// 4. The card's decomposition (ui-fundacao, 22/10/2026)
+// ---------------------------------------------------------------------------
+
+/**
+ * The flat part of the client's formula: the sum of its number terms, dice left out
+ * (`1d20+12 # Ofício` → 12, `1d8+4-1` → 3, `2d6` → 0). `null` when the formula has a term this
+ * reading does not understand (parentheses, functions, a die pool): no decomposition is better
+ * than a wrong one.
+ */
+export function formulaFlatPart(commandFormula: string): number | null {
+  const { formula } = extractFlavor(commandFormula);
+  const compact = formula.replace(/\s+/g, "");
+  if (compact === "" || !/^[+-]?(\d+d\d+|\d+)([+-](\d+d\d+|\d+))*$/i.test(compact)) return null;
+  let flat = 0;
+  for (const match of compact.matchAll(/([+-]?)(\d+d\d+|\d+)/gi)) {
+    const term = match[2] ?? "";
+    if (/d/i.test(term)) continue;
+    flat += (match[1] === "-" ? -1 : 1) * Number(term);
+  }
+  return flat;
+}
+
+/**
+ * Ask the system for the parts of the statistic a sheet roll was made with, on the server's own
+ * re-derivation of the actor, and keep them only when they explain the roll: the roller may roll
+ * for that actor and the applied parts add up to the flat part of the client's formula. Anything
+ * else — no resolver, a throw, a forged key, a number that does not match — is `null`: the card
+ * then shows the formula as before, never a decomposition the server did not check.
+ */
+export function resolveRollBreakdown(
+  deps: RollResolutionDeps,
+  ref: FusionStatisticRef | undefined,
+  roller: { userId: string; role: UserRole },
+  commandFormula: string,
+): RollBreakdownFlag | null {
+  if (ref === undefined) return null;
+  const { store, systemModule } = deps;
+  const resolver = systemModule?.rollResolver;
+  if (!store || !systemModule || !resolver?.breakdown) return null;
+  const actor = readActor(store, ref.actorId);
+  if (actor === null || !mayRollFor(actor, roller)) return null;
+  const flat = formulaFlatPart(commandFormula);
+  if (flat === null) return null;
+  let parts: readonly RollBreakdownPart[] | null;
+  try {
+    parts = resolver.breakdown({
+      actor: rederive(actor, store, systemModule),
+      statistic: ref.key,
+    });
+  } catch (err) {
+    deps.logger?.error(
+      { err, systemId: systemModule.manifest.id, actorId: ref.actorId, statistic: ref.key },
+      "[roll-resolution] roll breakdown threw — roll delivered without its decomposition",
+    );
+    return null;
+  }
+  if (!parts || parts.length === 0) return null;
+  const applied = parts.filter((p) => p.applied).reduce((sum, p) => sum + p.value, 0);
+  if (applied !== flat) return null;
+  return {
+    statistic: ref.key,
+    parts: parts.map((p) => ({ label: p.label, type: p.type, value: p.value, applied: p.applied })),
+  };
+}
+
+/** Write the checked decomposition onto the message (`flags.fusion.breakdown`). */
+export function attachRollBreakdown(msg: ChatMessage, breakdown: RollBreakdownFlag | null): void {
+  if (breakdown === null) return;
+  const fusion = msg.flags[FUSION_FLAG_NAMESPACE] ?? {};
+  msg.flags = {
+    ...msg.flags,
+    [FUSION_FLAG_NAMESPACE]: { ...fusion, [ROLL_BREAKDOWN_FLAG_KEY]: breakdown },
+  };
 }
 
 function stubHookContext(): TurnHookContext {

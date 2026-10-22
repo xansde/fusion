@@ -729,12 +729,17 @@ describe("Ephemeral handlers — anchored and styled templates", () => {
   });
 
   it("a player who is not the author cannot restyle", async () => {
+    // The pin goes to the whole namespace, so the author (GM) gets its own echo too. Wait for
+    // BOTH deliveries before listening for a restyle: a late echo of the creation pin would
+    // otherwise be mistaken for the restyle this test expects to be refused.
+    const playerGotPin = waitForEphemeral(playerSocket, "presence:template:pin", 2000);
+    const gmGotEcho = waitForEphemeral(gmSocket, "presence:template:pin", 2000);
     gmSocket.emit("ephemeral", {
       type: "presence:template:pin",
       ts: Date.now(),
       payload: { id: "a3", sceneId: "sceneS3000000000", template },
     });
-    await waitForEphemeral(playerSocket, "presence:template:pin", 2000);
+    await Promise.all([playerGotPin, gmGotEcho]);
     let seen = false;
     gmSocket.on("ephemeral", (e: { type: string }) => {
       if (e.type === "presence:template:pin") seen = true;

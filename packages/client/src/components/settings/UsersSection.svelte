@@ -33,6 +33,7 @@
    */
 
   import { t } from "../../lib/i18n/i18n.js";
+  import Icon from "../common/Icon.svelte";
   import { fusionApi } from "../../lib/api.js";
   import { presenceState } from "../../lib/presence/presenceStore.svelte.js";
   import * as usersApi from "../../lib/settings/usersApi.js";
@@ -361,7 +362,7 @@
   {:else if flow.view.kind === "create"}
     <div class="users-section__form">
       <button type="button" class="users-section__form-back" onclick={() => flow.backToList()}>
-        <span aria-hidden="true">‹</span>
+        <Icon name="chevron-left" size={18} />
         {t("FUSION.Settings.Users.BackToList")}
       </button>
       <p class="users-section__form-title">{t("FUSION.Settings.Users.Create.Title")}</p>
@@ -413,7 +414,7 @@
   {:else if flow.view.kind === "edit"}
     <div class="users-section__form">
       <button type="button" class="users-section__form-back" onclick={() => flow.backToList()}>
-        <span aria-hidden="true">‹</span>
+        <Icon name="chevron-left" size={18} />
         {t("FUSION.Settings.Users.BackToList")}
       </button>
 
@@ -506,10 +507,11 @@
     background: var(--fusion-accent);
     border: none;
     border-radius: var(--fusion-radius-sm);
-    color: var(--fusion-surface);
+    color: var(--fusion-on-accent);
     cursor: pointer;
     font: inherit;
     padding: 0.3rem 0.6rem;
+    min-height: var(--fusion-target);
   }
 
   .users-section__create-btn:hover {
@@ -518,7 +520,7 @@
 
   .users-section__empty {
     color: var(--fusion-text-subtle);
-    font-size: 0.8125rem;
+    font-size: var(--fusion-text-base);
     padding: 1.5rem 0;
     text-align: center;
   }
@@ -560,13 +562,13 @@
 
   .users-section__name {
     color: var(--fusion-text);
-    font-size: 0.8125rem;
+    font-size: var(--fusion-text-base);
     font-weight: 600;
   }
 
   .users-section__role {
     color: var(--fusion-text-subtle);
-    font-size: 0.75rem;
+    font-size: var(--fusion-text-sm);
   }
 
   .users-section__dot {
@@ -586,10 +588,8 @@
 
   .users-section__inactive {
     color: var(--fusion-danger);
-    font-size: 0.6875rem;
+    font-size: var(--fusion-text-sm);
     font-weight: 600;
-    letter-spacing: 0.03em;
-    text-transform: uppercase;
   }
 
   .users-section__actions {
@@ -606,8 +606,9 @@
     color: var(--fusion-text);
     cursor: pointer;
     font: inherit;
-    font-size: 0.75rem;
+    font-size: var(--fusion-text-sm);
     padding: 0.2rem 0.5rem;
+    min-height: var(--fusion-target);
   }
 
   .users-section__reveal {
@@ -622,7 +623,7 @@
 
   .users-section__reveal-title {
     color: var(--fusion-text);
-    font-size: 0.8125rem;
+    font-size: var(--fusion-text-base);
     font-weight: 600;
     margin: 0;
   }
@@ -637,9 +638,10 @@
     background: var(--fusion-surface);
     border-radius: var(--fusion-radius-sm);
     color: var(--fusion-text);
-    font-size: 0.8125rem;
+    font-size: var(--fusion-text-base);
     margin: 0;
     padding: 0.25rem 0.4rem;
+    min-height: var(--fusion-target);
   }
 
   .users-section__reveal-copy,
@@ -650,14 +652,15 @@
     color: var(--fusion-text);
     cursor: pointer;
     font: inherit;
-    font-size: 0.75rem;
+    font-size: var(--fusion-text-sm);
     padding: 0.2rem 0.5rem;
     width: fit-content;
+    min-height: var(--fusion-target);
   }
 
   .users-section__reveal-warning {
     color: var(--fusion-text-subtle);
-    font-size: 0.6875rem;
+    font-size: var(--fusion-text-sm);
     margin: 0;
   }
 
@@ -678,11 +681,12 @@
     gap: 0.25rem;
     padding: 0;
     width: fit-content;
+    min-height: var(--fusion-target);
   }
 
   .users-section__form-title {
     color: var(--fusion-text);
-    font-size: 0.8125rem;
+    font-size: var(--fusion-text-base);
     font-weight: 600;
     margin: 0;
   }
@@ -696,7 +700,7 @@
   .users-section__field span,
   .users-section__checkbox-row span {
     color: var(--fusion-text);
-    font-size: 0.8125rem;
+    font-size: var(--fusion-text-base);
   }
 
   .users-section__field input,
@@ -707,6 +711,7 @@
     color: var(--fusion-text);
     font: inherit;
     padding: 0.3rem 0.4rem;
+    min-height: var(--fusion-target);
   }
 
   .users-section__checkbox-row {
@@ -717,7 +722,7 @@
 
   .users-section__form-error {
     color: var(--fusion-danger);
-    font-size: 0.75rem;
+    font-size: var(--fusion-text-sm);
     margin: 0;
   }
 
@@ -725,11 +730,12 @@
     background: var(--fusion-accent);
     border: none;
     border-radius: var(--fusion-radius-sm);
-    color: var(--fusion-surface);
+    color: var(--fusion-on-accent);
     cursor: pointer;
     font: inherit;
     padding: 0.35rem 0.6rem;
     width: fit-content;
+    min-height: var(--fusion-target);
   }
 
   .users-section__form-submit:hover {

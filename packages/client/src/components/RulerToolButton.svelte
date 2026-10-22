@@ -131,7 +131,7 @@
 
   .ruler-tool__main,
   .ruler-tool__panel {
-    background: rgba(24, 24, 31, 0.85);
+    background: var(--fusion-bg);
     backdrop-filter: blur(6px);
     border: 1px solid var(--fusion-border);
     border-radius: var(--fusion-radius-sm);
@@ -164,7 +164,7 @@
 
   .ruler-tool__main:focus-visible,
   .ruler-tool__mode:focus-visible {
-    outline: 2px solid var(--fusion-accent);
+    outline: 2px solid var(--fusion-focus);
     outline-offset: 2px;
   }
 
@@ -183,7 +183,7 @@
     color: var(--fusion-text-muted);
     cursor: pointer;
     font-family: var(--fusion-font);
-    font-size: 0.8125rem;
+    font-size: var(--fusion-text-sm);
     padding: 0.3rem 0.6rem;
     text-align: left;
   }
@@ -202,7 +202,7 @@
     align-items: center;
     color: var(--fusion-text-muted);
     display: flex;
-    font-size: 0.75rem;
+    font-size: var(--fusion-text-sm);
     gap: 0.35rem;
     padding: 0.2rem 0.3rem;
   }
@@ -219,7 +219,7 @@
 
   .ruler-tool__hint {
     color: var(--fusion-text-subtle);
-    font-size: 0.7rem;
+    font-size: var(--fusion-text-sm);
     margin: 0;
     max-width: 11rem;
     padding: 0 0.3rem 0.2rem;

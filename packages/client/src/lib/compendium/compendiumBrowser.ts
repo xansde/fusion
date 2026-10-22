@@ -11,7 +11,7 @@
  * compute display state from server data.
  */
 
-import type { PackManifest, PackIndexEntry } from "@fusion/shared";
+import type { PackManifest, PackIndexEntry, IconName } from "@fusion/shared";
 import { searchPackIndex, normalizeSearchText } from "@fusion/shared";
 import type {
   CompendiumSearchPayload,
@@ -908,36 +908,37 @@ function extractNested(obj: Record<string, unknown>, ...keys: string[]): unknown
 // ---------------------------------------------------------------------------
 
 /**
- * Emoji fallback shown when an entry has no usable image.
- * Chosen by documentType/subtype so entries remain visually distinguishable.
+ * Icon shown (drawn from the shared set, never an emoji) when an entry has no
+ * usable image. Chosen by documentType/subtype so entries remain visually
+ * distinguishable.
  */
-export function fallbackIcon(documentType: string, subtype: string | null): string {
+export function fallbackIcon(documentType: string, subtype: string | null): IconName {
   if (documentType === "Actor") {
-    if (subtype === "npc" || subtype === "hazard") return "\u{1F47E}"; // 👾
-    return "\u{1F9D9}"; // 🧙
+    if (subtype === "npc" || subtype === "hazard") return "skull";
+    return "user";
   }
   if (documentType === "Item") {
     switch (subtype) {
       case "weapon":
-        return "⚔️"; // ⚔️
+        return "sword";
       case "armor":
-        return "\u{1F6E1}️"; // 🛡️
+        return "shield";
       case "spell":
-        return "✨"; // ✨
+        return "sparkles";
       case "consumable":
-        return "\u{1F9EA}"; // 🧪
+        return "flask-conical";
       case "condition":
-        return "⚠️"; // ⚠️
+        return "triangle-alert";
       default:
-        return "\u{1F4E6}"; // 📦
+        return "package";
     }
   }
-  if (documentType === "JournalEntry") return "\u{1F4D6}"; // 📖
-  if (documentType === "RollTable") return "\u{1F3B2}"; // 🎲
-  if (documentType === "Macro") return "⚙️"; // ⚙️
-  if (documentType === "Scene") return "\u{1F5FA}️"; // 🗺️
-  if (documentType === "Playlist") return "\u{1F3B5}"; // 🎵
-  return "❓"; // ❓
+  if (documentType === "JournalEntry") return "book-open";
+  if (documentType === "RollTable") return "dices";
+  if (documentType === "Macro") return "settings";
+  if (documentType === "Scene") return "map";
+  if (documentType === "Playlist") return "file-music";
+  return "circle-question-mark";
 }
 
 /**

@@ -42,6 +42,7 @@
     preferenciasDoAvatar,
   } from "$lib/avatar/preferenciasDoAvatar.svelte.js";
   import AvatarOverlayControles from "./AvatarOverlayControles.svelte";
+  import Icon from "../common/Icon.svelte";
   import { t } from "$lib/i18n/i18n.js";
   import AvatarSprite from "./AvatarSprite.svelte";
 
@@ -274,7 +275,7 @@
       onclick={() => {
         menuAberto = !menuAberto;
       }}
-    >⚙</button>
+    ><Icon name="settings" size={18} /></button>
 
     {#if menuAberto}
       <div
@@ -312,7 +313,7 @@
     transition:
       left var(--fusion-transition),
       top var(--fusion-transition);
-    z-index: var(--fusion-z-actionbar, 70);
+    z-index: var(--fusion-z-actionbar);
   }
 
   .avatar-canto--estatico {
@@ -330,13 +331,13 @@
 
   .avatar-canto__engrenagem {
     align-items: center;
-    background: var(--fusion-surface, #1e1e1e);
+    background: var(--fusion-surface);
     border: 1px solid var(--fusion-border);
     border-radius: 50%;
     color: var(--fusion-text);
     cursor: pointer;
     display: flex;
-    font-size: 0.875rem;
+    font-size: var(--fusion-text-base);
     height: 1.6rem;
     justify-content: center;
     opacity: 0;
@@ -356,10 +357,10 @@
   }
 
   .avatar-canto__menu {
-    background: var(--fusion-surface, #1e1e1e);
+    background: var(--fusion-surface);
     border: 1px solid var(--fusion-border);
     border-radius: var(--fusion-radius);
-    box-shadow: 0 6px 24px rgba(0, 0, 0, 0.45);
+    box-shadow: var(--fusion-shadow-popover);
     display: flex;
     flex-direction: column;
     gap: 0.5rem;
@@ -382,7 +383,7 @@
   }
 
   .avatar-canto__menu-titulo {
-    font-size: 0.75rem;
+    font-size: var(--fusion-text-sm);
     font-weight: 600;
     margin: 0;
   }
@@ -398,13 +399,13 @@
     border-radius: var(--fusion-radius-sm);
     color: var(--fusion-text);
     cursor: pointer;
-    font-size: 0.75rem;
+    font-size: var(--fusion-text-sm);
     padding: 0.25rem 0.55rem;
   }
 
   .avatar-canto__menu-dica {
     color: var(--fusion-text-subtle);
-    font-size: 0.625rem;
+    font-size: var(--fusion-text-xs);
     margin: 0;
   }
 
@@ -428,14 +429,16 @@
   }
 
   .avatar-canto__botao:focus-visible {
-    outline: 2px solid var(--fusion-accent);
+    outline: 2px solid var(--fusion-focus);
     outline-offset: 2px;
   }
 
   /* A ground shadow under the sprite: it reads as standing on the table instead
      of floating over the map. */
   .avatar-canto::after {
-    background: radial-gradient(ellipse at center, rgba(0, 0, 0, 0.45), transparent 70%);
+    background: var(--fusion-bg);
+    border-radius: 50%;
+    opacity: 0.6;
     bottom: 2px;
     content: "";
     height: 12px;
@@ -447,9 +450,10 @@
   }
 
   /* In combat the ground goes warm — a second, quieter reading of the same state
-     the `combat_idle` pose already tells. */
+     the `combat_idle` pose already tells. A flat tone, no glow. */
   .avatar-canto--combate::after {
-    background: radial-gradient(ellipse at center, rgba(190, 70, 45, 0.55), transparent 70%);
+    background: var(--fusion-danger);
+    opacity: 0.35;
   }
 
   @keyframes avatar-entrada {

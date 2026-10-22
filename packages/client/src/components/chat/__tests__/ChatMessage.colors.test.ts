@@ -79,13 +79,14 @@ describe("REQ-ACH-025 / DEC-ACH-02 / DEC-ACH-03 — per-sender border + name col
     expect(body).toContain(`border-left-color: ${expected}`);
   });
 
-  it("paints the author's name with the same color as the border", () => {
+  it("marks the author's name with a dot of the same color as the border", () => {
     const ana = msg("m1", { speaker: { userId: "u1", alias: "Ana" } });
     const body = renderMsg(ana);
     const expected = speakerColor(speakerColorKey(ana.speaker));
-    const aliasStart = body.indexOf('class="msg__alias');
-    const aliasTag = body.slice(aliasStart, aliasStart + 120);
-    expect(aliasTag).toContain(`color: ${expected}`);
+    // ui-chat: the sender's color is the dot beside the name (a player color fails AA as text).
+    const aliasStart = body.indexOf('class="msg__dot');
+    const aliasTag = body.slice(aliasStart, aliasStart + 140);
+    expect(aliasTag).toContain(`background-color: ${expected}`);
   });
 
   it("gives two different senders two different border colors", () => {
@@ -145,14 +146,15 @@ describe("REQ-ACH-025 / DEC-ACH-02 / DEC-ACH-03 — per-sender border + name col
     expect(body).not.toContain("border-left-color");
   });
 
-  it("a whisper message STILL colors the author's name by sender (only the border is fixed)", () => {
+  it("a whisper message STILL marks the author by sender color (only the border is fixed)", () => {
     const body = renderMsg(
       msg("m1", { type: "whisper", whisper: ["u2"], speaker: { userId: "u1", alias: "Ana" } }),
     );
     const expected = speakerColor(speakerColorKey({ userId: "u1", alias: "Ana" }));
-    const aliasStart = body.indexOf('class="msg__alias');
-    const aliasTag = body.slice(aliasStart, aliasStart + 120);
-    expect(aliasTag).toContain(`color: ${expected}`);
+    // ui-chat: the sender's color is the dot beside the name (a player color fails AA as text).
+    const aliasStart = body.indexOf('class="msg__dot');
+    const aliasTag = body.slice(aliasStart, aliasStart + 140);
+    expect(aliasTag).toContain(`background-color: ${expected}`);
   });
 
   /*
@@ -211,11 +213,12 @@ describe("REQ-CHT-008 / REQ-USR-002 — the sender's real world color wins over 
     expect(asTobias).toContain("border-left-color: #ff5c5c");
   });
 
-  it("still colors the author's name with the resolved world color, matching the border", () => {
+  it("still marks the author with the resolved world color, matching the border", () => {
     presenceState.onlineUsers = [{ userId: "u1", userName: "Ana", color: "#00aaff", online: true }];
     const body = renderMsg(msg("m1", { speaker: { userId: "u1", alias: "Ana" } }));
-    const aliasStart = body.indexOf('class="msg__alias');
-    const aliasTag = body.slice(aliasStart, aliasStart + 120);
-    expect(aliasTag).toContain("color: #00aaff");
+    // ui-chat: the sender's color is the dot beside the name (a player color fails AA as text).
+    const aliasStart = body.indexOf('class="msg__dot');
+    const aliasTag = body.slice(aliasStart, aliasStart + 140);
+    expect(aliasTag).toContain("background-color: #00aaff");
   });
 });

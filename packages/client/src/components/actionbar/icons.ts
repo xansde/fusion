@@ -7,6 +7,11 @@
  * — and NEVER Paizo art or another VTT's: the generic icons repeat across entries (two swords side by
  * side), which is exactly why the name sits under them.
  *
+ * Since the UI foundation (22/10/2026) the bar also draws every glyph of the app's ONE icon set
+ * (`@fusion/shared` `iconSvg`, a Lucide subset): a provider may name one of those ("mountain",
+ * "lock-open"…) and the Testes tab gives each check a drawing of its own. The bar's own drawings
+ * below win on a shared name, so the slots that already exist keep their look.
+ *
  * An entry names its icon with `entry.icon` (a key of this set). An unknown or missing key falls
  * back to the icon of its `kind`, so a provider that picks a key this set does not have still gets a
  * slot that reads. Same conventions as the drawer rail (`components/sidebar/icons.ts`): 24×24 viewBox,
@@ -16,6 +21,8 @@
  * here comes from outside this file: the keys index a constant table. A test still runs each icon
  * through the rail's allowlist (`isDrawnSvgIcon`), so a careless edit cannot slip a script in.
  */
+
+import { ICON_NAMES, iconSvg as sharedIconSvg, isIconName } from "@fusion/shared";
 
 import type { ActionBarEntryKind, ActionBarTab } from "../../lib/actionbar/types.js";
 
@@ -93,19 +100,26 @@ const KIND_ICON: Readonly<Record<ActionBarEntryKind, string>> = {
   check: "d20",
 };
 
-/** The icon of each tab of the bar (the prototype's). */
+/** The icon of each tab of the bar: glyphs of the shared set (protótipo (b) da direção A). */
 export const TAB_ICON: Readonly<Record<ActionBarTab | "favorites", string>> = {
   favorites: "star",
   strikes: "sword",
-  spells: "spark",
-  actions: "foot",
-  items: "flask",
-  reactions: "react",
-  checks: "d20",
+  spells: "wand-sparkles",
+  actions: "zap",
+  items: "backpack",
+  reactions: "rotate-ccw",
+  checks: "dice-5",
 };
 
-/** Every key the set draws (aliases excluded). */
-export const ICON_KEYS: readonly string[] = Object.keys(ICONS);
+/** Every key the set draws (aliases excluded): the bar's own drawings, then the shared glyphs. */
+export const ICON_KEYS: readonly string[] = [
+  ...Object.keys(ICONS),
+  ...ICON_NAMES.filter((name) => !Object.hasOwn(ICONS, name)),
+];
+
+function isKnownKey(key: string): boolean {
+  return Object.hasOwn(ICONS, key) || isIconName(key);
+}
 
 /**
  * The key of the icon to draw: the entry's own when this set has it (or an alias of it), else the
@@ -114,7 +128,7 @@ export const ICON_KEYS: readonly string[] = Object.keys(ICONS);
 export function iconKeyFor(icon: string | undefined, kind: ActionBarEntryKind): string {
   if (icon !== undefined) {
     const key = Object.hasOwn(ALIASES, icon) ? ALIASES[icon] : icon;
-    if (key !== undefined && Object.hasOwn(ICONS, key)) return key;
+    if (key !== undefined && isKnownKey(key)) return key;
   }
   return KIND_ICON[kind];
 }
@@ -125,6 +139,7 @@ const SVG_OPEN =
 
 /** The complete `<svg>` of a key of this set; an unknown key draws the "spark". */
 export function iconSvg(key: string): string {
+  if (!Object.hasOwn(ICONS, key) && isIconName(key)) return sharedIconSvg(key, { size: 24 });
   const inner = Object.hasOwn(ICONS, key) ? ICONS[key] : ICONS["spark"];
   return `${SVG_OPEN}${inner ?? ""}</svg>`;
 }

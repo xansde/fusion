@@ -37,6 +37,7 @@
   import { TURN_HEAD_CONDITION_TAG_LIMIT } from "../../lib/combat/turnHead.svelte.js";
   import ConditionChip from "../common/ConditionChip.svelte";
   import { t } from "../../lib/i18n/i18n.js";
+  import Icon from "../common/Icon.svelte";
 
   interface Props {
     /** The rotated queue, from `buildRotatedQueue()`. */
@@ -209,63 +210,26 @@
   }
 </script>
 
-<!-- Drawn icons, never emoji: the queue says "defeated"/"hidden" in a word and repeats it
-     in a shape, so neither state depends on colour alone (REQ-CBA-094). -->
+<!-- Icons of the shared set, never emoji: the queue says "defeated"/"hidden" in a word and
+     repeats it in a shape, so neither state depends on colour alone (REQ-CBA-094). -->
 {#snippet iconDefeated()}
-  <svg class="icon" viewBox="0 0 12 12" aria-hidden="true" focusable="false">
-    <circle cx="6" cy="6" r="4.4" fill="none" stroke="currentColor" stroke-width="1.4" />
-    <line x1="2.9" y1="9.1" x2="9.1" y2="2.9" stroke="currentColor" stroke-width="1.4" />
-  </svg>
+  <Icon name="skull" size={16} />
 {/snippet}
 
 {#snippet iconHidden()}
-  <svg class="icon" viewBox="0 0 12 12" aria-hidden="true" focusable="false">
-    <path
-      d="M0.9 6C2.5 3.6 4.2 2.4 6 2.4S9.5 3.6 11.1 6C9.5 8.4 7.8 9.6 6 9.6S2.5 8.4 0.9 6Z"
-      fill="none"
-      stroke="currentColor"
-      stroke-width="1.1"
-    />
-    <circle cx="6" cy="6" r="1.4" fill="currentColor" />
-    <line x1="1.6" y1="10.4" x2="10.4" y2="1.6" stroke="currentColor" stroke-width="1.3" />
-  </svg>
+  <Icon name="eye-off" size={16} />
 {/snippet}
 
 {#snippet iconGrip()}
-  <svg class="icon" viewBox="0 0 12 12" aria-hidden="true" focusable="false">
-    <g fill="currentColor">
-      <circle cx="4.4" cy="2.8" r="0.95" />
-      <circle cx="7.6" cy="2.8" r="0.95" />
-      <circle cx="4.4" cy="6" r="0.95" />
-      <circle cx="7.6" cy="6" r="0.95" />
-      <circle cx="4.4" cy="9.2" r="0.95" />
-      <circle cx="7.6" cy="9.2" r="0.95" />
-    </g>
-  </svg>
+  <Icon name="grip-vertical" size={16} />
 {/snippet}
 
 {#snippet iconDie()}
-  <svg class="icon" viewBox="0 0 12 12" aria-hidden="true" focusable="false">
-    <rect
-      x="1.3"
-      y="1.3"
-      width="9.4"
-      height="9.4"
-      rx="1.6"
-      fill="none"
-      stroke="currentColor"
-      stroke-width="1.2"
-    />
-    <circle cx="4.1" cy="4.1" r="0.9" fill="currentColor" />
-    <circle cx="7.9" cy="7.9" r="0.9" fill="currentColor" />
-  </svg>
+  <Icon name="dices" size={18} />
 {/snippet}
 
 {#snippet iconRemove()}
-  <svg class="icon" viewBox="0 0 12 12" aria-hidden="true" focusable="false">
-    <line x1="2.6" y1="2.6" x2="9.4" y2="9.4" stroke="currentColor" stroke-width="1.4" />
-    <line x1="9.4" y1="2.6" x2="2.6" y2="9.4" stroke="currentColor" stroke-width="1.4" />
-  </svg>
+  <Icon name="x" size={18} />
 {/snippet}
 
 {#snippet queueRow(entry: QueueEntry)}
@@ -607,12 +571,10 @@
     background: var(--fusion-surface);
     border-bottom: 1px solid var(--fusion-border);
     color: var(--fusion-text-subtle);
-    font-size: 0.6875rem;
+    font-size: var(--fusion-text-xs);
     font-weight: 600;
-    letter-spacing: 0.06em;
     padding: 0.25rem 0.6rem;
     position: sticky;
-    text-transform: uppercase;
     top: 0;
     z-index: 1;
   }
@@ -637,6 +599,7 @@
     align-items: center;
     border-left: 3px solid transparent;
     display: flex;
+    flex-wrap: wrap;
     gap: 0.4rem;
     padding: 0.3rem 0.5rem 0.3rem 0.35rem;
     transition: background-color var(--fusion-transition);
@@ -677,23 +640,30 @@
     cursor: grab;
     display: flex;
     flex-shrink: 0;
-    height: 1.4rem;
     justify-content: center;
+    min-height: var(--fusion-target);
+    min-width: 1.5rem;
     opacity: 0;
     padding: 0;
     transition: opacity var(--fusion-transition);
-    width: 1rem;
   }
 
-  .combatant-row:hover .combatant-row__handle {
+  .combatant-row:hover .combatant-row__handle,
+  .combatant-row:focus-within .combatant-row__handle {
     opacity: 1;
+  }
+
+  @media (hover: none) {
+    .combatant-row__handle {
+      opacity: 1;
+    }
   }
 
   /* Keyboard reach is not a hover state: focusing the handle has to reveal it too. */
   .combatant-row__handle:focus-visible {
     opacity: 1;
     border-color: var(--fusion-accent);
-    outline: 2px solid var(--fusion-accent);
+    outline: 2px solid var(--fusion-focus);
     outline-offset: 1px;
   }
 
@@ -720,7 +690,7 @@
     border-radius: var(--fusion-radius-sm);
     color: var(--fusion-text-muted);
     display: flex;
-    font-size: 0.875rem;
+    font-size: var(--fusion-text-sm);
     font-weight: 600;
     height: 2rem;
     justify-content: center;
@@ -739,7 +709,7 @@
 
   .combatant-row__name {
     color: var(--fusion-text);
-    font-size: 0.8125rem;
+    font-size: var(--fusion-text-sm);
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
@@ -761,12 +731,10 @@
     border: 1px solid currentColor;
     border-radius: var(--fusion-radius-sm);
     display: inline-flex;
-    font-size: 0.625rem;
-    gap: 0.15rem;
-    letter-spacing: 0.03em;
-    line-height: 1;
-    padding: 0.05rem 0.25rem;
-    text-transform: uppercase;
+    font-size: var(--fusion-text-xs);
+    gap: 0.25rem;
+    line-height: 1.2;
+    padding: 0.1rem 0.35rem;
   }
 
   .combatant-row__mark--defeated {
@@ -802,7 +770,7 @@
   .combatant-row__condition-more {
     color: var(--fusion-text-muted);
     flex-shrink: 0;
-    font-size: 0.625rem;
+    font-size: var(--fusion-text-xs);
     font-variant-numeric: tabular-nums;
     list-style: none;
   }
@@ -835,7 +803,7 @@
     color: var(--fusion-text-muted);
     flex-shrink: 0;
     font-family: var(--fusion-font-mono);
-    font-size: 0.625rem;
+    font-size: var(--fusion-text-xs);
     font-variant-numeric: tabular-nums;
   }
 
@@ -853,9 +821,10 @@
     color: var(--fusion-text);
     cursor: pointer;
     font-family: var(--fusion-font-mono);
-    font-size: 0.8125rem;
+    font-size: var(--fusion-text-sm);
     font-weight: 600;
-    min-width: 2rem;
+    min-height: var(--fusion-target);
+    min-width: 2.5rem;
     padding: 0.1rem 0.25rem;
     text-align: right;
   }
@@ -889,8 +858,9 @@
     border-radius: var(--fusion-radius-sm);
     color: var(--fusion-text-muted);
     font-family: var(--fusion-font);
-    font-size: 0.6875rem;
+    font-size: var(--fusion-text-xs);
     max-width: 6rem;
+    min-height: var(--fusion-target);
     padding: 0.05rem 0.2rem;
   }
 
@@ -900,25 +870,33 @@
     border-radius: var(--fusion-radius-sm);
     color: var(--fusion-text);
     font-family: var(--fusion-font-mono);
-    font-size: 0.8125rem;
+    font-size: var(--fusion-text-xs);
     padding: 0.1rem 0.2rem;
     text-align: right;
     width: 3rem;
   }
 
   /* ---- Actions ---- */
+  /* Second strip of the row (four 40px targets do not fit beside portrait, health and
+     initiative in a 300px drawer). Hidden at rest; shown on hover, on keyboard focus
+     anywhere in the row and, with no hover (touch), always. */
   .combatant-row__actions {
     align-items: center;
-    display: flex;
-    flex-shrink: 0;
+    display: none;
+    flex: 1 0 100%;
     gap: 0.15rem;
-    opacity: 0;
-    transition: opacity var(--fusion-transition);
+    justify-content: flex-end;
   }
 
   .combatant-row:hover .combatant-row__actions,
-  .combatant-row__actions:focus-within {
-    opacity: 1;
+  .combatant-row:focus-within .combatant-row__actions {
+    display: flex;
+  }
+
+  @media (hover: none) {
+    .combatant-row__actions {
+      display: flex;
+    }
   }
 
   .action-btn {
@@ -929,13 +907,13 @@
     color: var(--fusion-text-subtle);
     cursor: pointer;
     display: flex;
-    height: 1.4rem;
     justify-content: center;
+    min-height: var(--fusion-target);
+    min-width: var(--fusion-target);
     padding: 0;
     transition:
       background-color var(--fusion-transition),
       color var(--fusion-transition);
-    width: 1.4rem;
   }
 
   .action-btn:not(:disabled):hover {
@@ -953,14 +931,8 @@
   }
 
   .action-btn--danger:not(:disabled):hover {
-    background: rgba(255, 92, 92, 0.1);
+    background: var(--fusion-danger-dim);
     color: var(--fusion-danger);
-  }
-
-  .icon {
-    display: block;
-    height: 0.75rem;
-    width: 0.75rem;
   }
 
   /* ---- Player's own roll button ----
@@ -988,7 +960,7 @@
 
   .btn--primary {
     background: var(--fusion-accent);
-    color: #fff;
+    color: var(--fusion-on-accent);
   }
 
   .btn--primary:hover:not(:disabled) {
@@ -996,7 +968,8 @@
   }
 
   .btn--xs {
-    font-size: 0.75rem;
+    font-size: var(--fusion-text-xs);
+    min-height: var(--fusion-target);
     padding: 0.2rem 0.5rem;
   }
 </style>

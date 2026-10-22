@@ -47,9 +47,9 @@ describe("computeBarLayout — centrada na área livre (REQ-BAR-022)", () => {
     expect(open.centerX).toBe((1600 - 344) / 2);
   });
 
-  it("a largura é a do protótipo: 780 px, ou a área livre menos 24 px quando ela é menor", () => {
-    expect(ACTION_BAR_MAX_WIDTH).toBe(780);
-    expect(computeBarLayout({ viewportWidth: 1920, drawerOpen: false }).width).toBe(780);
+  it("a largura é a da direção A: 920 px, ou a área livre menos 24 px quando ela é menor", () => {
+    expect(ACTION_BAR_MAX_WIDTH).toBe(920);
+    expect(computeBarLayout({ viewportWidth: 1920, drawerOpen: false }).width).toBe(920);
     // 1000 px de tela com a gaveta aberta: 1000 − 344 = 656 de área livre.
     expect(computeBarLayout({ viewportWidth: 1000, drawerOpen: true }).width).toBe(656 - 24);
   });

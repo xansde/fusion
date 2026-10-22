@@ -75,8 +75,16 @@
   const hasFavorites = $derived(favorites.some((id) => id !== null));
 
   const groups = $derived(tab === "favorites" ? [] : groupEntries(entriesForTab(entries, tab)));
-  /** Long groups wrap to a second row of slots, like the prototype's tabs with many entries. */
-  const rows = $derived(Math.max(0, ...groups.map((group) => group.entries.length)) > 7 ? 2 : 1);
+  /**
+   * The Testes tab draws each check as a ROW (icon, whole name, bonus) in columns of up to five, so the
+   * eighteen skills fit the bar in four columns without a cut name (ui-mesa-hud, 22/10/2026). The other tabs keep
+   * tiles; a long group wraps to a second row, like the prototype's tabs with many entries.
+   */
+  const layout = $derived<"tile" | "row">(tab === "checks" ? "row" : "tile");
+  const longest = $derived(Math.max(0, ...groups.map((group) => group.entries.length)));
+  const rows = $derived(
+    layout === "row" ? Math.min(5, Math.max(1, Math.ceil(longest / 4))) : longest > 7 ? 2 : 1,
+  );
 </script>
 
 {#snippet slotOf(entry: ActionBarEntry, keyIndex: number | undefined, run: (entry: ActionBarEntry) => void)}
@@ -88,6 +96,7 @@
     {altHeld}
     {Details}
     menuOpen={menuEntryId === entry.id}
+    {layout}
     onrun={run}
     {oncontext}
     {onhover}
@@ -131,7 +140,7 @@
           {/if}
         </div>
       {/if}
-      <div class="grp__g" style:--rows={rows}>
+      <div class="grp__g" class:grp__g--rows={layout === "row"} style:--rows={rows}>
         {#each group.entries as entry (entry.id)}
           {@render slotOf(entry, undefined, onrun)}
         {/each}
@@ -145,26 +154,27 @@
   .fav {
     display: grid;
     flex: 1;
-    grid-template-columns: repeat(12, minmax(52px, 1fr));
-    gap: 4px;
+    grid-template-columns: repeat(12, minmax(64px, 1fr));
+    gap: var(--fusion-space-1);
     min-width: 0;
   }
 
+  /* An empty position: a faint outline and its key, so the twelve bindings stay readable without
+     competing with the slots that hold something. */
   .slot-empty {
     position: relative;
     box-sizing: border-box;
-    height: 64px;
+    height: 80px;
     border: 1px dashed var(--fusion-border);
     border-radius: var(--fusion-radius);
-    opacity: 0.55;
   }
 
   .slot-empty__k {
     position: absolute;
-    left: 4px;
+    left: 5px;
     bottom: 4px;
-    color: var(--fusion-text-muted);
-    font: 600 9px/1 var(--fusion-font-mono);
+    color: var(--fusion-text-subtle);
+    font: var(--fusion-text-xs) / 1.2 var(--fusion-font-mono);
     font-style: normal;
   }
 
@@ -173,7 +183,7 @@
     display: flex;
     flex: none;
     flex-direction: column;
-    gap: 4px;
+    gap: var(--fusion-space-1);
   }
 
   .grp__h {
@@ -182,31 +192,29 @@
     gap: 6px;
     padding-left: 2px;
     color: var(--fusion-text-muted);
-    font-size: 10px;
-    font-weight: 700;
-    letter-spacing: 0.04em;
-    text-transform: uppercase;
+    font-size: var(--fusion-text-sm);
+    font-weight: var(--fusion-weight-bold);
     white-space: nowrap;
   }
 
   .grp__h em {
     color: var(--fusion-text);
+    font-family: var(--fusion-font-mono);
     font-style: normal;
-    font-weight: 600;
   }
 
   .pips {
     display: inline-flex;
     align-items: center;
-    color: var(--fusion-accent-hover);
+    gap: 3px;
+    color: var(--fusion-accent);
   }
 
   .pip {
     display: inline-block;
-    width: 8px;
-    height: 8px;
-    margin-right: 2px;
-    border: 1px solid currentColor;
+    width: 10px;
+    height: 10px;
+    border: 1.5px solid currentColor;
     border-radius: 50%;
   }
 
@@ -214,19 +222,26 @@
     background: currentColor;
   }
 
+  /* Tiles: each column as wide as its longest name (never under 64 px), so no name is cut. */
   .grp__g {
     display: grid;
-    grid-auto-columns: 56px;
+    grid-auto-columns: minmax(64px, max-content);
     grid-auto-flow: column;
-    grid-template-rows: repeat(var(--rows, 1), 64px);
-    gap: 4px;
+    grid-template-rows: repeat(var(--rows, 1), 80px);
+    gap: var(--fusion-space-1);
+  }
+
+  /* Rows (Testes): columns of checks, read top to bottom. */
+  .grp__g--rows {
+    grid-auto-columns: minmax(150px, max-content);
+    grid-template-rows: repeat(var(--rows, 1), 44px);
   }
 
   .empty {
     align-self: center;
     margin: 0;
-    padding: 14px 4px;
+    padding: var(--fusion-space-3) var(--fusion-space-1);
     color: var(--fusion-text-muted);
-    font-size: 12px;
+    font-size: var(--fusion-text-sm);
   }
 </style>

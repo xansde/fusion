@@ -121,8 +121,8 @@
   }
 
   .condition-chip--special {
-    --chip-ink: var(--fusion-accent);
-    --chip-wash: var(--fusion-accent-dim);
+    --chip-ink: var(--fusion-magic);
+    --chip-wash: var(--fusion-magic-dim);
   }
 
   .condition-chip {
@@ -131,13 +131,13 @@
     align-items: center;
     max-width: 100%;
     box-sizing: border-box;
-    padding: 1px 7px;
+    padding: 1px var(--fusion-space-2);
     border: 1px solid var(--chip-ink);
     border-radius: var(--fusion-radius-pill);
     background: var(--chip-wash);
     color: var(--chip-ink);
     font-family: var(--fusion-font);
-    font-size: 11px;
+    font-size: var(--fusion-text-xs);
     line-height: 16px;
     white-space: nowrap;
     cursor: default;
@@ -146,12 +146,12 @@
   /* Emphasis, not a fourth color: the same ink, now as the fill. */
   .condition-chip--critical {
     background: var(--chip-ink);
-    color: var(--fusion-bg);
-    font-weight: 700;
+    color: var(--fusion-on-accent);
+    font-weight: 600;
   }
 
   .condition-chip:focus-visible {
-    outline: 2px solid var(--fusion-accent-hover);
+    outline: 2px solid var(--fusion-focus);
     outline-offset: 1px;
   }
 
@@ -191,16 +191,16 @@
     width: max-content;
     max-width: 220px;
     box-sizing: border-box;
-    padding: 6px 8px;
+    padding: var(--fusion-space-2);
     border: 1px solid var(--fusion-border);
     border-radius: var(--fusion-radius-sm);
     background: var(--fusion-surface-alt);
     color: var(--fusion-text);
-    font-size: 11px;
+    font-size: var(--fusion-text-sm);
     font-weight: 400;
-    line-height: 1.35;
+    line-height: var(--fusion-leading);
     white-space: normal;
-    box-shadow: var(--fusion-shadow-modal);
+    box-shadow: var(--fusion-shadow-popover);
     opacity: 0;
     visibility: hidden;
     pointer-events: none;
@@ -213,7 +213,7 @@
   }
 
   .condition-chip__tooltip-label {
-    font-weight: 700;
+    font-weight: 600;
     font-variant-numeric: tabular-nums;
   }
 

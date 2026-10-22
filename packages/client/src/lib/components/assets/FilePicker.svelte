@@ -44,6 +44,7 @@
    */
 
   import { onMount, untrack } from "svelte";
+  import Icon from "../../../components/common/Icon.svelte";
   import { ASSET_CATEGORIES, ASSET_TAB_ALL, type AssetCategory, type AssetTab } from "@fusion/shared";
   import { assetStore } from "$lib/assets/assetStore.svelte.js";
   import {
@@ -326,8 +327,8 @@
   // Everything the drop zone advertises is derived from the same map that
   // validates the file — the UI can never offer a format the upload rejects.
   const acceptAttr = $derived(acceptAttrFor(kinds));
-  const dropLabel = $derived(kinds.length === 1 ? `Drop ${kinds[0]} files here` : "Drop files here");
-  const limitHint = $derived(`${formatsLabelFor(kinds)} · up to ${formatBytes(maxBytesFor(kinds))}`);
+  const dropLabel = $derived(t("FUSION.FilePicker.Drop"));
+  const limitHint = $derived(t("FUSION.FilePicker.Limit", { formats: formatsLabelFor(kinds), size: formatBytes(maxBytesFor(kinds)) }));
 </script>
 
 <!-- Backdrop -->
@@ -343,14 +344,19 @@
 <dialog
   class="picker-dialog"
   open
-  aria-label={iconMode ? t("FUSION.IconPicker.DialogLabel") : "Pick an asset"}
+  aria-label={iconMode ? t("FUSION.IconPicker.DialogLabel") : t("FUSION.FilePicker.DialogLabel")}
   onkeydown={handleKeydown}
 >
   <!-- Header -->
   <header class="picker__header">
-    <h2 class="picker__title">{iconMode ? t("FUSION.IconPicker.Title") : "Asset Browser"}</h2>
-    <button class="picker__close btn btn--icon" onclick={onClose} aria-label="Close">
-      &#x2715;
+    <h2 class="picker__title">{iconMode ? t("FUSION.IconPicker.Title") : t("FUSION.FilePicker.Title")}</h2>
+    <button
+      class="picker__close btn btn--icon"
+      onclick={onClose}
+      aria-label={t("FUSION.Dialog.Close")}
+      title={t("FUSION.Dialog.Close")}
+    >
+      <Icon name="x" size={18} />
     </button>
   </header>
 
@@ -371,9 +377,9 @@
       <input
         class="picker__search field__input"
         type="search"
-        placeholder="Search by name…"
+        placeholder={t("FUSION.FilePicker.Search")}
         bind:value={tabQuery}
-        aria-label="Search assets"
+        aria-label={t("FUSION.FilePicker.SearchLabel")}
       />
     {/if}
   </div>
@@ -415,9 +421,9 @@
     ondragleave={handleDragLeave}
     ondrop={handleDrop}
     role="region"
-    aria-label={iconMode ? t("FUSION.IconPicker.DropLabel") : "Drop files here to upload"}
+    aria-label={iconMode ? t("FUSION.IconPicker.DropLabel") : t("FUSION.FilePicker.DropLabel")}
   >
-    <span class="picker__drop-icon" aria-hidden="true">&#8679;</span>
+    <span class="picker__drop-icon" aria-hidden="true"><Icon name="upload" size={22} /></span>
     <span class="picker__drop-text">{iconMode ? t("FUSION.IconPicker.Drop") : dropLabel}</span>
     <span class="picker__drop-sep">{iconMode ? t("FUSION.IconPicker.Or") : "or"}</span>
     <button
@@ -425,7 +431,7 @@
       onclick={() => fileInput?.click()}
       type="button"
     >
-      {iconMode ? t("FUSION.IconPicker.Browse") : "Browse files"}
+      {iconMode ? t("FUSION.IconPicker.Browse") : t("FUSION.FilePicker.Browse")}
     </button>
     <!-- Hidden file input -->
     <input
@@ -444,7 +450,7 @@
 
   <!-- Upload progress items -->
   {#if hasActiveUploads()}
-    <ul class="picker__uploads" aria-label="Upload progress" role="list">
+    <ul class="picker__uploads" aria-label={t("FUSION.FilePicker.UploadProgress")} role="list">
       {#each activeUploads() as [file, state] (file.name + file.size)}
         <li class="upload-item">
           <span class="upload-item__name" title={file.name}>{file.name}</span>
@@ -456,19 +462,25 @@
             <span class="upload-item__pct">{state.percent ?? 0}%</span>
 
           {:else if state.status === "done"}
-            <span class="upload-item__ok" aria-label="Upload complete">&#10003;</span>
+            <span
+              class="upload-item__ok"
+              role="img"
+              aria-label={t("FUSION.FilePicker.UploadComplete")}
+              title={t("FUSION.FilePicker.UploadComplete")}
+            ><Icon name="check" size={18} /></span>
 
           {:else if state.status === "error"}
             <span class="upload-item__err" role="alert">{state.errorMessage}</span>
             <button
               class="btn btn--icon upload-item__dismiss"
               onclick={() => assetStore.clearUploadError(file)}
-              aria-label="Dismiss error"
+              aria-label={t("FUSION.FilePicker.DismissError")}
+              title={t("FUSION.FilePicker.DismissError")}
               type="button"
-            >&#x2715;</button>
+            ><Icon name="x" size={16} /></button>
 
           {:else}
-            <span class="upload-item__wait">Preparing…</span>
+            <span class="upload-item__wait">{t("FUSION.FilePicker.Preparing")}</span>
           {/if}
         </li>
       {/each}
@@ -519,14 +531,14 @@
                   onclick={() => void handleDeleteIcon(icon.name)}
                   aria-label={t("FUSION.IconPicker.Delete", { name: iconFileName(icon.name) })}
                   title={t("FUSION.IconPicker.DeleteTitle")}
-                >&#x2715;</button>
+                ><Icon name="x" size={16} /></button>
               {/if}
             </li>
           {/each}
         </ul>
       {/if}
     {:else if assetStore.loading}
-      <div class="picker__empty">Loading assets…</div>
+      <div class="picker__empty">{t("FUSION.FilePicker.Loading")}</div>
 
     {:else if assetStore.fetchError}
       <div class="picker__empty picker__empty--error" role="alert">
@@ -535,22 +547,22 @@
           class="btn btn--ghost btn--sm"
           onclick={() => void assetStore.loadAssets(token)}
           type="button"
-        >Retry</button>
+        >{t("FUSION.FilePicker.Retry")}</button>
       </div>
 
     {:else if shownItems.length === 0}
       <div class="picker__empty">
         {#if allItems.length === 0}
-          No assets uploaded yet. Drop a file above to get started.
+          {t("FUSION.FilePicker.EmptyAll")}
         {:else if tabQuery.trim() !== ""}
-          No assets match your search.
+          {t("FUSION.FilePicker.EmptySearch")}
         {:else}
           {t("FUSION.AssetTabs.EmptyTab")}
         {/if}
       </div>
 
     {:else}
-      <ul class="picker__grid" role="list" aria-label="Available assets">
+      <ul class="picker__grid" role="list" aria-label={t("FUSION.FilePicker.AssetsLabel")}>
         {#each shownItems as asset (asset.name)}
           {@const movable = isGm && canMoveAsset(session.user?.role, asset)}
           <li class="icon-cell">
@@ -564,7 +576,7 @@
               }}
               onclick={() => handleSelectAsset(asset.name)}
               title={`${asset.name} (${formatBytes(asset.size)})`}
-              aria-label={`Select ${asset.name}`}
+              aria-label={t("FUSION.FilePicker.Select", { name: asset.name })}
             >
               {#if isImageExtension(asset.name)}
                 <img
@@ -576,11 +588,11 @@
               {:else}
                 <div class="asset-card__icon" aria-hidden="true">
                   {#if asset.mime_type.startsWith("video/")}
-                    &#9654;
+                    <Icon name="play" size={32} />
                   {:else if asset.mime_type.startsWith("audio/")}
-                    &#9835;
+                    <Icon name="file-music" size={32} />
                   {:else}
-                    &#128196;
+                    <Icon name="file-text" size={32} />
                   {/if}
                 </div>
               {/if}
@@ -609,7 +621,7 @@
                 onclick={() => void handleDeleteIcon(asset.name)}
                 aria-label={t("FUSION.IconPicker.Delete", { name: iconFileName(asset.name) })}
                 title={t("FUSION.IconPicker.DeleteTitle")}
-              >&#x2715;</button>
+              ><Icon name="x" size={16} /></button>
             {/if}
           </li>
         {/each}
@@ -621,14 +633,14 @@
   {#if !iconMode}
   <div class="picker__external">
     <label class="picker__ext-label" for="picker-external-url">
-      Or paste an external URL
+      {t("FUSION.FilePicker.ExternalLabel")}
     </label>
     <div class="picker__ext-row">
       <input
         id="picker-external-url"
         class="field__input picker__ext-input"
         type="url"
-        placeholder="https://example.com/image.webp"
+        placeholder={t("FUSION.FilePicker.ExternalPlaceholder")}
         bind:value={externalUrl}
         onkeydown={(e) => { if (e.key === "Enter") handleSelectExternal(); }}
       />
@@ -638,7 +650,7 @@
         onclick={handleSelectExternal}
         disabled={!externalUrl.trim()}
       >
-        Use URL
+        {t("FUSION.FilePicker.UseUrl")}
       </button>
     </div>
   </div>
@@ -649,7 +661,7 @@
   .picker-backdrop {
     position: fixed;
     inset: 0;
-    background: rgba(0, 0, 0, 0.6);
+    background: color-mix(in srgb, var(--fusion-bg) 72%, transparent);
     z-index: 300;
   }
 
@@ -659,11 +671,10 @@
     left: 50%;
     transform: translate(-50%, -50%);
     z-index: 301;
-
     background: var(--fusion-surface);
     border: 1px solid var(--fusion-border);
     border-radius: var(--fusion-radius-lg);
-    box-shadow: 0 24px 64px rgba(0, 0, 0, 0.7);
+    box-shadow: var(--fusion-shadow-modal);
     color: var(--fusion-text);
     font-family: var(--fusion-font);
     padding: 0;
@@ -690,7 +701,7 @@
   }
 
   .picker__title {
-    font-size: 0.9375rem;
+    font-size: var(--fusion-text-base);
     font-weight: 600;
     margin: 0;
   }
@@ -700,9 +711,9 @@
     border: none;
     color: var(--fusion-text-muted);
     cursor: pointer;
-    font-size: 1rem;
-    line-height: 1;
-    padding: 0.25rem;
+    min-height: var(--fusion-target);
+    min-width: var(--fusion-target);
+    padding: 0;
     transition: color var(--fusion-transition);
   }
 
@@ -744,21 +755,20 @@
 
   .picker__drop-icon {
     color: var(--fusion-text-muted);
-    font-size: 1.25rem;
-    line-height: 1;
+    display: inline-flex;
   }
 
   .picker__drop-text,
   .picker__drop-sep {
     color: var(--fusion-text-muted);
-    font-size: 0.8125rem;
+    font-size: var(--fusion-text-xs);
   }
 
   /* Full-width so it wraps onto its own line below the drop row */
   .picker__drop-hint {
     color: var(--fusion-text-subtle);
     flex-basis: 100%;
-    font-size: 0.6875rem;
+    font-size: var(--fusion-text-xs);
     text-align: center;
   }
 
@@ -780,7 +790,7 @@
     border: 1px solid var(--fusion-border);
     border-radius: var(--fusion-radius-sm);
     display: flex;
-    font-size: 0.75rem;
+    font-size: var(--fusion-text-xs);
     gap: 0.5rem;
     padding: 0.3rem 0.6rem;
   }
@@ -796,7 +806,7 @@
 
   .upload-item__bar-wrap {
     background: var(--fusion-border);
-    border-radius: 2px;
+    border-radius: var(--fusion-radius-sm);
     flex-shrink: 0;
     height: 4px;
     overflow: hidden;
@@ -805,7 +815,7 @@
 
   .upload-item__bar {
     background: var(--fusion-accent);
-    border-radius: 2px;
+    border-radius: var(--fusion-radius-sm);
     height: 100%;
     transition: width 150ms linear;
   }
@@ -820,14 +830,14 @@
 
   .upload-item__ok {
     color: var(--fusion-success);
+    display: inline-flex;
     flex-shrink: 0;
-    font-size: 1rem;
   }
 
   .upload-item__err {
     color: var(--fusion-danger);
     flex: 1;
-    font-size: 0.7rem;
+    font-size: var(--fusion-text-xs);
   }
 
   .upload-item__wait {
@@ -840,10 +850,12 @@
     border: none;
     color: var(--fusion-text-muted);
     cursor: pointer;
+    align-items: center;
     flex-shrink: 0;
-    font-size: 0.75rem;
+    justify-content: center;
+    min-height: var(--fusion-target);
+    min-width: var(--fusion-target);
     padding: 0;
-    line-height: 1;
   }
 
   /* ---- Grid ---- */
@@ -858,7 +870,7 @@
     color: var(--fusion-text-muted);
     display: flex;
     flex-direction: column;
-    font-size: 0.875rem;
+    font-size: var(--fusion-text-sm);
     gap: 0.75rem;
     justify-content: center;
     min-height: 100px;
@@ -895,8 +907,6 @@
   .asset-card:hover,
   .asset-card:focus-visible {
     border-color: var(--fusion-accent);
-    box-shadow: 0 0 0 2px var(--fusion-accent-dim);
-    outline: none;
   }
 
   .asset-card__img {
@@ -912,7 +922,6 @@
     align-items: center;
     color: var(--fusion-text-muted);
     display: flex;
-    font-size: 2rem;
     height: 80px;
     justify-content: center;
     width: 100%;
@@ -920,7 +929,7 @@
 
   .asset-card__name {
     color: var(--fusion-text-muted);
-    font-size: 0.6875rem;
+    font-size: var(--fusion-text-xs);
     line-height: 1.2;
     max-width: 100%;
     overflow: hidden;
@@ -931,14 +940,14 @@
 
   .asset-card__size {
     color: var(--fusion-text-subtle);
-    font-size: 0.625rem;
+    font-size: var(--fusion-text-xs);
     line-height: 1;
   }
 
   /* ---- Icon mode (BAR-F3-05) ---- */
   .picker__notice {
     color: var(--fusion-text-subtle);
-    font-size: 0.75rem;
+    font-size: var(--fusion-text-xs);
     margin: 0.4rem 0 0;
   }
 
@@ -951,10 +960,13 @@
     border: 1px solid var(--fusion-border);
     border-radius: var(--fusion-radius-sm);
     color: var(--fusion-text-muted);
+    align-items: center;
     cursor: pointer;
-    font-size: 0.7rem;
-    line-height: 1;
-    padding: 0.2rem 0.3rem;
+    display: inline-flex;
+    justify-content: center;
+    min-height: var(--fusion-target);
+    min-width: var(--fusion-target);
+    padding: 0;
     position: absolute;
     right: 0.25rem;
     top: 0.25rem;
@@ -964,7 +976,6 @@
   .icon-cell__delete:focus-visible {
     border-color: var(--fusion-danger);
     color: var(--fusion-danger);
-    outline: none;
   }
 
   /* ---- Tabs ---- */
@@ -985,9 +996,10 @@
     cursor: pointer;
     display: inline-flex;
     font-family: var(--fusion-font);
-    font-size: 0.75rem;
+    font-size: var(--fusion-text-xs);
     gap: 0.35rem;
-    padding: 0.25rem 0.6rem;
+    min-height: var(--fusion-target);
+    padding: 0.25rem 0.75rem;
     transition: border-color var(--fusion-transition), color var(--fusion-transition);
   }
 
@@ -995,7 +1007,6 @@
   .picker__tab:focus-visible {
     border-color: var(--fusion-text-muted);
     color: var(--fusion-text);
-    outline: none;
   }
 
   .picker__tab--active {
@@ -1006,7 +1017,7 @@
 
   .picker__tab-count {
     color: var(--fusion-text-subtle);
-    font-size: 0.6875rem;
+    font-size: var(--fusion-text-xs);
     font-variant-numeric: tabular-nums;
   }
 
@@ -1022,8 +1033,9 @@
     color: var(--fusion-text-muted);
     cursor: pointer;
     font-family: var(--fusion-font);
-    font-size: 0.65rem;
+    font-size: var(--fusion-text-xs);
     max-width: 5.5rem;
+    min-height: var(--fusion-target);
     opacity: 0;
     padding: 0.1rem 0.2rem;
     position: absolute;
@@ -1031,9 +1043,17 @@
     top: 0.25rem;
   }
 
+  /* Hover must not be the only way in: keyboard focus and touch screens reveal it too. */
   .icon-cell:hover .asset-move,
+  .icon-cell:focus-within .asset-move,
   .asset-move:focus-visible {
     opacity: 1;
+  }
+
+  @media (hover: none) {
+    .asset-move {
+      opacity: 1;
+    }
   }
 
   /* ---- External URL ---- */
@@ -1046,7 +1066,7 @@
   .picker__ext-label {
     color: var(--fusion-text-muted);
     display: block;
-    font-size: 0.75rem;
+    font-size: var(--fusion-text-xs);
     margin-bottom: 0.4rem;
   }
 
@@ -1066,14 +1086,13 @@
     border-radius: var(--fusion-radius-sm);
     color: var(--fusion-text);
     font-family: var(--fusion-font);
-    font-size: 0.875rem;
+    font-size: var(--fusion-text-sm);
     padding: 0.45rem 0.6rem;
     transition: border-color var(--fusion-transition);
   }
 
   .field__input:focus {
     border-color: var(--fusion-accent);
-    outline: none;
   }
 
   .btn {
@@ -1083,7 +1102,7 @@
     cursor: pointer;
     display: inline-flex;
     font-family: var(--fusion-font);
-    font-size: 0.875rem;
+    font-size: var(--fusion-text-sm);
     font-weight: 500;
     justify-content: center;
     padding: 0.45rem 1rem;
@@ -1098,7 +1117,7 @@
 
   .btn--primary {
     background: var(--fusion-accent);
-    color: #fff;
+    color: var(--fusion-on-accent);
   }
 
   .btn--primary:hover:not(:disabled) {
@@ -1117,11 +1136,12 @@
   }
 
   .btn--sm {
-    font-size: 0.8125rem;
+    font-size: var(--fusion-text-sm);
+    min-height: var(--fusion-target);
     padding: 0.3rem 0.75rem;
   }
 
   .btn--icon {
-    padding: 0.25rem 0.4rem;
+    padding: 0;
   }
 </style>
