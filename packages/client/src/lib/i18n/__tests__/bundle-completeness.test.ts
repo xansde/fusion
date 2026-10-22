@@ -165,7 +165,7 @@ describe("Spot-check: pt-BR translations differ from English for key terms", () 
     ["FUSION.Sidebar.Tabs.Scenes", "Cenas", "Scenes"],
     ["FUSION.Sidebar.Tabs.Combat", "Combate", "Combat"],
     ["FUSION.Combat.Empty", "Nenhum combate ativo.", "No active combat."],
-    ["FUSION.Join.JoinWorld", "Entrar no Mundo", "Join World"],
+    ["FUSION.Join.JoinWorld", "Entrar no mundo", "Join World"],
     ["FUSION.NoScene.Title", "Nenhuma Cena Ativa", "No Active Scene"],
     ["FUSION.Connection.Connected", "Conectado", "Connected"],
     ["FUSION.Role.GM", "Mestre", "GM"],
@@ -174,11 +174,7 @@ describe("Spot-check: pt-BR translations differ from English for key terms", () 
     ["FUSION.Sheet.Labels.AC", "CA", "AC"],
     ["FUSION.Dialog.Cancel", "Cancelar", "Cancel"],
     ["FUSION.Header.Leave", "Sair", "Leave"],
-    [
-      "FUSION.Management.Title",
-      "Servidor ativo — nenhum mundo aberto",
-      "Server running — no world open",
-    ],
+    ["FUSION.Management.Title", "Nenhum mundo aberto", "No world open"],
     ["FUSION.Management.RetryButton", "Verificar novamente", "Check again"],
   ];
 

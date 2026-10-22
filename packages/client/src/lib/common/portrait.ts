@@ -37,16 +37,21 @@ export const PORTRAIT_PALETTE: readonly string[] = [
  */
 export function portraitInitials(name: string | null | undefined): string {
   if (!name) return "?";
+  // Letters and digits only: "C.L.A.U.D.E." reads "CL", not "C.".
   const words = name
     .trim()
     .split(/\s+/)
+    .map((w) => w.replace(/[^\p{L}\p{N}]/gu, ""))
     .filter((w) => w.length > 0);
   if (words.length === 0) return "?";
   if (words.length === 1) {
-    return (words[0] ?? "").slice(0, 2).toUpperCase();
+    return Array.from(words[0] ?? "")
+      .slice(0, 2)
+      .join("")
+      .toUpperCase();
   }
-  const first = words[0]?.[0] ?? "";
-  const last = words[words.length - 1]?.[0] ?? "";
+  const first = Array.from(words[0] ?? "")[0] ?? "";
+  const last = Array.from(words[words.length - 1] ?? "")[0] ?? "";
   return (first + last).toUpperCase();
 }
 
