@@ -16,6 +16,7 @@
    */
 
   import { t } from "../lib/i18n/i18n.js";
+  import FusionMark from "./common/FusionMark.svelte";
   import { sessionActions } from "../lib/session.svelte.js";
 
   let copiedStep: 1 | 2 | null = $state(null);
@@ -50,7 +51,7 @@
 <div class="mgmt-shell">
   <div class="mgmt-card">
     <header class="mgmt-card__header">
-      <div class="mgmt-card__logo" aria-hidden="true">&#9889;</div>
+      <div class="mgmt-card__logo" aria-hidden="true"><FusionMark size={32} /></div>
       <div class="mgmt-card__titles">
         <h1 class="mgmt-card__title">{t("FUSION.Management.Title")}</h1>
         <p class="mgmt-card__subtitle">{t("FUSION.Management.Subtitle")}</p>

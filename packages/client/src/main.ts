@@ -55,9 +55,13 @@
  */
 
 import "./styles/base.css";
+import { initTheme } from "./lib/ui/theme.js";
 import "./lib/i18n/index.js";
 import "pixi.js/unsafe-eval";
 import { mount } from "svelte";
+
+// Light or dark, as this browser chose last (lib/ui/theme.ts) — before the first paint of the app.
+initTheme();
 
 const target = document.getElementById("fusion-app");
 if (!target) {
