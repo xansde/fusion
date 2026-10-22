@@ -22,7 +22,7 @@
    * The picture box is always the same box (REQ-CPD-045): a broken or
    * placeholder image resolves to a DRAWN type icon of the same size, so a
    * failed request cannot leave a hole nor shift the column of names. The icons
-   * are inline SVG, never pictographs — an emoji changes shape per operating
+   * come from the shared set, never pictographs — an emoji changes shape per operating
    * system and ignores the theme.
    *
    * The bring action names its own destination (`importDestination`): the world
@@ -38,6 +38,9 @@
   import type { ResultLine, ResultLineIcon } from "../../lib/compendium/resultLine.js";
   import { resolveFieldLabel } from "../../lib/compendium/resultLine.js";
   import { t } from "../../lib/i18n/i18n.js";
+  import type { IconName } from "@fusion/shared";
+  import Icon from "../common/Icon.svelte";
+  import CostGlyphs from "../common/CostGlyphs.svelte";
 
   interface Props {
     /** The line, already built for this reader (`buildResultLine`). */
@@ -99,20 +102,22 @@
       : "FUSION.Compendium.Line.ImportToSheetShort",
   );
 
-  /**
-   * Path data per icon, drawn on a 24×24 grid. Simple silhouettes on purpose:
-   * at 1.8rem the line is a glyph, not an illustration.
-   */
-  const ICON_PATHS: Record<ResultLineIcon, string> = {
-    actor: "M12 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8Zm-7 8a7 7 0 0 1 14 0",
-    item: "M12 2 3 7v10l9 5 9-5V7l-9-5Zm0 0v20M3 7l9 5 9-5",
-    journal: "M5 4h11a3 3 0 0 1 3 3v13H8a3 3 0 0 1-3-3V4Zm3 0v16M11 8h5M11 12h5",
-    table: "M4 5h16v14H4V5Zm0 5h16M4 15h16M9.5 5v14M14.5 5v14",
-    macro: "m8 7-5 5 5 5M16 7l5 5-5 5M13 4l-2 16",
-    scene: "m3 6 6-2 6 2 6-2v14l-6 2-6-2-6 2V6Zm6-2v14m6-12v14",
-    playlist: "M9 18V5l11-2v13M9 18a3 3 0 1 1-6 0 3 3 0 0 1 6 0Zm11-2a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z",
-    unknown: "M12 17h.01M9.5 9a2.5 2.5 0 1 1 3.5 2.3c-.6.3-1 .9-1 1.7",
+  /** The drawn glyph per kind, from the shared icon set. */
+  const ICON_NAMES: Record<ResultLineIcon, IconName> = {
+    actor: "user",
+    item: "package",
+    journal: "book-open",
+    table: "dices",
+    macro: "scroll",
+    scene: "map",
+    playlist: "list-music",
+    unknown: "circle-question-mark",
   };
+
+  /** A value that carries action-cost marks (◆ ◇ ⟳) is drawn with Fusion's own marks. */
+  function hasCostGlyph(text: string): boolean {
+    return /[◆◇⟳↺]/u.test(text);
+  }
 </script>
 
 <li
@@ -136,26 +141,14 @@
         onerror={() => onImageError?.()}
       />
     {:else}
-      <svg
-        class="result-line__icon"
-        viewBox="0 0 24 24"
-        fill="none"
-        stroke="currentColor"
-        stroke-width="1.7"
-        stroke-linecap="round"
-        stroke-linejoin="round"
-        aria-hidden="true"
-        focusable="false"
-      >
-        <path d={ICON_PATHS[line.icon]} />
-      </svg>
+      <span class="result-line__icon" aria-hidden="true"><Icon name={ICON_NAMES[line.icon]} size={20} /></span>
     {/if}
   </span>
 
   <div class="result-line__info">
     <span class="result-line__name" title={line.nameText}>
       {#each line.name as segment, i (i)}
-        {#if segment.matched}<mark class="result-line__match">{segment.text}</mark>{:else}{segment.text}{/if}
+        {#if segment.matched}<mark class="result-line__match">{segment.text}</mark>{:else if hasCostGlyph(segment.text)}<CostGlyphs glyphs={segment.text} size={14} />{:else}{segment.text}{/if}
       {/each}
     </span>
 
@@ -163,7 +156,7 @@
       <!-- The original name, kept so the reader can check the source (DEC-CPD-06). -->
       <span class="result-line__name-original" title={line.secondaryNameText}>
         {#each line.secondaryName as segment, i (i)}
-          {#if segment.matched}<mark class="result-line__match">{segment.text}</mark>{:else}{segment.text}{/if}
+          {#if segment.matched}<mark class="result-line__match">{segment.text}</mark>{:else if hasCostGlyph(segment.text)}<CostGlyphs glyphs={segment.text} size={14} />{:else}{segment.text}{/if}
         {/each}
       </span>
     {/if}
@@ -178,9 +171,9 @@
       {#each line.fields as field (field.key)}
         <span class="result-line__field">
           <span class="result-line__field-label">{resolveFieldLabel(field, t)}</span>
-          <span class="result-line__field-value">
+          <span class="result-line__field-value" title={field.value}>
             {#each field.segments as segment, i (i)}
-              {#if segment.matched}<mark class="result-line__match">{segment.text}</mark>{:else}{segment.text}{/if}
+              {#if segment.matched}<mark class="result-line__match">{segment.text}</mark>{:else if hasCostGlyph(segment.text)}<CostGlyphs glyphs={segment.text} size={14} />{:else}{segment.text}{/if}
             {/each}
           </span>
         </span>
@@ -214,18 +207,7 @@
           name: line.nameText,
         })}
       >
-        <svg
-          viewBox="0 0 24 24"
-          fill={pinned ? "currentColor" : "none"}
-          stroke="currentColor"
-          stroke-width="1.8"
-          stroke-linecap="round"
-          stroke-linejoin="round"
-          aria-hidden="true"
-          focusable="false"
-        >
-          <path d="M9 3h6l-1 6 4 4H6l4-4-1-6Zm3 10v8" />
-        </svg>
+        <Icon name={pinned ? "pin-off" : "pin"} size={18} />
       </button>
     {/if}
     {#if onPreview}
@@ -236,19 +218,7 @@
         aria-label={t("FUSION.Compendium.Line.Preview", { name: line.nameText })}
         title={t("FUSION.Compendium.Line.PreviewShort")}
       >
-        <svg
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          stroke-width="1.8"
-          stroke-linecap="round"
-          stroke-linejoin="round"
-          aria-hidden="true"
-          focusable="false"
-        >
-          <path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7-10-7-10-7Z" />
-          <circle cx="12" cy="12" r="3" />
-        </svg>
+        <Icon name="eye" size={18} />
       </button>
     {/if}
     {#if onImport}
@@ -260,37 +230,28 @@
         aria-label={t(importLabelKey, { name: line.nameText })}
         title={t(importTitleKey)}
       >
-        <svg
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          stroke-width="1.8"
-          stroke-linecap="round"
-          stroke-linejoin="round"
-          aria-hidden="true"
-          focusable="false"
-        >
-          <path d="M12 4v11m0 0-4-4m4 4 4-4M4 19h16" />
-        </svg>
+        <Icon name="download" size={18} />
       </button>
     {/if}
   </div>
 </li>
 
 <style>
+  /*
+   * Flat row split by a divider (no card in card). The name shows whole: two
+   * lines at most, and the full text is in its title.
+   */
   .result-line {
     display: flex;
-    align-items: center;
-    gap: 0.45rem;
-    /*
-     * A042: level 3 of the hierarchy (estante / resultado agregado / pack
-     * aberto) — this is what the reader actually came for, so it gets more
-     * breathing room than the chrome around it, not the same density.
-     */
-    padding: 0.35rem 0.45rem;
-    background: var(--fusion-surface-alt, #2a2a2a);
-    border: 1px solid var(--fusion-border, #444);
-    border-radius: var(--fusion-radius-sm, 4px);
+    align-items: flex-start;
+    gap: var(--fusion-space-2);
+    padding: var(--fusion-space-2) var(--fusion-space-1);
+    border-radius: var(--fusion-radius-sm);
+  }
+
+  .result-line:hover,
+  .result-line:focus-within {
+    background: var(--fusion-surface-alt);
   }
 
   .result-line--draggable {
@@ -300,41 +261,32 @@
     cursor: grabbing;
   }
 
-  .result-line:hover {
-    background: var(--fusion-border, #444);
-  }
-
   /*
    * REQ-CPD-045: the picture box has ONE size, and both fillings obey it. The
    * fallback is drawn inside the same box, so an image that never arrives costs
    * the row nothing in height nor in alignment.
    */
   .result-line__figure {
-    width: 1.8rem;
-    height: 1.8rem;
+    width: 2rem;
+    height: 2rem;
     flex-shrink: 0;
     display: flex;
     align-items: center;
     justify-content: center;
-    background: var(--fusion-surface, #222);
-    border-radius: 3px;
+    background: var(--fusion-surface-alt);
+    border-radius: var(--fusion-radius-sm);
     overflow: hidden;
   }
 
-  .result-line__img,
-  .result-line__icon {
-    width: 1.8rem;
-    height: 1.8rem;
-  }
-
   .result-line__img {
+    width: 2rem;
+    height: 2rem;
     object-fit: cover;
   }
 
   .result-line__icon {
-    padding: 0.22rem;
-    box-sizing: border-box;
-    color: var(--fusion-text-muted, #888);
+    display: inline-flex;
+    color: var(--fusion-text-muted);
   }
 
   .result-line__info {
@@ -342,53 +294,61 @@
     min-width: 0;
     display: flex;
     flex-direction: column;
+    gap: 2px;
+    padding-top: 2px;
   }
 
   .result-line__name {
-    font-size: 0.87rem;
+    font-size: var(--fusion-text-base);
     font-weight: 500;
-    color: var(--fusion-text, #eee);
-    white-space: nowrap;
+    color: var(--fusion-text);
+    overflow-wrap: anywhere;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    line-clamp: 2;
+    -webkit-box-orient: vertical;
     overflow: hidden;
-    text-overflow: ellipsis;
   }
 
   .result-line__name-original {
-    font-size: 0.72rem;
-    font-style: italic;
-    color: var(--fusion-text-muted, #888);
-    white-space: nowrap;
+    font-size: var(--fusion-text-xs);
+    color: var(--fusion-text-muted);
+    overflow-wrap: anywhere;
+    display: -webkit-box;
+    -webkit-line-clamp: 1;
+    line-clamp: 1;
+    -webkit-box-orient: vertical;
     overflow: hidden;
-    text-overflow: ellipsis;
   }
 
   .result-line__meta {
     display: flex;
     flex-wrap: wrap;
-    gap: 0.12rem 0.4rem;
-    font-size: 0.72rem;
-    color: var(--fusion-text-muted, #888);
+    align-items: center;
+    gap: var(--fusion-space-1) var(--fusion-space-2);
+    font-size: var(--fusion-text-xs);
+    color: var(--fusion-text-muted);
   }
 
   .result-line__field-label::after {
     content: " ";
   }
 
-  .result-line__field-label {
-    opacity: 0.75;
+  .result-line__field-value {
+    display: inline-flex;
+    align-items: center;
+    color: var(--fusion-text);
   }
 
   .result-line__seal {
-    color: var(--fusion-success, #27ae60);
-    border: 1px solid currentcolor;
-    border-radius: 9999px;
-    padding: 0 0.3rem;
-    font-size: 0.65rem;
+    padding: 0 var(--fusion-space-2);
+    border-radius: var(--fusion-radius-sm);
+    background: var(--fusion-success-dim);
+    color: var(--fusion-text);
   }
 
   .result-line__actions {
     display: flex;
-    gap: 0.25rem;
     flex-shrink: 0;
   }
 
@@ -396,27 +356,22 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    width: 1.4rem;
-    height: 1.4rem;
+    min-width: var(--fusion-target);
+    min-height: var(--fusion-target);
     padding: 0;
     background: none;
-    border: 1px solid var(--fusion-border, #444);
-    border-radius: var(--fusion-radius-sm, 4px);
-    color: var(--fusion-text-muted, #888);
+    border: none;
+    border-radius: var(--fusion-radius-sm);
+    color: var(--fusion-text-muted);
     cursor: pointer;
     transition:
-      background 0.15s,
-      color 0.15s;
-  }
-
-  .result-line__action svg {
-    width: 0.9rem;
-    height: 0.9rem;
+      background var(--fusion-transition),
+      color var(--fusion-transition);
   }
 
   .result-line__action:hover {
-    background: var(--fusion-surface, #222);
-    color: var(--fusion-text, #eee);
+    background: var(--fusion-surface-alt);
+    color: var(--fusion-text);
   }
 
   .result-line__action:disabled {
@@ -425,18 +380,17 @@
   }
 
   /*
-   * Pinned: colour AND a filled glyph AND `aria-pressed` — three channels for
-   * one state, so the state is never told by colour alone (REQ-CPD-094).
+   * Pinned: colour AND a different glyph (pin-off) AND `aria-pressed` — three
+   * channels for one state, so the state is never told by colour alone (REQ-CPD-094).
    */
   .result-line__action--on {
-    color: var(--fusion-accent, #c0a060);
-    border-color: var(--fusion-accent, #c0a060);
+    color: var(--fusion-accent);
   }
 
   .result-line__match {
-    background: var(--fusion-accent, #c0a060);
-    color: var(--fusion-surface, #222);
-    border-radius: 2px;
+    background: var(--fusion-accent);
+    color: var(--fusion-on-accent);
+    border-radius: var(--fusion-radius-sm);
     padding: 0 1px;
   }
 </style>

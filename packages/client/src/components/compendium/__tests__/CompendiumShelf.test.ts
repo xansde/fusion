@@ -154,13 +154,14 @@ describe("CompendiumShelf — packs by type, with the license always", () => {
     expect(template.slice(0, licenseAt)).not.toMatch(/\{#if[^}]*license/i);
   });
 
-  it("REQ-CPD-021: the license box is the one that never truncates", () => {
-    // The label may be cut to fit the drawer; the license may not (DEC-CPD-07),
-    // so it wraps instead of ellipsing. Declarative rule, checked in the CSS.
+  it("REQ-CPD-021: neither the label nor the license truncates — both wrap", () => {
+    // The whole pack name is shown (it breaks onto a second line); the license
+    // wraps instead of ellipsing (DEC-CPD-07). Declarative rule, checked in the CSS.
     const label = declarationsOf(".pack-row__label");
     const license = declarationsOf(".pack-row__license");
 
-    expect(label).toContain("text-overflow: ellipsis");
+    expect(label).not.toContain("text-overflow");
+    expect(label).toMatch(/overflow-wrap|word-break/);
     expect(license.length).toBeGreaterThan(0);
     expect(license).not.toContain("text-overflow");
     expect(license).not.toMatch(/white-space:\s*nowrap/);
