@@ -578,6 +578,14 @@ existente de ancestry feats, sem extensão especial de engine.
 **REQ-SF2-017** [V2] As 21 species adicionais do suplemento _Galactic Ancestries_
 (2026) serão adicionadas como pack de compendium suplementar.
 
+**REQ-SF2-017a** [MVP] O SF2e deve derivar o tamanho efetivo do personagem pelo mesmo passo
+do PF2e (`sf2e.character.derived.size`, implementação única em `systems/engine-2e`), com as
+mesmas camadas e a mesma publicação em `system.derived.size` (`ver 17-sistema-pf2e.md`,
+DEC-PF2-13, REQ-PF2-150..153) — sem regra de tamanho própria do SF2e. As heranças Barathu
+Estágio Inicial (Pequena), Barathu Fundido (Grande) e Sand Roamer (Pequena) substituem o
+tamanho da species. No sistema composto o resultado é o mesmo para um personagem de qualquer
+origem.
+
 ---
 
 ### Antecedentes, Talentos ≤3 e Progressão (Fatia 2 — ficha nível 3, DEC-SF2-10)

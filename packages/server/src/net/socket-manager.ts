@@ -10,10 +10,17 @@
  * REQ-NET-093: Envelope types from @fusion/shared.
  */
 
+import {
+  buildNoteCreateHandler,
+  buildNoteUpdateHandler,
+  buildNoteDeleteHandler,
+} from "./handlers/note-handlers.js";
 import { Server as SocketIOServer } from "socket.io";
 import type { Namespace, Socket } from "socket.io";
 import type { Server as HttpServer } from "node:http";
 import type { Logger } from "pino";
+import { existsSync } from "node:fs";
+import { guardPath, PathTraversalError } from "../assets/path-guard.js";
 
 import { EnvelopeSchema, PROTOCOL_VERSION, FUSION_VERSION, type Envelope } from "@fusion/shared";
 
@@ -37,6 +44,7 @@ import {
   buildDocCreateHandler,
   buildDocUpdateHandler,
   buildDocDeleteHandler,
+  broadcastToWorld,
 } from "./handlers/doc-handlers.js";
 import { buildActorSetKnowledgeHandler } from "./handlers/knowledge-handlers.js";
 import { buildFolderDeleteHandler } from "./handlers/folder-handlers.js";
@@ -65,17 +73,52 @@ import {
   buildCombatSetHiddenHandler,
   buildCombatReorderHandler,
   buildCombatEndHandler,
+  buildAttackCountPublisher,
 } from "../combat/combat-handlers.js";
 import { InitiativeFormulaRegistry } from "../combat/initiative-registry.js";
 import { registerSystemFormulas } from "../combat/system-formula-adapter.js";
 import { CombatEventBus } from "../combat/combat-event-bus.js";
+import { createActorMechanicsService } from "../combat/actor-mechanics-service.js";
+import { buildApplyDamageHandler } from "../combat/apply-damage-handler.js";
+import { buildApplyConditionHandler } from "../combat/apply-condition-handler.js";
+import { buildEffectApplyHandler } from "./handlers/effect-handlers.js";
+import { buildItemConsumeHandler } from "./handlers/item-handlers.js";
+import { buildItemTransferHandler } from "./handlers/item-transfer-handler.js";
+import {
+  createTurnHookRunner,
+  createStubTurnHookContextServices,
+  createDocumentWriteTurnHookContextServices,
+  createRollTurnHookContextService,
+} from "../combat/turn-hook-runner.js";
+import type { TurnHookContextServices } from "../combat/turn-hook-runner.js";
+import type { TokenMarkSource } from "../chat/roll-resolution.js";
 import { TargetingStore } from "../combat/targeting-store.js";
-import { buildCombatTargetHandler, registerTargetingCleanup } from "../combat/target-handler.js";
+import {
+  buildCombatTargetHandler,
+  registerTargetingCleanup,
+  replayTargetingTo,
+} from "../combat/target-handler.js";
+import {
+  buildMarkSetHandler,
+  buildMarkClearHandler,
+  createTokenMarkSource,
+} from "../combat/mark-handler.js";
+import {
+  buildMountHandler,
+  buildDismountHandler,
+  releaseDismountedRider,
+} from "../combat/mount-handler.js";
+
+import { buildCompanionCommandHandler } from "../combat/companion-command-handler.js";
+import { buildCompanionSetActiveHandler } from "../combat/companion-active-handler.js";
+import { MapCounter, registerMapCounterReset } from "../combat/map-counter.js";
 import {
   buildResyncRequestHandler,
   buildActiveSceneHandler,
+  buildScenePreloadHandler,
   sendJoinSnapshot,
 } from "./handlers/sync-handlers.js";
+import { buildSoundPlayHandler, buildSoundStopHandler } from "./handlers/sound-handlers.js";
 import {
   buildChatSendHandler,
   buildChatHistoryHandler,
@@ -119,6 +162,12 @@ import {
 // Types
 // --------------------------------------------------------------------------
 
+interface RiderDismountedInfo {
+  sceneId: string;
+  riderTokenId: string;
+  userId: string;
+}
+
 export interface WorldNamespaceOptions {
   /** The open world slug (used as namespace id). */
   worldId: string;
@@ -157,6 +206,18 @@ export interface WorldNamespaceOptions {
    * fallback (e.g. stub system, or system package not loaded).
    */
   systemModule?: SystemModule;
+  /**
+   * The world's assets directory (same value passed as `assetsDir` to
+   * registerAssetRoutes). When provided, sound:play rejects an unknown track
+   * with NOT_FOUND; when omitted, existence is left to the GM's picker.
+   */
+  assetsDir?: string;
+  /**
+   * BHR-F2-05: where the marks on a roll's target come from
+   * (`target:mark:<slug>`). `TokenMark` (BHR-F3-06) plugs its reader in here;
+   * absent = no token carries a mark.
+   */
+  tokenMarkSource?: TokenMarkSource;
 }
 
 /**
@@ -212,6 +273,15 @@ export class SocketManager {
    * neither is reachable from a closure nobody holds.
    */
   private readonly writeMetrics = new Map<string, WriteMetricsCollector>();
+  private readonly mapCounters = new Map<string, MapCounter>();
+  /**
+   * Per world: announce documents that were created OUTSIDE a socket op (the character `POST /api/users`
+   * writes through REST). Same seq, op buffer and `broadcastToWorld` funnel as a socket `doc:create`.
+   */
+  private readonly docCreatedBroadcasters = new Map<
+    string,
+    (documentType: string, documents: Record<string, unknown>[]) => void
+  >();
 
   constructor(options: SocketManagerOptions) {
     this.logger = options.logger;
@@ -225,8 +295,20 @@ export class SocketManager {
         methods: ["GET", "POST"],
         credentials: true,
       },
-      // Disable per-message compression for now (see spec Q3)
-      perMessageDeflate: false,
+      // Per-message compression (spec 04 Q3, answered by measurement): a pack
+      // index is megabytes of JSON that gzips to ~26% (feats-core 2645 -> 661 KB),
+      // and sending it raw through the tunnel is what made "carregar o compêndio"
+      // slow and failing on the table's connection. Only payloads above 16 KB are
+      // compressed (token moves, rolls and chat stay untouched), at a low zlib level
+      // (the biggest index costs ~50 ms of CPU), with no context takeover so an idle
+      // connection holds no zlib window.
+      perMessageDeflate: {
+        threshold: 16 * 1024,
+        zlibDeflateOptions: { level: 3 },
+        serverNoContextTakeover: true,
+        clientNoContextTakeover: true,
+        concurrencyLimit: 2,
+      },
       // Reasonable connection limits
       connectTimeout: 10_000,
       pingTimeout: 25_000,
@@ -254,6 +336,8 @@ export class SocketManager {
       compendiumService,
       systemId,
       systemModule,
+      assetsDir,
+      tokenMarkSource,
     } = options;
 
     const namespacePath = `/world/${worldId}`;
@@ -275,7 +359,25 @@ export class SocketManager {
       metrics: writeMetrics,
       logger: this.logger,
     });
+    // REQ-CBT-053..055: token targeting (ephemeral; userId server-authoritative).
+    // Constructed here (not next to the combat handlers below) so chat:send
+    // (ALQ-F1-05 / REQ-CBT-056) can also read it for the targetSnapshot photo.
+    const targetingStore = new TargetingStore();
+    // BHR-F3-04: server-side multiple attack penalty counter (chat:send notes, turnStart zeroes).
+    const mapCounter = new MapCounter();
+    this.mapCounters.set(worldId, mapCounter);
     const registry = new HandlerRegistry();
+
+    this.docCreatedBroadcasters.set(worldId, (documentType, documents) => {
+      const envelope: Envelope = {
+        type: "doc:create",
+        seq: seqStore.next(),
+        ts: Date.now(),
+        payload: { documentType, documents },
+      };
+      opBuffer.push(envelope);
+      broadcastToWorld(ns, envelope, documentType);
+    });
 
     // Spec 39 §5.9 (REQ-CTT-083): bind this namespace to the Actor table its
     // contact redaction reads from. Registered here, once, so EVERY emission
@@ -323,8 +425,16 @@ export class SocketManager {
       logger: this.logger,
       ...(systemId !== undefined ? { systemId } : {}),
       ...(systemModule !== undefined ? { systemModule } : {}),
-      // REQ-CHT-033: supply recent chat for join snapshot
-      getRecentChat: (userId: string, role: number) => getRecentChatForUser(db, userId, role),
+      // REQ-CHT-033: supply recent chat for join snapshot. `store` threaded
+      // through so the targetSnapshot B1 redaction can resolve hidden tokens
+      // (ALQ-F1-05).
+      getRecentChat: (userId: string, role: number) =>
+        getRecentChatForUser(db, userId, role, undefined, store),
+      // BHR-F5-03 x F5-04 x F5-05: the GM moving a mounted rider takes him off the mount; the dismount
+      // side effects (Montado effect, group MAP) live with the mount handler, wired once for both paths.
+      onRiderDismounted: ({ sceneId, riderTokenId, userId }: RiderDismountedInfo): void => {
+        releaseDismountedRider(mountDeps, sceneId, riderTokenId, userId);
+      },
     };
 
     // Register built-in system handlers
@@ -389,9 +499,49 @@ export class SocketManager {
     // Register M1-B sync handlers
     registry.register("resync:request", buildResyncRequestHandler(syncDeps));
     registry.register("world:activeScene", buildActiveSceneHandler(syncDeps));
+    registry.register("scene:preload", buildScenePreloadHandler(syncDeps));
+
+    // Ambient table track (sound:play / sound:stop). assetExists is wired only
+    // when assetsDir was supplied (see boot.ts).
+    const assetExists = assetsDir
+      ? (name: string): boolean => {
+          try {
+            return existsSync(guardPath(assetsDir, name));
+          } catch (err) {
+            if (err instanceof PathTraversalError) return false;
+            throw err;
+          }
+        }
+      : undefined;
+    const soundDeps = { db, ns, seqStore, opBuffer, ...(assetExists ? { assetExists } : {}) };
+    registry.register("sound:play", buildSoundPlayHandler(soundDeps));
+    registry.register("sound:stop", buildSoundStopHandler(soundDeps));
 
     // Register M1-D chat + roll handlers
-    const chatDeps = { db, ns, seqStore, worldId };
+    // store/targetingStore (ALQ-F1-05 / REQ-CBT-056): chat:send reads the
+    // author's live target selection to freeze `flags.fusion.targetSnapshot`
+    // on every roll message.
+    // BHR-F2-05: the system's roll resolver + `onRollResolved` listeners, the
+    // target-mark source and the hook context (assigned once the turn-hook
+    // services exist, below — only ever read when a roll is resolved).
+    const rollHook: { services?: TurnHookContextServices } = {};
+    const chatDeps = {
+      db,
+      ns,
+      seqStore,
+      worldId,
+      store,
+      targetingStore,
+      ...(systemModule !== undefined ? { systemModule } : {}),
+      // BHR-F3-06: the persisted Prey, unless a caller injected another source.
+      tokenMarkSource: tokenMarkSource ?? createTokenMarkSource(store),
+      rollHookContext: () => ({
+        ...(rollHook.services ?? createStubTurnHookContextServices()),
+        worldTime: { round: 0, turn: 0 },
+      }),
+      logger: this.logger,
+      mapCounter,
+    };
     registry.register("chat:send", buildChatSendHandler(chatDeps));
     registry.register("chat:history", buildChatHistoryHandler(chatDeps));
     // REQ-CHT-050 / REQ-ACH-012: search is open to every role; the handler
@@ -406,7 +556,13 @@ export class SocketManager {
     registry.register("chat:invalidate", buildChatInvalidateHandler(chatDeps));
 
     // Register M2-A vision handlers (walls, lights, door state, move collision)
-    const visionDeps = { store, seqStore, opBuffer, ns };
+    const visionDeps = {
+      store,
+      seqStore,
+      opBuffer,
+      ns,
+      onRiderDismounted: syncDeps.onRiderDismounted,
+    };
     registry.register("wall:create", buildWallCreateHandler(visionDeps));
     registry.register("wall:update", buildWallUpdateHandler(visionDeps));
     registry.register("wall:delete", buildWallDeleteHandler(visionDeps));
@@ -414,6 +570,11 @@ export class SocketManager {
     registry.register("light:update", buildLightUpdateHandler(visionDeps));
     registry.register("light:delete", buildLightDeleteHandler(visionDeps));
     registry.register("scene:doorState", buildDoorStateHandler(visionDeps));
+    // Map pins (Scene.notes)
+    const noteDeps = { store, seqStore, opBuffer, ns };
+    registry.register("scene:noteCreate", buildNoteCreateHandler(noteDeps));
+    registry.register("scene:noteUpdate", buildNoteUpdateHandler(noteDeps));
+    registry.register("scene:noteDelete", buildNoteDeleteHandler(noteDeps));
     // Override token:move with collision-aware handler
     registry.register("token:move", buildTokenMoveHandler(visionDeps));
 
@@ -433,6 +594,62 @@ export class SocketManager {
       );
     }
     const eventBus = new CombatEventBus();
+    registerMapCounterReset(mapCounter, eventBus);
+    // ALQ-F1-08: the real `actor:applyDamage` service — validates, rereads
+    // amount/targets from the persisted roll, calls the active system's
+    // ActorMechanics and publishes the redacted `actor:damageApplied`
+    // summary. Constructed before the turn-hook runner below so its
+    // `applyDamage` can replace that one stub service (`actingAs: "system"`).
+    const actorMechanicsService = createActorMechanicsService({
+      store,
+      db,
+      ns,
+      seqStore,
+      opBuffer,
+      // ALQ-F1-09 / REQ-CBT-056: applyCondition's own live-TargetSelection
+      // gate for a non-privileged caller.
+      targetingStore,
+      worldId,
+      systemModule,
+      logger: this.logger,
+    });
+    // DEC-CBT-09 / ALQ-F1-04: awaited system turn-hook runner, wired
+    // alongside (not instead of) the fire-and-forget CombatEventBus above.
+    // `applyDamage`/`applyCondition` are the REAL service (ALQ-F1-08/F1-09);
+    // `deleteEmbedded`/`chat` are the REAL document-write services (B4 fix,
+    // onda-4 adversarial review — see combat/turn-hook-runner.ts's header);
+    // `updateActor` is real too, and `getSetting` reads the system's world settings.
+    const hookServices: TurnHookContextServices = {
+      ...createStubTurnHookContextServices(),
+      ...createDocumentWriteTurnHookContextServices({
+        store,
+        db,
+        ns,
+        seqStore,
+        opBuffer,
+        worldId,
+        ...(systemModule ? { systemModule } : {}),
+        logger: this.logger,
+      }),
+      // Condition front, stage 3b: hooks roll on the server and the roll lands in the chat.
+      ...createRollTurnHookContextService({
+        db,
+        ns,
+        seqStore,
+        worldId,
+        rollService: combatRollService,
+        store,
+      }),
+      applyDamage: (p) => actorMechanicsService.applyDamage(p, "system"),
+      applyCondition: (p) => actorMechanicsService.applyCondition(p, "system"),
+    };
+    // BHR-F2-05: `onRollResolved` listeners write through the SAME services.
+    rollHook.services = hookServices;
+    const turnHookRunner = createTurnHookRunner({
+      systemModule,
+      services: hookServices,
+      logger: this.logger,
+    });
     const combatDeps = {
       store,
       seqStore,
@@ -440,13 +657,19 @@ export class SocketManager {
       ns,
       formulaRegistry,
       eventBus,
+      turnHookRunner,
       db,
       worldId,
       logger: this.logger,
       ...(systemModule !== undefined ? { systemModule } : {}),
     };
+    // BHR onda-6 I-7: the counter publishes its count on the combat document.
+    mapCounter.setStore(store); // BHR-F5-05: a mounted rider and its mount share one MAP counter
+    mapCounter.setPublisher(buildAttackCountPublisher(combatDeps));
     // Handler names match the EnvelopeTypeSchema literals in packages/shared/src/protocol.ts
     registry.register("combat:create", buildCombatCreateHandler(combatDeps));
+    // L3 I4: Command an Animal is recorded on the combat by the server (valid for the owner's turn).
+    registry.register("companion:command", buildCompanionCommandHandler(combatDeps));
     registry.register("combat:beginCombat", buildCombatStartHandler(combatDeps));
     registry.register("combat:addCombatant", buildCombatAddCombatantHandler(combatDeps));
     registry.register("combat:removeCombatant", buildCombatRemoveCombatantHandler(combatDeps));
@@ -460,12 +683,49 @@ export class SocketManager {
     registry.register("combat:reorder", buildCombatReorderHandler(combatDeps));
     registry.register("combat:endCombat", buildCombatEndHandler(combatDeps));
 
-    // REQ-CBT-053..055: token targeting (ephemeral; userId server-authoritative).
-    const targetingStore = new TargetingStore();
+    // targetingStore constructed earlier (near `store`) so chat:send can use it too.
     const targetDeps = { store, seqStore, ns, targetingStore };
     registry.register("combat:target", buildCombatTargetHandler(targetDeps));
+    // BHR-F3-06 (REQ-BHR-086..090): the Prey persisted on the marking actor —
+    // not part of the targeting store, so it outlives turnEnd.
+    const markDeps = { store, seqStore, opBuffer, ns, targetingStore };
+    registry.register("mark:set", buildMarkSetHandler(markDeps));
+    registry.register("mark:clear", buildMarkClearHandler(markDeps));
+    // BHR-F5-02 (REQ-BHR-174..176): MountState on the two tokens, decided on the server.
+    const mountDeps = {
+      store,
+      seqStore,
+      opBuffer,
+      ns,
+      onMountChanged: (sceneId: string) => {
+        mapCounter.republishScene(sceneId);
+      },
+      ...(compendiumService ? { compendium: compendiumService } : {}),
+      ...(systemModule ? { systemModule } : {}),
+    };
+    registry.register("mount:mount", buildMountHandler(mountDeps));
+    registry.register("mount:dismount", buildDismountHandler(mountDeps));
+    // BHR-F4-10 (REQ-PET-120..121, DC-07): swap the active animal companion, decided on the server.
+    registry.register("companion:setActive", buildCompanionSetActiveHandler(mountDeps));
     // REQ-CBT-055: clear a targeter's targets when their combatant's turn ends.
     registerTargetingCleanup(targetDeps, eventBus);
+
+    // ALQ-F1-08 / REQ-SYS-142: `actor:applyDamage` — permission, anti-cheat
+    // (montante/alvos relidos da rolagem gravada) and D-04 redaction all live
+    // in `actorMechanicsService`, constructed above.
+    registry.register(
+      "actor:applyDamage",
+      buildApplyDamageHandler({ service: actorMechanicsService }),
+    );
+
+    // ALQ-F1-09 / REQ-SYS-142, REQ-PF2-215, REQ-CBT-056: `actor:applyCondition`
+    // — same permission/target-resolution discipline as `actor:applyDamage`
+    // above (GM: any actor; player: own actor or live TargetSelection), via
+    // the same `actorMechanicsService`.
+    registry.register(
+      "actor:applyCondition",
+      buildApplyConditionHandler({ service: actorMechanicsService }),
+    );
 
     // Register M3-D compendium handlers (REQ-CMP-010..024)
     const compSvc = compendiumService ?? new CompendiumService();
@@ -509,6 +769,46 @@ export class SocketManager {
     // DEC-CPD-05 / REQ-CPD-061/073: the sheet door. Not gated by role — gated
     // by OWNER of the destination actor, inside the service.
     registry.register("compendium:importToActor", buildCompendiumImportToActorHandler(compDeps));
+
+    // ALQ-F2-11 / REQ-SYS-143/144: `item:consume` — permission, atomicity
+    // (expectedVersion) and the post-consume hook run all live in
+    // item-handlers.ts; the game-specific plan is whatever the active system
+    // registered via `registrar.registerConsumeItem`.
+    registry.register(
+      "item:consume",
+      buildItemConsumeHandler({
+        store,
+        db,
+        ns,
+        seqStore,
+        opBuffer,
+        worldId,
+        systemModule,
+        targetingStore,
+        compendium: compSvc,
+        actorMechanicsService,
+        logger: this.logger,
+      }),
+    );
+
+    // Inventory: give an item to another actor - one atomic write on two actors (item-transfer-handler.ts).
+    registry.register(
+      "item:transfer",
+      buildItemTransferHandler({ store, db, ns, seqStore, opBuffer, worldId }),
+    );
+
+    // BHR-F4-08 (REQ-BHR-102..105): a pack effect onto other actors, permission by link.
+    registry.register(
+      "effect:apply",
+      buildEffectApplyHandler({
+        store,
+        ns,
+        seqStore,
+        opBuffer,
+        compendium: compSvc,
+        ...(systemModule ? { systemModule } : {}),
+      }),
+    );
 
     // REQ-NET-003/014: auth middleware runs before connection is accepted
     ns.use((socket, next) => {
@@ -635,6 +935,8 @@ export class SocketManager {
       const auth = socket.handshake.auth as Record<string, unknown>;
       const lastSeq = typeof auth["lastSeq"] === "number" ? auth["lastSeq"] : undefined;
       sendJoinSnapshot(socket, syncDeps, data.userId, data.role, lastSeq);
+      // L2 defect D5: the live targeting outlives a reload; this socket starts empty, so it is told what is alive.
+      replayTargetingTo(socket, targetingStore);
 
       // Register low-level event handlers
       this._registerSocketHandlers(socket, data, registry, seqStore, ns, {
@@ -642,6 +944,12 @@ export class SocketManager {
         pingRateLimiter,
         previewRateLimiter,
         sceneRooms,
+        assetSecret: secret,
+        store,
+        userIdentity: (id: string) => {
+          const u = userStore.findById(id);
+          return u ? { name: u.name, color: u.color } : undefined;
+        },
       });
 
       socket.on("disconnect", (reason) => {
@@ -686,6 +994,7 @@ export class SocketManager {
         ns.removeAllListeners();
         this.io._nsps.delete(`/world/${worldId}`);
         this.namespaces.delete(worldId);
+        this.docCreatedBroadcasters.delete(worldId);
 
         this.logger.info({ worldId }, "World namespace removed");
       }
@@ -704,7 +1013,13 @@ export class SocketManager {
         metrics.stop();
         this.writeMetrics.delete(worldId);
       }
+      this.mapCounters.delete(worldId);
     }
+  }
+
+  /** BHR-F3-04: the world's MAP counter (read by the sheet channel and by tests). */
+  mapCounterFor(worldId: string): MapCounter | undefined {
+    return this.mapCounters.get(worldId);
   }
 
   /**
@@ -733,6 +1048,18 @@ export class SocketManager {
     for (const ns of this.namespaces.values()) {
       ns.to("gm").emit(event, payload);
     }
+  }
+
+  /**
+   * Announce documents created outside a socket op (e.g. the character born with a new user, #254) to
+   * every client of the world, as a `doc:create`. No-op for a world with no namespace.
+   */
+  broadcastDocCreated(
+    worldId: string,
+    documentType: string,
+    documents: Record<string, unknown>[],
+  ): void {
+    this.docCreatedBroadcasters.get(worldId)?.(documentType, documents);
   }
 
   /** Close all namespaces and the underlying socket.io server. */
@@ -780,6 +1107,12 @@ export class SocketManager {
       previewRateLimiter: EphemeralRateLimiter;
       /** REQ-NET-005: shared scene room tracking map for this namespace. */
       sceneRooms: Map<string, string>;
+      /** Display name/colour of a user, stamped server-side on ephemeral broadcasts. */
+      /** World HMAC secret, to sign the image grant of "Show Players". */
+      assetSecret?: Uint8Array;
+      /** The world's documents (pinned areas persist in Scene.templates). */
+      store: DocumentStore;
+      userIdentity: (userId: string) => { name: string; color: string } | undefined;
     },
   ): void {
     const logger = this.logger;
@@ -931,6 +1264,7 @@ export class SocketManager {
       }
 
       // M1-E: route ephemeral events to presence handlers
+      const identity = rateLimiters.userIdentity(data.userId);
       handleEphemeralEnvelope(
         socket,
         parsed.data as Envelope,
@@ -938,6 +1272,7 @@ export class SocketManager {
           userId: data.userId,
           role: data.role,
           worldId: data.worldId,
+          ...(identity ? { userName: identity.name, userColor: identity.color } : {}),
         },
         {
           ns,
@@ -946,6 +1281,8 @@ export class SocketManager {
           pingRateLimiter: rateLimiters.pingRateLimiter,
           previewRateLimiter: rateLimiters.previewRateLimiter,
           sceneRooms: rateLimiters.sceneRooms,
+          ...(rateLimiters.assetSecret ? { assetSecret: rateLimiters.assetSecret } : {}),
+          store: rateLimiters.store,
         },
       );
     });

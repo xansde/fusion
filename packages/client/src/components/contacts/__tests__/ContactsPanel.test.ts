@@ -303,6 +303,30 @@ describe("the sub-character is inside the owner's card (REQ-CTT-025)", () => {
   });
 });
 
+describe("the sub-character opens its own sheet (pedido do Alexandre, 2026-10-07)", () => {
+  it("the owner gets a real button on the sub-card, wired to the same opener as the card", () => {
+    const mine = cardOf(renderPanel(), "act-fofurinha01");
+
+    expect(mine).toMatch(/<button[^>]*aria-label="Abrir a ficha de Grão"/);
+    expect(mine).not.toContain('tabindex="-1"');
+    expect(code()).toContain("openSheet(sub.id)");
+  });
+
+  it("the GM gets the button too", () => {
+    const body = renderPanel({ isGm: true, userId: "user-gm-1" });
+
+    expect(cardOf(body, "act-fofurinha01")).toMatch(/aria-label="Abrir a ficha de Grão"/);
+  });
+
+  it("another player sees the sub-card but no click to open it", () => {
+    const body = renderPanel({ userId: TOBIAS });
+    const card = cardOf(body, "act-fofurinha01");
+
+    expect(card).toContain('data-sub-id="act-grao000001"');
+    expect(card).not.toContain("Abrir a ficha de Grão");
+  });
+});
+
 // ---------------------------------------------------------------------------
 // Opening the sheet and dragging — REQ-CTT-027 / REQ-CTT-028
 // ---------------------------------------------------------------------------
@@ -322,11 +346,19 @@ describe("opening the sheet (REQ-CTT-027)", () => {
 });
 
 describe("dragging a card to the map (REQ-CTT-028)", () => {
-  it("REQ-CTT-028: the player's card is not draggable at all", () => {
+  it("REQ-CTT-028/REQ-TOK-030a: the player drags the cards of the actors he owns, and no other", () => {
     const body = renderPanel();
 
-    expect(body).not.toContain('draggable="true"');
-    expect(cardOf(body, "act-fofurinha01")).toContain('draggable="false"');
+    expect(cardOf(body, "act-fofurinha01")).toContain('draggable="true"');
+    expect(cardOf(body, "act-tobias00001")).toContain('draggable="false"');
+  });
+
+  it("REQ-TOK-030a: a sub-character drags itself, not the card it sits in", () => {
+    const src = code();
+
+    expect(src).toContain("ondragstart={(event) => onDragStartSub(event, sub)}");
+    expect(src).toMatch(/function onDragStartSub[\s\S]*?event\.stopPropagation\(\)/);
+    expect(src).toContain("startActorDrag(event, sub.id, sub.name)");
   });
 
   it("REQ-CTT-028: the GM's card is draggable, and carries the canvas' own payload", () => {

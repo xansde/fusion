@@ -58,7 +58,7 @@ export function effectiveGridSize(scene: GridSizeInput | null | undefined): numb
 }
 
 /** The minimal shape `sceneContentOffset` needs. */
-export interface SceneDimensionsInput {
+export interface SceneDimensionsInput extends GridSizeInput {
   readonly width: number;
   readonly height: number;
   readonly padding: number;
@@ -75,8 +75,65 @@ export interface SceneContentOffset {
  * `padY` formula exactly — one definition, not three.
  */
 export function sceneContentOffset(scene: SceneDimensionsInput): SceneContentOffset {
+  // The padding is rounded UP to whole grid cells (as Foundry does). The grid
+  // is drawn from (padX, padY) while token snapping, drops and arrow moves are
+  // anchored at the scene origin; with a padding that is not a multiple of the
+  // cell size the two lattices drifted apart and tokens snapped between lines.
+  const size = effectiveGridSize(scene);
+  const toCells = (raw: number): number => Math.ceil(raw / size) * size;
   return {
-    padX: Math.round(scene.width * scene.padding),
-    padY: Math.round(scene.height * scene.padding),
+    padX: toCells(scene.width * scene.padding),
+    padY: toCells(scene.height * scene.padding),
   };
+}
+
+/** What the grid helpers need from a scene. */
+export interface SceneGridInput extends GridSizeInput {
+  readonly gridOffsetX?: number | null;
+  readonly gridOffsetY?: number | null;
+}
+
+/**
+ * Where the grid starts relative to the map corner (grid calibration), wrapped
+ * into one cell. Zero for a scene that was never calibrated. The scene padding
+ * is a whole number of cells, so this is also the offset of the lattice in
+ * scene coordinates — which is what token snapping needs.
+ */
+export function sceneGridOffset(scene: SceneGridInput): { x: number; y: number } {
+  const size = effectiveGridSize(scene);
+  const wrap = (v: number | null | undefined): number =>
+    typeof v === "number" && Number.isFinite(v) ? ((v % size) + size) % size : 0;
+  return { x: wrap(scene.gridOffsetX), y: wrap(scene.gridOffsetY) };
+}
+
+/**
+ * A string that changes exactly when something about how the grid is drawn or
+ * measured changes. The canvas reloads the scene when it does (the padding
+ * depends on the cell size, so the background moves with it).
+ */
+export function sceneGridSignature(
+  scene: SceneGridInput & {
+    readonly grid?: {
+      readonly size?: number;
+      readonly color?: string;
+      readonly alpha?: number;
+      readonly distance?: number;
+      readonly units?: string;
+      readonly type?: string;
+    } | null;
+  },
+): string {
+  const g = scene.grid;
+  const off = sceneGridOffset(scene);
+  return [
+    effectiveGridSize(scene),
+    off.x,
+    off.y,
+    g?.color ?? "",
+    g?.alpha ?? "",
+    g?.distance ?? "",
+    g?.units ?? "",
+    g?.type ?? "",
+    g ? "g" : "-",
+  ].join("|");
 }

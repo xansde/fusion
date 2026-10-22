@@ -602,7 +602,121 @@ describe("Player-owned character edit + build legality (pf2e, O6/T6.2-T6.3; O6 f
       ],
     });
     expect(ack["ok"]).toBe(false);
+    // BHR-F7-02 refuses a non-object `system.build` replacement up front (it would wipe gmExceptions), before the
+    // build validation that used to answer VALIDATION_FAILED: the answer is deterministic.
+    expect(ack["code"]).toBe("PERMISSION_DENIED");
+  });
+
+  it("still answers VALIDATION_FAILED to invalid `system.build.choices` (two choices in one slot: the build validation is not bypassed)", async () => {
+    const twice = { level: 2, slot: "skillFeat-2", type: "skillFeat" };
+    const ack = await sendOp(ownerSocket, "doc:update", {
+      documentType: "Actor",
+      updates: [
+        {
+          _id: characterId,
+          diff: { "system.build.choices": [twice, twice] },
+          expectedVersion: version,
+        },
+      ],
+    });
+    expect(ack["ok"]).toBe(false);
     expect(ack["code"]).toBe("VALIDATION_FAILED");
+    expect(String(ack["message"])).toContain("DUPLICATE_SLOT");
+  });
+
+  it("DENIES a classLevel choice that enters a NEW class at an odd character level (D8, 19/10/2026)", async () => {
+    const ack = await sendOp(ownerSocket, "doc:update", {
+      documentType: "Actor",
+      updates: [
+        {
+          _id: characterId,
+          diff: {
+            "system.build.choices": [
+              { level: 1, slot: "classLevel-1", type: "classLevel", ref: "classAAA" },
+              { level: 2, slot: "classLevel-2", type: "classLevel", ref: "classAAA" },
+              { level: 3, slot: "classLevel-3", type: "classLevel", ref: "classBBB" },
+            ],
+          },
+          expectedVersion: version,
+        },
+      ],
+    });
+    expect(ack["ok"]).toBe(false);
+    expect(ack["code"]).toBe("VALIDATION_FAILED");
+    expect(String(ack["message"])).toContain("NEW_CLASS_AT_ODD_LEVEL");
+  });
+
+  it("ALLOWS a new class at an even level and continuing it at an odd one (D8)", async () => {
+    const ack = await sendOp(ownerSocket, "doc:update", {
+      documentType: "Actor",
+      updates: [
+        {
+          _id: characterId,
+          diff: {
+            "system.build.choices": [
+              { level: 1, slot: "classLevel-1", type: "classLevel", ref: "classAAA" },
+              { level: 2, slot: "classLevel-2", type: "classLevel", ref: "classBBB" },
+              { level: 3, slot: "classLevel-3", type: "classLevel", ref: "classBBB" },
+            ],
+          },
+          expectedVersion: version,
+        },
+      ],
+    });
+    expect(ack["ok"]).toBe(true);
+    const doc = (ack["result"] as { documents: Array<Record<string, unknown>> }).documents[0]!;
+    version = statsVersion(doc);
+  });
+
+  it("DENIES a multiclass dedication in the Free Archetype slot once the world runs multiclass-by-levels (D5)", async () => {
+    const on = await sendOp(ownerSocket, "doc:update", {
+      documentType: "Actor",
+      updates: [
+        {
+          _id: characterId,
+          diff: { "system.build.variantRules": { classLevels: true } },
+          expectedVersion: version,
+        },
+      ],
+    });
+    expect(on["ok"]).toBe(true);
+    version = statsVersion(
+      (on["result"] as { documents: Array<Record<string, unknown>> }).documents[0]!,
+    );
+    const rogueDedication = {
+      name: "Rogue Dedication",
+      type: "feat",
+      system: {
+        category: "class",
+        level: 2,
+        traits: { value: ["archetype", "dedication", "multiclass"] },
+      },
+      flags: { fusion: { build: { level: 2, slot: "archetypeFeat-2" } } },
+    };
+    const embedAck = await sendOp(ownerSocket, "doc:create", {
+      documentType: "Item",
+      parent: { type: "Actor", id: characterId },
+      data: [rogueDedication],
+    });
+    expect(embedAck["ok"]).toBe(false);
+    expect(embedAck["code"]).toBe("VALIDATION_FAILED");
+    expect(String(embedAck["message"])).toContain("MULTICLASS_ARCHETYPE_FORBIDDEN");
+  });
+
+  it("ALLOWS a class feat in the Free Archetype slot (D9) and a general archetype's dedication (D5 keeps those)", async () => {
+    const classFeat = {
+      name: "Test Class Feat in the archetype slot",
+      type: "feat",
+      system: { category: "class", level: 1, traits: { value: ["fighter"] } },
+      flags: { fusion: { build: { level: 2, slot: "archetypeFeat-2" } } },
+    };
+    const ack = await sendOp(ownerSocket, "doc:create", {
+      documentType: "Item",
+      parent: { type: "Actor", id: characterId },
+      data: [classFeat],
+    });
+    expect(ack["ok"]).toBe(true);
+    version = statsVersion((ack["result"] as { parent: Record<string, unknown> }).parent);
   });
 
   // -------------------------------------------------------------------------
@@ -668,14 +782,7 @@ describe("Player-owned character edit + build legality (pf2e, O6/T6.2-T6.3; O6 f
   // double-click has something to open — see components/contacts/
   // ContactsPanel.svelte and lib/contacts/contactsVM.ts on the client). An
   // outsider's own snapshot must NOT carry it (ownership.default = NONE,
-  // REQ-USR-025a) — proven ONLY for the join snapshot below. C1 (o6b fixer
-  // r1, revisão adversarial, xansde/fusion#240): the same cut does NOT hold
-  // for the other three REQ-NET-096 paths (live broadcast, resync delta
-  // replay, ack echo) — redaction.ts's actorEscapingKnowledgeIsVisible
-  // treats any `type: "character"` doc as visible regardless of ownership,
-  // so "na mesa" is safe unconditional per-card only at join, not after any
-  // doc:update. Issue #240 tracks the spec conflict (05×39) this needs
-  // resolved before the predicate can be aligned across all four paths.
+  // REQ-USR-025a), on the join snapshot and on the live paths alike (#240, REQ-NET-096).
   //
   // No new UI trigger was built for this fatia: REQ-CFG-051a forbids the
   // Usuários section from offering create/edit/delete personagem as its own
@@ -707,17 +814,8 @@ describe("Player-owned character edit + build legality (pf2e, O6/T6.2-T6.3; O6 f
       }
     });
 
-    // C1 (o6b fixer r1, revisão adversarial, xansde/fusion#240): this proves
-    // the redaction boundary ONLY for the join snapshot — sync-handlers.ts's
-    // resync:full applies its own resolveOwnership>=LIMITED filter here.
-    // redaction.ts's actorEscapingKnowledgeIsVisible (used by the live
-    // broadcast, the resync delta replay, and the ack echo — the other
-    // three of REQ-NET-096's four paths) returns `true` for ANY viewer of a
-    // `type: "character"` doc regardless of ownership, so this same
-    // "outsider can't see it" guarantee does NOT hold for those three paths
-    // today. Do not read this test as proof of REQ-NET-096 end to end —
-    // issue #240 tracks the spec conflict (05×39) a decision here would
-    // have to resolve first.
+    // #240 (REQ-NET-096): the same cut holds for the live broadcast, the replay and the
+    // ack echo — see net/__tests__/character-actor-redaction.test.ts.
     it("an outsider's own join snapshot does NOT carry someone else's character (ownership.default = NONE)", async () => {
       const fresh = connectClient(ctx.port, ctx.worldId, ctx.outsiderToken);
       const traffic = recordEnvelopes(fresh);

@@ -25,6 +25,10 @@ import type { TokenDocument } from "@fusion/shared";
 import type { Socket } from "socket.io-client";
 import type { TokenInteractionOptions } from "../TokenInteractionManager.js";
 import { resetFootprintRegistry, seedFootprintRegistry } from "../footprintRegistry.svelte.js";
+// Preload the manager's module graph while the file is collected: a cold import inside a test
+// can pass the 15 s per-test ceiling on a loaded machine, and every `await import()` below then
+// gets the module already loaded (BAR-F1-01 verification).
+import "../TokenInteractionManager.js";
 
 // ---------------------------------------------------------------------------
 // Minimal fakes — no PIXI required (mirrors TokenInteractionManager.dragFootprint)
@@ -231,6 +235,39 @@ describe("TokenInteractionManager live ownership (R2, REQ-TOK-032/034)", () => {
     mgr.destroy();
   });
 
+  it("BAR-F1-01: the selection published to the store never depends on ownership — the gate lives in the store", async () => {
+    const { TokenInteractionManager } = await import("../TokenInteractionManager.js");
+
+    // The player owns nothing; any click still selects (as it always did) and is published.
+    // Filtering here would be a second ownership predicate (REQ-TOK-034, REQ-BAR-004): the
+    // active-actor store, fed by the same live `ownedActorIdsOf`, is where D-BA01 is decided.
+    const published: string[][] = [];
+    const container = makeFakeContainer();
+    const mgr = new TokenInteractionManager({
+      tokenContainer: container as never,
+      tokenLayer: makeFakeTokenLayer() as never,
+      mirror: makeFakeMirror(
+        SCENE_ID,
+        [makeToken()],
+        [{ _id: ACTOR_ID, name: "Ranger", system: {} }],
+      ) as never,
+      sceneId: SCENE_ID,
+      canvas: makeFakeCanvas() as never,
+      socket: makeFakeSocket(),
+      userId: PLAYER_ID,
+      userRole: ROLE_PLAYER,
+      getOwnedActorIds: () => new Set<string>(),
+      gridConfig: { size: 100, offsetX: 0, offsetY: 0 },
+      attachKeyboard: false,
+      onSelectionChange: (tokenIds) => published.push([...tokenIds]),
+    });
+
+    simulateDrag(container, makeFakeTarget(TOKEN_ID), 10, 10, 12, 12);
+    expect(published).toEqual([[TOKEN_ID]]);
+
+    mgr.destroy();
+  });
+
   it("a player who LOSES ownership mid-session stops being able to move the token", async () => {
     const { TokenInteractionManager } = await import("../TokenInteractionManager.js");
 
@@ -266,6 +303,140 @@ describe("TokenInteractionManager live ownership (R2, REQ-TOK-032/034)", () => {
 
     simulateDrag(container, makeFakeTarget(TOKEN_ID), 10, 10, 320, 320);
     expect(layer.applyLocalMove).toHaveBeenCalledTimes(1);
+
+    mgr.destroy();
+  });
+});
+
+// ---------------------------------------------------------------------------
+// BAR-F1-01 — the manager PUBLISHES its selection (REQ-BAR-007)
+// ---------------------------------------------------------------------------
+
+/**
+ * The selection used to live only in the private `_selectedIds` Set, invisible to the rest of
+ * the client. The active-actor store (`lib/actionbar/activeActorStore.svelte.ts`) needs it, so
+ * the manager publishes it through `onSelectionChange` — same pattern as `onOpenSheet` — on a
+ * select, on a click on empty canvas, on Esc, after Del, and in `destroy()` (teardown test).
+ * Spec: 53-barra-de-acoes.md REQ-BAR-007; tasks.md §2.4.
+ */
+describe("TokenInteractionManager publishes the selection (BAR-F1-01, REQ-BAR-007)", () => {
+  const NPC_TOKEN_ID = "tok-npc";
+  const NPC_ACTOR_ID = "actor-npc";
+  const ROLE_GM = 4;
+
+  beforeEach(() => {
+    fakeNow += 1_000;
+    vi.spyOn(Date, "now").mockImplementation(() => fakeNow);
+    resetFootprintRegistry();
+    seedFootprintRegistry({ med: { width: 1, height: 1 } });
+  });
+
+  async function build(role = ROLE_PLAYER) {
+    const { TokenInteractionManager } = await import("../TokenInteractionManager.js");
+    const published: ReadonlySet<string>[] = [];
+    const container = makeFakeContainer();
+    const tokens = [makeToken(), makeToken({ _id: NPC_TOKEN_ID, actorId: NPC_ACTOR_ID })];
+    const actors: FakeActor[] = [
+      { _id: ACTOR_ID, name: "Ranger", system: {} },
+      { _id: NPC_ACTOR_ID, name: "Goblin", system: {} },
+    ];
+    const mgr = new TokenInteractionManager({
+      tokenContainer: container as never,
+      tokenLayer: makeFakeTokenLayer() as never,
+      mirror: makeFakeMirror(SCENE_ID, tokens, actors) as never,
+      sceneId: SCENE_ID,
+      canvas: makeFakeCanvas() as never,
+      socket: makeFakeSocket(),
+      userId: PLAYER_ID,
+      userRole: role,
+      getOwnedActorIds: () => new Set([ACTOR_ID]),
+      gridConfig: { size: 100, offsetX: 0, offsetY: 0 },
+      attachKeyboard: false,
+      onSelectionChange: (tokenIds) => published.push(tokenIds),
+    });
+    return { mgr, container, published };
+  }
+
+  /** One left click (a full press and release, no drag) on `target`. */
+  function click(container: ReturnType<typeof makeFakeContainer>, target: unknown): void {
+    fakeNow += 1_000;
+    container._handlers.get("pointerdown")?.({
+      button: 0,
+      target,
+      clientX: 10,
+      clientY: 10,
+      stopPropagation: () => {},
+    });
+    container._handlers.get("pointerup")?.({});
+  }
+
+  // Node has no `window`: drive the (private) keydown handler directly, as the other suites do.
+  function press(mgr: unknown, code: string): void {
+    (mgr as { _handleKeyDown(e: unknown): void })._handleKeyDown({
+      code,
+      target: null,
+      preventDefault() {},
+    });
+  }
+
+  const asLists = (published: ReadonlySet<string>[]) => published.map((ids) => [...ids]);
+
+  it("publishes the token on a select, and the empty set on a click on empty canvas", async () => {
+    const { mgr, container, published } = await build();
+
+    click(container, makeFakeTarget(TOKEN_ID));
+    expect(asLists(published)).toEqual([[TOKEN_ID]]);
+
+    click(container, null);
+    expect(asLists(published)).toEqual([[TOKEN_ID], []]);
+
+    mgr.destroy();
+  });
+
+  it("a click on another token replaces the selection (still single until BAR-F4-03)", async () => {
+    const { mgr, container, published } = await build();
+
+    click(container, makeFakeTarget(TOKEN_ID));
+    click(container, makeFakeTarget(NPC_TOKEN_ID));
+    expect(asLists(published)).toEqual([[TOKEN_ID], [NPC_TOKEN_ID]]);
+    expect([...mgr.selectedIds]).toEqual([NPC_TOKEN_ID]);
+
+    mgr.destroy();
+  });
+
+  it("publishes the empty set on Esc", async () => {
+    const { mgr, container, published } = await build();
+
+    click(container, makeFakeTarget(TOKEN_ID));
+    press(mgr, "Escape");
+    expect(asLists(published)).toEqual([[TOKEN_ID], []]);
+
+    mgr.destroy();
+  });
+
+  it("publishes the selection without the token once Del has deleted it (Mestre)", async () => {
+    const { mgr, container, published } = await build(ROLE_GM);
+
+    click(container, makeFakeTarget(NPC_TOKEN_ID));
+    press(mgr, "Delete");
+    // The selection only changes once the server accepted the delete.
+    await new Promise((resolve) => setTimeout(resolve, 0));
+    expect(asLists(published)).toEqual([[NPC_TOKEN_ID], []]);
+
+    mgr.destroy();
+  });
+
+  it("publishes a COPY: what the store keeps never moves with the manager's own Set", async () => {
+    const { mgr, container, published } = await build();
+
+    click(container, makeFakeTarget(TOKEN_ID));
+    const first = published[0]!;
+    click(container, null);
+
+    expect([...first]).toEqual([TOKEN_ID]);
+    (first as Set<string>).clear();
+    click(container, makeFakeTarget(TOKEN_ID));
+    expect([...mgr.selectedIds]).toEqual([TOKEN_ID]);
 
     mgr.destroy();
   });

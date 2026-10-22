@@ -207,14 +207,13 @@ describe("TokenInteractionManager.duplicateSelectedToken — footprint (P1, RNF-
     expect(createEmission).toBeDefined();
     const data = (createEmission!.payload as { data: Record<string, unknown>[] }).data[0];
 
-    // Original sits at (0,0); the spawn offset is one grid cell (100) in
-    // each axis, then `snapTokenToGrid` centers the footprint's bounding
-    // box on the nearest cell center. With the correct 2x2 EFFECTIVE
-    // footprint that lands at (150, 150). The bug — reading the BASE
-    // actor's "med" via `_getActor`, footprint 1x1 — instead lands at
-    // (100, 100), a visibly different (and wrong) cell.
-    expect(data?.["x"]).toBe(150);
-    expect(data?.["y"]).toBe(150);
+    // Original sits at (0,0); the spawn offset is one grid cell (100) in each axis, and
+    // `snapTokenToGrid` puts the top-left corner on the nearest grid line. Since the
+    // corner (not the centre) is what snaps, the footprint no longer moves the result: a
+    // 2x2 duplicate lands on whole squares at (100, 100), like a 1x1 one. (Before, the
+    // centre snapped to a cell centre and the 2x2 landed half a square off, at 150.)
+    expect(data?.["x"]).toBe(100);
+    expect(data?.["y"]).toBe(100);
 
     mgr.destroy();
   });
@@ -241,8 +240,8 @@ describe("TokenInteractionManager.duplicateSelectedToken — footprint (P1, RNF-
     const createEmission = captured.find((e) => e.type === "doc:create");
     const data = (createEmission!.payload as { data: Record<string, unknown>[] }).data[0];
 
-    expect(data?.["x"]).toBe(150);
-    expect(data?.["y"]).toBe(150);
+    expect(data?.["x"]).toBe(100);
+    expect(data?.["y"]).toBe(100);
 
     mgr.destroy();
   });

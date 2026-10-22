@@ -22,8 +22,8 @@
  *      — V2 per the task's item 2). No raw enricher syntax ever leaks.
  *   2. buildMechanicalFields — extracts the type-specific mechanical fields
  *      (spell: time/range/area/target/duration/save/damage/heighten; feat:
- *      prerequisites/frequency; classFeature: level) from a full document's
- *      `system` block, for display above the description.
+ *      prerequisites/frequency; classFeature: level; effect: duration) from a
+ *      full document's `system` block, for display above the description.
  *
  * Clean-room: description prose is rendered verbatim (already
  * license-gated at import time — W2-C1/stripFlavorProse, ORC/OGL only);
@@ -32,13 +32,14 @@
  */
 
 import type { SupportedLocale } from "../i18n/i18n.js";
+import { displayName } from "../docs/displayName.js";
 import {
   TRAIT_NAMES_PT,
   DAMAGE_TYPE_NAMES_PT,
   RARITY_NAMES_PT,
   AREA_SHAPE_NAMES_PT,
 } from "./traitNames.js";
-import { translatePrerequisite } from "./prerequisiteTranslation.js";
+import { translatePrerequisite, SKILL_NAMES_PT } from "./prerequisiteTranslation.js";
 
 // ---------------------------------------------------------------------------
 // Localization overlay picking (T1)
@@ -79,7 +80,17 @@ export function pickLocalizedName(
   const enName = str(source?.["name"]) ?? "";
   if (locale !== "pt-BR") return enName;
   const ptName = str(readI18nBag(source)?.ptBR?.name);
-  return ptName ?? enName;
+  if (ptName !== null) return ptName;
+  // The label an import SNAPSHOTS (`flags.fusion.i18n["pt-BR"]`, written by `CompendiumService.importToActor`/
+  // `importToWorld`) is the other place a translated name lives; `displayName` is its one reader.
+  const snapshot = displayName({ flags: asFlags(source?.["flags"]) }, locale);
+  return snapshot !== "" ? snapshot : enName;
+}
+
+function asFlags(value: unknown): Record<string, unknown> | null {
+  return value !== null && typeof value === "object" && !Array.isArray(value)
+    ? (value as Record<string, unknown>)
+    : null;
 }
 
 /**
@@ -138,7 +149,26 @@ export function pickLocalizedDescription(
 // HTML sanitization + @Tag[...] rewriting
 // ---------------------------------------------------------------------------
 
-const ALLOWED_TAGS = new Set(["p", "strong", "em", "b", "i", "ul", "ol", "li", "br", "hr"]);
+// Table tags (18/10/2026): the vendor writes option tables (Virtuosic Performer's specialties, Earn Income, …) as
+// <table>; without them a table read as one run-on line. Bare like every other allowed tag — no attribute survives.
+const ALLOWED_TAGS = new Set([
+  "p",
+  "strong",
+  "em",
+  "b",
+  "i",
+  "ul",
+  "ol",
+  "li",
+  "br",
+  "hr",
+  "table",
+  "thead",
+  "tbody",
+  "tr",
+  "th",
+  "td",
+]);
 
 /** Action-count glyphs: ◆ per action, ◇ free action, ⟳ reaction. */
 const ACTION_GLYPH = "◆";
@@ -171,6 +201,16 @@ function findMatchingBracket(text: string, openIdx: number): number {
     }
   }
   return -1;
+}
+
+/**
+ * Own-property lookup in a generated slug map. A bare `map[slug]` also finds what every object inherits
+ * from `Object.prototype` (`constructor`, `toString`, `__proto__`...), so a junk slug would come back as
+ * a function instead of falling through to the caller's `?? fallback` (#292). `Object.freeze` does not
+ * remove inherited keys, hence the explicit own-key check.
+ */
+function ownLookup(map: Readonly<Record<string, string>>, key: string): string | undefined {
+  return Object.prototype.hasOwnProperty.call(map, key) ? map[key] : undefined;
 }
 
 /** Saving-throw statistics that read as "<Name> save" rather than a skill check. */
@@ -210,7 +250,20 @@ function humanizeRollData(formula: string): string {
  * Result: `max(16,(2*(floor(level/2))))d6 fire` — formula (roll-data
  * simplified, no leading `@`) + damage type, with `[]` and `|flags` dropped.
  */
-function humanizeDamage(bracketBody: string): string {
+/** Damage categories that sit next to the type in `[persistent,fire]` and are not in the type glossary. */
+const DAMAGE_CATEGORY_PT: Readonly<Record<string, string>> = Object.freeze({
+  persistent: "persistente",
+  splash: "respingo",
+});
+
+/** One word of a damage-type list in the active locale; an unknown word (a roll-data reference) is kept. */
+function translateDamageWord(word: string, locale: SupportedLocale): string {
+  if (locale !== "pt-BR") return word;
+  const key = word.toLowerCase();
+  return ownLookup(DAMAGE_TYPE_NAMES_PT, key) ?? ownLookup(DAMAGE_CATEGORY_PT, key) ?? word;
+}
+
+function humanizeDamage(bracketBody: string, locale: SupportedLocale): string {
   // Split off trailing `|options:...` / `|traits:...` flag segments. A bare
   // `|` never appears inside the formula, so the first top-level `|` marks
   // the start of the flags.
@@ -224,7 +277,10 @@ function humanizeDamage(bracketBody: string): string {
   if (typeMatch) {
     const formula = humanizeRollData((typeMatch[1] ?? "").trim());
     // Damage type may itself be a list ("persistent,acid") or a roll-data ref.
-    const damageType = humanizeRollData((typeMatch[2] ?? "").trim()).replace(/,/g, " ");
+    const damageType = humanizeRollData((typeMatch[2] ?? "").trim())
+      .split(",")
+      .map((word) => translateDamageWord(word.trim(), locale))
+      .join(" ");
     return damageType ? `${formula} ${damageType}`.trim() : formula;
   }
 
@@ -240,7 +296,7 @@ function humanizeDamage(bracketBody: string): string {
  * The shape may be a bare first segment or a `type:` key; the size comes
  * from the `distance:` flag. Falls back to the raw shape if no distance.
  */
-function humanizeTemplate(bracketBody: string): string {
+function humanizeTemplate(bracketBody: string, locale: SupportedLocale): string {
   const parts = bracketBody.split("|").map((p) => p.trim());
   let shape: string | null = null;
   let distance: string | null = null;
@@ -248,6 +304,12 @@ function humanizeTemplate(bracketBody: string): string {
     if (part.startsWith("type:")) shape = part.slice(5);
     else if (part.startsWith("distance:")) distance = part.slice(9);
     else if (shape === null && !part.includes(":")) shape = part;
+  }
+  if (locale === "pt-BR") {
+    const shapePt = shape ? (ownLookup(AREA_SHAPE_NAMES_PT, shape.toLowerCase()) ?? shape) : null;
+    if (shapePt && distance) return `${shapePt} de ${distance} pés`;
+    if (shapePt) return shapePt;
+    return bracketBody;
   }
   if (shape && distance) return `${distance}-foot ${shape}`;
   if (shape) return shape;
@@ -266,7 +328,7 @@ function humanizeTemplate(bracketBody: string): string {
  * are skill checks and render as the capitalized skill name. A `basic` flag
  * prefixes "basic "; a `dc:` flag appends " (DC N)".
  */
-function humanizeCheck(bracketBody: string): string {
+function humanizeCheck(bracketBody: string, locale: SupportedLocale): string {
   const parts = bracketBody.split("|").map((p) => p.trim());
   const first = parts[0] ?? "";
   const statistic = (first.startsWith("type:") ? first.slice(5) : first).toLowerCase();
@@ -280,6 +342,17 @@ function humanizeCheck(bracketBody: string): string {
   const basic = flags.includes("basic");
 
   if (!statistic) return bracketBody;
+
+  if (locale === "pt-BR") {
+    // The prose around the enricher already says "teste de resistência de", so the save keeps no
+    // "save" of its own; the names are the sheet's (Reflexos, Vontade) and the skill glossary's.
+    const namePt =
+      ownLookup(SAVE_LABELS_PT, statistic) ??
+      ownLookup(SKILL_NAMES_PT, statistic) ??
+      (statistic === "perception" ? "Percepção" : capitalize(statistic));
+    const textPt = SAVE_STATISTICS.has(statistic) && basic ? `${namePt} básica` : namePt;
+    return dc ? `${textPt} (CD ${dc})` : textPt;
+  }
 
   const name = capitalize(statistic);
   let text: string;
@@ -398,11 +471,16 @@ function escapeHtmlAttr(text: string): string {
  *   the bracket/flag syntax is dropped — never executed (V2).
  * - `@Template[type:burst|distance:10]` → "10-foot burst".
  * - `@Check[fortitude|dc:29]` → "Fortitude save (DC 29)".
- * - `@Localize[...]` → dropped (localization key with no inline prose).
+ * - `@Localize[...]` / `@Embed[...]` → dropped (no inline prose to show).
  * - Any other/unknown tag → the readable bracket body (roll-data stripped),
  *   never the raw `@Tag[...]` syntax.
  */
-function rewriteInlineTag(tagName: string, bracketBody: string, label: string | null): string {
+function rewriteInlineTag(
+  tagName: string,
+  bracketBody: string,
+  label: string | null,
+  locale: SupportedLocale,
+): string {
   if (label) return label;
 
   switch (tagName) {
@@ -411,11 +489,16 @@ function rewriteInlineTag(tagName: string, bracketBody: string, label: string | 
       return lastSegment && lastSegment.trim() ? lastSegment.trim() : bracketBody;
     }
     case "Damage":
-      return humanizeDamage(bracketBody);
+      return humanizeDamage(bracketBody, locale);
     case "Template":
-      return humanizeTemplate(bracketBody);
+      return humanizeTemplate(bracketBody, locale);
     case "Check":
-      return humanizeCheck(bracketBody);
+      return humanizeCheck(bracketBody, locale);
+    case "Embed":
+      // `@Embed[Compendium.pf2e.pack.Item.Id inline]` asks Foundry to paste the whole referenced item here.
+      // This renderer is plain text and synchronous, so it cannot resolve the item; showing the UUID (what
+      // the generic fallback does) is the one wrong answer (#302), so the embed is omitted.
+      return "";
     case "Localize":
       // Pure localization-key wrapper (e.g. @Localize[PF2E.NPC...]) with no
       // inline prose — nothing readable to show, so drop it entirely.
@@ -441,7 +524,7 @@ function rewriteInlineTag(tagName: string, bracketBody: string, label: string | 
  * a trailing type word; `#flavor` comments and macro `key=value` args are
  * dropped as non-prose. Returns null if the body is not a recognized form.
  */
-function humanizeInlineRoll(body: string): string | null {
+function humanizeInlineRoll(body: string, locale: SupportedLocale): string | null {
   const trimmed = body.trim();
   const macroMatch = /^\/([a-z]+)\s+([\s\S]*)$/i.exec(trimmed);
   if (!macroMatch) return null;
@@ -465,7 +548,7 @@ function humanizeInlineRoll(body: string): string | null {
   // `@actor.level` is simplified. A bare formula (no `[type]`) passes through.
   const hashIdx = rest.indexOf("#");
   if (hashIdx !== -1) rest = rest.slice(0, hashIdx).trim();
-  return humanizeDamage(rest);
+  return humanizeDamage(rest, locale);
 }
 
 /**
@@ -474,7 +557,7 @@ function humanizeInlineRoll(body: string): string | null {
  * `{Label}` wins. Unrecognized blocks are left untouched for the `@Tag`
  * pass / plain rendering.
  */
-function rewriteInlineRolls(text: string): string {
+function rewriteInlineRolls(text: string, locale: SupportedLocale): string {
   let result = "";
   let i = 0;
 
@@ -521,7 +604,7 @@ function rewriteInlineRolls(text: string): string {
       }
     }
 
-    const readable = label ?? humanizeInlineRoll(body);
+    const readable = label ?? humanizeInlineRoll(body, locale);
     if (readable !== null) {
       result += readable;
       i = cursor;
@@ -540,7 +623,7 @@ function rewriteInlineRolls(text: string): string {
  * Replace every `@Tag[...]{...}` inline reference in `text` with its
  * human-readable form (see {@link rewriteInlineTag}).
  */
-function rewriteAtTags(text: string): string {
+function rewriteAtTags(text: string, locale: SupportedLocale): string {
   let result = "";
   let i = 0;
 
@@ -572,7 +655,7 @@ function rewriteAtTags(text: string): string {
       }
     }
 
-    result += rewriteInlineTag(match[1] ?? "", bracketBody, label);
+    result += rewriteInlineTag(match[1] ?? "", bracketBody, label, locale);
     i = cursor;
   }
 
@@ -585,8 +668,8 @@ function rewriteAtTags(text: string): string {
  * `@Tag[...]{...}` references (see {@link rewriteAtTags}). Idempotent on text
  * that contains no enrichers.
  */
-function rewriteInlineTags(text: string): string {
-  return rewriteAtTags(rewriteInlineRolls(text));
+function rewriteInlineTags(text: string, locale: SupportedLocale): string {
+  return rewriteAtTags(rewriteInlineRolls(text, locale), locale);
 }
 
 /**
@@ -610,40 +693,72 @@ export function sanitizeDescriptionToText(
 ): string[] {
   if (!html) return [];
 
-  const withGlyphs = convertActionGlyphs(html, locale);
+  // Entities are decoded FIRST (#223): `&lt;script&gt;` is a tag written as text, and only after decoding
+  // does the strip below see it as one. The old order (strip, then decode) let it out as a literal tag.
+  const withGlyphs = convertActionGlyphs(decodeHtmlEntities(html), locale);
 
   // Rewrite @Tag[...] references BEFORE stripping tags — some fallbacks
   // (e.g. @UUID's last-path-segment) rely on raw bracket content that must
   // not be tag-stripped first.
-  const withReadableTags = rewriteInlineTags(withGlyphs);
+  const withReadableTags = rewriteInlineTags(withGlyphs, locale);
 
   // Turn block-level boundaries into paragraph breaks before removing tags.
+  // Table rows are treated as blocks too (I3, onda-3 review): a vendor
+  // <table> (e.g. "Earn Income" in actions-core) has no <p>/<li>/<div>
+  // anywhere in it, so before this a whole table silently lost every tag
+  // with NOTHING in its place — see the inline/cell rule below for why that
+  // glued digits together, not just missing a line break.
   const withBreaks = withReadableTags
     .replace(/<\s*br\s*\/?>/gi, "\n")
     .replace(/<\s*hr\s*\/?>/gi, "\n\n---\n\n")
-    .replace(/<\s*\/\s*(p|li|div)\s*>/gi, "\n\n")
-    .replace(/<\s*li[^>]*>/gi, "• ");
+    .replace(/<\s*\/\s*(p|li|div|tr|table)\s*>/gi, "\n\n")
+    .replace(/<\s*table[^>]*>/gi, "\n\n")
+    .replace(/<\s*li[^>]*>/gi, "• ")
+    // Table cells and inline emphasis tags (strong/em/b/i — ALLOWED_TAGS'
+    // own inline subset — plus the action-glyph <span title=...> minted by
+    // convertActionGlyphs) are never block boundaries, but the catch-all
+    // strip below removes them with an EMPTY string. When the source HTML
+    // has no whitespace of its own at that boundary — e.g. vendor markup
+    // like "<strong>Activate</strong><span class=\"action-glyph\">1</span>
+    // (manipulate)" or a table's "<td>0</td><td>1 cp</td>" — that glues the
+    // words/digits on either side together. A single space here is always
+    // safe: it can never merge two paragraphs (only p/li/div/tr/table do
+    // that), and any doubled-up space this creates next to real whitespace
+    // is normalized away below.
+    .replace(/<\s*\/?\s*(td|th|strong|em|b|i|span)(?:\s[^>]*)?>/gi, " ");
 
   // Strip every remaining tag (allow-list tags carry no special meaning in
   // plain-text output — they were only used above to derive breaks).
-  const stripped = withBreaks.replace(/<[^>]+>/g, "");
+  // Only things that LOOK like a tag (`<p>`, `</p>`, `<br/>`, `<!-- -->`) are stripped, so a decoded
+  // "DC < 10 or > 20" in prose survives instead of being eaten as if "< 10 or >" were a tag.
+  const stripped = withBreaks.replace(/<!--[\s\S]*?-->|<\/?[a-zA-Z][^>]*>/g, "");
 
-  const decoded = decodeHtmlEntities(stripped);
-
-  return decoded
+  return stripped
     .split(/\n{2,}/)
-    .map((block) => block.replace(/\n+/g, " ").trim())
+    .map((block) =>
+      block
+        .replace(/\n+/g, " ")
+        .replace(/[ \t]{2,}/g, " ")
+        .trim(),
+    )
     .filter((block) => block.length > 0);
 }
 
+const HTML_ENTITIES: Readonly<Record<string, string>> = Object.freeze({
+  "&nbsp;": " ",
+  "&amp;": "&",
+  "&lt;": "<",
+  "&gt;": ">",
+  "&quot;": '"',
+  "&#39;": "'",
+});
+
+/** One pass, so `&amp;lt;` decodes to the text `&lt;` and not on to `<`. */
 function decodeHtmlEntities(text: string): string {
-  return text
-    .replace(/&nbsp;/g, " ")
-    .replace(/&amp;/g, "&")
-    .replace(/&lt;/g, "<")
-    .replace(/&gt;/g, ">")
-    .replace(/&quot;/g, '"')
-    .replace(/&#39;/g, "'");
+  return text.replace(
+    /&(?:nbsp|amp|lt|gt|quot|#39);/g,
+    (entity) => HTML_ENTITIES[entity] ?? entity,
+  );
 }
 
 /**
@@ -670,7 +785,7 @@ export function sanitizeDescriptionHtml(
   if (!html) return "";
 
   const withGlyphs = convertActionGlyphs(html, locale);
-  const withReadableTags = rewriteInlineTags(withGlyphs);
+  const withReadableTags = rewriteInlineTags(withGlyphs, locale);
 
   // The glyph-icon span is the one exception to the "no attributes survive"
   // rule: it carries a `title="..."` we generated ourselves (escaped), never
@@ -726,13 +841,13 @@ function humanizeSlug(slug: string): string {
  */
 export function traitDisplayName(slug: string, locale: SupportedLocale): string {
   if (locale !== "pt-BR") return slug;
-  return TRAIT_NAMES_PT[slug] ?? humanizeSlug(slug);
+  return ownLookup(TRAIT_NAMES_PT, slug) ?? humanizeSlug(slug);
 }
 
 /** Display label for a rarity slug (never shown for "common"). r15-A1. */
 export function rarityDisplayName(slug: string, locale: SupportedLocale): string {
   if (locale !== "pt-BR") return slug;
-  return RARITY_NAMES_PT[slug] ?? humanizeSlug(slug);
+  return ownLookup(RARITY_NAMES_PT, slug) ?? humanizeSlug(slug);
 }
 
 /**
@@ -788,6 +903,14 @@ const VALUE_TERMS_PT: ReadonlyArray<readonly [RegExp, string]> = [
   [/\bround\b/gi, "rodada"],
   [/\bdays\b/gi, "dias"],
   [/\bday\b/gi, "dia"],
+  [/\bturns\b/gi, "turnos"],
+  [/\bturn\b/gi, "turno"],
+  [/\bencounters\b/gi, "encontros"],
+  [/\bencounter\b/gi, "encontro"],
+  [/\bweeks\b/gi, "semanas"],
+  [/\bweek\b/gi, "semana"],
+  [/\bmonths\b/gi, "meses"],
+  [/\bmonth\b/gi, "mês"],
   [/\bsustained\b/gi, "sustentada"],
 ];
 
@@ -806,7 +929,7 @@ export function translateValueTokens(value: string, locale: SupportedLocale): st
 /** Damage-type token → pt-BR (e.g. "electricity" → "eletricidade"). r15-A1. */
 export function translateDamageType(type: string, locale: SupportedLocale): string {
   if (locale !== "pt-BR") return type;
-  return DAMAGE_TYPE_NAMES_PT[type.toLowerCase()] ?? type;
+  return ownLookup(DAMAGE_TYPE_NAMES_PT, type.toLowerCase()) ?? type;
 }
 
 // ---------------------------------------------------------------------------
@@ -1036,7 +1159,7 @@ function saveField(
     const statistic = str(save["statistic"]);
     if (statistic) {
       const stat = isPt
-        ? (SAVE_LABELS_PT[statistic] ?? statistic)
+        ? (ownLookup(SAVE_LABELS_PT, statistic) ?? statistic)
         : (SAVE_LABELS[statistic] ?? statistic);
       const basicSuffix = isPt ? " (básica)" : " (basic)";
       const value = save["basic"] === true ? `${stat}${basicSuffix}` : stat;
@@ -1124,7 +1247,7 @@ export function buildSpellFields(
     const type = str(area["type"]);
     const value = area["value"];
     if (type && typeof value === "number") {
-      const shape = isPt ? (AREA_SHAPE_NAMES_PT[type] ?? type) : type;
+      const shape = isPt ? (ownLookup(AREA_SHAPE_NAMES_PT, type) ?? type) : type;
       const areaValue = isPt ? `${String(value)} pés de ${shape}` : `${String(value)}-foot ${type}`;
       fields.push(field(FIELD_KEYS.area, isPt ? "Área" : "Area", areaValue));
     }
@@ -1281,6 +1404,93 @@ export function buildClassFeatureFields(
 }
 
 /**
+ * pt-BR/EN phrase for the two non-numeric ("semantic") duration units an
+ * effect can have. Per the canonical `EffectItemSystem.duration` contract
+ * (Alquimista plan `docs/design/alquimista/tasks.md` §2.5), both `encounter`
+ * and `unlimited` carry a sentinel `value: -1` in the packs (confirmed
+ * against `equipment-effects-core`'s "Effect: Magnetic Bola (Speed Penalty)"
+ * and "Effect: Aeon Stone Resonance (Black Disc)") — the number is never
+ * meaningful and is never displayed for either.
+ */
+const EFFECT_SEMANTIC_DURATION: Record<"encounter" | "unlimited", { pt: string; en: string }> = {
+  encounter: { pt: "enquanto durar o encontro", en: "until the encounter ends" },
+  unlimited: { pt: "ilimitado", en: "unlimited" },
+};
+
+/** EN singular/plural for the four countable `EffectItemSystem.duration` units. */
+function countableDurationUnitEn(unit: "round" | "minute" | "hour" | "day", value: number): string {
+  return value === 1 ? unit : `${unit}s`;
+}
+
+/**
+ * Build the effect-specific mechanical fields: table-language duration
+ * (ALQ-F2-18, REQ absent — see plan). `system.duration` is a structured
+ * `{ value, unit, sustained, expiry }` (the canonical `EffectItemSystem`,
+ * plan §2.5), never a free-text string like a spell's `system.duration.
+ * value` — so it needs its own reader rather than reusing
+ * {@link buildSpellFields}'s duration handling.
+ *
+ * `unit: "encounter" | "unlimited"` render a fixed phrase (their packed
+ * `value` is an unused `-1` sentinel, see {@link EFFECT_SEMANTIC_DURATION}).
+ * The four countable units (round/minute/hour/day) render as "<value>
+ * <unit(s)>", pluralized in EN and then translated through the same
+ * {@link translateValueTokens} word-boundary vocabulary the rest of this
+ * module already uses for range/target/duration text — so "1 round"/
+ * "10 minutes" become "1 rodada"/"10 minutos" without a second, duplicate
+ * translation table. Before this task, `effect` had no case at all here: a
+ * document with `duration: {unit:"minute", value:10}` opened with no
+ * duration field, and the compendium row fell back to a raw vendor-shaped
+ * label ("Unit minute") instead of table language.
+ *
+ * `sustained` appends the same "(sustentada)"/"(sustained)" suffix
+ * {@link buildSpellFields} uses for a spell's sustained duration — no effect
+ * in the current packs sets it, but the field is part of the canonical
+ * contract and a future Quick Alchemy/mutagen effect may.
+ *
+ * `expiry` (`"turn-start" | "turn-end" | "round-end" | null`) governs *when*,
+ * mechanically, the duration decrements server-side (`resolveExpirations`,
+ * plan §2.5) — it never changes the table-language text itself: real pack
+ * data (`equipment-effects-core`) confirms it's always non-null for the four
+ * countable units and always null for encounter/unlimited, so the countable/
+ * semantic branch above already reflects its effect on display.
+ */
+export function buildEffectFields(
+  system: Record<string, unknown>,
+  locale: SupportedLocale = "en",
+): MechanicalField[] {
+  const fields: MechanicalField[] = [];
+  const isPt = locale === "pt-BR";
+
+  const duration = system["duration"];
+  if (isRecord(duration)) {
+    const unit = str(duration["unit"]);
+    const value = duration["value"];
+    const sustained = duration["sustained"] === true;
+
+    let base: string | null = null;
+    if (unit === "encounter" || unit === "unlimited") {
+      const phrase = EFFECT_SEMANTIC_DURATION[unit];
+      base = isPt ? phrase.pt : phrase.en;
+    } else if (
+      (unit === "round" || unit === "minute" || unit === "hour" || unit === "day") &&
+      typeof value === "number"
+    ) {
+      base = translateValueTokens(
+        `${String(value)} ${countableDurationUnitEn(unit, value)}`,
+        locale,
+      );
+    }
+
+    if (base) {
+      const durValue = sustained ? `${base} ${isPt ? "(sustentada)" : "(sustained)"}` : base;
+      fields.push(field(FIELD_KEYS.duration, isPt ? "Duração" : "Duration", durValue));
+    }
+  }
+
+  return fields;
+}
+
+/**
  * Dispatch to the right per-type field builder based on the document's
  * `type` (falls back to an empty list for unrecognized types — the panel
  * still shows name/traits/description). `locale` threads through so the
@@ -1309,6 +1519,8 @@ export function buildMechanicalFields(
       return buildFeatFields(system, locale);
     case "classFeature":
       return buildClassFeatureFields(system, locale, contextLevel);
+    case "effect":
+      return buildEffectFields(system, locale);
     default:
       return [];
   }

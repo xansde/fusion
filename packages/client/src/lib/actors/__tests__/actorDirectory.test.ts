@@ -156,6 +156,20 @@ describe("buildTokenFromActorFields()", () => {
     expect(fields.y).toBe(200); // round(248/100)*100
   });
 
+  it("snaps to the calibrated lattice when the scene grid has an offset", () => {
+    const fields = buildTokenFromActorFields({
+      payload,
+      sceneId: "SceneXXXXXXXXXXXX",
+      x: 155,
+      y: 248,
+      gridSize: 100,
+      gridOffsetX: 30,
+      gridOffsetY: 70,
+    });
+    expect(fields.x).toBe(130); // 30 + round((155-30)/100)*100
+    expect(fields.y).toBe(270); // 70 + round((248-70)/100)*100
+  });
+
   it("does not snap when snapToGrid=false", () => {
     const fields = buildTokenFromActorFields({
       payload,

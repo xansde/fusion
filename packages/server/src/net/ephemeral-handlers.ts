@@ -32,6 +32,17 @@ import type { Namespace, Socket } from "socket.io";
 import type { Logger } from "pino";
 import type { Envelope } from "@fusion/shared";
 import { z } from "zod";
+import { isRolePrivileged } from "../documents/ownership.js";
+import type { DocumentStore } from "../documents/store.js";
+import { ShowPlayersPayloadSchema, cleanShowImage, showPayloadFor } from "./show-players.js";
+import {
+  AreaStyleSchema,
+  AreaTemplateSchema,
+  MAX_PINNED_PER_SCENE,
+  loadPinnedAreas,
+  savePinnedAreas,
+  type PinnedArea,
+} from "./pinned-areas.js";
 
 // ---------------------------------------------------------------------------
 // Payload schemas
@@ -49,6 +60,10 @@ export const MapPingPayloadSchema = z.object({
   y: z.number().finite(),
   /** User color in CSS hex format (e.g. "#ff4444"). */
   color: z.string().optional(),
+  /** GM "Shift+ping": ask every client to centre the camera here. Ignored for players. */
+  pull: z.boolean().optional(),
+  /** Ping held on a token: receivers highlight it and name it. */
+  tokenId: z.string().min(1).max(64).optional(),
 });
 export type MapPingPayload = z.infer<typeof MapPingPayloadSchema>;
 
@@ -57,6 +72,37 @@ export const RulerUpdatePayloadSchema = z.object({
   waypoints: z.array(z.object({ x: z.number().finite(), y: z.number().finite() })),
 });
 export type RulerUpdatePayload = z.infer<typeof RulerUpdatePayloadSchema>;
+
+// ---------------------------------------------------------------------------
+// Area templates (burst / cone / line / emanation)
+// ---------------------------------------------------------------------------
+
+export const TemplateStylePayloadSchema = z.object({
+  id: z.string().min(1).max(64),
+  sceneId: z.string().min(1).max(64),
+  style: AreaStyleSchema,
+});
+
+export const TemplateUpdatePayloadSchema = z.object({ template: AreaTemplateSchema });
+export const TemplatePinPayloadSchema = z.object({
+  id: z.string().min(1).max(64),
+  sceneId: z.string().min(1).max(64),
+  template: AreaTemplateSchema,
+});
+export const TemplateRefPayloadSchema = z.object({
+  id: z.string().min(1).max(64),
+  sceneId: z.string().min(1).max(64),
+});
+export const TemplateSyncPayloadSchema = z.object({ sceneId: z.string().min(1).max(64) });
+/** Move every free pinned area of a scene by (dx, dy): the map image moved under them. */
+export const TemplateShiftPayloadSchema = z.object({
+  sceneId: z.string().min(1).max(64),
+  dx: z.number().finite().min(-100000).max(100000),
+  dy: z.number().finite().min(-100000).max(100000),
+});
+
+/** Role value from which a user may remove templates they did not author (ASSISTANT). */
+const TEMPLATE_MODERATOR_ROLE = 3;
 
 export const RulerClearPayloadSchema = z.object({}).optional();
 export type RulerClearPayload = z.infer<typeof RulerClearPayloadSchema>;
@@ -161,6 +207,27 @@ export interface EphemeralHandlerOptions {
    * so the socket is joined to the correct `scene:<sceneId>` room (REQ-NET-005).
    */
   sceneRooms: Map<string, string>;
+  /** World HMAC secret: signs the per-recipient image grant of `presence:show`. */
+  assetSecret?: Uint8Array;
+  /** The world's documents: pinned areas persist in `Scene.templates` (net/pinned-areas.ts). */
+  store?: DocumentStore;
+}
+
+/**
+ * Deliver a pin/unpin of an area. Clients filter by sceneId, so for the scene on
+ * air it goes to the whole namespace (players whose scene room the server does not
+ * know yet still get it). A scene that is off air is GM prep: only privileged
+ * sockets are told (net/redaction.ts: the same split as the Scene broadcast).
+ */
+function emitPin(ns: Namespace, sceneOnAir: boolean, envelope: Envelope): void {
+  if (sceneOnAir) {
+    ns.emit("ephemeral", envelope);
+    return;
+  }
+  for (const target of ns.sockets.values()) {
+    const role = (target.data as { role?: number }).role;
+    if (role !== undefined && isRolePrivileged(role)) target.emit("ephemeral", envelope);
+  }
 }
 
 /**
@@ -285,9 +352,12 @@ export function handleEphemeralEnvelope(
       const pingPayload: MapPingPayload & { userId: string; userName?: string } = {
         x: parsed.data.x,
         y: parsed.data.y,
+        // The account colour is authoritative; a client-sent one is only a fallback.
         ...(parsed.data.color !== undefined || ctx.userColor !== undefined
-          ? { color: parsed.data.color ?? ctx.userColor }
+          ? { color: ctx.userColor ?? parsed.data.color }
           : {}),
+        ...(parsed.data.pull === true && isRolePrivileged(ctx.role) ? { pull: true } : {}),
+        ...(parsed.data.tokenId !== undefined ? { tokenId: parsed.data.tokenId } : {}),
         userId: ctx.userId,
         ...(ctx.userName !== undefined ? { userName: ctx.userName } : {}),
       };
@@ -303,6 +373,42 @@ export function handleEphemeralEnvelope(
         ns.to(sceneRoom).emit("ephemeral", broadcast);
       } else {
         ns.emit("ephemeral", broadcast);
+      }
+      return true;
+    }
+
+    case "presence:show": {
+      // GM "Show Players": privileged senders only, and a leak-proof image grant per recipient.
+      if (!isRolePrivileged(ctx.role)) {
+        logger.debug({ userId: ctx.userId }, "presence:show refused: not privileged");
+        return false;
+      }
+      if (!pingRateLimiter.allow(socket.id, "presence:show", now)) return false;
+      const parsed = ShowPlayersPayloadSchema.safeParse(envelope.payload);
+      if (!parsed.success) return false;
+      const imageName = cleanShowImage(parsed.data.image);
+      if (imageName === null) {
+        logger.warn({ userId: ctx.userId }, "presence:show refused: bad image name");
+        return false;
+      }
+      for (const target of ns.sockets.values()) {
+        const targetUserId = (target.data as { userId?: string }).userId;
+        if (!targetUserId) continue;
+        target.emit("ephemeral", {
+          type: "presence:show",
+          ts: now,
+          payload: showPayloadFor(
+            targetUserId,
+            {
+              ...(parsed.data.title ? { title: parsed.data.title } : {}),
+              ...(parsed.data.text ? { text: parsed.data.text } : {}),
+              ...(imageName !== undefined ? { imageName } : {}),
+              ...(ctx.userName ? { fromName: ctx.userName } : {}),
+            },
+            opts.assetSecret,
+            now,
+          ),
+        } satisfies Envelope);
       }
       return true;
     }
@@ -347,6 +453,167 @@ export function handleEphemeralEnvelope(
       } else {
         ns.emit("ephemeral", broadcast);
       }
+      return true;
+    }
+
+    case "presence:template": {
+      const parsed = TemplateUpdatePayloadSchema.safeParse(envelope.payload);
+      if (!parsed.success) {
+        logger.debug({ userId: ctx.userId, type: "presence:template" }, "Invalid template payload");
+        return false;
+      }
+      const broadcast: Envelope = {
+        type: "presence:template",
+        ts: now,
+        payload: {
+          template: parsed.data.template,
+          userId: ctx.userId,
+          ...(ctx.userName !== undefined ? { userName: ctx.userName } : {}),
+        },
+      };
+      if (sceneRoom !== undefined) ns.to(sceneRoom).emit("ephemeral", broadcast);
+      else ns.emit("ephemeral", broadcast);
+      return true;
+    }
+
+    case "presence:template:clear": {
+      const broadcast: Envelope = {
+        type: "presence:template:clear",
+        ts: now,
+        payload: { userId: ctx.userId },
+      };
+      if (sceneRoom !== undefined) ns.to(sceneRoom).emit("ephemeral", broadcast);
+      else ns.emit("ephemeral", broadcast);
+      return true;
+    }
+
+    case "presence:template:pin": {
+      const parsed = TemplatePinPayloadSchema.safeParse(envelope.payload);
+      if (!parsed.success || !opts.store) return false;
+      const { id, sceneId, template } = parsed.data;
+      const loaded = loadPinnedAreas(opts.store, sceneId, ctx.role);
+      if (!loaded) return false;
+      const { areas } = loaded;
+      if (!areas.some((a) => a.id === id) && areas.length >= MAX_PINNED_PER_SCENE) return false;
+      const entry: PinnedArea = {
+        id,
+        userId: ctx.userId,
+        ...(ctx.userName !== undefined ? { userName: ctx.userName } : {}),
+        template,
+      };
+      savePinnedAreas(opts.store, sceneId, ctx.userId, [
+        ...areas.filter((a) => a.id !== id),
+        entry,
+      ]);
+      emitPin(ns, loaded.onAir, {
+        type: "presence:template:pin",
+        ts: now,
+        payload: { ...entry, sceneId },
+      });
+      return true;
+    }
+
+    case "presence:template:style": {
+      const parsed = TemplateStylePayloadSchema.safeParse(envelope.payload);
+      if (!parsed.success || !opts.store) return false;
+      const { id, sceneId, style } = parsed.data;
+      const loaded = loadPinnedAreas(opts.store, sceneId, ctx.role);
+      const entry = loaded?.areas.find((a) => a.id === id);
+      if (!loaded || !entry) return false;
+      if (entry.userId !== ctx.userId && ctx.role < TEMPLATE_MODERATOR_ROLE) {
+        logger.debug({ userId: ctx.userId, id }, "Restyle refused: not author nor GM");
+        return false;
+      }
+      const restyled: PinnedArea = { ...entry, template: { ...entry.template, style } };
+      savePinnedAreas(
+        opts.store,
+        sceneId,
+        ctx.userId,
+        loaded.areas.map((a) => (a.id === id ? restyled : a)),
+      );
+      // Same envelope as a pin: clients upsert by id, no new client case needed.
+      emitPin(ns, loaded.onAir, {
+        type: "presence:template:pin",
+        ts: now,
+        payload: { ...restyled, sceneId },
+      });
+      return true;
+    }
+
+    case "presence:template:unpin": {
+      const parsed = TemplateRefPayloadSchema.safeParse(envelope.payload);
+      if (!parsed.success || !opts.store) return false;
+      const { id, sceneId } = parsed.data;
+      const loaded = loadPinnedAreas(opts.store, sceneId, ctx.role);
+      const entry = loaded?.areas.find((a) => a.id === id);
+      if (!loaded || !entry) return false;
+      if (entry.userId !== ctx.userId && ctx.role < TEMPLATE_MODERATOR_ROLE) {
+        logger.debug({ userId: ctx.userId, id }, "Unpin refused: not author nor GM");
+        return false;
+      }
+      savePinnedAreas(
+        opts.store,
+        sceneId,
+        ctx.userId,
+        loaded.areas.filter((a) => a.id !== id),
+      );
+      emitPin(ns, loaded.onAir, {
+        type: "presence:template:unpin",
+        ts: now,
+        payload: { id, sceneId },
+      });
+      return true;
+    }
+
+    case "presence:template:shift": {
+      // The Master recalibrated the grid: the padding around the image changed, so the
+      // map moved inside scene coordinates. Free areas stay on the same point of the map;
+      // areas anchored to a token follow the token by themselves. Privileged only.
+      if (!isRolePrivileged(ctx.role) || !opts.store) return false;
+      const parsed = TemplateShiftPayloadSchema.safeParse(envelope.payload);
+      if (!parsed.success) return false;
+      const { sceneId, dx, dy } = parsed.data;
+      if (dx === 0 && dy === 0) return false;
+      const loaded = loadPinnedAreas(opts.store, sceneId, ctx.role);
+      if (!loaded) return false;
+      const moved: PinnedArea[] = [];
+      const next = loaded.areas.map((area) => {
+        if (area.template.tokenId !== undefined) return area;
+        const shifted: PinnedArea = {
+          ...area,
+          template: {
+            ...area.template,
+            origin: { x: area.template.origin.x + dx, y: area.template.origin.y + dy },
+          },
+        };
+        moved.push(shifted);
+        return shifted;
+      });
+      if (moved.length === 0) return false;
+      savePinnedAreas(opts.store, sceneId, ctx.userId, next);
+      // Same envelope as a pin: clients upsert by id, and the author stays the author.
+      for (const area of moved) {
+        emitPin(ns, loaded.onAir, {
+          type: "presence:template:pin",
+          ts: now,
+          payload: { ...area, sceneId },
+        });
+      }
+      return true;
+    }
+
+    case "presence:template:sync": {
+      const parsed = TemplateSyncPayloadSchema.safeParse(envelope.payload);
+      if (!parsed.success || !opts.store) return false;
+      const { sceneId } = parsed.data;
+      // A scene that is missing or invisible to this user answers with no areas.
+      const loaded = loadPinnedAreas(opts.store, sceneId, ctx.role);
+      // Reply to the asker only.
+      socket.emit("ephemeral", {
+        type: "presence:template:pinned",
+        ts: now,
+        payload: { sceneId, templates: loaded ? loaded.areas : [] },
+      } satisfies Envelope);
       return true;
     }
 

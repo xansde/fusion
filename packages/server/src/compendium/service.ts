@@ -68,6 +68,7 @@ import {
   augmentationSlotLimitViolation,
 } from "../documents/embedded-item.js";
 import { recomputeDerivedIfNeeded } from "../documents/derive.js";
+import { stripInvalidActionBarFlags } from "../documents/action-bar-flags.js";
 import type { AugmentationLikeItem } from "@fusion/system-sf2e";
 import type { Database as Db } from "better-sqlite3";
 import { createDocumentId } from "@fusion/shared";
@@ -176,6 +177,9 @@ export class CompendiumService {
    * resolves to an empty result — see `buildDedupIndex`.
    */
   private _dedupIndex: DedupResult | null = null;
+
+  /** Parsed documents per pack id, for {@link getSourceDocumentForSync}. */
+  private readonly _docsByPackId = new Map<string, Map<string, Record<string, unknown>>>();
 
   constructor(logger?: Logger) {
     this.logger = logger ?? null;
@@ -671,6 +675,86 @@ export class CompendiumService {
   }
 
   /**
+   * Get the full document for a `(packName, sourceId)` origin reference —
+   * the SAME reverse index {@link getI18nBySourceRef} uses, but returning the
+   * raw pack document instead of only its pt-BR overlay.
+   *
+   * ALQ-F2-11 (plan §2.6, REQ-PF2-225): an item's `system.fusion.effectRefs`
+   * names Effect documents by `flags.fusion.sourceId` — the vendor-origin id
+   * (DF-06 identity discipline: "identidade de documento = sourceId, nunca o
+   * nome"), which is NOT the pack-local `_id` `getDocument`'s UUID resolves.
+   * This is the lookup that closes that gap: `item:consume`'s core service
+   * uses it to copy the Effect's `system` onto the actor with origin/start
+   * (never a live reference).
+   *
+   * Same audience gate as `getDocument`/`getI18nBySourceRef`: a ref resolving
+   * into a pack hidden from `viewerRole` answers `null`, identical to an
+   * unresolvable ref — knowing a sourceId teaches nothing about a hidden
+   * pack's contents (REQ-CPD-071, REQ-SEC-020).
+   */
+  getDocumentBySourceRef(
+    viewerRole: number,
+    ref: { packName: string; sourceId: string },
+  ): Record<string, unknown> | null {
+    const index = this._getSourceRefIndex();
+    const hit = index.get(buildSourceRefKey(ref.packName, ref.sourceId));
+    if (!hit) return null;
+
+    const loaded = this._packFor(hit.packId, viewerRole);
+    if (!loaded) return null;
+
+    try {
+      const docs = JSON.parse(readFileSync(loaded.docsPath, "utf8")) as unknown[];
+      const doc = docs.find(
+        (d) =>
+          typeof d === "object" &&
+          d !== null &&
+          (d as Record<string, unknown>)["_id"] === hit.docId,
+      );
+      return doc === undefined ? null : (doc as Record<string, unknown>);
+    } catch (err) {
+      this.logger?.warn({ err, ref }, "Failed to read document from pack by source ref");
+      return null;
+    }
+  }
+
+  /**
+   * Pack document for a `(packName, sourceId)` origin reference, for SERVER-SIDE
+   * callers that are not answering a viewer (REQ-CMP-056: the boot-time sync of
+   * rules into embedded items). Same reverse index as
+   * {@link getDocumentBySourceRef}, but the parsed `documents.json` of each pack
+   * is kept per pack, so syncing N items costs one parse per pack instead of N.
+   *
+   * No audience gate on purpose: the result never reaches a client, it only
+   * decides which rules an item the actor ALREADY owns should carry.
+   */
+  getSourceDocumentForSync(ref: {
+    packName: string;
+    sourceId: string;
+  }): Record<string, unknown> | null {
+    const hit = this._getSourceRefIndex().get(buildSourceRefKey(ref.packName, ref.sourceId));
+    if (!hit) return null;
+    const loaded = this.packs.get(hit.packId);
+    if (!loaded) return null;
+
+    let byId = this._docsByPackId.get(hit.packId);
+    if (!byId) {
+      byId = new Map();
+      try {
+        const docs = JSON.parse(readFileSync(loaded.docsPath, "utf8")) as unknown[];
+        for (const d of docs) {
+          const id = (d as Record<string, unknown> | null)?.["_id"];
+          if (typeof id === "string") byId.set(id, d as Record<string, unknown>);
+        }
+      } catch (err) {
+        this.logger?.warn({ err, packId: hit.packId }, "Failed to read pack documents for sync");
+      }
+      this._docsByPackId.set(hit.packId, byId);
+    }
+    return byId.get(hit.docId) ?? null;
+  }
+
+  /**
    * Import one or more pack documents into the world (actors or items table).
    * REQ-CMP-021..024, REQ-CMP-055.
    *
@@ -726,7 +810,10 @@ export class CompendiumService {
        */
       metrics?: WriteMetricsCollector;
     },
-  ): CompendiumImportResult {
+  ): CompendiumImportResult & {
+    /** The documents as persisted, for the handler to announce on the document channel; never sent in the ack. */
+    createdDocs: Array<{ documentType: string; doc: Record<string, unknown> }>;
+  } {
     if (!isRolePrivileged(options.role)) {
       throw new PermissionDeniedError("Only GM/ASSISTANT can import from compendiums");
     }
@@ -736,6 +823,7 @@ export class CompendiumService {
       ...(options.metrics !== undefined ? { metrics: options.metrics } : {}),
     });
     const created: string[] = [];
+    const createdDocs: Array<{ documentType: string; doc: Record<string, unknown> }> = [];
     const failed: Array<{ uuid: string; reason: string }> = [];
 
     for (const uuid of uuids) {
@@ -815,6 +903,18 @@ export class CompendiumService {
         delete worldDoc["i18n"];
         delete worldDoc["mechanics"];
 
+        // BAR-F3-05 (tasks.md §2.5: the bar is validated on update AND on create/import): an
+        // Actor whose `flags.fusion.actionBar` the schema refuses comes in without it.
+        if (manifest.documentType === "Actor") {
+          const barProblem = stripInvalidActionBarFlags(worldDoc);
+          if (barProblem !== null) {
+            options.logger?.warn(
+              { uuid, problem: barProblem },
+              "Dropped an invalid flags.fusion.actionBar from an imported Actor",
+            );
+          }
+        }
+
         // Derive on import (audit issue 3) — Actor documents only.
         //
         // No deep-clone needed here (unlike doc-handlers.ts/sync-handlers.ts/
@@ -844,6 +944,7 @@ export class CompendiumService {
           const id = first["_id"];
           if (typeof id === "string") {
             created.push(id);
+            createdDocs.push({ documentType: manifest.documentType, doc: first });
           }
         }
       } catch (err) {
@@ -853,7 +954,7 @@ export class CompendiumService {
       }
     }
 
-    return { created, failed };
+    return { created, failed, createdDocs };
   }
 
   /**
@@ -1675,7 +1776,7 @@ export class CompendiumService {
  * decision, issue #43, is untouched by this helper — it only copies, never
  * keeps a live view of the overlay).
  */
-function snapshotPtBRLabel(doc: Record<string, unknown>): void {
+export function snapshotPtBRLabel(doc: Record<string, unknown>): void {
   const overlay = doc["i18n"];
   if (typeof overlay !== "object" || overlay === null) return;
   const ptBR = (overlay as Record<string, unknown>)["ptBR"];

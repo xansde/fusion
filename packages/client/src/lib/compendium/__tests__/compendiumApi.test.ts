@@ -124,11 +124,14 @@ describe("getDocument — the preview's query settles even when the ack never ar
 
   it("REQ-CPD-051: rejects once the query's internal timeout elapses, instead of hanging forever", async () => {
     const promise = getDocument(socketThatNeverAcks(), "Compendium.pf2e.spells-core.Item.s1");
+    const settled = expect(promise).rejects.toThrow(/demorou demais/i);
 
-    // No ack ever fires — advance past the query's own timeout window.
-    vi.advanceTimersByTime(10_001);
+    // No ack ever fires — advance past every attempt's timeout window (2 x 15 s
+    // plus the backoff between them; the 10 s flat budget became a retry in
+    // compendiumApi.resilience.test.ts).
+    await vi.advanceTimersByTimeAsync(60_000);
 
-    await expect(promise).rejects.toThrow(/timed out/i);
+    await settled;
   });
 
   it("REQ-CPD-051: resolves normally when the ack arrives before the timeout", async () => {
@@ -228,6 +231,20 @@ describe("findPacksBySlug / searchPacksBySlug (B4 — mundo misto pickers)", () 
   it("a pure single-system pack list still resolves to exactly one pack per slug", () => {
     const packs = [pack("pf2e.classes-core"), pack("pf2e.feats-core")];
     expect(findPacksBySlug(packs, "classes-core").map((p) => p.id)).toEqual(["pf2e.classes-core"]);
+  });
+
+  it("a trailing-* slug names a family: every pack of the kind, whatever its suffix, in every system", () => {
+    const packs = [
+      pack("pf2e.backgrounds-core"),
+      pack("pf2e.backgrounds-homebrew"),
+      pack("sf2e.backgrounds-core"),
+      pack("pf2e.feats-core"),
+    ];
+    expect(findPacksBySlug(packs, "backgrounds-*").map((p) => p.id)).toEqual([
+      "pf2e.backgrounds-core",
+      "pf2e.backgrounds-homebrew",
+      "sf2e.backgrounds-core",
+    ]);
   });
 
   it("a composite world's pack list resolves BOTH systems' packs for the same slug", () => {

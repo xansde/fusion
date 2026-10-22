@@ -41,7 +41,9 @@ import {
   npcsIcon,
   scenesIcon,
   settingsIcon,
+  soundIcon,
 } from "../../components/sidebar/icons.js";
+import { soundUnlockBadge } from "../sound/soundBadge.js";
 import { scenePrepareBadge } from "../scenes/prepareState.svelte.js";
 import { getSidebarTab, registerSidebarTab } from "./registry.js";
 import type { SidebarBadgeStore, SidebarBadgeTone, SidebarTabDefinition } from "./registry.js";
@@ -148,6 +150,16 @@ const CORE_TABS: readonly SidebarTabDefinition[] = [
     // started is running. A compendium has no "new things you have not seen",
     // so there is nothing here for a counter to count.
     badge: compendiumImportBadge,
+  },
+  {
+    // Ambient table track: visible to everyone, last of the "all" group. The
+    // dot lights while the browser is blocking the track's audio.
+    id: "sound",
+    icon: soundIcon,
+    label: "FUSION.Sidebar.Tabs.Sound",
+    group: "all",
+    component: () => import("../../components/sound/SoundPanel.svelte"),
+    badge: soundUnlockBadge,
   },
   // The provisional Atores directory used to sit here, at the end of the "all"
   // group. G078 buried it: spec 42's NPCs tab authors non-playables, and with the

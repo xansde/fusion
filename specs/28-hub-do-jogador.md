@@ -210,6 +210,14 @@ gesto que o GM repete cem vezes por sessão não depende dela.
 
 - **REQ-HUB-007** [MVP] O Hub DEVE exibir uma barra de comando fixa no rodapé, listando os
   painéis registrados com rótulo e a tecla de atalho.
+
+  > **Emenda obrigada pela spec 53** (`53-barra-de-acoes.md`, DEC-BAR-09, REQ-BAR-023,
+  > REQ-BAR-024 e §12, 2026-10-11): o rodapé central é da **barra de ações**. Quando as linhas
+  > convergirem (o Hub só existe em código na `build/app`) e as duas barras coexistirem, a barra
+  > de comando do Hub DEVE virar um **grupo compacto na ponta** da barra de ações e NÃO DEVE ser
+  > empilhada sobre ela. Sem a barra de ações presente, a barra de comando segue fixa no rodapé
+  > como escrita acima; REQ-HUB-008 a REQ-HUB-014 não mudam.
+
 - **REQ-HUB-008** [MVP] Exatamente **um** painel DEVE estar aberto por vez; acionar o
   painel já aberto DEVE fechá-lo.
 - **REQ-HUB-009** [MVP] `Escape` DEVE dispensar a notificação visível e, não havendo

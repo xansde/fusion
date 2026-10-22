@@ -15,7 +15,8 @@
  *   - WallsLayer owns the PIXI containers for wall lines + door icons
  *   - WallDrawingTool handles click-to-draw chain of wall segments
  *   - Door icons are clickable by all users (non-secret, unlocked doors)
- *   - Wall ops are sent via sendOp (doc:update with $push/$pull on scene.walls)
+ *   - Wall ops are sent via sendOp with the dedicated ops (wall:create, wall:delete,
+ *     scene:doorState — see wallOps.ts), never a doc:update diff on scene.walls
  *
  * Color coding (GM view):
  *   normal wall:    #ff4444 (red)
@@ -31,7 +32,7 @@ import { Container, Graphics, Text, TextStyle } from "pixi.js";
 import type { Wall, DoorState } from "@fusion/shared";
 import type { Socket } from "socket.io-client";
 import { sendOp } from "../../docs/sendOp.js";
-import { createDocumentId } from "@fusion/shared";
+import { buildDoorStateOp, buildWallCreateOp, buildWallDeleteOp } from "./wallOps.js";
 
 // ---------------------------------------------------------------------------
 // Types
@@ -91,6 +92,7 @@ export class WallsLayer {
 
   // Selection
   private _selectedWallIds = new Set<string>();
+  private _keyListening = false;
 
   // Callbacks
   private _onWallsChanged: (() => void) | null = null;
@@ -108,6 +110,9 @@ export class WallsLayer {
   private _gridSize = 100;
   private _padX = 0;
   private _padY = 0;
+  /** Calibrated grid offset (scene.gridOffsetX/Y), added to the padding corner. */
+  private _offsetX = 0;
+  private _offsetY = 0;
 
   // Camera ref (for screen→world conversion)
   private _camera: { tx: number; ty: number; scale: number } = { tx: 0, ty: 0, scale: 1 };
@@ -169,11 +174,17 @@ export class WallsLayer {
     this._camera = camera;
   }
 
-  /** Set grid size for snap. */
-  setGrid(gridSize: number, padX: number, padY: number): void {
+  /**
+   * Set the grid the walls snap to: cell size, the padding corner and the calibrated
+   * offset (Calibrar grade). The lattice starts at padding + offset, the same origin the
+   * grid is drawn and measured from.
+   */
+  setGrid(gridSize: number, padX: number, padY: number, offsetX = 0, offsetY = 0): void {
     this._gridSize = gridSize;
     this._padX = padX;
     this._padY = padY;
+    this._offsetX = offsetX;
+    this._offsetY = offsetY;
   }
 
   /**
@@ -182,7 +193,13 @@ export class WallsLayer {
    */
   attachToElement(el: HTMLElement): void {
     this._canvasEl = el;
-    // Listeners are added only when drawing mode is active
+    // Pointer listeners are added only while the drawing mode is active. The key
+    // listener lives as long as the layer: Delete removes the SELECTED wall whether or
+    // not the drawing tool is on (a wall is selected by clicking it, not by drawing).
+    if (this._isGm && !this._keyListening) {
+      window.addEventListener("keydown", this._boundKeyDown);
+      this._keyListening = true;
+    }
   }
 
   /** Enter wall drawing mode. */
@@ -197,7 +214,6 @@ export class WallsLayer {
       this._canvasEl.addEventListener("pointerdown", this._boundPointerDown);
       this._canvasEl.addEventListener("pointermove", this._boundPointerMove);
       this._canvasEl.addEventListener("pointerup", this._boundPointerUp);
-      window.addEventListener("keydown", this._boundKeyDown);
     }
   }
 
@@ -212,7 +228,6 @@ export class WallsLayer {
       this._canvasEl.removeEventListener("pointerdown", this._boundPointerDown);
       this._canvasEl.removeEventListener("pointermove", this._boundPointerMove);
       this._canvasEl.removeEventListener("pointerup", this._boundPointerUp);
-      window.removeEventListener("keydown", this._boundKeyDown);
     }
   }
 
@@ -249,6 +264,10 @@ export class WallsLayer {
   /** Teardown. */
   destroy(): void {
     this.stopDrawing();
+    if (this._keyListening) {
+      window.removeEventListener("keydown", this._boundKeyDown);
+      this._keyListening = false;
+    }
     this._linesContainer.destroy({ children: true });
     this._doorsContainer.destroy({ children: true });
     this._drawingContainer.destroy({ children: true });
@@ -521,8 +540,11 @@ export class WallsLayer {
 
   private _handleKeyDown(e: KeyboardEvent): void {
     if (e.key === "Escape") {
-      this.stopDrawing();
+      if (this._drawingMode) this.stopDrawing();
     } else if ((e.key === "Delete" || e.key === "Backspace") && this._isGm) {
+      // Never steal the key from a field the user is typing in.
+      if (isTypingTarget(e.target)) return;
+      if (this._selectedWallIds.size === 0) return;
       void this.deleteSelected();
     }
   }
@@ -553,9 +575,12 @@ export class WallsLayer {
   }
 
   private _snap(pt: { x: number; y: number }): { x: number; y: number } {
-    // Snap to nearest grid vertex + snap to existing wall endpoints
-    const gridX = Math.round((pt.x - this._padX) / this._gridSize) * this._gridSize + this._padX;
-    const gridY = Math.round((pt.y - this._padY) / this._gridSize) * this._gridSize + this._padY;
+    // Snap to nearest grid vertex + snap to existing wall endpoints. The lattice starts at
+    // padding + calibrated offset, like the grid the Master sees and the ruler measures on.
+    const originX = this._padX + this._offsetX;
+    const originY = this._padY + this._offsetY;
+    const gridX = Math.round((pt.x - originX) / this._gridSize) * this._gridSize + originX;
+    const gridY = Math.round((pt.y - originY) / this._gridSize) * this._gridSize + originY;
 
     const SNAP_THRESHOLD = 12;
     let best = { x: gridX, y: gridY };
@@ -587,8 +612,8 @@ export class WallsLayer {
   ): Promise<void> {
     if (!this._socket) return;
     const preset = WALL_PRESETS[this._drawPreset];
-    const wall: Omit<Wall, "_id"> & { _id: string } = {
-      _id: createDocumentId(),
+    // No _id: the server assigns it (wall:create).
+    const wall = {
       a,
       b,
       move: preset.move,
@@ -601,20 +626,7 @@ export class WallsLayer {
     };
 
     try {
-      await sendOp(this._socket, {
-        type: "doc:update",
-        payload: {
-          documentType: "Scene",
-          updates: [
-            {
-              _id: this._sceneId,
-              diff: {
-                walls: { $push: wall },
-              },
-            },
-          ],
-        },
-      });
+      await sendOp(this._socket, buildWallCreateOp(this._sceneId, wall));
       this._onWallsChanged?.();
     } catch (err) {
       console.error("[WallsLayer] Failed to create wall:", err);
@@ -624,20 +636,7 @@ export class WallsLayer {
   private async _sendWallsDelete(wallIds: string[]): Promise<void> {
     if (!this._socket) return;
     try {
-      await sendOp(this._socket, {
-        type: "doc:update",
-        payload: {
-          documentType: "Scene",
-          updates: [
-            {
-              _id: this._sceneId,
-              diff: {
-                walls: { $pull: wallIds },
-              },
-            },
-          ],
-        },
-      });
+      await sendOp(this._socket, buildWallDeleteOp(this._sceneId, wallIds));
     } catch (err) {
       console.error("[WallsLayer] Failed to delete walls:", err);
     }
@@ -646,22 +645,18 @@ export class WallsLayer {
   private async _sendDoorStateUpdate(wallId: string, state: DoorState): Promise<void> {
     if (!this._socket) return;
     try {
-      await sendOp(this._socket, {
-        type: "doc:update",
-        payload: {
-          documentType: "Scene",
-          updates: [
-            {
-              _id: this._sceneId,
-              diff: {
-                [`walls.${wallId}.doorState`]: state,
-              },
-            },
-          ],
-        },
-      });
+      await sendOp(this._socket, buildDoorStateOp(this._sceneId, wallId, state));
     } catch (err) {
       console.error("[WallsLayer] Failed to update door state:", err);
     }
   }
+}
+
+/** True when a key press came from a field the user is typing in. */
+function isTypingTarget(target: EventTarget | null): boolean {
+  const el = target as { tagName?: string; isContentEditable?: boolean } | null;
+  if (!el) return false;
+  if (el.isContentEditable === true) return true;
+  const tag = el.tagName?.toUpperCase();
+  return tag === "INPUT" || tag === "TEXTAREA" || tag === "SELECT";
 }

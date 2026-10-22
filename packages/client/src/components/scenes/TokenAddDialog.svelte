@@ -33,6 +33,7 @@
 
   import type { Socket } from "socket.io-client";
   import { untrack } from "svelte";
+  import ActorPortrait from "../../lib/components/common/ActorPortrait.svelte";
   import { sendOp } from "../../lib/docs/sendOp.js";
   import { worldMirror } from "../../lib/docs/worldSync.js";
   import { t } from "../../lib/i18n/i18n.js";
@@ -184,9 +185,12 @@
 
       {#if selectedActor}
         <div class="actor-selected">
-          {#if selectedActor.img}
-            <img class="actor-selected__img" src={selectedActor.img} alt="" />
-          {/if}
+          <ActorPortrait
+            img={selectedActor.img}
+            docRef={{ table: "actors", id: selectedActor.id }}
+            name={selectedActor.name}
+            size={28}
+          />
           <span class="actor-selected__name">{selectedActor.name}</span>
           <button
             type="button"
@@ -218,9 +222,12 @@
                 onclick={() => selectActor(actor.id)}
                 disabled={submitting}
               >
-                {#if actor.img}
-                  <img class="actor-option__img" src={actor.img} alt="" />
-                {/if}
+                <ActorPortrait
+                  img={actor.img}
+                  docRef={{ table: "actors", id: actor.id }}
+                  name={actor.name}
+                  size={24}
+                />
                 <span class="actor-option__name">{actor.name}</span>
               </button>
             </li>
@@ -481,13 +488,6 @@
     opacity: 0.5;
   }
 
-  .actor-option__img {
-    border-radius: var(--fusion-radius-sm);
-    height: 1.5rem;
-    object-fit: cover;
-    width: 1.5rem;
-  }
-
   .actor-selected {
     align-items: center;
     background: var(--fusion-surface-alt);
@@ -496,13 +496,6 @@
     display: flex;
     gap: 0.5rem;
     padding: 0.4rem 0.6rem;
-  }
-
-  .actor-selected__img {
-    border-radius: var(--fusion-radius-sm);
-    height: 1.75rem;
-    object-fit: cover;
-    width: 1.75rem;
   }
 
   .actor-selected__name {

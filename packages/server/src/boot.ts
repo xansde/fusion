@@ -154,6 +154,12 @@ export interface BootNetContext {
    * undefined leaves the registry with only the generic-1d20 fallback.
    */
   systemModule?: SystemModule;
+  /**
+   * The world's assets directory (same value as BootAssetContext.assetsDir).
+   * Forwarded to SocketManager so sound:play can validate the requested track
+   * exists in the library. Optional — undefined leaves that to the picker UI.
+   */
+  assetsDir?: string;
 }
 
 // ---------------------------------------------------------------------------
@@ -462,6 +468,9 @@ export async function boot(options: BootOptions): Promise<BootResult> {
 
   // Register auth routes if a world context is provided.
   let authServiceInstance: AuthService | undefined;
+  // Deferred like `updateHooks`: the routes are registered before the socket layer exists (Phase 3b).
+  const authHooks: { onCharacterCreated: ((actor: Record<string, unknown>) => void) | undefined } =
+    { onCharacterCreated: undefined };
   if (authContext) {
     const { AuthService, registerAuthRoutes } = await import("./auth/index.js");
     authServiceInstance = new AuthService(authContext.db, authContext.secret, authContext.worldId);
@@ -472,6 +481,7 @@ export async function boot(options: BootOptions): Promise<BootResult> {
         title: authContext.worldTitle,
         systemId: authContext.worldSystemId,
       },
+      onCharacterCreated: (actor) => authHooks.onCharacterCreated?.(actor),
     });
     logger.info({ worldId: authContext.worldId }, "Auth routes registered");
   }
@@ -523,6 +533,18 @@ export async function boot(options: BootOptions): Promise<BootResult> {
       },
     });
     logger.info("Update routes registered (GET/POST /admin/update/*)");
+  }
+
+  // Avatar acervo (spec 35, REQ-AVT-041). Registered BEFORE the SPA so that a
+  // missing acervo answers an honest 404 instead of index.html (the client
+  // parses these as JSON). See avatar/routes.ts for the resolution order.
+  {
+    const { registerAvatarRoutes } = await import("./avatar/routes.js");
+    const { resolveClientDistDir } = await import("./spa/routes.js");
+    registerAvatarRoutes(fastify, {
+      clientDistDir: resolveClientDistDir(spaContext?.distDir),
+      logger,
+    });
   }
 
   // Register the SPA static build (REQ-DST-002) — ON by default. Registered
@@ -732,6 +754,24 @@ export async function boot(options: BootOptions): Promise<BootResult> {
       logger.warn("No systemId provided to net context — compendium packs not loaded");
     }
 
+    // REQ-CMP-056: characters created before a pack gained a rule get it now.
+    // Idempotent (a second boot writes nothing) and never fatal to the boot.
+    if (netContext.systemId !== undefined) {
+      try {
+        const { syncEmbeddedPackRules } = await import("./compendium/embedded-rules-sync.js");
+        syncEmbeddedPackRules({
+          db: netContext.db,
+          compendiumService,
+          ...(netContext.systemModule !== undefined
+            ? { systemModule: netContext.systemModule }
+            : {}),
+          logger,
+        });
+      } catch (err) {
+        logger.warn({ err }, "Embedded pack rules sync failed — characters left as they were");
+      }
+    }
+
     const nsOptions: WorldNamespaceOptions = {
       worldId: netContext.worldId,
       db: netContext.db,
@@ -748,7 +788,16 @@ export async function boot(options: BootOptions): Promise<BootResult> {
     if (netContext.maxConnections !== undefined) {
       nsOptions.maxConnections = netContext.maxConnections;
     }
+    if (netContext.assetsDir !== undefined) {
+      nsOptions.assetsDir = netContext.assetsDir;
+    }
     socketManager.registerWorldNamespace(nsOptions);
+    // #254: the character born with a new user (REST path) reaches the clients already connected.
+    const smForCharacters = socketManager;
+    const netWorldId = netContext.worldId;
+    authHooks.onCharacterCreated = (actor) => {
+      smForCharacters.broadcastDocCreated(netWorldId, "Actor", [actor]);
+    };
 
     logger.info(
       { worldId: netContext.worldId, path: `/world/${netContext.worldId}` },
