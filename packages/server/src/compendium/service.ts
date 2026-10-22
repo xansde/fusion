@@ -74,6 +74,7 @@ import type { Database as Db } from "better-sqlite3";
 import { createDocumentId } from "@fusion/shared";
 import type { SystemModule } from "@fusion/system-api";
 import { runActorDerivation } from "../net/derive-runner.js";
+import { resolveWorldVariantRules } from "../documents/world-variant-rules.js";
 import {
   buildDedupIndex,
   parseDocKey,
@@ -938,7 +939,13 @@ export class CompendiumService {
         // WHOLE worldDoc, exactly as mutated, is what gets persisted below.
         if (manifest.documentType === "Actor" && options.systemModule) {
           try {
-            runActorDerivation(worldDoc, options.systemModule);
+            // #274 (DEC-MCL-09): overlay the world's variant-rule Settings, as every other
+            // runActorDerivation call site does (derive.ts, sync-handlers, combat-handlers).
+            runActorDerivation(
+              worldDoc,
+              options.systemModule,
+              resolveWorldVariantRules(store, options.systemModule),
+            );
           } catch (deriveErr) {
             options.logger?.warn(
               { err: deriveErr, uuid },
