@@ -160,6 +160,12 @@ export class CompendiumService {
    * `_getSourceRefIndex`).
    */
   private _sourceRefIndex: Map<string, { packId: string; docId: string }> | null = null;
+  /**
+   * Same entries as {@link _sourceRefIndex} but keyed by origin system too
+   * (`"<systemId>\0<packName>\0<sourceId>"`), so a reference that carries its
+   * `systemId` resolves the right side of a cross-system sourceId collision (#264).
+   */
+  private _sourceRefBySystem: Map<string, { packId: string; docId: string }> | null = null;
 
   /**
    * Cross-pack search index for {@link searchAllPacks}: every entry of every
@@ -675,10 +681,9 @@ export class CompendiumService {
    */
   getI18nBySourceRef(
     viewerRole: number,
-    ref: { packName: string; sourceId: string },
+    ref: { packName: string; sourceId: string; systemId?: string },
   ): DocI18n | null {
-    const index = this._getSourceRefIndex();
-    const hit = index.get(buildSourceRefKey(ref.packName, ref.sourceId));
+    const hit = this._resolveSourceRef(ref);
     if (!hit) return null;
 
     const loaded = this._packFor(hit.packId, viewerRole);
@@ -707,10 +712,9 @@ export class CompendiumService {
    */
   getDocumentBySourceRef(
     viewerRole: number,
-    ref: { packName: string; sourceId: string },
+    ref: { packName: string; sourceId: string; systemId?: string },
   ): Record<string, unknown> | null {
-    const index = this._getSourceRefIndex();
-    const hit = index.get(buildSourceRefKey(ref.packName, ref.sourceId));
+    const hit = this._resolveSourceRef(ref);
     if (!hit) return null;
 
     const loaded = this._packFor(hit.packId, viewerRole);
@@ -1415,6 +1419,9 @@ export class CompendiumService {
    *      `buildDedupIndex`) is skipped here too — indexing it would let a
    *      stale/superseded overlay entry win a collision it has no business
    *      winning.
+   * #264: a reference that carries `systemId` (stamped on `flags.fusion` at import,
+   * REQ-CMP-059) resolves its own side via {@link _resolveSourceRef}. The gap below remains only
+   * for references WITHOUT it (world documents imported before the stamp existed).
    * KNOWN REMAINING GAP: for the Ratfolk/Ysoki shape — same `sourceId`,
    * same generic `packName`, but DIFFERENT content that dedup correctly
    * keeps as two separate, unfused documents (not a losing/winning pair) —
@@ -1430,11 +1437,30 @@ export class CompendiumService {
    * is a client-facing protocol change — tracked as a follow-up, not done
    * here (see conserto-core.md).
    */
+  /**
+   * Resolve an origin reference. With `systemId`, the entry of THAT system wins; when it has none
+   * (or no `systemId` was given) the system-agnostic index answers, pf2e first (I5).
+   */
+  private _resolveSourceRef(ref: {
+    packName: string;
+    sourceId: string;
+    systemId?: string;
+  }): { packId: string; docId: string } | undefined {
+    const index = this._getSourceRefIndex();
+    const key = buildSourceRefKey(ref.packName, ref.sourceId);
+    if (ref.systemId !== undefined) {
+      const own = this._sourceRefBySystem?.get(`${ref.systemId}\0${key}`);
+      if (own) return own;
+    }
+    return index.get(key);
+  }
+
   private _getSourceRefIndex(): Map<string, { packId: string; docId: string }> {
     if (this._sourceRefIndex) return this._sourceRefIndex;
 
     const dedup = this._ensureDedupIndex();
     const index = new Map<string, { packId: string; docId: string }>();
+    const bySystem = new Map<string, { packId: string; docId: string }>();
 
     const sortedPacks = [...this.packs.entries()].sort(([packIdA, a], [packIdB, b]) => {
       const pa = a.manifest.systemId === "pf2e" ? 0 : 1;
@@ -1471,6 +1497,8 @@ export class CompendiumService {
         if (typeof packName !== "string" || typeof sourceId !== "string") continue;
 
         const key = buildSourceRefKey(packName, sourceId);
+        const systemKey = `${loaded.manifest.systemId}\0${key}`;
+        if (!bySystem.has(systemKey)) bySystem.set(systemKey, { packId, docId });
         const existing = index.get(key);
         if (existing) {
           // A same-system duplicate (never expected, REQ-CMP-041) OR a
@@ -1497,6 +1525,7 @@ export class CompendiumService {
     }
 
     this._sourceRefIndex = index;
+    this._sourceRefBySystem = bySystem;
     return index;
   }
 
