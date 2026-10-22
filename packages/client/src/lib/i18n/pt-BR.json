@@ -110,7 +110,7 @@
   "FUSION.Settings.Preferences.Volume.Interface": "Interface — {{percent}}%",
   "FUSION.Settings.Preferences.ThemeTitle": "Tema",
   "FUSION.Settings.Preferences.Theme.Dark": "Escuro",
-  "FUSION.Settings.Preferences.Theme.Light": "Claro (experimental)",
+  "FUSION.Settings.Preferences.Theme.Light": "Claro",
   "FUSION.Settings.Preferences.Theme.System": "Seguir o sistema",
   "FUSION.Settings.Preferences.ThemeHint": "Vale só para este navegador. O tema claro ainda está sendo ajustado em algumas telas.",
   "FUSION.Settings.Preferences.NotificationsTitle": "Notificações",

@@ -205,8 +205,9 @@ Toda escrita das seções Mundo, Permissões, Usuários e Mods exige `role === G
 Minhas preferências oferece o tema: **Escuro** (padrão), **Claro** e **Seguir o sistema**.
 A escolha vale para o navegador em que foi feita (`localStorage`, chave `fusion.theme`,
 escrita por `lib/ui/theme.ts`), não para o mundo nem para o assento, e nunca vai ao
-servidor. Enquanto houver tela que ainda pinta cor fixa, o claro aparece como
-"Claro (experimental)".
+servidor. O claro saiu de "experimental" em 22/10/2026 (lane ui-acabamento), depois de
+medido com axe-core (contraste AA) nos dois temas: mesa, gaveta inteira, ficha (todas as
+abas e o Plano), barra de ações, chat e entrada.
 
 - **Racional:** a fundação visual de 22/10 (lane ui-fundacao) pôs as cores dos dois temas
   em tokens únicos (`styles/base.css`); um jogador da mesa tem dislexia e lê melhor em
