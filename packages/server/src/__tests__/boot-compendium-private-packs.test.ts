@@ -1,5 +1,5 @@
 /**
- * Boot-path private packs integration test (DEC-CMP-11, REQ-CMP-056/057).
+ * Boot-path private packs integration test (DEC-CMP-11, REQ-CMP-057/058).
  *
  * Proves that a real boot() picks up a second, non-versioned packs root at
  * `<dataDir>/private-packs/<systemId>/` — content the GM curates locally and
@@ -13,7 +13,7 @@
  *   3. A private pack whose id COLLIDES with an official one never
  *      overwrites the official pack — the official manifest wins.
  *
- * Spec: 16-compendiums-e-importacao.md, DEC-CMP-11, REQ-CMP-056/057.
+ * Spec: 16-compendiums-e-importacao.md, DEC-CMP-11, REQ-CMP-057/058.
  */
 
 import { describe, it, expect, afterEach } from "vitest";
@@ -32,6 +32,7 @@ import type { FusionDatabase } from "../db/index.js";
 import { AuthService } from "../auth/service.js";
 import { loadOrCreateSecret } from "../auth/crypto.js";
 import { PROTOCOL_VERSION } from "@fusion/shared";
+import { pf2eSf2eSystem } from "@fusion/system-pf2e-sf2e";
 
 // ---------------------------------------------------------------------------
 // Test infrastructure
@@ -51,7 +52,7 @@ function writeMinimalPack(
   root: string,
   slug: string,
   packId: string,
-  opts: { documentName?: string } = {},
+  opts: { documentName?: string; systemId?: string } = {},
 ): void {
   const packDir = join(root, slug);
   mkdirSync(packDir, { recursive: true });
@@ -60,7 +61,7 @@ function writeMinimalPack(
     id: packId,
     label: `Test pack ${slug}`,
     documentType: "Item",
-    systemId: "pf2e",
+    systemId: opts.systemId ?? "pf2e",
     indexFields: [],
     license: {
       license: "custom",
@@ -100,7 +101,7 @@ interface Ctx {
   gmToken: string;
 }
 
-async function buildCtx(dataDir: string): Promise<Ctx> {
+async function buildCtx(dataDir: string, composite = false): Promise<Ctx> {
   const dbPath = join(dataDir, "world.db");
   const worldId = "boot_priv_cmp_world";
 
@@ -125,7 +126,7 @@ async function buildCtx(dataDir: string): Promise<Ctx> {
     authContext: {
       worldId,
       worldTitle: "Boot Private Compendium World",
-      worldSystemId: "pf2e",
+      worldSystemId: composite ? "pf2e-sf2e" : "pf2e",
       db: fusionDb.raw,
       secret,
     },
@@ -135,7 +136,8 @@ async function buildCtx(dataDir: string): Promise<Ctx> {
       secret,
       authService,
       origin: "http://127.0.0.1",
-      systemId: "pf2e",
+      systemId: composite ? "pf2e-sf2e" : "pf2e",
+      ...(composite ? { systemModule: pf2eSf2eSystem } : {}),
     },
   });
 
@@ -181,12 +183,12 @@ function sendQuery(
   });
 }
 
-async function listPackIds(ctx: Ctx): Promise<string[]> {
+async function listPackIds(ctx: Ctx, systemId: string | null = "pf2e"): Promise<string[]> {
   const gm = connectClient(ctx.port, ctx.worldId, ctx.gmToken);
   gm.connect();
   await waitForConnect(gm);
   try {
-    const ack = await sendQuery(gm, "compendium:list", { systemId: "pf2e" });
+    const ack = await sendQuery(gm, "compendium:list", systemId === null ? {} : { systemId });
     expect(ack["ok"]).toBe(true);
     const packs = (ack["result"] as { packs: Array<{ id: string; label: string }> }).packs;
     return packs.map((p) => p.id);
@@ -224,7 +226,7 @@ describe("boot() discovers private (non-versioned) compendium packs — DEC-CMP-
     }
   });
 
-  it("REQ-CMP-056: a private pack under <dataDir>/private-packs/pf2e/ appears in compendium:list", async () => {
+  it("REQ-CMP-057: a private pack under <dataDir>/private-packs/pf2e/ appears in compendium:list", async () => {
     const dataDir = makeTempDir();
     const privateRoot = join(dataDir, "private-packs", "pf2e");
     writeMinimalPack(privateRoot, "private-classes-playtest", "pf2e.private-classes-playtest");
@@ -237,7 +239,7 @@ describe("boot() discovers private (non-versioned) compendium packs — DEC-CMP-
     expect(ids).toContain("pf2e.conditions");
   }, 30000);
 
-  it("REQ-CMP-056: no private-packs directory at all — boot behaves exactly as before", async () => {
+  it("REQ-CMP-057: no private-packs directory at all — boot behaves exactly as before", async () => {
     const dataDir = makeTempDir();
     // Deliberately do NOT create <dataDir>/private-packs/ — this is the
     // expected, silent common case.
@@ -250,7 +252,7 @@ describe("boot() discovers private (non-versioned) compendium packs — DEC-CMP-
     expect(ids.some((id) => id.startsWith("pf2e.private-"))).toBe(false);
   }, 30000);
 
-  it("REQ-CMP-057: a private pack whose id collides with an official one never overwrites it", async () => {
+  it("REQ-CMP-058: a private pack whose id collides with an official one never overwrites it", async () => {
     const dataDir = makeTempDir();
     const privateRoot = join(dataDir, "private-packs", "pf2e");
     // Collide with the real official "pf2e.conditions" packId, but with a
@@ -266,5 +268,20 @@ describe("boot() discovers private (non-versioned) compendium packs — DEC-CMP-
     // private "Test pack conditions" label must NOT have overwritten it.
     expect(label).toBe("PF2e Conditions");
     expect(label).not.toBe("Test pack conditions");
+  }, 30000);
+
+  it("REQ-CMP-057: in the pf2e-sf2e composite, private packs of BOTH source systems are discovered", async () => {
+    const dataDir = makeTempDir();
+    writeMinimalPack(join(dataDir, "private-packs", "pf2e"), "priv-a", "pf2e.private-a");
+    writeMinimalPack(join(dataDir, "private-packs", "sf2e"), "priv-b", "sf2e.private-b", {
+      systemId: "sf2e",
+    });
+
+    ctx = await buildCtx(dataDir, true);
+    const ids = await listPackIds(ctx, null);
+
+    expect(ids).toContain("pf2e.private-a");
+    expect(ids).toContain("sf2e.private-b");
+    expect(ids).toContain("pf2e.conditions");
   }, 30000);
 });

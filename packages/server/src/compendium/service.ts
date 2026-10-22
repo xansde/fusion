@@ -238,7 +238,7 @@ export class CompendiumService {
           continue;
         }
 
-        // REQ-CMP-057: a packId already registered (from a root discovered
+        // REQ-CMP-058: a packId already registered (from a root discovered
         // earlier — e.g. the official root, discovered before the private
         // one, see DEC-CMP-11) is never overwritten. Log and skip instead of
         // letting a private/misnamed pack silently replace an official one.
@@ -2112,7 +2112,7 @@ export function resolveSystemPacksDir(systemId: string, packsDirOverride?: strin
 
 /**
  * Resolve the **private** packs directory for a game system (DEC-CMP-11,
- * REQ-CMP-056): a second, non-versioned root the GM can point the server at
+ * REQ-CMP-057): a second, non-versioned root the GM can point the server at
  * to load compendium content that must never reach git (e.g. Paizo playtest
  * classes — same restriction as `docs/etmos-fontes/`).
  *
@@ -2129,7 +2129,7 @@ export function resolveSystemPacksDir(systemId: string, packsDirOverride?: strin
  *      world data the GM already keeps out of any repo.
  *
  * Returns `null` when the directory does not exist — this is the expected,
- * silent case for the overwhelming majority of installs (REQ-CMP-056: no
+ * silent case for the overwhelming majority of installs (REQ-CMP-057: no
  * error, no warning log).
  *
  * @param dataDir  the server's resolved data directory (`config.dataDir`).

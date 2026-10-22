@@ -396,13 +396,15 @@ contém `<systemId>/`).
 
 ### Packs privados (fora de controle de versão)
 
-- **REQ-CMP-056** [MVP] Além da raiz oficial (REQ-CMP-002), o servidor DEVE, na
+- **REQ-CMP-057** [MVP] Além da raiz oficial (REQ-CMP-002), o servidor DEVE, na
   abertura, tentar descobrir uma **segunda raiz** de packs em
   `<dataDir>/private-packs/<systemId>/` (override por env `FUSION_PRIVATE_PACKS_DIR`
   apontando para a raiz que contém `<systemId>/`), no mesmo formato de diretório
   (`pack.json` + `documents.json`, `index.json`/`i18n.pt-BR.json` opcionais). Diretório
-  ausente NÃO DEVE gerar erro nem log de aviso — é o caso comum (DEC-CMP-11).
-- **REQ-CMP-057** [MVP] Ao descobrir um pack cujo `id` já esteja registrado (de
+  ausente NÃO DEVE gerar erro nem log de aviso — é o caso comum (DEC-CMP-11). Em mundo
+  composto (ex.: `pf2e-sf2e`) a descoberta percorre uma raiz privada POR sistema-fonte
+  (`private-packs/pf2e/`, `private-packs/sf2e/`), nunca `private-packs/<id-composto>/`.
+- **REQ-CMP-058** [MVP] Ao descobrir um pack cujo `id` já esteja registrado (de
   qualquer raiz descoberta antes), o servidor NÃO DEVE sobrescrever o pack já
   registrado — DEVE logar a colisão e ignorar o duplicado. A raiz oficial é sempre
   descoberta antes da privada, então um `packId` colidente nunca apaga um pack oficial
