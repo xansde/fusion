@@ -71,6 +71,7 @@
     degreeLabelKey,
     degreeCssClass,
     basicSaveHintKey,
+    isRedundantRollContent,
     type FormattedRoll,
   } from "../../lib/chat/messageFormatter.js";
   import { classifyNestedChildren } from "../../lib/chat/chatNestedRender.js";
@@ -83,6 +84,8 @@
   import { sendChatInvalidate } from "../../lib/chat/chatStore.svelte.js";
   import { presenceState } from "../../lib/presence/presenceStore.svelte.js";
   import ChatCard from "./ChatCard.svelte";
+  import Icon from "../common/Icon.svelte";
+  import { rollModeIcons, rollModeI18nStem } from "./rollModeIcons.js";
   import { resolveChatCardExtension } from "../../lib/chat/chatCardExtensionRegistry.svelte.js";
 
   const {
@@ -264,9 +267,9 @@
 >
   <!--
     ---- Invalidate / revalidate control (REQ-ACH-080..086, A024) ----
-    Hover-revealed, prototype-style (chat-tab.prototype.html:614-616 `invBtn`).
-    Absent entirely when the viewer may neither invalidate nor revalidate this
-    row — REQ-ACH-082/083 decide that in lib/chat/invalidateButton.ts.
+    Hover/focus-revealed (chat-tab.prototype.html:614-616 `invBtn`). Absent entirely when the
+    viewer may neither invalidate nor revalidate this row — REQ-ACH-082/083 decide that in
+    lib/chat/invalidateButton.ts. ui-chat: icons of the shared set ("ban" / "undo-2").
   -->
   {#if invalidateAction}
     <div class="msg__acts">
@@ -282,53 +285,33 @@
           ? t("FUSION.Chat.Invalidate.Button")
           : t("FUSION.Chat.Revalidate.Button")}
       >
-        {#if invalidateAction === "invalidate"}
-          <!-- circle-slash: void, without deleting -->
-          <svg viewBox="0 0 12 12" aria-hidden="true" focusable="false">
-            <circle cx="6" cy="6" r="4.3" fill="none" stroke="currentColor" stroke-width="1.3" />
-            <path d="M3.1 3.1l5.8 5.8" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" />
-          </svg>
-        {:else}
-          <!-- restore arc: bring the row back -->
-          <svg viewBox="0 0 12 12" aria-hidden="true" focusable="false">
-            <path
-              d="M9.3 6A3.3 3.3 0 1 1 7.1 2.9"
-              fill="none"
-              stroke="currentColor"
-              stroke-width="1.3"
-              stroke-linecap="round"
-            />
-            <path
-              d="M9.3 2.6v3.1h-3.1"
-              fill="none"
-              stroke="currentColor"
-              stroke-width="1.3"
-              stroke-linecap="round"
-              stroke-linejoin="round"
-            />
-          </svg>
-        {/if}
+        <Icon name={invalidateAction === "invalidate" ? "ban" : "undo-2"} size={18} />
       </button>
     </div>
   {/if}
 
-  <!-- ---- Header (omitted on a continuation — REQ-ACH-025) ---- -->
+  <!--
+    ---- Header (omitted on a continuation — REQ-ACH-025) ----
+    ui-chat: the sender's color is a dot beside the name, not the color of the name itself — a
+    player color (amarelo, verde-limão) fails AA as text on one theme or the other; as a mark it
+    only has to be seen. The name reads in the text color; the hour is plain text, not monospaced.
+  -->
   {#if !continuesPrevious}
     <div class="msg__header">
-      <span class="msg__time" title={new Date(message.timestamp).toLocaleString()}
-        >{meta.timeStr}</span
-      >
-      <span class="msg__alias" style:color={authorColor}>{meta.alias}</span>
+      <span class="msg__dot" style:background-color={authorColor} aria-hidden="true"></span>
+      <span class="msg__alias">{meta.alias}</span>
       {#if meta.isWhisper}
-        <span class="msg__badge msg__badge--whisper"
-          title="Whisper to {message.whisper.join(', ')}">whisper</span>
+        <span class="msg__badge msg__badge--whisper">{t("FUSION.Chat.Badge.Whisper")}</span>
       {/if}
       {#if meta.isBlind}
-        <span class="msg__badge msg__badge--blind">blind</span>
+        <span class="msg__badge msg__badge--blind">{t("FUSION.Chat.RollMode.Blind.Label")}</span>
       {/if}
       {#if invalidated}
         <span class="msg__badge msg__badge--invalid">{t("FUSION.Chat.Invalidated.Badge")}</span>
       {/if}
+      <span class="msg__time" title={new Date(message.timestamp).toLocaleString()}
+        >{meta.timeStr}</span
+      >
     </div>
   {/if}
 
@@ -342,12 +325,10 @@
 
   <!-- ---- Body ---- -->
   {#if message.type === "emote"}
-    <p class="msg__content msg__content--emote">
-      <em>{meta.alias} {message.content}</em>
-    </p>
+    <p class="msg__content msg__content--emote">{meta.alias} {message.content}</p>
   {:else if message.type === "roll"}
-    <!-- Roll message: content + roll cards -->
-    {#if message.content}
+    <!-- The server's own summary ("Atletismo: 14") only repeats the card: printed only when a person wrote it. -->
+    {#if message.content && !isRedundantRollContent(message.content, message.rolls ?? [])}
       <p class="msg__content">{message.content}</p>
     {/if}
     {#each formattedRolls as roll, idx (roll.rollId)}
@@ -359,18 +340,23 @@
         only when it is there — REQ-ACH-071 keeps a targetless roll at its total.
       -->
       {@const target = message.rolls?.[idx]?.target}
-      <div class="roll-card">
-        <!-- Roll header -->
-        <div class="roll-card__header">
-          <span class="roll-card__formula" title={roll.expandedFormula}>
-            {roll.formula}
-          </span>
-          {#if roll.flavor}
-            <span class="roll-card__flavor">{roll.flavor}</span>
-          {/if}
+      <!--
+        ui-chat (direção A, revisao-ui-2026-10-22 frame d): ONE box per roll. The name of the roll and
+        its total share the first line; the dice and the formula below; then where the modifier came from.
+      -->
+      <div class="roll-card" role="group" aria-label={roll.flavor ?? roll.formula}>
+        <div class="roll-card__head">
+          <span class="roll-card__title" class:roll-card__title--formula={!roll.flavor}
+            >{roll.flavor ?? roll.formula}</span
+          >
           {#if roll.rollMode !== "public"}
-            <span class="roll-card__mode">{roll.rollMode}</span>
+            <span class="roll-card__mode">
+              <!-- eslint-disable-next-line svelte/no-at-html-tags -- static icon set -->
+              {@html rollModeIcons[roll.rollMode]}
+              {t(`${rollModeI18nStem[roll.rollMode]}.Label`)}
+            </span>
           {/if}
+          <span class="roll-card__total roll-card__total--{totalClass || 'normal'}">{roll.total}</span>
         </div>
 
         <!--
@@ -380,6 +366,9 @@
         -->
         {#if display}
           <div class="roll-card__breakdown" role="group" aria-label={display.summary}>
+            {#if roll.flavor}
+              <span class="roll-card__formula" title={roll.expandedFormula}>{roll.formula}</span>
+            {/if}
             {#each display.segments as segment, si (si)}
               {#if segment.kind === "dice"}
                 <span class="roll-term__dice">
@@ -407,27 +396,23 @@
           </div>
         {/if}
 
-        <!-- Total -->
-        <div class="roll-card__total roll-card__total--{totalClass || 'normal'}">
-          {roll.total}
-        </div>
-
         {#if idx === 0 && breakdownRows.length > 0}
-          <ul class="roll-card__parts" aria-label="Como o modificador é composto" data-testid="roll-card-parts">
+          <dl class="roll-card__parts" aria-label={t("FUSION.Chat.Breakdown.Label")} data-testid="roll-card-parts">
             {#each breakdownRows as row, ri (ri)}
-              <li
-                class="roll-card__part"
-                class:roll-card__part--off={!row.applied}
-                class:roll-card__part--conditional={row.conditional}
-              >
-                <span class="roll-card__part-label">{row.label}</span>
-                <span class="roll-card__part-value">{row.valueFormatted}</span>
-                {#if !row.applied}
-                  <span class="roll-card__part-note">não acumula</span>
-                {/if}
-              </li>
+              <div class="roll-card__part" class:roll-card__part--off={!row.applied}>
+                <dt class="roll-card__part-label">
+                  {row.label}
+                  {#if row.conditional}
+                    <span class="roll-card__part-note">{t("FUSION.Chat.Breakdown.Conditional")}</span>
+                  {/if}
+                  {#if !row.applied}
+                    <span class="roll-card__part-note">{t("FUSION.Chat.Breakdown.NotApplied")}</span>
+                  {/if}
+                </dt>
+                <dd class="roll-card__part-value">{row.valueFormatted}</dd>
+              </div>
             {/each}
-          </ul>
+          </dl>
         {/if}
 
         <!--
@@ -456,10 +441,9 @@
         {/if}
 
         <!-- Warnings -->
-        {#each roll.warnings as warning}
+        {#each roll.warnings as warning, wi (wi)}
           <p class="roll-card__warning">{warning}</p>
         {/each}
-
       </div>
     {/each}
   {:else if message.type === "system" && message.card}
@@ -469,7 +453,7 @@
     <!-- System interactive card extension (e.g. PF2e's ability card) —
          text announcement + save/damage buttons, mounted via the registry. -->
     {#if message.content}
-      <p class="msg__content">{message.content}</p>
+      <p class="msg__content msg__content--announce">{message.content}</p>
     {/if}
     {@const CardExtensionComponent = cardExtension.component}
     <CardExtensionComponent
@@ -489,16 +473,17 @@
 
   <!-- ---- Nested child rolls (r18-N1) ---- -->
   <!--
-    Attack / damage / save rolls spawned by this spell-cast card, grouped here
-    by ChatLog so the conjuration reads as ONE card. Compact roll lines for the
-    caster's attack/damage; a "Salvaguardas" section (collapsible past 4) for
-    the targets' graded saves. Empty for a normal message.
+    Attack / damage / save rolls spawned by this card, grouped here by ChatLog so
+    the ability reads as ONE card. Compact roll lines for the caster's
+    attack/damage; a "Salvaguardas" section (collapsible past 4) for the targets'
+    graded saves. Empty for a normal message.
   -->
   {#if nested.rolls.length > 0 || nested.saves.length > 0}
     <div class="nested" role="group" aria-label={t("FUSION.Chat.SpellCard.Title")}>
       <!--
         REQ-ACH-022: a child roll inside the card is not a poorer citizen — it
         shows its dice and its modifier, and its degree when the server graded it.
+        ui-chat: and where the modifier came from, the same rows a loose card prints.
       -->
       {#each nested.rolls as line (line.messageId)}
         <div class="nested-roll">
@@ -517,6 +502,24 @@
           {#each line.extras ?? [] as extra (extra)}
             <span class="nested-roll__extra">{extra}</span>
           {/each}
+          {#if line.parts.length > 0}
+            <dl class="nested-roll__parts" aria-label={t("FUSION.Chat.Breakdown.Label")}>
+              {#each line.parts as row, ri (ri)}
+                <div class="roll-card__part" class:roll-card__part--off={!row.applied}>
+                  <dt class="roll-card__part-label">
+                    {row.label}
+                    {#if row.conditional}
+                      <span class="roll-card__part-note">{t("FUSION.Chat.Breakdown.Conditional")}</span>
+                    {/if}
+                    {#if !row.applied}
+                      <span class="roll-card__part-note">{t("FUSION.Chat.Breakdown.NotApplied")}</span>
+                    {/if}
+                  </dt>
+                  <dd class="roll-card__part-value">{row.valueFormatted}</dd>
+                </div>
+              {/each}
+            </dl>
+          {/if}
         </div>
       {/each}
 
@@ -560,18 +563,19 @@
 
 <style>
   /*
-    REQ-ACH-025 (A022): every row carries a left border, default neutral gray so
-    a continuation (no inline color — same author, header suppressed) still
-    aligns with the row above it. `style:border-left-color` (set from script)
-    overrides this per-sender for a plain top-level message; the .msg--whisper/
-    .msg--blind/.msg--sys rules below override it again, unconditionally, for
-    the three fixed types the prototype paints regardless of sender.
+    REQ-ACH-025 (A022): every row carries a left border, default neutral so a
+    continuation (same author, header suppressed) still aligns with the row above
+    it. `style:border-left-color` (set from script) overrides this per-sender for a
+    plain top-level message; .msg--whisper/.msg--blind/.msg--sys override it again
+    for the three fixed types the prototype paints regardless of sender.
+    ui-chat: rows are separated by space, never by a box of their own.
   */
   .msg {
     position: relative;
-    padding: 0.35rem 0.75rem;
-    border-left: 2px solid var(--fusion-border);
-    border-bottom: 1px solid transparent;
+    padding: var(--fusion-space-2) var(--fusion-space-3);
+    border-left: 3px solid var(--fusion-border);
+    font-size: var(--fusion-text-base);
+    line-height: var(--fusion-leading);
     transition:
       background-color var(--fusion-transition),
       border-left-color var(--fusion-transition);
@@ -582,28 +586,20 @@
   }
 
   /*
-    REQ-ACH-080..086 (A024, chat-tab.prototype.html `.acts`): the
-    invalidate/revalidate control sits in the row's top-right corner and only
-    shows on hover/focus — it never crowds the message body, and a reader who
-    is not the GM or the author simply never sees it (the button is absent from
-    the markup entirely for them, not just hidden by CSS).
-
-    RNF-ACH-04 (REQ-UIF-064): revealed via opacity, not `display: none` — a
-    `display: none` element is removed from the tab order, so a keyboard user
-    could never focus the button in the first place and `:focus-within` below
-    would be dead code (same pattern as ScenesTab.svelte's
-    `.scene-row__actions` / CombatQueue.svelte's `.combatant-row__actions`).
+    REQ-ACH-080..086 (A024): the invalidate/revalidate control sits in the row's
+    top-right corner and only shows on hover/focus. RNF-ACH-04 (REQ-UIF-064):
+    revealed via opacity, not `display: none`, so a keyboard user can focus it.
+    It floats over the row, so it carries the popover shadow.
   */
   .msg__acts {
     position: absolute;
-    top: -6px;
-    right: 4px;
+    top: var(--fusion-space-1);
+    right: var(--fusion-space-2);
     display: flex;
-    gap: 0.15rem;
-    background: var(--fusion-surface-alt);
+    background: var(--fusion-surface);
     border: 1px solid var(--fusion-border);
-    border-radius: var(--fusion-radius-sm);
-    padding: 0.1rem;
+    border-radius: var(--fusion-radius);
+    box-shadow: var(--fusion-shadow-popover);
     z-index: 2;
     opacity: 0;
     transition: opacity var(--fusion-transition);
@@ -618,17 +614,18 @@
     display: inline-flex;
     align-items: center;
     justify-content: center;
+    min-width: var(--fusion-target);
+    min-height: var(--fusion-target);
     background: none;
     border: 0;
-    color: var(--fusion-text-subtle);
+    color: var(--fusion-text-muted);
     cursor: pointer;
-    padding: 0.15rem 0.3rem;
-    border-radius: 3px;
+    border-radius: var(--fusion-radius);
   }
 
   .msg__act:hover:not(:disabled) {
     color: var(--fusion-text);
-    background: var(--fusion-surface);
+    background: var(--fusion-surface-alt);
   }
 
   .msg__act:disabled {
@@ -636,37 +633,22 @@
     cursor: not-allowed;
   }
 
-  /* RNF-ACH-04: the browser's default outline is not enough once revealed by
-     opacity — a visible ring on keyboard focus (same treatment as
-     RollModeSelector.svelte's `.roll-mode__option:focus-visible`). */
   .msg__act:focus-visible {
-    outline: 2px solid var(--fusion-accent);
+    outline: 2px solid var(--fusion-focus);
     outline-offset: 1px;
   }
 
-  .msg__act svg {
-    width: 12px;
-    height: 12px;
-  }
-
-  /*
-    REQ-ACH-025: a continuation of the same author's run keeps the body aligned
-    with the message above it and drops the vertical breathing room the header
-    used to provide.
-  */
+  /* REQ-ACH-025: a continuation keeps the body aligned and drops the header's room. */
   .msg--continued {
     padding-top: 0;
   }
 
   /*
-    REQ-ACH-081: voided, not gone. The whole row is attenuated and every value
-    it announces — the text, the roll totals, the child lines — is struck
-    through, so a reader scanning the log cannot mistake it for something that
-    still counts. The stamp below stays at full contrast: it is the one part of
-    the row that is still true.
+    REQ-ACH-081: voided, not gone. The row is attenuated and every value it
+    announces is struck through; the stamp stays at full contrast.
   */
   .msg--invalid {
-    opacity: 0.55;
+    opacity: 0.6;
   }
 
   .msg--invalid .msg__content,
@@ -683,37 +665,24 @@
   }
 
   .msg__voided {
-    font-size: 0.7rem;
-    font-style: italic;
+    font-size: var(--fusion-text-sm);
     color: var(--fusion-text-muted);
-    margin: 0 0 0.15rem;
+    margin: 0 0 var(--fusion-space-1);
   }
 
-  .msg__badge--invalid {
-    background: rgba(255, 92, 92, 0.15);
-    color: var(--fusion-danger);
-  }
-
-  /* ---- Type variants ---- */
+  /* ---- Type variants (fixed type colors: whisper, blind, card) ---- */
   .msg--emote {
     color: var(--fusion-text-muted);
   }
 
-  /*
-    Fixed type colors (chat-tab.prototype.html: .m--whisper/.m--blind/.m--sys).
-    These override the per-sender border painted inline via style:border-left-color
-    (borderColor is `undefined` for whisper/blind/card rows precisely so these
-    win) — a reader recognizes the TYPE of a row at a glance, the same color
-    regardless of who sent it.
-  */
   .msg--whisper {
-    background: rgba(124, 92, 252, 0.07);
-    border-left: 2px solid var(--fusion-accent);
+    background: var(--fusion-accent-dim);
+    border-left-color: var(--fusion-accent);
   }
 
   .msg--blind {
-    background: rgba(255, 200, 87, 0.06);
-    border-left: 2px solid var(--fusion-warning);
+    background: var(--fusion-warning-dim);
+    border-left-color: var(--fusion-warning);
   }
 
   .msg--sys {
@@ -722,192 +691,153 @@
 
   .msg--system {
     color: var(--fusion-text-muted);
-    font-size: 0.8125rem;
   }
 
   /* ---- Header ---- */
   .msg__header {
     display: flex;
-    align-items: baseline;
-    gap: 0.4rem;
-    margin-bottom: 0.15rem;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: var(--fusion-space-1) var(--fusion-space-2);
+    margin-bottom: var(--fusion-space-1);
   }
 
-  .msg__time {
-    color: var(--fusion-text-subtle);
-    font-size: 0.7rem;
-    font-family: var(--fusion-font-mono);
-    flex-shrink: 0;
+  .msg__dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    flex: none;
+    background-color: var(--fusion-border-strong);
   }
 
   .msg__alias {
-    font-weight: 600;
-    font-size: 0.8125rem;
+    font-weight: var(--fusion-weight-bold);
     color: var(--fusion-text);
+    overflow-wrap: anywhere;
+  }
+
+  .msg__time {
+    margin-left: auto;
+    font-size: var(--fusion-text-xs);
+    color: var(--fusion-text-subtle);
+    flex: none;
   }
 
   .msg__badge {
-    font-size: 0.65rem;
+    font-size: var(--fusion-text-xs);
+    font-weight: var(--fusion-weight-medium);
     border-radius: var(--fusion-radius-sm);
-    padding: 0 0.35rem;
-    font-weight: 600;
-    text-transform: uppercase;
-    letter-spacing: 0.04em;
+    padding: 0 var(--fusion-space-1);
+    color: var(--fusion-text);
   }
 
   .msg__badge--whisper {
     background: var(--fusion-accent-dim);
-    color: var(--fusion-accent);
   }
 
   .msg__badge--blind {
-    background: rgba(255, 200, 87, 0.15);
-    color: var(--fusion-warning);
+    background: var(--fusion-warning-dim);
+  }
+
+  .msg__badge--invalid {
+    background: var(--fusion-danger-dim);
   }
 
   /* ---- Content ---- */
   .msg__content {
-    font-size: 0.875rem;
     color: var(--fusion-text);
     white-space: pre-wrap;
-    word-break: break-word;
+    overflow-wrap: anywhere;
     margin: 0;
+    max-width: var(--fusion-measure);
   }
 
   .msg__content--emote {
     color: var(--fusion-text-muted);
   }
 
-  /* ---- Roll card ---- */
-  .roll-card {
-    background: var(--fusion-surface-alt);
-    border: 1px solid var(--fusion-border);
-    border-radius: var(--fusion-radius);
-    margin-top: 0.35rem;
-    overflow: hidden;
-    max-width: 320px;
+  /* The line a system card is announced with ("Bico (PAM 1)"): a caption over the card. */
+  .msg__content--announce {
+    font-size: var(--fusion-text-sm);
+    color: var(--fusion-text-muted);
   }
 
-  .roll-card__header {
+  /* ---- Roll card: one box per roll (direção A) ---- */
+  .roll-card {
+    margin-top: var(--fusion-space-2);
+    padding: var(--fusion-space-2) var(--fusion-space-3);
+    background: var(--fusion-surface-alt);
+    border: 1px solid var(--fusion-border);
+    border-left: 4px solid var(--fusion-chat-sys);
+    border-radius: var(--fusion-radius);
+    max-width: 360px;
+  }
+
+  .roll-card__head {
     display: flex;
     align-items: center;
-    gap: 0.4rem;
-    padding: 0.35rem 0.6rem;
-    background: rgba(255,255,255,0.03);
-    border-bottom: 1px solid var(--fusion-border);
-    font-size: 0.75rem;
+    gap: var(--fusion-space-2);
+  }
+
+  .roll-card__title {
+    flex: 1;
+    min-width: 0;
+    font-size: var(--fusion-text-md);
+    font-weight: var(--fusion-weight-bold);
+    color: var(--fusion-text);
+    overflow-wrap: anywhere;
+  }
+
+  .roll-card__title--formula {
+    font-family: var(--fusion-font-mono);
+  }
+
+  .roll-card__mode {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--fusion-space-1);
+    font-size: var(--fusion-text-xs);
+    color: var(--fusion-text-muted);
+    flex: none;
+  }
+
+  .roll-card__total {
+    font-family: var(--fusion-font-mono);
+    font-size: var(--fusion-text-2xl);
+    font-weight: var(--fusion-weight-bold);
+    line-height: var(--fusion-leading-tight);
+    color: var(--fusion-text);
+    flex: none;
+  }
+
+  .roll-card__total--crit {
+    color: var(--fusion-success);
+  }
+
+  .roll-card__total--fumble {
+    color: var(--fusion-danger);
+  }
+
+  /* ---- Dice and formula (always visible — REQ-ACH-021) ---- */
+  .roll-card__breakdown {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: var(--fusion-space-1) var(--fusion-space-2);
+    margin-top: var(--fusion-space-1);
+    font-size: var(--fusion-text-sm);
     color: var(--fusion-text-muted);
   }
 
   .roll-card__formula {
     font-family: var(--fusion-font-mono);
-    flex: 1;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-  }
-
-  .roll-card__flavor {
-    color: var(--fusion-accent);
-    font-style: italic;
-  }
-
-  .roll-card__mode {
-    background: var(--fusion-accent-dim);
-    color: var(--fusion-accent);
-    border-radius: 3px;
-    padding: 0 0.25rem;
-    font-size: 0.65rem;
-    text-transform: uppercase;
-    letter-spacing: 0.04em;
-  }
-
-  .roll-card__total {
-    text-align: center;
-    font-size: 2.5rem;
-    font-weight: 700;
-    line-height: 1;
-    padding: 0.75rem 0;
-    color: var(--fusion-text);
-  }
-
-  .roll-card__total--crit {
-    color: var(--fusion-success);
-    text-shadow: 0 0 16px rgba(61, 220, 132, 0.45);
-  }
-
-  .roll-card__total--fumble {
-    color: var(--fusion-danger);
-    text-shadow: 0 0 16px rgba(255, 92, 92, 0.45);
-  }
-
-  /* REQ-ACH-070: the target, quieter than the degree it explains. */
-  .roll-card__target {
-    text-align: center;
-    font-size: 0.7rem;
-    color: var(--fusion-text-muted);
-    padding: 0 0.6rem 0.2rem;
-    font-style: italic;
-  }
-
-  .roll-card__dos {
-    text-align: center;
-    font-size: 0.75rem;
-    color: var(--fusion-accent);
-    padding: 0 0.6rem 0.4rem;
-    font-weight: 600;
-    text-transform: uppercase;
-    letter-spacing: 0.06em;
-  }
-
-  /* Degree-of-success badge colors (r17.1) — coherent with the total palette. */
-  .roll-card__dos.dos--crit-success {
-    color: var(--fusion-success);
-    text-shadow: 0 0 10px rgba(61, 220, 132, 0.35);
-  }
-
-  .roll-card__dos.dos--success {
-    color: var(--fusion-success);
-  }
-
-  .roll-card__dos.dos--failure {
-    color: var(--fusion-danger);
-  }
-
-  .roll-card__dos.dos--crit-failure {
-    color: var(--fusion-danger);
-    text-shadow: 0 0 10px rgba(255, 92, 92, 0.35);
-  }
-
-  .roll-card__basic-hint {
-    text-align: center;
-    font-size: 0.68rem;
-    color: var(--fusion-text-muted);
-    padding: 0 0.6rem 0.4rem;
-    font-style: italic;
-  }
-
-  .roll-card__warning {
-    font-size: 0.7rem;
-    color: var(--fusion-warning);
-    padding: 0 0.6rem 0.3rem;
-    margin: 0;
-  }
-
-  /* ---- Breakdown (always visible — REQ-ACH-021) ---- */
-  .roll-card__breakdown {
-    display: flex;
-    align-items: center;
-    flex-wrap: wrap;
-    gap: 0.3rem;
-    padding: 0.4rem 0.6rem 0;
-    font-size: 0.75rem;
+    overflow-wrap: anywhere;
   }
 
   .roll-term__dice {
     display: flex;
     flex-wrap: wrap;
-    gap: 0.2rem;
+    gap: var(--fusion-space-1);
   }
 
   .roll-term__value {
@@ -916,9 +846,7 @@
   }
 
   .roll-term__flavor {
-    color: var(--fusion-accent);
-    font-style: italic;
-    font-size: 0.7rem;
+    color: var(--fusion-text-muted);
   }
 
   /* ---- Individual dice ---- */
@@ -926,31 +854,30 @@
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    width: 1.5rem;
-    height: 1.5rem;
-    border-radius: 4px;
-    border: 1px solid var(--fusion-border);
+    min-width: 1.75rem;
+    height: 1.75rem;
+    padding: 0 var(--fusion-space-1);
+    border-radius: var(--fusion-radius-sm);
+    border: 1px solid var(--fusion-border-strong);
     background: var(--fusion-surface);
-    font-size: 0.75rem;
     font-family: var(--fusion-font-mono);
-    font-weight: 600;
+    font-size: var(--fusion-text-sm);
+    font-weight: var(--fusion-weight-bold);
     color: var(--fusion-text);
   }
 
   .die--crit {
     border-color: var(--fusion-success);
-    background: rgba(61, 220, 132, 0.1);
-    color: var(--fusion-success);
+    background: var(--fusion-success-dim);
   }
 
   .die--fumble {
     border-color: var(--fusion-danger);
-    background: rgba(255, 92, 92, 0.1);
-    color: var(--fusion-danger);
+    background: var(--fusion-danger-dim);
   }
 
   .die--discarded {
-    opacity: 0.35;
+    opacity: 0.5;
     text-decoration: line-through;
   }
 
@@ -966,15 +893,101 @@
     border-color: var(--fusion-danger);
   }
 
-  /* ---- Nested child rolls (r18-N1) ---- */
+  /* ---- Where the modifier came from: one line per part, label left, value right ---- */
+  .roll-card__parts,
+  .nested-roll__parts {
+    margin: var(--fusion-space-2) 0 0;
+    font-size: var(--fusion-text-sm);
+    color: var(--fusion-text-muted);
+  }
+
+  .nested-roll__parts {
+    flex: 1 1 100%;
+    margin-top: 0;
+  }
+
+  .roll-card__part {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: var(--fusion-space-3);
+    padding: var(--fusion-space-1) 0;
+    border-top: 1px solid var(--fusion-border);
+  }
+
+  .roll-card__part-label {
+    margin: 0;
+    min-width: 0;
+    overflow-wrap: anywhere;
+  }
+
+  .roll-card__part-value {
+    margin: 0;
+    font-family: var(--fusion-font-mono);
+    font-weight: var(--fusion-weight-bold);
+    color: var(--fusion-text);
+    flex: none;
+  }
+
+  .roll-card__part--off .roll-card__part-label,
+  .roll-card__part--off .roll-card__part-value {
+    color: var(--fusion-text-subtle);
+  }
+
+  .roll-card__part--off .roll-card__part-value {
+    text-decoration: line-through;
+  }
+
+  .roll-card__part-note {
+    margin-left: var(--fusion-space-1);
+    font-size: var(--fusion-text-xs);
+    color: var(--fusion-text-subtle);
+  }
+
+  /* REQ-ACH-070: the target, quieter than the degree it explains. */
+  .roll-card__target {
+    margin-top: var(--fusion-space-2);
+    font-size: var(--fusion-text-sm);
+    color: var(--fusion-text-muted);
+  }
+
+  .roll-card__dos {
+    margin-top: var(--fusion-space-1);
+    font-weight: var(--fusion-weight-bold);
+    color: var(--fusion-text);
+  }
+
+  /* Degree-of-success colors (r17.1): the semantic colors, no glow. */
+  .roll-card__dos.dos--crit-success,
+  .roll-card__dos.dos--success {
+    color: var(--fusion-success);
+  }
+
+  .roll-card__dos.dos--failure,
+  .roll-card__dos.dos--crit-failure {
+    color: var(--fusion-danger);
+  }
+
+  .roll-card__basic-hint {
+    font-size: var(--fusion-text-sm);
+    color: var(--fusion-text-muted);
+  }
+
+  .roll-card__warning {
+    font-size: var(--fusion-text-sm);
+    color: var(--fusion-warning);
+    margin: var(--fusion-space-1) 0 0;
+  }
+
+  /* ---- Nested child rolls (r18-N1): under the card above, grouped by a rule, not a box ---- */
   .nested {
-    margin-top: 0.35rem;
-    padding-left: 0.6rem;
-    border-left: 2px solid var(--fusion-accent-dim);
+    margin-top: var(--fusion-space-2);
+    padding-left: var(--fusion-space-3);
+    border-left: 2px solid var(--fusion-border-strong);
     display: flex;
     flex-direction: column;
-    gap: 0.3rem;
-    max-width: 340px;
+    gap: var(--fusion-space-2);
+    max-width: 360px;
   }
 
   .nested-roll {
@@ -982,44 +995,39 @@
     flex-wrap: wrap;
     align-items: baseline;
     justify-content: space-between;
-    gap: 0.15rem 0.5rem;
-    font-size: 0.78rem;
+    gap: var(--fusion-space-1) var(--fusion-space-2);
+    font-size: var(--fusion-text-sm);
   }
 
   /* The label owns its row and wraps: clipped, it hid the calculation and left the line unreadable (L2 round 2, D7). */
   .nested-roll__label {
-    color: var(--fusion-text-muted);
+    color: var(--fusion-text);
+    font-weight: var(--fusion-weight-medium);
     flex: 1 1 100%;
     min-width: 0;
     overflow-wrap: anywhere;
   }
 
-  /* BHR-F4-09: the part an effect of the roller added (the Apoio of the companion), quiet, on its own row. */
+  /* BHR-F4-09: the part an effect of the roller added (the Apoio of the companion), on its own row. */
   .nested-roll__extra {
     flex: 1 1 100%;
     min-width: 0;
-    font-size: 0.72rem;
-    font-style: italic;
-    color: var(--fusion-accent);
+    color: var(--fusion-text-muted);
     overflow-wrap: anywhere;
   }
 
   /* REQ-ACH-022: the dice of the child roll, on the row below its label, never clipped. */
   .nested-roll__breakdown {
     font-family: var(--fusion-font-mono);
-    font-size: 0.72rem;
-    color: var(--fusion-text-subtle);
+    color: var(--fusion-text-muted);
     flex: 1 1 0;
     min-width: 0;
     overflow-wrap: anywhere;
   }
 
   .nested-roll__badge {
-    font-size: 0.65rem;
-    font-weight: 600;
-    text-transform: uppercase;
-    letter-spacing: 0.04em;
-    color: var(--fusion-accent);
+    font-weight: var(--fusion-weight-bold);
+    color: var(--fusion-text);
     flex-shrink: 0;
   }
 
@@ -1035,7 +1043,8 @@
 
   .nested-roll__total {
     font-family: var(--fusion-font-mono);
-    font-weight: 700;
+    font-size: var(--fusion-text-lg);
+    font-weight: var(--fusion-weight-bold);
     color: var(--fusion-text);
     flex-shrink: 0;
   }
@@ -1051,128 +1060,75 @@
   .nested-saves {
     display: flex;
     flex-direction: column;
-    gap: 0.15rem;
-    padding-top: 0.15rem;
+    gap: var(--fusion-space-1);
   }
 
   .nested-saves__title {
-    font-size: 0.68rem;
-    text-transform: uppercase;
-    letter-spacing: 0.05em;
-    color: var(--fusion-text-subtle);
-    margin-bottom: 0.1rem;
+    font-size: var(--fusion-text-sm);
+    font-weight: var(--fusion-weight-bold);
+    color: var(--fusion-text-muted);
   }
 
   .nested-save {
     display: flex;
     align-items: baseline;
-    gap: 0.4rem;
-    font-size: 0.76rem;
+    gap: var(--fusion-space-1) var(--fusion-space-2);
+    font-size: var(--fusion-text-sm);
     flex-wrap: wrap;
   }
 
   .nested-save__alias {
     color: var(--fusion-text);
-    font-weight: 600;
+    font-weight: var(--fusion-weight-bold);
   }
 
   .nested-save__total {
-    font-family: var(--fusion-font-mono);
-    color: var(--fusion-text-muted);
-  }
-
-  /* REQ-ACH-023: the dice of the saving throw, on the target's own line. */
-  .nested-save__breakdown {
-    font-family: var(--fusion-font-mono);
-    font-size: 0.7rem;
-    color: var(--fusion-text-subtle);
-  }
-
-  .nested-save__badge {
-    font-size: 0.65rem;
-    font-weight: 600;
-    text-transform: uppercase;
-    letter-spacing: 0.04em;
-    color: var(--fusion-accent);
-  }
-
-  /* Degree badge colors — reuse the roll-card degree palette (r17.1). */
-  .nested-save__badge.dos--crit-success {
-    color: var(--fusion-success);
-  }
-  .nested-save__badge.dos--success {
-    color: var(--fusion-success);
-  }
-  .nested-save__badge.dos--failure {
-    color: var(--fusion-danger);
-  }
-  .nested-save__badge.dos--crit-failure {
-    color: var(--fusion-danger);
-  }
-
-  .nested-save__hint {
-    font-size: 0.68rem;
-    font-style: italic;
-    color: var(--fusion-text-subtle);
-  }
-
-  .nested-saves__toggle {
-    align-self: flex-start;
-    margin-top: 0.15rem;
-    background: none;
-    border: none;
-    padding: 0;
-    color: var(--fusion-accent);
-    cursor: pointer;
-    font-family: var(--fusion-font);
-    font-size: 0.7rem;
-    text-decoration: underline;
-    text-underline-offset: 2px;
-  }
-
-  .nested-saves__toggle:hover {
-    color: var(--fusion-accent-hover);
-  }
-  /* ui-fundacao: the decomposition under the total — one line per part, label left, value right. */
-  .roll-card__parts {
-    list-style: none;
-    margin: var(--fusion-space-1) 0 0;
-    padding: var(--fusion-space-2) 0 0;
-    border-top: 1px solid var(--fusion-border);
-    font-size: var(--fusion-text-sm);
-    color: var(--fusion-text-muted);
-  }
-
-  .roll-card__part {
-    display: flex;
-    align-items: baseline;
-    gap: var(--fusion-space-2);
-    line-height: var(--fusion-leading);
-  }
-
-  .roll-card__part-label {
-    flex: 1;
-  }
-
-  .roll-card__part-value {
     font-family: var(--fusion-font-mono);
     font-weight: var(--fusion-weight-bold);
     color: var(--fusion-text);
   }
 
-  .roll-card__part--off .roll-card__part-label,
-  .roll-card__part--off .roll-card__part-value {
-    text-decoration: line-through;
-    color: var(--fusion-text-subtle);
+  /* REQ-ACH-023: the dice of the saving throw, on the target's own line. */
+  .nested-save__breakdown {
+    font-family: var(--fusion-font-mono);
+    color: var(--fusion-text-muted);
   }
 
-  .roll-card__part-note {
-    font-size: var(--fusion-text-xs);
-    color: var(--fusion-text-subtle);
+  .nested-save__badge {
+    font-weight: var(--fusion-weight-bold);
+    color: var(--fusion-text);
   }
 
-  .roll-card__part--conditional .roll-card__part-label::after {
-    content: " (condicional)";
-    color: var(--fusion-text-subtle);
+  .nested-save__badge.dos--crit-success,
+  .nested-save__badge.dos--success {
+    color: var(--fusion-success);
+  }
+
+  .nested-save__badge.dos--failure,
+  .nested-save__badge.dos--crit-failure {
+    color: var(--fusion-danger);
+  }
+
+  .nested-save__hint {
+    flex: 1 1 100%;
+    color: var(--fusion-text-muted);
+  }
+
+  .nested-saves__toggle {
+    align-self: flex-start;
+    min-height: var(--fusion-target);
+    background: none;
+    border: none;
+    padding: 0;
+    color: var(--fusion-text);
+    cursor: pointer;
+    font-family: var(--fusion-font);
+    font-size: var(--fusion-text-sm);
+    text-decoration: underline;
+    text-underline-offset: 3px;
+  }
+
+  .nested-saves__toggle:hover {
+    color: var(--fusion-accent-hover);
   }
 </style>

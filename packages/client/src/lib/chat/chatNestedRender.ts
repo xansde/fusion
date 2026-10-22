@@ -18,6 +18,7 @@
 import type { ChatMessage, RollResultData } from "@fusion/shared";
 import { toDegreeKey, getRollTotalClass, formatRoll, type DegreeKey } from "./messageFormatter.js";
 import { rollBreakdown } from "./rollDisplay.js";
+import { rollBreakdownRows, type RollBreakdownRow } from "./rollBreakdownParts.js";
 
 /** A caster attack/damage roll rendered as a compact line under the card. */
 export interface NestedRollLine {
@@ -45,6 +46,11 @@ export interface NestedRollLine {
    * BHR-F4-09), as the lines the card shows: `Apoio do urso: +1d8 de dano cortante`. Absent when none.
    */
   extras?: string[];
+  /**
+   * Where the modifier came from (ui-chat): the parts the server checked against the formula
+   * (`flags.fusion.breakdown`), the same rows a loose roll card prints. Empty when unexplained.
+   */
+  parts: RollBreakdownRow[];
 }
 
 /** A target's saving throw rendered as one line in the "Salvaguardas" section. */
@@ -165,6 +171,7 @@ export function classifyNestedChildren(children: readonly ChatMessage[]): Nested
         degree: toDegreeKey(degreeRaw ?? undefined),
         totalClass: getRollTotalClass(formatted),
         ...(extras.length > 0 ? { extras } : {}),
+        parts: rollBreakdownRows(child),
       });
     }
   }
