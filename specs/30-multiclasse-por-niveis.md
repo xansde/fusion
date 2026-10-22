@@ -428,7 +428,7 @@ espaços de um mago 2 e eleva magia como personagem de nível 8.
 
 **Efeito nos REQ:** REQ-MCL-060 mantido; REQ-MCL-061 **mantido e ampliado** (a magia inata entra na elevação);
 REQ-MCL-062 **revogado** (DEC-MCL-24: sem teto de invocação). REQ-MCL-065 (Free Archetype roda RAW puro, sem
-elevação) **conflita** com "elevação de magia inata" do documento — reconciliação em aberto (Q-MCL-07).
+elevação) **conflita** com "elevação de magia inata" do documento — reconciliada por DEC-MCL-30 (provisória, 21/10/2026): inata eleva em multiclasse, arquétipo segue RAW (Q-MCL-07).
 
 ### DEC-MCL-16 — Pontos de foco: pool único, teto 3 (D2)
 
@@ -608,6 +608,50 @@ toggle)." Não é RAW: é regra da casa **ligável**, no mesmo mecanismo das reg
    (`validateCharacterBuild`, flag vinda do mundo) e derivação leem a MESMA setting. Talento de perícia que é também
    de arquétipo (Twirl Through) continua legal sem o toggle (DEC-MCL-28).
 4. **Não está ligada no mundo a_queda**: o Alexandre liga pela interface.
+
+### Decisões PROVISÓRIAS de 21/10/2026 (DEC-MCL-30 a DEC-MCL-34) — "revisar no beta"
+
+O Alexandre mandou não esperar: decidir pelas fontes e marcar como provisório; ele revisa no beta. Fonte de cada
+uma: o documento da mesa (DOC) e a spec. Todas valem até ele dizer o contrário.
+
+### DEC-MCL-30 — Magia inata eleva em multiclasse; espaço de arquétipo segue o livro (Q-MCL-07, provisória)
+
+**Decisão:** a magia inata eleva pelo nível do personagem **só quando há multiclasse** (alguma classe com nível menor
+que o do personagem), a mesma guarda de DEC-MCL-15 para espaços; classe única fica RAW. Entrada inata sem classe dona
+(vinda de talento) mede a diferença contra o nível da classe mais alta. O espaço de **arquétipo** continua RAW
+(REQ-MCL-065). Resolve a Q-MCL-07. Código: `isExemptFromSlotElevation` e `stepCharSpellcastingLevels`.
+
+### DEC-MCL-31 — Spirit Striking do Exemplar conta como especialização na fração (provisória)
+
+**Decisão:** Spirit Striking (nível 7) vale como especialização em armas e Greater Spirit Striking (nível 15) como a
+maior, na fração de DEC-MCL-18. O Exemplar não tem característica chamada "Weapon Specialization" e estas fazem o
+mesmo papel. Código: `build-steps.ts` (padrões do bloco de especialização).
+
+### DEC-MCL-32 — Característica repetida entre classes não concede de novo (provisória)
+
+**Decisão:** uma característica de classe que duas classes listam (mesmo documento do pack, como Shield Block no
+Guerreiro e no Campeão) é concedida **uma vez**; a primeira classe da ficha fica com ela. A identidade é o id do
+documento; o nome normalizado só vale para dado caseiro sem uuid. Código: `classFeatureGrantRefsAtCharacterLevel` e
+`classFeatureGrantedByOtherClass`.
+
+### DEC-MCL-33 — Aumento de Inteligência depois do nível 1 concede perícia treinada (provisória)
+
+**Decisão:** o livro manda; cada ponto de modificador de Int ganho depois do nível 1 abre mais uma perícia treinada.
+O Plano já conta os espaços de perícia livre do nível 1 pelo livro-razão de bônus até o nível atual, então o espaço
+novo aparece vazio no cartão do nível 1. Fixado por teste (`intBoostSkillSlots.test.ts`).
+
+### DEC-MCL-34 — Ratificações sem mudança de código (provisória)
+
+1. **CD do conjurador puro** segue a progressão de magia (DEC-MCL-17; já é assim).
+2. **Caminho da Perfeição** do Monge fica fora da fração: os salvamentos entram pela tabela da classe e o
+   mestre/lendário escolhido vale só pelo nível de Monge.
+3. **Inventário:** empunhar/vestir não exige modo edição; o item dado chega fora de uso e o servidor deixa dar a
+   personagem de qualquer jogador ou a ator percebido (LIMITED+); com 10 itens investidos, vestir veste sem investir
+   e avisa, e o botão "Investir" explícito é recusado.
+4. **Regra das 2** de arquétipo é marca, não filtro (DEC-MCL-06): o seletor mostra o motivo e deixa pegar.
+5. **Talento de OUTRA classe no slot de classe** (`archetypeInClassSlot`): **não ativar**. Entra só pelo Arquétipo
+   Livre (DEC-MCL-23); liberar no slot de classe seria uma dedicação de multiclasse de graça em todo nível e anularia
+   DEC-MCL-19. O servidor já aceita (`matchesFeatSlot`); a barreira é só o cliente (`isFeatEligible`).
 
 ---
 
