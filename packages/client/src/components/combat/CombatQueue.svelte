@@ -86,6 +86,12 @@
     onToggleHidden?: ((combatantId: string, hidden: boolean) => void) | undefined;
     onRemove?: ((combatantId: string) => void) | undefined;
     onSetInitiative?: ((combatantId: string, value: number | null) => void) | undefined;
+    /**
+     * Fetchable portrait per combatant id, already signed through the asset grant (`resolveCombatPortraits`). The
+     * stored `row.img` is never put in `src`: the asset route answers 401 without the grant. A row without an entry
+     * draws its initial.
+     */
+    portraits?: ReadonlyMap<string, string>;
   }
 
   const {
@@ -103,6 +109,7 @@
     onToggleHidden,
     onRemove,
     onSetInitiative,
+    portraits = new Map<string, string>(),
   }: Props = $props();
 
   // ---- Reorder (REQ-CBA-035) ----
@@ -272,8 +279,8 @@
     {/if}
 
     <div class="combatant-row__portrait" aria-hidden="true">
-      {#if row.img}
-        <img class="combatant-row__img" src={row.img} alt="" loading="lazy" />
+      {#if portraits.get(row.id)}
+        <img class="combatant-row__img" src={portraits.get(row.id)} alt="" loading="lazy" />
       {:else}
         <span class="combatant-row__img-placeholder">{row.name.charAt(0).toUpperCase()}</span>
       {/if}
@@ -700,7 +707,9 @@
   /* ---- Identity ---- */
   .combatant-row__info {
     display: flex;
-    flex: 1;
+    /* A basis, not 0: in a narrow drawer the HP bar and the initiative controls wrap to the next line instead
+       of squeezing the name down to "Bh..." (fechamento 22/10/2026). */
+    flex: 1 1 8rem;
     flex-direction: column;
     gap: 0.05rem;
     min-width: 0;
