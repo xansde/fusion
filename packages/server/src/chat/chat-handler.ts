@@ -34,6 +34,7 @@ import type { Envelope } from "@fusion/shared";
 import {
   parseChatCommand,
   extractInlineRolls,
+  AbilityCardSchema,
   ChatSendPayloadSchema,
   ChatHistoryRequestSchema,
   ChatSearchRequestSchema,
@@ -96,11 +97,13 @@ import {
   conditionalRollFormula,
   finalizeRollResolution,
   attachRollBreakdown,
+  attachRollDamage,
   resolveRollBreakdown,
+  resolveRollDamage,
   prepareRollResolution,
   runRollResolvedHooks,
 } from "./roll-resolution.js";
-import type { TokenMarkSource } from "./roll-resolution.js";
+import type { StoredDamageCard, TokenMarkSource } from "./roll-resolution.js";
 import type { MapCounter } from "../combat/map-counter.js";
 import { maneuverDefense } from "@fusion/engine-2e";
 import { maneuverSizeRefusal } from "./maneuver-size.js";
@@ -848,6 +851,22 @@ export function buildChatSendHandler(deps: ChatHandlerDeps): HandlerFn {
       attachRollBreakdown(
         msg,
         resolveRollBreakdown(deps, payload.flags?.fusion?.statistic, ctx, command.formula),
+      );
+      // #225 (REQ-SYS-166): what the damage IS — type, category, traits, materials — derived by the system from
+      // the statistic or the card this roll was made with, never from what the client claims; applyDamage
+      // rereads it. A critical hit is recorded only when the server itself graded the Strike so.
+      attachRollDamage(
+        msg,
+        resolveRollDamage(
+          deps,
+          {
+            speakerActorId: payload.speakerActorId,
+            statistic: payload.flags?.fusion?.statistic,
+            card: readStoredDamageCard(deps.db, parentMessageId),
+            criticalHit: strikeAttackDegree === "criticalSuccess",
+          },
+          ctx,
+        ),
       );
       if (extraDamage.applied.length > 0) {
         msg.flags = {
@@ -2225,6 +2244,40 @@ function resolveParentMessageId(db: Db, parentMessageId: string | undefined): st
     return undefined;
   }
   return parentMessageId;
+}
+
+/**
+ * The ability card stored on the parent message a damage roll nests under (#225): read from the row the
+ * server wrote (`flags.pf2e.abilityCard`, already sanitized at its own `chat:send`), never from the roll's
+ * payload. `undefined` when there is no parent or it carries no card.
+ */
+function readStoredDamageCard(
+  db: Db,
+  parentMessageId: string | undefined,
+): StoredDamageCard | undefined {
+  if (parentMessageId === undefined) return undefined;
+  const row = db.prepare(`SELECT data FROM chat_messages WHERE id = ?`).get(parentMessageId) as
+    | { data: string }
+    | undefined;
+  if (!row) return undefined;
+  let msg: { flags?: { pf2e?: { abilityCard?: unknown } } };
+  try {
+    msg = JSON.parse(row.data) as typeof msg;
+  } catch {
+    return undefined;
+  }
+  const parsed = AbilityCardSchema.safeParse(msg.flags?.pf2e?.abilityCard);
+  if (!parsed.success) return undefined;
+  const card = parsed.data;
+  return {
+    kind: card.kind,
+    casterActorId: card.casterActorId,
+    name: card.name,
+    ...(card.nameEn !== undefined ? { nameEn: card.nameEn } : {}),
+    ...(card.rank !== undefined ? { rank: card.rank } : {}),
+    ...(card.damageType !== undefined ? { damageType: card.damageType } : {}),
+    ...(card.damageStatistic !== undefined ? { damageStatistic: card.damageStatistic } : {}),
+  };
 }
 
 /**

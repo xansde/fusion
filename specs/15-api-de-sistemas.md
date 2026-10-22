@@ -842,6 +842,40 @@ applyCondition })`, no máximo uma vez por sistema, e o servidor DEVE expor os o
   ator reenviaria o mesmo op e aplicaria o mesmo dano gravado repetidas vezes em
   todos os alvos do snapshot.
 
+  **Emenda de 2026-10-22** (xansde/fusion#225, decisão provisória da lane dano-225). O passo 2b
+  agora tem de onde reler: a rolagem de dano grava, no servidor, os componentes do dano
+  (`flags.fusion.damage`, REQ-SYS-166). Para usuário sem papel privilegiado com `source`, `type`,
+  `category`, `traits` e `materials` DEVEM vir desses componentes, nunca do payload; o `type` do
+  payload só escolhe: `healing`/`temp-hp` (os botões Curar e PV temporário — modo, sem IWR), o
+  tipo de um componente gravado, ou `untyped` (card sem tipo) para o componente principal (o
+  primeiro). Qualquer outro tipo DEVE responder `FORBIDDEN`. Rolagem sem componentes gravados
+  (fórmula livre, rolagem anterior a esta emenda — a anotação `[fire]` no texto é do próprio
+  cliente e não prova nada) DEVE responder `FORBIDDEN` com mensagem clara para esse usuário:
+  só o papel privilegiado a aplica, com o payload como antes. Papel privilegiado continua
+  mandando campo a campo; o que ele não mandar DEVE ser preenchido pelo componente gravado do
+  mesmo tipo. `critical` passa a valer também quando o servidor gravou, na rolagem de dano, que
+  o Golpe sob o mesmo card foi graduado como sucesso crítico. Usuário sem papel privilegiado
+  só DEVE aplicar rolagem que **ele mesmo enviou** (`speaker.userId`): ser dono do ator que
+  falou não basta — a rolagem que o GM fez falando como o personagem congelou os alvos do GM.
+
+- **REQ-SYS-166** [MVP] `registerRollResolver(def)` DEVE aceitar o método opcional
+  `damageComponents({ actor, statistic?, card? })`, puro e síncrono, que devolve
+  `{ source: { kind, label, itemId? }, components: [{ type, category?, traits?, materials? }] }`
+  ou `null`. Ao persistir uma rolagem de `chat:send` com ator falante, o servidor DEVE chamá-lo
+  com o ator **re-derivado** do falante (que o remetente pode representar), o `statistic` que a
+  rolagem nomeia (`flags.fusion.statistic`, só se for do mesmo ator) ou o do card pai, e o card
+  de habilidade em que a rolagem se aninha (`flags.pf2e.abilityCard` como o servidor o gravou,
+  só se `casterActorId` for o falante), e DEVE gravar a resposta em `flags.fusion.damage` da
+  mensagem, com `critical: true` quando ele mesmo graduou como sucesso crítico o Golpe sob esse
+  card. O cliente NÃO DEVE conseguir gravar esse campo (o schema de `chat:send` o descarta).
+  Erro do sistema DEVE ser logado e a rolagem sai sem componentes. Em rolagem cega, o campo
+  DEVE ser retirado do corpo que vai a usuário sem papel privilegiado (`net/redaction.ts`,
+  junto com `breakdown`/`extraDamage`). No PF2e (e no composto PF2e+SF2e): `strikeDamage:<id>`
+  dá o tipo e as traits do Golpe derivado e o material da arma (personagem) ou as partes
+  roladas com o acerto do item `melee` (NPC); card `spell`, a magia do próprio ator pelo nome
+  guardado; card `impulse`, o tipo que uma rajada do ator permite. _(Emenda de 2026-10-22,
+  xansde/fusion#225.)_
+
 ### Consumo de item e hooks de consumo
 
 > **Emenda de 2026-09-16** (plano do Alquimista, ALQ-F2-01; DEC-SYS-12 e sua emenda). Os

@@ -572,6 +572,39 @@ export interface RollBreakdownFlag {
 }
 
 /**
+ * One damage component of a damage roll (#225, REQ-SYS-166): what the damage IS — its type, its
+ * category, the traits and materials that IWR exceptions read — as the SYSTEM derived it from the
+ * item, strike or spell the roll was made with. Never a number: the amount is the roll's total.
+ */
+export interface RollDamageComponent {
+  type: string;
+  category?: "persistent" | "splash" | "precision";
+  traits?: string[];
+  materials?: string[];
+}
+
+/** What a damage roll was made with (display and audit only): `strike`, `spell`, `impulse`... */
+export interface RollDamageSource {
+  kind: string;
+  label: string;
+  itemId?: string;
+}
+
+/**
+ * `flags.fusion.damage` (#225, REQ-SYS-166), written by the server only (`ChatSendFlagsSchema` strips
+ * it from a client payload): the damage components of the message's roll (`rolls[0]`), derived by the
+ * system at roll time. `actor:applyDamage` rereads them for a non-privileged caller instead of trusting
+ * the payload's `type`/`category`/`traits`/`materials`. The first component is the primary one: a roll
+ * is ONE pool, so its whole total goes to the component the apply selects. `critical` is set when the
+ * server itself graded the Strike this damage nests under as a critical success.
+ */
+export interface RollDamageFlag {
+  source: RollDamageSource;
+  components: RollDamageComponent[];
+  critical?: boolean;
+}
+
+/**
  * Flags a client may attach to a chat:send payload (r17-P2 / r17.1 / r18-N1).
  * Whitelisted paths:
  *   - `pf2e.spellCast`    — the interactive spell-cast card (r17-P2);

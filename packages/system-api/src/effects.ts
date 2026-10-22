@@ -42,6 +42,7 @@ import type {
   ResolvedRollModifier,
   ResolvedRollNote,
   RollBreakdownPart,
+  RollDamageFlag,
 } from "@fusion/shared";
 import type { TurnHookContext } from "./combat.js";
 
@@ -664,6 +665,32 @@ export interface RollResolverDefinition {
    * add up to the flat part of the formula. Pure and synchronous, like `resolve`.
    */
   breakdown?(input: RollBreakdownInput): readonly RollBreakdownPart[] | null;
+  /**
+   * The damage components of a damage roll (#225, REQ-SYS-166): type, category, traits and materials, derived
+   * from the item, strike or spell the roll was made with — never from what the client claimed. The server
+   * records the answer as `flags.fusion.damage` on the roll message and `actor:applyDamage` rereads it for a
+   * non-privileged caller. `null` (or no method) = the roll carries no recorded components, and only a
+   * privileged caller can apply it. Pure and synchronous, like `resolve`.
+   */
+  damageComponents?(input: RollDamageInput): RollDamageFlag | null;
+}
+
+/**
+ * Input of {@link RollResolverDefinition.damageComponents}. `actor` is the server's re-derived ROLLER (the
+ * roll's speaker actor). `statistic` is the key the roll (or the card it nests under) names
+ * (`strikeDamage:<id>`); `card` is the ability card the roll nests under, as the server stored it, only when
+ * that card belongs to the same actor. Both describe; the system decides what, if anything, they prove.
+ */
+export interface RollDamageInput {
+  readonly actor: Record<string, unknown>;
+  readonly statistic?: string;
+  readonly card?: {
+    readonly kind: string;
+    readonly name: string;
+    readonly nameEn?: string;
+    readonly rank?: number;
+    readonly damageType?: string;
+  };
 }
 
 /** Input of {@link RollResolverDefinition.breakdown}. */

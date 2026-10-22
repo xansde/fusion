@@ -43,7 +43,9 @@ import type {
   ActorMechanicsPatch,
   ResolvedDamageInstance,
   ApplyDamageOptions,
+  RollDamageInput,
 } from "@fusion/system-api";
+import type { RollDamageFlag } from "@fusion/shared";
 
 // ---------------------------------------------------------------------------
 // Fixture ids
@@ -168,12 +170,47 @@ function makeFakeActorMechanics(instancesLog: ResolvedDamageInstance[][]): Actor
   };
 }
 
+/**
+ * #225 (REQ-SYS-166): the fake system's derivation of a damage roll's components. Keys, never game rules:
+ * `damage:<type>` is a plain component of that type; `strikeDamage:sword` a cold-iron magical slashing
+ * strike; a `spell` card named "Bola de Fogo" a fire spell. Anything else proves nothing (`null`).
+ */
+const SWORD_DAMAGE: RollDamageFlag = {
+  source: { kind: "strike", label: "Espada de ferro frio", itemId: "sword" },
+  components: [{ type: "slashing", traits: ["magical"], materials: ["cold-iron"] }],
+};
+
+function fakeDamageComponents(input: RollDamageInput): RollDamageFlag | null {
+  if (input.actor["_id"] !== CASTER_ACTOR_ID && input.actor["_id"] !== T1_ACTOR_ID) return null;
+  const key = input.statistic;
+  if (key === "strikeDamage:sword") return SWORD_DAMAGE;
+  if (key?.startsWith("damage:") === true) {
+    return { source: { kind: "test", label: key }, components: [{ type: key.slice(7) }] };
+  }
+  if (input.card?.kind === "spell" && input.card.name === "Bola de Fogo") {
+    return {
+      source: { kind: "spell", label: "Bola de Fogo" },
+      components: [{ type: "fire", traits: ["fire", "magical"] }],
+    };
+  }
+  return null;
+}
+
+/** `flags` of a damage roll that names the fake's `damage:<type>` statistic for the caster (#225). */
+function damageFlags(type: string): { fusion: { statistic: { actorId: string; key: string } } } {
+  return { fusion: { statistic: { actorId: CASTER_ACTOR_ID, key: `damage:${type}` } } };
+}
+
 function makeSystemModule(
   hookLog: string[],
   instancesLog: ResolvedDamageInstance[][],
 ): SystemModule {
   return defineSystem({ ...VALID_MANIFEST }, (r) => {
     r.registerActorMechanics(makeFakeActorMechanics(instancesLog));
+    r.registerRollResolver({
+      resolve: () => ({ modifiers: [], total: 0, notes: [] }),
+      damageComponents: fakeDamageComponents,
+    });
     r.onDamageApplied("test-log", (e) => {
       hookLog.push(e.target.actorId);
     });
@@ -444,6 +481,28 @@ function readActorHp(db: FusionDatabase, actorId: string): number {
   return value;
 }
 
+/** `flags.fusion.damage` of a stored chat message, as the SERVER wrote it (#225). */
+function readStoredDamageFlag(db: FusionDatabase, messageId: string): unknown {
+  const row = db.raw.prepare(`SELECT data FROM chat_messages WHERE id = ?`).get(messageId) as {
+    data: string;
+  };
+  const msg = JSON.parse(row.data) as { flags?: { fusion?: Record<string, unknown> } };
+  return msg.flags?.fusion?.["damage"];
+}
+
+/** Insert a chat message exactly as the server would have stored it (a card, a graded attack). */
+function seedChatMessage(db: FusionDatabase, msg: Record<string, unknown>): void {
+  const now = Date.now();
+  const speaker = msg["speaker"] as { userId: string };
+  const stored = { timestamp: now, whisper: [], blind: false, ...msg };
+  db.raw
+    .prepare(
+      `INSERT INTO chat_messages (id, data, timestamp, author_id, created_at, updated_at)
+       VALUES (?, ?, ?, ?, ?, ?)`,
+    )
+    .run(msg["_id"], JSON.stringify(stored), now, speaker.userId, now, now);
+}
+
 // ---------------------------------------------------------------------------
 // Tests
 // ---------------------------------------------------------------------------
@@ -469,6 +528,7 @@ describe("actor:applyDamage — ActorMechanicsService (ALQ-F1-08, REQ-SYS-142)",
         content: "/roll 2d6+4",
         worldId: ctx.worldId,
         speakerActorId: CASTER_ACTOR_ID,
+        flags: damageFlags("fire"),
       });
       expect(rollAck["ok"], JSON.stringify(rollAck)).toBe(true);
       const rollMsg = (rollAck["result"] as { message: ChatMessageLike }).message;
@@ -512,6 +572,7 @@ describe("actor:applyDamage — ActorMechanicsService (ALQ-F1-08, REQ-SYS-142)",
         content: "/roll 1d4",
         worldId: ctx.worldId,
         speakerActorId: CASTER_ACTOR_ID,
+        flags: damageFlags("fire"),
       });
       const rollMsg = (rollAck["result"] as { message: ChatMessageLike }).message;
 
@@ -558,6 +619,7 @@ describe("actor:applyDamage — ActorMechanicsService (ALQ-F1-08, REQ-SYS-142)",
         content: "/roll 1d6",
         worldId: ctx.worldId,
         speakerActorId: CASTER_ACTOR_ID,
+        flags: damageFlags("fire"),
       });
       const rollMsg = (rollAck["result"] as { message: ChatMessageLike }).message;
 
@@ -583,6 +645,7 @@ describe("actor:applyDamage — ActorMechanicsService (ALQ-F1-08, REQ-SYS-142)",
         content: "/roll 1d6+2",
         worldId: ctx.worldId,
         speakerActorId: CASTER_ACTOR_ID,
+        flags: damageFlags("fire"),
       });
       const rollMsg = (rollAck["result"] as { message: ChatMessageLike }).message;
 
@@ -636,6 +699,7 @@ describe("actor:applyDamage — ActorMechanicsService (ALQ-F1-08, REQ-SYS-142)",
         content: "/roll 1d6+2",
         worldId: ctx.worldId,
         speakerActorId: CASTER_ACTOR_ID,
+        flags: damageFlags("cold"),
       });
       const coldRollMsg = (coldRollAck["result"] as { message: ChatMessageLike }).message;
       const coldRollTotal = coldRollMsg.rolls?.[0]?.total;
@@ -662,6 +726,7 @@ describe("actor:applyDamage — ActorMechanicsService (ALQ-F1-08, REQ-SYS-142)",
         content: "/roll 1d6+2",
         worldId: ctx.worldId,
         speakerActorId: CASTER_ACTOR_ID,
+        flags: damageFlags("fire"),
       });
       const fireRollMsg = (fireRollAck["result"] as { message: ChatMessageLike }).message;
       const fireRollTotal = fireRollMsg.rolls?.[0]?.total;
@@ -757,6 +822,7 @@ describe("actor:applyDamage — ActorMechanicsService (ALQ-F1-08, REQ-SYS-142)",
         content: "/roll 1d8",
         worldId: ctx.worldId,
         speakerActorId: CASTER_ACTOR_ID,
+        flags: damageFlags("fire"),
       });
       const rollMsg = (rollAck["result"] as { message: ChatMessageLike }).message;
 
@@ -814,6 +880,7 @@ describe("actor:applyDamage — ActorMechanicsService (ALQ-F1-08, REQ-SYS-142)",
         content: "/roll 2d6+4",
         worldId: ctx.worldId,
         speakerActorId: CASTER_ACTOR_ID,
+        flags: damageFlags("fire"),
       });
       const rollMsg = (rollAck["result"] as { message: ChatMessageLike }).message;
 
@@ -842,6 +909,7 @@ describe("actor:applyDamage — ActorMechanicsService (ALQ-F1-08, REQ-SYS-142)",
         content: "/roll 1d6+1",
         worldId: ctx.worldId,
         speakerActorId: CASTER_ACTOR_ID,
+        flags: damageFlags("fire"),
       });
       const rollMsg = (rollAck["result"] as { message: ChatMessageLike }).message;
 
@@ -870,6 +938,7 @@ describe("actor:applyDamage — ActorMechanicsService (ALQ-F1-08, REQ-SYS-142)",
         content: "/roll 2d6+4",
         worldId: ctx.worldId,
         speakerActorId: CASTER_ACTOR_ID,
+        flags: damageFlags("fire"),
       });
       const rollMsg = (rollAck["result"] as { message: ChatMessageLike }).message;
 
@@ -901,6 +970,7 @@ describe("actor:applyDamage — ActorMechanicsService (ALQ-F1-08, REQ-SYS-142)",
         content: "/roll 2d6+4",
         worldId: ctx.worldId,
         speakerActorId: CASTER_ACTOR_ID,
+        flags: damageFlags("fire"),
       });
       const rollMsg = (rollAck["result"] as { message: ChatMessageLike }).message;
 
@@ -958,6 +1028,7 @@ describe("actor:applyDamage — ActorMechanicsService (ALQ-F1-08, REQ-SYS-142)",
         content: "/roll 2d6[fire]+1",
         worldId: ctx.worldId,
         speakerActorId: CASTER_ACTOR_ID,
+        flags: damageFlags("fire"),
       });
       expect(rollAck["ok"], JSON.stringify(rollAck)).toBe(true);
       const rollMsg = (rollAck["result"] as { message: ChatMessageLike }).message;
@@ -980,6 +1051,421 @@ describe("actor:applyDamage — ActorMechanicsService (ALQ-F1-08, REQ-SYS-142)",
     }
   });
 
+  // -------------------------------------------------------------------------
+  // #225 (REQ-SYS-142 passo 2b, REQ-SYS-166): the damage roll records its own
+  // components server-side (`flags.fusion.damage`, derived by the system from
+  // the item/strike/spell); `actor:applyDamage` rereads them.
+  // -------------------------------------------------------------------------
+
+  it("#225 REQ-SYS-166: a rolagem de dano grava no servidor os componentes derivados pelo sistema; o jogador aplica tipo/traits/materiais gravados e o tipo forjado é recusado", async () => {
+    const playerSocket = await connectSocket(ctx.port, ctx.worldId, ctx.playerToken);
+    try {
+      await sendOp(playerSocket, "combat:target", { tokenId: T1_TOKEN_ID, targeted: true });
+      const rollAck = await sendOp(playerSocket, "chat:send", {
+        content: "/roll 1d8+4",
+        worldId: ctx.worldId,
+        speakerActorId: CASTER_ACTOR_ID,
+        flags: { fusion: { statistic: { actorId: CASTER_ACTOR_ID, key: "strikeDamage:sword" } } },
+      });
+      expect(rollAck["ok"], JSON.stringify(rollAck)).toBe(true);
+      const rollMsg = (rollAck["result"] as { message: ChatMessageLike }).message;
+      expect(readStoredDamageFlag(ctx.fusionDb, rollMsg._id as string)).toEqual(SWORD_DAMAGE);
+
+      const forged = await sendOp(playerSocket, "actor:applyDamage", {
+        instances: [{ type: "fire", source: { messageId: rollMsg._id, rollIndex: 0 } }],
+      });
+      expect(forged["ok"]).toBe(false);
+      expect(forged["code"]).toBe("FORBIDDEN");
+      expect(readActorHp(ctx.fusionDb, T1_ACTOR_ID)).toBe(STARTING_HP);
+
+      const honest = await sendOp(playerSocket, "actor:applyDamage", {
+        instances: [
+          {
+            type: "slashing",
+            source: { messageId: rollMsg._id, rollIndex: 0 },
+            amount: 999,
+            category: "precision",
+            traits: ["silver"],
+            materials: ["adamantine"],
+          },
+        ],
+      });
+      expect(honest["ok"], JSON.stringify(honest)).toBe(true);
+      expect(ctx.instancesLog.at(-1)).toEqual([
+        {
+          type: "slashing",
+          amount: rollMsg.rolls?.[0]?.total,
+          traits: ["magical"],
+          materials: ["cold-iron"],
+          critical: false,
+          nonlethal: false,
+        },
+      ]);
+    } finally {
+      playerSocket.disconnect();
+    }
+  });
+
+  it("#225: 'untyped' do jogador (card sem tipo) vale o componente principal gravado; Curar mantém o modo do botão", async () => {
+    const playerSocket = await connectSocket(ctx.port, ctx.worldId, ctx.playerToken);
+    try {
+      await sendOp(playerSocket, "combat:target", { tokenId: T1_TOKEN_ID, targeted: true });
+      const roll = async (): Promise<ChatMessageLike> => {
+        const ack = await sendOp(playerSocket, "chat:send", {
+          content: "/roll 1d4",
+          worldId: ctx.worldId,
+          speakerActorId: CASTER_ACTOR_ID,
+          flags: {
+            fusion: { statistic: { actorId: CASTER_ACTOR_ID, key: "strikeDamage:sword" } },
+          },
+        });
+        return (ack["result"] as { message: ChatMessageLike }).message;
+      };
+
+      const untypedMsg = await roll();
+      const untyped = await sendOp(playerSocket, "actor:applyDamage", {
+        instances: [{ type: "untyped", source: { messageId: untypedMsg._id, rollIndex: 0 } }],
+      });
+      expect(untyped["ok"], JSON.stringify(untyped)).toBe(true);
+      expect(ctx.instancesLog.at(-1)?.[0]).toMatchObject({
+        type: "slashing",
+        materials: ["cold-iron"],
+      });
+
+      const healMsg = await roll();
+      const heal = await sendOp(playerSocket, "actor:applyDamage", {
+        instances: [{ type: "healing", source: { messageId: healMsg._id, rollIndex: 0 } }],
+      });
+      expect(heal["ok"], JSON.stringify(heal)).toBe(true);
+      const healed = ctx.instancesLog.at(-1)?.[0];
+      expect(healed?.type).toBe("healing");
+      expect(healed?.materials).toBeUndefined();
+      expect(healed?.traits).toBeUndefined();
+    } finally {
+      playerSocket.disconnect();
+    }
+  });
+
+  it("#225: o cliente não grava flags.fusion.damage — um componente forjado no chat:send é descartado e o jogador não aplica a rolagem", async () => {
+    const playerSocket = await connectSocket(ctx.port, ctx.worldId, ctx.playerToken);
+    try {
+      await sendOp(playerSocket, "combat:target", { tokenId: T1_TOKEN_ID, targeted: true });
+      const rollAck = await sendOp(playerSocket, "chat:send", {
+        content: "/roll 2d6",
+        worldId: ctx.worldId,
+        speakerActorId: CASTER_ACTOR_ID,
+        flags: {
+          fusion: {
+            damage: {
+              source: { kind: "strike", label: "forjado" },
+              components: [{ type: "force", materials: ["cold-iron"] }],
+            },
+          },
+        },
+      });
+      expect(rollAck["ok"], JSON.stringify(rollAck)).toBe(true);
+      const rollMsg = (rollAck["result"] as { message: ChatMessageLike }).message;
+      expect(readStoredDamageFlag(ctx.fusionDb, rollMsg._id as string)).toBeUndefined();
+
+      const ack = await sendOp(playerSocket, "actor:applyDamage", {
+        instances: [{ type: "force", source: { messageId: rollMsg._id, rollIndex: 0 } }],
+      });
+      expect(ack["ok"]).toBe(false);
+      expect(ack["code"]).toBe("FORBIDDEN");
+      expect(String(ack["message"])).toContain("no damage components recorded");
+      expect(readActorHp(ctx.fusionDb, T1_ACTOR_ID)).toBe(STARTING_HP);
+    } finally {
+      playerSocket.disconnect();
+    }
+  });
+
+  it("#225: rolagem legada/livre sem componentes gravados (só anotação [fire] no texto) — jogador recusado com erro claro; o GM aplica com o payload", async () => {
+    const playerSocket = await connectSocket(ctx.port, ctx.worldId, ctx.playerToken);
+    const gmSocket = await connectSocket(ctx.port, ctx.worldId, ctx.gmToken);
+    try {
+      await sendOp(playerSocket, "combat:target", { tokenId: T1_TOKEN_ID, targeted: true });
+      const rollAck = await sendOp(playerSocket, "chat:send", {
+        content: "/roll 2d6[fire]+1",
+        worldId: ctx.worldId,
+        speakerActorId: CASTER_ACTOR_ID,
+      });
+      const rollMsg = (rollAck["result"] as { message: ChatMessageLike }).message;
+
+      const player = await sendOp(playerSocket, "actor:applyDamage", {
+        instances: [{ type: "fire", source: { messageId: rollMsg._id, rollIndex: 0 } }],
+      });
+      expect(player["ok"]).toBe(false);
+      expect(player["code"]).toBe("FORBIDDEN");
+      expect(String(player["message"])).toContain("no damage components recorded");
+      expect(readActorHp(ctx.fusionDb, T1_ACTOR_ID)).toBe(STARTING_HP);
+
+      const gm = await sendOp(gmSocket, "actor:applyDamage", {
+        instances: [
+          {
+            type: "fire",
+            source: { messageId: rollMsg._id, rollIndex: 0 },
+            materials: ["silver"],
+          },
+        ],
+        targetTokenIds: [T1_TOKEN_ID],
+      });
+      expect(gm["ok"], JSON.stringify(gm)).toBe(true);
+      expect(ctx.instancesLog.at(-1)?.[0]).toMatchObject({ type: "fire", materials: ["silver"] });
+      expect(STARTING_HP - readActorHp(ctx.fusionDb, T1_ACTOR_ID)).toBe(rollMsg.rolls?.[0]?.total);
+    } finally {
+      playerSocket.disconnect();
+      gmSocket.disconnect();
+    }
+  });
+
+  it("#225: o GM que não manda traits/materiais herda os componentes gravados; o que ele manda prevalece", async () => {
+    const playerSocket = await connectSocket(ctx.port, ctx.worldId, ctx.playerToken);
+    const gmSocket = await connectSocket(ctx.port, ctx.worldId, ctx.gmToken);
+    try {
+      const rollAck = await sendOp(playerSocket, "chat:send", {
+        content: "/roll 1d8+4",
+        worldId: ctx.worldId,
+        speakerActorId: CASTER_ACTOR_ID,
+        flags: { fusion: { statistic: { actorId: CASTER_ACTOR_ID, key: "strikeDamage:sword" } } },
+      });
+      const rollMsg = (rollAck["result"] as { message: ChatMessageLike }).message;
+
+      const inherited = await sendOp(gmSocket, "actor:applyDamage", {
+        instances: [{ type: "untyped", source: { messageId: rollMsg._id, rollIndex: 0 } }],
+        targetTokenIds: [T1_TOKEN_ID],
+      });
+      expect(inherited["ok"], JSON.stringify(inherited)).toBe(true);
+      expect(ctx.instancesLog.at(-1)?.[0]).toMatchObject({
+        type: "slashing",
+        traits: ["magical"],
+        materials: ["cold-iron"],
+      });
+
+      const overridden = await sendOp(gmSocket, "actor:applyDamage", {
+        instances: [
+          {
+            type: "fire",
+            source: { messageId: rollMsg._id, rollIndex: 0 },
+            materials: ["silver"],
+          },
+        ],
+        targetTokenIds: [T2_TOKEN_ID],
+      });
+      expect(overridden["ok"], JSON.stringify(overridden)).toBe(true);
+      expect(ctx.instancesLog.at(-1)?.[0]).toMatchObject({ type: "fire", materials: ["silver"] });
+    } finally {
+      playerSocket.disconnect();
+      gmSocket.disconnect();
+    }
+  });
+
+  it("#225: a rolagem de dano feita a partir de um card de magia grava os componentes da magia do próprio ator", async () => {
+    const playerSocket = await connectSocket(ctx.port, ctx.worldId, ctx.playerToken);
+    try {
+      await sendOp(playerSocket, "combat:target", { tokenId: T1_TOKEN_ID, targeted: true });
+      const cardAck = await sendOp(playerSocket, "chat:send", {
+        content: "Bola de Fogo",
+        worldId: ctx.worldId,
+        speakerActorId: CASTER_ACTOR_ID,
+        flags: {
+          pf2e: {
+            abilityCard: {
+              kind: "spell",
+              casterActorId: CASTER_ACTOR_ID,
+              name: "Bola de Fogo",
+              rank: 3,
+              damageFormula: "6d6",
+              damageType: "fire",
+            },
+          },
+        },
+      });
+      expect(cardAck["ok"], JSON.stringify(cardAck)).toBe(true);
+      const card = (cardAck["result"] as { message: ChatMessageLike }).message;
+
+      const rollAck = await sendOp(playerSocket, "chat:send", {
+        content: "/roll 6d6",
+        worldId: ctx.worldId,
+        speakerActorId: CASTER_ACTOR_ID,
+        flags: { parentMessageId: card._id },
+      });
+      const rollMsg = (rollAck["result"] as { message: ChatMessageLike }).message;
+      expect(readStoredDamageFlag(ctx.fusionDb, rollMsg._id as string)).toEqual({
+        source: { kind: "spell", label: "Bola de Fogo" },
+        components: [{ type: "fire", traits: ["fire", "magical"] }],
+      });
+
+      const ack = await sendOp(playerSocket, "actor:applyDamage", {
+        instances: [{ type: "fire", source: { messageId: rollMsg._id, rollIndex: 0 } }],
+      });
+      expect(ack["ok"], JSON.stringify(ack)).toBe(true);
+      expect(ctx.instancesLog.at(-1)?.[0]).toMatchObject({
+        type: "fire",
+        traits: ["fire", "magical"],
+      });
+    } finally {
+      playerSocket.disconnect();
+    }
+  });
+
+  it("#225: um statistic que nomeia o ator de outro dono não gera componentes (o jogador não pega emprestada a arma alheia)", async () => {
+    const playerSocket = await connectSocket(ctx.port, ctx.worldId, ctx.playerToken);
+    try {
+      const rollAck = await sendOp(playerSocket, "chat:send", {
+        content: "/roll 1d8",
+        worldId: ctx.worldId,
+        speakerActorId: CASTER_ACTOR_ID,
+        flags: { fusion: { statistic: { actorId: T1_ACTOR_ID, key: "strikeDamage:sword" } } },
+      });
+      expect(rollAck["ok"], JSON.stringify(rollAck)).toBe(true);
+      const rollMsg = (rollAck["result"] as { message: ChatMessageLike }).message;
+      expect(readStoredDamageFlag(ctx.fusionDb, rollMsg._id as string)).toBeUndefined();
+    } finally {
+      playerSocket.disconnect();
+    }
+  });
+
+  it("#225: mensagem de outro usuário — rolagem que o GM fez falando como o personagem do jogador não é aplicável pelo jogador", async () => {
+    const playerSocket = await connectSocket(ctx.port, ctx.worldId, ctx.playerToken);
+    const gmSocket = await connectSocket(ctx.port, ctx.worldId, ctx.gmToken);
+    try {
+      await sendOp(gmSocket, "combat:target", { tokenId: T1_TOKEN_ID, targeted: true });
+      const rollAck = await sendOp(gmSocket, "chat:send", {
+        content: "/roll 1d8+4",
+        worldId: ctx.worldId,
+        speakerActorId: CASTER_ACTOR_ID,
+        flags: { fusion: { statistic: { actorId: CASTER_ACTOR_ID, key: "strikeDamage:sword" } } },
+      });
+      expect(rollAck["ok"], JSON.stringify(rollAck)).toBe(true);
+      const rollMsg = (rollAck["result"] as { message: ChatMessageLike }).message;
+
+      const ack = await sendOp(playerSocket, "actor:applyDamage", {
+        instances: [{ type: "slashing", source: { messageId: rollMsg._id, rollIndex: 0 } }],
+      });
+      expect(ack["ok"]).toBe(false);
+      expect(ack["code"]).toBe("FORBIDDEN");
+      expect(readActorHp(ctx.fusionDb, T1_ACTOR_ID)).toBe(STARTING_HP);
+    } finally {
+      playerSocket.disconnect();
+      gmSocket.disconnect();
+    }
+  });
+
+  it("#225: rolagem cega — os componentes ficam gravados no servidor, não vão ao jogador, e a aplicação usa os gravados", async () => {
+    const playerSocket = await connectSocket(ctx.port, ctx.worldId, ctx.playerToken);
+    try {
+      await sendOp(playerSocket, "combat:target", { tokenId: T1_TOKEN_ID, targeted: true });
+      const rollAck = await sendOp(playerSocket, "chat:send", {
+        content: "/roll 1d8+4",
+        worldId: ctx.worldId,
+        speakerActorId: CASTER_ACTOR_ID,
+        rollMode: "blindroll",
+        flags: { fusion: { statistic: { actorId: CASTER_ACTOR_ID, key: "strikeDamage:sword" } } },
+      });
+      expect(rollAck["ok"], JSON.stringify(rollAck)).toBe(true);
+      const rollMsg = (
+        rollAck["result"] as {
+          message: ChatMessageLike & { flags?: { fusion?: Record<string, unknown> } };
+        }
+      ).message;
+      expect(rollMsg.flags?.fusion?.["damage"]).toBeUndefined();
+      expect(readStoredDamageFlag(ctx.fusionDb, rollMsg._id as string)).toEqual(SWORD_DAMAGE);
+
+      const forged = await sendOp(playerSocket, "actor:applyDamage", {
+        instances: [{ type: "fire", source: { messageId: rollMsg._id, rollIndex: 0 } }],
+      });
+      expect(forged["ok"]).toBe(false);
+      expect(forged["code"]).toBe("FORBIDDEN");
+
+      const honest = await sendOp(playerSocket, "actor:applyDamage", {
+        instances: [{ type: "slashing", source: { messageId: rollMsg._id, rollIndex: 0 } }],
+      });
+      expect(honest["ok"], JSON.stringify(honest)).toBe(true);
+      expect(ctx.instancesLog.at(-1)?.[0]).toMatchObject({
+        type: "slashing",
+        materials: ["cold-iron"],
+      });
+    } finally {
+      playerSocket.disconnect();
+    }
+  });
+
+  it("#225: crítico — o dano de um Golpe cujo ataque o servidor graduou como sucesso crítico grava critical, e a mecânica recebe critical mesmo com o jogador mandando false", async () => {
+    const playerSocket = await connectSocket(ctx.port, ctx.worldId, ctx.playerToken);
+    try {
+      await sendOp(playerSocket, "combat:target", { tokenId: T1_TOKEN_ID, targeted: true });
+      // The strike card and the attack the server graded under it, as the server stores them.
+      const cardId = "strikeCard000001";
+      seedChatMessage(ctx.fusionDb, {
+        _id: cardId,
+        type: "text",
+        content: "Espada",
+        speaker: { userId: ctx.playerId, actorId: CASTER_ACTOR_ID, alias: "Alquimista" },
+        flags: {
+          pf2e: {
+            abilityCard: {
+              kind: "strike",
+              casterActorId: CASTER_ACTOR_ID,
+              name: "Espada",
+              damageFormula: "1d8+4",
+              damageStatistic: "strikeDamage:sword",
+            },
+          },
+        },
+      });
+      seedChatMessage(ctx.fusionDb, {
+        _id: "strikeAttack0001",
+        type: "roll",
+        content: "",
+        speaker: { userId: ctx.playerId, actorId: CASTER_ACTOR_ID, alias: "Alquimista" },
+        rolls: [{ total: 30, degreeOfSuccess: "criticalSuccess" }],
+        flags: {
+          pf2e: { checkContext: { kind: "attack", mapIndex: 0 } },
+          fusion: {
+            parentMessageId: cardId,
+            targetSnapshot: [{ tokenId: T1_TOKEN_ID, actorId: T1_ACTOR_ID, sceneId: SCENE_ID }],
+          },
+        },
+      });
+
+      const rollAck = await sendOp(playerSocket, "chat:send", {
+        content: "/roll (1d8+4)*2",
+        worldId: ctx.worldId,
+        speakerActorId: CASTER_ACTOR_ID,
+        flags: {
+          parentMessageId: cardId,
+          fusion: {
+            rollContext: {
+              actorId: CASTER_ACTOR_ID,
+              selectors: ["strike-damage", "damage"],
+              options: ["action:strike"],
+            },
+          },
+        },
+      });
+      expect(rollAck["ok"], JSON.stringify(rollAck)).toBe(true);
+      const rollMsg = (rollAck["result"] as { message: ChatMessageLike }).message;
+      expect(readStoredDamageFlag(ctx.fusionDb, rollMsg._id as string)).toEqual({
+        ...SWORD_DAMAGE,
+        critical: true,
+      });
+
+      const ack = await sendOp(playerSocket, "actor:applyDamage", {
+        instances: [
+          {
+            type: "slashing",
+            source: { messageId: rollMsg._id, rollIndex: 0 },
+            critical: false,
+          },
+        ],
+      });
+      expect(ack["ok"], JSON.stringify(ack)).toBe(true);
+      expect(ctx.instancesLog.at(-1)?.[0]?.critical).toBe(true);
+    } finally {
+      playerSocket.disconnect();
+    }
+  });
+
   it("B3: multiplier 2 de um jogador sem crítico registrado na rolagem é FORBIDDEN", async () => {
     const playerSocket = await connectSocket(ctx.port, ctx.worldId, ctx.playerToken);
     try {
@@ -988,6 +1474,7 @@ describe("actor:applyDamage — ActorMechanicsService (ALQ-F1-08, REQ-SYS-142)",
         content: "/roll 2d6+4",
         worldId: ctx.worldId,
         speakerActorId: CASTER_ACTOR_ID,
+        flags: damageFlags("fire"),
       });
       const rollMsg = (rollAck["result"] as { message: ChatMessageLike }).message;
 
@@ -1062,6 +1549,7 @@ describe("actor:applyDamage — ActorMechanicsService (ALQ-F1-08, REQ-SYS-142)",
         content: "/roll 1d4",
         worldId: ctx.worldId,
         speakerActorId: CASTER_ACTOR_ID,
+        flags: damageFlags("fire"),
       });
       const rollMsg = (rollAck["result"] as { message: ChatMessageLike }).message;
 
@@ -1104,6 +1592,7 @@ describe("actor:applyDamage — ActorMechanicsService (ALQ-F1-08, REQ-SYS-142)",
         content: "/roll 30d6",
         worldId: ctx.worldId,
         speakerActorId: CASTER_ACTOR_ID,
+        flags: damageFlags("fire"),
       });
       const rollMsg = (rollAck["result"] as { message: ChatMessageLike }).message;
 
