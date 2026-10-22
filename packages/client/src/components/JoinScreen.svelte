@@ -10,6 +10,7 @@
    */
 
   import { session, sessionActions } from "../lib/session.svelte.js";
+  import FusionMark from "./common/FusionMark.svelte";
   import { PROTOCOL_VERSION } from "@fusion/shared";
   import { t } from "../lib/i18n/i18n.js";
 
@@ -62,7 +63,7 @@
   <div class="join-card">
     <!-- Header -->
     <header class="join-card__header">
-      <div class="join-card__logo" aria-hidden="true">&#9889;</div>
+      <div class="join-card__logo" aria-hidden="true"><FusionMark size={32} /></div>
       <div class="join-card__titles">
         <h1 class="join-card__world-name">
           {session.worldInfo?.title ?? "Fusion VTT"}

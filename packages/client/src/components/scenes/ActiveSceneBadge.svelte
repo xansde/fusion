@@ -7,6 +7,7 @@
    */
 
   import type { SceneDocument } from "@fusion/shared";
+  import Icon from "../common/Icon.svelte";
 
   const {
     scene,
@@ -17,7 +18,7 @@
 
 {#if scene}
   <div class="active-scene-badge" aria-label="Active scene: {scene.name}">
-    <span class="badge__icon" aria-hidden="true">&#x1F5FA;</span>
+    <span class="badge__icon" aria-hidden="true"><Icon name="map" size={16} /></span>
     <span class="badge__name">{scene.name}</span>
   </div>
 {/if}
