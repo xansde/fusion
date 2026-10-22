@@ -9,14 +9,15 @@
  * open drawer would sit on top of it. When that strip is narrower than ~1000 px there is no room
  * for twelve readable slots, and the bar folds itself to the status strip.
  *
- * The numbers are the prototype's (`.abar` in `prototipo-barra-fiel.html`): 780 px at most, 12 px
- * of air on each side, 14 px from the bottom edge.
+ * The numbers are the prototype's (`.abar` in `prototipo-barra-fiel.html`): 12 px of air on each
+ * side, 14 px from the bottom edge; the widest is 920 px since the UI foundation (direção A,
+ * 22/10/2026), so twelve slots with 13 px names fit.
  */
 
 import { drawerWidth } from "../sidebar/drawerLayout.svelte.js";
 
-/** The widest the bar gets (prototype `.abar`: `width: min(780px, …)`). */
-export const ACTION_BAR_MAX_WIDTH = 780;
+/** The widest the bar gets (direção A `.pa-bar`: `width: min(920px, …)`). */
+export const ACTION_BAR_MAX_WIDTH = 920;
 
 /** Air kept on each side of the bar inside the free area (prototype: `calc(100% - drawer - 24px)`). */
 export const ACTION_BAR_EDGE_GAP = 12;
@@ -41,7 +42,7 @@ export interface BarLayout {
   freeWidth: number;
   /** x of the middle of the free area, from the left edge of the table. */
   centerX: number;
-  /** Width of the bar: 780 px, or the free area less the side air when that is smaller. */
+  /** Width of the bar: 920 px, or the free area less the side air when that is smaller. */
   width: number;
   /** True when the free area is under {@link ACTION_BAR_COLLAPSE_BELOW}: the bar folds itself. */
   narrow: boolean;

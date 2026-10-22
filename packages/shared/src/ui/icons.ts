@@ -21,6 +21,14 @@ const NODES = {
     ["path", { d: "M12 5v14" }],
     ["path", { d: "m19 12-7 7-7-7" }],
   ],
+  "arrow-down-left": [
+    ["path", { d: "M17 7 7 17" }],
+    ["path", { d: "M17 17H7V7" }],
+  ],
+  "arrow-down-right": [
+    ["path", { d: "m7 7 10 10" }],
+    ["path", { d: "M17 7v10H7" }],
+  ],
   "arrow-left": [
     ["path", { d: "m12 19-7-7 7-7" }],
     ["path", { d: "M19 12H5" }],
@@ -32,6 +40,14 @@ const NODES = {
   "arrow-up": [
     ["path", { d: "m5 12 7-7 7 7" }],
     ["path", { d: "M12 19V5" }],
+  ],
+  "arrow-up-left": [
+    ["path", { d: "M7 17V7h10" }],
+    ["path", { d: "M17 17 7 7" }],
+  ],
+  "arrow-up-right": [
+    ["path", { d: "M7 7h10v10" }],
+    ["path", { d: "M7 17 17 7" }],
   ],
   "at-sign": [
     ["circle", { cx: "12", cy: "12", r: "4" }],
