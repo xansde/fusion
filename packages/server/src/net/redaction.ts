@@ -877,6 +877,11 @@ export function redactDamageAppliedPayloadForNonPrivileged(
  * {@link redactChatDamageAppliedForNonPrivileged}), not what this renders.
  */
 export function formatDamageAppliedLine(target: DamageAppliedTarget): string {
+  // Healing and temporary HP are not damage: the line says what the card says (DamageAppliedCard, "recuperou"/"ganhou").
+  const primary = target.byType[0]?.type;
+  if (primary === "healing") return `${target.name} recuperou ${String(target.total)} de PV`;
+  if (primary === "temp-hp")
+    return `${target.name} ganhou ${String(target.total)} de PV temporário`;
   return `${target.name} sofreu ${String(target.total)} de dano (${target.byType.map((b) => `${String(b.amount)} de ${damageTypePt(b.type)}`).join(" + ")})`;
 }
 

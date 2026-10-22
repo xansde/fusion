@@ -28,3 +28,25 @@ describe("formatDamageAppliedLine", () => {
     ).toBe("Alvo sofreu 7 de dano (5 de cortante + 2 de astral)");
   });
 });
+
+describe("formatDamageAppliedLine — cura e PV temporários (fechamento 22/10)", () => {
+  // Ao vivo: "Curar" gravou "Ilse Tanner sofreu 0 de dano (0 de healing)" no chat, ao lado do card que dizia
+  // "recuperou 0 de PV". A linha diz o que o card diz.
+  it("a cura recupera PV, não sofre dano", () => {
+    expect(formatDamageAppliedLine(target([{ type: "healing", amount: 12 }]))).toBe(
+      "Alvo recuperou 12 de PV",
+    );
+  });
+
+  it("PV temporários são ganhos", () => {
+    expect(formatDamageAppliedLine(target([{ type: "temp-hp", amount: 5 }]))).toBe(
+      "Alvo ganhou 5 de PV temporário",
+    );
+  });
+
+  it("dano sem tipo é dito em pt-BR", () => {
+    expect(formatDamageAppliedLine(target([{ type: "untyped", amount: 3 }]))).toBe(
+      "Alvo sofreu 3 de dano (3 de sem tipo)",
+    );
+  });
+});

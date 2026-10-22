@@ -258,3 +258,14 @@ export function lastMessageStamp(
   if (!last) return null;
   return `${last._id}:${last.invalid === true ? "invalid" : "valid"}`;
 }
+
+/**
+ * What the session keeps of the log's position when the reader leaves the tab (REQ-ACH-026): `null` when they were
+ * at the end — reopening lands on the end again, newest included — or the exact `scrollTop` they had scrolled to.
+ *
+ * Kept on every scroll, never read at teardown: by `onDestroy` the log is already out of the document and reads
+ * `scrollTop` 0, which reopened the log at the top of the history (fechamento 22/10/2026).
+ */
+export function logPositionToKeep(scrollTop: number, pinned: boolean): number | null {
+  return pinned ? null : scrollTop;
+}

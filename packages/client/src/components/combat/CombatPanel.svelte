@@ -51,6 +51,10 @@
   import { untrack } from "svelte";
   import { t } from "../../lib/i18n/i18n.js";
   import Icon from "../common/Icon.svelte";
+  import { resolveCombatPortraits } from "../../lib/combat/combatPortraits.js";
+  import { resolveAssetUrl } from "../../lib/assets/assetApi.js";
+  import { fusionApi } from "../../lib/api.js";
+  import { session } from "../../lib/session.svelte.js";
   import { pickLocalizedName } from "../../lib/compendium/documentDetails.js";
 
   const {
@@ -140,6 +144,37 @@
   // running: montagem and the empty state have no turn to head.
   const inProgress = $derived(combat !== null && combat.started && !combat.ended);
   const activeRow = $derived(rows.find((row) => row.isActive) ?? null);
+
+  // Portraits signed through the asset grant against this Combat (`combatants[].img` is a grantable field): the
+  // stored `/assets/<name>` alone answers 401 and drew a broken image on every row (fechamento 22/10/2026).
+  let portraits = $state<ReadonlyMap<string, string>>(new Map());
+  $effect(() => {
+    const combatId = combat?._id ?? null;
+    const wanted = rows.map((row) => ({ id: row.id, img: row.img }));
+    const userId = session.user?.id ?? null;
+    if (combatId === null || userId === null || wanted.length === 0) {
+      portraits = new Map();
+      return;
+    }
+    let cancelled = false;
+    void fusionApi
+      .getFreshToken()
+      .then((token) => {
+        if (token === null) return new Map<string, string>();
+        return resolveCombatPortraits(wanted, (img) =>
+          resolveAssetUrl(img, token, userId, { table: "combats", id: combatId }),
+        );
+      })
+      .then((urls) => {
+        if (!cancelled) portraits = urls;
+      })
+      .catch(() => {
+        if (!cancelled) portraits = new Map();
+      });
+    return () => {
+      cancelled = true;
+    };
+  });
   const showTurnHead = $derived(inProgress && activeRow !== null);
 
   // REQ-CBA-023: advancing or rewinding drops the expansion the previous turn had. The
@@ -508,8 +543,10 @@
             onclick={() => { candidatesOpen = false; }}
             aria-expanded="true"
             aria-controls="combat-candidates"
+            aria-label={t("FUSION.Combat.Setup.Collapse")}
+            title={t("FUSION.Combat.Setup.Collapse")}
             type="button"
-          >{t("FUSION.Combat.Setup.Collapse")}</button>
+          ><Icon name="chevron-up" size={18} /></button>
         </div>
         {#if candidates.length === 0}
           <p class="candidates__empty">{t("FUSION.Combat.Setup.CandidatesEmpty")}</p>
@@ -543,7 +580,7 @@
       {@const row = activeRow}
       <TurnHead
         name={row.name}
-        img={row.img}
+        img={portraits.get(row.id) ?? null}
         isYours={isMyTurn}
         defeated={row.isDefeated}
         health={vitals.get(row.id)?.health ?? null}
@@ -586,6 +623,7 @@
       {:else}
         <CombatQueue
           {queue}
+          {portraits}
           {vitals}
           {initiativeCells}
           {statisticOptions}

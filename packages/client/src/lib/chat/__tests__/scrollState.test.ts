@@ -3,7 +3,12 @@
  */
 
 import { describe, it, expect } from "vitest";
-import { ScrollStateManager, lastMessageStamp, type ScrollStateCallbacks } from "../scrollState.js";
+import {
+  ScrollStateManager,
+  lastMessageStamp,
+  logPositionToKeep,
+  type ScrollStateCallbacks,
+} from "../scrollState.js";
 
 function makeCallbacks(): {
   callbacks: ScrollStateCallbacks;
@@ -158,5 +163,22 @@ describe("lastMessageStamp", () => {
     const withoutFlag = lastMessageStamp([{ _id: "m1" }]);
     const withFalseFlag = lastMessageStamp([{ _id: "m1", invalid: false }]);
     expect(withoutFlag).toBe(withFalseFlag);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// Where the log reopens (REQ-ACH-026) — fechamento 22/10/2026
+// ---------------------------------------------------------------------------
+
+describe("logPositionToKeep — o que a sessão guarda da posição do log (REQ-ACH-026)", () => {
+  // Ao vivo: trocar de aba e voltar abria o log no topo do histórico (scrollTop 0), escondendo o que acabara de
+  // chegar. A posição era lida no onDestroy, com o elemento já fora do documento (scrollTop 0); agora é guardada a
+  // cada rolagem, e quem estava no fim volta para o fim.
+  it("quem estava no fim do log volta para o fim (nada guardado)", () => {
+    expect(logPositionToKeep(7432, true)).toBeNull();
+  });
+
+  it("quem tinha rolado para cima volta exatamente para onde estava", () => {
+    expect(logPositionToKeep(512, false)).toBe(512);
   });
 });
