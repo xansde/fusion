@@ -43,7 +43,10 @@ import type {
   ActorMechanicsPatch,
   ResolvedDamageInstance,
   ApplyDamageOptions,
+  RollDamageAnswer,
   RollDamageInput,
+  RollResolution,
+  RollResolutionInput,
 } from "@fusion/system-api";
 import type { RollDamageFlag } from "@fusion/shared";
 
@@ -174,26 +177,63 @@ function makeFakeActorMechanics(instancesLog: ResolvedDamageInstance[][]): Actor
  * #225 (REQ-SYS-166): the fake system's derivation of a damage roll's components. Keys, never game rules:
  * `damage:<type>` is a plain component of that type; `strikeDamage:sword` a cold-iron magical slashing
  * strike; a `spell` card named "Bola de Fogo" a fire spell. Anything else proves nothing (`null`).
+ *
+ * REQ-SYS-167: each answer also vouches for the formulas the system itself derives for that source — the
+ * sword rolls `1d8+4` (`(1d8+4)*2` on a critical hit), the fireball `6d6`, and a `damage:<type>` key the
+ * handful of formulas this suite rolls with it. A player's roll whose formula is not one of them records
+ * no components.
  */
 const SWORD_DAMAGE: RollDamageFlag = {
   source: { kind: "strike", label: "Espada de ferro frio", itemId: "sword" },
   components: [{ type: "slashing", traits: ["magical"], materials: ["cold-iron"] }],
 };
+const SWORD_FORMULAS = { normal: ["1d8+4"], critical: ["(1d8+4)*2"] };
+const FAKE_DAMAGE_FORMULAS = [
+  "2d6+4",
+  "1d4",
+  "1d6",
+  "1d6+2",
+  "1d8",
+  "1d6+1",
+  "2d6",
+  "2d6[fire]+1",
+  "30d6",
+];
 
-function fakeDamageComponents(input: RollDamageInput): RollDamageFlag | null {
+function fakeDamageComponents(input: RollDamageInput): RollDamageAnswer | null {
   if (input.actor["_id"] !== CASTER_ACTOR_ID && input.actor["_id"] !== T1_ACTOR_ID) return null;
   const key = input.statistic;
-  if (key === "strikeDamage:sword") return SWORD_DAMAGE;
+  if (key === "strikeDamage:sword") return { ...SWORD_DAMAGE, formulas: SWORD_FORMULAS };
   if (key?.startsWith("damage:") === true) {
-    return { source: { kind: "test", label: key }, components: [{ type: key.slice(7) }] };
+    return {
+      source: { kind: "test", label: key },
+      components: [{ type: key.slice(7) }],
+      formulas: { normal: FAKE_DAMAGE_FORMULAS },
+    };
   }
   if (input.card?.kind === "spell" && input.card.name === "Bola de Fogo") {
     return {
       source: { kind: "spell", label: "Bola de Fogo" },
       components: [{ type: "fire", traits: ["fire", "magical"] }],
+      formulas: { normal: ["6d6"] },
     };
   }
   return null;
+}
+
+/**
+ * The fake's conditional modifier (REQ-SYS-167, the situational modifier the UI allows): a roll whose
+ * context names the `test-prey` selector gets a +2 circumstance bonus the SERVER appends to the formula.
+ */
+function fakeResolve(input: RollResolutionInput): RollResolution {
+  if (!input.rollContext.selectors.includes("test-prey")) {
+    return { modifiers: [], total: 0, notes: [] };
+  }
+  return {
+    modifiers: [{ slug: "prey", label: "Presa", type: "circumstance", value: 2 }],
+    total: 2,
+    notes: [],
+  };
 }
 
 /** `flags` of a damage roll that names the fake's `damage:<type>` statistic for the caster (#225). */
@@ -208,7 +248,7 @@ function makeSystemModule(
   return defineSystem({ ...VALID_MANIFEST }, (r) => {
     r.registerActorMechanics(makeFakeActorMechanics(instancesLog));
     r.registerRollResolver({
-      resolve: () => ({ modifiers: [], total: 0, notes: [] }),
+      resolve: fakeResolve,
       damageComponents: fakeDamageComponents,
     });
     r.onDamageApplied("test-log", (e) => {
@@ -1112,7 +1152,7 @@ describe("actor:applyDamage — ActorMechanicsService (ALQ-F1-08, REQ-SYS-142)",
       await sendOp(playerSocket, "combat:target", { tokenId: T1_TOKEN_ID, targeted: true });
       const roll = async (): Promise<ChatMessageLike> => {
         const ack = await sendOp(playerSocket, "chat:send", {
-          content: "/roll 1d4",
+          content: "/roll 1d8+4",
           worldId: ctx.worldId,
           speakerActorId: CASTER_ACTOR_ID,
           flags: {
@@ -1461,6 +1501,266 @@ describe("actor:applyDamage — ActorMechanicsService (ALQ-F1-08, REQ-SYS-142)",
       });
       expect(ack["ok"], JSON.stringify(ack)).toBe(true);
       expect(ctx.instancesLog.at(-1)?.[0]?.critical).toBe(true);
+    } finally {
+      playerSocket.disconnect();
+    }
+  });
+
+  // -------------------------------------------------------------------------
+  // REQ-SYS-167 (lane dano-formula): the AMOUNT of a player's damage roll is the formula the system derives
+  // -------------------------------------------------------------------------
+
+  /** The sword's strike card and the attack the server graded under it with `degree`, as the server stores them. */
+  function seedSwordCard(degree: string): string {
+    const cardId = "swordCard0000001";
+    seedChatMessage(ctx.fusionDb, {
+      _id: cardId,
+      type: "text",
+      content: "Espada",
+      speaker: { userId: ctx.playerId, actorId: CASTER_ACTOR_ID, alias: "Alquimista" },
+      flags: {
+        pf2e: {
+          abilityCard: {
+            kind: "strike",
+            casterActorId: CASTER_ACTOR_ID,
+            name: "Espada",
+            damageFormula: "1d8+4",
+            critDamageFormula: "(1d8+4)*2",
+            damageStatistic: "strikeDamage:sword",
+          },
+        },
+      },
+    });
+    seedChatMessage(ctx.fusionDb, {
+      _id: "swordAttack00001",
+      type: "roll",
+      content: "",
+      speaker: { userId: ctx.playerId, actorId: CASTER_ACTOR_ID, alias: "Alquimista" },
+      rolls: [{ total: 25, degreeOfSuccess: degree }],
+      flags: {
+        pf2e: { checkContext: { kind: "attack", mapIndex: 0 } },
+        fusion: {
+          parentMessageId: cardId,
+          targetSnapshot: [{ tokenId: T1_TOKEN_ID, actorId: T1_ACTOR_ID, sceneId: SCENE_ID }],
+        },
+      },
+    });
+    return cardId;
+  }
+
+  /** The card's damage button op (`buildDamageRollOp`), with `formula` in place of the card's own. */
+  function swordDamageOp(
+    cardId: string,
+    formula: string,
+    extra: { selectors?: string[]; rollMode?: string } = {},
+  ): Record<string, unknown> {
+    return {
+      content: `/roll ${formula}`,
+      worldId: ctx.worldId,
+      speakerActorId: CASTER_ACTOR_ID,
+      ...(extra.rollMode !== undefined ? { rollMode: extra.rollMode } : {}),
+      flags: {
+        parentMessageId: cardId,
+        fusion: {
+          rollContext: {
+            actorId: CASTER_ACTOR_ID,
+            selectors: extra.selectors ?? ["strike-damage", "damage"],
+            options: ["action:strike"],
+          },
+          statistic: { actorId: CASTER_ACTOR_ID, key: "strikeDamage:sword" },
+        },
+      },
+    };
+  }
+
+  it("REQ-SYS-167: jogador forja a fórmula sob o card de Golpe (/r 50d6 aninhado) — a rolagem sai livre, sem componentes, e não é aplicável", async () => {
+    const playerSocket = await connectSocket(ctx.port, ctx.worldId, ctx.playerToken);
+    try {
+      await sendOp(playerSocket, "combat:target", { tokenId: T1_TOKEN_ID, targeted: true });
+      const cardId = seedSwordCard("success");
+      const rollAck = await sendOp(playerSocket, "chat:send", swordDamageOp(cardId, "50d6"));
+      expect(rollAck["ok"], JSON.stringify(rollAck)).toBe(true);
+      const rollMsg = (rollAck["result"] as { message: ChatMessageLike }).message;
+      expect(readStoredDamageFlag(ctx.fusionDb, rollMsg._id as string)).toBeUndefined();
+
+      const ack = await sendOp(playerSocket, "actor:applyDamage", {
+        instances: [{ type: "slashing", source: { messageId: rollMsg._id, rollIndex: 0 } }],
+      });
+      expect(ack["ok"]).toBe(false);
+      expect(ack["code"]).toBe("FORBIDDEN");
+      expect(readActorHp(ctx.fusionDb, T1_ACTOR_ID)).toBe(STARTING_HP);
+    } finally {
+      playerSocket.disconnect();
+    }
+  });
+
+  it("REQ-SYS-167: a fórmula que o sistema deriva passa (espaços e rótulo não importam) e o jogador aplica o total rolado", async () => {
+    const playerSocket = await connectSocket(ctx.port, ctx.worldId, ctx.playerToken);
+    try {
+      await sendOp(playerSocket, "combat:target", { tokenId: T1_TOKEN_ID, targeted: true });
+      const cardId = seedSwordCard("success");
+      const rollAck = await sendOp(
+        playerSocket,
+        "chat:send",
+        swordDamageOp(cardId, "1d8 + 4 # Dano"),
+      );
+      expect(rollAck["ok"], JSON.stringify(rollAck)).toBe(true);
+      const rollMsg = (rollAck["result"] as { message: ChatMessageLike }).message;
+      expect(readStoredDamageFlag(ctx.fusionDb, rollMsg._id as string)).toEqual(SWORD_DAMAGE);
+
+      const ack = await sendOp(playerSocket, "actor:applyDamage", {
+        instances: [{ type: "slashing", source: { messageId: rollMsg._id, rollIndex: 0 } }],
+      });
+      expect(ack["ok"], JSON.stringify(ack)).toBe(true);
+      expect(STARTING_HP - readActorHp(ctx.fusionDb, T1_ACTOR_ID)).toBe(rollMsg.rolls?.[0]?.total);
+    } finally {
+      playerSocket.disconnect();
+    }
+  });
+
+  it("REQ-SYS-167: crítico não graduado — a fórmula dobrada por conta própria não grava componentes", async () => {
+    const playerSocket = await connectSocket(ctx.port, ctx.worldId, ctx.playerToken);
+    try {
+      await sendOp(playerSocket, "combat:target", { tokenId: T1_TOKEN_ID, targeted: true });
+      const cardId = seedSwordCard("success");
+      const doubled = await sendOp(playerSocket, "chat:send", swordDamageOp(cardId, "(1d8+4)*2"));
+      expect(doubled["ok"], JSON.stringify(doubled)).toBe(true);
+      const doubledMsg = (doubled["result"] as { message: ChatMessageLike }).message;
+      expect(readStoredDamageFlag(ctx.fusionDb, doubledMsg._id as string)).toBeUndefined();
+    } finally {
+      playerSocket.disconnect();
+    }
+  });
+
+  it("REQ-SYS-167: crítico graduado — (1d8+4)*2 grava critical; (1d8+4)*3 não grava componentes", async () => {
+    const playerSocket = await connectSocket(ctx.port, ctx.worldId, ctx.playerToken);
+    try {
+      await sendOp(playerSocket, "combat:target", { tokenId: T1_TOKEN_ID, targeted: true });
+      const cardId = seedSwordCard("criticalSuccess");
+      const crit = await sendOp(playerSocket, "chat:send", swordDamageOp(cardId, "(1d8+4)*2"));
+      expect(crit["ok"], JSON.stringify(crit)).toBe(true);
+      const critMsg = (crit["result"] as { message: ChatMessageLike }).message;
+      expect(readStoredDamageFlag(ctx.fusionDb, critMsg._id as string)).toEqual({
+        ...SWORD_DAMAGE,
+        critical: true,
+      });
+
+      const tripled = await sendOp(playerSocket, "chat:send", swordDamageOp(cardId, "(1d8+4)*3"));
+      expect(tripled["ok"], JSON.stringify(tripled)).toBe(true);
+      const tripledMsg = (tripled["result"] as { message: ChatMessageLike }).message;
+      expect(readStoredDamageFlag(ctx.fusionDb, tripledMsg._id as string)).toBeUndefined();
+    } finally {
+      playerSocket.disconnect();
+    }
+  });
+
+  it("REQ-SYS-167: modificador situacional — o servidor soma o bônus condicional à fórmula derivada; o jogador que soma o bônus por conta própria não grava componentes", async () => {
+    const playerSocket = await connectSocket(ctx.port, ctx.worldId, ctx.playerToken);
+    try {
+      await sendOp(playerSocket, "combat:target", { tokenId: T1_TOKEN_ID, targeted: true });
+      const cardId = seedSwordCard("success");
+      const selectors = ["strike-damage", "damage", "test-prey"];
+      const honest = await sendOp(
+        playerSocket,
+        "chat:send",
+        swordDamageOp(cardId, "1d8+4", { selectors }),
+      );
+      expect(honest["ok"], JSON.stringify(honest)).toBe(true);
+      const honestMsg = (
+        honest["result"] as { message: ChatMessageLike & { rolls?: Array<{ formula?: string }> } }
+      ).message;
+      expect(honestMsg.rolls?.[0]?.formula?.replace(/\s+/g, "")).toBe("1d8+4+2");
+      expect(readStoredDamageFlag(ctx.fusionDb, honestMsg._id as string)).toEqual(SWORD_DAMAGE);
+
+      const selfAdded = await sendOp(
+        playerSocket,
+        "chat:send",
+        swordDamageOp(cardId, "1d8+4+2", { selectors }),
+      );
+      expect(selfAdded["ok"], JSON.stringify(selfAdded)).toBe(true);
+      const selfAddedMsg = (selfAdded["result"] as { message: ChatMessageLike }).message;
+      expect(readStoredDamageFlag(ctx.fusionDb, selfAddedMsg._id as string)).toBeUndefined();
+    } finally {
+      playerSocket.disconnect();
+    }
+  });
+
+  it("REQ-SYS-167: o GM continua livre — a fórmula dele sob o card grava os componentes e ele aplica o total", async () => {
+    const gmSocket = await connectSocket(ctx.port, ctx.worldId, ctx.gmToken);
+    try {
+      const cardId = seedSwordCard("success");
+      const rollAck = await sendOp(gmSocket, "chat:send", swordDamageOp(cardId, "3d8+10"));
+      expect(rollAck["ok"], JSON.stringify(rollAck)).toBe(true);
+      const rollMsg = (rollAck["result"] as { message: ChatMessageLike }).message;
+      expect(readStoredDamageFlag(ctx.fusionDb, rollMsg._id as string)).toEqual(SWORD_DAMAGE);
+
+      const ack = await sendOp(gmSocket, "actor:applyDamage", {
+        instances: [{ type: "slashing", source: { messageId: rollMsg._id, rollIndex: 0 } }],
+        targetTokenIds: [T1_TOKEN_ID],
+      });
+      expect(ack["ok"], JSON.stringify(ack)).toBe(true);
+      expect(STARTING_HP - readActorHp(ctx.fusionDb, T1_ACTOR_ID)).toBe(rollMsg.rolls?.[0]?.total);
+    } finally {
+      gmSocket.disconnect();
+    }
+  });
+
+  it("REQ-SYS-167: rolagem cega — a fórmula forjada também não grava componentes, e a honesta grava sem mandar ao jogador", async () => {
+    const playerSocket = await connectSocket(ctx.port, ctx.worldId, ctx.playerToken);
+    try {
+      await sendOp(playerSocket, "combat:target", { tokenId: T1_TOKEN_ID, targeted: true });
+      const cardId = seedSwordCard("success");
+      const forged = await sendOp(
+        playerSocket,
+        "chat:send",
+        swordDamageOp(cardId, "50d6", { rollMode: "blindroll" }),
+      );
+      expect(forged["ok"], JSON.stringify(forged)).toBe(true);
+      const forgedMsg = (forged["result"] as { message: ChatMessageLike }).message;
+      expect(readStoredDamageFlag(ctx.fusionDb, forgedMsg._id as string)).toBeUndefined();
+      const apply = await sendOp(playerSocket, "actor:applyDamage", {
+        instances: [{ type: "slashing", source: { messageId: forgedMsg._id, rollIndex: 0 } }],
+      });
+      expect(apply["ok"]).toBe(false);
+      expect(apply["code"]).toBe("FORBIDDEN");
+      expect(readActorHp(ctx.fusionDb, T1_ACTOR_ID)).toBe(STARTING_HP);
+
+      const honest = await sendOp(
+        playerSocket,
+        "chat:send",
+        swordDamageOp(cardId, "1d8+4", { rollMode: "blindroll" }),
+      );
+      expect(honest["ok"], JSON.stringify(honest)).toBe(true);
+      const honestMsg = (
+        honest["result"] as {
+          message: ChatMessageLike & { flags?: { fusion?: Record<string, unknown> } };
+        }
+      ).message;
+      expect(honestMsg.flags?.fusion?.["damage"]).toBeUndefined();
+      expect(readStoredDamageFlag(ctx.fusionDb, honestMsg._id as string)).toEqual(SWORD_DAMAGE);
+    } finally {
+      playerSocket.disconnect();
+    }
+  });
+
+  it("REQ-SYS-167: rolagem livre do jogador (/r sem card nem statistic) continua permitida, mas não é aplicável como dano", async () => {
+    const playerSocket = await connectSocket(ctx.port, ctx.worldId, ctx.playerToken);
+    try {
+      await sendOp(playerSocket, "combat:target", { tokenId: T1_TOKEN_ID, targeted: true });
+      const rollAck = await sendOp(playerSocket, "chat:send", {
+        content: "/roll 50d6",
+        worldId: ctx.worldId,
+        speakerActorId: CASTER_ACTOR_ID,
+      });
+      expect(rollAck["ok"], JSON.stringify(rollAck)).toBe(true);
+      const rollMsg = (rollAck["result"] as { message: ChatMessageLike }).message;
+      expect(readStoredDamageFlag(ctx.fusionDb, rollMsg._id as string)).toBeUndefined();
+      const ack = await sendOp(playerSocket, "actor:applyDamage", {
+        instances: [{ type: "untyped", source: { messageId: rollMsg._id, rollIndex: 0 } }],
+      });
+      expect(ack["ok"]).toBe(false);
+      expect(ack["code"]).toBe("FORBIDDEN");
+      expect(readActorHp(ctx.fusionDb, T1_ACTOR_ID)).toBe(STARTING_HP);
     } finally {
       playerSocket.disconnect();
     }

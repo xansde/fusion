@@ -671,8 +671,29 @@ export interface RollResolverDefinition {
    * records the answer as `flags.fusion.damage` on the roll message and `actor:applyDamage` rereads it for a
    * non-privileged caller. `null` (or no method) = the roll carries no recorded components, and only a
    * privileged caller can apply it. Pure and synchronous, like `resolve`.
+   *
+   * REQ-SYS-167: the answer also names the `formulas` the system derives for that source; a non-privileged
+   * roll records the components only when its own formula is one of them (see {@link RollDamageAnswer}).
    */
-  damageComponents?(input: RollDamageInput): RollDamageFlag | null;
+  damageComponents?(input: RollDamageInput): RollDamageAnswer | null;
+}
+
+/**
+ * The answer of {@link RollResolverDefinition.damageComponents} (REQ-SYS-167): the components the server
+ * records plus the formulas the SYSTEM derives for the same source, on the server's re-derivation of the
+ * roller — the Strike's `damageRoll`/`critDamageRoll`, the spell heightened to the card's rank, the blast's
+ * dice. They are compared, whitespace and flavor aside, with the formula the client rolled: a player's roll
+ * whose formula is not one of them (`/r 50d6` nested under the card) records no components and so cannot be
+ * applied by that player. `critical` formulas count only when the server graded the Strike under the same
+ * card as a critical success. The conditional modifiers and extra dice the server itself appends are not
+ * part of the comparison: the client never writes them. No `formulas` = the system vouches for no amount,
+ * and only a privileged caller's roll records the components. Never stored on the message.
+ */
+export interface RollDamageAnswer extends RollDamageFlag {
+  readonly formulas?: {
+    readonly normal: readonly string[];
+    readonly critical?: readonly string[];
+  };
 }
 
 /**

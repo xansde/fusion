@@ -55,6 +55,7 @@ import type {
 } from "@fusion/shared";
 import type {
   ResolvedExtraDamage,
+  RollDamageAnswer,
   RollDamageInput,
   RollResolutionParty,
   RollTargetSnapshotEntry,
@@ -407,6 +408,8 @@ export interface RollDamageRef {
   readonly card: StoredDamageCard | undefined;
   /** The server itself graded the Strike this damage nests under as a critical success. */
   readonly criticalHit: boolean;
+  /** The formula the client asked to roll (`command.formula`, flavor included), before anything the server appends. */
+  readonly formula: string;
 }
 
 const DAMAGE_CATEGORIES: ReadonlySet<string> = new Set(["persistent", "splash", "precision"]);
@@ -415,6 +418,33 @@ function stringList(raw: unknown): string[] | undefined {
   if (!Array.isArray(raw)) return undefined;
   const list = raw.filter((v): v is string => typeof v === "string" && v.length > 0);
   return list.length > 0 ? list : undefined;
+}
+
+/**
+ * A damage formula as the comparison of REQ-SYS-167 reads it: the flavor (`# Dano`) left out, no whitespace,
+ * lower case. `1d8 + 4 # Dano` and `1d8+4` are the same roll; `2d8+4` and `1d8+1d8+4` are not.
+ */
+export function canonicalDamageFormula(commandFormula: string): string {
+  return extractFlavor(commandFormula).formula.replace(/\s+/g, "").toLowerCase();
+}
+
+/** The formulas the system vouched for (REQ-SYS-167), canonical; `null` when it named none. */
+function vouchedFormulas(
+  raw: unknown,
+): { normal: ReadonlySet<string>; critical: ReadonlySet<string> } | null {
+  if (!raw || typeof raw !== "object") return null;
+  const formulas = (raw as { formulas?: unknown }).formulas;
+  if (!formulas || typeof formulas !== "object") return null;
+  const read = (list: unknown): Set<string> =>
+    new Set(
+      (Array.isArray(list) ? (list as unknown[]) : [])
+        .filter((f): f is string => typeof f === "string" && f.trim() !== "")
+        .map(canonicalDamageFormula),
+    );
+  const rec = formulas as { normal?: unknown; critical?: unknown };
+  const normal = read(rec.normal);
+  const critical = read(rec.critical);
+  return normal.size > 0 || critical.size > 0 ? { normal, critical } : null;
 }
 
 /** The system's answer, kept to the shape the flag promises (system code is trusted, not its typing). */
@@ -458,6 +488,11 @@ function sanitizeDamageFlag(raw: unknown): RollDamageFlag | null {
  * with — the statistic the roll names, or the card it nests under — for the roll's own speaker actor, re-derived
  * by the server. A statistic or card of ANOTHER actor describes nothing (a player cannot borrow another actor's
  * weapon). `null` = nothing proven: the roll carries no components and only a privileged caller can apply it.
+ *
+ * REQ-SYS-167: for a non-privileged roller the AMOUNT is proven too — the client's formula must be one the
+ * system derived for that source (`RollDamageAnswer.formulas`); a critical one only when the server graded the
+ * Strike as a critical hit. Any other formula is still rolled (a free roll is allowed) but records nothing, so
+ * the player cannot apply it. The GM stays free: his roll records the components whatever its formula.
  */
 export function resolveRollDamage(
   deps: RollResolutionDeps,
@@ -489,7 +524,7 @@ export function resolveRollDamage(
         }
       : {}),
   };
-  let answer: unknown;
+  let answer: RollDamageAnswer | null;
   try {
     answer = resolver.damageComponents(input);
   } catch (err) {
@@ -501,7 +536,12 @@ export function resolveRollDamage(
   }
   const flag = sanitizeDamageFlag(answer);
   if (flag === null) return null;
-  return ref.criticalHit ? { ...flag, critical: true } : flag;
+  if (isRolePrivileged(roller.role)) return ref.criticalHit ? { ...flag, critical: true } : flag;
+  const vouched = vouchedFormulas(answer);
+  if (vouched === null) return null;
+  const rolled = canonicalDamageFormula(ref.formula);
+  if (ref.criticalHit && vouched.critical.has(rolled)) return { ...flag, critical: true };
+  return vouched.normal.has(rolled) ? flag : null;
 }
 
 /** Write the server-derived components onto the message (`flags.fusion.damage`). */

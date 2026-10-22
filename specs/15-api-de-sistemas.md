@@ -876,6 +876,31 @@ applyCondition })`, no máximo uma vez por sistema, e o servidor DEVE expor os o
   guardado; card `impulse`, o tipo que uma rajada do ator permite. _(Emenda de 2026-10-22,
   xansde/fusion#225.)_
 
+- **REQ-SYS-167** [MVP] O **valor** do dano que um usuário sem papel privilegiado aplica DEVE
+  vir de uma fórmula que o próprio sistema derivou, no servidor, para a fonte da rolagem. A
+  resposta de `damageComponents` (REQ-SYS-166) DEVE poder nomear
+  `formulas: { normal: string[], critical?: string[] }` — as fórmulas que a ficha envia para
+  aquela fonte, derivadas do ator re-derivado (nunca gravadas na mensagem). O servidor DEVE
+  comparar com elas a fórmula que o cliente pediu (sem o rótulo `# …`, sem espaços, sem
+  diferenciar maiúsculas) **antes** de somar o que ele mesmo acrescenta (modificadores
+  condicionais e dados extras de REQ-BHR-051..053/BHR-F4-09 — o único "modificador
+  situacional" da mesa é esse, e o cliente nunca o escreve). Fórmula `critical` só vale quando
+  o servidor graduou como sucesso crítico o Golpe sob o mesmo card. Para usuário sem papel
+  privilegiado, fórmula fora da lista (ex.: `/r 50d6` aninhado sob o card) — ou resposta sem
+  `formulas` — DEVE rolar normalmente como rolagem livre, mas **sem** `flags.fusion.damage`: o
+  passo 2b de REQ-SYS-142 então a recusa (`FORBIDDEN`). Papel privilegiado continua livre (a
+  rolagem dele grava os componentes qualquer que seja a fórmula). Rolagem livre (`/r` sem card
+  nem `statistic`) continua permitida e continua não aplicável por jogador. No PF2e (e no
+  composto): Golpe de personagem, `damageRoll`/`critDamageRoll` do Golpe derivado; Golpe de
+  NPC, as partes roladas com o acerto juntadas como a ficha do NPC faz e `(…)*2`; card
+  `spell`, a magia elevada ao grau do card por `computeHeightenedSpell` (`@fusion/engine-2e`,
+  a mesma função da ficha), recusando grau acima do maior entre o da magia e o que o
+  conjurador lança; card `impulse`, o `damageRoll` da rajada que permite o tipo, com e sem o
+  bônus de duas ações. _(Emenda de 2026-10-22, lane dano-formula, decisão provisória: conferir
+  em vez de substituir — a fórmula divergente vira rolagem livre, não erro, para não travar a
+  mesa quando a derivação do servidor não alcança a da ficha, como a magia embutida que perdeu
+  o `heightening` e a ficha cura com o compêndio; nesses casos só o GM aplica.)_
+
 ### Consumo de item e hooks de consumo
 
 > **Emenda de 2026-09-16** (plano do Alquimista, ALQ-F2-01; DEC-SYS-12 e sua emenda). Os
