@@ -20,6 +20,7 @@ const DAMAGE_TYPE_PT: Readonly<Record<string, string>> = {
   void: "vazio",
   spirit: "espírito",
   precision: "precisão",
+  untyped: "sem tipo",
 };
 
 export function damageTypePt(type: string): string {
