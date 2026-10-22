@@ -27,6 +27,7 @@
     ScrollStateManager,
     resolveMarkerAnchorId,
     lastMessageStamp,
+    logPositionToKeep,
   } from "../../lib/chat/scrollState.js";
   import { groupChatMessages } from "../../lib/chat/chatGrouping.js";
   import { registerLogScroller } from "../../lib/chat/logScroller.js";
@@ -165,6 +166,14 @@
       scrollManager.forceScrollToBottom();
     });
 
+    // One frame later: the panel's own onMount (which raises the "N novas" divider) runs AFTER this child's,
+    // and the rows must be laid out for an offset to mean anything. Positioned synchronously, the divider was not
+    // there yet and the log opened at the top of the history (fechamento 22/10/2026).
+    const frame = requestAnimationFrame(openLog);
+    return () => cancelAnimationFrame(frame);
+  });
+
+  function openLog(): void {
     if (positionAtUnreadMarker()) return;
 
     const saved = chatSession.scrollTop;
@@ -175,12 +184,13 @@
     }
 
     scrollManager.forceScrollToBottom();
-  });
+  }
 
   onDestroy(() => {
     registerLogScroller(null);
-    // Hand the position to the session before the component goes (REQ-ACH-026).
-    if (logEl) chatSession.scrollTop = logEl.scrollTop;
+    // Hand the position to the session (REQ-ACH-026) only while the log is still in the document: detached, it
+    // reads scrollTop 0. The position is also kept on every scroll (handleScroll), which is what normally holds.
+    if (logEl?.isConnected) chatSession.scrollTop = logPositionToKeep(logEl.scrollTop, scrollManager.pinned);
   });
 
   /**
@@ -212,6 +222,7 @@
   function handleScroll(): void {
     if (!logEl) return;
     scrollManager.onScroll(logEl.scrollTop, logEl.scrollHeight, logEl.clientHeight);
+    chatSession.scrollTop = logPositionToKeep(logEl.scrollTop, scrollManager.pinned);
 
     // Load more when near the top (threshold: 80px)
     if (logEl.scrollTop < 80 && chatStore.hasMore && !chatStore.loadingMore) {
