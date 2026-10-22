@@ -21,6 +21,7 @@
 
   import { onMount, onDestroy } from "svelte";
   import FusionMark from "./common/FusionMark.svelte";
+  import Icon from "./common/Icon.svelte";
   import { session, sessionActions } from "../lib/session.svelte.js";
   import { FusionCanvas } from "../lib/canvas/FusionCanvas.js";
   import { loadDevScene } from "../lib/canvas/dev-scene.js";
@@ -1192,18 +1193,23 @@ import { presenceState } from "../lib/presence/presenceStore.svelte.js";
     <!-- Spacer -->
     <div class="table-header__spacer"></div>
 
-    <!-- Connection indicator -->
-    <div class="table-header__conn" aria-live="polite" aria-atomic="true">
+    <!-- Connection indicator. The latency is a detail for whoever asks (the tooltip), not a
+         number that changes under the reader's eyes every few seconds. -->
+    <div
+      class="table-header__conn"
+      aria-live="polite"
+      aria-atomic="true"
+      title={session.rttMs !== null && session.connection === "connected"
+        ? t("FUSION.Header.Latency", { ms: session.rttMs })
+        : undefined}
+    >
       <span class="indicator {connectionClass()}" aria-hidden="true"></span>
       <span class="table-header__conn-label">{connectionLabel()}</span>
-      {#if session.rttMs !== null && session.connection === "connected"}
-        <span class="table-header__rtt">{session.rttMs}ms</span>
-      {/if}
     </div>
 
     <!-- User badge -->
     {#if session.user}
-      <div class="table-header__user">
+      <div class="table-header__user" title="{session.user.name} · {roleLabel()}">
         <span
           class="user-swatch"
           style="background-color: {session.user.color}"
@@ -1216,12 +1222,13 @@ import { presenceState } from "../lib/presence/presenceStore.svelte.js";
 
     <!-- Logout -->
     <button
-      class="btn btn--ghost btn--sm"
+      class="btn btn--ghost"
       onclick={handleLogout}
       disabled={loggingOut}
       aria-label={t("FUSION.Header.Leave")}
     >
-      {loggingOut ? t("FUSION.Header.Leaving") : t("FUSION.Header.Leave")}
+      <Icon name="log-out" size={18} />
+      <span class="btn__label">{loggingOut ? t("FUSION.Header.Leaving") : t("FUSION.Header.Leave")}</span>
     </button>
   </header>
 
@@ -1277,18 +1284,19 @@ import { presenceState } from "../lib/presence/presenceStore.svelte.js";
    */
   .drop-refusal {
     position: absolute;
-    top: calc(var(--fusion-header-height, 48px) + 0.5rem);
+    top: calc(var(--fusion-header-height) + var(--fusion-space-2));
     left: 50%;
     transform: translateX(-50%);
     z-index: 120;
     margin: 0;
     max-width: min(90vw, 32rem);
-    padding: 0.4rem 0.75rem;
-    background: var(--fusion-surface, #1e1e1e);
-    border: 1px solid var(--fusion-border, #444);
-    border-radius: var(--fusion-radius-sm, 4px);
-    color: var(--fusion-text, #eee);
-    font-size: 0.85rem;
+    padding: var(--fusion-space-2) var(--fusion-space-3);
+    background: var(--fusion-surface);
+    border: 1px solid var(--fusion-border);
+    border-radius: var(--fusion-radius);
+    box-shadow: var(--fusion-shadow-popover);
+    color: var(--fusion-text);
+    font-size: var(--fusion-text-sm);
     pointer-events: none;
   }
 
@@ -1309,7 +1317,9 @@ import { presenceState } from "../lib/presence/presenceStore.svelte.js";
     overflow: hidden;
   }
 
-  /* ---- Header overlay ---- */
+  /* ---- Header overlay ----
+     Flat, on the theme's surface (no translucency over the map: text over a moving picture is
+     the hardest to read), every label at 14 px or more, the role in words next to the name. */
   .table-header {
     position: absolute;
     top: 0;
@@ -1317,33 +1327,34 @@ import { presenceState } from "../lib/presence/presenceStore.svelte.js";
     right: 0;
     z-index: 100;
     align-items: center;
-    background: rgba(24, 24, 31, 0.85);
-    backdrop-filter: blur(6px);
+    background: var(--fusion-surface);
     border-bottom: 1px solid var(--fusion-border);
     display: flex;
     flex-shrink: 0;
-    gap: 0.75rem;
+    gap: var(--fusion-space-3);
     height: var(--fusion-header-height);
-    padding: 0 1rem;
+    padding: 0 var(--fusion-space-3) 0 var(--fusion-space-4);
   }
 
   .table-header__world {
     align-items: center;
     display: flex;
-    gap: 0.4rem;
+    flex-shrink: 1;
+    gap: var(--fusion-space-2);
+    min-width: 0;
     overflow: hidden;
   }
 
   .table-header__world-icon {
     color: var(--fusion-accent);
+    display: inline-flex;
     flex-shrink: 0;
-    font-size: 1rem;
   }
 
   .table-header__world-name {
     color: var(--fusion-text);
-    font-size: 0.9375rem;
-    font-weight: 600;
+    font-size: var(--fusion-text-md);
+    font-weight: var(--fusion-weight-bold);
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
@@ -1353,24 +1364,25 @@ import { presenceState } from "../lib/presence/presenceStore.svelte.js";
     flex: 1;
   }
 
-  /* Connection indicator */
+  /* Connection indicator: a dot and a word; the latency is in the tooltip. */
   .table-header__conn {
     align-items: center;
+    cursor: default;
     display: flex;
-    gap: 0.35rem;
+    flex-shrink: 0;
+    gap: var(--fusion-space-2);
   }
 
   .indicator {
     border-radius: 50%;
     display: inline-block;
     flex-shrink: 0;
-    height: 8px;
-    width: 8px;
+    height: 10px;
+    width: 10px;
   }
 
   .indicator--ok {
     background-color: var(--fusion-success);
-    box-shadow: 0 0 0 2px rgba(61, 220, 132, 0.25);
   }
 
   .indicator--warn {
@@ -1383,89 +1395,114 @@ import { presenceState } from "../lib/presence/presenceStore.svelte.js";
   }
 
   @keyframes pulse {
-    0%, 100% { opacity: 1; }
-    50% { opacity: 0.4; }
+    0%,
+    100% {
+      opacity: 1;
+    }
+    50% {
+      opacity: 0.4;
+    }
   }
 
   .table-header__conn-label {
     color: var(--fusion-text-muted);
-    font-size: 0.75rem;
+    font-size: var(--fusion-text-sm);
+    white-space: nowrap;
   }
 
-  .table-header__rtt {
-    color: var(--fusion-text-subtle);
-    font-family: var(--fusion-font-mono);
-    font-size: 0.7rem;
-  }
-
-  /* User badge */
+  /* User badge: the colour swatch, the name, and the role in words. */
   .table-header__user {
     align-items: center;
-    background: var(--fusion-surface-alt);
-    border: 1px solid var(--fusion-border);
-    border-radius: var(--fusion-radius-sm);
     display: flex;
-    gap: 0.45rem;
-    padding: 0.2rem 0.6rem;
+    flex-shrink: 1;
+    gap: var(--fusion-space-2);
+    min-width: 0;
   }
 
   .user-swatch {
     border-radius: 50%;
     display: block;
     flex-shrink: 0;
-    height: 10px;
-    width: 10px;
+    height: 12px;
+    width: 12px;
   }
 
   .table-header__user-name {
     color: var(--fusion-text);
-    font-size: 0.8125rem;
-    font-weight: 500;
-    max-width: 120px;
+    font-size: var(--fusion-text-sm);
+    font-weight: var(--fusion-weight-bold);
+    max-width: 160px;
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
   }
 
   .table-header__user-role {
-    color: var(--fusion-text-subtle);
-    font-size: 0.7rem;
+    color: var(--fusion-text-muted);
+    font-size: var(--fusion-text-sm);
+    white-space: nowrap;
   }
 
   /* Buttons */
   .btn {
     align-items: center;
     border: 1px solid transparent;
-    border-radius: var(--fusion-radius-sm);
+    border-radius: var(--fusion-radius);
     cursor: pointer;
     display: inline-flex;
+    flex-shrink: 0;
     font-family: var(--fusion-font);
-    font-size: 0.875rem;
-    font-weight: 500;
+    font-size: var(--fusion-text-sm);
+    font-weight: var(--fusion-weight-medium);
+    gap: var(--fusion-space-2);
     justify-content: center;
-    padding: 0.5rem 1.25rem;
-    transition: background-color var(--fusion-transition), opacity var(--fusion-transition);
+    min-height: var(--fusion-target);
+    min-width: var(--fusion-target);
+    padding: 0 var(--fusion-space-3);
+    transition:
+      background-color var(--fusion-transition),
+      opacity var(--fusion-transition);
     white-space: nowrap;
   }
 
   .btn:disabled {
     cursor: not-allowed;
-    opacity: 0.45;
+    opacity: 0.5;
   }
 
   .btn--ghost {
     background: transparent;
     border-color: var(--fusion-border);
-    color: var(--fusion-text-muted);
-  }
-
-  .btn--ghost:hover:not(:disabled) {
-    border-color: var(--fusion-text-muted);
     color: var(--fusion-text);
   }
 
-  .btn--sm {
-    font-size: 0.8125rem;
-    padding: 0.3rem 0.75rem;
+  .btn--ghost:hover:not(:disabled) {
+    background: var(--fusion-surface-alt);
+    border-color: var(--fusion-border-strong);
+  }
+
+  /* Phone (ui-mesa-hud, 22/10/2026): the header keeps the mark, the scene, the connection dot,
+     who you are and a "Sair" you can see; the world name and the words that only repeat a
+     colour step aside (the role stays in the tooltip of the name). */
+  @media (max-width: 599.98px) {
+    .table-header {
+      gap: var(--fusion-space-2);
+      padding: 0 var(--fusion-space-2);
+    }
+
+    .table-header__world-name,
+    .table-header__conn-label,
+    .table-header__user-role,
+    .btn__label {
+      display: none;
+    }
+
+    .table-header__user-name {
+      max-width: 96px;
+    }
+
+    .btn {
+      padding: 0;
+    }
   }
 </style>
