@@ -84,18 +84,26 @@
   }
 
   .condition-chips__more {
+    position: relative;
     display: inline-flex;
     align-items: center;
-    padding: 1px 7px;
+    padding: 1px var(--fusion-space-2);
     border: 1px dashed var(--fusion-border);
     border-radius: var(--fusion-radius-pill);
     background: transparent;
     color: var(--fusion-text-muted);
     font-family: var(--fusion-font);
-    font-size: 11px;
+    font-size: var(--fusion-text-xs);
     line-height: 16px;
     font-variant-numeric: tabular-nums;
     cursor: pointer;
+  }
+
+  /* The chip stays compact, but the hit area reaches the 40px target. */
+  .condition-chips__more::after {
+    content: "";
+    position: absolute;
+    inset: -12px -4px;
   }
 
   .condition-chips__more:hover {
@@ -104,7 +112,7 @@
   }
 
   .condition-chips__more:focus-visible {
-    outline: 2px solid var(--fusion-accent-hover);
+    outline: 2px solid var(--fusion-focus);
     outline-offset: 1px;
   }
 </style>

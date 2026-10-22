@@ -13,6 +13,7 @@ import {
   degreeLabelKey,
   degreeCssClass,
   basicSaveHintKey,
+  isRedundantRollContent,
 } from "../messageFormatter.js";
 import type { DiceResult, RollTermResult, RollResultData, ChatMessage } from "@fusion/shared";
 
@@ -318,5 +319,35 @@ describe("degree-of-success display mapping", () => {
     expect(degreeCssClass("success")).toBe("dos--success");
     expect(degreeCssClass("failure")).toBe("dos--failure");
     expect(degreeCssClass("criticalFailure")).toBe("dos--crit-failure");
+  });
+});
+
+// ---------------------------------------------------------------------------
+// isRedundantRollContent (ui-chat) — the card already says "Atletismo" and "14"
+// ---------------------------------------------------------------------------
+
+describe("isRedundantRollContent", () => {
+  const roll = (flavor?: string): RollResultData => ({
+    rollId: "r1",
+    formula: "1d20+7",
+    expandedFormula: "1d20+7",
+    total: 14,
+    terms: [],
+    rollMode: "public",
+    timestamp: 1,
+    warnings: [],
+    ...(flavor !== undefined ? { flavor } : {}),
+  });
+
+  it("is true for the server's own summary of the roll (flavor: total, or the total alone)", () => {
+    expect(isRedundantRollContent("Atletismo: 14", [roll("Atletismo")])).toBe(true);
+    expect(isRedundantRollContent("14", [roll()])).toBe(true);
+    expect(isRedundantRollContent("", [roll()])).toBe(true);
+  });
+
+  it("is false for anything a person wrote, and for a message without rolls", () => {
+    expect(isRedundantRollContent("Pulo o muro: 14", [roll("Atletismo")])).toBe(false);
+    expect(isRedundantRollContent("Atletismo: 14", [])).toBe(false);
+    expect(isRedundantRollContent("Atletismo: 15", [roll("Atletismo")])).toBe(false);
   });
 });

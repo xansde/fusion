@@ -218,24 +218,24 @@
   .roll-builder {
     display: flex;
     flex-direction: column;
-    gap: 0.5rem;
-    padding: 0.6rem;
+    gap: var(--fusion-space-3);
+    padding: var(--fusion-space-3);
     font-family: var(--fusion-font);
-    font-size: 0.8125rem;
+    font-size: var(--fusion-text-base);
     color: var(--fusion-text);
   }
 
   .roll-builder__grid {
     display: grid;
     grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 0.4rem;
+    gap: var(--fusion-space-2);
   }
 
   .roll-builder__field {
     display: flex;
     flex-direction: column;
-    gap: 0.15rem;
-    font-size: 0.7rem;
+    gap: var(--fusion-space-1);
+    font-size: var(--fusion-text-sm);
     color: var(--fusion-text-muted);
   }
 
@@ -245,64 +245,85 @@
 
   .roll-builder__field input,
   .roll-builder__slot select {
-    background: var(--fusion-surface-alt);
-    border: 1px solid var(--fusion-border);
-    border-radius: var(--fusion-radius-sm);
+    min-height: var(--fusion-target);
+    background: var(--fusion-input-bg);
+    border: 1px solid var(--fusion-border-strong);
+    border-radius: var(--fusion-radius);
     color: var(--fusion-text);
     font-family: var(--fusion-font);
-    font-size: 0.8125rem;
-    padding: 0.2rem 0.35rem;
+    font-size: var(--fusion-text-base);
+    padding: 0 var(--fusion-space-2);
     min-width: 0;
   }
 
+  .roll-builder__field input:focus-visible,
+  .roll-builder__slot select:focus-visible {
+    outline: 2px solid var(--fusion-focus);
+    outline-offset: 1px;
+  }
+
+  /* ui-chat: a group with a caption and a hairline, not a box inside the window. */
   .roll-builder__edge {
     display: flex;
-    gap: 0.6rem;
+    flex-wrap: wrap;
+    gap: var(--fusion-space-1) var(--fusion-space-3);
     align-items: center;
-    border: 1px solid var(--fusion-border);
-    border-radius: var(--fusion-radius-sm);
-    padding: 0.3rem 0.5rem;
+    border: none;
+    border-top: 1px solid var(--fusion-border);
+    margin: 0;
+    padding: var(--fusion-space-2) 0 0;
   }
 
   .roll-builder__edge legend {
-    font-size: 0.7rem;
+    font-size: var(--fusion-text-sm);
     color: var(--fusion-text-muted);
-    padding: 0 0.25rem;
+    padding: 0 var(--fusion-space-1) 0 0;
   }
 
   .roll-builder__radio,
   .roll-builder__check {
     display: inline-flex;
     align-items: center;
-    gap: 0.25rem;
-    font-size: 0.75rem;
+    gap: var(--fusion-space-1);
+    min-height: var(--fusion-target);
+    font-size: var(--fusion-text-base);
+    cursor: pointer;
+  }
+
+  .roll-builder__radio input,
+  .roll-builder__check input {
+    width: 18px;
+    height: 18px;
   }
 
   .roll-builder__preview {
     display: flex;
     align-items: baseline;
-    gap: 0.4rem;
+    flex-wrap: wrap;
+    gap: var(--fusion-space-2);
     border-top: 1px solid var(--fusion-border);
-    padding-top: 0.4rem;
+    padding-top: var(--fusion-space-2);
   }
 
   .roll-builder__preview-label {
-    font-size: 0.7rem;
+    font-size: var(--fusion-text-sm);
     color: var(--fusion-text-muted);
   }
 
   .roll-builder__preview code {
-    font-size: 0.875rem;
-    color: var(--fusion-accent);
-    word-break: break-all;
+    font-family: var(--fusion-font-mono);
+    font-size: var(--fusion-text-md);
+    font-weight: var(--fusion-weight-bold);
+    color: var(--fusion-text);
+    overflow-wrap: anywhere;
   }
 
   .roll-builder__mode {
     display: flex;
     align-items: center;
-    gap: 0.35rem;
+    gap: var(--fusion-space-1);
     margin: 0;
-    font-size: 0.7rem;
+    font-size: var(--fusion-text-sm);
     color: var(--fusion-text-muted);
   }
 
@@ -315,26 +336,27 @@
   .roll-builder__actions {
     display: flex;
     align-items: flex-end;
-    gap: 0.4rem;
+    gap: var(--fusion-space-2);
     flex-wrap: wrap;
   }
 
   .roll-builder__slot {
     display: flex;
     flex-direction: column;
-    gap: 0.15rem;
-    font-size: 0.7rem;
+    gap: var(--fusion-space-1);
+    font-size: var(--fusion-text-sm);
     color: var(--fusion-text-muted);
   }
 
   .roll-builder__roll,
   .roll-builder__save {
-    border-radius: var(--fusion-radius-sm);
+    min-height: var(--fusion-target);
+    padding: 0 var(--fusion-space-4);
+    border-radius: var(--fusion-radius);
     cursor: pointer;
     font-family: var(--fusion-font);
-    font-size: 0.8125rem;
-    padding: 0.3rem 0.7rem;
-    border: 1px solid var(--fusion-border);
+    font-size: var(--fusion-text-base);
+    border: 1px solid var(--fusion-border-strong);
     background: var(--fusion-surface-alt);
     color: var(--fusion-text);
   }
@@ -342,8 +364,8 @@
   .roll-builder__roll {
     background: var(--fusion-accent);
     border-color: var(--fusion-accent);
-    color: #fff;
-    font-weight: 600;
+    color: var(--fusion-on-accent);
+    font-weight: var(--fusion-weight-bold);
   }
 
   .roll-builder__roll:hover {
@@ -356,13 +378,13 @@
 
   .roll-builder__roll:focus-visible,
   .roll-builder__save:focus-visible {
-    outline: 2px solid var(--fusion-accent);
+    outline: 2px solid var(--fusion-focus);
     outline-offset: 1px;
   }
 
   .roll-builder__saved {
     margin: 0;
-    font-size: 0.7rem;
-    color: var(--fusion-success);
+    font-size: var(--fusion-text-sm);
+    color: var(--fusion-text);
   }
 </style>

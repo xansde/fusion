@@ -10,7 +10,8 @@
    * REQ-CHT-026: actionType + actionPayload serialized.
    */
 
-  import type { CardData } from "@fusion/shared";
+  import { isIconName, type CardData } from "@fusion/shared";
+  import Icon from "../common/Icon.svelte";
 
   const {
     card,
@@ -44,11 +45,12 @@
   }
 </script>
 
-<div class="chat-card" aria-label="Chat card: {card.title}">
-  <!-- Header -->
+<div class="chat-card" role="group" aria-label={card.title}>
+  <!-- Header. ui-chat: an icon is drawn only when it names a glyph of the shared set — an emoji or a
+       symbol character is never an icon (docs/design/ui/README.md); the system id is not for the reader. -->
   <div class="chat-card__header">
-    {#if card.icon}
-      <span class="chat-card__icon" aria-hidden="true">{card.icon}</span>
+    {#if card.icon && isIconName(card.icon)}
+      <span class="chat-card__icon"><Icon name={card.icon} size={20} /></span>
     {/if}
     <div class="chat-card__title-group">
       <span class="chat-card__title">{card.title}</span>
@@ -56,7 +58,6 @@
         <span class="chat-card__subtitle">{card.subtitle}</span>
       {/if}
     </div>
-    <span class="chat-card__system">{card.systemId}</span>
   </div>
 
   <!-- Fields -->
@@ -86,8 +87,8 @@
           onclick={() => handleButtonClick(btn.id, btn.actionType, btn.actionPayload)}
           aria-label={btn.label}
         >
-          {#if btn.icon}
-            <span class="chat-card__btn-icon" aria-hidden="true">{btn.icon}</span>
+          {#if btn.icon && isIconName(btn.icon)}
+            <Icon name={btn.icon} size={18} />
           {/if}
           {btn.label}
         </button>
@@ -102,26 +103,29 @@
 </div>
 
 <style>
+  /* ui-chat: same box as the roll card (one box, left rule in the card color), no box inside it. */
   .chat-card {
+    margin-top: var(--fusion-space-2);
+    padding: var(--fusion-space-2) var(--fusion-space-3);
     background: var(--fusion-surface-alt);
     border: 1px solid var(--fusion-border);
+    border-left: 4px solid var(--fusion-chat-sys);
     border-radius: var(--fusion-radius);
-    overflow: hidden;
-    max-width: 340px;
-    margin-top: 0.35rem;
+    max-width: 360px;
+    display: flex;
+    flex-direction: column;
+    gap: var(--fusion-space-2);
   }
 
   .chat-card__header {
     display: flex;
     align-items: center;
-    gap: 0.5rem;
-    padding: 0.5rem 0.7rem;
-    background: rgba(124, 92, 252, 0.07);
-    border-bottom: 1px solid var(--fusion-border);
+    gap: var(--fusion-space-2);
   }
 
   .chat-card__icon {
-    font-size: 1.1rem;
+    display: inline-flex;
+    color: var(--fusion-text-muted);
     flex-shrink: 0;
   }
 
@@ -129,146 +133,124 @@
     flex: 1;
     display: flex;
     flex-direction: column;
-    gap: 0.1rem;
     min-width: 0;
   }
 
   .chat-card__title {
-    font-weight: 600;
-    font-size: 0.875rem;
+    font-weight: var(--fusion-weight-bold);
+    font-size: var(--fusion-text-md);
     color: var(--fusion-text);
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
+    overflow-wrap: anywhere;
   }
 
   .chat-card__subtitle {
-    font-size: 0.75rem;
+    font-size: var(--fusion-text-sm);
     color: var(--fusion-text-muted);
   }
 
-  .chat-card__system {
-    font-size: 0.65rem;
-    color: var(--fusion-text-subtle);
-    text-transform: uppercase;
-    letter-spacing: 0.04em;
-    flex-shrink: 0;
-  }
-
-  /* Fields */
+  /* Fields: label left, value right, one line each, divided by a hairline */
   .chat-card__fields {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 0.1rem;
-    padding: 0.4rem 0.7rem;
     margin: 0;
   }
 
   .chat-card__field {
-    display: contents;
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: var(--fusion-space-3);
+    padding: var(--fusion-space-1) 0;
+    border-top: 1px solid var(--fusion-border);
   }
 
   .chat-card__field-label {
-    font-size: 0.7rem;
-    color: var(--fusion-text-subtle);
-    text-transform: uppercase;
-    letter-spacing: 0.04em;
-    padding-right: 0.3rem;
+    font-size: var(--fusion-text-sm);
+    color: var(--fusion-text-muted);
   }
 
   .chat-card__field-value {
-    font-size: 0.8125rem;
+    font-size: var(--fusion-text-base);
     color: var(--fusion-text);
-    font-weight: 500;
+    font-weight: var(--fusion-weight-medium);
     margin: 0;
+    text-align: right;
   }
 
   .chat-card__field--highlight .chat-card__field-value {
-    color: var(--fusion-accent);
-    font-size: 1rem;
-    font-weight: 700;
+    font-size: var(--fusion-text-lg);
+    font-weight: var(--fusion-weight-bold);
   }
 
-  /* Description */
   .chat-card__desc {
-    font-size: 0.8125rem;
+    font-size: var(--fusion-text-base);
     color: var(--fusion-text-muted);
-    padding: 0.4rem 0.7rem;
     margin: 0;
     white-space: pre-wrap;
-    word-break: break-word;
+    overflow-wrap: anywhere;
   }
 
   /* Buttons */
   .chat-card__buttons {
     display: flex;
     flex-wrap: wrap;
-    gap: 0.4rem;
-    padding: 0.4rem 0.7rem;
+    gap: var(--fusion-space-2);
+    padding-top: var(--fusion-space-2);
     border-top: 1px solid var(--fusion-border);
   }
 
   .chat-card__btn {
-    border: 1px solid transparent;
-    border-radius: var(--fusion-radius-sm);
-    cursor: pointer;
     display: inline-flex;
     align-items: center;
-    gap: 0.3rem;
+    justify-content: center;
+    gap: var(--fusion-space-1);
+    min-height: var(--fusion-target);
+    padding: 0 var(--fusion-space-3);
+    border: 1px solid var(--fusion-border-strong);
+    border-radius: var(--fusion-radius);
+    background: var(--fusion-surface);
+    color: var(--fusion-text);
+    cursor: pointer;
     font-family: var(--fusion-font);
-    font-size: 0.75rem;
-    font-weight: 500;
-    padding: 0.3rem 0.65rem;
-    transition: background-color var(--fusion-transition), opacity var(--fusion-transition);
+    font-size: var(--fusion-text-sm);
+    font-weight: var(--fusion-weight-medium);
+    transition:
+      background-color var(--fusion-transition),
+      border-color var(--fusion-transition);
+  }
+
+  .chat-card__btn:not(:disabled):hover {
+    border-color: var(--fusion-accent);
   }
 
   .chat-card__btn:disabled {
-    opacity: 0.4;
+    opacity: 0.5;
     cursor: not-allowed;
   }
 
   .chat-card__btn--primary {
     background: var(--fusion-accent);
-    color: #fff;
+    border-color: var(--fusion-accent);
+    color: var(--fusion-on-accent);
   }
 
   .chat-card__btn--primary:not(:disabled):hover {
     background: var(--fusion-accent-hover);
   }
 
-  .chat-card__btn--secondary {
-    background: var(--fusion-surface);
-    border-color: var(--fusion-border);
-    color: var(--fusion-text-muted);
-  }
-
-  .chat-card__btn--secondary:not(:disabled):hover {
-    border-color: var(--fusion-text-muted);
-    color: var(--fusion-text);
-  }
-
   .chat-card__btn--danger {
-    background: rgba(255, 92, 92, 0.12);
     border-color: var(--fusion-danger);
-    color: var(--fusion-danger);
   }
 
   .chat-card__btn--danger:not(:disabled):hover {
-    background: rgba(255, 92, 92, 0.22);
+    background: var(--fusion-danger-dim);
+    border-color: var(--fusion-danger);
   }
 
-  .chat-card__btn-icon {
-    font-size: 0.8rem;
-    line-height: 1;
-  }
-
-  /* Toast */
   .chat-card__toast {
-    font-size: 0.7rem;
-    color: var(--fusion-warning);
-    padding: 0.25rem 0.7rem;
+    font-size: var(--fusion-text-sm);
+    color: var(--fusion-text);
+    padding: var(--fusion-space-1) var(--fusion-space-2);
     margin: 0;
-    border-top: 1px solid var(--fusion-border);
-    background: rgba(255, 200, 87, 0.05);
+    border-left: 3px solid var(--fusion-warning);
+    background: var(--fusion-warning-dim);
   }
 </style>

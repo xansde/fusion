@@ -299,10 +299,10 @@
 
 <style>
   .calibration {
-    background: rgba(24, 24, 31, 0.92);
-    backdrop-filter: blur(6px);
+    background: var(--fusion-surface);
     border: 1px solid var(--fusion-border);
-    border-radius: var(--fusion-radius-sm);
+    border-radius: var(--fusion-radius);
+    box-shadow: var(--fusion-shadow-popover);
     display: flex;
     flex-direction: column;
     gap: 0.55rem;
@@ -316,14 +316,14 @@
 
   .calibration__title {
     color: var(--fusion-text);
-    font-size: 0.95rem;
+    font-size: var(--fusion-text-base);
     font-weight: 600;
     margin: 0;
   }
 
   .calibration__hint {
     color: var(--fusion-text-muted);
-    font-size: 0.78rem;
+    font-size: var(--fusion-text-xs);
     line-height: 1.35;
     margin: 0;
   }
@@ -343,7 +343,7 @@
   .calibration__field {
     display: flex;
     flex-direction: column;
-    font-size: 0.72rem;
+    font-size: var(--fusion-text-xs);
     gap: 0.2rem;
     min-width: 0;
   }
@@ -354,19 +354,22 @@
 
   .calibration__field input[type="number"],
   .calibration__field input[type="text"] {
-    background: var(--fusion-bg, #111);
+    background: var(--fusion-bg);
     border: 1px solid var(--fusion-border);
-    border-radius: 4px;
+    border-radius: var(--fusion-radius);
     color: var(--fusion-text);
-    padding: 0.3rem 0.4rem;
+    font-family: var(--fusion-font);
+    font-size: var(--fusion-text-sm);
+    min-height: var(--fusion-target);
+    padding: 0.3rem 0.5rem;
     width: 100%;
   }
 
   .calibration__field input[type="color"] {
     background: transparent;
     border: 1px solid var(--fusion-border);
-    border-radius: 4px;
-    height: 1.9rem;
+    border-radius: var(--fusion-radius);
+    height: var(--fusion-target);
     padding: 0;
     width: 100%;
   }
@@ -375,13 +378,13 @@
     align-items: center;
     color: var(--fusion-text);
     display: flex;
-    font-size: 0.78rem;
+    font-size: var(--fusion-text-xs);
     gap: 0.4rem;
   }
 
   .calibration__times {
     color: var(--fusion-text-muted);
-    padding-bottom: 0.45rem;
+    padding-bottom: 0.6rem;
   }
 
   .calibration__readout {
@@ -391,19 +394,19 @@
   }
 
   .calibration__invalid {
-    color: #ff8866;
-    font-size: 0.8rem;
+    color: var(--fusion-danger);
+    font-size: var(--fusion-text-xs);
   }
 
   .calibration__warn {
-    color: #ffcc66;
-    font-size: 0.75rem;
+    color: var(--fusion-warning);
+    font-size: var(--fusion-text-xs);
     margin: 0;
   }
 
   .calibration__error {
-    color: #ff8866;
-    font-size: 0.78rem;
+    color: var(--fusion-danger);
+    font-size: var(--fusion-text-xs);
     margin: 0;
   }
 
@@ -415,13 +418,14 @@
 
   /* Buttons (inline — avoids deep import of global .btn) */
   .btn {
+    min-height: var(--fusion-target);
     align-items: center;
     border: 1px solid transparent;
     border-radius: var(--fusion-radius-sm);
     cursor: pointer;
     display: inline-flex;
     font-family: var(--fusion-font);
-    font-size: 0.875rem;
+    font-size: var(--fusion-text-sm);
     font-weight: 500;
     justify-content: center;
     padding: 0.45rem 1rem;
@@ -437,13 +441,13 @@
   }
 
   .btn:focus-visible {
-    outline: 2px solid var(--fusion-accent);
+    outline: 2px solid var(--fusion-focus);
     outline-offset: 2px;
   }
 
   .btn--primary {
     background: var(--fusion-accent);
-    color: #fff;
+    color: var(--fusion-on-accent);
   }
 
   .btn--primary:hover:not(:disabled) {
@@ -462,6 +466,6 @@
   }
 
   .btn--sm {
-    padding: 0.3rem 0.6rem;
+    padding: 0.3rem 0.75rem;
   }
 </style>

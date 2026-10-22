@@ -16,66 +16,16 @@
  * cross-test interactions.
  */
 
-import { describe, it, expect, beforeAll, afterEach, vi } from "vitest";
+import { describe, it, expect, beforeAll, afterAll } from "vitest";
 
-// Each test spawns the real CLI as a cold Node child process (several per
-// test for roundtrips); under concurrent suite load these legitimately take
-// far longer than the package default of 30s.
-vi.setConfig({ testTimeout: 120_000 });
-import { spawnSync } from "node:child_process";
+import { CLI_ENTRY, runCli } from "../helpers/run-cli.js";
 import { mkdirSync, rmSync, existsSync } from "node:fs";
 import { join } from "node:path";
 import { tmpdir } from "node:os";
-import { fileURLToPath } from "node:url";
-import { resolve } from "node:path";
 
 // ---------------------------------------------------------------------------
 // Path to the built CLI entry point
 // ---------------------------------------------------------------------------
-
-const __dirname = fileURLToPath(new URL(".", import.meta.url));
-// Walk up: __tests__/cli → __tests__ → src → packages/server
-const SERVER_ROOT = resolve(__dirname, "..", "..", "..");
-const CLI_ENTRY = join(SERVER_ROOT, "dist", "cli", "index.js");
-
-// ---------------------------------------------------------------------------
-// Helper: run the CLI synchronously
-// ---------------------------------------------------------------------------
-
-interface RunResult {
-  exitCode: number;
-  stdout: string;
-  stderr: string;
-}
-
-function runCli(args: string[], dataDir: string): RunResult {
-  const result = spawnSync(process.execPath, [CLI_ENTRY, ...args, "--data-dir", dataDir], {
-    encoding: "utf8",
-    timeout: 30_000,
-    env: {
-      ...process.env,
-      // Suppress pino pretty-print / colour codes in CI
-      FORCE_COLOR: "0",
-      NO_COLOR: "1",
-    },
-  });
-
-  // A null status means the child was killed (timeout) or failed to spawn.
-  // Surface that loudly instead of masking it as a logic failure (exit 1).
-  if (result.error || result.status === null) {
-    throw new Error(
-      `CLI process did not exit cleanly: signal=${result.signal ?? "none"} error=${
-        result.error ? result.error.message : "none"
-      }`,
-    );
-  }
-
-  return {
-    exitCode: result.status,
-    stdout: result.stdout ?? "",
-    stderr: result.stderr ?? "",
-  };
-}
 
 // ---------------------------------------------------------------------------
 // Temp dir lifecycle
@@ -93,7 +43,9 @@ function makeTempDir(): string {
   return dir;
 }
 
-afterEach(() => {
+// afterAll, not afterEach: the tests run concurrently, and an afterEach would
+// delete the data dirs of tests still running.
+afterAll(() => {
   for (const d of tempDirs.splice(0)) {
     try {
       rmSync(d, { recursive: true, force: true });
@@ -120,59 +72,63 @@ beforeAll(() => {
 // Tests
 // ---------------------------------------------------------------------------
 
-describe("CLI — world commands", () => {
+// Concurrent: every test has its own data dir, and the cost is the CLI's cold
+// start (seconds per spawn) — running them side by side divides the wall-clock.
+// Each test spawns the real CLI as a cold Node child process (several per
+// test for roundtrips); under concurrent suite load these legitimately take
+// far longer than the package default of 30s.
+describe.concurrent("CLI — world commands", { timeout: 120_000 }, () => {
   // -------------------------------------------------------------------------
   // world list — empty data directory
   // -------------------------------------------------------------------------
 
-  it("world list on empty data dir exits 0 and prints 'No worlds found'", () => {
+  it("world list on empty data dir exits 0 and prints 'No worlds found'", async () => {
     const dataDir = makeTempDir();
-    const res = runCli(["world", "list"], dataDir);
+    const res = await runCli(["world", "list"], dataDir);
 
     expect(res.exitCode).toBe(0);
     expect(res.stdout).toContain("No worlds found");
   });
 
   // -------------------------------------------------------------------------
-  // world create — success
-  // -------------------------------------------------------------------------
-
-  it("world create exits 0 and prints the world slug", () => {
-    const dataDir = makeTempDir();
-    const res = runCli(
-      ["world", "create", "test_world", "--system", "stub", "--title", "Test World"],
-      dataDir,
-    );
-
-    expect(res.exitCode).toBe(0);
-    expect(res.stdout).toContain("World created successfully");
-    expect(res.stdout).toContain("test_world");
-    expect(res.stdout).toContain("Test World");
-  });
-
-  // -------------------------------------------------------------------------
   // create → list → backup roundtrip
   // -------------------------------------------------------------------------
 
-  it("create → list → backup roundtrip succeeds with exit code 0", () => {
+  // world create's own output, a second world, list showing both, and a backup
+  // — one data dir, one sequence. (Fused from three tests that each paid the
+  // CLI's cold start for the same create: "world create exits 0 and prints the
+  // world slug", "world list shows all worlds when multiple exist" and this
+  // roundtrip; every assertion of the three is kept.)
+  it("create → list → backup roundtrip succeeds with exit code 0, and list shows every world", async () => {
     const dataDir = makeTempDir();
 
-    // 1. Create
-    const createRes = runCli(
+    // 1. Create — prints success, slug and title
+    const createRes = await runCli(
       ["world", "create", "my_campaign", "--system", "stub", "--title", "My Campaign"],
       dataDir,
     );
     expect(createRes.exitCode).toBe(0);
+    expect(createRes.stdout).toContain("World created successfully");
+    expect(createRes.stdout).toContain("my_campaign");
+    expect(createRes.stdout).toContain("My Campaign");
 
-    // 2. List — world should appear
-    const listRes = runCli(["world", "list"], dataDir);
+    const secondRes = await runCli(
+      ["world", "create", "beta", "--system", "stub", "--title", "Beta"],
+      dataDir,
+    );
+    expect(secondRes.exitCode).toBe(0);
+
+    // 2. List — both worlds appear
+    const listRes = await runCli(["world", "list"], dataDir);
     expect(listRes.exitCode).toBe(0);
     expect(listRes.stdout).toContain("my_campaign");
     expect(listRes.stdout).toContain("My Campaign");
     expect(listRes.stdout).toContain("stub");
+    expect(listRes.stdout).toContain("beta");
+    expect(listRes.stdout).toContain("2 world(s)");
 
     // 3. Backup
-    const backupRes = runCli(["world", "backup", "my_campaign"], dataDir);
+    const backupRes = await runCli(["world", "backup", "my_campaign"], dataDir);
     expect(backupRes.exitCode).toBe(0);
     expect(backupRes.stdout).toContain("Backup created successfully");
     expect(backupRes.stdout).toContain("manual-");
@@ -182,9 +138,9 @@ describe("CLI — world commands", () => {
   // Error: invalid slug
   // -------------------------------------------------------------------------
 
-  it("world create with invalid slug exits 1 and prints error to stderr", () => {
+  it("world create with invalid slug exits 1 and prints error to stderr", async () => {
     const dataDir = makeTempDir();
-    const res = runCli(["world", "create", "INVALID SLUG!", "--system", "stub"], dataDir);
+    const res = await runCli(["world", "create", "INVALID SLUG!", "--system", "stub"], dataDir);
 
     expect(res.exitCode).toBe(1);
     expect(res.stderr).toBeTruthy();
@@ -194,9 +150,9 @@ describe("CLI — world commands", () => {
   // Error: unknown system ID
   // -------------------------------------------------------------------------
 
-  it("world create with unknown system exits 1 and reports the error", () => {
+  it("world create with unknown system exits 1 and reports the error", async () => {
     const dataDir = makeTempDir();
-    const res = runCli(
+    const res = await runCli(
       ["world", "create", "valid_slug", "--system", "nonexistent_system_xyz"],
       dataDir,
     );
@@ -209,13 +165,13 @@ describe("CLI — world commands", () => {
   // Error: duplicate slug
   // -------------------------------------------------------------------------
 
-  it("creating a world with a duplicate slug exits 1 with a meaningful error", () => {
+  it("creating a world with a duplicate slug exits 1 with a meaningful error", async () => {
     const dataDir = makeTempDir();
 
-    const firstRes = runCli(["world", "create", "dupe", "--system", "stub"], dataDir);
+    const firstRes = await runCli(["world", "create", "dupe", "--system", "stub"], dataDir);
     expect(firstRes.exitCode).toBe(0);
 
-    const secondRes = runCli(["world", "create", "dupe", "--system", "stub"], dataDir);
+    const secondRes = await runCli(["world", "create", "dupe", "--system", "stub"], dataDir);
     expect(secondRes.exitCode).toBe(1);
     expect(secondRes.stderr).toBeTruthy();
   });
@@ -224,45 +180,28 @@ describe("CLI — world commands", () => {
   // Error: backup of non-existent world
   // -------------------------------------------------------------------------
 
-  it("world backup on non-existent slug exits 1", () => {
+  it("world backup on non-existent slug exits 1", async () => {
     const dataDir = makeTempDir();
-    const res = runCli(["world", "backup", "ghost_world"], dataDir);
+    const res = await runCli(["world", "backup", "ghost_world"], dataDir);
 
     expect(res.exitCode).toBe(1);
     expect(res.stderr).toBeTruthy();
   });
 
   // -------------------------------------------------------------------------
-  // Multiple worlds — list shows all
-  // -------------------------------------------------------------------------
-
-  it("world list shows all worlds when multiple exist", () => {
-    const dataDir = makeTempDir();
-
-    runCli(["world", "create", "alpha", "--system", "stub", "--title", "Alpha"], dataDir);
-    runCli(["world", "create", "beta", "--system", "stub", "--title", "Beta"], dataDir);
-
-    const listRes = runCli(["world", "list"], dataDir);
-    expect(listRes.exitCode).toBe(0);
-    expect(listRes.stdout).toContain("alpha");
-    expect(listRes.stdout).toContain("beta");
-    expect(listRes.stdout).toContain("2 world(s)");
-  });
-
-  // -------------------------------------------------------------------------
   // Help flags
   // -------------------------------------------------------------------------
 
-  it("fusion --help exits 0 and prints usage", () => {
+  it("fusion --help exits 0 and prints usage", async () => {
     const dataDir = makeTempDir();
-    const res = runCli(["--help"], dataDir);
+    const res = await runCli(["--help"], dataDir);
     expect(res.exitCode).toBe(0);
     expect(res.stdout).toContain("USAGE");
   });
 
-  it("fusion world create --help exits 0 and prints world-create-specific usage (not the generic root usage)", () => {
+  it("fusion world create --help exits 0 and prints world-create-specific usage (not the generic root usage)", async () => {
     const dataDir = makeTempDir();
-    const res = runCli(["world", "create", "--help"], dataDir);
+    const res = await runCli(["world", "create", "--help"], dataDir);
     expect(res.exitCode).toBe(0);
     expect(res.stdout).toContain("fusion world create — Create a new world");
     expect(res.stdout).toContain("--system <id>");
@@ -276,16 +215,16 @@ describe("CLI — world commands", () => {
   // Missing required flags
   // -------------------------------------------------------------------------
 
-  it("world create without --system exits 1 with parse error in stderr", () => {
+  it("world create without --system exits 1 with parse error in stderr", async () => {
     const dataDir = makeTempDir();
-    const res = runCli(["world", "create", "my_world"], dataDir);
+    const res = await runCli(["world", "create", "my_world"], dataDir);
     expect(res.exitCode).toBe(1);
     expect(res.stderr).toContain("--system");
   });
 
-  it("unknown top-level command exits 1", () => {
+  it("unknown top-level command exits 1", async () => {
     const dataDir = makeTempDir();
-    const res = runCli(["banana"], dataDir);
+    const res = await runCli(["banana"], dataDir);
     expect(res.exitCode).toBe(1);
     expect(res.stderr).toBeTruthy();
   });

@@ -52,7 +52,7 @@
 
   .mods-section__empty {
     color: var(--fusion-text-subtle);
-    font-size: 0.8125rem;
+    font-size: var(--fusion-text-base);
     margin: 0;
   }
 
@@ -69,7 +69,7 @@
 
   .mods-section__reason {
     color: var(--fusion-text-subtle);
-    font-size: 0.75rem;
+    font-size: var(--fusion-text-sm);
     margin: 0;
   }
 </style>

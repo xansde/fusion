@@ -213,14 +213,14 @@ describe("CompendiumResultLine — two names, the fields, and a seal that promis
     const figure = declarationsOf(".result-line__figure");
 
     // The box has a fixed size of its own...
-    expect(figure).toMatch(/width:\s*1\.8rem/);
-    expect(figure).toMatch(/height:\s*1\.8rem/);
+    expect(figure).toMatch(/width:\s*2rem/);
+    expect(figure).toMatch(/height:\s*2rem/);
     expect(figure).toMatch(/flex-shrink:\s*0/);
-    // ...and both fillings are sized by it, so neither can size differently.
-    for (const selector of [".result-line__img", ".result-line__icon"]) {
+    // ...the picture is sized by it (the drawn icon is centred inside it at a fixed size).
+    for (const selector of [".result-line__img"]) {
       const filling = declarationsOf(selector);
-      expect(filling).toMatch(/width:\s*1\.8rem/);
-      expect(filling).toMatch(/height:\s*1\.8rem/);
+      expect(filling).toMatch(/width:\s*2rem/);
+      expect(filling).toMatch(/height:\s*2rem/);
     }
   });
 

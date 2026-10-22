@@ -1,55 +1,176 @@
 /**
- * Fusion VTT — base CSS
+ * Fusion VTT — base CSS: the design tokens and the reset.
  *
- * Dark theme with custom properties (--fusion-*), system font stack, and a
- * minimal reset. No framework dependencies.
+ * This file is the ONE place the visual language is declared (ui-fundacao, 22/10/2026).
+ * Every component of the client and of the system sheets paints with `var(--fusion-*)`;
+ * nobody writes a raw colour, font or radius. Changing the look of the whole app is
+ * changing the values below — that is why the direction can still be swapped after
+ * review (docs/design/ui/README.md).
  *
- * Color palette follows a dark-first approach with accessible contrast ratios.
+ * Reading comes first: a friend of the table is dyslexic, and the system is tuned for that
+ * before anything else —
+ *  - body face Atkinson Hyperlegible Next (SIL OFL 1.1, self-hosted: the server runs
+ *    offline), slightly open letter and word spacing, line height 1.5, tabular figures;
+ *  - no text below 13px (`--fusion-text-xs`), body text 15px;
+ *  - off-white on warm charcoal (dark) and warm ink on cream (light): never pure black on
+ *    pure white, never pure white on black; every text tone passes WCAG AA on the surfaces;
+ *  - one accent, flat surfaces, small radii, one soft elevation for floating layers only.
+ *
+ * Themes: dark is the default (maps are dark); light is `data-theme="light"` on <html>,
+ * set by lib/ui/theme.ts (which also resolves the "system" preference). The dark values are
+ * declared FIRST in `:root`, as literals: a few tests read this file and take the first
+ * declaration of a token.
  */
 
 /* ---------------------------------------------------------------------------
-   Custom properties
+   Fonts (self-hosted — fonts/OFL.txt, NOTICE)
+--------------------------------------------------------------------------- */
+@font-face {
+  font-family: "Atkinson Hyperlegible Next";
+  font-style: normal;
+  font-display: swap;
+  font-weight: 200 800;
+  src: url("./fonts/atkinson-hyperlegible-next-latin-wght-normal.woff2") format("woff2");
+  unicode-range:
+    U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329,
+    U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+
+@font-face {
+  font-family: "Atkinson Hyperlegible Next";
+  font-style: normal;
+  font-display: swap;
+  font-weight: 200 800;
+  src: url("./fonts/atkinson-hyperlegible-next-latin-ext-wght-normal.woff2") format("woff2");
+  unicode-range:
+    U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329,
+    U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F,
+    U+A720-A7FF;
+}
+
+@font-face {
+  font-family: "Atkinson Hyperlegible Mono";
+  font-style: normal;
+  font-display: swap;
+  font-weight: 200 800;
+  src: url("./fonts/atkinson-hyperlegible-mono-latin-wght-normal.woff2") format("woff2");
+}
+
+/* ---------------------------------------------------------------------------
+   Tokens — dark theme (default)
 --------------------------------------------------------------------------- */
 :root {
-  /* Surface colors */
-  --fusion-bg: #0e0e12;
-  --fusion-surface: #18181f;
-  --fusion-surface-alt: #1f1f2a;
-  --fusion-border: #2e2e3d;
+  color-scheme: dark;
 
-  /* Text */
-  --fusion-text: #e8e8f0;
-  --fusion-text-muted: #8888a0;
-  --fusion-text-subtle: #55556a;
+  /* Surfaces: warm charcoal, three flat steps. */
+  --fusion-bg: #141311;
+  --fusion-surface: #1c1b18;
+  --fusion-surface-alt: #25231f;
+  --fusion-input-bg: #11100e;
+  --fusion-border: #3b3830;
+  --fusion-border-strong: #575245;
 
-  /* Accent — primary interactive elements */
-  --fusion-accent: #7c5cfc;
-  --fusion-accent-hover: #9b7ffe;
-  --fusion-accent-dim: rgba(124, 92, 252, 0.15);
+  /* Text: off-white, never #fff. Muted and subtle stay AA on every surface. */
+  --fusion-text: #ebe5d6;
+  --fusion-text-muted: #b8b09e;
+  --fusion-text-subtle: #9a927f;
+
+  /* The one accent — brass. Interactive and "selected" only, never decoration. */
+  --fusion-accent: #d6a24a;
+  --fusion-accent-hover: #e4b765;
+  --fusion-accent-dim: rgba(214, 162, 74, 0.16);
+  --fusion-on-accent: #1a1408;
 
   /* Semantic */
-  --fusion-success: #3ddc84;
-  --fusion-warning: #ffc857;
-  --fusion-danger: #ff5c5c;
+  --fusion-success: #7cc395;
+  --fusion-warning: #e8925a;
+  --fusion-danger: #ec7468;
+  --fusion-info: #7fb2dc;
+  --fusion-magic: #b9a0ea;
 
   /* Semantic washes — subtle tinted fills for badges / states */
-  --fusion-success-dim: rgba(61, 220, 132, 0.14);
-  --fusion-warning-dim: rgba(255, 200, 87, 0.14);
-  --fusion-danger-dim: rgba(255, 92, 92, 0.14);
+  --fusion-success-dim: rgba(124, 195, 149, 0.15);
+  --fusion-warning-dim: rgba(232, 146, 90, 0.15);
+  --fusion-danger-dim: rgba(236, 116, 104, 0.15);
+  --fusion-info-dim: rgba(127, 178, 220, 0.15);
+  --fusion-magic-dim: rgba(185, 160, 234, 0.15);
 
-  /* Chat system card (A022, spec 38, DEC-ACH-02/03 + REQ-ACH-025 — chat-tab.prototype.html
-     ~167 `.m--sys{border-left-color:#2f7fa8}`): a card's left border is this fixed blue
-     regardless of sender, so a reader tells "this is a system card" apart from
-     "this is <someone>'s message" at a glance. Not derived from --fusion-accent/-success/
-     -danger/-warning on purpose — those already carry unrelated meaning elsewhere in chat
-     (crit, fumble, blind), and reusing one here would blur that signal. */
-  --fusion-chat-sys: #2f7fa8;
+  /* Chat system card (A022, spec 38, DEC-ACH-02/03 + REQ-ACH-025): a card's left border is
+     this fixed blue regardless of sender, so "this is a system card" reads apart from
+     "this is <someone>'s message". Not derived from the accent/semantic tones on purpose —
+     those already carry meaning in chat (crit, fumble, blind). */
+  --fusion-chat-sys: #6fa6cc;
 
-  /* On-accent text (buttons filled with --fusion-accent) */
-  --fusion-on-accent: #ffffff;
+  /* Focus ring: its own colour, never the accent, so focus never reads as "selected". */
+  --fusion-focus: #9ccaff;
 
-  /* Elevation shadow (windows, modals) */
-  --fusion-shadow-modal: 0 24px 64px rgba(0, 0, 0, 0.55);
+  /* Elevation: one soft shadow, for floating windows, popovers and menus only. */
+  --fusion-shadow-modal: 0 12px 32px rgba(0, 0, 0, 0.45);
+  --fusion-shadow-popover: 0 6px 18px rgba(0, 0, 0, 0.35);
+
+  /* Proficiency (TEML — Destreinado, Treinado, Expert, Mestre, Lendário). */
+  --fusion-prof-u: var(--fusion-text-subtle);
+  --fusion-prof-t: var(--fusion-info);
+  --fusion-prof-e: var(--fusion-success);
+  --fusion-prof-m: var(--fusion-accent);
+  --fusion-prof-l: var(--fusion-magic);
+
+  --fusion-prof-u-bg: rgba(154, 146, 127, 0.14);
+  --fusion-prof-t-bg: var(--fusion-info-dim);
+  --fusion-prof-e-bg: var(--fusion-success-dim);
+  --fusion-prof-m-bg: var(--fusion-accent-dim);
+  --fusion-prof-l-bg: var(--fusion-magic-dim);
+
+  --fusion-prof-u-border: var(--fusion-border);
+  --fusion-prof-t-border: rgba(127, 178, 220, 0.45);
+  --fusion-prof-e-border: rgba(124, 195, 149, 0.45);
+  --fusion-prof-m-border: rgba(214, 162, 74, 0.45);
+  --fusion-prof-l-border: rgba(185, 160, 234, 0.45);
+
+  /* Typography. rem sizes (the reader's browser zoom wins); nothing below xs. */
+  --fusion-font:
+    "Atkinson Hyperlegible Next", system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial,
+    sans-serif;
+  --fusion-font-mono:
+    "Atkinson Hyperlegible Mono", ui-monospace, "Cascadia Code", "Source Code Pro", Menlo, Consolas,
+    monospace;
+  --fusion-text-xs: 0.8125rem; /* 13px — captions, badges: the floor */
+  --fusion-text-sm: 0.875rem; /* 14px — dense lists, secondary text */
+  --fusion-text-base: 0.9375rem; /* 15px — body */
+  --fusion-text-md: 1rem; /* 16px — reading text (journal, descriptions) */
+  --fusion-text-lg: 1.125rem; /* 18px — section titles */
+  --fusion-text-xl: 1.375rem; /* 22px — window / sheet titles */
+  --fusion-text-2xl: 1.75rem; /* 28px — the big number of a stat or a roll */
+  --fusion-leading: 1.5;
+  --fusion-leading-tight: 1.25;
+  --fusion-tracking: 0.012em;
+  --fusion-word-spacing: 0.06em;
+  --fusion-weight-regular: 400;
+  --fusion-weight-medium: 500;
+  --fusion-weight-bold: 700;
+  /* Readable line length for prose. */
+  --fusion-measure: 68ch;
+
+  /* Spacing (4px grid) */
+  --fusion-space-1: 4px;
+  --fusion-space-2: 8px;
+  --fusion-space-3: 12px;
+  --fusion-space-4: 16px;
+  --fusion-space-5: 20px;
+  --fusion-space-6: 24px;
+  --fusion-space-8: 32px;
+
+  /* Radii: small and few. Pills only for counters. */
+  --fusion-radius-sm: 3px;
+  --fusion-radius: 6px;
+  --fusion-radius-lg: 8px;
+  --fusion-radius-pill: 999px;
+
+  /* Touch target floor (mouse and finger). */
+  --fusion-target: 40px;
+
+  /* Motion */
+  --fusion-transition: 150ms ease;
 
   /* Layout.
      The side drawer is one fixed width for every tab (REQ-GAV-012, DEC-GAV-04):
@@ -101,48 +222,88 @@
      fourth colour. */
   --fusion-condition-benefit: var(--fusion-success);
   --fusion-condition-harm: var(--fusion-danger);
-  --fusion-condition-special: var(--fusion-accent);
+  --fusion-condition-special: var(--fusion-magic);
   --fusion-condition-benefit-dim: var(--fusion-success-dim);
   --fusion-condition-harm-dim: var(--fusion-danger-dim);
-  --fusion-condition-special-dim: var(--fusion-accent-dim);
+  --fusion-condition-special-dim: var(--fusion-magic-dim);
 
   /* The "no ar" head of the Cenas tab is one fixed height for every state
      (REQ-CEN-010/013): a long scene name, a missing background image or the
      environment row must never move the controls the GM presses all session. */
   --fusion-scene-head-height: 132px;
 
-  --fusion-radius-sm: 4px;
-  --fusion-radius: 8px;
-  --fusion-radius-lg: 12px;
-  --fusion-radius-pill: 999px;
+  /* Aliases for components written against names nobody had declared (they silently fell
+     back to hard-coded colours and ignored the theme). New code uses the names above. */
+  --fusion-radius-md: var(--fusion-radius);
+  --fusion-surface-raised: var(--fusion-surface-alt);
+  --fusion-text-on-accent: var(--fusion-on-accent);
+  --fusion-accent-contrast: var(--fusion-on-accent);
+  --fusion-accent-soft: var(--fusion-accent-dim);
+  --fusion-warn: var(--fusion-warning);
+  --fusion-color-accent: var(--fusion-accent);
+  --fusion-color-accent-hover: var(--fusion-accent-hover);
+  --fusion-color-on-accent: var(--fusion-on-accent);
+  --fusion-color-border: var(--fusion-border);
+  --fusion-color-focus: var(--fusion-focus);
+  --fusion-color-hero: var(--fusion-accent);
+  --fusion-color-info: var(--fusion-info);
+  --fusion-color-magic: var(--fusion-magic);
+  --fusion-color-success: var(--fusion-success);
+  --fusion-color-warning: var(--fusion-warning);
+  --fusion-color-input-bg: var(--fusion-input-bg);
+  --fusion-color-surface: var(--fusion-surface);
+  --fusion-color-surface-raised: var(--fusion-surface-alt);
+  --fusion-color-text: var(--fusion-text);
+  --fusion-color-text-primary: var(--fusion-text);
+  --fusion-color-text-secondary: var(--fusion-text-muted);
+  --fusion-color-text-muted: var(--fusion-text-muted);
+  --fusion-color-text-subtle: var(--fusion-text-subtle);
+}
 
-  /* Proficiency (TEML) — Pathfinder 2e rank system.
-     U=Destreinado, T=Treinado, E=Expert, M=Mestre, L=Lendário. */
-  --fusion-prof-u: var(--fusion-text-subtle);
-  --fusion-prof-t: var(--fusion-accent);
-  --fusion-prof-e: var(--fusion-success);
-  --fusion-prof-m: var(--fusion-warning);
-  --fusion-prof-l: var(--fusion-danger);
+/* ---------------------------------------------------------------------------
+   Tokens — light theme ("papel": warm ink on cream). Only the values that differ.
+--------------------------------------------------------------------------- */
+:root[data-theme="light"] {
+  color-scheme: light;
 
-  --fusion-prof-u-bg: rgba(85, 85, 106, 0.18);
-  --fusion-prof-t-bg: var(--fusion-accent-dim);
-  --fusion-prof-e-bg: var(--fusion-success-dim);
-  --fusion-prof-m-bg: var(--fusion-warning-dim);
-  --fusion-prof-l-bg: var(--fusion-danger-dim);
+  --fusion-bg: #efe9dc;
+  --fusion-surface: #f9f6ef;
+  --fusion-surface-alt: #f1ebdf;
+  --fusion-input-bg: #fffdf8;
+  --fusion-border: #d3c9b5;
+  --fusion-border-strong: #b0a48c;
 
-  --fusion-prof-u-border: var(--fusion-border);
-  --fusion-prof-t-border: rgba(124, 92, 252, 0.4);
-  --fusion-prof-e-border: rgba(61, 220, 132, 0.4);
-  --fusion-prof-m-border: rgba(255, 200, 87, 0.4);
-  --fusion-prof-l-border: rgba(255, 92, 92, 0.4);
+  --fusion-text: #29251f;
+  --fusion-text-muted: #554e42;
+  --fusion-text-subtle: #6e665a;
 
-  /* Typography */
-  --fusion-font:
-    system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-  --fusion-font-mono: ui-monospace, "Cascadia Code", "Source Code Pro", Menlo, Consolas, monospace;
+  --fusion-accent: #8a5a12;
+  --fusion-accent-hover: #6f480c;
+  --fusion-accent-dim: rgba(138, 90, 18, 0.12);
+  --fusion-on-accent: #fffaf0;
 
-  /* Motion */
-  --fusion-transition: 150ms ease;
+  --fusion-success: #2e7448;
+  --fusion-warning: #a14f12;
+  --fusion-danger: #b0352b;
+  --fusion-info: #23628f;
+  --fusion-magic: #6a46b0;
+  --fusion-success-dim: rgba(46, 116, 72, 0.12);
+  --fusion-warning-dim: rgba(161, 79, 18, 0.12);
+  --fusion-danger-dim: rgba(176, 53, 43, 0.12);
+  --fusion-info-dim: rgba(35, 98, 143, 0.12);
+  --fusion-magic-dim: rgba(106, 70, 176, 0.12);
+
+  --fusion-chat-sys: #2d6f99;
+  --fusion-focus: #1d5fa8;
+
+  --fusion-shadow-modal: 0 12px 32px rgba(60, 45, 20, 0.22);
+  --fusion-shadow-popover: 0 6px 18px rgba(60, 45, 20, 0.18);
+
+  --fusion-prof-u-bg: rgba(110, 102, 90, 0.1);
+  --fusion-prof-t-border: rgba(35, 98, 143, 0.4);
+  --fusion-prof-e-border: rgba(46, 116, 72, 0.4);
+  --fusion-prof-m-border: rgba(138, 90, 18, 0.4);
+  --fusion-prof-l-border: rgba(106, 70, 176, 0.4);
 }
 
 /* ---------------------------------------------------------------------------
@@ -166,10 +327,24 @@ body {
   background-color: var(--fusion-bg);
   color: var(--fusion-text);
   font-family: var(--fusion-font);
-  font-size: 14px;
-  line-height: 1.5;
+  font-size: var(--fusion-text-base);
+  line-height: var(--fusion-leading);
+  letter-spacing: var(--fusion-tracking);
+  word-spacing: var(--fusion-word-spacing);
+  font-variant-numeric: tabular-nums;
+  text-align: left;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+}
+
+/* Form controls do not inherit the font by default. */
+button,
+input,
+select,
+textarea {
+  font-family: inherit;
+  letter-spacing: inherit;
+  word-spacing: inherit;
 }
 
 #fusion-app {
@@ -187,45 +362,68 @@ h3,
 h4,
 h5,
 h6 {
-  font-weight: 600;
-  line-height: 1.25;
+  font-weight: var(--fusion-weight-bold);
+  line-height: var(--fusion-leading-tight);
   color: var(--fusion-text);
 }
 
 a {
   color: var(--fusion-accent);
-  text-decoration: none;
+  text-decoration: underline;
+  text-underline-offset: 0.15em;
 }
 
 a:hover {
   color: var(--fusion-accent-hover);
-  text-decoration: underline;
 }
 
 code,
 pre {
   font-family: var(--fusion-font-mono);
-  font-size: 0.875em;
+  font-size: 0.9375em;
 }
 
 /* ---------------------------------------------------------------------------
-   Scrollbar styling (Webkit/Blink — non-standard but widely supported in VTT
-   desktop use cases)
+   Focus: always visible for keyboard users — one ring for the whole app.
+--------------------------------------------------------------------------- */
+:focus-visible {
+  outline: 2px solid var(--fusion-focus);
+  outline-offset: 2px;
+}
+
+/* ---------------------------------------------------------------------------
+   Reduced motion: no animated transitions for whoever asked the OS for none.
+--------------------------------------------------------------------------- */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* ---------------------------------------------------------------------------
+   Scrollbars — wide enough to grab.
 --------------------------------------------------------------------------- */
 ::-webkit-scrollbar {
-  width: 6px;
-  height: 6px;
+  width: 10px;
+  height: 10px;
 }
 
 ::-webkit-scrollbar-track {
-  background: var(--fusion-surface);
+  background: transparent;
 }
 
 ::-webkit-scrollbar-thumb {
-  background: var(--fusion-border);
-  border-radius: 3px;
+  background: var(--fusion-border-strong);
+  border-radius: 5px;
+  border: 2px solid transparent;
+  background-clip: padding-box;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: var(--fusion-text-subtle);
+  background-color: var(--fusion-text-subtle);
 }

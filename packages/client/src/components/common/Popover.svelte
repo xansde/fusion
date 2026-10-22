@@ -125,19 +125,19 @@
     max-width: min(360px, calc(100vw - 16px));
     max-height: calc(100vh - 16px);
     overflow: auto;
-    padding: 4px;
+    padding: var(--fusion-space-1);
     border: 1px solid var(--fusion-border);
     border-radius: var(--fusion-radius);
     background: var(--fusion-surface-alt);
     color: var(--fusion-text);
     font-family: var(--fusion-font);
-    font-size: 12px;
-    box-shadow: var(--fusion-shadow-modal);
+    font-size: var(--fusion-text-sm);
+    box-shadow: var(--fusion-shadow-popover);
   }
 
   /* It takes the focus itself when there is nothing inside to take it. */
   .fusion-popover:focus-visible {
-    outline: 2px solid var(--fusion-accent-hover);
+    outline: 2px solid var(--fusion-focus);
     outline-offset: -2px;
   }
 </style>

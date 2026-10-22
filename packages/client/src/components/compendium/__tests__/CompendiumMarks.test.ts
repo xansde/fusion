@@ -149,12 +149,14 @@ describe("REQ-CPD-082: the pin gesture on a result line", () => {
   });
 
   it("REQ-CPD-094: the pinned state is not told by colour alone", () => {
-    // Three channels: the pressed state, the label, and the filled glyph.
+    // Three channels: the pressed state, the label, and the glyph's shape (pin-off, the
+    // struck pin, once pinned — never a colour change on the same drawing).
     const drawn = drawLine(true);
 
     expect(drawn).toContain('aria-pressed="true"');
     expect(drawn).toContain(t("FUSION.Compendium.Line.Unpin", { name: "Fireball" }));
-    expect(drawn).toContain('fill="currentColor"');
+    expect(drawn).toContain('d="m2 2 20 20"');
+    expect(drawLine(false)).not.toContain('d="m2 2 20 20"');
   });
 
   it("REQ-CPD-082: a panel that offers no pinning draws no pin button", () => {

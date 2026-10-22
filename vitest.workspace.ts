@@ -25,6 +25,9 @@ export default defineWorkspace([
   "external/fusion-systems-2e/systems/pf2e-sf2e/vitest.config.ts",
   "external/fusion-systems-2e/sheets/pf2e/vitest.config.ts",
   "packages/server/vitest.config.ts",
+  // The server files that need a fresh module graph each (module-level
+  // registries, vi.mock, spawnSync) — see packages/server/vitest.isolation.ts.
+  "packages/server/vitest.isolated.config.ts",
   "packages/client/vitest.config.ts",
   "tools/boundary-test/vitest.config.ts",
   "tools/mesa-cli/vitest.config.ts",
