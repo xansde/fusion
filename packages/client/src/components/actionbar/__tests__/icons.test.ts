@@ -104,7 +104,24 @@ describe("iconKeyFor — qual ícone a entrada ganha", () => {
   });
 });
 
+describe("o conjunto único do app (Lucide, @fusion/shared) também desenha na barra", () => {
+  it("um nome do conjunto compartilhado vira ícone (a aba Testes dá um desenho por perícia)", () => {
+    expect(iconKeyFor("mountain", "check")).toBe("mountain");
+    expect(iconKeyFor("lock-open", "check")).toBe("lock-open");
+    expect(ICON_KEYS).toContain("heart-pulse");
+    expect(iconSvg("mountain")).not.toBe(iconSvg("spark"));
+  });
+
+  it("um nome que a barra já desenha continua com o desenho da barra", () => {
+    expect(iconSvg("sword")).toContain('<path d="M20.5 3.5');
+  });
+});
+
 describe("TAB_ICON", () => {
+  it("cada aba tem um desenho diferente", () => {
+    expect(new Set(Object.values(TAB_ICON)).size).toBe(7);
+  });
+
   it("cada aba tem um ícone do conjunto", () => {
     for (const [tab, key] of Object.entries(TAB_ICON)) {
       expect(ICON_KEYS, `aba ${tab}`).toContain(key);
