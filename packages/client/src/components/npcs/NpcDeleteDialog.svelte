@@ -224,10 +224,10 @@
   .npc-delete {
     display: flex;
     flex-direction: column;
-    gap: 0.5rem;
-    padding: 0.75rem;
+    gap: var(--fusion-space-2);
+    padding: var(--fusion-space-3);
     font-family: var(--fusion-font);
-    font-size: 0.8125rem;
+    font-size: var(--fusion-text-sm);
     color: var(--fusion-text);
   }
 
@@ -237,10 +237,8 @@
   }
 
   .npc-delete__heading {
-    margin: 0 0 0.25rem;
-    font-size: 0.75rem;
-    text-transform: uppercase;
-    letter-spacing: 0.04em;
+    margin: 0 0 var(--fusion-space-1);
+    font-size: var(--fusion-text-sm);
     color: var(--fusion-text-muted);
   }
 
@@ -259,9 +257,9 @@
   .npc-delete__combats {
     list-style: none;
     margin: 0.125rem 0 0;
-    padding: 0 0 0 0.75rem;
+    padding: 0 0 0 var(--fusion-space-3);
     color: var(--fusion-text-muted);
-    font-size: 0.75rem;
+    font-size: var(--fusion-text-sm);
   }
 
   .npc-delete__blocked {
@@ -284,14 +282,15 @@
   .npc-delete__actions {
     display: flex;
     justify-content: flex-end;
-    gap: 0.375rem;
+    gap: var(--fusion-space-2);
     margin-top: auto;
   }
 
   .npc-delete__btn {
     font: inherit;
-    font-size: 0.8125rem;
-    padding: 0.25rem 0.75rem;
+    font-size: var(--fusion-text-sm);
+    min-height: var(--fusion-target);
+    padding: 0.25rem var(--fusion-space-3);
     border: 1px solid var(--fusion-border);
     border-radius: var(--fusion-radius-sm);
     background: var(--fusion-surface-alt);

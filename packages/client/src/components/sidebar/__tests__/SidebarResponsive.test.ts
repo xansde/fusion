@@ -190,9 +190,7 @@ describe("sidebar on a narrow screen and from the keyboard", () => {
     it("REQ-GAV-040: the rail keeps 44px and its single gesture at any width", () => {
       // No breakpoint at all in the rail, and its width is the 44px token.
       expect(mediaBlocks("SidebarRail.svelte")).toHaveLength(0);
-      expect(codeOf("SidebarRail.svelte")).toMatch(
-        /width:\s*var\(--fusion-sidebar-rail-width,\s*44px\)/,
-      );
+      expect(codeOf("SidebarRail.svelte")).toMatch(/width:\s*var\(--fusion-sidebar-rail-width\)/);
 
       // And the narrow rule does not touch the rail or its token.
       const [narrow] = mediaBlocks("Sidebar.svelte");

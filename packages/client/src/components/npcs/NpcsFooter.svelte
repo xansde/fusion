@@ -30,6 +30,7 @@
   import type { Socket } from "socket.io-client";
 
   import { t } from "../../lib/i18n/i18n.js";
+  import Icon from "../common/Icon.svelte";
   import { OpError } from "../../lib/docs/sendOp.js";
   import { openKnowledgeWindow } from "../../lib/contacts/knowledgeWindow.js";
   import { chestControlState, placeChest as sendPlaceChest } from "../../lib/npcs/npcsFooter.js";
@@ -63,16 +64,7 @@
       aria-label={t(chest.labelKey)}
       onclick={placeChest}
     >
-      <!-- Drawn glyph, never an emoji (REQ-NPC-094): a chest with a lid and a lock. -->
-      <svg viewBox="0 0 16 16" width="13" height="13" aria-hidden="true" focusable="false">
-        <path
-          d="M2.2 6.4h11.6v6.8H2.2zM2.2 6.4l1.6-3.4h8.4l1.6 3.4M2.2 9h11.6M7.2 9h1.6v2.1H7.2z"
-          fill="none"
-          stroke="currentColor"
-          stroke-width="1.2"
-          stroke-linejoin="round"
-        />
-      </svg>
+      <Icon name="package" size={16} />
       {t("FUSION.Npcs.Footer.Chest")}
     </button>
 
@@ -84,15 +76,8 @@
       aria-label={t("FUSION.Contacts.Knowledge.Open")}
       onclick={() => openKnowledgeWindow(socket)}
     >
-      <!-- The same drawn grid the Contatos footer uses, for the same window. -->
-      <svg viewBox="0 0 16 16" width="13" height="13" aria-hidden="true" focusable="false">
-        <path
-          d="M2.4 2.4h11.2v11.2H2.4zM2.4 6.1h11.2M2.4 9.9h11.2M6.1 2.4v11.2M9.9 2.4v11.2"
-          fill="none"
-          stroke="currentColor"
-          stroke-width="1.2"
-        />
-      </svg>
+      <!-- The same grid icon the Contatos footer uses, for the same window. -->
+      <Icon name="grid-3x3" size={16} />
       {t("FUSION.Npcs.Footer.Knowledge")}
     </button>
   </div>
@@ -129,16 +114,16 @@
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    gap: 0.3rem;
-    height: 1.625rem;
-    min-width: 1.625rem;
-    padding: 0 0.45rem;
+    gap: var(--fusion-space-2);
+    min-height: var(--fusion-target);
+    min-width: var(--fusion-target);
+    padding: 0 var(--fusion-space-3);
     background: var(--fusion-surface-alt);
     border: 1px solid var(--fusion-border);
     border-radius: var(--fusion-radius-sm);
     color: var(--fusion-text-muted);
     font: inherit;
-    font-size: 0.72rem;
+    font-size: var(--fusion-text-sm);
     cursor: pointer;
     transition: var(--fusion-transition);
   }
@@ -158,15 +143,6 @@
      (prototype `.hbtn.chestb` / `.hbtn.wide`, npcs-tab.prototype.html:2467-2468). */
   .npcs-footer__btn--chest {
     flex: 0 0 auto;
-    border-color: rgba(245, 166, 35, 0.5);
-    color: var(--fusion-warning);
-  }
-
-  .npcs-footer__btn--chest:hover:not(:disabled),
-  .npcs-footer__btn--chest:focus-visible {
-    background: rgba(245, 166, 35, 0.1);
-    border-color: var(--fusion-warning);
-    color: var(--fusion-warning);
   }
 
   .npcs-footer__btn--wide {
@@ -176,13 +152,13 @@
 
   /* REQ-NPC-092 (REQ-UIF-064): every control says where the focus is. */
   .npcs-footer button:focus-visible {
-    outline: 2px solid var(--fusion-accent);
+    outline: 2px solid var(--fusion-focus);
     outline-offset: 1px;
   }
 
   .npcs-footer__hint {
     margin: 0;
-    font-size: 0.7rem;
+    font-size: var(--fusion-text-sm);
     color: var(--fusion-text-subtle);
   }
 

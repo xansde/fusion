@@ -35,8 +35,7 @@
 <style>
   /* Discreet, like the 39's counts: it is context for the Mestre, not a headline. */
   .npcs-row__knowledge {
-    font-size: 0.68rem;
+    font-size: var(--fusion-text-xs);
     color: var(--fusion-text-subtle);
-    white-space: nowrap;
   }
 </style>
