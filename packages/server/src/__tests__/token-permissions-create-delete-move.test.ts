@@ -27,7 +27,7 @@
  * `resolveOwnership`/`testOwnership` core (documents/ownership.ts).
  */
 
-import { describe, it, expect, beforeAll, afterAll } from "vitest";
+import { describe, it, expect, beforeAll, afterAll, beforeEach } from "vitest";
 import { mkdirSync, rmSync } from "node:fs";
 import { join } from "node:path";
 import { tmpdir } from "node:os";
@@ -238,11 +238,43 @@ describe("Token permissions — create/delete (papel privilegiado) vs. move (OWN
     await teardown(ctx);
   });
 
+  let pcTokenId: string;
+  let npcTokenId: string;
+
+  // Test independence: every test starts from the same scene — exactly one
+  // token for the player's character and one for the NPC, created by the GM —
+  // whatever ran before it (the cases used to feed each other through the
+  // scene's token list and two shared ids).
+  beforeEach(async () => {
+    const scene = ctx.store.get("scenes", sceneId) as Record<string, unknown>;
+    const staleIds = (scene["tokens"] as Array<{ _id: string }>).map((t) => t._id);
+    if (staleIds.length > 0) {
+      const clear = await sendOp(gm, "doc:delete", {
+        documentType: "Token",
+        ids: staleIds,
+        parent: { type: "Scene", id: sceneId },
+      });
+      expect(clear["ok"], JSON.stringify(clear)).toBe(true);
+    }
+    const seed = await sendOp(gm, "doc:create", {
+      documentType: "Token",
+      data: [newTokenData(pcActorId, "Tobias"), newTokenData(npcActorId, "Goblin")],
+      parent: { type: "Scene", id: sceneId },
+    });
+    expect(seed["ok"], JSON.stringify(seed)).toBe(true);
+    const seeded = (seed["result"] as { documents: Array<{ _id: string }> }).documents;
+    pcTokenId = seeded[0]!._id;
+    npcTokenId = seeded[1]!._id;
+  });
+
   // -------------------------------------------------------------------------
   // TK050 — create (REQ-TOK-030, CA-TOK-005)
   // -------------------------------------------------------------------------
 
   it("REQ-TOK-030a: a player OWNER of the actor is refused when the token is hidden", async () => {
+    const tokenCount = (): number =>
+      ((ctx.store.get("scenes", sceneId) as Record<string, unknown>)["tokens"] as unknown[]).length;
+    const before = tokenCount();
     const ack = await sendOp(ownerSocket, "doc:create", {
       documentType: "Token",
       data: [{ ...newTokenData(pcActorId, "Tobias"), hidden: true }],
@@ -251,11 +283,13 @@ describe("Token permissions — create/delete (papel privilegiado) vs. move (OWN
     expect(ack["ok"]).toBe(false);
     expect(ack["code"]).toBe("PERMISSION_DENIED");
 
-    const scene = ctx.store.get("scenes", sceneId) as Record<string, unknown>;
-    expect((scene["tokens"] as unknown[]).length).toBe(0);
+    expect(tokenCount()).toBe(before);
   });
 
   it("REQ-TOK-030/030a: a player who does NOT own the actor is refused", async () => {
+    const tokenCount = (): number =>
+      ((ctx.store.get("scenes", sceneId) as Record<string, unknown>)["tokens"] as unknown[]).length;
+    const before = tokenCount();
     const ack = await sendOp(ownerSocket, "doc:create", {
       documentType: "Token",
       data: [newTokenData(npcActorId, "Goblin")],
@@ -272,11 +306,19 @@ describe("Token permissions — create/delete (papel privilegiado) vs. move (OWN
     });
     expect(mixed["ok"]).toBe(false);
 
-    const scene = ctx.store.get("scenes", sceneId) as Record<string, unknown>;
-    expect((scene["tokens"] as unknown[]).length).toBe(0);
+    expect(tokenCount()).toBe(before);
   });
 
   it("CA-TOK-005/REQ-TOK-030a: a player OWNER of their own character creates the token on the active scene", async () => {
+    // A player puts at most one token per actor on a scene, so clear the one
+    // beforeEach seeded for this character first.
+    const clearPc = await sendOp(gm, "doc:delete", {
+      documentType: "Token",
+      ids: [pcTokenId],
+      parent: { type: "Scene", id: sceneId },
+    });
+    expect(clearPc["ok"], JSON.stringify(clearPc)).toBe(true);
+
     // A player's drop carries { actorId, x, y } and nothing else (token-player-field-allowlist.test.ts).
     const ack = await sendOp(ownerSocket, "doc:create", {
       documentType: "Token",
@@ -297,9 +339,6 @@ describe("Token permissions — create/delete (papel privilegiado) vs. move (OWN
     expect(cleanup["ok"], JSON.stringify(cleanup)).toBe(true);
   });
 
-  let pcTokenId: string;
-  let npcTokenId: string;
-
   it("CA-TOK-005/REQ-TOK-030: the GM creates the same token and is accepted", async () => {
     const ack = await sendOp(gm, "doc:create", {
       documentType: "Token",
@@ -308,20 +347,15 @@ describe("Token permissions — create/delete (papel privilegiado) vs. move (OWN
     });
     expect(ack["ok"], JSON.stringify(ack)).toBe(true);
     const result = ack["result"] as { documents: Array<{ _id: string }> };
-    pcTokenId = result.documents[0]!._id;
-    expect(pcTokenId).toBeTruthy();
+    expect(result.documents[0]!._id).toBeTruthy();
   });
 
-  it("seeds the NPC token (GM) so the move test has something to refuse", async () => {
-    const ack = await sendOp(gm, "doc:create", {
-      documentType: "Token",
-      data: [newTokenData(npcActorId, "Goblin")],
-      parent: { type: "Scene", id: sceneId },
-    });
-    expect(ack["ok"], JSON.stringify(ack)).toBe(true);
-    const result = ack["result"] as { documents: Array<{ _id: string }> };
-    npcTokenId = result.documents[0]!._id;
+  it("the GM seeds the NPC token, so the move test has something to refuse", () => {
+    // Seeded by beforeEach (a GM doc:create): the token must be on the scene.
     expect(npcTokenId).toBeTruthy();
+    const scene = ctx.store.get("scenes", sceneId) as Record<string, unknown>;
+    const tokens = scene["tokens"] as Array<Record<string, unknown>>;
+    expect(tokens.some((t) => t["_id"] === npcTokenId && t["actorId"] === npcActorId)).toBe(true);
   });
 
   // -------------------------------------------------------------------------

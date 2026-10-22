@@ -367,6 +367,19 @@ describe("installNativeAddonResolutionHook", () => {
     expect(() => req("node:path")).not.toThrow();
   });
 
+  it("the test reset restores Node's own resolver (nothing leaks into the next test file of a reused worker)", () => {
+    const nodeModule = createRequire(import.meta.url)("node:module") as {
+      _resolveFilename: unknown;
+    };
+    const before = nodeModule._resolveFilename;
+
+    installNativeAddonResolutionHook(makeTempDir("fusion-hook-restore-"), "1.0.0");
+    expect(nodeModule._resolveFilename).not.toBe(before);
+
+    _resetNativeAddonResolutionHookForTests();
+    expect(nodeModule._resolveFilename).toBe(before);
+  });
+
   it("is idempotent — installing twice does not double-wrap the resolver", async () => {
     const dataDir = makeTempDir("fusion-hook-idempotent-");
     installNativeAddonResolutionHook(dataDir, "1.0.0");

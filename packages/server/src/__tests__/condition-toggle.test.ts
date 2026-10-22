@@ -289,8 +289,6 @@ describe("Condition toggle — real doc:create/doc:delete handler path (pf2e, T0
   // Case 1 + 2: OWNER player, fixed embedded-CRUD shape
   // -------------------------------------------------------------------------
 
-  let conditionItemId: string;
-
   it("case 1: OWNER player's add op creates a condition Item with no system.value key", async () => {
     const ack = await sendOp(
       ownerSocket,
@@ -300,8 +298,7 @@ describe("Condition toggle — real doc:create/doc:delete handler path (pf2e, T0
     expect(ack["ok"]).toBe(true);
     const result = ack["result"] as { documents: Array<Record<string, unknown>> };
     const created = result.documents[0]!;
-    conditionItemId = created["_id"] as string;
-    expect(conditionItemId).toBeTruthy();
+    expect(created["_id"]).toBeTruthy();
     expect(created["type"]).toBe("condition");
     const system = created["system"] as Record<string, unknown>;
     expect(system["slug"]).toBe("prone");
@@ -312,6 +309,21 @@ describe("Condition toggle — real doc:create/doc:delete handler path (pf2e, T0
   });
 
   it("case 2: OWNER player's remove op deletes the condition Item; items reverts", async () => {
+    // Its own condition to remove: this test must not depend on case 1.
+    const addAck = await sendOp(
+      ownerSocket,
+      "doc:create",
+      buildAddConditionOpFixed(actorId, "prone", "Prone"),
+    );
+    expect(addAck["ok"]).toBe(true);
+    const addResult = addAck["result"] as {
+      documents: Array<{ _id: string }>;
+      parent: Record<string, unknown>;
+    };
+    const conditionItemId = addResult.documents[0]!._id;
+    const conditionsBefore = (addResult.parent["items"] as Array<Record<string, unknown>>).filter(
+      (i) => i["type"] === "condition",
+    ).length;
     const ack = await sendOp(
       ownerSocket,
       "doc:delete",
@@ -321,7 +333,9 @@ describe("Condition toggle — real doc:create/doc:delete handler path (pf2e, T0
     const result = ack["result"] as { parent: Record<string, unknown> };
     const items = result.parent["items"] as Array<Record<string, unknown>>;
     expect(items.find((i) => i["_id"] === conditionItemId)).toBeUndefined();
-    expect(items.some((i) => i["type"] === "condition")).toBe(false);
+    // The list reverts to what it was before the add (other tests' leftovers
+    // are none of this test's business).
+    expect(items.filter((i) => i["type"] === "condition")).toHaveLength(conditionsBefore - 1);
   });
 
   // -------------------------------------------------------------------------

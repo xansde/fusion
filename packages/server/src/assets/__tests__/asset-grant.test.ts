@@ -1249,7 +1249,39 @@ describe("grant — the Actor branch is redactActorDocsForViewer, and nothing el
   });
 
   it("the GM still sees everything", async () => {
-    for (const id of ["contactGlimpsed001", "contactHidden001", "lootSecret001"]) {
+    // Own fixtures (one per kind a player is refused or only half-shown): this
+    // test must not depend on the docs other tests of the block insert.
+    const gmFixtures: Record<string, Record<string, unknown>> = {
+      gmContactGlimpsed001: {
+        name: "O Vilão",
+        type: "npc",
+        img: "/assets/segredo.jpg",
+        ownership: { default: OwnershipLevel.OBSERVER },
+        flags: {
+          fusion: {
+            knowledge: {
+              general: KnowledgeState.Hidden,
+              exceptions: { [CHAR_ID]: KnowledgeState.Glimpsed },
+            },
+          },
+        },
+      },
+      gmContactHidden001: {
+        name: "Ainda Secreto",
+        type: "npc",
+        img: "/assets/segredo.jpg",
+        ownership: { default: OwnershipLevel.OBSERVER },
+      },
+      gmLootSecret001: {
+        name: "Baú do Mestre",
+        type: "loot",
+        img: "/assets/segredo.jpg",
+        ownership: { default: OwnershipLevel.NONE },
+      },
+    };
+    for (const [id, data] of Object.entries(gmFixtures)) insertDoc(ctx.db, "actors", id, data);
+
+    for (const id of Object.keys(gmFixtures)) {
       const { status, body } = await mint(ctx, ctx.gm.token, "actors", id);
       expect(status, id).toBe(200);
       expect(Object.keys(body.grants).length, id).toBe(1);
