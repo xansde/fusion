@@ -141,7 +141,7 @@
     display: flex;
     flex-direction: column;
     flex: 0 0 auto;
-    width: var(--fusion-sidebar-rail-width, 44px);
+    width: var(--fusion-sidebar-rail-width);
     height: 100%;
     box-sizing: border-box;
     padding: 6px 0;
@@ -231,7 +231,7 @@
   }
 
   .sidebar-rail__button:focus-visible {
-    outline: 2px solid var(--fusion-accent);
+    outline: 2px solid var(--fusion-focus);
     outline-offset: -2px;
   }
 
@@ -280,7 +280,7 @@
     background: var(--fusion-surface-alt);
     color: var(--fusion-text);
     font-family: var(--fusion-font);
-    font-size: 12px;
+    font-size: var(--fusion-text-sm);
     line-height: 1.4;
     white-space: nowrap;
     opacity: 0;

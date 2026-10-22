@@ -6,9 +6,9 @@
  * (chat sound, turn alert) live in `localStorage`, scoped by world + user — the same
  * shape `lib/sidebar/preferences.ts` and `lib/chat/rollModePreference.ts` already use —
  * and NEVER leave the device: this module has no socket dependency, emits no op and
- * writes no Document (REQ-CFG-022, RNF-CFG-01). There is deliberately no idiom or theme
- * control here (REQ-CFG-023) — those are portable, server-side preferences owned by
- * spec 05/23 (DEC-UIF-10), a different module entirely.
+ * writes no Document (REQ-CFG-022, RNF-CFG-01). There is deliberately no idiom control
+ * (REQ-CFG-023). The theme is per browser, not per world/seat, so it lives in
+ * `lib/ui/theme.ts` (DEC-CFG-11), not here.
  *
  * Consumer contract: a future client audio mixer reads `volume` from here instead of
  * inventing its own storage (REQ-AUD-016 names the intent, not this exact key — no

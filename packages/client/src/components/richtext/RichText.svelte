@@ -20,6 +20,7 @@
    */
 
   import { onMount, onDestroy } from "svelte";
+  import Icon from "../common/Icon.svelte";
 
   const {
     content = "",
@@ -245,7 +246,7 @@
         title="Lista"
         aria-label="Lista com marcadores"
         aria-pressed={activeMarks.has("bulletList")}
-      >&#8226;&#8212;</button>
+      ><Icon name="list" size={16} /></button>
 
       <button
         type="button"
@@ -255,7 +256,7 @@
         title="Lista numerada"
         aria-label="Lista numerada"
         aria-pressed={activeMarks.has("orderedList")}
-      >1&#8212;</button>
+      ><Icon name="list-ordered" size={16} /></button>
 
       <span class="rt-divider" aria-hidden="true"></span>
 
@@ -265,23 +266,23 @@
         onclick={insertLink}
         title="Inserir link"
         aria-label="Inserir link"
-      >&#128279;</button>
+      ><Icon name="link" size={16} /></button>
 
       <button
         type="button"
-        class="rt-btn rt-btn--secret"
+        class="rt-btn"
         onclick={insertSecret}
         title="Bloco secreto (somente GM)"
         aria-label="Inserir bloco secreto"
-      >&#128274;</button>
+      ><Icon name="lock" size={16} /></button>
 
       <button
         type="button"
-        class="rt-btn rt-btn--roll"
+        class="rt-btn"
         onclick={insertInlineRoll}
         title="Rolagem inline [[fórmula]]"
         aria-label="Inserir rolagem inline"
-      >&#127922;</button>
+      ><Icon name="dices" size={16} /></button>
     </div>
   {/if}
 
@@ -311,8 +312,8 @@
     display: flex;
     flex-wrap: wrap;
     align-items: center;
-    gap: 0.15rem;
-    padding: 0.25rem 0.4rem;
+    gap: var(--fusion-space-1);
+    padding: var(--fusion-space-1) var(--fusion-space-2);
     border-bottom: 1px solid var(--fusion-border);
     background: var(--fusion-surface-alt);
   }
@@ -324,10 +325,14 @@
     color: var(--fusion-text-muted);
     cursor: pointer;
     font-family: var(--fusion-font);
-    font-size: 0.8rem;
+    font-size: var(--fusion-text-sm);
     line-height: 1;
-    min-width: 1.75rem;
-    padding: 0.2rem 0.35rem;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 2rem;
+    min-height: 2rem;
+    padding: 0 var(--fusion-space-2);
     transition: background-color var(--fusion-transition), color var(--fusion-transition);
   }
 
@@ -337,17 +342,9 @@
   }
 
   .rt-btn--active {
-    background: rgba(124, 92, 252, 0.12);
+    background: var(--fusion-accent-dim);
     border-color: var(--fusion-accent);
     color: var(--fusion-accent);
-  }
-
-  .rt-btn--secret {
-    color: var(--fusion-warning, #f59e0b);
-  }
-
-  .rt-btn--roll {
-    color: var(--fusion-success, #3ddc84);
   }
 
   .rt-divider {
@@ -362,22 +359,22 @@
     padding: 0.5rem 0.75rem;
     min-height: 6rem;
     color: var(--fusion-text);
-    font-size: 0.875rem;
-    line-height: 1.6;
+    font-size: var(--fusion-text-base);
+    line-height: var(--fusion-leading);
     outline: none;
     overflow-y: auto;
   }
 
   /* TipTap ProseMirror focus ring */
   .richtext-wrapper--editable .richtext-editor:focus-within {
-    outline: 2px solid var(--fusion-accent);
+    outline: 2px solid var(--fusion-focus);
     outline-offset: -2px;
   }
 
   /* Content styles inside the editor */
   .richtext-editor :global(p) { margin: 0 0 0.5em; }
-  .richtext-editor :global(h1) { font-size: 1.4em; font-weight: 700; margin: 0.5em 0 0.25em; }
-  .richtext-editor :global(h2) { font-size: 1.2em; font-weight: 700; margin: 0.5em 0 0.25em; }
+  .richtext-editor :global(h1) { font-size: 1.4em; font-weight: 600; margin: 0.5em 0 0.25em; }
+  .richtext-editor :global(h2) { font-size: 1.2em; font-weight: 600; margin: 0.5em 0 0.25em; }
   .richtext-editor :global(h3) { font-size: 1.05em; font-weight: 600; margin: 0.5em 0 0.25em; }
   .richtext-editor :global(ul), .richtext-editor :global(ol) { padding-left: 1.5em; margin: 0.25em 0; }
   .richtext-editor :global(a) { color: var(--fusion-accent); text-decoration: underline; }
@@ -389,47 +386,47 @@
   }
   .richtext-editor :global(code) {
     background: var(--fusion-surface-alt);
-    border-radius: 3px;
+    border-radius: var(--fusion-radius-sm);
     font-family: var(--fusion-font-mono);
-    font-size: 0.85em;
+    font-size: 0.9em;
     padding: 0.1em 0.3em;
   }
 
   /* Doc-link chips */
   .richtext-editor :global(.doc-link) {
-    background: rgba(124, 92, 252, 0.1);
-    border: 1px solid rgba(124, 92, 252, 0.3);
+    background: var(--fusion-accent-dim);
+    border: 1px solid var(--fusion-accent);
     border-radius: var(--fusion-radius-sm);
     color: var(--fusion-accent);
     cursor: pointer;
-    font-size: 0.85em;
+    font-size: 0.9em;
     padding: 0.05em 0.4em;
     text-decoration: none;
   }
 
   .richtext-editor :global(.doc-link--missing) {
-    background: rgba(255, 92, 92, 0.08);
-    border-color: rgba(255, 92, 92, 0.3);
+    background: var(--fusion-danger-dim);
+    border-color: var(--fusion-danger);
     color: var(--fusion-danger);
     cursor: default;
   }
 
   /* Inline rolls */
   .richtext-editor :global(.inline-roll) {
-    background: rgba(61, 220, 132, 0.1);
-    border: 1px solid rgba(61, 220, 132, 0.3);
+    background: var(--fusion-success-dim);
+    border: 1px solid var(--fusion-success);
     border-radius: var(--fusion-radius-sm);
-    color: var(--fusion-success, #3ddc84);
+    color: var(--fusion-success);
     cursor: pointer;
     font-family: var(--fusion-font-mono);
-    font-size: 0.85em;
+    font-size: 0.9em;
     padding: 0.05em 0.4em;
   }
 
   /* Secret blocks */
   .richtext-editor :global(.secret-block) {
-    background: rgba(245, 158, 11, 0.07);
-    border: 1px dashed rgba(245, 158, 11, 0.4);
+    background: var(--fusion-warning-dim);
+    border: 1px dashed var(--fusion-warning);
     border-radius: var(--fusion-radius-sm);
     margin: 0.5em 0;
     padding: 0.5em 0.75em;
@@ -438,13 +435,11 @@
 
   .richtext-editor :global(.secret-block::before) {
     content: "Secreto";
-    color: var(--fusion-warning, #f59e0b);
-    font-size: 0.7em;
-    font-weight: 700;
-    letter-spacing: 0.06em;
+    color: var(--fusion-warning);
+    font-size: var(--fusion-text-xs);
+    font-weight: 600;
     position: absolute;
     right: 0.5em;
     top: 0.3em;
-    text-transform: uppercase;
   }
 </style>

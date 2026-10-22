@@ -130,7 +130,7 @@ describe("color comes from the declared tone (REQ-CTT-031)", () => {
       "--chip-ink: var(--fusion-success)",
     );
     expect(ruleBody(css, ".condition-chip--harm")).toContain("--chip-ink: var(--fusion-danger)");
-    expect(ruleBody(css, ".condition-chip--special")).toContain("--chip-ink: var(--fusion-accent)");
+    expect(ruleBody(css, ".condition-chip--special")).toContain("--chip-ink: var(--fusion-magic)");
   });
 
   it("REQ-CTT-031: no severity anywhere — the chip never reads a level or a rank", () => {
@@ -160,10 +160,12 @@ describe("critical is emphasis, not a fourth color (REQ-CTT-032)", () => {
   it("REQ-CTT-032: the stylesheet knows exactly three hues", () => {
     const css = styleOf("ConditionChip.svelte");
     const hues = new Set(
-      [...css.matchAll(/--fusion-(success|danger|accent|warning|prof-[a-z])\b/g)].map((m) => m[1]),
+      [...css.matchAll(/--fusion-(success|danger|magic|accent|warning|prof-[a-z])\b/g)].map(
+        (m) => m[1],
+      ),
     );
 
-    expect([...hues].sort()).toEqual(["accent", "danger", "success"]);
+    expect([...hues].sort()).toEqual(["danger", "magic", "success"]);
   });
 });
 

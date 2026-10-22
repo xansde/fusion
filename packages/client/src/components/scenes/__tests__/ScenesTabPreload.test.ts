@@ -29,15 +29,18 @@ describe("ScenesTab — preload for everyone", () => {
     ];
   });
 
-  it("draws a visible labelled button outside the hover-only action group", () => {
+  it("draws an icon-only button with the label as title and aria-label, among the row actions", () => {
     const { body } = render(ScenesTab, {
       props: { socket: {} as never, worldId: "w", userId: "u", isGm: true, activeSceneId: null },
     });
-    const btnAt = body.indexOf('class="preload-btn');
+    const btnAt = body.indexOf("action-btn--preload");
     expect(btnAt).toBeGreaterThan(-1);
-    expect(body).toContain(t("FUSION.Scene.Dialog.PreloadForAll"));
-    // The button precedes the (opacity: 0) actions group of its row.
-    expect(btnAt).toBeLessThan(body.indexOf('class="scene-row__actions'));
+    const button = body.slice(body.lastIndexOf("<button", btnAt), body.indexOf("</button>", btnAt));
+    expect(button).toContain(`title="${t("FUSION.Scene.Dialog.PreloadForAll")}"`);
+    expect(button).toContain(`aria-label="${t("FUSION.Scene.Dialog.PreloadForAll")}: Taverna"`);
+    expect(button).toContain("<svg");
+    // The button lives INSIDE the actions strip of its row, next to the other actions.
+    expect(btnAt).toBeGreaterThan(body.indexOf('class="scene-row__actions'));
   });
 
   it("has loading and done feedback strings in both languages", () => {

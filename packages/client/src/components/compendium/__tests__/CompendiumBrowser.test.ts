@@ -434,7 +434,7 @@ describe("the aggregated result can be reordered, by a field its toolbar owns (R
     // sort from here).
     const toolbarAt = template.indexOf('class="entries-sort"');
     expect(toolbarAt).toBeGreaterThan(-1);
-    const toolbar = template.slice(toolbarAt, toolbarAt + 400);
+    const toolbar = template.slice(toolbarAt, template.indexOf("</div>", toolbarAt));
 
     expect(toolbar).toMatch(/onclick={\(\) => toggleSort\("name"\)}/);
     expect(toolbar).toMatch(/onclick={\(\) => toggleSort\("type"\)}/);

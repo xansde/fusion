@@ -38,6 +38,7 @@
   } from "../../lib/combat/turnHead.svelte.js";
   import { t } from "../../lib/i18n/i18n.js";
   import ConditionChip from "../common/ConditionChip.svelte";
+  import Icon from "../common/Icon.svelte";
 
   interface Props {
     /** Participant's display name; truncated with an ellipsis when it does not fit. */
@@ -202,21 +203,7 @@
               }}
             >
               {#if expanded}
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  viewBox="0 0 24 24"
-                  width="12"
-                  height="12"
-                  fill="none"
-                  stroke="currentColor"
-                  stroke-width="2"
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                  focusable="false"
-                  aria-hidden="true"
-                >
-                  <path d="M6 15l6-6 6 6" />
-                </svg>
+                <Icon name="chevron-up" size={14} />
               {:else}
                 +{conditionsView.overflow}
               {/if}
@@ -244,21 +231,7 @@
         title={t("FUSION.Combat.TurnHead.EndEncounter")}
         onclick={() => onEnd?.()}
       >
-        <svg
-          xmlns="http://www.w3.org/2000/svg"
-          viewBox="0 0 24 24"
-          width="12"
-          height="12"
-          fill="none"
-          stroke="currentColor"
-          stroke-width="2"
-          stroke-linecap="round"
-          stroke-linejoin="round"
-          focusable="false"
-          aria-hidden="true"
-        >
-          <rect x="6" y="6" width="12" height="12" rx="1.5" />
-        </svg>
+        <Icon name="flag" size={16} />
       </button>
     {/if}
 
@@ -271,21 +244,7 @@
         title={t("FUSION.Combat.PreviousTurn")}
         onclick={() => onPrevious?.()}
       >
-        <svg
-          xmlns="http://www.w3.org/2000/svg"
-          viewBox="0 0 24 24"
-          width="14"
-          height="14"
-          fill="none"
-          stroke="currentColor"
-          stroke-width="2"
-          stroke-linecap="round"
-          stroke-linejoin="round"
-          focusable="false"
-          aria-hidden="true"
-        >
-          <path d="M15 6l-6 6 6 6" />
-        </svg>
+        <Icon name="chevron-left" size={18} />
       </button>
     {/if}
 
@@ -353,7 +312,7 @@
     border: 1px solid var(--fusion-border);
     background: var(--fusion-surface);
     color: var(--fusion-text-muted);
-    font-size: 1rem;
+    font-size: var(--fusion-text-md);
     font-weight: 600;
   }
 
@@ -370,7 +329,7 @@
   .turn-head__name {
     overflow: hidden;
     color: var(--fusion-text);
-    font-size: 0.875rem;
+    font-size: var(--fusion-text-sm);
     font-weight: 600;
     text-overflow: ellipsis;
     white-space: nowrap;
@@ -387,10 +346,8 @@
     flex-shrink: 0;
     padding: 0 0.25rem;
     border-radius: var(--fusion-radius-sm);
-    font-size: 0.625rem;
+    font-size: var(--fusion-text-xs);
     font-weight: 700;
-    letter-spacing: 0.03em;
-    text-transform: uppercase;
     white-space: nowrap;
   }
 
@@ -429,7 +386,7 @@
     flex-shrink: 0;
     color: var(--fusion-text-muted);
     font-family: var(--fusion-font-mono);
-    font-size: 0.6875rem;
+    font-size: var(--fusion-text-xs);
     font-variant-numeric: tabular-nums;
   }
 
@@ -461,6 +418,7 @@
   }
 
   .turn-head__more-btn {
+    position: relative;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -470,7 +428,7 @@
     background: transparent;
     color: var(--fusion-text);
     font-family: var(--fusion-font);
-    font-size: 0.625rem;
+    font-size: var(--fusion-text-xs);
     font-variant-numeric: tabular-nums;
     cursor: pointer;
   }
@@ -488,7 +446,7 @@
     box-sizing: border-box;
     height: var(--fusion-combat-turn-head-footer-height);
     gap: 0.25rem;
-    padding: 0 0.625rem 0.375rem;
+    padding: 0 0.625rem 0.25rem;
   }
 
   .turn-head__advance,
@@ -497,18 +455,30 @@
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    height: 1.625rem;
+    position: relative;
+    height: 2rem;
     border: 1px solid var(--fusion-border);
     border-radius: var(--fusion-radius-sm);
     background: transparent;
     color: var(--fusion-text);
     font-family: var(--fusion-font);
-    font-size: 0.75rem;
+    font-size: var(--fusion-text-xs);
     cursor: pointer;
   }
 
+  /* 32px drawn, 40px to hit: the footer is a fixed 36px band (theme token), so the target
+     grows past the border with a transparent pseudo-element instead of growing the head. */
+  .turn-head__advance::after,
+  .turn-head__previous::after,
+  .turn-head__end::after,
+  .turn-head__more-btn::after {
+    content: "";
+    inset: -4px;
+    position: absolute;
+  }
+
   .turn-head__previous {
-    width: 1.625rem;
+    width: 2rem;
     padding: 0;
   }
 
@@ -516,7 +486,7 @@
      footer, so it never shifts the advance control's position from one turn to the next,
      and its danger colour keeps it from being pressed by reflex next to "next turn". */
   .turn-head__end {
-    width: 1.625rem;
+    width: 2rem;
     margin-right: auto;
     padding: 0;
     border-color: var(--fusion-danger);
@@ -555,7 +525,7 @@
   .turn-head__previous:focus-visible,
   .turn-head__end:focus-visible,
   .turn-head__more-btn:focus-visible {
-    outline: 2px solid var(--fusion-accent);
+    outline: 2px solid var(--fusion-focus);
     outline-offset: 2px;
   }
 </style>

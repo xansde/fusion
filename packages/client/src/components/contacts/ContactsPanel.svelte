@@ -84,6 +84,7 @@
   import { sendOp, toEnvelope, OpError, makeSendOpFn } from "../../lib/docs/sendOp.js";
   import { getSocket } from "../../lib/session.svelte.js";
   import { t } from "../../lib/i18n/i18n.js";
+  import Icon from "../common/Icon.svelte";
   import ActorPortrait from "$lib/components/common/ActorPortrait.svelte";
   import ConditionChips from "../common/ConditionChips.svelte";
   import { openKnowledgeWindow } from "../../lib/contacts/knowledgeWindow.js";
@@ -534,22 +535,8 @@
                           aria-label={t("FUSION.Contacts.Title.Edit", { name: card.name })}
                           onclick={() => startEditingTitle(card)}
                         >
-                          <!-- Drawn glyph, never an emoji (REQ-NPC-094): a slanted pen. -->
-                          <svg
-                            viewBox="0 0 16 16"
-                            width="12"
-                            height="12"
-                            aria-hidden="true"
-                            focusable="false"
-                          >
-                            <path
-                              d="M11.2 2.3 13.7 4.8 5.6 12.9 2.6 13.4 3.1 10.4z"
-                              fill="none"
-                              stroke="currentColor"
-                              stroke-width="1.4"
-                              stroke-linejoin="round"
-                            />
-                          </svg>
+                          
+                          <Icon name="pencil" size={16} />
                         </button>
                       {/if}
                     </span>
@@ -562,22 +549,7 @@
                   aria-label={t("FUSION.Contacts.OpenSheet", { name: card.name })}
                   onclick={() => openSheet(card.id)}
                 >
-                  <svg
-                    viewBox="0 0 16 16"
-                    width="13"
-                    height="13"
-                    aria-hidden="true"
-                    focusable="false"
-                  >
-                    <path
-                      d="M4 2.2h6.2L13 5v8.8H4z"
-                      fill="none"
-                      stroke="currentColor"
-                      stroke-width="1.3"
-                      stroke-linejoin="round"
-                    />
-                    <path d="M6 7.4h5M6 10h3.5" fill="none" stroke="currentColor" stroke-width="1.3" />
-                  </svg>
+                  <Icon name="file-text" size={18} />
                 </button>
               </div>
 
@@ -610,22 +582,7 @@
                       aria-label={t("FUSION.Contacts.OpenSheet", { name: sub.name })}
                       onclick={() => openSheet(sub.id)}
                     >
-                      <svg
-                        viewBox="0 0 16 16"
-                        width="13"
-                        height="13"
-                        aria-hidden="true"
-                        focusable="false"
-                      >
-                        <path
-                          d="M4 2.2h6.2L13 5v8.8H4z"
-                          fill="none"
-                          stroke="currentColor"
-                          stroke-width="1.3"
-                          stroke-linejoin="round"
-                        />
-                        <path d="M6 7.4h5M6 10h3.5" fill="none" stroke="currentColor" stroke-width="1.3" />
-                      </svg>
+                      <Icon name="file-text" size={16} />
                     </button>
                   {/if}
                   {#if sub.conditions.length > 0}
@@ -655,9 +612,7 @@
             creatingCategory = true;
           }}
         >
-          <svg viewBox="0 0 16 16" width="12" height="12" aria-hidden="true" focusable="false">
-            <path d="M8 3.2v9.6M3.2 8h9.6" fill="none" stroke="currentColor" stroke-width="1.6" />
-          </svg>
+          <Icon name="plus" size={16} />
         </button>
       </h2>
 
@@ -713,21 +668,7 @@
                   aria-label={t("FUSION.Contacts.Category.MoveUp", { name })}
                   onclick={() => nudgeCategory(name, -1)}
                 >
-                  <svg
-                    viewBox="0 0 16 16"
-                    width="11"
-                    height="11"
-                    aria-hidden="true"
-                    focusable="false"
-                  >
-                    <path
-                      d="M3.6 10 8 5.6 12.4 10"
-                      fill="none"
-                      stroke="currentColor"
-                      stroke-width="1.6"
-                      stroke-linejoin="round"
-                    />
-                  </svg>
+                  <Icon name="chevron-up" size={16} />
                 </button>
                 <button
                   class="contact-card__icon-btn"
@@ -735,21 +676,7 @@
                   aria-label={t("FUSION.Contacts.Category.MoveDown", { name })}
                   onclick={() => nudgeCategory(name, 1)}
                 >
-                  <svg
-                    viewBox="0 0 16 16"
-                    width="11"
-                    height="11"
-                    aria-hidden="true"
-                    focusable="false"
-                  >
-                    <path
-                      d="M3.6 6 8 10.4 12.4 6"
-                      fill="none"
-                      stroke="currentColor"
-                      stroke-width="1.6"
-                      stroke-linejoin="round"
-                    />
-                  </svg>
+                  <Icon name="chevron-down" size={16} />
                 </button>
                 <button
                   class="contact-card__icon-btn"
@@ -757,21 +684,7 @@
                   aria-label={t("FUSION.Contacts.Category.Rename", { name })}
                   onclick={() => startRenaming(name)}
                 >
-                  <svg
-                    viewBox="0 0 16 16"
-                    width="11"
-                    height="11"
-                    aria-hidden="true"
-                    focusable="false"
-                  >
-                    <path
-                      d="M11.2 2.3 13.7 4.8 5.6 12.9 2.6 13.4 3.1 10.4z"
-                      fill="none"
-                      stroke="currentColor"
-                      stroke-width="1.4"
-                      stroke-linejoin="round"
-                    />
-                  </svg>
+                  <Icon name="pencil" size={16} />
                 </button>
                 <button
                   class="contact-card__icon-btn"
@@ -779,21 +692,7 @@
                   aria-label={t("FUSION.Contacts.Category.Delete", { name })}
                   onclick={() => removeCategory(name)}
                 >
-                  <svg
-                    viewBox="0 0 16 16"
-                    width="11"
-                    height="11"
-                    aria-hidden="true"
-                    focusable="false"
-                  >
-                    <path
-                      d="M3.4 4.6h9.2M6.4 4.6V3.2h3.2v1.4M4.8 4.6l.6 8.2h5.2l.6-8.2"
-                      fill="none"
-                      stroke="currentColor"
-                      stroke-width="1.3"
-                      stroke-linejoin="round"
-                    />
-                  </svg>
+                  <Icon name="trash" size={16} />
                 </button>
               </span>
             {/if}
@@ -825,23 +724,7 @@
                     <!-- REQ-CTT-041: no portrait to show, so a drawn silhouette
                          stands in — it identifies nobody. -->
                     <span class="known-card__mask" aria-hidden="true">
-                      <svg viewBox="0 0 16 16" width="16" height="16" focusable="false">
-                        <circle
-                          cx="8"
-                          cy="6"
-                          r="2.6"
-                          fill="none"
-                          stroke="currentColor"
-                          stroke-width="1.3"
-                        />
-                        <path
-                          d="M3.4 13.4c0-2.4 2.1-3.8 4.6-3.8s4.6 1.4 4.6 3.8"
-                          fill="none"
-                          stroke="currentColor"
-                          stroke-width="1.3"
-                          stroke-linecap="round"
-                        />
-                      </svg>
+                      <Icon name="user" size={16} />
                     </span>
                   {/if}
 
@@ -892,27 +775,7 @@
                       aria-label={t("FUSION.Contacts.OpenSheet", { name: card.name })}
                       onclick={() => openSheet(card.id)}
                     >
-                      <svg
-                        viewBox="0 0 16 16"
-                        width="13"
-                        height="13"
-                        aria-hidden="true"
-                        focusable="false"
-                      >
-                        <path
-                          d="M4 2.2h6.2L13 5v8.8H4z"
-                          fill="none"
-                          stroke="currentColor"
-                          stroke-width="1.3"
-                          stroke-linejoin="round"
-                        />
-                        <path
-                          d="M6 7.4h5M6 10h3.5"
-                          fill="none"
-                          stroke="currentColor"
-                          stroke-width="1.3"
-                        />
-                      </svg>
+                      <Icon name="file-text" size={18} />
                     </button>
                   {/if}
                 </div>
@@ -955,15 +818,8 @@
         onclick={openKnowledgeGrid}
         aria-label={t("FUSION.Contacts.Knowledge.Open")}
       >
-        <!-- Drawn glyph, never an emoji: a small grid. -->
-        <svg viewBox="0 0 16 16" width="13" height="13" aria-hidden="true" focusable="false">
-          <path
-            d="M2.4 2.4h11.2v11.2H2.4zM2.4 6.1h11.2M2.4 9.9h11.2M6.1 2.4v11.2M9.9 2.4v11.2"
-            fill="none"
-            stroke="currentColor"
-            stroke-width="1.2"
-          />
-        </svg>
+        
+        <Icon name="grid-3x3" size={16} />
         {t("FUSION.Contacts.Knowledge.Open")}
       </button>
     </footer>
@@ -987,7 +843,7 @@
   .contacts-panel button:focus-visible,
   .contacts-panel input:focus-visible,
   .contacts-panel select:focus-visible {
-    outline: 2px solid var(--fusion-accent);
+    outline: 2px solid var(--fusion-focus);
     outline-offset: 1px;
   }
 
@@ -1008,7 +864,8 @@
     border-radius: var(--fusion-radius-sm);
     color: var(--fusion-text);
     font: inherit;
-    font-size: 0.82rem;
+    font-size: var(--fusion-text-sm);
+    min-height: var(--fusion-target);
   }
 
   .contacts-panel__body {
@@ -1031,15 +888,16 @@
   .contacts-panel__footer-btn {
     display: inline-flex;
     align-items: center;
-    gap: 0.35rem;
+    gap: var(--fusion-space-2);
     width: 100%;
-    padding: 0.3rem 0.4rem;
+    min-height: var(--fusion-target);
+    padding: 0.3rem 0.6rem;
     background: var(--fusion-surface-alt);
     border: 1px solid var(--fusion-border);
     border-radius: var(--fusion-radius-sm);
     color: var(--fusion-text-muted);
     font: inherit;
-    font-size: 0.74rem;
+    font-size: var(--fusion-text-sm);
     cursor: pointer;
   }
 
@@ -1052,30 +910,29 @@
   .contacts-panel__error {
     margin: 0 0 0.4rem;
     color: var(--fusion-danger);
-    font-size: 0.75rem;
+    font-size: var(--fusion-text-xs);
   }
 
   .contacts-panel__section-head {
     display: flex;
     align-items: center;
     gap: 0.4rem;
-    margin: 0.2rem 0 0.4rem;
-    font-size: 0.68rem;
-    font-weight: 600;
-    letter-spacing: 0.06em;
-    text-transform: uppercase;
-    color: var(--fusion-text-subtle);
+    margin: var(--fusion-space-2) 0;
+    font-size: var(--fusion-text-sm);
+    font-weight: 500;
+    color: var(--fusion-text);
   }
 
   .contacts-panel__section-count {
     font-variant-numeric: tabular-nums;
-    color: var(--fusion-text-muted);
+    font-weight: 400;
+    color: var(--fusion-text-subtle);
   }
 
   .contacts-panel__empty {
     margin: 0.6rem 0.2rem;
-    font-size: 0.78rem;
-    line-height: 1.4;
+    font-size: var(--fusion-text-sm);
+    line-height: var(--fusion-leading);
     color: var(--fusion-text-muted);
   }
 
@@ -1103,8 +960,8 @@
   }
 
   /* REQ-CTT-015: presence dims the card; it never moves it. */
-  .contact-card--away {
-    opacity: 0.72;
+  .contact-card--away .contact-card__name {
+    color: var(--fusion-text-muted);
   }
 
   .contact-card__head {
@@ -1122,27 +979,29 @@
     flex: 1 1 auto;
   }
 
+  /* The name keeps its own line when it is long; the tags wrap below it instead of
+     squeezing it into a column of word pieces ("Raiz- / funda"). */
   .contact-card__name-line {
     display: flex;
+    flex-wrap: wrap;
     align-items: baseline;
-    gap: 0.3rem;
+    column-gap: var(--fusion-space-2);
+    row-gap: var(--fusion-space-1);
     min-width: 0;
   }
 
   .contact-card__name {
-    font-size: 0.85rem;
+    min-width: 0;
+    font-size: var(--fusion-text-base);
     font-weight: 600;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
+    overflow-wrap: break-word;
   }
 
   .contact-card__tag {
     flex: 0 0 auto;
-    padding: 0.02rem 0.28rem;
-    border-radius: 0.6rem;
-    font-size: 0.62rem;
-    text-transform: lowercase;
+    padding: 0 var(--fusion-space-2);
+    border-radius: var(--fusion-radius-sm);
+    font-size: var(--fusion-text-xs);
     background: var(--fusion-surface);
     border: 1px solid var(--fusion-border);
     color: var(--fusion-text-muted);
@@ -1162,8 +1021,8 @@
   }
 
   .contact-card__presence-dot {
-    width: 0.42rem;
-    height: 0.42rem;
+    width: 0.6rem;
+    height: 0.6rem;
     border-radius: 50%;
     border: 1px solid var(--fusion-text-subtle);
     background: transparent;
@@ -1179,7 +1038,7 @@
   }
 
   .contact-card__presence-text {
-    font-size: 0.62rem;
+    font-size: var(--fusion-text-xs);
     color: var(--fusion-text-subtle);
   }
 
@@ -1191,16 +1050,14 @@
   }
 
   .contact-card__title {
-    font-size: 0.72rem;
+    min-width: 0;
+    font-size: var(--fusion-text-sm);
     color: var(--fusion-text-muted);
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
+    overflow-wrap: anywhere;
   }
 
   /* REQ-CTT-023: the system's own line is visibly not a written title. */
   .contact-card__title--fallback {
-    font-style: italic;
     color: var(--fusion-text-subtle);
   }
 
@@ -1213,14 +1070,16 @@
     border-radius: var(--fusion-radius-sm);
     color: var(--fusion-text);
     font: inherit;
-    font-size: 0.72rem;
+    font-size: var(--fusion-text-sm);
   }
 
   .contact-card__icon-btn {
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    padding: 0.15rem;
+    min-width: var(--fusion-target);
+    min-height: var(--fusion-target);
+    padding: 0;
     background: none;
     border: none;
     border-radius: var(--fusion-radius-sm);
@@ -1233,6 +1092,14 @@
     color: var(--fusion-accent);
   }
 
+  /* Compact lines (title, category tools, companions) keep their height: the
+     40px hit area overflows the line with a negative margin instead of growing it. */
+  .contact-card__title-line .contact-card__icon-btn,
+  .known-group__tools .contact-card__icon-btn,
+  .contact-card__sub .contact-card__icon-btn {
+    margin-block: calc((var(--fusion-target) - 1.5rem) / -2);
+  }
+
   .contact-card__sheet-btn {
     flex: 0 0 auto;
   }
@@ -1241,25 +1108,28 @@
     display: flex;
     align-items: center;
     gap: 0.3rem;
-    padding: 0.2rem 0.2rem 0.2rem 0.4rem;
-    margin-left: 0.9rem;
-    border-left: 1px solid var(--fusion-border);
+    flex-wrap: wrap;
+    padding: var(--fusion-space-2) 0 var(--fusion-space-1);
+    margin-left: var(--fusion-space-5);
+    border-top: 1px solid var(--fusion-border);
     min-width: 0;
   }
 
   .contact-card__sub-name {
-    font-size: 0.74rem;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
+    min-width: 0;
+    font-size: var(--fusion-text-sm);
+    overflow-wrap: anywhere;
   }
 
   .contact-card__sub .contact-card__sheet-btn {
     margin-left: auto;
   }
 
+  /* Takes the slack of the line, so the sheet button stays on it instead of dropping. */
   .contact-card__sub-kind {
-    font-size: 0.64rem;
+    flex: 1 1 0;
+    min-width: 0;
+    font-size: var(--fusion-text-xs);
     color: var(--fusion-text-subtle);
   }
 
@@ -1272,7 +1142,10 @@
     align-items: center;
     justify-content: center;
     margin-left: auto;
-    padding: 0.1rem;
+    min-width: var(--fusion-target);
+    min-height: var(--fusion-target);
+    margin-block: calc((var(--fusion-target) - 1.5rem) / -2);
+    padding: 0;
     background: none;
     border: none;
     border-radius: var(--fusion-radius-sm);
@@ -1288,14 +1161,15 @@
   .contacts-panel__category-input {
     width: 100%;
     min-width: 0;
-    margin-bottom: 0.3rem;
-    padding: 0.15rem 0.3rem;
+    margin-bottom: var(--fusion-space-2);
+    min-height: var(--fusion-target);
+    padding: 0.15rem 0.4rem;
     background: var(--fusion-surface);
     border: 1px solid var(--fusion-accent);
     border-radius: var(--fusion-radius-sm);
     color: var(--fusion-text);
     font: inherit;
-    font-size: 0.74rem;
+    font-size: var(--fusion-text-xs);
   }
 
   .known-group {
@@ -1308,22 +1182,21 @@
     align-items: center;
     gap: 0.3rem;
     min-width: 0;
-    margin: 0.2rem 0 0.25rem;
-    font-size: 0.66rem;
-    letter-spacing: 0.04em;
-    text-transform: uppercase;
-    color: var(--fusion-text-subtle);
+    margin: var(--fusion-space-2) 0;
+    font-size: var(--fusion-text-sm);
+    font-weight: 500;
+    color: var(--fusion-text);
   }
 
   .known-group__name {
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
+    min-width: 0;
+    overflow-wrap: anywhere;
   }
 
   .known-group__count {
     font-variant-numeric: tabular-nums;
-    color: var(--fusion-text-muted);
+    font-weight: 400;
+    color: var(--fusion-text-subtle);
   }
 
   .known-group__tools {
@@ -1352,13 +1225,12 @@
   }
 
   .known-card__unidentified {
-    font-size: 0.8rem;
-    font-style: italic;
+    font-size: var(--fusion-text-sm);
     color: var(--fusion-text-muted);
   }
 
   .known-card__counts {
-    font-size: 0.64rem;
+    font-size: var(--fusion-text-xs);
     font-variant-numeric: tabular-nums;
     color: var(--fusion-text-subtle);
   }
@@ -1366,12 +1238,13 @@
   .known-card__category {
     width: 100%;
     min-width: 0;
-    padding: 0.12rem 0.25rem;
+    min-height: var(--fusion-target);
+    padding: 0.12rem 0.4rem;
     background: var(--fusion-surface);
     border: 1px solid var(--fusion-border);
     border-radius: var(--fusion-radius-sm);
     color: var(--fusion-text-muted);
     font: inherit;
-    font-size: 0.68rem;
+    font-size: var(--fusion-text-sm);
   }
 </style>

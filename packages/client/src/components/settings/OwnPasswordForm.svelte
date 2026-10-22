@@ -95,7 +95,7 @@
 
   .own-password__hint {
     color: var(--fusion-text-muted);
-    font-size: 0.75rem;
+    font-size: var(--fusion-text-sm);
     margin: 0;
   }
 
@@ -103,7 +103,7 @@
     color: var(--fusion-text);
     display: flex;
     flex-direction: column;
-    font-size: 0.8125rem;
+    font-size: var(--fusion-text-base);
     gap: 0.25rem;
   }
 
@@ -114,20 +114,21 @@
     color: var(--fusion-text);
     font: inherit;
     padding: 0.3rem 0.4rem;
+    min-height: var(--fusion-target);
   }
 
   .own-password__field small {
     color: var(--fusion-text-muted);
-    font-size: 0.6875rem;
+    font-size: var(--fusion-text-sm);
   }
 
   .own-password__message {
-    font-size: 0.8125rem;
+    font-size: var(--fusion-text-base);
     margin: 0;
   }
 
   .own-password__message--error {
-    color: var(--fusion-danger, #c0392b);
+    color: var(--fusion-danger);
   }
 
   button {
@@ -135,10 +136,11 @@
     background: var(--fusion-accent);
     border: none;
     border-radius: var(--fusion-radius-sm);
-    color: var(--fusion-surface);
+    color: var(--fusion-on-accent);
     cursor: pointer;
     font: inherit;
     padding: 0.35rem 0.6rem;
+    min-height: var(--fusion-target);
   }
 
   button:hover:not(:disabled) {
