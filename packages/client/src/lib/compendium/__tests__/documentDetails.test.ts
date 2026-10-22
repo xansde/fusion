@@ -754,13 +754,13 @@ describe("buildFeatFields (EN, default locale)", () => {
 
   it("extracts action cost with icons for action/reaction/free feats", () => {
     expect(noKey(buildFeatFields({ actionType: "action", actions: 2 }))).toEqual([
-      { label: "Cast", value: "◆◆ 2 actions" },
+      { label: "Actions", value: "◆◆ 2 actions" },
     ]);
     expect(noKey(buildFeatFields({ actionType: "reaction" }))).toEqual([
-      { label: "Cast", value: "⟳ reaction" },
+      { label: "Actions", value: "⟳ reaction" },
     ]);
     expect(noKey(buildFeatFields({ actionType: "free" }))).toEqual([
-      { label: "Cast", value: "◇ free action" },
+      { label: "Actions", value: "◇ free action" },
     ]);
   });
 
@@ -775,7 +775,7 @@ describe("buildFeatFields (pt-BR)", () => {
       { labelKey: "FUSION.Sheet.Details.Field.Frequency", label: "Frequência", value: "1 por dia" },
     ]);
     expect(buildFeatFields({ actionType: "action", actions: 1 }, "pt-BR")).toEqual([
-      { labelKey: "FUSION.Sheet.Details.Field.Cast", label: "Conjuração", value: "◆ 1 ação" },
+      { labelKey: "FUSION.Sheet.Details.Field.Actions", label: "Ações", value: "◆ 1 ação" },
     ]);
   });
 

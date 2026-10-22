@@ -956,6 +956,7 @@
   "FUSION.Sheet.Actions.Details.Retry": "Try again",
   "FUSION.Sheet.Actions.Details.NoDescription": "No description available.",
   "FUSION.Sheet.Details.Field.Cast": "Cast",
+  "FUSION.Sheet.Details.Field.Actions": "Actions",
   "FUSION.Sheet.Details.Field.Range": "Range",
   "FUSION.Sheet.Details.Field.Area": "Area",
   "FUSION.Sheet.Details.Field.Target": "Target",

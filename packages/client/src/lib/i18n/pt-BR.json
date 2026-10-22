@@ -956,6 +956,7 @@
   "FUSION.Sheet.Actions.Details.Retry": "Tentar novamente",
   "FUSION.Sheet.Actions.Details.NoDescription": "Nenhuma descrição disponível.",
   "FUSION.Sheet.Details.Field.Cast": "Conjuração",
+  "FUSION.Sheet.Details.Field.Actions": "Ações",
   "FUSION.Sheet.Details.Field.Range": "Alcance",
   "FUSION.Sheet.Details.Field.Area": "Área",
   "FUSION.Sheet.Details.Field.Target": "Alvo",
