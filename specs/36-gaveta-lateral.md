@@ -280,6 +280,11 @@ GM vê também mundo, permissões, usuários e mods (spec 37).
   DEVE ocupar toda a largura restante à esquerda do trilho, por cima do canvas; o
   trilho mantém 44px e o gesto de recolher de REQ-GAV-011. Substitui, para a
   gaveta, o FAB/swipe de REQ-UIF-062 e da spec 23.
+  Emenda de 22/10/2026 (lane ui-mesa-hud, provisória): abaixo de **600px**
+  (celular) a gaveta aberta DEVE deixar uma faixa de 56px do canvas visível à
+  esquerda, e essa faixa DEVE recolher a gaveta ao toque (botão "Fechar gaveta",
+  com o ícone X) — o mesmo efeito do gesto de REQ-GAV-011, para o jogador nunca
+  perder o mapa de vista nem procurar como fechar.
 - **REQ-GAV-041** [MVP] Os botões do trilho DEVEM ser operáveis por teclado pela
   navegação genérica (Tab/Enter/Espaço — REQ-UIF-064) e ter foco visível. NÃO DEVEM
   existir atalhos globais para as abas no MVP.

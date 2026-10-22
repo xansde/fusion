@@ -55,7 +55,7 @@ export async function openAvatarCreator(
   windowManager.open({
     singletonKey: `avatar:Actor:${actorId}`,
     title: t("FUSION.Avatar.Title", { name }),
-    icon: "🧍",
+    icon: "user",
     resizable: true,
     minimizable: true,
     minWidth: 620,
@@ -83,7 +83,8 @@ export function avatarHeaderActions(
   return [
     {
       id: "avatar",
-      label: `🧍 ${t("FUSION.Avatar.Button")}`,
+      icon: "user",
+      label: t("FUSION.Avatar.Button"),
       title: t("FUSION.Avatar.Open"),
       onclick: () => {
         void openAvatarCreator(actorId, actorDoc, permissions);

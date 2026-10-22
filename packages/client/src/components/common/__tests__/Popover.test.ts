@@ -153,10 +153,10 @@ describe("the layer scale (REQ-UIF-008, spec 53 §2.7)", () => {
     expect(layer).toContain("visibility: hidden");
   });
 
-  it("looks like the prototype's popover: surface-alt, border, modal shadow", () => {
+  it("looks like the prototype's popover: surface-alt, border, popover shadow", () => {
     expect(layer).toContain("background: var(--fusion-surface-alt)");
     expect(layer).toContain("border: 1px solid var(--fusion-border)");
-    expect(layer).toContain("box-shadow: var(--fusion-shadow-modal)");
+    expect(layer).toContain("box-shadow: var(--fusion-shadow-popover)");
   });
 
   it("shows a keyboard focus ring on itself and not a browser default one only", () => {

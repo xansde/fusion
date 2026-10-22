@@ -268,10 +268,10 @@ describe("the layer scale (REQ-UIF-008, spec 53 §2.7)", () => {
     expect(layer).toContain("visibility: hidden");
   });
 
-  it("looks like the prototype's menu: surface-alt, border, modal shadow", () => {
+  it("looks like the prototype's menu: surface-alt, border, popover shadow", () => {
     expect(layer).toContain("background: var(--fusion-surface-alt)");
     expect(layer).toContain("border: 1px solid var(--fusion-border)");
-    expect(layer).toContain("box-shadow: var(--fusion-shadow-modal)");
+    expect(layer).toContain("box-shadow: var(--fusion-shadow-popover)");
   });
 
   it("keeps a visible focus ring on the item the keyboard is on", () => {

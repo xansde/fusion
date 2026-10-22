@@ -36,6 +36,7 @@
   import { fusionApi } from "../../lib/api.js";
   import FilePicker from "$lib/components/assets/FilePicker.svelte";
   import { t } from "../../lib/i18n/i18n.js";
+  import Icon from "../common/Icon.svelte";
 
   // ---- Props ----
 
@@ -290,23 +291,7 @@
         aria-label={t("FUSION.Scene.Dialog.BrowseAssets")}
         title={t("FUSION.Scene.Dialog.BrowseAssets")}
       >
-        <!-- Drawn glyph (REQ-NPC-094): a picture frame, never an emoji. -->
-        <svg
-          viewBox="0 0 16 16"
-          width="14"
-          height="14"
-          fill="none"
-          stroke="currentColor"
-          stroke-width="1.3"
-          stroke-linecap="round"
-          stroke-linejoin="round"
-          aria-hidden="true"
-          focusable="false"
-        >
-          <rect x="2" y="3.5" width="12" height="9" rx="1.2" />
-          <path d="m3.5 11 3-3.2 2.3 2.4 1.8-1.7 1.9 2" />
-          <circle cx="6" cy="6.2" r="0.9" />
-        </svg>
+        <Icon name="image" size={18} />
       </button>
     </div>
     {#if errors.background}
@@ -379,7 +364,7 @@
 
   .field__label {
     color: var(--fusion-text-muted);
-    font-size: 0.8125rem;
+    font-size: var(--fusion-text-xs);
     font-weight: 500;
   }
 
@@ -400,12 +385,13 @@
   }
 
   .field__input {
+    min-height: var(--fusion-target);
     background: var(--fusion-surface-alt);
     border: 1px solid var(--fusion-border);
     border-radius: var(--fusion-radius-sm);
     color: var(--fusion-text);
     font-family: var(--fusion-font);
-    font-size: 0.875rem;
+    font-size: var(--fusion-text-sm);
     padding: 0.45rem 0.6rem;
     transition: border-color var(--fusion-transition);
     width: 100%;
@@ -416,20 +402,19 @@
     border: 1px solid var(--fusion-border);
     border-radius: var(--fusion-radius-sm);
     flex-shrink: 0;
-    height: 2rem;
+    height: var(--fusion-target);
     padding: 0.15rem;
-    width: 2.5rem;
+    width: 3rem;
   }
 
   .field__input:focus,
   .field__swatch:focus {
     border-color: var(--fusion-accent);
-    outline: none;
   }
 
   .field__input:focus-visible,
   .field__swatch:focus-visible {
-    outline: 2px solid var(--fusion-accent);
+    outline: 2px solid var(--fusion-focus);
     outline-offset: 1px;
   }
 
@@ -444,15 +429,15 @@
 
   .field__error {
     color: var(--fusion-danger);
-    font-size: 0.75rem;
+    font-size: var(--fusion-text-xs);
   }
 
   .server-error {
-    background: rgba(255, 92, 92, 0.12);
+    background: var(--fusion-danger-dim);
     border: 1px solid var(--fusion-danger);
     border-radius: var(--fusion-radius-sm);
     color: var(--fusion-danger);
-    font-size: 0.8125rem;
+    font-size: var(--fusion-text-xs);
     padding: 0.6rem 0.75rem;
   }
 
@@ -466,13 +451,14 @@
 
   /* Buttons (inline — avoids deep import of global .btn) */
   .btn {
+    min-height: var(--fusion-target);
     align-items: center;
     border: 1px solid transparent;
     border-radius: var(--fusion-radius-sm);
     cursor: pointer;
     display: inline-flex;
     font-family: var(--fusion-font);
-    font-size: 0.875rem;
+    font-size: var(--fusion-text-sm);
     font-weight: 500;
     justify-content: center;
     padding: 0.45rem 1rem;
@@ -488,13 +474,13 @@
   }
 
   .btn:focus-visible {
-    outline: 2px solid var(--fusion-accent);
+    outline: 2px solid var(--fusion-focus);
     outline-offset: 2px;
   }
 
   .btn--primary {
     background: var(--fusion-accent);
-    color: #fff;
+    color: var(--fusion-on-accent);
   }
 
   .btn--primary:hover:not(:disabled) {
@@ -513,6 +499,7 @@
   }
 
   .btn--sm {
-    padding: 0.3rem 0.6rem;
+    min-width: var(--fusion-target);
+    padding: 0.3rem 0.75rem;
   }
 </style>

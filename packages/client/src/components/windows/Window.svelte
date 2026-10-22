@@ -20,6 +20,8 @@
 
   import type { WindowEntry } from "$lib/windows/window-manager.js";
   import { windowManager } from "$lib/windows/window-manager.js";
+  import { isIconName } from "@fusion/shared";
+  import Icon from "../common/Icon.svelte";
 
   interface Props {
     entry: WindowEntry;
@@ -186,8 +188,8 @@
     onpointerdown={onTitlebarPointerDown}
     role="presentation"
   >
-    {#if entry.icon}
-      <span class="fusion-window__icon" aria-hidden="true">{entry.icon}</span>
+    {#if entry.icon !== undefined && isIconName(entry.icon)}
+      <span class="fusion-window__icon" aria-hidden="true"><Icon name={entry.icon} size={18} /></span>
     {/if}
     <span class="fusion-window__title">{entry.title}</span>
 
@@ -199,7 +201,8 @@
         onclick={action.onclick}
         onpointerdown={(e) => e.stopPropagation()}
       >
-        {action.label}
+        {#if action.icon !== undefined && isIconName(action.icon)}<Icon name={action.icon} size={18} />{/if}
+        <span>{action.label}</span>
       </button>
     {/each}
 
@@ -211,7 +214,7 @@
           onclick={() => entry.minimized ? windowManager.restore(entry.id) : windowManager.minimize(entry.id)}
           onpointerdown={(e) => e.stopPropagation()}
         >
-          {entry.minimized ? "▲" : "▼"}
+          <Icon name={entry.minimized ? "chevron-up" : "chevron-down"} size={20} />
         </button>
       {/if}
       <button
@@ -220,7 +223,7 @@
         onclick={onClose}
         onpointerdown={(e) => e.stopPropagation()}
       >
-        ✕
+        <Icon name="x" size={20} />
       </button>
     </div>
   </div>
@@ -245,20 +248,18 @@
 </div>
 
 <style>
+  /* One floating layer: the theme's surface, one border, the one modal shadow
+     (`--fusion-shadow-modal`), a title you can read (16 px) and 40 px controls. */
   .fusion-window {
-    --_win-bg: var(--fusion-color-surface, #1a1a2e);
-    --_win-border: var(--fusion-color-border, #3a3a5c);
-    --_win-titlebar-bg: var(--fusion-color-surface-raised, #16213e);
-    --_win-titlebar-fg: var(--fusion-color-text-primary, #e0e0ff);
-    --_win-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
     --_resize-size: 6px;
 
     display: flex;
     flex-direction: column;
-    background: var(--_win-bg);
-    border: 1px solid var(--_win-border);
-    border-radius: var(--fusion-radius-md, 6px);
-    box-shadow: var(--_win-shadow);
+    background: var(--fusion-surface);
+    border: 1px solid var(--fusion-border-strong);
+    border-radius: var(--fusion-radius-lg);
+    box-shadow: var(--fusion-shadow-modal);
+    color: var(--fusion-text);
     overflow: hidden;
     contain: layout;
     user-select: none;
@@ -266,7 +267,7 @@
   }
 
   .fusion-window:focus-visible {
-    outline: 2px solid var(--fusion-color-focus, #5b8dee);
+    outline: 2px solid var(--fusion-focus);
     outline-offset: 2px;
   }
 
@@ -274,25 +275,26 @@
   .fusion-window__titlebar {
     display: flex;
     align-items: center;
-    gap: 6px;
-    padding: 6px 8px;
-    background: var(--_win-titlebar-bg);
-    border-bottom: 1px solid var(--_win-border);
+    gap: var(--fusion-space-2);
+    padding: var(--fusion-space-1) var(--fusion-space-1) var(--fusion-space-1) var(--fusion-space-3);
+    background: var(--fusion-surface-alt);
+    border-bottom: 1px solid var(--fusion-border);
     cursor: move;
-    min-height: 36px;
+    min-height: 48px;
     flex-shrink: 0;
   }
 
   .fusion-window__icon {
-    font-size: 14px;
-    line-height: 1;
+    display: inline-flex;
+    color: var(--fusion-text-muted);
   }
 
   .fusion-window__title {
     flex: 1;
-    font-size: 13px;
-    font-weight: 600;
-    color: var(--_win-titlebar-fg);
+    min-width: 0;
+    font-size: var(--fusion-text-md);
+    font-weight: var(--fusion-weight-bold);
+    color: var(--fusion-text);
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
@@ -300,7 +302,7 @@
 
   .fusion-window__controls {
     display: flex;
-    gap: 4px;
+    gap: var(--fusion-space-1);
     flex-shrink: 0;
   }
 
@@ -308,44 +310,45 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    width: 24px;
-    height: 24px;
+    width: var(--fusion-target);
+    height: var(--fusion-target);
     background: transparent;
     border: none;
-    border-radius: var(--fusion-radius-sm, 4px);
-    color: var(--_win-titlebar-fg);
+    border-radius: var(--fusion-radius);
+    color: var(--fusion-text-muted);
     cursor: pointer;
-    font-size: 11px;
-    opacity: 0.7;
-    transition: opacity 0.15s, background 0.15s;
+    transition:
+      color var(--fusion-transition),
+      background-color var(--fusion-transition);
   }
 
-  .fusion-window__btn:hover,
-  .fusion-window__btn:focus-visible {
-    opacity: 1;
-    background: rgba(255, 255, 255, 0.1);
-    outline: 2px solid var(--fusion-color-focus, #5b8dee);
+  .fusion-window__btn:hover {
+    background: var(--fusion-surface);
+    color: var(--fusion-text);
   }
 
   .fusion-window__action {
-    background: rgba(255, 255, 255, 0.08);
-    border: 1px solid rgba(255, 255, 255, 0.18);
-    border-radius: var(--fusion-radius-sm, 4px);
-    color: var(--_win-titlebar-fg);
+    display: inline-flex;
+    align-items: center;
+    gap: var(--fusion-space-1);
+    min-height: 32px;
+    padding: 0 var(--fusion-space-2);
+    background: transparent;
+    border: 1px solid var(--fusion-border);
+    border-radius: var(--fusion-radius);
+    color: var(--fusion-text);
     cursor: pointer;
-    font-size: 12px;
-    margin-left: 6px;
-    padding: 2px 8px;
+    font-size: var(--fusion-text-sm);
   }
 
-  .fusion-window__action:hover,
-  .fusion-window__action:focus-visible {
-    background: rgba(255, 255, 255, 0.16);
-    outline: 2px solid var(--fusion-color-focus, #5b8dee);
+  .fusion-window__action:hover {
+    background: var(--fusion-surface);
+    border-color: var(--fusion-border-strong);
   }
 
   .fusion-window__btn--close:hover {
-    background: rgba(220, 50, 50, 0.3);
+    background: var(--fusion-danger-dim);
+    color: var(--fusion-danger);
   }
 
   /* ---- Content ---- */

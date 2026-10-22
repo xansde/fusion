@@ -335,3 +335,32 @@ describe("classifyNestedChildren: the parts the server added to a damage roll (B
     ).toBe(false);
   });
 });
+
+describe("classifyNestedChildren — the decomposition of a nested roll (ui-chat)", () => {
+  it("a nested attack carries the parts the server checked, like a loose roll card", () => {
+    const atk = child("atk", "Ana", rollData({ formula: "1d20+4" }), {
+      fusion: {
+        parentMessageId: "p1",
+        breakdown: {
+          statistic: "strike:w1@1",
+          parts: [
+            { label: "Atributo (For)", type: "ability", value: 4, applied: true },
+            { label: "Proficiência (Treinado)", type: "proficiency", value: 5, applied: true },
+            { label: "Ataques múltiplos (2º ataque)", type: "map", value: -5, applied: true },
+          ],
+        },
+      },
+    });
+    const line = classifyNestedChildren([atk]).rolls[0];
+    expect(line?.parts.map((p) => `${p.label} ${p.valueFormatted}`)).toEqual([
+      "Atributo (For) +4",
+      "Proficiência (Treinado) +5",
+      "Ataques múltiplos (2º ataque) -5",
+    ]);
+  });
+
+  it("a nested roll the server did not explain has no parts", () => {
+    const dmg = child("dmg", "Ana", rollData({ formula: "1d8+4" }));
+    expect(classifyNestedChildren([dmg]).rolls[0]?.parts).toEqual([]);
+  });
+});

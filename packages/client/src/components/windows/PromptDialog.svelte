@@ -93,18 +93,18 @@
 
 <style>
   .fusion-dialog {
-    background: var(--fusion-color-surface, #1a1a2e);
-    color: var(--fusion-color-text-primary, #e0e0ff);
-    border: 1px solid var(--fusion-color-border, #3a3a5c);
-    border-radius: var(--fusion-radius-md, 8px);
+    background: var(--fusion-surface);
+    color: var(--fusion-text);
+    border: 1px solid var(--fusion-border);
+    border-radius: var(--fusion-radius);
     padding: 0;
     min-width: 340px;
     max-width: 500px;
-    box-shadow: 0 16px 48px rgba(0, 0, 0, 0.6);
+    box-shadow: var(--fusion-shadow-modal);
   }
 
   .fusion-dialog::backdrop {
-    background: rgba(0, 0, 0, 0.5);
+    background: var(--fusion-surface-alt);
   }
 
   .fusion-dialog__body {
@@ -116,23 +116,23 @@
 
   .fusion-dialog__message {
     margin: 0;
-    font-size: 14px;
+    font-size: var(--fusion-text-base);
     line-height: 1.6;
   }
 
   .fusion-dialog__input {
     width: 100%;
     padding: 8px 12px;
-    background: var(--fusion-color-input-bg, rgba(255,255,255,0.05));
-    border: 1px solid var(--fusion-color-border, #3a3a5c);
-    border-radius: var(--fusion-radius-sm, 4px);
-    color: var(--fusion-color-text-primary, #e0e0ff);
-    font-size: 14px;
+    background: var(--fusion-input-bg);
+    border: 1px solid var(--fusion-border);
+    border-radius: var(--fusion-radius-sm);
+    color: var(--fusion-text);
+    font-size: var(--fusion-text-base);
     box-sizing: border-box;
   }
 
   .fusion-dialog__input:focus-visible {
-    outline: 2px solid var(--fusion-color-focus, #5b8dee);
+    outline: 2px solid var(--fusion-focus);
     outline-offset: 2px;
   }
 
@@ -144,37 +144,37 @@
 
   .fusion-dialog__btn {
     padding: 8px 16px;
-    border-radius: var(--fusion-radius-sm, 4px);
-    font-size: 13px;
+    border-radius: var(--fusion-radius-sm);
+    font-size: var(--fusion-text-sm);
     font-weight: 500;
     cursor: pointer;
-    border: 1px solid var(--fusion-color-border, #3a3a5c);
+    border: 1px solid var(--fusion-border);
     transition: background 0.15s;
     min-width: 80px;
     min-height: 36px;
   }
 
   .fusion-dialog__btn:focus-visible {
-    outline: 2px solid var(--fusion-color-focus, #5b8dee);
+    outline: 2px solid var(--fusion-focus);
     outline-offset: 2px;
   }
 
   .fusion-dialog__btn--cancel {
     background: transparent;
-    color: var(--fusion-color-text-secondary, #a0a0c0);
+    color: var(--fusion-text-muted);
   }
 
   .fusion-dialog__btn--cancel:hover {
-    background: rgba(255, 255, 255, 0.05);
+    background: var(--fusion-accent-dim);
   }
 
   .fusion-dialog__btn--confirm {
-    background: var(--fusion-color-accent, #5b8dee);
-    color: #fff;
+    background: var(--fusion-accent);
+    color: var(--fusion-text);
     border-color: transparent;
   }
 
   .fusion-dialog__btn--confirm:hover {
-    background: var(--fusion-color-accent-hover, #4a7de3);
+    background: var(--fusion-accent-hover);
   }
 </style>

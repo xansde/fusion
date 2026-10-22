@@ -754,13 +754,13 @@ describe("buildFeatFields (EN, default locale)", () => {
 
   it("extracts action cost with icons for action/reaction/free feats", () => {
     expect(noKey(buildFeatFields({ actionType: "action", actions: 2 }))).toEqual([
-      { label: "Cast", value: "◆◆ 2 actions" },
+      { label: "Actions", value: "◆◆ 2 actions" },
     ]);
     expect(noKey(buildFeatFields({ actionType: "reaction" }))).toEqual([
-      { label: "Cast", value: "⟳ reaction" },
+      { label: "Actions", value: "⟳ reaction" },
     ]);
     expect(noKey(buildFeatFields({ actionType: "free" }))).toEqual([
-      { label: "Cast", value: "◇ free action" },
+      { label: "Actions", value: "◇ free action" },
     ]);
   });
 
@@ -775,7 +775,7 @@ describe("buildFeatFields (pt-BR)", () => {
       { labelKey: "FUSION.Sheet.Details.Field.Frequency", label: "Frequência", value: "1 por dia" },
     ]);
     expect(buildFeatFields({ actionType: "action", actions: 1 }, "pt-BR")).toEqual([
-      { labelKey: "FUSION.Sheet.Details.Field.Cast", label: "Conjuração", value: "◆ 1 ação" },
+      { labelKey: "FUSION.Sheet.Details.Field.Actions", label: "Ações", value: "◆ 1 ação" },
     ]);
   });
 
@@ -1310,7 +1310,7 @@ describe("trait/rarity display names (r15-A1)", () => {
     expect(traitDisplayName("some-new-trait", "pt-BR")).toBe("some new trait");
   });
 
-  it("covers all 296 glossary traits with a non-empty accented value", () => {
+  it("covers all 316 glossary traits with a non-empty accented value", () => {
     // 177 (r15) + 13 sincronizados na r20 (ancestrias planares, overflow,
     // potion, talisman...) + 27 sincronizados na r24 (rage e outros 26 traits
     // — ancestrias elf/human/ghoran, class, oath, consecration entre eles —
@@ -1336,12 +1336,15 @@ describe("trait/rarity display names (r15-A1)", () => {
     // 2 do Alquimista — additive1, adjustment, bomb, as traits de entrega de
     // veneno contact/ingested/injury, mutagen, elixir, splash, infused,
     // virulent e as demais de alchemical-items-core).
+    // + 20 do pacote de melhoria de 21/10/2026 (satélite #383/#345/#351: traços de
+    // criatura e item citados por predicados — demon, devil, giant, fiend... — e as
+    // ancestralidades barathu, skittermander, pahtra, vesk).
     // Ver traitNames.sync.test.ts para
     // o gate vivo que evita essa deriva daqui em diante. Count exato de
     // propósito: trait novo no glossário exige regenerar via
     // tools/translate-packs/gen-client-maps.mjs e revisar.
     const keys = Object.keys(TRAIT_NAMES_PT);
-    expect(keys.length).toBe(296);
+    expect(keys.length).toBe(316);
     for (const slug of keys) {
       const pt = traitDisplayName(slug, "pt-BR");
       expect(pt.length).toBeGreaterThan(0);

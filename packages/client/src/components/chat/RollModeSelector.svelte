@@ -97,9 +97,9 @@
     display: grid;
     grid-template-columns: repeat(4, 1fr);
     width: 100%;
-    height: 26px;
+    height: var(--fusion-target);
     border: 1px solid var(--fusion-border);
-    border-radius: var(--fusion-radius-pill);
+    border-radius: var(--fusion-radius);
     background: var(--fusion-surface-alt);
   }
 
@@ -111,7 +111,7 @@
     bottom: 2px;
     left: 2px;
     width: calc(25% - 3px);
-    border-radius: var(--fusion-radius-pill);
+    border-radius: var(--fusion-radius-sm);
     background: var(--fusion-accent-dim);
     border: 1px solid var(--fusion-accent);
     transition: left 0.14s ease;
@@ -127,9 +127,9 @@
     height: 100%;
     padding: 0;
     border: none;
-    border-radius: var(--fusion-radius-pill);
+    border-radius: var(--fusion-radius-sm);
     background: transparent;
-    color: var(--fusion-text-subtle);
+    color: var(--fusion-text-muted);
     cursor: pointer;
     transition: color var(--fusion-transition);
   }
@@ -141,17 +141,17 @@
   /* The active mark: colour alone would not survive a colour-blind reader, so the
      active option also sits above the filled, bordered thumb (above). */
   .roll-mode__option--active {
-    color: var(--fusion-accent-hover);
+    color: var(--fusion-text);
   }
 
   .roll-mode__option:disabled {
-    opacity: 0.4;
+    opacity: 0.5;
     cursor: not-allowed;
   }
 
-  /* Focus ring kept as the browser's own (RNF-ACH-04) — visible on keyboard focus. */
+  /* Focus ring (RNF-ACH-04) — the app's focus color, visible on keyboard focus. */
   .roll-mode__option:focus-visible {
-    outline: 2px solid var(--fusion-accent);
+    outline: 2px solid var(--fusion-focus);
     outline-offset: 1px;
   }
 
@@ -167,15 +167,16 @@
     bottom: calc(100% + 6px);
     left: 50%;
     transform: translateX(-50%);
-    width: 190px;
-    padding: 3px 8px;
+    width: 220px;
+    padding: var(--fusion-space-1) var(--fusion-space-2);
     border: 1px solid var(--fusion-border);
-    border-radius: var(--fusion-radius-sm);
-    background: var(--fusion-surface-alt);
-    color: var(--fusion-text);
+    border-radius: var(--fusion-radius);
+    background: var(--fusion-surface);
+    box-shadow: var(--fusion-shadow-popover);
+    color: var(--fusion-text-muted);
     font-family: var(--fusion-font);
-    font-size: 11px;
-    line-height: 1.3;
+    font-size: var(--fusion-text-sm);
+    line-height: var(--fusion-leading);
     text-align: left;
     opacity: 0;
     visibility: hidden;
@@ -186,7 +187,7 @@
 
   .roll-mode__tip b {
     display: block;
-    color: var(--fusion-accent-hover);
+    color: var(--fusion-text);
   }
 
   /* The outer two options anchor the tooltip to the strip's own edge instead of

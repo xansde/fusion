@@ -41,6 +41,7 @@ import type {
   FusionRollContext,
   ResolvedRollModifier,
   ResolvedRollNote,
+  RollBreakdownPart,
 } from "@fusion/shared";
 import type { TurnHookContext } from "./combat.js";
 
@@ -655,6 +656,20 @@ export interface RollResolution {
  */
 export interface RollResolverDefinition {
   resolve(input: RollResolutionInput): RollResolution;
+  /**
+   * The parts of the statistic a sheet roll was made with (ui-fundacao, 22/10/2026), for the chat
+   * card's decomposition: `statistic` is the key the sheet sent (`skill:athletics`, `perception`,
+   * `save:will`, `strike:<id>`...), `actor` the server's re-derived actor. Optional; `null` (or no
+   * method) = the card shows no decomposition. The server keeps the parts only when the applied ones
+   * add up to the flat part of the formula. Pure and synchronous, like `resolve`.
+   */
+  breakdown?(input: RollBreakdownInput): readonly RollBreakdownPart[] | null;
+}
+
+/** Input of {@link RollResolverDefinition.breakdown}. */
+export interface RollBreakdownInput {
+  readonly actor: Record<string, unknown>;
+  readonly statistic: string;
 }
 
 /** One entry of a roll's `flags.fusion.targetSnapshot` (plan §2.3, ALQ-F1-05). */

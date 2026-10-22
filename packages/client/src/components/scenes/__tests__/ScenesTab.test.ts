@@ -192,11 +192,15 @@ describe("ScenesTab — the scene panel, moved out of the old sidebar unchanged"
       const css = styleOfScenesTab();
 
       // The group starts hidden...
-      expect(css).toMatch(/\.scene-row__actions\s*\{[^}]*opacity:\s*0/);
+      expect(css).toMatch(/\.scene-row__actions\s*\{[^}]*display:\s*none/);
       // ...and hover is not the sole trigger that brings it back: keyboard focus
       // anywhere in the row reveals it too, so no one tabs onto an invisible button.
       expect(css).toMatch(
-        /\.scene-row:focus-within\s+\.scene-row__actions[^{]*\{[^}]*opacity:\s*1/,
+        /\.scene-row:focus-within\s+\.scene-row__actions[^{]*\{[^}]*display:\s*flex/,
+      );
+      // ...and a screen with no hover (touch) always shows them.
+      expect(css).toMatch(
+        /@media\s*\(hover:\s*none\)\s*\{\s*\.scene-row__actions\s*\{[^}]*display:\s*flex/,
       );
     });
 
