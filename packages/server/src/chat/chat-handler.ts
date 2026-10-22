@@ -864,6 +864,8 @@ export function buildChatSendHandler(deps: ChatHandlerDeps): HandlerFn {
             statistic: payload.flags?.fusion?.statistic,
             card: readStoredDamageCard(deps.db, parentMessageId),
             criticalHit: strikeAttackDegree === "criticalSuccess",
+            // REQ-SYS-167: the client's own formula, before the conditional modifiers and extra dice appended above.
+            formula: command.formula,
           },
           ctx,
         ),
