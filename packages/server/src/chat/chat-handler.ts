@@ -95,6 +95,8 @@ import type { SystemModule, TurnHookContext } from "@fusion/system-api";
 import {
   conditionalRollFormula,
   finalizeRollResolution,
+  attachRollBreakdown,
+  resolveRollBreakdown,
   prepareRollResolution,
   runRollResolvedHooks,
 } from "./roll-resolution.js";
@@ -838,6 +840,11 @@ export function buildChatSendHandler(deps: ChatHandlerDeps): HandlerFn {
           strikeAttackDegree ?? rollResult.degreeOfSuccess ?? null,
         );
       }
+      // ui-fundacao: the parts of the statistic the sheet rolled with, checked against the formula.
+      attachRollBreakdown(
+        msg,
+        resolveRollBreakdown(deps, payload.flags?.fusion?.statistic, ctx, command.formula),
+      );
       if (extraDamage.applied.length > 0) {
         msg.flags = {
           ...msg.flags,
