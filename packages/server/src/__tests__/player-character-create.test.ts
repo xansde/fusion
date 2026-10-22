@@ -44,7 +44,7 @@
  * Spec: 28-hub-do-jogador.md; 05-usuarios-e-permissoes.md.
  */
 
-import { describe, it, expect, beforeAll, afterAll } from "vitest";
+import { describe, it, expect, beforeAll, afterAll, beforeEach } from "vitest";
 import { mkdirSync, rmSync } from "node:fs";
 import { join } from "node:path";
 import { tmpdir } from "node:os";
@@ -377,6 +377,7 @@ describe("Player-owned character edit + build legality (pf2e, O6/T6.2-T6.3; O6 f
   // T6.3 — the REQ-USR-025 auto-created character has real ownership
   // -------------------------------------------------------------------------
 
+  /** The character THIS test works on (see the beforeEach below). */
   let characterId: string;
   // Tracked from each successful ack's `_stats.version` rather than hardcoded:
   // WIRING-DERIVE (documents/derive.ts) may issue a SECOND internal
@@ -391,21 +392,61 @@ describe("Player-owned character edit + build legality (pf2e, O6/T6.2-T6.3; O6 f
     return typeof v === "number" ? v : 0;
   }
 
-  it("ALLOWS the owner to edit their REQ-USR-025 auto-created character (generic OWNER check)", async () => {
-    characterId = ctx.ownerCharacterId;
+  // Test independence: every test gets its own character, created by the GM
+  // and owned by the player (blank, like the REQ-USR-025 one), so the build,
+  // the feats and the level one test writes are never another test's setup.
+  beforeEach(async () => {
+    const ack = await sendOp(gm, "doc:create", {
+      documentType: "Actor",
+      data: [
+        {
+          name: "Owner Test Character",
+          type: "character",
+          ownership: { default: 0, [ctx.ownerUserId]: OwnershipLevel.OWNER },
+        },
+      ],
+    });
+    expect(ack["ok"], JSON.stringify(ack)).toBe(true);
+    const doc = (ack["result"] as { documents: Array<Record<string, unknown>> }).documents[0]!;
+    characterId = doc["_id"] as string;
+    version = statsVersion(doc);
+  });
+
+  /**
+   * What real play always has by the time a feat is picked: `system.build`
+   * exists (the ancestry boost pick wrote it). `validateCharacterBuild` is a
+   * no-op for a character with no build at all (r9 manual-entry mode).
+   */
+  async function initBuild(): Promise<void> {
     const ack = await sendOp(ownerSocket, "doc:update", {
       documentType: "Actor",
       updates: [
         {
           _id: characterId,
+          diff: { "system.build.abilities": { classBoost: ["str"] } },
+          expectedVersion: version,
+        },
+      ],
+    });
+    expect(ack["ok"], JSON.stringify(ack)).toBe(true);
+    version = statsVersion(
+      (ack["result"] as { documents: Array<Record<string, unknown>> }).documents[0]!,
+    );
+  }
+
+  it("ALLOWS the owner to edit their REQ-USR-025 auto-created character (generic OWNER check)", async () => {
+    const autoCreatedId = ctx.ownerCharacterId;
+    const ack = await sendOp(ownerSocket, "doc:update", {
+      documentType: "Actor",
+      updates: [
+        {
+          _id: autoCreatedId,
           diff: { "system.details": { xp: 5 } },
           expectedVersion: ctx.ownerCharacterVersion,
         },
       ],
     });
     expect(ack["ok"]).toBe(true);
-    const doc = (ack["result"] as { documents: Array<Record<string, unknown>> }).documents[0]!;
-    version = statsVersion(doc);
   });
 
   it("DENIES a different player from editing someone else's character", async () => {
@@ -459,6 +500,7 @@ describe("Player-owned character edit + build legality (pf2e, O6/T6.2-T6.3; O6 f
   });
 
   it("DENIES the embedded doc:create itself of a skill-category feat filed into the ancestryFeat slot, with NO choice sent at all (O6 fixer r2, C4 bypass)", async () => {
+    await initBuild();
     // O6 fixer r1 shipped this check gated on a MATCHING system.build.choices
     // entry — so the embed alone used to succeed (ok:true) and only the
     // FOLLOW-UP choices doc:update was refused, leaving the illegal item on
@@ -482,6 +524,7 @@ describe("Player-owned character edit + build legality (pf2e, O6/T6.2-T6.3; O6 f
   });
 
   it("DENIES the embedded doc:create of a level-4 class feat filed into a level-2 classFeat slot (O6 fixer r2, N1: FEAT_LEVEL_EXCEEDS_SLOT_LEVEL)", async () => {
+    await initBuild();
     const overLeveledFeat = {
       name: "Test Feat (over-leveled)",
       type: "feat",
@@ -499,6 +542,7 @@ describe("Player-owned character edit + build legality (pf2e, O6/T6.2-T6.3; O6 f
   });
 
   it("ALLOWS a skill-category feat filed into a skillFeat slot", async () => {
+    await initBuild();
     const embedAck = await sendOp(ownerSocket, "doc:create", {
       documentType: "Item",
       parent: { type: "Actor", id: characterId },
@@ -524,6 +568,7 @@ describe("Player-owned character edit + build legality (pf2e, O6/T6.2-T6.3; O6 f
   });
 
   it("DENIES an ability-boost milestone at a level that is neither 1 nor a multiple of 5", async () => {
+    await initBuild();
     const ack = await sendOp(ownerSocket, "doc:update", {
       documentType: "Actor",
       updates: [
@@ -542,6 +587,7 @@ describe("Player-owned character edit + build legality (pf2e, O6/T6.2-T6.3; O6 f
   });
 
   it('ALLOWS levelledBoosts["1"] — the level-1 free ability boosts (O6 fixer C1)', async () => {
+    await initBuild();
     const ack = await sendOp(ownerSocket, "doc:update", {
       documentType: "Actor",
       updates: [
@@ -566,8 +612,49 @@ describe("Player-owned character edit + build legality (pf2e, O6/T6.2-T6.3; O6 f
   // -------------------------------------------------------------------------
 
   it("ALLOWS leveling down past a recorded choice/boost — the write no longer freezes on the old regression", async () => {
-    // The character already carries (from the tests above) a skillFeat-2
-    // choice and a levelledBoosts["1"] entry. Setting the level field DOWN
+    // Give the character a skillFeat-2 choice and a levelledBoosts["1"] entry
+    // (the writes the two tests above prove legal), as real play would.
+    await initBuild();
+    const feat = await sendOp(ownerSocket, "doc:create", {
+      documentType: "Item",
+      parent: { type: "Actor", id: characterId },
+      data: [featItemPayload("skillFeat-2", "skill")],
+    });
+    expect(feat["ok"], JSON.stringify(feat)).toBe(true);
+    version = statsVersion((feat["result"] as { parent: Record<string, unknown> }).parent);
+    const recorded = await sendOp(ownerSocket, "doc:update", {
+      documentType: "Actor",
+      updates: [
+        {
+          _id: characterId,
+          diff: {
+            ...choiceDiff("skillFeat-2", "skillFeat"),
+            "system.build.abilities": { levelledBoosts: { "1": ["str", "dex", "con", "wis"] } },
+          },
+          expectedVersion: version,
+        },
+      ],
+    });
+    expect(recorded["ok"], JSON.stringify(recorded)).toBe(true);
+    version = statsVersion(
+      (recorded["result"] as { documents: Array<Record<string, unknown>> }).documents[0]!,
+    );
+    // At level 3, so the level-2 choice and the level-1 boost sit below it.
+    const up = await sendOp(ownerSocket, "doc:update", {
+      documentType: "Actor",
+      updates: [
+        {
+          _id: characterId,
+          diff: { "system.level.value": 3, "system.details.level": 3 },
+          expectedVersion: version,
+        },
+      ],
+    });
+    expect(up["ok"], JSON.stringify(up)).toBe(true);
+    version = statsVersion(
+      (up["result"] as { documents: Array<Record<string, unknown>> }).documents[0]!,
+    );
+    // Setting the level field DOWN
     // to 1 used to be rejected by CHOICE_LEVEL/BOOST_LEVEL_EXCEEDS_
     // CHARACTER_LEVEL even though nothing else in the diff touches build —
     // this is the exact `levelSet` reproduction (planVM.ts) C2 fixes.
@@ -591,6 +678,7 @@ describe("Player-owned character edit + build legality (pf2e, O6/T6.2-T6.3; O6 f
   // -------------------------------------------------------------------------
 
   it("DENIES nulling out system.build once the character has one", async () => {
+    await initBuild();
     const ack = await sendOp(ownerSocket, "doc:update", {
       documentType: "Actor",
       updates: [
@@ -608,6 +696,7 @@ describe("Player-owned character edit + build legality (pf2e, O6/T6.2-T6.3; O6 f
   });
 
   it("still answers VALIDATION_FAILED to invalid `system.build.choices` (two choices in one slot: the build validation is not bypassed)", async () => {
+    await initBuild();
     const twice = { level: 2, slot: "skillFeat-2", type: "skillFeat" };
     const ack = await sendOp(ownerSocket, "doc:update", {
       documentType: "Actor",
@@ -625,6 +714,7 @@ describe("Player-owned character edit + build legality (pf2e, O6/T6.2-T6.3; O6 f
   });
 
   it("DENIES a classLevel choice that enters a NEW class at an odd character level (D8, 19/10/2026)", async () => {
+    await initBuild();
     const ack = await sendOp(ownerSocket, "doc:update", {
       documentType: "Actor",
       updates: [
@@ -647,6 +737,7 @@ describe("Player-owned character edit + build legality (pf2e, O6/T6.2-T6.3; O6 f
   });
 
   it("ALLOWS a new class at an even level and continuing it at an odd one (D8)", async () => {
+    await initBuild();
     const ack = await sendOp(ownerSocket, "doc:update", {
       documentType: "Actor",
       updates: [
@@ -669,6 +760,7 @@ describe("Player-owned character edit + build legality (pf2e, O6/T6.2-T6.3; O6 f
   });
 
   it("DENIES a multiclass dedication in the Free Archetype slot once the world runs multiclass-by-levels (D5)", async () => {
+    await initBuild();
     const on = await sendOp(ownerSocket, "doc:update", {
       documentType: "Actor",
       updates: [
@@ -704,6 +796,7 @@ describe("Player-owned character edit + build legality (pf2e, O6/T6.2-T6.3; O6 f
   });
 
   it("ALLOWS a class feat in the Free Archetype slot (D9) and a general archetype's dedication (D5 keeps those)", async () => {
+    await initBuild();
     const classFeat = {
       name: "Test Class Feat in the archetype slot",
       type: "feat",

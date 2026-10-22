@@ -50,7 +50,7 @@
  *     GAMEMASTER itself is always accepted (REQ-USR-010 step 1).
  */
 
-import { describe, it, expect, beforeAll, afterAll } from "vitest";
+import { describe, it, expect, beforeAll, afterAll, afterEach, beforeEach } from "vitest";
 import { mkdirSync, rmSync } from "node:fs";
 import { join } from "node:path";
 import { tmpdir } from "node:os";
@@ -403,6 +403,15 @@ describe("configurable Permissions gate doc:create (REQ-CFG-040..042)", () => {
     await teardown(ctx);
   });
 
+  // Test independence: no test may see the floor another one configured, so
+  // every test starts with no `fusion.permissions` Setting (the defaults).
+  beforeEach(async () => {
+    if (settingId === null) return;
+    const ack = await sendOp(gm, "doc:delete", { documentType: "Setting", ids: [settingId] });
+    expect(ack["ok"]).toBe(true);
+    settingId = null;
+  });
+
   // -------------------------------------------------------------------------
   // JOURNAL_CREATE — was literally hardcoded "TRUSTED+" in doc-handlers.ts.
   // -------------------------------------------------------------------------
@@ -510,6 +519,16 @@ describe("configurable Permissions gate on embedded Token create (TOKEN_CREATE, 
     await teardown(ctx);
   });
 
+  // Test independence: the floor a test configures must not leak into the
+  // next one, whatever order they run in.
+  let settingId: string | null = null;
+  afterEach(async () => {
+    if (settingId === null) return;
+    const ack = await sendOp(gm, "doc:delete", { documentType: "Setting", ids: [settingId] });
+    expect(ack["ok"]).toBe(true);
+    settingId = null;
+  });
+
   it("PLAYER with OWNER access to the scene is refused by default (TOKEN_CREATE default ASSISTANT, REQ-USR-008)", async () => {
     const ack = await sendOp(player, "doc:create", {
       documentType: "Token",
@@ -526,6 +545,7 @@ describe("configurable Permissions gate on embedded Token create (TOKEN_CREATE, 
       data: [{ key: PERMISSIONS_SETTING_KEY, value: { TOKEN_CREATE: UserRole.PLAYER } }],
     });
     expect(settingAck["ok"]).toBe(true);
+    settingId = (settingAck["result"] as { documents: Array<{ _id: string }> }).documents[0]!._id;
 
     const loweredFloorActorId = await createActor(gm, "Player Token After Lowering Floor Actor");
     const ack = await sendOp(player, "doc:create", {
@@ -778,6 +798,15 @@ describe("GM raising a permission floor above ASSISTANT refuses an ASSISTANT (RE
     await teardown(ctx);
   });
 
+  // Test independence: no test may see the floor another one configured, so
+  // every test starts with no `fusion.permissions` Setting (the defaults).
+  beforeEach(async () => {
+    if (settingId === null) return;
+    const ack = await sendOp(gm, "doc:delete", { documentType: "Setting", ids: [settingId] });
+    expect(ack["ok"]).toBe(true);
+    settingId = null;
+  });
+
   it("ASSISTANT creates an Actor by default, before any floor is raised (sanity baseline)", async () => {
     const ack = await sendOp(assistant, "doc:create", {
       documentType: "Actor",
@@ -866,6 +895,16 @@ describe("GM raising TOKEN_CREATE above ASSISTANT refuses an ASSISTANT (REQ-USR-
     await teardown(ctx);
   });
 
+  // Test independence: the floor a test configures must not leak into the
+  // next one, whatever order they run in.
+  let settingId: string | null = null;
+  afterEach(async () => {
+    if (settingId === null) return;
+    const ack = await sendOp(gm, "doc:delete", { documentType: "Setting", ids: [settingId] });
+    expect(ack["ok"]).toBe(true);
+    settingId = null;
+  });
+
   it("ASSISTANT creates a Token by default, before any floor is raised (sanity baseline)", async () => {
     const beforeRaiseActorId = await createActor(gm, "Assistant Token Before Raise Actor");
     const ack = await sendOp(assistant, "doc:create", {
@@ -882,6 +921,7 @@ describe("GM raising TOKEN_CREATE above ASSISTANT refuses an ASSISTANT (REQ-USR-
       data: [{ key: PERMISSIONS_SETTING_KEY, value: { TOKEN_CREATE: UserRole.GAMEMASTER } }],
     });
     expect(settingAck["ok"]).toBe(true);
+    settingId = (settingAck["result"] as { documents: Array<{ _id: string }> }).documents[0]!._id;
 
     const assistantAck = await sendOp(assistant, "doc:create", {
       documentType: "Token",

@@ -411,6 +411,8 @@ export async function ensureNativeAddonsExtracted(
 // ---------------------------------------------------------------------------
 
 let hookInstalled = false;
+/** Node's own `Module._resolveFilename`, kept so a test can take the hook back out. */
+let restoreResolveFilename: (() => void) | null = null;
 
 /**
  * Patch `Module._resolveFilename` so `require('better-sqlite3')` and
@@ -455,6 +457,11 @@ export function installNativeAddonResolutionHook(dataDir: string, version: strin
   const ModuleAny = require("node:module");
   const originalResolve = ModuleAny._resolveFilename.bind(ModuleAny);
 
+  const untouchedResolve = ModuleAny._resolveFilename;
+  restoreResolveFilename = () => {
+    ModuleAny._resolveFilename = untouchedResolve;
+  };
+
   ModuleAny._resolveFilename = function patchedResolveFilename(
     request: string,
     ...rest: unknown[]
@@ -472,7 +479,14 @@ export function installNativeAddonResolutionHook(dataDir: string, version: strin
   /* eslint-enable @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-return */
 }
 
-/** Test-only: reset the module-level install guard between test cases. */
+/**
+ * Test-only: reset the module-level install guard between test cases AND take
+ * the patch back out of `Module._resolveFilename`. That patch is process-wide:
+ * left in place, a later test file in the same (reused) worker would get this
+ * file's fake `better-sqlite3` from its own `require`.
+ */
 export function _resetNativeAddonResolutionHookForTests(): void {
   hookInstalled = false;
+  restoreResolveFilename?.();
+  restoreResolveFilename = null;
 }

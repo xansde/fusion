@@ -33,7 +33,22 @@ import type { FastifyInstance } from "fastify";
  * and every downstream assertion (setup/apply payloads, check-port, invite
  * URLs) can name the same port without a magic number.
  */
+const issuedPorts = new Set<number>();
+
 export async function reserveFreePort(): Promise<number> {
+  // The OS may hand a just-released port straight back; within one worker
+  // never issue the same number twice, so two reservations can't collide.
+  for (let attempt = 0; attempt < 20; attempt++) {
+    const port = await probeFreePort();
+    if (!issuedPorts.has(port)) {
+      issuedPorts.add(port);
+      return port;
+    }
+  }
+  throw new Error("Could not reserve a port the worker has not already issued");
+}
+
+async function probeFreePort(): Promise<number> {
   const probe = createServer();
   await new Promise<void>((resolve, reject) => {
     probe.once("error", reject);

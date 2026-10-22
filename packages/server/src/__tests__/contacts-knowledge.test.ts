@@ -14,7 +14,7 @@
  * spec 39 §7 and spec 42 §7 record it.
  */
 
-import { describe, it, expect, beforeAll, afterAll } from "vitest";
+import { describe, it, expect, beforeAll, afterAll, beforeEach } from "vitest";
 import { mkdirSync, rmSync } from "node:fs";
 import { join } from "node:path";
 import { tmpdir } from "node:os";
@@ -271,7 +271,12 @@ describe("Contact knowledge — REQ-CTT-070..076 over the real socket (G060)", (
     gmOps = collectOps(gm);
     playerAOps = collectOps(playerA);
     playerBOps = collectOps(playerB);
+  }, 40000);
 
+  // Test independence: every test gets its own two characters and its own
+  // contact (hidden for everyone), so what one test writes or deletes — a
+  // rule, an exception, a whole character — is never another test's setup.
+  beforeEach(async () => {
     charAId = await createActor({
       name: "Character A",
       type: "character",
@@ -330,6 +335,17 @@ describe("Contact knowledge — REQ-CTT-070..076 over the real socket (G060)", (
   });
 
   it("REQ-CTT-072: an exception equal to the general rule is REMOVED, not duplicated", async () => {
+    const setup = await sendOp(gm, "actor:setKnowledge", {
+      updates: [
+        {
+          actorId: contactId,
+          general: KnowledgeState.Glimpsed,
+          exceptions: { [charAId]: KnowledgeState.Known },
+        },
+      ],
+    });
+    expect(setup["ok"]).toBe(true);
+
     const ack = await sendOp(gm, "actor:setKnowledge", {
       updates: [{ actorId: contactId, exceptions: { [charBId]: KnowledgeState.Glimpsed } }],
     });
@@ -388,6 +404,10 @@ describe("Contact knowledge — REQ-CTT-070..076 over the real socket (G060)", (
   // -------------------------------------------------------------------------
 
   it("REQ-CTT-073: a character created after the fact inherits the general rule with no GM operation", async () => {
+    const setup = await sendOp(gm, "actor:setKnowledge", {
+      updates: [{ actorId: contactId, general: KnowledgeState.Glimpsed }],
+    });
+    expect(setup["ok"]).toBe(true);
     const storedBefore = mapOf(readFromStore(contactId));
     const lateCharId = await createActor({
       name: "Character C (created later)",

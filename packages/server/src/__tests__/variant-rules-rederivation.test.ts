@@ -22,7 +22,7 @@
  * fusion-systems-2e's own engine-2e tests.
  */
 
-import { describe, it, expect, beforeAll, afterAll } from "vitest";
+import { describe, it, expect, beforeAll, afterAll, afterEach } from "vitest";
 import { mkdirSync, rmSync } from "node:fs";
 import { join } from "node:path";
 import { tmpdir } from "node:os";
@@ -244,31 +244,61 @@ describe("REQ-CFG-035 — Setting write re-derives Actors immediately", () => {
     await teardown(ctx);
   });
 
-  it("creating the classLevels Setting for the first time re-derives an existing actor and broadcasts it, without the actor itself being written", async () => {
-    const createActorAck = await sendOp(gm, "doc:create", {
+  // Test independence: every test starts on an empty world (no actor, no
+  // variant Setting), so what another test created never changes which actors
+  // a Setting write re-derives. Settings go first: deleting one re-derives
+  // (and broadcasts) the actors still there, and a later test must not catch
+  // that stale broadcast, so a round-trip drains it before the next test.
+  const createdSettingIds: string[] = [];
+  const createdActorIds: string[] = [];
+
+  afterEach(async () => {
+    const settingIds = createdSettingIds.splice(0);
+    if (settingIds.length > 0) {
+      const ack = await sendOp(gm, "doc:delete", { documentType: "Setting", ids: settingIds });
+      expect(ack["ok"]).toBe(true);
+    }
+    const actorIds = createdActorIds.splice(0);
+    if (actorIds.length > 0) {
+      const ack = await sendOp(gm, "doc:delete", { documentType: "Actor", ids: actorIds });
+      expect(ack["ok"]).toBe(true);
+    }
+    await sendOp(gm, "doc:update", {
+      documentType: "Setting",
+      updates: [{ _id: "noSuchSetting0000", diff: { value: 1 } }],
+    });
+  });
+
+  async function createHero(): Promise<Record<string, unknown>> {
+    const ack = await sendOp(gm, "doc:create", {
       documentType: "Actor",
       data: [{ name: "Hero", type: "hero", ownership: { default: 0 }, system: {} }],
     });
-    expect(createActorAck["ok"]).toBe(true);
-    const actorDoc = (createActorAck["result"] as { documents: Record<string, unknown>[] })
-      .documents[0]!;
+    expect(ack["ok"]).toBe(true);
+    const doc = (ack["result"] as { documents: Record<string, unknown>[] }).documents[0]!;
+    createdActorIds.push(doc["_id"] as string);
+    return doc;
+  }
+
+  async function createSetting(key: string): Promise<void> {
+    const ack = await sendOp(gm, "doc:create", {
+      documentType: "Setting",
+      data: [{ key, value: true, ownership: { default: 0 } }],
+    });
+    expect(ack["ok"]).toBe(true);
+    const id = (ack["result"] as { documents: Array<{ _id: string }> }).documents[0]!._id;
+    createdSettingIds.push(id);
+  }
+
+  it("creating the classLevels Setting for the first time re-derives an existing actor and broadcasts it, without the actor itself being written", async () => {
+    const actorDoc = await createHero();
     expect((actorDoc["system"] as Record<string, unknown>)["derived"]).toMatchObject({
       classLevelsSeen: false,
     });
 
     const broadcastPromise = waitForBroadcast(gm, "doc:update", "Actor");
 
-    const settingAck = await sendOp(gm, "doc:create", {
-      documentType: "Setting",
-      data: [
-        {
-          key: "fake-variant-system:variantRules.classLevels",
-          value: true,
-          ownership: { default: 0 },
-        },
-      ],
-    });
-    expect(settingAck["ok"]).toBe(true);
+    await createSetting("fake-variant-system:variantRules.classLevels");
 
     // The re-derivation is a SIDE EFFECT of the Setting create, not a write
     // the test itself performs on the actor — proves REQ-CFG-035 fires
@@ -282,18 +312,9 @@ describe("REQ-CFG-035 — Setting write re-derives Actors immediately", () => {
   });
 
   it("flipping a house-rule variant Setting (A Queda) re-derives every actor and broadcasts it", async () => {
+    await createHero();
     const broadcastPromise = waitForBroadcast(gm, "doc:update", "Actor");
-    const settingAck = await sendOp(gm, "doc:create", {
-      documentType: "Setting",
-      data: [
-        {
-          key: "fake-variant-system:variantRules.ancestryFeatLevelMinus2",
-          value: true,
-          ownership: { default: 0 },
-        },
-      ],
-    });
-    expect(settingAck["ok"]).toBe(true);
+    await createSetting("fake-variant-system:variantRules.ancestryFeatLevelMinus2");
     const rederived = await broadcastPromise;
     expect(
       (rederived.documents[0]?.["system"] as Record<string, unknown>)["derived"],
@@ -324,6 +345,9 @@ describe("REQ-CFG-035 — Setting write re-derives Actors immediately", () => {
       ],
     });
     expect(settingAck["ok"]).toBe(true);
+    createdSettingIds.push(
+      (settingAck["result"] as { documents: Array<{ _id: string }> }).documents[0]!._id,
+    );
 
     await new Promise((resolve) => setTimeout(resolve, 800));
     gm.off("op", handler);

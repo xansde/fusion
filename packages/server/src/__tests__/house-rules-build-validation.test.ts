@@ -15,7 +15,7 @@
  * currently implements.
  */
 
-import { describe, it, expect, beforeAll, afterAll, vi } from "vitest";
+import { describe, it, expect, beforeAll, afterAll, afterEach, vi } from "vitest";
 import { mkdirSync, rmSync } from "node:fs";
 import { join } from "node:path";
 import { tmpdir } from "node:os";
@@ -194,6 +194,17 @@ describe("house rules — doc:update validates the build with the world's varian
     await teardown(ctx);
   });
 
+  // Test independence: the variant Settings a test stores are removed again,
+  // so the next test starts on a world with no variant rule (RAW).
+  const createdSettingIds: string[] = [];
+
+  afterEach(async () => {
+    const ids = createdSettingIds.splice(0);
+    if (ids.length === 0) return;
+    const ack = await sendOp(gm, "doc:delete", { documentType: "Setting", ids });
+    expect(ack["ok"]).toBe(true);
+  });
+
   async function touchActor(note: string): Promise<void> {
     const ack = await sendOp(gm, "doc:update", {
       documentType: "Actor",
@@ -223,6 +234,9 @@ describe("house rules — doc:update validates the build with the world's varian
         ],
       });
       expect(ack["ok"]).toBe(true);
+      createdSettingIds.push(
+        (ack["result"] as { documents: Array<{ _id: string }> }).documents[0]!._id,
+      );
     }
     validateSpy.mockClear();
     // The pre-write document is only validated when the merged one reports
