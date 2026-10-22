@@ -42,6 +42,7 @@
   } from "../../lib/chat/chatContext.svelte.js";
   import { t } from "../../lib/i18n/i18n.js";
   import ChatMessageComponent from "./ChatMessage.svelte";
+  import Icon from "../common/Icon.svelte";
 
   const {
     socket,
@@ -80,16 +81,7 @@
 <div class="chat-context">
   {#if canMoreBefore}
     <button class="chat-context__more" onclick={moreBefore} disabled={chatContext.loading}>
-      <svg class="chat-context__arrow" viewBox="0 0 12 12" aria-hidden="true" focusable="false">
-        <path
-          d="M6 10V2.5M2.5 6 6 2.5 9.5 6"
-          fill="none"
-          stroke="currentColor"
-          stroke-width="1.6"
-          stroke-linecap="round"
-          stroke-linejoin="round"
-        />
-      </svg>
+      <Icon name="arrow-up" size={18} />
       {t("FUSION.Chat.Context.MoreBefore", { count: CHAT_CONTEXT_PAGE })}
     </button>
   {/if}
@@ -128,16 +120,7 @@
 
   {#if canMoreAfter}
     <button class="chat-context__more" onclick={moreAfter} disabled={chatContext.loading}>
-      <svg class="chat-context__arrow" viewBox="0 0 12 12" aria-hidden="true" focusable="false">
-        <path
-          d="M6 2v7.5M2.5 6 6 9.5 9.5 6"
-          fill="none"
-          stroke="currentColor"
-          stroke-width="1.6"
-          stroke-linecap="round"
-          stroke-linejoin="round"
-        />
-      </svg>
+      <Icon name="arrow-down" size={18} />
       {t("FUSION.Chat.Context.MoreAfter", { count: CHAT_CONTEXT_PAGE })}
     </button>
   {/if}
@@ -161,7 +144,7 @@
   }
 
   .chat-context__row {
-    border-left: 2px solid transparent;
+    border-left: 3px solid transparent;
   }
 
   /* The message the result pointed at — the reason the window is open. */
@@ -174,15 +157,16 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    gap: 0.35rem;
+    gap: var(--fusion-space-1);
     width: 100%;
-    padding: 0.3rem 0.5rem;
+    min-height: var(--fusion-target);
+    padding: 0 var(--fusion-space-3);
     border: none;
     border-bottom: 1px solid var(--fusion-border);
     background: var(--fusion-surface-alt);
     color: var(--fusion-text-muted);
     font: inherit;
-    font-size: 0.75rem;
+    font-size: var(--fusion-text-sm);
     cursor: pointer;
     transition: var(--fusion-transition);
   }
@@ -196,18 +180,18 @@
     opacity: 0.6;
   }
 
-  .chat-context__arrow {
-    width: 0.75rem;
-    height: 0.75rem;
+  .chat-context__more:focus-visible {
+    outline: 2px solid var(--fusion-focus);
+    outline-offset: -2px;
   }
 
   .chat-context__empty,
   .chat-context__error {
-    padding: 1.25rem 1rem;
+    padding: var(--fusion-space-5) var(--fusion-space-4);
     margin: 0;
     text-align: center;
-    font-size: 0.8125rem;
-    color: var(--fusion-text-subtle);
+    font-size: var(--fusion-text-base);
+    color: var(--fusion-text-muted);
   }
 
   .chat-context__error {
