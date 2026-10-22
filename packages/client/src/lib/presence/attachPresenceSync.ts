@@ -1,3 +1,5 @@
+import { shownFromPayload } from "./showPlayers.js";
+import type { AreaStyle, AreaTemplate } from "@fusion/shared";
 /**
  * attachPresenceSync — wires socket.io 'ephemeral' events to the presence store.
  *
@@ -16,8 +18,14 @@ import {
   addPing,
   applyRemoteRuler,
   clearRemoteRuler,
+  applyRemoteTemplate,
+  clearRemoteTemplate,
+  applyPinnedTemplate,
+  removePinnedTemplate,
+  replacePinnedTemplates,
   applyRemoteTokenPreview,
   updateOnlineUsers,
+  presenceState,
   startPresenceBackground,
 } from "./presenceStore.svelte.js";
 
@@ -91,7 +99,13 @@ export function attachPresenceSync(socket: Socket): () => void {
         if (pn !== undefined) pingUpdate.userName = pn;
         const pc = asOptStr(payload["color"]);
         if (pc !== undefined) pingUpdate.color = pc;
-        addPing(pingUpdate);
+        const ptok = asOptStr(payload["tokenId"]);
+        const pingFull = {
+          ...pingUpdate,
+          ...(payload["pull"] === true ? { pull: true } : {}),
+          ...(ptok !== undefined ? { tokenId: ptok } : {}),
+        };
+        addPing(pingFull);
         break;
       }
 
@@ -117,6 +131,70 @@ export function attachPresenceSync(socket: Socket): () => void {
 
       case "presence:ruler:clear": {
         clearRemoteRuler(asStr(payload["userId"]));
+        break;
+      }
+
+      case "presence:show": {
+        const item = shownFromPayload(payload);
+        if (item) presenceState.shown = item;
+        break;
+      }
+
+      case "presence:template": {
+        const tu: { userId: string; userName?: string; template: unknown } = {
+          userId: asStr(payload["userId"]),
+          template: payload["template"],
+        };
+        const tn = asOptStr(payload["userName"]);
+        if (tn !== undefined) tu.userName = tn;
+        applyRemoteTemplate(tu);
+        break;
+      }
+
+      case "presence:template:clear": {
+        clearRemoteTemplate(asStr(payload["userId"]));
+        break;
+      }
+
+      case "presence:template:pin": {
+        const pin: {
+          id: string;
+          sceneId: string;
+          userId: string;
+          userName?: string;
+          template: unknown;
+        } = {
+          id: asStr(payload["id"]),
+          sceneId: asStr(payload["sceneId"]),
+          userId: asStr(payload["userId"]),
+          template: payload["template"],
+        };
+        const pn = asOptStr(payload["userName"]);
+        if (pn !== undefined) pin.userName = pn;
+        applyPinnedTemplate(pin);
+        break;
+      }
+
+      case "presence:template:unpin": {
+        removePinnedTemplate(asStr(payload["id"]));
+        break;
+      }
+
+      case "presence:template:pinned": {
+        const list = Array.isArray(payload["templates"]) ? payload["templates"] : [];
+        replacePinnedTemplates(
+          asStr(payload["sceneId"]),
+          (list as Array<Record<string, unknown>>).map((t) => {
+            const item: { id: string; userId: string; userName?: string; template: unknown } = {
+              id: asStr(t["id"]),
+              userId: asStr(t["userId"]),
+              template: t["template"],
+            };
+            const un = asOptStr(t["userName"]);
+            if (un !== undefined) item.userName = un;
+            return item;
+          }),
+        );
         break;
       }
 
@@ -229,13 +307,26 @@ export function emitCursor(
  * @param y       World Y coordinate
  * @param color   User color (optional — server will attach user color if omitted)
  */
-export function emitPing(socket: Socket | null, x: number, y: number, color?: string): void {
+export function emitPing(
+  socket: Socket | null,
+  x: number,
+  y: number,
+  color?: string,
+  pull?: boolean,
+  tokenId?: string,
+): void {
   if (!socket?.connected) return;
 
   socket.emit("ephemeral", {
     type: "presence:ping",
     ts: Date.now(),
-    payload: { x, y, ...(color != null ? { color } : {}) },
+    payload: {
+      x,
+      y,
+      ...(color != null ? { color } : {}),
+      ...(pull ? { pull: true } : {}),
+      ...(tokenId != null ? { tokenId } : {}),
+    },
   });
 }
 
@@ -269,6 +360,71 @@ export function emitRulerClear(socket: Socket | null): void {
     type: "presence:ruler:clear",
     ts: Date.now(),
     payload: {},
+  });
+}
+
+// ---------------------------------------------------------------------------
+// Area template emitters
+// ---------------------------------------------------------------------------
+
+/** Broadcast the template being aimed. */
+export function emitTemplateUpdate(socket: Socket | null, template: AreaTemplate): void {
+  if (!socket?.connected) return;
+  socket.emit("ephemeral", { type: "presence:template", ts: Date.now(), payload: { template } });
+}
+
+/** Tell the table this user stopped aiming. */
+export function emitTemplateClear(socket: Socket | null): void {
+  if (!socket?.connected) return;
+  socket.emit("ephemeral", { type: "presence:template:clear", ts: Date.now(), payload: {} });
+}
+
+/** Pin a template on a scene until someone removes it. */
+export function emitTemplatePin(
+  socket: Socket | null,
+  id: string,
+  sceneId: string,
+  template: AreaTemplate,
+): void {
+  if (!socket?.connected) return;
+  socket.emit("ephemeral", {
+    type: "presence:template:pin",
+    ts: Date.now(),
+    payload: { id, sceneId, template },
+  });
+}
+
+export function emitTemplateUnpin(socket: Socket | null, id: string, sceneId: string): void {
+  if (!socket?.connected) return;
+  socket.emit("ephemeral", {
+    type: "presence:template:unpin",
+    ts: Date.now(),
+    payload: { id, sceneId },
+  });
+}
+
+/** Restyle a pinned template (its author or a GM). */
+export function emitTemplateStyle(
+  socket: Socket | null,
+  id: string,
+  sceneId: string,
+  style: AreaStyle,
+): void {
+  if (!socket?.connected) return;
+  socket.emit("ephemeral", {
+    type: "presence:template:style",
+    ts: Date.now(),
+    payload: { id, sceneId, style },
+  });
+}
+
+/** Ask the server for the templates pinned on a scene (answered with presence:template:pinned). */
+export function emitTemplateSync(socket: Socket | null, sceneId: string): void {
+  if (!socket?.connected) return;
+  socket.emit("ephemeral", {
+    type: "presence:template:sync",
+    ts: Date.now(),
+    payload: { sceneId },
   });
 }
 

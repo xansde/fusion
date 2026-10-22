@@ -22,7 +22,9 @@
  *    all, so the name is never a substitute for actually hashing.
  *  - Each backup that captures assets gets a companion MANIFEST file next
  *    to its `.db` file: `<same-basename>.assets.json`, listing every file
- *    that was present directly under `assets/` at backup time together
+ *    that was present directly under `assets/` at backup time — plus the
+ *    files of the action bar's icon area, `assets/actionbar-icons/`, named
+ *    `actionbar-icons/<file>` (BAR-F3-05) — together
  *    with its content hash and size. The manifest is what makes a single
  *    backup's asset set independently restorable — the repository alone
  *    doesn't know which blobs belong to which backup, only which blobs
@@ -70,7 +72,8 @@
 import { existsSync, readFileSync, readdirSync, rmSync, createReadStream } from "node:fs";
 import { mkdir, readdir, writeFile, copyFile } from "node:fs/promises";
 import { createHash } from "node:crypto";
-import { join } from "node:path";
+import { dirname, join } from "node:path";
+import { ICON_ASSET_AREA } from "../assets/asset-store.js";
 
 // ---------------------------------------------------------------------------
 // Manifest shape
@@ -182,10 +185,32 @@ export async function backupAssets(
   const repoDir = assetsRepoDir(worldBackupsDir);
   await mkdir(repoDir, { recursive: true });
 
-  const files: AssetManifestEntry[] = [];
+  // Every name this backup captures, as a path relative to `assets/` (POSIX `/`).
+  const names: string[] = [];
   for (const entry of entries) {
-    if (!entry.isFile()) continue; // defensive — assets/ is flat by design today
-    const filePath = join(worldAssetsDir, entry.name);
+    if (entry.isFile()) {
+      names.push(entry.name);
+      continue;
+    }
+    // BAR-F3-05: `assets/` is flat by design, with ONE exception — the action bar's icon area,
+    // the folder the server itself writes every icon upload into (REQ-SEC-043 as amended). Its
+    // files are captured one level deep; any other folder stays out, as before.
+    if (entry.isDirectory() && entry.name === ICON_ASSET_AREA) {
+      let iconEntries;
+      try {
+        iconEntries = await readdir(join(worldAssetsDir, entry.name), { withFileTypes: true });
+      } catch {
+        continue;
+      }
+      for (const iconEntry of iconEntries) {
+        if (iconEntry.isFile()) names.push(`${entry.name}/${iconEntry.name}`);
+      }
+    }
+  }
+
+  const files: AssetManifestEntry[] = [];
+  for (const name of names) {
+    const filePath = join(worldAssetsDir, ...name.split("/"));
     const { hash, sizeBytes } = await hashFileStreaming(filePath);
 
     const blobPath = join(repoDir, hash);
@@ -196,7 +221,7 @@ export async function backupAssets(
       await copyFile(filePath, blobPath);
     }
 
-    files.push({ name: entry.name, hash, sizeBytes });
+    files.push({ name, hash, sizeBytes });
   }
 
   const manifest: AssetBackupManifest = { version: 1, files };
@@ -354,7 +379,10 @@ export async function restoreAssets(
     if (!existsSync(blobPath)) {
       throw new MissingAssetBlobError(file.hash, file.name);
     }
-    await copyFile(blobPath, join(worldAssetsDir, file.name));
+    const target = join(worldAssetsDir, ...file.name.split("/"));
+    // An icon (`actionbar-icons/<file>`, BAR-F3-05) needs its folder back first.
+    await mkdir(dirname(target), { recursive: true });
+    await copyFile(blobPath, target);
   }
 }
 

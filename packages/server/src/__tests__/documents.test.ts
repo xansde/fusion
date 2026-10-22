@@ -1032,3 +1032,79 @@ describe("_stats server-side authority (REQ-DOC-008, D9)", () => {
     expect(stats["lastModifiedBy"]).toBe("serverUserId"); // server sets from context
   });
 });
+
+describe("Scene grid persistence", () => {
+  it("keeps the grid supplied on create", () => {
+    const { store } = createStore();
+    const scene = store.create("scenes", {
+      name: "Deck",
+      grid: { type: "square", size: 84, distance: 5, units: "ft", color: "#000000", alpha: 0.2 },
+    });
+    const grid = store.get("scenes", scene["_id"] as string)["grid"] as Record<string, unknown>;
+    expect(grid["size"]).toBe(84);
+    expect(grid["type"]).toBe("square");
+  });
+
+  it("persists a partial grid patch on a scene that has no grid yet", () => {
+    const { store } = createStore();
+    const scene = store.create("scenes", { name: "Hold" });
+    const id = scene["_id"] as string;
+
+    store.update("scenes", id, { grid: { size: 84 } });
+
+    const grid = store.get("scenes", id)["grid"] as Record<string, unknown>;
+    expect(grid["size"]).toBe(84);
+    expect(grid["type"]).toBe("square");
+    expect(grid["distance"]).toBe(5);
+    expect(grid["units"]).toBe("ft");
+  });
+
+  it("changes only the grid size and keeps the other grid fields", () => {
+    const { store } = createStore();
+    const scene = store.create("scenes", {
+      name: "Deck",
+      grid: { type: "square", size: 84, distance: 5, units: "ft", color: "#ff0000", alpha: 0.5 },
+    });
+    const id = scene["_id"] as string;
+
+    store.update("scenes", id, { grid: { size: 120 } });
+
+    const grid = store.get("scenes", id)["grid"] as Record<string, unknown>;
+    expect(grid["size"]).toBe(120);
+    expect(grid["color"]).toBe("#ff0000");
+    expect(grid["alpha"]).toBe(0.5);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// Grid calibration — the grid origin offset must survive a write. SceneSchema
+// is what the store parses every write with; a key it does not declare is
+// silently dropped (the same trap that ate `grid`, `initialView`, `manualFog`).
+// ---------------------------------------------------------------------------
+
+describe("DocumentStore — scene grid offset (calibration)", () => {
+  it("keeps gridOffsetX/Y and a whole grid block written onto a scene that had none", () => {
+    const { store } = createStoreWithLogger();
+    const created = store.create("scenes", { name: "Sem grade" });
+    const id = created["_id"] as string;
+    expect(created["gridOffsetX"] ?? null).toBeNull();
+
+    const updated = store.update("scenes", id, {
+      grid: { size: 140, distance: 5, units: "ft" },
+      gridOffsetX: 31,
+      gridOffsetY: 77,
+    });
+
+    expect(updated["gridOffsetX"]).toBe(31);
+    expect(updated["gridOffsetY"]).toBe(77);
+    const grid = store.get("scenes", id)["grid"] as Record<string, unknown>;
+    expect(grid["size"]).toBe(140);
+    expect(store.get("scenes", id)["gridOffsetX"]).toBe(31);
+  });
+
+  it("rejects a non-finite offset", () => {
+    const { store } = createStoreWithLogger();
+    const id = store.create("scenes", { name: "Cena" })["_id"] as string;
+    expect(() => store.update("scenes", id, { gridOffsetX: Number.NaN })).toThrow();
+  });
+});

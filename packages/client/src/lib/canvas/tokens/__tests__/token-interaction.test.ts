@@ -10,6 +10,7 @@
 import { describe, it, expect } from "vitest";
 import {
   canMoveToken,
+  mountedStackPlacement,
   snapTokenToGrid,
   arrowMoveToken,
   createDragMachine,
@@ -138,14 +139,43 @@ describe("snapTokenToGrid", () => {
     expect(result.y).toBe(100);
   });
 
-  it("snaps 2x2 token correctly (multi-cell footprint)", () => {
-    // Grid size 100. Cursor top-left at (80, 80).
-    // Footprint center = (80 + 100, 80 + 100) = (180, 180)
-    // Nearest cell center at size=100 → cell (1,1) center = (150,150)
-    // top-left = (150 - 100, 150 - 100) = (50, 50)
+  it("snaps a 2x2 token onto whole squares (its corner on a grid line)", () => {
+    // Grid size 100. Cursor top-left at (80, 80): the nearest grid line is 100.
+    // The old rule snapped the CENTRE to a cell centre, which left an even footprint
+    // half a square off the grid (top-left (50, 50)) — straddling four squares.
     const result = snapTokenToGrid(80, 80, 2, 2, GRID);
-    expect(result.x).toBe(50);
-    expect(result.y).toBe(50);
+    expect(result.x).toBe(100);
+    expect(result.y).toBe(100);
+  });
+
+  it("every footprint, odd or even, ends with its top-left corner on the lattice", () => {
+    for (const [w, h] of [
+      [1, 1],
+      [2, 2],
+      [3, 3],
+      [4, 4],
+      [2, 1],
+      [1, 3],
+    ] as const) {
+      for (const grid of [GRID, GRID_WITH_OFFSET]) {
+        const r = snapTokenToGrid(137, 243, w, h, grid);
+        expect((r.x - grid.offsetX) % grid.size).toBe(0);
+        expect((r.y - grid.offsetY) % grid.size).toBe(0);
+      }
+    }
+  });
+
+  it("a 3x3 token (odd) still centres on a cell centre", () => {
+    // Top-left on line 100 -> footprint [100, 400), centre 250 = centre of cell 2.
+    const r = snapTokenToGrid(120, 120, 3, 3, GRID);
+    expect(r).toEqual({ x: 100, y: 100 });
+    expect(r.x + (3 * GRID.size) / 2).toBe(250);
+  });
+
+  it("a 2x2 token with a calibrated offset keeps both corners on the shifted lattice", () => {
+    // Offset (50, 25): lines at 50, 150, ... and 25, 125, ...
+    const r = snapTokenToGrid(160, 140, 2, 2, GRID_WITH_OFFSET);
+    expect(r).toEqual({ x: 150, y: 125 });
   });
 
   it("respects grid offset", () => {
@@ -658,5 +688,62 @@ describe("canOpenTokenSheet (REQ-TOK-111): the same rule as moving, never a seco
         canMoveToken(token, "u", c.role, c.owned),
       );
     }
+  });
+});
+
+// ---------------------------------------------------------------------------
+// BHR-F5-03 (D-B03, REQ-CNV-106..107): a mounted rider does not move on its own
+// ---------------------------------------------------------------------------
+
+describe("canMoveToken: a mounted rider (REQ-CNV-106)", () => {
+  const mountedRider = (): TokenDocument =>
+    makeToken({
+      actorId: "actor001",
+      flags: { fusion: { mount: { mountTokenId: "mountToken00001" } } },
+    });
+
+  it("the owner cannot drag the rider: his only movement action is Mount/Dismount", () => {
+    expect(canMoveToken(mountedRider(), "player1", 1, new Set(["actor001"]))).toBe(false);
+  });
+
+  it("the GM still can (moving the rider takes him off the mount, on the server)", () => {
+    expect(canMoveToken(mountedRider(), "gm", ROLE_GAMEMASTER, new Set())).toBe(true);
+    expect(canMoveToken(mountedRider(), "assist", ROLE_ASSISTANT, new Set())).toBe(true);
+  });
+
+  it("the mount itself (carries a rider) and a free token move normally for the owner", () => {
+    const mount = makeToken({
+      actorId: "actor001",
+      flags: { fusion: { mount: { riderTokenId: "riderToken00001" } } },
+    });
+    expect(canMoveToken(mount, "player1", 1, new Set(["actor001"]))).toBe(true);
+    expect(canMoveToken(makeToken(), "player1", 1, new Set(["actor001"]))).toBe(true);
+  });
+});
+
+describe("mountedStackPlacement (REQ-CNV-107)", () => {
+  // The rider is stored beside the mount; it is DRAWN stacked in the mount's upper-right corner.
+  it("puts a half-size rider flush against the top-right corner of the mount", () => {
+    const placement = mountedStackPlacement(
+      { x: 600, y: 500 }, // mount top-left
+      { w: 100, h: 100 }, // Medium mount
+      { x: 500, y: 500 }, // rider's stored square, beside the mount
+      { w: 100, h: 100 }, // Small rider (1 cell)
+    );
+    expect(placement.scale).toBe(0.5);
+    // Drawn top-left = (600 + 100 - 50, 500); offset = drawn - stored.
+    expect(placement.offsetX).toBe(600 + 100 - 50 - 500);
+    expect(placement.offsetY).toBe(0);
+  });
+
+  it("follows a Large mount (2x2): the corner moves out with the footprint", () => {
+    const placement = mountedStackPlacement(
+      { x: 0, y: 0 },
+      { w: 200, h: 200 },
+      { x: -100, y: 100 },
+      { w: 100, h: 100 },
+    );
+    expect(placement.offsetX).toBe(200 - 50 + 100);
+    expect(placement.offsetY).toBe(0 - 100);
   });
 });

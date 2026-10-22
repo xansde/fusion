@@ -34,6 +34,7 @@ export type LayerName =
   // EffectsGroup layers (REQ-CNV-004)
   | "weather"
   | "lighting"
+  | "fog"
   // InterfaceGroup layers (REQ-CNV-004)
   | "templates"
   | "controls";
@@ -57,6 +58,7 @@ export const LAYER_ORDER: Record<LayerName, number> = {
   // EffectsGroup
   weather: 0,
   lighting: 10,
+  fog: 20, // manual fog of war: above tokens, under the grid/controls
   // InterfaceGroup
   templates: 0,
   controls: 20, // grid renderer is at z=10, inserted between templates(0) and controls(20)

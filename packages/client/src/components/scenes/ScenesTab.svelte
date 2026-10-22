@@ -57,7 +57,23 @@
   import type { SceneDocument } from "@fusion/shared";
   import type { SidebarPanelProps } from "../../lib/sidebar/registry.js";
   import { sceneListState } from "../../lib/scenes/scenesState.svelte.js";
-  import { activateScene, OpError } from "../../lib/scenes/sceneController.js";
+  import { activateScene, preloadSceneForAll, OpError } from "../../lib/scenes/sceneController.js";
+
+  let preloadStatus = $state<Record<string, "loading" | "done">>({});
+
+  async function runPreload(sceneId: string): Promise<void> {
+    preloadStatus[sceneId] = "loading";
+    try {
+      await preloadSceneForAll(socket, sceneId);
+      preloadStatus[sceneId] = "done";
+      window.setTimeout(() => {
+        delete preloadStatus[sceneId];
+      }, 3000);
+    } catch {
+      delete preloadStatus[sceneId];
+      activateError = t("FUSION.Scene.Dialog.UnexpectedError");
+    }
+  }
   import {
     openSceneConfigWindow,
     openSceneCreateWindow,
@@ -79,6 +95,7 @@
   import { needsAssetQueryToken, resolveAssetUrl } from "../../lib/assets/assetApi.js";
   import { fusionApi } from "../../lib/api.js";
   import TokenAddDialog from "./TokenAddDialog.svelte";
+  import { startGridCalibration } from "../../lib/scenes/gridCalibrationState.svelte.js";
   import {
     enterScenePrepare,
     exitScenePrepare,
@@ -223,6 +240,18 @@
   function togglePrepare(sceneId: string): void {
     if (scenePrepareState.sceneId === sceneId) exitScenePrepare();
     else enterScenePrepare(sceneId, activeSceneId);
+  }
+
+  /**
+   * Aim the grid calibration at a scene. The tool works on the scene the canvas is
+   * showing, so a scene that is neither on air nor prepared is prepared first — a local
+   * act of this Master that writes nothing (REQ-CEN-051).
+   */
+  function calibrateGrid(sceneId: string): void {
+    if (sceneId !== activeSceneId && scenePrepareState.sceneId !== sceneId) {
+      enterScenePrepare(sceneId, activeSceneId);
+    }
+    startGridCalibration(sceneId);
   }
 
   function toggleGroup(groupKey: string): void {
@@ -407,6 +436,30 @@
           <path d="M9.2 4.3l2.5 2.5" />
         </svg>
       </button>
+      <!-- Grid calibration: drag a box over one printed cell and the grid follows. -->
+      <button
+        class="scene-head__calibrate"
+        title={t("FUSION.Scene.Calibrate.Open")}
+        aria-label="{t('FUSION.Scene.Calibrate.Open')} {head.name}"
+        onclick={() => {
+          calibrateGrid(head.sceneId);
+        }}
+      >
+        <svg
+          viewBox="0 0 16 16"
+          width="14"
+          height="14"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="1.3"
+          stroke-linejoin="round"
+          aria-hidden="true"
+          focusable="false"
+        >
+          <path d="M2 2h12v12H2z M2 8h12 M8 2v12" stroke-dasharray="2 1.2" />
+          <rect x="8" y="8" width="6" height="6" stroke-width="1.8" />
+        </svg>
+      </button>
       <!-- TK022-client: the door into TokenAddDialog — the form path stays reachable
            even when no drag is in progress. Floats over the fixed head, sitting right
            next to `.scene-head__config` in the same top-right corner (a small gap
@@ -588,6 +641,27 @@
                         >
                       {/each}
                     </span>
+                    <!-- "Pre-carregar para todos": every client downloads this scene's map now,
+                         so the switch that follows has nothing left to fetch. It does not
+                         change the scene on air. A real labelled button, always visible
+                         (it used to be a 24px ghost icon inside the hover-only group). -->
+                    <button
+                      type="button"
+                      class="preload-btn"
+                      class:preload-btn--done={preloadStatus[entry.sceneId] === "done"}
+                      disabled={preloadStatus[entry.sceneId] === "loading"}
+                      onclick={() => {
+                        void runPreload(entry.sceneId);
+                      }}
+                      title={t("FUSION.Scene.Dialog.PreloadForAll")}
+                      aria-label="{t('FUSION.Scene.Dialog.PreloadForAll')}: {entry.name}"
+                    >
+                      {preloadStatus[entry.sceneId] === "loading"
+                        ? t("FUSION.Scene.Dialog.Preloading")
+                        : preloadStatus[entry.sceneId] === "done"
+                          ? t("FUSION.Scene.Dialog.Preloaded")
+                          : t("FUSION.Scene.Dialog.PreloadForAll")}
+                    </button>
                   </span>
                   <div class="scene-row__actions">
                     <button
@@ -641,6 +715,29 @@
                       >
                         <path d="M1.5 8S4 3.8 8 3.8 14.5 8 14.5 8 12 12.2 8 12.2 1.5 8 1.5 8z" />
                         <circle cx="8" cy="8" r="1.8" />
+                      </svg>
+                    </button>
+                    <button
+                      class="action-btn action-btn--calibrate"
+                      onclick={() => {
+                        calibrateGrid(entry.sceneId);
+                      }}
+                      title={t("FUSION.Scene.Calibrate.Open")}
+                      aria-label="{t('FUSION.Scene.Calibrate.Open')} {entry.name}"
+                    >
+                      <svg
+                        viewBox="0 0 16 16"
+                        width="14"
+                        height="14"
+                        fill="none"
+                        stroke="currentColor"
+                        stroke-width="1.3"
+                        stroke-linejoin="round"
+                        aria-hidden="true"
+                        focusable="false"
+                      >
+                        <path d="M2 2h12v12H2z M2 8h12 M8 2v12" stroke-dasharray="2 1.2" />
+                        <rect x="8" y="8" width="6" height="6" stroke-width="1.8" />
                       </svg>
                     </button>
                     <!-- REQ-CEN-061: configuring never happens inside the drawer. -->
@@ -805,6 +902,35 @@
     top: 0.4rem;
     width: 1.5rem;
     z-index: 1;
+  }
+
+  /* Grid calibration door: third chip of the head's top-right corner. */
+  .scene-head__calibrate {
+    align-items: center;
+    background: rgba(0, 0, 0, 0.55);
+    border: 1px solid rgba(255, 255, 255, 0.18);
+    border-radius: var(--fusion-radius-sm);
+    color: rgba(255, 255, 255, 0.85);
+    cursor: pointer;
+    display: flex;
+    justify-content: center;
+    padding: 0.2rem;
+    position: absolute;
+    right: calc(0.4rem + 2 * (1.5rem + 0.3rem));
+    top: 0.4rem;
+    width: 1.5rem;
+    z-index: 1;
+  }
+
+  .scene-head__calibrate:hover {
+    background: var(--fusion-accent);
+    border-color: var(--fusion-accent);
+    color: #fff;
+  }
+
+  .scene-head__calibrate:focus-visible {
+    outline: 2px solid var(--fusion-accent);
+    outline-offset: 2px;
   }
 
   .scene-head__addToken:hover {
@@ -1174,6 +1300,38 @@
   .scene-row:hover .scene-row__actions,
   .scene-row:focus-within .scene-row__actions {
     opacity: 1;
+  }
+
+  .preload-btn {
+    align-self: flex-start;
+    background: var(--fusion-surface-alt);
+    border: 1px solid var(--fusion-border);
+    border-radius: var(--fusion-radius-sm);
+    color: var(--fusion-text);
+    cursor: pointer;
+    font-family: var(--fusion-font);
+    font-size: 0.72rem;
+    margin-top: 0.2rem;
+    padding: 0.15rem 0.5rem;
+  }
+
+  .preload-btn:hover:not(:disabled) {
+    border-color: var(--fusion-accent);
+  }
+
+  .preload-btn:disabled {
+    cursor: progress;
+    opacity: 0.7;
+  }
+
+  .preload-btn--done {
+    border-color: var(--fusion-success);
+    color: var(--fusion-success);
+  }
+
+  .preload-btn:focus-visible {
+    outline: 2px solid var(--fusion-accent);
+    outline-offset: 2px;
   }
 
   .action-btn {

@@ -168,3 +168,68 @@ export type {
   CombatInitiativeSetPayload,
   TokenTargetedPayload,
 } from "./protocol.js";
+
+// ---------------------------------------------------------------------------
+// TokenMark (BHR-F3-06) — the Prey persisted on the marking actor
+// ---------------------------------------------------------------------------
+
+export {
+  TOKEN_MARKS_FLAG_NAMESPACE,
+  TOKEN_MARKS_FLAG_KEY,
+  HUNTED_PREY_MARK_SLUG,
+  MONSTER_HUNTER_MARK_SLUG,
+  EXCLUSIVE_MARK_SLUGS,
+  TokenMarkSchema,
+  MarkSetPayloadSchema,
+  MarkClearPayloadSchema,
+  readTokenMarks,
+  touchesTokenMarksFlag,
+  stripTokenMarksOnCreate,
+} from "./token-mark.js";
+export type { TokenMark, MarkSetPayload, MarkClearPayload } from "./token-mark.js";
+
+// ---------------------------------------------------------------------------
+// MountState (BHR-F5-02) — who rides whom, on the two tokens
+// ---------------------------------------------------------------------------
+
+export {
+  MOUNT_FLAG_NAMESPACE,
+  MOUNT_FLAG_KEY,
+  MOUNTED_EFFECT_REF,
+  MountMountPayloadSchema,
+  MountDismountPayloadSchema,
+  readMountState,
+  isMounted,
+} from "./mount-state.js";
+export type {
+  MountState,
+  MountMovedTurn,
+  MountMountPayload,
+  MountDismountPayload,
+} from "./mount-state.js";
+
+// ---------------------------------------------------------------------------
+// Active animal companion (BHR-F4-10) — the swap is decided on the server
+// ---------------------------------------------------------------------------
+
+export {
+  CompanionSetActivePayloadSchema,
+  CompanionCommandPayloadSchema,
+} from "./companion-active.js";
+export type {
+  CompanionSetActivePayload,
+  CompanionCommandPayload,
+  CompanionCommandResult,
+} from "./companion-active.js";
+
+// ---------------------------------------------------------------------------
+// Support gate — one predicate for the server and the sheets (BHR-F4-10, BHR-F5-04)
+// ---------------------------------------------------------------------------
+
+export {
+  SUPPORT_BLOCK_TEXT_PT,
+  mountSupportBlock,
+  companionMountBlock,
+  companionSupportBlockReasons,
+} from "./support-gate.js";
+export type { SupportTurnRef } from "./support-gate.js";

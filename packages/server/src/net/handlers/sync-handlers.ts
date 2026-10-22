@@ -18,25 +18,39 @@ import type { SeqStore } from "../seq-store.js";
 import type { OpBuffer } from "../op-buffer.js";
 import type { DocumentStore } from "../../documents/store.js";
 import { DocumentNotFoundError } from "../../documents/store.js";
-import { OwnershipLevel, resolveOwnership, isRolePrivileged } from "../../documents/ownership.js";
+import {
+  OwnershipLevel,
+  resolveOwnership,
+  isRolePrivileged,
+  isGamemasterStrict,
+} from "../../documents/ownership.js";
 import {
   redactCombatDocsForNonPrivileged,
   redactSceneDocsForNonPrivileged,
   stripHiddenCombatantsFromCombat,
   redactActorDocsForViewer,
+  actorIsSubjectToKnowledge,
   buildContactViewer,
   contactKnowledgeSourceFromStore,
 } from "../redaction.js";
 import type { ContactViewer } from "../redaction.js";
 import { broadcastToWorld } from "./doc-handlers.js";
+import { isPlayerReadableSettingKey } from "./settings-handlers.js";
 import type { SystemModule } from "@fusion/system-api";
 import { runActorDerivation } from "../derive-runner.js";
+import { resolveWorldVariantRules } from "../../documents/world-variant-rules.js";
 
-import { WorldResyncRequestPayloadSchema, WorldActiveScenePayloadSchema } from "@fusion/shared";
+import { getAmbientTrackState } from "./sound-handlers.js";
+import {
+  WorldResyncRequestPayloadSchema,
+  WorldActiveScenePayloadSchema,
+  ScenePreloadPayloadSchema,
+} from "@fusion/shared";
 import type {
   Envelope,
   WorldSnapshotPayload,
   WorldActiveScenePayload,
+  ResyncAckResult,
   ResyncDeltaPayload,
   ResyncFullPayload,
   Ownership,
@@ -163,6 +177,10 @@ function persistActiveSceneId(db: Db, sceneId: string | null): void {
  */
 function filterOpsForRole(ops: Envelope[], viewer: ContactViewer): Envelope[] {
   return ops.map((op) => {
+    // I5: Setting answers to the live allowlist, whatever the viewer's role.
+    const settingChecked = filterSettingOpForRole(op);
+    if (settingChecked !== op) return settingChecked;
+
     // M2-C: combat broadcasts may carry hidden combatants in their payload.
     // Strip them for non-GM delta replay (REQ-CBT-031).
     if (op.type === "combat:created" || op.type === "combat:updated") {
@@ -239,6 +257,67 @@ function filterOpsForRole(ops: Envelope[], viewer: ContactViewer): Envelope[] {
     // (possibly with an empty `documents`) so the replayed seq stays contiguous.
     return { ...op, payload: { ...payload, documents: stripped } };
   });
+}
+
+/**
+ * Replay of a buffered `Setting` op for a viewer who is NOT the GAMEMASTER.
+ *
+ * `broadcastToWorld` never hands a non-GAMEMASTER socket the whole Setting
+ * envelope: create/update arrive filtered to `PLAYER_READABLE_SETTING_KEYS`
+ * (`isPlayerReadableSettingKey`, the one predicate settings-handlers.ts reads
+ * through) and a delete arrives with empty `ids` — the removed document's key
+ * is not known to the buffer, so none of the ids can be vouched for
+ * (REQ-GAV-034, DEC-CFG-05). The buffer keeps the raw GM envelope, so the replay
+ * has to apply the same cut or reconnecting inside the window reads what the
+ * live path refused to send. The envelope itself is kept (possibly with an
+ * empty body) so the replayed seq stays contiguous.
+ *
+ * Returns the SAME `op` reference when it is not a Setting op or nothing had to
+ * go; never mutates the shared buffered envelope.
+ */
+function filterSettingOpForRole(op: Envelope): Envelope {
+  if (op.type !== "doc:create" && op.type !== "doc:update" && op.type !== "doc:delete") {
+    return op;
+  }
+  const payload = op.payload as Record<string, unknown> | null | undefined;
+  if (!payload || typeof payload !== "object") return op;
+  if (payload["documentType"] !== "Setting") return op;
+
+  if (op.type === "doc:delete") {
+    const ids = payload["ids"];
+    if (!Array.isArray(ids) || ids.length === 0) return op;
+    return { ...op, payload: { ...payload, ids: [] } };
+  }
+
+  const documents = payload["documents"];
+  if (!Array.isArray(documents)) return op;
+  const readable = (documents as Record<string, unknown>[]).filter((doc) => {
+    const key = doc["key"];
+    return typeof key === "string" && isPlayerReadableSettingKey(key);
+  });
+  if (readable.length === documents.length) return op;
+  return { ...op, payload: { ...payload, documents: readable } };
+}
+
+/**
+ * The delta a viewer is allowed to replay. GAMEMASTER gets the buffer as is.
+ * Everyone else goes through `filterOpsForRole` — except the ASSISTANT, who is
+ * privileged for Scene/Actor/Combat (it sees what the GM sees there) but NOT for
+ * Setting, which is GAMEMASTER-strict (REQ-CFG-070/071): it only gets the
+ * Setting cut, never the player-side Scene/Actor redaction.
+ */
+function deltaForRole(
+  deps: SyncHandlerDeps,
+  rawDelta: Envelope[],
+  userId: string,
+  role: number,
+): Envelope[] {
+  if (isGamemasterStrict(role)) return rawDelta;
+  if (isPrivileged(role)) return rawDelta.map(filterSettingOpForRole);
+  return filterOpsForRole(
+    rawDelta,
+    buildContactViewer(contactKnowledgeSourceFromStore(deps.store), userId, role),
+  );
 }
 
 /**
@@ -400,6 +479,10 @@ function buildSnapshot(deps: SyncHandlerDeps, userId: string, role: number): Wor
         visible = redactSceneDocsForNonPrivileged(all, userId);
       } else {
         visible = all.filter((doc) => {
+          // BHR-F7-06 D1: a contact answers to the knowledge funnel below, exactly as in the live broadcast and the
+          // replay (hidden is dropped there, glimpsed is redacted there). Asking ownership first dropped a monster
+          // born with ownership NONE even after the GM marked it Known, so a reload lost what the live op had shown.
+          if (docType === "Actor" && viewer && actorIsSubjectToKnowledge(doc, viewer)) return true;
           const ownership = getOwnershipFromDoc(doc);
           const level = resolveOwnership(ownership, userId, role);
           return level >= OwnershipLevel.LIMITED;
@@ -423,6 +506,7 @@ function buildSnapshot(deps: SyncHandlerDeps, userId: string, role: number): Wor
       // (or whatever it already had), while every other actor is unaffected.
       if (docType === "Actor" && deps.systemModule) {
         const systemModule = deps.systemModule;
+        const worldVariantRules = resolveWorldVariantRules(deps.store, systemModule);
         visible = visible.map((actor) => {
           try {
             const clone: Record<string, unknown> = { ...actor };
@@ -436,7 +520,7 @@ function buildSnapshot(deps: SyncHandlerDeps, userId: string, role: number): Wor
               sys && typeof sys === "object" && !Array.isArray(sys)
                 ? structuredClone(sys as Record<string, unknown>)
                 : {};
-            runActorDerivation(clone, systemModule);
+            runActorDerivation(clone, systemModule, worldVariantRules);
             return clone;
           } catch (err) {
             deps.logger?.warn(
@@ -449,10 +533,11 @@ function buildSnapshot(deps: SyncHandlerDeps, userId: string, role: number): Wor
       }
 
       // Spec 39 §5.9, AFTER derivation on purpose: a glimpsed contact must
-      // carry no system data at all (REQ-CTT-081), and deriving first then
-      // stripping is the only order that guarantees `system.derived` never
-      // slips back in behind the redaction. Ownership above is still the gate
-      // — this only ever removes more (REQ-CTT-074).
+      // carry no system data (REQ-CTT-081) but its size category, and deriving
+      // first then stripping is the only order that guarantees `system.derived`
+      // never slips back in behind the redaction. A contact skips the ownership gate
+      // above (the funnel decides), but a Known one the viewer has no LIMITED ownership of is cut
+      // to name/title/portrait/size by the funnel itself (REQ-CTT-074, DEC-CTT-04).
       // A snapshot REPLACES the mirror wholesale, so an absent contact is
       // already forgotten — `removedIds` is a delta concept and has no meaning
       // here (REQ-CTT-075 is served by the broadcast and replay paths).
@@ -470,6 +555,9 @@ function buildSnapshot(deps: SyncHandlerDeps, userId: string, role: number): Wor
     seq: deps.seqStore.peek(),
     activeSceneId: getActiveSceneId(deps.db),
     documents,
+    // Ambient table track playing right now (or null); late joiners derive
+    // their loop position from `startedAt` locally.
+    ambientTrack: getAmbientTrackState(deps.db),
   };
 }
 
@@ -530,12 +618,7 @@ export function sendJoinSnapshot(
     const rawDelta = deps.opBuffer.opsAfter(lastSeq, deps.seqStore.peek());
     if (rawDelta !== null) {
       // Redact hidden tokens for non-privileged clients (delta-resync leak fix)
-      const delta = isPrivileged(role)
-        ? rawDelta
-        : filterOpsForRole(
-            rawDelta,
-            buildContactViewer(contactKnowledgeSourceFromStore(deps.store), userId, role),
-          );
+      const delta = deltaForRole(deps, rawDelta, userId, role);
       // Client can catch up with delta
       const deltaPayload: ResyncDeltaPayload = {
         fromSeq: lastSeq + 1,
@@ -600,22 +683,14 @@ export function buildResyncRequestHandler(deps: SyncHandlerDeps): HandlerFn {
     const rawDelta = deps.opBuffer.opsAfter(lastSeq, deps.seqStore.peek());
     if (rawDelta !== null) {
       // Redact hidden tokens for non-privileged clients (delta-resync leak fix)
-      const delta = isPrivileged(ctx.role)
-        ? rawDelta
-        : filterOpsForRole(
-            rawDelta,
-            buildContactViewer(contactKnowledgeSourceFromStore(deps.store), ctx.userId, ctx.role),
-          );
+      const delta = deltaForRole(deps, rawDelta, ctx.userId, ctx.role);
       const deltaPayload: ResyncDeltaPayload = {
         fromSeq: lastSeq + 1,
         toSeq: deps.seqStore.peek(),
         ops: delta,
       };
-      return {
-        ok: true as const,
-        seq: deps.seqStore.peek(),
-        result: { type: "delta", payload: deltaPayload },
-      };
+      const result: ResyncAckResult = { type: "delta", payload: deltaPayload };
+      return { ok: true as const, seq: deps.seqStore.peek(), result };
     }
 
     // Full resync needed
@@ -624,11 +699,8 @@ export function buildResyncRequestHandler(deps: SyncHandlerDeps): HandlerFn {
       reason: "seq_out_of_buffer",
       snapshot,
     };
-    return {
-      ok: true as const,
-      seq: deps.seqStore.peek(),
-      result: { type: "full", payload: fullPayload },
-    };
+    const result: ResyncAckResult = { type: "full", payload: fullPayload };
+    return { ok: true as const, seq: deps.seqStore.peek(), result };
   };
 }
 
@@ -814,6 +886,54 @@ export function buildActiveSceneHandler(deps: SyncHandlerDeps): HandlerFn {
     // This handler must not set it — doing so would be inconsistent with all
     // other handlers and could allow client-controlled requestId injection.
     return { ok: true, seq, result: { sceneId } };
+  };
+}
+
+// ---------------------------------------------------------------------------
+// scene:preload handler factory (GM only)
+// ---------------------------------------------------------------------------
+
+/**
+ * "Pre-carregar para todos": the GM tells every client to fetch a scene's background now, so the
+ * switch that follows has nothing left to download. Ephemeral — no seq, no opBuffer entry — since
+ * it is a hint, not world state (a client that reconnects later simply loads on demand).
+ *
+ * The background path of an off-air scene reaches players here on purpose: the GM chose to show
+ * it. Whether the player's asset grant for that scene is honoured is the asset gate's call, not
+ * this op's — with the gate enforcing, the warm-up fails quietly and the normal load runs.
+ */
+export function buildScenePreloadHandler(deps: SyncHandlerDeps): HandlerFn {
+  return (rawPayload, ctx) => {
+    if (!isPrivileged(ctx.role)) {
+      return {
+        ok: false,
+        code: "PERMISSION_DENIED" as const,
+        message: "Only GM can preload scenes for everyone",
+      };
+    }
+    const parsed = ScenePreloadPayloadSchema.safeParse(rawPayload);
+    if (!parsed.success) {
+      return { ok: false, code: "VALIDATION_FAILED" as const, message: parsed.error.message };
+    }
+    const { sceneId } = parsed.data;
+
+    let scene: Record<string, unknown>;
+    try {
+      scene = deps.store.get("scenes", sceneId);
+    } catch (err) {
+      if (err instanceof DocumentNotFoundError) {
+        return { ok: false, code: "NOT_FOUND" as const, message: `Scene not found: ${sceneId}` };
+      }
+      throw err;
+    }
+
+    const background = typeof scene["background"] === "string" ? scene["background"] : "";
+    deps.ns.emit("op", {
+      type: "scene:preload" as const,
+      ts: Date.now(),
+      payload: { sceneId, background },
+    });
+    return { ok: true, result: { sceneId } };
   };
 }
 

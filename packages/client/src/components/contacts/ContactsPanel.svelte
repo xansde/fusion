@@ -15,9 +15,10 @@
    *    document to fetch them.
    *  - **Never by colour alone** (REQ-CTT-094): "you", presence and the fallback
    *    title all carry text as well as a shape.
-   *  - **Dragging to the map is the GM's** (REQ-CTT-028, DEC-CTT-12): a player's
-   *    card is not draggable at all, and the drop path is the one the canvas already
-   *    understands (`application/fusion-actor`, REQ-UIF-044).
+   *  - **Dragging to the map** (REQ-CTT-028, DEC-CTT-12): the Master drags any card; a
+   *    player drags the card of an actor he owns, and each sub-character drags itself
+   *    (REQ-TOK-030a). The drop path is the one the canvas already understands
+   *    (`application/fusion-actor`, REQ-UIF-044).
    *
    * It also draws the section **Conhecidos** (§5.5) and the user's own categories
    * (§5.6). Two rules of that half are worth naming here as well:
@@ -373,17 +374,33 @@
   // Drag to the canvas (REQ-CTT-028)
   // -------------------------------------------------------------------------
 
-  function onDragStart(event: DragEvent, card: ContactCard): void {
-    if (!isGm || !event.dataTransfer) return;
-    const doc = docOf(card.id);
-    if (!doc) return;
+  /** Put the actor behind a card on the drag, in the payload the canvas already reads. */
+  function startActorDrag(event: DragEvent, id: string, name: string): void {
+    const doc = docOf(id);
+    if (!doc || !event.dataTransfer) return;
     const payload = buildActorDragPayload({
       ...(doc as unknown as ActorDocument),
-      name: card.name,
+      name,
       type: doc.type ?? "character",
     });
     event.dataTransfer.setData("application/fusion-actor", JSON.stringify(payload));
     event.dataTransfer.effectAllowed = "copy";
+  }
+
+  function onDragStart(event: DragEvent, card: ContactCard): void {
+    if (!card.draggable) return;
+    startActorDrag(event, card.id, card.name);
+  }
+
+  /**
+   * A sub-character drags ITSELF, never the card it sits in (REQ-TOK-030a): the sub-row
+   * is its own drag source, and the event is stopped here so the master's handler —
+   * which would put the master's actor on the drag — does not run after it.
+   */
+  function onDragStartSub(event: DragEvent, sub: SubContactCard): void {
+    event.stopPropagation();
+    if (!sub.draggable) return;
+    startActorDrag(event, sub.id, sub.name);
   }
 
   /** pt-BR name of a companion kind, degrading to the raw kind when undeclared. */
@@ -570,7 +587,14 @@
 
               <!-- REQ-CTT-025: the sub-character lives inside this card, never loose. -->
               {#each subCharactersOf(card) as sub (sub.id)}
-                <div class="contact-card__sub" data-sub-of={card.id} data-sub-id={sub.id}>
+                <!-- svelte-ignore a11y_no_static_element_interactions -- a drag source, like the card around it; the keyboard path is the sheet button -->
+                <div
+                  class="contact-card__sub"
+                  data-sub-of={card.id}
+                  data-sub-id={sub.id}
+                  draggable={sub.draggable}
+                  ondragstart={(event) => onDragStartSub(event, sub)}
+                >
                   <ActorPortrait
                     img={sub.img}
                     docRef={{ table: "actors", id: sub.id }}
@@ -579,6 +603,31 @@
                   />
                   <span class="contact-card__sub-name">{sub.name}</span>
                   <span class="contact-card__sub-kind">{companionKindLabel(sub.kind)}</span>
+                  {#if sub.canOpenSheet}
+                    <button
+                      class="contact-card__icon-btn contact-card__sheet-btn"
+                      type="button"
+                      aria-label={t("FUSION.Contacts.OpenSheet", { name: sub.name })}
+                      onclick={() => openSheet(sub.id)}
+                    >
+                      <svg
+                        viewBox="0 0 16 16"
+                        width="13"
+                        height="13"
+                        aria-hidden="true"
+                        focusable="false"
+                      >
+                        <path
+                          d="M4 2.2h6.2L13 5v8.8H4z"
+                          fill="none"
+                          stroke="currentColor"
+                          stroke-width="1.3"
+                          stroke-linejoin="round"
+                        />
+                        <path d="M6 7.4h5M6 10h3.5" fill="none" stroke="currentColor" stroke-width="1.3" />
+                      </svg>
+                    </button>
+                  {/if}
                   {#if sub.conditions.length > 0}
                     <ConditionChips conditions={sub.conditions} idPrefix={`sub-${sub.id}`} />
                   {/if}
@@ -1203,6 +1252,10 @@
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
+  }
+
+  .contact-card__sub .contact-card__sheet-btn {
+    margin-left: auto;
   }
 
   .contact-card__sub-kind {

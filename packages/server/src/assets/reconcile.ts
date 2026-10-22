@@ -131,7 +131,13 @@ import type { Database } from "better-sqlite3";
 import { sha256Hex } from "./slug.js";
 import { detectType } from "./magic-bytes.js";
 import { guardPath, PathTraversalError } from "./path-guard.js";
-import { recordAsset, getAssetRecord, listAssetRecords, deleteAssetRecord } from "./asset-store.js";
+import {
+  recordAsset,
+  getAssetRecord,
+  listAssetRecords,
+  deleteAssetRecord,
+  isIconAssetName,
+} from "./asset-store.js";
 
 // ---------------------------------------------------------------------------
 // Constants
@@ -564,6 +570,10 @@ export function reconcileAssets(options: ReconcileAssetsOptions): AssetReconcile
   const recentUnreferenced: OrphanedAsset[] = [];
   for (const name of diskNames) {
     if (referencedDiskNames.has(name)) continue;
+    // BAR-F3-05: an icon of the shared gallery is referenced by the gallery itself — players pick
+    // from it later — so no document using it is not "unused". Collecting it would empty the
+    // gallery; the GM removes icons through it (DELETE /api/assets/icons/:name).
+    if (isIconAssetName(name)) continue;
 
     const record = registryByName.get(name);
     const entry: OrphanedAsset = {

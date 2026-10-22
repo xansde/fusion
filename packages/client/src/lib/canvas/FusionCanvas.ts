@@ -18,9 +18,11 @@
  * The PIXI shell is intentionally thin — all math lives in camera-math.ts.
  */
 
+import { fadeIn } from "./sceneFade.js";
 import { Application, Container, Text, TextStyle } from "pixi.js";
 
 import { squarePixelToCell } from "@fusion/shared";
+import type { GridStrategy } from "@fusion/shared";
 import {
   type CameraState,
   type ZoomLimits,
@@ -92,6 +94,11 @@ export class FusionCanvas {
   // Grid
   private _gridRenderer: GridRenderer | null = null;
   private _currentGridConfig: GridRenderConfig | null = null;
+  /**
+   * Grid geometry for the active scene. Owned by whoever loads the scene
+   * (sceneLoader) and injected here; the canvas never assumes a grid type.
+   */
+  private _gridStrategy: GridStrategy | null = null;
 
   // Pan interaction
   private _isPanning = false;
@@ -224,6 +231,20 @@ export class FusionCanvas {
   // ---------------------------------------------------------------------------
 
   /**
+   * Fade the whole stage from transparent to opaque (the short fade that follows a scene swap).
+   * Returns a canceller that snaps the stage back to fully visible. No-op before `init()`.
+   */
+  fadeInStage(): () => void {
+    const app = this._app;
+    if (!app) {
+      return () => {
+        /* no-op — canvas not yet initialised */
+      };
+    }
+    return fadeIn(app.stage, (cb) => this.addTicker(cb));
+  }
+
+  /**
    * Add a per-frame callback to the PIXI ticker.
    * Returns a disposer function that removes the callback when called.
    *
@@ -275,6 +296,28 @@ export class FusionCanvas {
     }
   }
 
+  /**
+   * Set the grid geometry used to snap and measure. Pass null when no scene is
+   * active. Separate from setGrid(): GridRenderConfig is what the renderer
+   * needs to DRAW, GridStrategy is what callers need to MEASURE.
+   */
+  setGridStrategy(strategy: GridStrategy | null): void {
+    this._gridStrategy = strategy;
+  }
+
+  /** The active scene's grid geometry, or null when no scene is loaded. */
+  get gridStrategy(): GridStrategy | null {
+    return this._gridStrategy;
+  }
+
+  /**
+   * The DOM element the renderer is mounted in. Lets interaction modules
+   * (ruler, tools) attach pointer listeners without touching private state.
+   */
+  get viewElement(): HTMLElement {
+    return this._container;
+  }
+
   /** The grid config currently installed (null when no grid is shown). */
   getGridConfig(): GridRenderConfig | null {
     return this._currentGridConfig;
@@ -310,6 +353,22 @@ export class FusionCanvas {
 
   set zoomLimits(limits: ZoomLimits) {
     this._zoomLimits = limits;
+  }
+
+  /**
+   * True when the screen point (client coordinates) lies on an interactive
+   * object of the tokens layer. Used by gestures that must only act on empty map.
+   */
+  isOverToken(clientX: number, clientY: number): boolean {
+    const app = this._app;
+    if (!app) return false;
+    const rect = this._container.getBoundingClientRect();
+    const hit = app.renderer.events.rootBoundary.hitTest(clientX - rect.left, clientY - rect.top);
+    const tokens = this.getLayer("tokens");
+    for (let node: Container | null = hit; node; node = node.parent) {
+      if (node === tokens) return node !== hit;
+    }
+    return false;
   }
 
   /**
@@ -409,7 +468,7 @@ export class FusionCanvas {
     effectsGroup.label = "group:effects";
     world.addChild(effectsGroup);
 
-    const effectsLayers: LayerName[] = ["weather", "lighting"];
+    const effectsLayers: LayerName[] = ["weather", "lighting", "fog"];
     for (const name of effectsLayers) {
       const layer = new Container();
       layer.label = `layer:${name}`;

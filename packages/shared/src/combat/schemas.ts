@@ -147,6 +147,42 @@ export const CombatDocumentSchema = z.object({
   activeCombatantId: z.string().nullable().default(null),
 
   /**
+   * The multiple attack penalty count the SERVER keeps for the combatant whose
+   * turn it is (BHR onda-6 review I-7, D-G03): how many attacks it already made
+   * this turn. Valid only while `combatantId` is the active combatant and
+   * `round` is the current round; otherwise the count is stale (a new turn
+   * starts at zero without a write). Masked for players when the active
+   * combatant is hidden, like `activeCombatantId` (REQ-CBT-031).
+   */
+  attackCount: z
+    .object({
+      combatantId: z.string(),
+      round: z.number().int().min(0),
+      count: z.number().int().min(0),
+      /**
+       * Attacks already made this turn by each animal companion acting on the active combatant's turn
+       * (its owner's), by actor id. A companion has a MAP of its own, apart from the owner's (wave 7 review I-3).
+       */
+      byActor: z.record(z.string(), z.number().int().min(0)).optional(),
+    })
+    .nullable()
+    .default(null),
+
+  /**
+   * Animal companions the owner commanded this turn (`companion:command`, L3 I4): the SERVER stamps it. Valid only
+   * while `combatantId` is the active combatant and `round` the current round, like `attackCount`, so a new turn is
+   * stale with no reset write. Masked for players when the active combatant is hidden.
+   */
+  commandMark: z
+    .object({
+      combatantId: z.string(),
+      round: z.number().int().min(0),
+      actorIds: z.array(z.string()),
+    })
+    .nullable()
+    .default(null),
+
+  /**
    * Whether beginCombat has been called.
    * REQ-CBT-020.
    */
