@@ -227,8 +227,8 @@ canto inferior direito da mesa do jogador que controla aquele personagem.
   **aba Configurações da gaveta** (não mais botão na ficha). O "behind 63" da worktree
   deixa de importar: só o ponto de integração precisa da alfa atual.
 
-- **DEC-AVT-08 — PNG gerado é obra derivada CC-BY-SA 3.0; acervo fora do exe (provisória, 21/10/2026
-  — revisar no beta).** Decisão de projeto, não parecer jurídico. O acervo mistura licenças por
+- **DEC-AVT-08 — PNG gerado é obra derivada CC-BY-SA 3.0; acervo fora do exe.** Provisória
+  (21/10/2026 — revisar no beta). Decisão de projeto, não parecer jurídico. O acervo mistura licenças por
   peça (GPL 3.0, OGA-BY, CC-BY-SA 3.0, CC-BY, CC0...); trata-se o PNG como derivado sob a mais
   restritiva entre as não-GPL, com atribuição. Medidas: `NOTICE` na raiz com a seção do avatar
   (REQ-LEG-026), chunk de texto no PNG (REQ-AVT-068) e acervo como pacote opcional ao lado do

@@ -583,7 +583,7 @@ describe("ActionBar — a faixa de estado (REQ-BAR-027, REQ-BAR-036..040)", () =
     expect(text).toContain("Herói");
     expect(text).toContain("Alvo: Alvo Stub");
     expect(text).toContain("Próximo ataque:");
-    expect(text).toContain("MAP −5");
+    expect(text).toContain("PAM −5");
   });
 
   it("REQ-BAR-040: fora de combate, a faixa diz 'Fora de combate' e não há Encerrar turno", () => {
