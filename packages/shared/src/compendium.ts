@@ -486,6 +486,10 @@ export const CompendiumI18nBySourceRefPayloadSchema = z.object({
   packName: z.string(),
   /** `flags.fusion.sourceId` — the vendor's raw `_id`, unique within `packName`. */
   sourceId: z.string(),
+  /** Origin game system of the document (`flags.fusion.systemId`, stamped on import). Optional and
+   * additive (#264): `(packName, sourceId)` collides across pf2e x sf2e (Ratfolk x Ysoki), and
+   * this disambiguates. Absent = the old rule (pf2e wins). */
+  systemId: z.string().optional(),
 });
 
 export type CompendiumI18nBySourceRefPayload = z.infer<

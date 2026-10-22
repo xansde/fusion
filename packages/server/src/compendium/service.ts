@@ -74,6 +74,7 @@ import type { Database as Db } from "better-sqlite3";
 import { createDocumentId } from "@fusion/shared";
 import type { SystemModule } from "@fusion/system-api";
 import { runActorDerivation } from "../net/derive-runner.js";
+import { resolveWorldVariantRules } from "../documents/world-variant-rules.js";
 import {
   buildDedupIndex,
   parseDocKey,
@@ -159,6 +160,12 @@ export class CompendiumService {
    * `_getSourceRefIndex`).
    */
   private _sourceRefIndex: Map<string, { packId: string; docId: string }> | null = null;
+  /**
+   * Same entries as {@link _sourceRefIndex} but keyed by origin system too
+   * (`"<systemId>\0<packName>\0<sourceId>"`), so a reference that carries its
+   * `systemId` resolves the right side of a cross-system sourceId collision (#264).
+   */
+  private _sourceRefBySystem: Map<string, { packId: string; docId: string }> | null = null;
 
   /**
    * Cross-pack search index for {@link searchAllPacks}: every entry of every
@@ -674,10 +681,9 @@ export class CompendiumService {
    */
   getI18nBySourceRef(
     viewerRole: number,
-    ref: { packName: string; sourceId: string },
+    ref: { packName: string; sourceId: string; systemId?: string | undefined },
   ): DocI18n | null {
-    const index = this._getSourceRefIndex();
-    const hit = index.get(buildSourceRefKey(ref.packName, ref.sourceId));
+    const hit = this._resolveSourceRef(ref);
     if (!hit) return null;
 
     const loaded = this._packFor(hit.packId, viewerRole);
@@ -706,10 +712,9 @@ export class CompendiumService {
    */
   getDocumentBySourceRef(
     viewerRole: number,
-    ref: { packName: string; sourceId: string },
+    ref: { packName: string; sourceId: string; systemId?: string | undefined },
   ): Record<string, unknown> | null {
-    const index = this._getSourceRefIndex();
-    const hit = index.get(buildSourceRefKey(ref.packName, ref.sourceId));
+    const hit = this._resolveSourceRef(ref);
     if (!hit) return null;
 
     const loaded = this._packFor(hit.packId, viewerRole);
@@ -910,6 +915,7 @@ export class CompendiumService {
         // only holds if BOTH import surfaces (world and sheet) snapshot the same
         // way before stripping `i18n` (code review, ajustes r1 Fase 4, 2026-08-17).
         snapshotPtBRLabel(worldDoc);
+        stampOriginSystemId(worldDoc, manifest.systemId);
 
         delete worldDoc["uuid"];
         delete worldDoc["i18n"];
@@ -938,7 +944,13 @@ export class CompendiumService {
         // WHOLE worldDoc, exactly as mutated, is what gets persisted below.
         if (manifest.documentType === "Actor" && options.systemModule) {
           try {
-            runActorDerivation(worldDoc, options.systemModule);
+            // #274 (DEC-MCL-09): overlay the world's variant-rule Settings, as every other
+            // runActorDerivation call site does (derive.ts, sync-handlers, combat-handlers).
+            runActorDerivation(
+              worldDoc,
+              options.systemModule,
+              resolveWorldVariantRules(store, options.systemModule),
+            );
           } catch (deriveErr) {
             options.logger?.warn(
               { err: deriveErr, uuid },
@@ -1116,6 +1128,7 @@ export class CompendiumService {
         // That second mechanism is a real, separate defect (see openQuestions)
         // and is NOT fixed here.
         snapshotPtBRLabel(embedded);
+        stampOriginSystemId(embedded, manifest.systemId);
         delete embedded["uuid"];
         delete embedded["i18n"];
         delete embedded["mechanics"];
@@ -1408,6 +1421,9 @@ export class CompendiumService {
    *      `buildDedupIndex`) is skipped here too — indexing it would let a
    *      stale/superseded overlay entry win a collision it has no business
    *      winning.
+   * #264: a reference that carries `systemId` (stamped on `flags.fusion` at import,
+   * REQ-CMP-059) resolves its own side via {@link _resolveSourceRef}. The gap below remains only
+   * for references WITHOUT it (world documents imported before the stamp existed).
    * KNOWN REMAINING GAP: for the Ratfolk/Ysoki shape — same `sourceId`,
    * same generic `packName`, but DIFFERENT content that dedup correctly
    * keeps as two separate, unfused documents (not a losing/winning pair) —
@@ -1423,11 +1439,30 @@ export class CompendiumService {
    * is a client-facing protocol change — tracked as a follow-up, not done
    * here (see conserto-core.md).
    */
+  /**
+   * Resolve an origin reference. With `systemId`, the entry of THAT system wins; when it has none
+   * (or no `systemId` was given) the system-agnostic index answers, pf2e first (I5).
+   */
+  private _resolveSourceRef(ref: {
+    packName: string;
+    sourceId: string;
+    systemId?: string | undefined;
+  }): { packId: string; docId: string } | undefined {
+    const index = this._getSourceRefIndex();
+    const key = buildSourceRefKey(ref.packName, ref.sourceId);
+    if (ref.systemId !== undefined) {
+      const own = this._sourceRefBySystem?.get(`${ref.systemId}\0${key}`);
+      if (own) return own;
+    }
+    return index.get(key);
+  }
+
   private _getSourceRefIndex(): Map<string, { packId: string; docId: string }> {
     if (this._sourceRefIndex) return this._sourceRefIndex;
 
     const dedup = this._ensureDedupIndex();
     const index = new Map<string, { packId: string; docId: string }>();
+    const bySystem = new Map<string, { packId: string; docId: string }>();
 
     const sortedPacks = [...this.packs.entries()].sort(([packIdA, a], [packIdB, b]) => {
       const pa = a.manifest.systemId === "pf2e" ? 0 : 1;
@@ -1464,6 +1499,8 @@ export class CompendiumService {
         if (typeof packName !== "string" || typeof sourceId !== "string") continue;
 
         const key = buildSourceRefKey(packName, sourceId);
+        const systemKey = `${loaded.manifest.systemId}\0${key}`;
+        if (!bySystem.has(systemKey)) bySystem.set(systemKey, { packId, docId });
         const existing = index.get(key);
         if (existing) {
           // A same-system duplicate (never expected, REQ-CMP-041) OR a
@@ -1490,6 +1527,7 @@ export class CompendiumService {
     }
 
     this._sourceRefIndex = index;
+    this._sourceRefBySystem = bySystem;
     return index;
   }
 
@@ -1814,6 +1852,22 @@ export function snapshotPtBRLabel(doc: Record<string, unknown>): void {
   fusion["i18n"] = { "pt-BR": label };
   flags["fusion"] = fusion;
   doc["flags"] = flags;
+}
+
+/**
+ * #264 (REQ-CMP-059): `(packName, sourceId)` is not a cross-system identity (36 vendor
+ * documents share it between pf2e and sf2e with different content). Stamp the ORIGIN
+ * `systemId` on `flags.fusion` of an imported document so a reader can pass it back to
+ * `getI18nBySourceRef`/`getDocumentBySourceRef`. Only documents that already carry an
+ * origin reference (`flags.fusion.sourceId`) are stamped; mutates `doc` in place.
+ */
+export function stampOriginSystemId(doc: Record<string, unknown>, systemId: string): void {
+  const flags = doc["flags"];
+  if (typeof flags !== "object" || flags === null) return;
+  const fusion = (flags as Record<string, unknown>)["fusion"];
+  if (typeof fusion !== "object" || fusion === null) return;
+  if (typeof (fusion as Record<string, unknown>)["sourceId"] !== "string") return;
+  doc["flags"] = { ...(flags as Record<string, unknown>), fusion: { ...fusion, systemId } };
 }
 
 function packed<T>(v: T | null): v is T {
