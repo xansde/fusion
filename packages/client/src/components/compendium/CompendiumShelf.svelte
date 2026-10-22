@@ -9,7 +9,7 @@
    *
    * The license is why this is not just a list of names. It is the reason the
    * project is clean-room (spec 26, DEC-CPD-07), so it is the one thing the row
-   * may not drop for lack of room: the label ellipses, the license wraps. The
+   * may not drop for lack of room: the label and the license both wrap, nothing is cut. The
    * long attribution prose rides along as the row's tooltip.
    *
    * A pack of audience `"gm"` is marked as such — but only on the privileged
@@ -28,6 +28,7 @@
 
   import type { ShelfGroup } from "../../lib/compendium/compendiumShelf.js";
   import { t } from "../../lib/i18n/i18n.js";
+  import Icon from "../common/Icon.svelte";
 
   interface Props {
     /** The shelf, already grouped and marked (`buildShelfGroups`). */
@@ -56,26 +57,13 @@
         aria-controls={listId(group.documentType)}
         onclick={() => onToggleGroup(group.documentType)}
       >
-        <!--
-          Drawn chevron, never a pictograph (REQ-NPC-094 / DEC-ACH-04): an emoji
-          changes shape per operating system and ignores the theme.
-        -->
-        <svg
+        <span
           class="pack-group__chevron"
           class:pack-group__chevron--collapsed={group.collapsed}
-          viewBox="0 0 24 24"
-          width="12"
-          height="12"
-          fill="none"
-          stroke="currentColor"
-          stroke-width="2.5"
-          stroke-linecap="round"
-          stroke-linejoin="round"
           aria-hidden="true"
-          focusable="false"
         >
-          <path d="m6 9 6 6 6-6" />
-        </svg>
+          <Icon name="chevron-down" size={16} />
+        </span>
         <span class="pack-group__title">{t(group.labelKey)}</span>
         <span class="pack-group__count">
           {t("FUSION.Compendium.Shelf.PackCount", { count: group.packCount })}
@@ -95,16 +83,16 @@
                 ? `${pack.label} — ${pack.licenseDetail}`
                 : pack.label}
             >
-              <span class="pack-row__head">
-                <span class="pack-row__label">{pack.label}</span>
+              <span class="pack-row__label">{pack.label}</span>
+              <span class="pack-row__meta">
                 <span class="pack-row__count">
                   {t("FUSION.Compendium.Shelf.DocumentCount", { count: pack.documentCount })}
                 </span>
-              </span>
-              <span class="pack-row__meta">
+                <span class="pack-row__sep" aria-hidden="true">·</span>
                 <!--
                   Never conditional and never clipped: the license is the field
-                  that has to survive a narrow drawer (DEC-CPD-07).
+                  that has to survive a narrow drawer (DEC-CPD-07). Plain text in
+                  the meta line; the long attribution is the row's tooltip.
                 -->
                 <span class="pack-row__license" aria-label={t("FUSION.Compendium.Shelf.License")}>
                   {pack.license}
@@ -126,42 +114,44 @@
 <style>
   /*
    * No width anywhere: the drawer owns it (REQ-GAV-012, REQ-CPD-017). Rows grow
-   * down, never sideways — which is exactly why the label ellipses and the
-   * license wraps.
+   * down, never sideways: the name breaks onto a second line, the meta wraps.
+   * Group = section heading; pack = flat row split by a divider (no card in card).
    */
   .pack-group {
-    margin-bottom: 0.75rem;
+    margin-bottom: var(--fusion-space-4);
   }
 
   .pack-group__heading {
-    margin: 0 0 0.25rem;
-    font-size: 0.7rem;
+    margin: 0 0 var(--fusion-space-1);
+    font-size: var(--fusion-text-lg);
+    font-weight: 500;
   }
 
   .pack-group__toggle {
     display: flex;
     align-items: center;
-    gap: 0.35rem;
+    gap: var(--fusion-space-2);
     width: 100%;
-    padding: 0.15rem 0.25rem;
+    min-height: var(--fusion-target);
+    padding: 0 var(--fusion-space-1);
     background: none;
     border: none;
     cursor: pointer;
-    color: var(--fusion-text-muted, #888);
+    color: var(--fusion-text);
     font: inherit;
-    font-weight: 700;
-    text-transform: uppercase;
-    letter-spacing: 0.05em;
+    font-weight: inherit;
     text-align: left;
   }
 
-  .pack-group__toggle:hover {
-    color: var(--fusion-text, #eee);
+  .pack-group__toggle:hover .pack-group__title {
+    color: var(--fusion-accent);
   }
 
   .pack-group__chevron {
+    display: inline-flex;
     flex-shrink: 0;
-    transition: transform var(--fusion-transition, 0.15s);
+    color: var(--fusion-text-muted);
+    transition: transform var(--fusion-transition);
   }
 
   .pack-group__chevron--collapsed {
@@ -171,99 +161,73 @@
   .pack-group__title {
     flex: 1;
     min-width: 0;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
+    overflow-wrap: anywhere;
   }
 
   .pack-group__count {
     flex-shrink: 0;
-    font-size: 0.7rem;
+    font-size: var(--fusion-text-xs);
     font-weight: 400;
-    text-transform: none;
-    letter-spacing: 0;
-    color: var(--fusion-text-muted, #888);
-    background: var(--fusion-surface, #222);
-    border-radius: 9999px;
-    padding: 0.1rem 0.4rem;
+    color: var(--fusion-text-muted);
   }
 
   .pack-group__list {
     list-style: none;
     margin: 0;
     padding: 0;
-    display: flex;
-    flex-direction: column;
-    gap: 0.15rem;
+  }
+
+  .pack-group__item + .pack-group__item {
+    border-top: 1px solid var(--fusion-border);
   }
 
   .pack-row {
     display: flex;
     flex-direction: column;
-    gap: 0.15rem;
+    gap: var(--fusion-space-1);
     width: 100%;
+    min-height: var(--fusion-target);
     box-sizing: border-box;
-    padding: 0.35rem 0.5rem;
-    background: var(--fusion-surface-alt, #2a2a2a);
-    border: 1px solid var(--fusion-border, #444);
-    border-radius: var(--fusion-radius-sm, 4px);
+    padding: var(--fusion-space-2) var(--fusion-space-1);
+    background: none;
+    border: none;
+    border-radius: var(--fusion-radius-sm);
     cursor: pointer;
-    color: var(--fusion-text, #eee);
+    color: var(--fusion-text);
     font: inherit;
     text-align: left;
-    transition: background 0.15s;
+    transition: background var(--fusion-transition);
   }
 
   .pack-row:hover {
-    background: var(--fusion-border, #444);
+    background: var(--fusion-surface-alt);
   }
 
-  .pack-row__head {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 0.4rem;
-    min-width: 0;
-  }
-
-  /* The label is what gives way when the drawer is narrow. */
+  /* The whole name, breaking onto a second line when the drawer is narrow. */
   .pack-row__label {
-    flex: 1;
-    min-width: 0;
-    font-size: 0.82rem;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-  }
-
-  .pack-row__count {
-    flex-shrink: 0;
-    font-size: 0.7rem;
-    color: var(--fusion-text-muted, #888);
+    font-size: var(--fusion-text-base);
+    overflow-wrap: anywhere;
   }
 
   .pack-row__meta {
     display: flex;
     align-items: baseline;
     flex-wrap: wrap;
-    gap: 0.3rem;
-    font-size: 0.68rem;
+    gap: var(--fusion-space-1) var(--fusion-space-2);
+    font-size: var(--fusion-text-xs);
+    color: var(--fusion-text-muted);
   }
 
-  /*
-   * DEC-CPD-07: the license is the one field that is never truncated. It wraps
-   * onto a second line instead — hence no `text-overflow` and no `nowrap` here.
-   */
+  /* DEC-CPD-07: the license is never truncated — no `text-overflow`, no `nowrap`. */
   .pack-row__license {
-    color: var(--fusion-text-muted, #888);
     overflow-wrap: anywhere;
   }
 
   .pack-row__gm {
     flex-shrink: 0;
-    padding: 0 0.3rem;
-    border: 1px solid var(--fusion-border, #444);
-    border-radius: 9999px;
-    color: var(--fusion-accent, #c0a060);
+    padding: 0 var(--fusion-space-2);
+    border-radius: var(--fusion-radius-sm);
+    background: var(--fusion-warning-dim);
+    color: var(--fusion-text);
   }
 </style>

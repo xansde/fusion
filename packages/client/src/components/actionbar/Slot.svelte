@@ -40,7 +40,7 @@
   import type { ActionBarEntry } from "../../lib/actionbar/types.js";
   import { isKeyboardFocus } from "../../lib/ui/triggerWiring.js";
   import { iconKeyFor, iconSvg } from "./icons.js";
-  import CostGlyphs from "./CostGlyphs.svelte";
+  import CostGlyphs from "../common/CostGlyphs.svelte";
   import {
     SLOT_ICON_SOURCE,
     resolveSlotIconUrl,

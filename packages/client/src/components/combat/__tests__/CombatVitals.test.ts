@@ -258,7 +258,8 @@ describe("ConditionChip paints the declaration, never the condition (REQ-CBA-050
     const style = styleOf("../../common/ConditionChip.svelte");
     expect(style).toContain("--fusion-success");
     expect(style).toContain("--fusion-danger");
-    expect(style).toContain("--fusion-accent");
+    // "special" is the magic tone (ui-gaveta, 22/10/2026): the accent is for what is interactive.
+    expect(style).toContain("--fusion-magic");
   });
 
   it("REQ-CTT-032: critical fills the chip in the tone it already has, and says the word", () => {

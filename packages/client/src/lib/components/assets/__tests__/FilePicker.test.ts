@@ -15,6 +15,7 @@ import { render } from "svelte/server";
 
 import "../../../i18n/index.js";
 import FilePicker from "../FilePicker.svelte";
+import { t } from "../../../i18n/i18n.js";
 
 const noop = (): void => {};
 
@@ -47,7 +48,7 @@ describe("FilePicker — icon mode", () => {
 
   it("leaves the default mode exactly as it was (scene background, portrait)", () => {
     const { body } = render(FilePicker, { props: { token: "t", onSelect: noop, onClose: noop } });
-    expect(body).toContain("Asset Browser");
+    expect(body).toContain(t("FUSION.FilePicker.Title"));
     expect(body).toContain('type="url"');
     expect(body).not.toContain("Ícones da barra");
   });
