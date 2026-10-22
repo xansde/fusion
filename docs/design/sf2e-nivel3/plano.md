@@ -5,6 +5,11 @@
 personagem de **qualquer classe**, do nível 1 ao 3. As classes em playtest também entram, porque
 são a parte que ele mais quer testar.
 
+> **Nota de 21/10/2026:** este plano é o retrato de 24/09. Desde então o satélite fechou o PR #60 como
+> superado (as 6 classes do Player Core já estão na `main`), a spec 18 foi mergeada com D1–D3 como
+> DEC-SF2-11/12/13, e a tabela "Estado verificado" abaixo está defasada. Vale como histórico de escopo;
+> a fonte de verdade é a spec 18.
+
 ## Escopo (decisões de 24/09)
 
 - **DENTRO:**
