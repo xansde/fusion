@@ -409,6 +409,13 @@ contém `<systemId>/`).
   registrado — DEVE logar a colisão e ignorar o duplicado. A raiz oficial é sempre
   descoberta antes da privada, então um `packId` colidente nunca apaga um pack oficial
   (DEC-CMP-11).
+- **REQ-CMP-059** [MVP] `(packName, sourceId)` não é identidade entre sistemas (36 documentos
+  do vendor repetem o par entre pf2e e sf2e com conteúdo diferente). A referência de origem
+  DEVE aceitar um `systemId` opcional (aditivo) em `compendium:i18nBySourceRef` e na
+  resolução por referência de origem, e a importação para o mundo e para a ficha DEVE
+  carimbar `flags.fusion.systemId` com o sistema do pack de origem (nos documentos que já
+  trazem `flags.fusion.sourceId`). Com `systemId`, vence a entrada daquele sistema; sem ele
+  (ou com um sistema desconhecido) vale a regra determinística anterior (pf2e vence).
 
 ### Compendium browser (UI)
 

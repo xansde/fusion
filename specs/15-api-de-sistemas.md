@@ -611,7 +611,7 @@ rollOptions?: string[] }` invocável a partir de sheets, macros e chat (ex.:
   registrar um template/renderer de chat card por `cardType`, recebendo um
   payload tipado e produzindo o conteúdo da `ChatMessage` (componente Svelte ou
   função → HTML sanitizado), com **ações declarativas** embutidas (`data-action`)
-  resolvidas via REQ-SYS-045 (`ver 09-`).
+  resolvidas via REQ-SYS-045 (ver a spec 09).
 - **REQ-SYS-047** [MVP] `registrar.setting(def: SettingDefinition)` DEVE registrar
   uma setting `{ key, scope: "world"|"user"|"client", schema: ZodType, default,
 label, hint?, requiresReload?, requiresConfirmOnDisable?, countAffectedActors?,
