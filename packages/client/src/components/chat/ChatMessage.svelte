@@ -75,6 +75,7 @@
   } from "../../lib/chat/messageFormatter.js";
   import { classifyNestedChildren } from "../../lib/chat/chatNestedRender.js";
   import { buildRollDisplay, type RollDisplay } from "../../lib/chat/rollDisplay.js";
+  import { rollBreakdownRows } from "../../lib/chat/rollBreakdownParts.js";
   import { isCardMessage, isInvalidMessage } from "../../lib/chat/chatGrouping.js";
   import { resolveInvalidatorLabel } from "../../lib/chat/invalidationDisplay.js";
   import { resolveSpeakerColor } from "../../lib/chat/speakerColor.js";
@@ -182,6 +183,10 @@
   const rollDisplays = $derived<RollDisplay[]>(
     message.rolls ? message.rolls.map(buildRollDisplay) : [],
   );
+
+  // ui-fundacao: where the modifier came from — the parts the server checked against the formula
+  // (`flags.fusion.breakdown`) plus the conditional modifiers it added. Printed under the first roll.
+  const breakdownRows = $derived(rollBreakdownRows(message));
 
   // REQ-ACH-081: the message stands voided. Read structurally (chatGrouping's
   // predicate, the same one the log groups by) so there is no second notion of
@@ -406,6 +411,24 @@
         <div class="roll-card__total roll-card__total--{totalClass || 'normal'}">
           {roll.total}
         </div>
+
+        {#if idx === 0 && breakdownRows.length > 0}
+          <ul class="roll-card__parts" aria-label="Como o modificador é composto" data-testid="roll-card-parts">
+            {#each breakdownRows as row, ri (ri)}
+              <li
+                class="roll-card__part"
+                class:roll-card__part--off={!row.applied}
+                class:roll-card__part--conditional={row.conditional}
+              >
+                <span class="roll-card__part-label">{row.label}</span>
+                <span class="roll-card__part-value">{row.valueFormatted}</span>
+                {#if !row.applied}
+                  <span class="roll-card__part-note">não acumula</span>
+                {/if}
+              </li>
+            {/each}
+          </ul>
+        {/if}
 
         <!--
           Target (REQ-ACH-070) — the name of who the roll was aimed at, right
@@ -1109,5 +1132,47 @@
 
   .nested-saves__toggle:hover {
     color: var(--fusion-accent-hover);
+  }
+  /* ui-fundacao: the decomposition under the total — one line per part, label left, value right. */
+  .roll-card__parts {
+    list-style: none;
+    margin: var(--fusion-space-1) 0 0;
+    padding: var(--fusion-space-2) 0 0;
+    border-top: 1px solid var(--fusion-border);
+    font-size: var(--fusion-text-sm);
+    color: var(--fusion-text-muted);
+  }
+
+  .roll-card__part {
+    display: flex;
+    align-items: baseline;
+    gap: var(--fusion-space-2);
+    line-height: var(--fusion-leading);
+  }
+
+  .roll-card__part-label {
+    flex: 1;
+  }
+
+  .roll-card__part-value {
+    font-family: var(--fusion-font-mono);
+    font-weight: var(--fusion-weight-bold);
+    color: var(--fusion-text);
+  }
+
+  .roll-card__part--off .roll-card__part-label,
+  .roll-card__part--off .roll-card__part-value {
+    text-decoration: line-through;
+    color: var(--fusion-text-subtle);
+  }
+
+  .roll-card__part-note {
+    font-size: var(--fusion-text-xs);
+    color: var(--fusion-text-subtle);
+  }
+
+  .roll-card__part--conditional .roll-card__part-label::after {
+    content: " (condicional)";
+    color: var(--fusion-text-subtle);
   }
 </style>

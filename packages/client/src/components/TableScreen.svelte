@@ -20,6 +20,7 @@
    */
 
   import { onMount, onDestroy } from "svelte";
+  import FusionMark from "./common/FusionMark.svelte";
   import { session, sessionActions } from "../lib/session.svelte.js";
   import { FusionCanvas } from "../lib/canvas/FusionCanvas.js";
   import { loadDevScene } from "../lib/canvas/dev-scene.js";
@@ -1179,7 +1180,7 @@ import { presenceState } from "../lib/presence/presenceStore.svelte.js";
   <header class="table-header">
     <!-- World name -->
     <div class="table-header__world">
-      <span class="table-header__world-icon" aria-hidden="true">&#9889;</span>
+      <span class="table-header__world-icon" aria-hidden="true"><FusionMark size={20} /></span>
       <span class="table-header__world-name">
         {session.worldInfo?.title ?? "Fusion VTT"}
       </span>

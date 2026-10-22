@@ -22,6 +22,7 @@
    */
 
   import { onMount } from "svelte";
+  import FusionMark from "../common/FusionMark.svelte";
   import { setupApi, SetupApiError, isFullSetupState, type SetupState } from "./setupApi.js";
   import QrCode from "./QrCode.svelte";
   import { t } from "../../lib/i18n/i18n.js";
@@ -270,7 +271,7 @@
 <div class="setup-shell">
   <div class="setup-card">
     <header class="setup-card__header">
-      <div class="setup-card__logo" aria-hidden="true">&#9889;</div>
+      <div class="setup-card__logo" aria-hidden="true"><FusionMark size={32} /></div>
       <div>
         <h1>{t("FUSION.Setup.Title")}</h1>
         {#if initialState}
