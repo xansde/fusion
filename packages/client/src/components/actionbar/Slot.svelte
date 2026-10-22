@@ -126,10 +126,9 @@
     const actorId = iconActorId;
     if (path === null || actorId === null) return;
     let cancelled = false;
-    void resolveSlotIconUrl(path, actorId, {
-      token: fusionApi.getToken(),
-      userId: session.user?.id,
-    })
+    void fusionApi
+      .getFreshToken()
+      .then((token) => resolveSlotIconUrl(path, actorId, { token, userId: session.user?.id }))
       .then((url) => {
         if (cancelled) return;
         if (url === null) imageFailed = true;

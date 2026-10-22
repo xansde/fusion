@@ -53,15 +53,21 @@
     resolvedSrc = null;
     const raw = img;
     if (isPortraitPlaceholder(raw)) return;
-    const token = fusionApi.getToken();
     const uid = session.user?.id;
-    if (!token || !uid) {
+    if (!fusionApi.hasToken() || !uid) {
       // Can't mint a query-token (no session) → fall back gracefully.
       loadFailed = true;
       return;
     }
     let cancelled = false;
-    void resolveAssetUrl(raw as string, token, uid, docRef)
+    // Fresh, not the snapshot: a portrait painted 15+ min into the session would
+    // otherwise mint its grant with a dead JWT and 401 into the initials fallback.
+    void fusionApi
+      .getFreshToken()
+      .then((token) => {
+        if (token === null) throw new Error("no session");
+        return resolveAssetUrl(raw as string, token, uid, docRef);
+      })
       .then((url) => {
         if (!cancelled) resolvedSrc = url;
       })

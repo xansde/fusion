@@ -33,7 +33,6 @@
   } from "../../lib/scenes/sceneController.js";
   import { sceneListState } from "../../lib/scenes/scenesState.svelte.js";
   import { nextSortInFolder, SCENE_SHELF_KEYS } from "../../lib/scenes/sceneShelf.js";
-  import { fusionApi } from "../../lib/api.js";
   import FilePicker from "$lib/components/assets/FilePicker.svelte";
   import { t } from "../../lib/i18n/i18n.js";
   import Icon from "../common/Icon.svelte";
@@ -323,10 +322,8 @@
 
 <!-- FilePicker modal — rendered outside the form so z-index layers correctly -->
 {#if showFilePicker}
-  {@const tok = fusionApi.getToken() ?? ""}
   <FilePicker
     category="maps"
-    token={tok}
     onSelect={(path) => {
       formData.background = path;
       errors = validateSceneForm(formData);

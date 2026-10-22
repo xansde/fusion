@@ -131,10 +131,12 @@ export interface AmbientPlayerDeps {
   /**
    * Resolves the current accessToken/userId, called fresh on every
    * restart-worthy syncTo() (the access token can rotate across a session).
+   * May be async: the session resolves it with `getFreshToken()`, which
+   * refreshes a token older than its 15-minute life before the grant mint.
    * Returns null when there is no authenticated session yet — the src is
    * used unresolved in that case (matches sceneLoader.ts's fallback).
    */
-  getAuth?: () => AmbientPlayerAuth | null;
+  getAuth?: () => AmbientPlayerAuth | null | Promise<AmbientPlayerAuth | null>;
   /**
    * Called whenever the locally-known unlock state changes — autoplay was
    * blocked (`playerror`) or the audio context unlocked on a user gesture
@@ -200,7 +202,7 @@ export class AmbientPlayer {
     this._state = state;
     if (!state) return;
 
-    const url = await resolveTrackUrl(state.src, this._deps.getAuth?.() ?? null);
+    const url = await resolveTrackUrl(state.src, (await this._deps.getAuth?.()) ?? null);
 
     // A later syncTo()/stop() call may have superseded this one while the
     // asset URL was resolving — bail out instead of reviving a stale track.

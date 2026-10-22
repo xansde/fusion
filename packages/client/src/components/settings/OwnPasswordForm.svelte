@@ -38,7 +38,7 @@
     busy = true;
     errorKey = null;
     try {
-      await changeOwnPassword(fusionApi.getToken() ?? "", {
+      await changeOwnPassword((await fusionApi.getFreshToken()) ?? "", {
         ...(current.length > 0 ? { currentPassword: current } : {}),
         newPassword: next,
       });

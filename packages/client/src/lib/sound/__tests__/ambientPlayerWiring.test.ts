@@ -123,6 +123,16 @@ describe("AmbientPlayer — the URL that actually reaches Howler", () => {
     expect(howlInstances[0]!.options.src[0]).toContain("at=tok123");
   });
 
+  it("waits for an auth resolver that refreshes the access token first", async () => {
+    // session.svelte.ts resolves the auth with getFreshToken(), which is async: a
+    // session older than the 15-min JWT must refresh before minting the grant.
+    const player = new AmbientPlayer({ getAuth: async () => AUTH, fadeMs: 0 });
+    await player.syncTo(TRACK, 0.5);
+    expect(howlInstances[0]!.options.src[0]).toContain("at=tok123");
+    const { fetchAssetToken } = await import("../../assets/assetApi.js");
+    expect(vi.mocked(fetchAssetToken)).toHaveBeenLastCalledWith("access", "u1");
+  });
+
   it("still builds a well-formed /assets/ URL without a session", async () => {
     const player = new AmbientPlayer({ getAuth: () => null, fadeMs: 0 });
     await player.syncTo(TRACK, 0.5);

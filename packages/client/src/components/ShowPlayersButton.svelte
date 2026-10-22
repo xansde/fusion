@@ -6,7 +6,6 @@
    */
   import FilePicker from "$lib/components/assets/FilePicker.svelte";
   import Icon from "./common/Icon.svelte";
-  import { fusionApi } from "../lib/api.js";
   import { getSocket } from "../lib/session.svelte.js";
   import { canSendShow, emitShow } from "../lib/presence/showPlayers.js";
   import { assetNameFromPath } from "../lib/assets/assetApi.js";
@@ -126,7 +125,6 @@
 {#if picking}
   <FilePicker
     category="handouts"
-    token={fusionApi.getToken() ?? ""}
     onSelect={(path) => {
       imagePath = path;
       picking = false;
