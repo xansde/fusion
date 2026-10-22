@@ -49,8 +49,9 @@
   const quickTracks = $derived(orderQuickTracks(library, soundStore.recent));
 
   async function loadLibrary(): Promise<void> {
-    const token = fusionApi.getToken();
-    if (!isGm || !token) return;
+    if (!isGm) return;
+    const token = await fusionApi.getFreshToken();
+    if (!token) return;
     try {
       const entries = await listAssets(token);
       library = entries.filter((e) => e.mime_type.startsWith("audio/")).map((e) => e.name);
@@ -247,7 +248,6 @@
 {#if showFilePicker && isGm}
   <FilePicker
     category="audio"
-    token={fusionApi.getToken() ?? ""}
     kinds={["audio"]}
     onSelect={handleFilePicked}
     onClose={() => {

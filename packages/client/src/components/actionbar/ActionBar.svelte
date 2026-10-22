@@ -45,7 +45,6 @@
   // BAR-F3-05: the entry's custom image — the slots' icon source and the icon picker.
   import { setContext } from "svelte";
   import FilePicker from "../../lib/components/assets/FilePicker.svelte";
-  import { fusionApi } from "../../lib/api.js";
   import {
     SLOT_ICON_SOURCE,
     canEditActorIcons,
@@ -542,7 +541,6 @@
      icon upload, never the GM's maps (REQ-BAR-074, REQ-BAR-079). -->
 {#if iconPick !== null}
   <FilePicker
-    token={fusionApi.getToken() ?? ""}
     mode="actionbar-icons"
     onSelect={chooseIcon}
     onClose={() => {

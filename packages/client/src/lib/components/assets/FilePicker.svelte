@@ -4,13 +4,14 @@
    *
    * Usage:
    *   <FilePicker
-   *     token={accessToken}
    *     onSelect={(path) => { formData.background = path; }}
    *     onClose={() => { showPicker = false; }}
    *   />
    *
    * Props:
-   *   token     string    — Bearer token for API calls.
+   *   token     string?   — Bearer token fallback. The picker asks `fusionApi.getFreshToken()`
+   *                             before every call (a snapshot taken when a long-lived parent
+   *                             mounted is dead after 15 min); this is used only without one.
    *   onSelect  (path: string) => void — called with the /assets/<name> URL path.
    *   onClose   () => void             — called when the user dismisses the modal.
    *   mode      "assets" (default) | "actionbar-icons" — the action bar's icon gallery (BAR-F3-05):
@@ -77,6 +78,7 @@
   } from "$lib/assets/assetTabs.js";
   import { t } from "$lib/i18n/i18n.js";
   import { session } from "$lib/session.svelte.js";
+  import { fusionApi } from "$lib/api.js";
 
   // ---- Props ----
 
@@ -88,13 +90,18 @@
     kinds = ["image"],
     category,
   }: {
-    token: string;
+    token?: string;
     onSelect: (path: string) => void;
     onClose: () => void;
     mode?: "assets" | "actionbar-icons";
     kinds?: AssetKind[];
     category?: AssetCategory;
   } = $props();
+
+  /** The bearer for the next call: refreshed when the session's JWT is about to expire. */
+  async function authToken(): Promise<string> {
+    return (await fusionApi.getFreshToken()) ?? token ?? "";
+  }
 
   // ---- Tabs (categories) ----
 
@@ -121,7 +128,7 @@
     galleryLoading = true;
     galleryError = null;
     try {
-      gallery = await listIconGallery(token);
+      gallery = await listIconGallery(await authToken());
     } catch (err) {
       galleryError = err instanceof Error ? err.message : t("FUSION.IconPicker.LoadFailed");
     } finally {
@@ -138,7 +145,7 @@
     const ok = window.confirm(t("FUSION.IconPicker.DeleteConfirm", { name: iconFileName(name) }));
     if (!ok) return;
     try {
-      await deleteIconAsset(token, name);
+      await deleteIconAsset(await authToken(), name);
     } catch (err) {
       galleryError = err instanceof Error ? err.message : t("FUSION.IconPicker.DeleteFailed");
       return;
@@ -174,11 +181,12 @@
       void loadGallery();
       return;
     }
-    void assetStore.loadAssets(token);
+    void authToken().then((bearer) => assetStore.loadAssets(bearer));
     void loadGallery(); // the "Ícones" tab: the gallery is the server's list of the icon area
     const userId = session.user?.id;
     if (userId) {
-      void fetchAssetToken(token, userId)
+      void authToken()
+        .then((bearer) => fetchAssetToken(bearer, userId))
         .then((t) => { previewToken = t; })
         .catch(() => { previewToken = null; });
     }
@@ -246,14 +254,11 @@
         onClose();
       }
     };
-    for (const file of fileList) {
-      void assetStore.startUpload(
-        token,
-        file,
-        single || toGallery ? onDone : undefined,
-        options,
-      );
-    }
+    void authToken().then((bearer) => {
+      for (const file of fileList) {
+        void assetStore.startUpload(bearer, file, single || toGallery ? onDone : undefined, options);
+      }
+    });
   }
 
   function handleKeydown(e: KeyboardEvent): void {
@@ -288,7 +293,7 @@
   async function moveTo(name: string, target: AssetCategory): Promise<void> {
     moveError = null;
     try {
-      await assetStore.moveAsset(token, name, target);
+      await assetStore.moveAsset(await authToken(), name, target);
     } catch (err) {
       moveError = t("FUSION.AssetTabs.MoveFailed", {
         message: err instanceof Error ? err.message : "",
@@ -545,7 +550,7 @@
         {assetStore.fetchError}
         <button
           class="btn btn--ghost btn--sm"
-          onclick={() => void assetStore.loadAssets(token)}
+          onclick={() => void authToken().then((bearer) => assetStore.loadAssets(bearer))}
           type="button"
         >{t("FUSION.FilePicker.Retry")}</button>
       </div>

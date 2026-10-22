@@ -21,7 +21,7 @@
    * All five writes (`create`/`update`/`reset-password`/`delete`/`kick`) go
    * through `usersApi.ts`'s HTTP client — user administration predates
    * `Setting`/`doc:*` and is not a socket op (brief §3.9) — with the bearer
-   * token read fresh from `fusionApi.getToken()` on every call, never cached
+   * token read fresh from `fusionApi.getFreshToken()` on every call, never cached
    * anywhere in this component.
    *
    * The prop carrying the list↔create↔edit machine (`UsersSectionState`) is
@@ -65,7 +65,7 @@
   // The drawer mounts a fresh panel on every switch (REQ-GAV-017), so there is
   // nothing to keep reactive to a token change here.
   // svelte-ignore state_referenced_locally
-  void ensureUsersRegistry(fusionApi.getToken() ?? "");
+  void fusionApi.getFreshToken().then((token) => ensureUsersRegistry(token ?? ""));
 
   const rows = $derived(mergeConnectionStatus(usersRegistry.users, presenceState.onlineUsers));
 
@@ -112,7 +112,7 @@
     try {
       const input: usersApi.CreateUserInput = { name, role: createRole, color: createColor };
       if (createPassword.trim() !== "") input.password = createPassword;
-      const user = await usersApi.createUser(fusionApi.getToken() ?? "", input);
+      const user = await usersApi.createUser((await fusionApi.getFreshToken()) ?? "", input);
       applyCreatedUser(user);
       flow.backToList();
     } catch (err) {
@@ -180,7 +180,7 @@
 
   async function commitEdit(userId: string, patch: usersApi.UpdateUserInput): Promise<void> {
     try {
-      const updated = await usersApi.updateUser(fusionApi.getToken() ?? "", userId, patch);
+      const updated = await usersApi.updateUser((await fusionApi.getFreshToken()) ?? "", userId, patch);
       applyUpdatedUser(updated);
       editError = null;
     } catch (err) {
@@ -199,7 +199,7 @@
   async function handleResetPassword(row: UsersSectionRow): Promise<void> {
     resettingId = row.id;
     try {
-      const result = await usersApi.resetPassword(fusionApi.getToken() ?? "", row.id);
+      const result = await usersApi.resetPassword((await fusionApi.getFreshToken()) ?? "", row.id);
       flow.showResetReveal({ userId: row.id, userName: row.name, password: result.password });
     } catch (err) {
       alert(t("FUSION.Settings.Users.ResetFailed", { message: errorMessage(err) }));
@@ -222,7 +222,7 @@
   async function handleDeactivate(row: UsersSectionRow): Promise<void> {
     if (!confirm(t(CONFIRM_REMOVE_KEY, { name: row.name }))) return;
     try {
-      await usersApi.deactivateUser(fusionApi.getToken() ?? "", row.id);
+      await usersApi.deactivateUser((await fusionApi.getFreshToken()) ?? "", row.id);
       applyDeactivatedUser(row.id);
     } catch (err) {
       alert(t("FUSION.Settings.Users.DeactivateFailed", { message: errorMessage(err) }));
@@ -232,7 +232,7 @@
   async function handleKick(row: UsersSectionRow): Promise<void> {
     if (!confirm(t(CONFIRM_REMOVE_KEY, { name: row.name }))) return;
     try {
-      await usersApi.kickUser(fusionApi.getToken() ?? "", row.id);
+      await usersApi.kickUser((await fusionApi.getFreshToken()) ?? "", row.id);
     } catch (err) {
       alert(t("FUSION.Settings.Users.KickFailed", { message: errorMessage(err) }));
     }

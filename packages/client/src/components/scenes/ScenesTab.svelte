@@ -145,8 +145,7 @@
       resolvedBackground = raw;
       return;
     }
-    const token = fusionApi.getToken();
-    if (!token || !userId || onAir === null) {
+    if (!fusionApi.hasToken() || !userId || onAir === null) {
       // No session to mint a token with → the colour box is the honest fallback.
       resolvedBackground = null;
       return;
@@ -156,7 +155,13 @@
     // document the grant is asked for. A player who cannot see the scene gets no
     // grant and the head keeps its colour box — the same thing it already shows
     // while the resolve is in flight, so nothing flashes.
-    void resolveAssetUrl(raw, token, userId, { table: "scenes", id: onAir.sceneId })
+    const sceneId = onAir.sceneId;
+    void fusionApi
+      .getFreshToken()
+      .then((token) => {
+        if (token === null) throw new Error("no session");
+        return resolveAssetUrl(raw, token, userId, { table: "scenes", id: sceneId });
+      })
       .then((url) => {
         if (!cancelled) resolvedBackground = url;
       })
