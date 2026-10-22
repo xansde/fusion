@@ -45,7 +45,9 @@ export function serverTestConfig(opts: {
       include: opts.include,
       exclude: [...configDefaults.exclude, ...opts.exclude],
       testTimeout: 30_000,
-      hookTimeout: 15_000,
+      // Above the 15 s socket-connect deadline the helpers use, so a slow
+      // connect under CI load fails as "connect timeout", not as a hook timeout.
+      hookTimeout: 30_000,
       // Minimum Argon2id cost for the users every test bootstraps (see
       // argon2Options in src/auth/crypto.ts; the production cost is pinned by
       // src/auth/__tests__/argon2-cost.test.ts). Inherited by the CLI child
