@@ -47,7 +47,9 @@ import { screenToWorld } from "../camera-math.js";
 import { sendOp, OpError } from "../../docs/sendOp.js";
 import { onWorldResynced, requestWorldResync } from "../../docs/worldSync.js";
 import { emitTokenPreview } from "../../presence/attachPresenceSync.js";
-import { combatActions, getMyTargets, setMyTargets } from "../../combat/combatStore.svelte.js";
+import { getMyTargets, setMyTargets } from "../../combat/combatStore.svelte.js";
+import { targetModeState } from "../../combat/targetModeStore.svelte.js";
+import { resolveTargetClick } from "../../combat/targetMode.js";
 import type { TokenLayer } from "./TokenLayer.js";
 import { footprintOf, type FootprintActorInput } from "./footprint.js";
 import type { ActorDocument } from "../../actors/actorDirectory.js";
@@ -934,13 +936,19 @@ export class TokenInteractionManager {
   // Private — keyboard handler
   // ---------------------------------------------------------------------------
 
-  /** Right-click aim toggle (D-G01): arm/disarm the token under the cursor. */
+  /** Right-click aim (D-G01): replace or accumulate the aim on the token under the cursor, per the target mode. */
   private _toggleTarget(e: FederatedPointerEvent): void {
     const tokenId = this._getTokenIdFromTarget(e.target);
     if (!tokenId || !this._getToken(tokenId)) return;
-    const alreadyTargeted = getMyTargets().some((t) => t.tokenId === tokenId);
+    // The user's mode (and Shift) decides between replacing the aim and accumulating on it.
+    const wanted = resolveTargetClick(
+      targetModeState.mode,
+      e.shiftKey,
+      tokenId,
+      getMyTargets().map((t) => t.tokenId),
+    );
     // Fire-and-forget: the server is the authority and echoes `token:targeted`.
-    void combatActions.target(this._opts.socket, tokenId, !alreadyTargeted);
+    void setMyTargets(this._opts.socket, wanted);
     e.stopPropagation();
   }
 

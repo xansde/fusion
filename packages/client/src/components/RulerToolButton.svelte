@@ -25,9 +25,11 @@
 
   // The picker is one of the corner panels: opening the fog bar or the show form closes it.
   const open = $derived(cornerPanel.open === "ruler");
+  // The targets button shares the tool state (`purpose`): its area selector is not a measurement.
+  const measuring = $derived(rulerTool.mode !== null && rulerTool.purpose === "measure");
 
   function onMain(): void {
-    if (rulerTool.mode !== null) {
+    if (measuring) {
       setRulerTool(null);
       closeCornerPanel("ruler");
     } else {
@@ -45,7 +47,9 @@
   }
 
   const hint = $derived(
-    rulerTool.mode === "emanation"
+    !measuring
+      ? ""
+      : rulerTool.mode === "emanation"
       ? "Clique num token (ou Enter com um selecionado) para fixar a emanação nele."
       : isAreaMode(rulerTool.mode)
         ? "Arraste no mapa. Roda = tamanho. Shift ao soltar fixa."
@@ -59,8 +63,8 @@
   <button
     type="button"
     class="ruler-tool__main"
-    class:ruler-tool__main--active={rulerTool.mode !== null}
-    aria-pressed={rulerTool.mode !== null}
+    class:ruler-tool__main--active={measuring}
+    aria-pressed={measuring}
     aria-label="Régua (segure R)"
     title="Régua (segure R)"
     onclick={onMain}
@@ -83,8 +87,8 @@
         <button
           type="button"
           class="ruler-tool__mode"
-          class:ruler-tool__mode--active={rulerTool.mode === m.mode}
-          aria-pressed={rulerTool.mode === m.mode}
+          class:ruler-tool__mode--active={measuring && rulerTool.mode === m.mode}
+          aria-pressed={measuring && rulerTool.mode === m.mode}
           onclick={() => {
             pick(m.mode);
           }}
@@ -92,7 +96,7 @@
           {m.label}
         </button>
       {/each}
-      {#if isAreaMode(rulerTool.mode)}
+      {#if measuring && isAreaMode(rulerTool.mode)}
         <label class="ruler-tool__size">
           <span>Tamanho</span>
           <input
@@ -107,7 +111,7 @@
           <span>pés</span>
         </label>
       {/if}
-      {#if isAreaMode(rulerTool.mode)}
+      {#if measuring && isAreaMode(rulerTool.mode)}
         <AreaStyleControls style={rulerTool.style} onchange={setAreaStyle} />
       {/if}
       {#if hint}
