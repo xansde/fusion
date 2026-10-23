@@ -10,10 +10,13 @@ import {
   resetActorSummaries,
   resolveActorChip,
   resolveActorSummary,
+  type ActorSummaryComponent,
 } from "../actorSummaryRegistry.svelte.js";
 
-const SummaryA = {};
-const SummaryB = {};
+/** A stand-in component: the registry only stores and returns it. */
+const stub = (): ActorSummaryComponent => (() => ({})) as unknown as ActorSummaryComponent;
+const SummaryA = stub();
+const SummaryB = stub();
 
 beforeEach(() => {
   resetActorSummaries();
@@ -45,7 +48,7 @@ describe("actorSummaryRegistry", () => {
 
 describe("actor chip registry", () => {
   it("resolves the small chip by subtype, independent of the full summary", () => {
-    const Chip = {};
+    const Chip = stub();
     registerActorChip("character", Chip);
     expect(resolveActorChip("character")).toBe(Chip);
     expect(resolveActorChip("npc")).toBeNull();
@@ -53,7 +56,7 @@ describe("actor chip registry", () => {
   });
 
   it("reset forgets the chips too", () => {
-    registerActorChip("character", {});
+    registerActorChip("character", stub());
     resetActorSummaries();
     expect(resolveActorChip("character")).toBeNull();
   });

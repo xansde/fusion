@@ -38,7 +38,7 @@ export function popupFeatures(
   const height = Math.max(MIN_POPUP_HEIGHT, Math.round(geo.height));
   const left = Math.max(0, Math.round(screen.screenX + geo.left));
   const top = Math.max(0, Math.round(screen.screenY + geo.top));
-  return `popup=yes,width=${width},height=${height},left=${left},top=${top}`;
+  return `popup=yes,width=${String(width)},height=${String(height)},left=${String(left)},top=${String(top)}`;
 }
 
 /** Browser window name for a detached window — stable per id, so a second click reuses it. */
@@ -149,7 +149,7 @@ function copyRootAttributes(src: HTMLElement, dst: HTMLElement): void {
 }
 
 function cloneHeadNode(node: Element, dst: Document): Element {
-  const clone = dst.importNode(node, true) as Element;
+  const clone = dst.importNode(node, true);
   // An about:blank document has no useful base URL: pin stylesheet links to absolute URLs.
   if (node instanceof HTMLLinkElement) clone.setAttribute("href", node.href);
   return clone;
@@ -169,6 +169,7 @@ export function prepareChildDocument(
 
   // A reused window (same name) may still hold a previous body: start clean.
   dst.open();
+  // eslint-disable-next-line @typescript-eslint/no-deprecated -- the one way to reset a reused about:blank window
   dst.write('<!doctype html><html><head><meta charset="utf-8"></head><body></body></html>');
   dst.close();
 

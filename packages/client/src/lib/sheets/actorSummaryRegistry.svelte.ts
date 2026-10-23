@@ -14,12 +14,14 @@
  * guaranteed) picks the summary up on the next render.
  */
 
+import type { Component } from "svelte";
+
 /**
- * A Svelte 5 component constructor, loosely typed for the same reason as `ChatCardComponent`; the
+ * A Svelte 5 component, its props loosely typed for the same reason as `ChatCardComponent`; the
  * registering system enforces the prop contract.
  */
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-export type ActorSummaryComponent = any;
+export type ActorSummaryComponent = Component<any>;
 
 const registry = $state<{
   bySubtype: Readonly<Record<string, ActorSummaryComponent>>;
