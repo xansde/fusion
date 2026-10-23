@@ -6,20 +6,41 @@
  *
  * Routes mounted by this module:
  *
- *   POST   /api/assets/upload     — multipart upload (REQ-AST-006/007/008/011)
+ *   POST   /api/assets/upload     — multipart upload (REQ-AST-006/007/008/011);
+ *                                   `?purpose=icon` = the action bar's icon upload (BAR-F3-05)
  *   POST   /api/assets/token      — issue short-lived BROWSE-scope grant
  *   POST   /api/assets/grant      — issue DOC-scope grants for one document (T025)
  *   GET    /api/assets            — list assets in world scope (REQ-AST-029)
+ *   GET    /api/assets/icons      — the shared icon gallery, with a grant per icon (BAR-F3-05)
  *   DELETE /api/assets/:name      — delete asset by filename (GM only)
+ *   DELETE /api/assets/icons/:name — delete an icon from the gallery (GM only, BAR-F3-05)
  *   GET    /assets/*              — static serving with path-traversal guard
  *
  * Permissions:
- *   upload  → role >= TRUSTED  (REQ-AST-011 / REQ-AST-029)
+ *   upload  → role >= TRUSTED  (REQ-AST-011 / REQ-AST-029); with `purpose=icon`,
+ *             role >= PLAYER, images only, into the icon area (REQ-BAR-075/076)
  *   token   → role >= PLAYER   (any authenticated user)
  *   grant   → role >= PLAYER, then per-document visibility (see below)
  *   list    → role >= TRUSTED  (STORAGE_BROWSE)
- *   delete  → role == GAMEMASTER only (STORAGE_DELETE)
+ *   icons   → role >= PLAYER: the icon area only, never the rest (REQ-BAR-079/080)
+ *   delete  → role == GAMEMASTER only (STORAGE_DELETE), for both delete routes
  *   serve   → a DOC grant for this exact name, OR role >= TRUSTED
+ *
+ * ---------------------------------------------------------------------------
+ * BAR-F3-05 — THE ICON AREA (REQ-SEC-043/044 as amended, Q-BAR-05)
+ * ---------------------------------------------------------------------------
+ *
+ * Every player may upload an IMAGE when the request declares the purpose "icon"
+ * (`?purpose=icon`, REQ-BAR-103). The server, never the client, decides where it
+ * goes: `actionbar-icons/<slug>-<8 hex>.<ext>` under the world's assets — the
+ * reserved area that IS the icon mark (see asset-store.ts). The same pipeline
+ * runs (size, magic bytes, SVG sanitising, renaming); there is no per-user quota.
+ *
+ * Deduplication for an icon looks ONLY inside the area. A GM handout with the
+ * same bytes is never consulted, so the answer cannot name it, mark it, or reveal
+ * that it exists: the icon gets a new file of its own (Q-BAR-05 — "devolve um
+ * caminho novo"; marking the existing file would move a spoiler into the shared
+ * gallery). A twin that is already an icon is public anyway and is reused.
  *
  * ---------------------------------------------------------------------------
  * T025 — WHAT `GET /assets/*` USED TO BE, AND WHY IT CHANGED
@@ -90,6 +111,7 @@ import {
   unlinkSync,
   readdirSync,
   statSync,
+  lstatSync,
   existsSync,
   readFileSync,
 } from "node:fs";
@@ -100,10 +122,26 @@ import { Role } from "../auth/user-store.js";
 import type { UserPublic } from "../auth/user-store.js";
 import type { AuthService } from "../auth/service.js";
 import { detectType, ALLOWED_TYPES } from "./magic-bytes.js";
+import {
+  MAX_UPLOAD_BYTES_GLOBAL,
+  effectiveCapForKind,
+  kindOfMime,
+  type AssetKind,
+} from "./upload-limits.js";
 import { sanitizeSvg } from "./svg-sanitize.js";
+import { classifyAssets } from "./asset-category.js";
+import { isAssetCategory, type AssetCategory } from "@fusion/shared";
 import { buildSafeFilename, sha256Hex } from "./slug.js";
 import { guardPath, guardFilename, PathTraversalError } from "./path-guard.js";
-import { recordAsset, deleteAssetRecord, getAssetRecord } from "./asset-store.js";
+import {
+  recordAsset,
+  deleteAssetRecord,
+  getAssetRecord,
+  setAssetCategory,
+  ICON_ASSET_AREA,
+  isIconAssetName,
+} from "./asset-store.js";
+import { isActionBarIconFileName } from "@fusion/shared";
 import { canonicalizeAssetName } from "./asset-name.js";
 import { ASSET_GRANT_TTL_MS, issueBrowseGrant, signDocGrant, verifyGrant } from "./asset-grant.js";
 import { projectAssetFields, projectedAssetRefs } from "./asset-fields.js";
@@ -117,14 +155,21 @@ import {
 import type { ContactKnowledgeSource, CharacterOwnershipRow } from "../net/redaction.js";
 import { PLAYER_CHARACTER_SUBTYPES } from "../documents/knowledge.js";
 import { getOwnershipFromDoc } from "../net/handlers/sync-handlers.js";
+import { getAmbientTrackState } from "../net/handlers/sound-handlers.js";
 import { OwnershipLevel, isRolePrivileged, resolveOwnership } from "../documents/ownership.js";
 
 // ---------------------------------------------------------------------------
 // Constants
 // ---------------------------------------------------------------------------
 
-/** Default upload size limit: 20 MB (spec 20 default for images). */
-const DEFAULT_MAX_BYTES = 20 * 1024 * 1024;
+/**
+ * Default GLOBAL upload ceiling — the largest of the per-kind caps.
+ *
+ * This is not "the limit": it is the limit the multipart parser can enforce
+ * while still blind to the file's type. The real, useful limit is charged per
+ * kind after `detectType` (see upload-limits.ts).
+ */
+const DEFAULT_MAX_BYTES = MAX_UPLOAD_BYTES_GLOBAL;
 
 /**
  * Tables `POST /api/assets/grant` will read a document from.
@@ -192,7 +237,7 @@ const BROWSE_MIN_ROLE: Role = Role.TRUSTED;
  * needs repairing is never signed, and the second line of defence was the only
  * line. The GM's server runs on Windows, where `\` IS the separator.
  */
-function assetNameRefusalReason(storageName: string): string | null {
+export function assetNameRefusalReason(storageName: string): string | null {
   if (storageName.length === 0) return "empty";
   if (/[\u0000-\u001f]/.test(storageName)) return "control_character";
   // Refused outright, exactly like `guardPath` (path-guard.ts:79) — a stored
@@ -230,7 +275,11 @@ export interface RegisterAssetRoutesOptions {
    */
   assetsDir: string;
 
-  /** Maximum upload size in bytes. Default: 20 MB. */
+  /**
+   * GLOBAL upload ceiling in bytes — the hard cut applied by the multipart
+   * parser, before the file's type is known. Default: the largest per-kind cap
+   * (see MAX_UPLOAD_BYTES_GLOBAL). Lowering it lowers every kind with it.
+   */
   maxUploadBytes?: number;
 
   /**
@@ -242,6 +291,13 @@ export interface RegisterAssetRoutesOptions {
    * T022's reconciliation, the same as any other pre-existing file.
    */
   db?: Database;
+
+  /**
+   * Per-kind cap overrides, in bytes. Merged over MAX_BYTES_BY_KIND and always
+   * clamped by `maxUploadBytes`. Mainly for tests and future server config —
+   * production leaves it undefined and gets the spec 20 numbers.
+   */
+  maxBytesByKind?: Partial<Record<AssetKind, number>>;
 
   /**
    * World HMAC secret — used to sign short-lived asset query-tokens
@@ -345,7 +401,14 @@ async function assetPlugin(
   fastify: FastifyInstance,
   options: RegisterAssetRoutesOptions,
 ): Promise<void> {
-  const { authService, assetsDir, maxUploadBytes = DEFAULT_MAX_BYTES, secret, db } = options;
+  const {
+    authService,
+    assetsDir,
+    maxUploadBytes = DEFAULT_MAX_BYTES,
+    maxBytesByKind,
+    secret,
+    db,
+  } = options;
   const grantEnforce = resolveGrantEnforce(options.grantEnforce);
 
   // Ensure assets directory exists (REQ-AST-001)
@@ -383,6 +446,7 @@ async function assetPlugin(
     digest: string,
     bytes: number,
     mimeType: string,
+    category?: AssetCategory,
   ): void {
     if (!db) return;
     try {
@@ -392,6 +456,7 @@ async function assetPlugin(
         bytes,
         mimeType,
         uploadedBy: request.authUser?.id ?? null,
+        ...(category !== undefined ? { category } : {}),
       });
     } catch (err) {
       request.log.warn(
@@ -449,8 +514,35 @@ async function assetPlugin(
   // --------------------------------------------------------------------------
 
   fastify.post("/api/assets/upload", { preHandler: requireAuth }, async (request, reply) => {
-    // REQ-AST-011: role >= TRUSTED can upload (STORAGE_UPLOAD perm)
-    if (!requireRole(Role.TRUSTED, request, reply)) return;
+    // BAR-F3-05 (REQ-BAR-103): the purpose is DECLARED in the query string, read before a byte
+    // of the body. Anything but absent or exactly "icon" is refused — never a silent fallback to
+    // the generic upload, so a typo cannot land a file outside the area the caller meant.
+    const purpose = parseUploadPurpose(request.query);
+    if (purpose === null) {
+      return reply.code(400).send({
+        ok: false,
+        code: "VALIDATION_FAILED",
+        message: 'Unknown upload purpose (the only ones are "icon" and "avatar").',
+      });
+    }
+
+    // The tab the upload was sent from (FilePicker). Optional; "icons" is not declarable here —
+    // the icon area is reserved to `purpose=icon` (REQ-BAR-103).
+    const category = parseUploadCategory(request.query);
+    if (category === null) {
+      return reply.code(400).send({
+        ok: false,
+        code: "VALIDATION_FAILED",
+        message: "Unknown asset category.",
+      });
+    }
+
+    // REQ-AST-011: role >= TRUSTED can upload (STORAGE_UPLOAD perm) — amended by REQ-BAR-075:
+    // an IMAGE sent through "Trocar ícone…" is open to every player.
+    // `purpose=avatar` (the avatar creator's "Usar como token / retrato") is open to every player
+    // too, but narrower than a generic upload: PNG only, a small cap, always the tokens tab.
+    const minRole = purpose === "icon" || purpose === "avatar" ? Role.PLAYER : Role.TRUSTED;
+    if (!requireRole(minRole, request, reply)) return;
 
     let data: multipart.MultipartFile | undefined;
     let buf: Buffer;
@@ -484,7 +576,9 @@ async function assetPlugin(
       throw err;
     }
 
-    // REQ-AST-008 / REQ-SEC-044: secondary hard size check on the materialised buffer
+    // REQ-AST-008 / REQ-SEC-044: secondary hard check against the GLOBAL ceiling
+    // on the materialised buffer. The per-kind cap is charged further down, once
+    // detectType has told us what this file actually is.
     if (buf.length > maxUploadBytes) {
       return reply.code(413).send({
         ok: false,
@@ -493,13 +587,52 @@ async function assetPlugin(
       });
     }
 
-    // REQ-AST-007 / REQ-SEC-041: validate by magic bytes
+    // REQ-AST-007 / REQ-SEC-041: validate by magic bytes. An icon must be an IMAGE (REQ-BAR-075):
+    // today every allowed type is one, and this keeps it so if audio or video are ever allowed.
     const detected = detectType(buf);
-    if (!detected) {
+    if (!detected || (purpose === "icon" && !detected.mime.startsWith("image/"))) {
       return reply.code(415).send({
         ok: false,
         code: "UNSUPPORTED_MEDIA_TYPE",
         message: `File type not supported. Allowed types: ${Object.keys(ALLOWED_TYPES).join(", ")}.`,
+      });
+    }
+
+    // REQ-AST-008: the cap that carries a useful message is the one per media
+    // kind — and the kind can only be known now, after the bytes were read and
+    // identified. `kind` is null only if ALLOWED_TYPES and kindOfMime ever drift
+    // apart; treating that as unsupported keeps an unknown type from inheriting
+    // somebody else's cap.
+    if (purpose === "avatar" && detected.mime !== "image/png") {
+      return reply.code(415).send({
+        ok: false,
+        code: "UNSUPPORTED_MEDIA_TYPE",
+        message: "An avatar upload must be a PNG.",
+      });
+    }
+    if (purpose === "avatar" && buf.length > AVATAR_UPLOAD_MAX_BYTES) {
+      return reply.code(413).send({
+        ok: false,
+        code: "FILE_TOO_LARGE",
+        message: `An avatar upload may not exceed ${String(AVATAR_UPLOAD_MAX_BYTES)} bytes.`,
+      });
+    }
+
+    const kind = kindOfMime(detected.mime);
+    if (!kind) {
+      return reply.code(415).send({
+        ok: false,
+        code: "UNSUPPORTED_MEDIA_TYPE",
+        message: `File type not supported: ${detected.mime}.`,
+      });
+    }
+
+    const cap = effectiveCapForKind(kind, maxUploadBytes, maxBytesByKind);
+    if (buf.length > cap) {
+      return reply.code(413).send({
+        ok: false,
+        code: "FILE_TOO_LARGE",
+        message: `Upload exceeds the ${String(cap)} byte limit for ${kind} files.`,
       });
     }
 
@@ -516,10 +649,22 @@ async function assetPlugin(
     const originalName = data.filename || "upload";
     const safeFilename = buildSafeFilename(originalName, detected.ext, digest);
 
+    // REQ-BAR-076 / REQ-SEC-043 (amended): the SERVER picks the folder. An icon goes to the
+    // reserved area and nowhere else; nothing in the request (filename, fields) names a folder —
+    // `buildSafeFilename` keeps only `[a-z0-9._-]` of the original name.
+    //
+    // An icon's slug also loses its dots: the part of the name before the first dot is then always
+    // `<slug>-<8 hex>`, never a Windows device name the icon-name rule refuses (`aux.ataque.png`
+    // used to land as an icon nothing could use — adversarial review, round 2).
+    const storageName =
+      purpose === "icon"
+        ? `${ICON_ASSET_AREA}/${safeFilename.slice(0, -detected.ext.length).replace(/\./g, "-")}${detected.ext}`
+        : safeFilename;
+
     // REQ-SEC-042 / REQ-AST-003: guard the target path
     let targetPath: string;
     try {
-      targetPath = guardPath(assetsDir, safeFilename);
+      targetPath = guardPath(assetsDir, storageName);
     } catch (err) {
       if (err instanceof PathTraversalError) {
         return reply.code(400).send({
@@ -534,7 +679,13 @@ async function assetPlugin(
     // REQ-AST-009: deduplication by digest — check if a file with this
     // digest already exists by scanning the directory.
     // For MVP we scan by digest suffix in filename (first 8 chars of hash).
-    const existing = findExistingByDigest(assetsDir, digest);
+    //
+    // BAR-F3-05 (Q-BAR-05): an icon dedups ONLY against icons. A GM handout with the same bytes is
+    // never consulted, so this answer can neither name it nor reveal that it exists.
+    const existing =
+      purpose === "icon"
+        ? findExistingIconByDigest(assetsDir, digest, detected.ext)
+        : findExistingByDigest(assetsDir, digest);
     if (existing) {
       // Backfill a row for the matched file if it has none — a previous upload
       // whose registration failed, or a file that predates the registry.
@@ -554,24 +705,67 @@ async function assetPlugin(
         digest,
         mime_type: detected.mime,
         file_size: finalBuf.length,
+        ...(purpose === "icon" ? { purpose } : {}),
       });
     }
 
     // Write file (REQ-SEC-040: new safe name, never original)
-    writeFileSync(targetPath, finalBuf);
+    let writtenName = storageName;
+    if (purpose === "icon") {
+      // The icon area is created on the first icon, by the server.
+      mkdirSync(joinPath(assetsDir, ICON_ASSET_AREA), { recursive: true });
+      // An icon never lands on top of another file. The dedup above already proved that a file
+      // holding this name has OTHER bytes (an 8-hex collision, crafted or not), so the newcomer
+      // moves to a 16-hex name; if even that is taken, the upload is refused, never written over.
+      const longName = `${storageName.slice(0, -(8 + detected.ext.length))}${digest.slice(0, 16)}${detected.ext}`;
+      let written: string | null;
+      try {
+        written = writeExclusively(assetsDir, [storageName, longName], finalBuf);
+      } catch (err) {
+        if (err instanceof PathTraversalError) {
+          return reply.code(400).send({ ok: false, code: "PATH_TRAVERSAL", message: err.message });
+        }
+        throw err;
+      }
+      if (written === null) {
+        return reply.code(409).send({
+          ok: false,
+          code: "CONFLICT",
+          message: "An icon with this name already exists with different content.",
+        });
+      }
+      writtenName = written;
+    } else {
+      writeFileSync(targetPath, finalBuf);
+    }
 
     // T020/T021: register the row after the file is safely on disk — never
     // before (see registerUpload's doc comment for why a registry failure
-    // must not turn into a reported upload failure).
-    registerUpload(request, safeFilename, digest, finalBuf.length, detected.mime);
+    // must not turn into a reported upload failure). For an icon the row's
+    // name carries the area: that IS the icon mark (REQ-BAR-078, asset-store.ts).
+    registerUpload(
+      request,
+      writtenName,
+      digest,
+      finalBuf.length,
+      detected.mime,
+      purpose === "icon"
+        ? undefined
+        : purpose === "avatar"
+          ? "tokens"
+          : category === "none"
+            ? undefined
+            : category,
+    );
 
     return reply.code(201).send({
       ok: true,
       deduplicated: false,
-      path: safeFilename,
+      path: writtenName,
       digest,
       mime_type: detected.mime,
       file_size: finalBuf.length,
+      ...(purpose === "icon" ? { purpose } : {}),
     });
   });
 
@@ -727,6 +921,37 @@ async function assetPlugin(
   }
 
   // --------------------------------------------------------------------------
+  // POST /api/assets/ambient-grant
+  //
+  // The ambient table track belongs to NO document, so the doc-grant mint above
+  // can never cover it and a PLAYER (below BROWSE_MIN_ROLE) would be refused the
+  // very file the GM just told the whole table to play. This answers a DOC-scope
+  // grant for exactly ONE name: the track the server itself persisted as playing
+  // right now (`_meta:ambientTrack`). No body is read — the client cannot ask for
+  // a name, so it cannot use this to open any other file.
+  // --------------------------------------------------------------------------
+  if (secret && db) {
+    const ambientDb = db;
+    const ambientSecret = secret;
+    fastify.post(
+      "/api/assets/ambient-grant",
+      { preHandler: requireAuth },
+      async (request, reply) => {
+        const user = request.authUser;
+        if (!user) return; // requireAuth already answered
+        const state = getAmbientTrackState(ambientDb);
+        if (!state) return reply.code(200).send({ ok: true, track: null });
+        const name = canonicalizeAssetName(state.src);
+        const exp = Date.now() + ASSET_GRANT_TTL_MS;
+        return reply.code(200).send({
+          ok: true,
+          track: { src: name, exp, grant: signDocGrant(user.id, exp, name, ambientSecret) },
+        });
+      },
+    );
+  }
+
+  // --------------------------------------------------------------------------
   // GET /api/assets
   // List assets in the world scope (REQ-AST-029 STORAGE_BROWSE = role >= TRUSTED)
   // --------------------------------------------------------------------------
@@ -734,8 +959,168 @@ async function assetPlugin(
   fastify.get("/api/assets", { preHandler: requireAuth }, async (request, reply) => {
     if (!requireRole(Role.TRUSTED, request, reply)) return;
 
+    // Each entry carries its effective category (stored, else derived) — the FilePicker's tabs.
+    // Nothing here widens who may list: the role gate above is unchanged.
     const files = listAssets(assetsDir);
-    return reply.send({ ok: true, assets: files });
+    const categories = classifyAssets(
+      db,
+      files.map((f) => ({ name: f.name, mimeType: f.mime_type })),
+    );
+    return reply.send({
+      ok: true,
+      assets: files.map((f) => ({ ...f, category: categories.get(f.name) ?? "other" })),
+    });
+  });
+
+  // --------------------------------------------------------------------------
+  // PATCH /api/assets/category
+  // The GM moves an asset to another tab. `null` clears the choice (back to the derived
+  // category). Only the GM (STORAGE_DELETE-class decision about the shared library); a name in the
+  // icon area is never movable — the area IS the icon mark (asset-store.ts).
+  // --------------------------------------------------------------------------
+
+  fastify.patch("/api/assets/category", { preHandler: requireAuth }, async (request, reply) => {
+    if (!requireRole(Role.GAMEMASTER, request, reply)) return;
+    const body = (request.body ?? {}) as { name?: unknown; category?: unknown };
+    const name = body.name;
+    const category = body.category;
+    if (typeof name !== "string" || name === "" || name.includes("/") || name.includes("\\")) {
+      return reply
+        .code(400)
+        .send({ ok: false, code: "VALIDATION_FAILED", message: "Invalid asset name." });
+    }
+    if (category !== null && (!isAssetCategory(category) || category === "icons")) {
+      return reply
+        .code(400)
+        .send({ ok: false, code: "VALIDATION_FAILED", message: "Invalid asset category." });
+    }
+    try {
+      guardFilename(name);
+    } catch (err) {
+      if (err instanceof PathTraversalError) {
+        return reply.code(400).send({ ok: false, code: "PATH_TRAVERSAL", message: err.message });
+      }
+      throw err;
+    }
+    if (!db) {
+      return reply
+        .code(503)
+        .send({ ok: false, code: "REGISTRY_UNAVAILABLE", message: "Asset registry unavailable." });
+    }
+    let isFile = false;
+    try {
+      isFile = lstatSync(guardPath(assetsDir, name)).isFile();
+    } catch {
+      isFile = false;
+    }
+    if (!isFile) {
+      return reply
+        .code(404)
+        .send({ ok: false, code: "ASSET_NOT_FOUND", message: `Asset not found: ${name}` });
+    }
+    // A file that predates the registry has no row to hold the choice: backfill it first.
+    registerExistingIfUnknown(request, name);
+    if (!setAssetCategory(db, name, category)) {
+      return reply
+        .code(500)
+        .send({ ok: false, code: "REGISTRY_FAILED", message: "Could not save the category." });
+    }
+    return reply.send({ ok: true, name, category });
+  });
+
+  // --------------------------------------------------------------------------
+  // GET /api/assets/icons                                            (BAR-F3-05)
+  //
+  // The shared icon gallery (REQ-BAR-079/080): every file the icon upload put in
+  // the reserved area, for ANY authenticated role — and nothing else. Maps,
+  // portraits and handouts live outside the area and never reach this list,
+  // because a filename can be a spoiler. It reads one directory, not the
+  // registry: what is listed is exactly what is on disk and servable.
+  //
+  // Each listed icon comes with a DOC-scope grant for the caller (the same HMAC
+  // `POST /api/assets/grant` signs), so a player without STORAGE_BROWSE can paint
+  // the gallery. Not an amplification: the names are the server's own (read from
+  // the area, filtered by the icon-name rule), never anything the caller sent.
+  // --------------------------------------------------------------------------
+
+  fastify.get("/api/assets/icons", { preHandler: requireAuth }, async (request, reply) => {
+    if (!requireRole(Role.PLAYER, request, reply)) return;
+    const user = request.authUser;
+    if (!user) return;
+
+    const icons = listIconAssets(assetsDir);
+    const exp = Date.now() + ASSET_GRANT_TTL_MS;
+    const grants: Record<string, string> = {};
+    if (secret) {
+      for (const icon of icons) {
+        const name = canonicalizeAssetName(icon.name);
+        if (assetNameRefusalReason(name) !== null) continue;
+        grants[name] = signDocGrant(user.id, exp, name, secret);
+      }
+    }
+    return reply.send({ ok: true, assets: icons, exp, grants });
+  });
+
+  // --------------------------------------------------------------------------
+  // DELETE /api/assets/icons/:name                                   (BAR-F3-05)
+  //
+  // The GM removes an icon from the gallery (REQ-BAR-081: deleting stays
+  // STORAGE_DELETE, GM only). `:name` is the file name INSIDE the area; the
+  // generic delete above refuses any `/`, so it cannot reach the area at all.
+  // --------------------------------------------------------------------------
+
+  fastify.delete("/api/assets/icons/:name", { preHandler: requireAuth }, async (request, reply) => {
+    if (!requireRole(Role.GAMEMASTER, request, reply)) return;
+
+    const { name } = request.params as { name: string };
+    try {
+      guardFilename(name);
+    } catch (err) {
+      if (err instanceof PathTraversalError) {
+        return reply.code(400).send({ ok: false, code: "PATH_TRAVERSAL", message: err.message });
+      }
+      throw err;
+    }
+
+    const storageName = `${ICON_ASSET_AREA}/${name}`;
+    const notFound = (): FastifyReply =>
+      reply.code(404).send({
+        ok: false,
+        code: "ASSET_NOT_FOUND",
+        message: `Icon not found: ${name}`,
+      });
+    if (!isIconAssetName(storageName)) return notFound();
+
+    let targetPath: string;
+    try {
+      targetPath = guardPath(assetsDir, storageName);
+    } catch (err) {
+      if (err instanceof PathTraversalError) {
+        return reply.code(400).send({ ok: false, code: "PATH_TRAVERSAL", message: err.message });
+      }
+      throw err;
+    }
+
+    let isFile = false;
+    try {
+      isFile = lstatSync(targetPath).isFile();
+    } catch {
+      isFile = false;
+    }
+    if (!isFile) return notFound();
+
+    unlinkSync(targetPath);
+    if (db) {
+      try {
+        deleteAssetRecord(db, storageName);
+      } catch (err) {
+        request.log.warn(
+          { err, name: storageName },
+          "Failed to remove asset registry row after deleting the icon from disk.",
+        );
+      }
+    }
+    return reply.send({ ok: true });
   });
 
   // --------------------------------------------------------------------------
@@ -777,7 +1162,16 @@ async function assetPlugin(
       throw err;
     }
 
-    if (!existsSync(targetPath)) {
+    // Only a regular FILE is an asset. Since BAR-F3-05 the top level always holds a folder (the icon
+    // area); asking to delete it — or the root itself, which `/api/assets/icons/..` normalises into
+    // — used to reach `unlinkSync` on a directory and answer 500. Not found is the right answer.
+    let isFile = false;
+    try {
+      isFile = existsSync(targetPath) && lstatSync(targetPath).isFile();
+    } catch {
+      isFile = false;
+    }
+    if (!isFile) {
       return reply.code(404).send({
         ok: false,
         code: "ASSET_NOT_FOUND",
@@ -1004,6 +1398,17 @@ async function assetPlugin(
     // REQ-AST-024: X-Content-Type-Options: nosniff
     void reply.header("X-Content-Type-Options", "nosniff");
 
+    // REQ-SEC-035, second half ("OU servidos com cabeçalho que impeça execução"), on top of the
+    // sanitiser: since BAR-F3-05 every player may upload an SVG icon, so an SVG opened as a
+    // DOCUMENT runs sandboxed, with nothing to load and no script, even if the sanitiser ever
+    // misses something. An <img> or a PIXI texture never runs SVG script and ignores this header.
+    if (mime === "image/svg+xml") {
+      void reply.header(
+        "Content-Security-Policy",
+        "default-src 'none'; style-src 'unsafe-inline'; sandbox",
+      );
+    }
+
     // REQ-AST-019 / DEC-AST-06: aggressive cache when hash is in filename
     // The filename format is <slug>-<8hexchars>.<ext> — if the 8-char
     // hex suffix is present we treat the URL as content-addressed.
@@ -1158,15 +1563,15 @@ function readGrantableDocument(
  *     viewer (see the TOO CLOSED half below, which was already the rule for
  *     identified contacts and now applies to glimpsed ones too).
  *
- *   TOO CLOSED — `redactActorDocsForViewer` delivers TWO populations that
- *     ownership says nothing about: every player CHARACTER, unconditionally
- *     (`actorEscapingKnowledgeIsVisible`, REQ-CTT-014/020), and a contact the
- *     viewer has IDENTIFIED, whose gate is knowledge per contact×character
- *     (spec 39), not ownership. Both arrive at the client with `img` in the
- *     body — the live/replay paths (doc-handlers.ts:1871, sync-handlers.ts:205)
- *     apply this funnel and NO ownership filter. Refusing to sign what the
- *     client legitimately received buys nothing (it already has the filename)
- *     and blanks the "Na mesa" and "Conhecidos" rows of the contacts drawer.
+ *   TOO CLOSED — `redactActorDocsForViewer` delivers a population that
+ *     ownership says nothing about: a contact the viewer has IDENTIFIED, whose
+ *     gate is knowledge per contact×character (spec 39), not ownership. It
+ *     arrives at the client with `img` in the body — the live/replay paths
+ *     (doc-handlers.ts, sync-handlers.ts) apply this funnel and NO ownership
+ *     filter. Refusing to sign what the client legitimately received buys
+ *     nothing (it already has the filename) and blanks the "Conhecidos" rows
+ *     of the contacts drawer. A player CHARACTER is NOT in this population since
+ *     #240 (21/10/2026): it answers to ownership at LIMITED like the snapshot.
  *
  * Both disappear by using the funnel itself, which is also what this repo's
  * CLAUDE.md requires: never duplicate a visibility predicate. The cost is one
@@ -1396,6 +1801,129 @@ function findExistingByDigest(dir: string, digest: string): string | null {
 }
 
 /**
+ * The upload's declared purpose (BAR-F3-05, REQ-BAR-103): `"generic"` when the
+ * query string says nothing, `"icon"` for exactly `?purpose=icon`, `null` for
+ * anything else — an unknown value, an empty one, a repeated parameter.
+ */
+function parseUploadPurpose(query: unknown): "generic" | "icon" | "avatar" | null {
+  if (typeof query !== "object" || query === null) return "generic";
+  const raw = (query as Record<string, unknown>)["purpose"];
+  if (raw === undefined) return "generic";
+  return raw === "icon" || raw === "avatar" ? raw : null;
+}
+
+/**
+ * The most a `purpose=avatar` upload may weigh. The avatar creator sends a 256x256 pixel-art PNG
+ * (a few KB); the cap is generous for that and tiny next to the generic limit, because this
+ * purpose is open to every player.
+ */
+const AVATAR_UPLOAD_MAX_BYTES = 512 * 1024;
+
+/**
+ * The category an upload declares in `?category=`: `"none"` when absent, a category for a valid
+ * one other than "icons", `null` for anything else (unknown, empty, repeated, "icons").
+ */
+function parseUploadCategory(query: unknown): AssetCategory | "none" | null {
+  if (typeof query !== "object" || query === null) return "none";
+  const raw = (query as Record<string, unknown>)["category"];
+  if (raw === undefined) return "none";
+  return isAssetCategory(raw) && raw !== "icons" ? raw : null;
+}
+
+/**
+ * The icon already stored with EXACTLY these bytes, as its storage name
+ * (`actionbar-icons/<file>`), or null. Looks ONLY inside the icon area, and only
+ * at names the gallery would list — see the Q-BAR-05 note in the module doc.
+ *
+ * A candidate is a name ENDING in this digest's `-<8 hex>.<ext>` (or the 16-hex
+ * name a collision moves to), and it is reused only when the full SHA-256 of the
+ * file on disk matches. The generic upload's substring test is not enough here: the
+ * slug keeps what the uploader typed, so a player could name a file after the hash
+ * of an image someone else will send, and capture that upload (adversarial review,
+ * finding 1). A name match with other bytes is a collision, never a duplicate.
+ */
+function findExistingIconByDigest(assetsDir: string, digest: string, ext: string): string | null {
+  const suffixes = [`-${digest.slice(0, 8)}${ext}`, `-${digest.slice(0, 16)}${ext}`];
+  const iconDir = joinPath(assetsDir, ICON_ASSET_AREA);
+  let entries: string[];
+  try {
+    entries = readdirSync(iconDir);
+  } catch {
+    return null; // no icon uploaded yet
+  }
+  for (const entry of entries) {
+    // Case-blind: a twin the GM dropped by hand may be `CAIXA-1A2B3C4D.PNG`; the bytes decide.
+    const lowerEntry = entry.toLowerCase();
+    if (!suffixes.some((suffix) => lowerEntry.endsWith(suffix))) continue;
+    if (!isActionBarIconFileName(entry)) continue;
+    const filePath = joinPath(iconDir, entry);
+    try {
+      if (!lstatSync(filePath).isFile()) continue;
+      if (sha256Hex(readFileSync(filePath)) === digest) return `${ICON_ASSET_AREA}/${entry}`;
+    } catch {
+      // vanished between the listing and the read — not a match
+    }
+  }
+  return null;
+}
+
+/**
+ * Write `bytes` under the first of `names` that does not exist yet, and return it;
+ * `null` when every name is taken. Exclusive create (`wx`): never truncates or
+ * follows anything already there, a symlink included.
+ */
+function writeExclusively(
+  assetsDir: string,
+  names: readonly string[],
+  bytes: Buffer,
+): string | null {
+  for (const name of names) {
+    const target = guardPath(assetsDir, name);
+    try {
+      writeFileSync(target, bytes, { flag: "wx" });
+      return name;
+    } catch (err) {
+      if ((err as NodeJS.ErrnoException).code === "EEXIST") continue;
+      throw err;
+    }
+  }
+  return null;
+}
+
+/**
+ * The shared icon gallery: the image files directly inside the icon area whose
+ * names pass the icon-name rule, newest first. Never recursive, never a symlink
+ * (`lstat`), never a name the grant exception would refuse to sign.
+ */
+function listIconAssets(
+  assetsDir: string,
+): Array<{ name: string; size: number; mime_type: string }> {
+  const iconDir = joinPath(assetsDir, ICON_ASSET_AREA);
+  let entries: string[];
+  try {
+    entries = readdirSync(iconDir);
+  } catch {
+    return [];
+  }
+  const icons: Array<{ name: string; size: number; mime_type: string; mtimeMs: number }> = [];
+  for (const entry of entries) {
+    const name = `${ICON_ASSET_AREA}/${entry}`;
+    if (!isIconAssetName(name)) continue;
+    const mimeType = guessMime(entry);
+    if (!mimeType.startsWith("image/")) continue;
+    try {
+      const stat = lstatSync(joinPath(iconDir, entry));
+      if (!stat.isFile()) continue;
+      icons.push({ name, size: stat.size, mime_type: mimeType, mtimeMs: stat.mtimeMs });
+    } catch {
+      // vanished between the listing and the stat
+    }
+  }
+  icons.sort((a, b) => b.mtimeMs - a.mtimeMs || a.name.localeCompare(b.name));
+  return icons.map(({ name, size, mime_type }) => ({ name, size, mime_type }));
+}
+
+/**
  * List all files in `dir` with basic metadata.
  * Returns an array of `{ name, size, mime_type }`.
  */
@@ -1437,7 +1965,8 @@ function guessMime(filename: string): string {
  * `<slug>-<8hexchars>.<ext>`
  */
 function isContentAddressed(filename: string): boolean {
-  return /^.+-[0-9a-f]{8}\.[a-z0-9]+$/i.test(filename);
+  // 8 hex, or the 16 hex an icon moves to after a name collision (BAR-F3-05).
+  return /^.+-(?:[0-9a-f]{8}|[0-9a-f]{16})\.[a-z0-9]+$/i.test(filename);
 }
 
 /**

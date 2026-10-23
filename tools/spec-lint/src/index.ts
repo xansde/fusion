@@ -130,6 +130,32 @@ function readDebt(dir: string, file: string): Set<string> {
   );
 }
 
+/** `REQ-CBT-056 (`targetSnapshot`)` — a citation that names what it believes it cites. */
+const ANNOTATED = new RegExp(
+  `\\b(${ID_BODY})\\s*\\(` + "`" + `([^` + "`" + `]+)` + "`" + `\\)`,
+  "g",
+);
+
+/**
+ * Text of each definition: its own line plus the lines up to the next definition or heading.
+ * Used by R7 to check that an annotated citation really points at the requirement it names.
+ */
+function definitionBodies(dir: string, definitions: readonly Definition[]): Map<string, string> {
+  const bodies = new Map<string, string>();
+  const byFile = new Map<string, Definition[]>();
+  for (const def of definitions) byFile.set(def.file, [...(byFile.get(def.file) ?? []), def]);
+  for (const [file, defs] of byFile) {
+    const lines = readFileSync(join(dir, file), "utf8").split(/\r?\n/);
+    const starts = new Set(defs.map((d) => d.line));
+    for (const def of defs) {
+      let end = def.line;
+      while (end < lines.length && !starts.has(end + 1) && !/^#{1,6}\s/.test(lines[end]!)) end++;
+      bodies.set(def.id, lines.slice(def.line - 1, end).join("\n"));
+    }
+  }
+  return bodies;
+}
+
 export function lintSpecs(dir: string): Violation[] {
   const { definitions, citations } = parseSpecs(dir);
   const violations: Violation[] = [];
@@ -170,6 +196,33 @@ export function lintSpecs(dir: string): Violation[] {
         message: `${cite.id} é citado mas não está definido em nenhuma spec.`,
       });
     }
+  }
+
+  // R7 — a citation that annotates the id with a term (`REQ-CBT-056 (`targetSnapshot`)`) must
+  // point at a requirement whose text mentions that term. The id alone only proves existence,
+  // so a wrong-but-existing citation used to pass; the annotation is the opt-in that lets
+  // the lint check meaning (#227). Unannotated citations are left alone.
+  const bodies = definitionBodies(dir, definitions);
+  for (const file of specFiles(dir)) {
+    readFileSync(join(dir, file), "utf8")
+      .split(/\r?\n/)
+      .forEach((line, index) => {
+        for (const m of line.matchAll(ANNOTATED)) {
+          const id = m[1]!;
+          const term = m[3]!;
+          const body = bodies.get(id);
+          if (/\.md$/.test(term)) continue; // `(`NN-spec.md`)` points at a file, not a term
+          if (body === undefined) continue; // unresolved ids are R2's business
+          if (!body.toLowerCase().includes(term.toLowerCase())) {
+            violations.push({
+              rule: "citacao-coerente",
+              file,
+              line: index + 1,
+              message: `${id} é citado como "${term}", mas o texto desse requisito não menciona o termo.`,
+            });
+          }
+        }
+      });
   }
 
   // R3 — an area belongs to one spec; only that spec may define ids in it.

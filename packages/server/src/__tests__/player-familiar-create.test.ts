@@ -29,7 +29,7 @@
  * Spec: 29-pets-companions-familiars.md; 05-usuarios-e-permissoes.md.
  */
 
-import { describe, it, expect, beforeAll, afterAll } from "vitest";
+import { describe, it, expect, beforeAll, afterAll, afterEach } from "vitest";
 import { mkdirSync, rmSync } from "node:fs";
 import { join } from "node:path";
 import { tmpdir } from "node:os";
@@ -40,6 +40,7 @@ import { boot } from "../boot.js";
 import type { BootResult } from "../boot.js";
 import { loadConfig } from "../config.js";
 import { createLogger } from "../logger.js";
+import { reserveFreePort } from "./helpers/ports.js";
 import { openDatabase, applyMigrations } from "../db/index.js";
 import type { FusionDatabase } from "../db/index.js";
 import { AuthService } from "../auth/service.js";
@@ -113,7 +114,7 @@ async function buildCtx(): Promise<Ctx> {
 
   const config = loadConfig({
     dataDirOverride: dataDir,
-    cliOverrides: { port: 0, host: "127.0.0.1", logLevel: "silent" },
+    cliOverrides: { port: await reserveFreePort(), host: "127.0.0.1", logLevel: "silent" },
   });
   const logger = createLogger("silent");
 
@@ -203,7 +204,15 @@ function masterWithFamiliarFeat(ownerId: string): Record<string, unknown> {
     type: "character",
     system: { details: { level: { value: 3 } } },
     ownership: { default: 0, [ownerId]: 3 },
-    items: [{ _id: "feat-familiar", name: "Familiar", type: "feat", system: { rules: [] } }],
+    items: [
+      {
+        _id: "feat-familiar",
+        name: "Familiar",
+        type: "feat",
+        flags: { fusion: { sourceId: "bcxIg7wi8ZAhvhOD" } },
+        system: { rules: [] },
+      },
+    ],
   };
 }
 
@@ -301,6 +310,30 @@ describe("Player-owned familiar create/delete gate (pf2e, r17-P1)", () => {
     await teardown(ctx);
   });
 
+  // Test independence: a test that needs the owner's familiar creates it
+  // through this helper, and the GM removes it afterwards so the "1 per
+  // master" rule never sees another test's familiar.
+  const createdFamiliarIds: string[] = [];
+
+  async function createOwnerFamiliar(name: string): Promise<string> {
+    const ack = await sendOp(ownerSocket, "doc:create", {
+      documentType: "Actor",
+      data: [familiarPayload(masterId, name)],
+    });
+    expect(ack["ok"], JSON.stringify(ack)).toBe(true);
+    const id = (ack["result"] as { documents: Array<{ _id: string }> }).documents[0]!._id;
+    createdFamiliarIds.push(id);
+    return id;
+  }
+
+  afterEach(async () => {
+    const ids = createdFamiliarIds.splice(0);
+    if (ids.length === 0) return;
+    // Some tests delete the familiar themselves: ignore the ack, only the
+    // end state (no familiar left on the master) matters.
+    await sendOp(gm, "doc:delete", { documentType: "Actor", ids });
+  });
+
   // -------------------------------------------------------------------------
   // NEGATIVE — ordinary Actor forge by a player
   // -------------------------------------------------------------------------
@@ -356,8 +389,6 @@ describe("Player-owned familiar create/delete gate (pf2e, r17-P1)", () => {
   // POSITIVE — owner player creates their own familiar
   // -------------------------------------------------------------------------
 
-  let familiarId: string;
-
   it("ALLOWS the owner player to create a familiar linked to their master", async () => {
     const ack = await sendOp(ownerSocket, "doc:create", {
       documentType: "Actor",
@@ -365,7 +396,8 @@ describe("Player-owned familiar create/delete gate (pf2e, r17-P1)", () => {
     });
     expect(ack["ok"]).toBe(true);
     const doc = (ack["result"] as { documents: Array<Record<string, unknown>> }).documents[0]!;
-    familiarId = doc["_id"] as string;
+    const familiarId = doc["_id"] as string;
+    createdFamiliarIds.push(familiarId);
     expect(familiarId).toBeTruthy();
     expect(doc["type"]).toBe("familiar");
     // Ownership is FORCED to the master's map — the owner player owns it.
@@ -378,6 +410,7 @@ describe("Player-owned familiar create/delete gate (pf2e, r17-P1)", () => {
   // -------------------------------------------------------------------------
 
   it("DENIES a second familiar for the same master (1 per master)", async () => {
+    await createOwnerFamiliar("Tobias");
     const ack = await sendOp(ownerSocket, "doc:create", {
       documentType: "Actor",
       data: [familiarPayload(masterId, "SecondFam")],
@@ -410,6 +443,7 @@ describe("Player-owned familiar create/delete gate (pf2e, r17-P1)", () => {
   });
 
   it("DENIES a non-owner player deleting someone else's familiar", async () => {
+    const familiarId = await createOwnerFamiliar("Tobias");
     const ack = await sendOp(outsiderSocket, "doc:delete", {
       documentType: "Actor",
       ids: [familiarId],
@@ -423,6 +457,7 @@ describe("Player-owned familiar create/delete gate (pf2e, r17-P1)", () => {
   // -------------------------------------------------------------------------
 
   it("ALLOWS the owner player to delete their own familiar", async () => {
+    const familiarId = await createOwnerFamiliar("Tobias");
     const ack = await sendOp(ownerSocket, "doc:delete", {
       documentType: "Actor",
       ids: [familiarId],

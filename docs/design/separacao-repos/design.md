@@ -41,7 +41,9 @@ Não existe repo para o Etmos (ver DEC-SEP-04) nem repo separado para o importer
 
 A UI de ficha de cada sistema (componentes Svelte + VMs + chat cards) pertence ao repositório do sistema, não ao client do core. O core mantém o **framework** (windowManager, `sheetRegistry`, ficha genérica fallback de REQ-UIF-019) e resolve a ficha registrada pelo pacote do sistema. Racional: é na ficha que o ritmo de mudança e a dor estão (curadoria de classes, regras, packs); o core não deve rebuildar/re-CI a cada iteração de ficha.
 
-### DEC-SEP-03 — Consumo por pacote npm via tag git; `.svelte` fonte; compilação junto
+### DEC-SEP-03 — Consumo por pacote npm via tag git; `.svelte` fonte; compilação junto (SUBSTITUÍDA por DEC-SEP-09)
+
+> **Substituída na F4 (2026-08-24) pela DEC-SEP-09** — o mecanismo de dependência git abaixo provou-se estruturalmente quebrado num spike (pnpm não builda dep git sem `prepare`, e `workspace:*` interno do satélite não resolve fora de um workspace real). Texto original mantido como registro histórico.
 
 - Os repos satélites publicam pacotes referenciados por tag git: `"@fusion/system-pf2e": "github:xansde/fusion-systems-2e#v0.1.0"`. Zero infra de registry (GitHub Packages exigiria escopo `@xansde/*` ou uma org).
 - Os pacotes de ficha/avatar entregam `.svelte` **fonte**; o Vite do core compila tudo junto no build. **DEC-ARQ-06 preservada**: continua sem plugin dinâmico, e o executável único da M6 continua um artefato só.
@@ -72,17 +74,34 @@ Fonte única e gate `spec:report` no `fusion`. REQs implementados nos satélites
 
 Os satélites versionam por tag semver; não ganham trilho triplo. Promoção no core continua ato humano.
 
+### DEC-SEP-09 — Consumo por git submodule pinado por tag (substitui DEC-SEP-03)
+
+Decisão tomada por spike com evidência antes da F4 (2026-08-23/24): o mecanismo original da DEC-SEP-03 — dependência git `github:xansde/fusion-systems-2e#v0.1.0&path:systems/pf2e` consumida via pnpm — está **estruturalmente quebrado**. pnpm não builda uma dependência git sem um hook `prepare`, e pior: `workspace:*` interno do satélite (`system-api` → `shared`, e todo pacote do satélite → `system-api`) dá `ERR_PNPM_WORKSPACE_PKG_NOT_FOUND` fora de um workspace pnpm real — uma dependência git baixada não é um workspace, então nenhum `workspace:*` dentro dela resolve.
+
+**Mecanismo adotado:** o satélite entra no workspace pnpm do core como **git submodule pinado por tag**, em `external/fusion-systems-2e/`, e o `pnpm-workspace.yaml` do core passa a listar `external/fusion-systems-2e/{systems,sheets,tools}/*` ao lado dos seus próprios `packages/*`, `systems/stub`, `tools/*`. Assim:
+
+- `workspace:*` resolve nos dois sentidos (o core enxerga `@fusion/system-pf2e`/`@fusion/sheets-pf2e` como pacotes do próprio workspace; os pacotes do satélite enxergam `@fusion/shared`/`@fusion/system-api` do core do mesmo jeito).
+- O core continua buildando **um executável só** (DEC-ARQ-01/06 intactas): `pnpm build` topológico builda `shared` → `system-api` → `engine-2e`/`system-pf2e`/`system-sf2e` → `sheets-pf2e` → `server`/`client`, e o Vite do client compila os `.svelte` do submodule junto — sem plugin dinâmico, sem segundo processo.
+- Bump de versão do satélite = trocar o pin do submodule (`git -C external/fusion-systems-2e checkout v0.x.y` + commit no core) — não republicar nada.
+- O satélite roda seu **próprio CI**, "sozinho": clona o core raso no sha/tag pinado (`core-ref.txt`) e monta o mesmo overlay de workspace via `scripts/setup-core.sh`, provando-se contra a forma real de consumo sem depender do core rodar seu CI.
+
+**Validado no spike e na F4 em si:** `pnpm install` limpo linka `@fusion/shared`/`@fusion/system-api` de verdade nos pacotes do submodule; `pnpm build`/`typecheck`/`test`/`lint:boundaries` passam na raiz do core com o submodule montado — ver PR da F4 para os números.
+
+**Achado colateral do CI standalone do satélite** (documentado em `scripts/setup-core.sh` do repo `fusion-systems-2e`): montar o core via **symlink** para o checkout do satélite (em vez de cópia) quebra a linkagem de dependências do pnpm 11 — o linker do workspace resolve o realpath de cada pacote para decidir se ele pertence ao workspace, e um symlink cujo realpath cai fora da raiz do workspace é reconhecido para `pnpm --filter`/scripts mas silenciosamente pulado para linking (nenhum `node_modules/@fusion/*` é criado). Isso não afeta o mecanismo real desta decisão — um git submodule é um diretório real dentro da árvore do core, não um symlink — mas vale registrado porque quase foi confundido com um problema do mecanismo em si.
+
+DEC-SEP-03 fica **substituída** por esta decisão; o texto original permanece acima como registro histórico do que foi tentado e por quê não funcionou.
+
 ## 2. Fases
 
 Cada fase termina em estado estável, com PR contra `alfa/app` (F2 empilhada sobre F1). Merge é sempre ato humano.
 
-| Fase   | Entrega                                                                                                                                                                                                         | Definition of done                                                                                                    |
-| ------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------- |
-| **F1** | Remover Etmos da linha alfa (dirs etmos, 8 eventos de protocolo, deps/alias, testes re-fixturados p/ stub ou pf2e, spec 19 com banner, CLAUDE.md/README)                                                        | suíte completa verde; `spec:report` regenerado; nenhum import/`etmos:*` restante fora de menção histórica em spec/doc |
-| **F2** | Remover Fog conforme fronteira da DEC-SEP-05 (empilhada sobre F1)                                                                                                                                               | suíte verde; `token:move` e CRUD de walls/luzes/portas intactos; cenas persistidas continuam abrindo                  |
-| **F3** | Fronteira da ficha dentro do core: mover os 68 arquivos PF2e p/ `packages/client/src/systems/pf2e/`, chat cards via registry (padrão `conditionRegistry`/`footprintRegistry`), regra nova no dependency-cruiser | CI atual prova a fronteira: core não importa ficha de sistema fora do entry point registrado                          |
-| **F4** | Extrair `fusion-systems-2e` com `git filter-repo` (histórico preservado): regras + fichas + packs + importer; core consome por tag; `@fusion/shared`/`system-api` publicados por tag                            | build+suíte verdes nos dois repos; `spec:report` com cobertura externa; emenda DEC-ARQ-05                             |
-| **F5** | Criar `fusion-avatar` do porte 5762dab; integração no core (seção na aba Configurações + canto da mesa via `@fusion/avatar`); emendas specs 35/37                                                               | avatar funcional na mesa a partir do pacote; sem botão na ficha                                                       |
+| Fase      | Entrega                                                                                                                                                                                                                                                                                        | Definition of done                                                                                                     |
+| --------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------- |
+| **F1** ✅ | Remover Etmos da linha alfa (dirs etmos, 8 eventos de protocolo, deps/alias, testes re-fixturados p/ stub ou pf2e, spec 19 com banner, CLAUDE.md/README)                                                                                                                                       | suíte completa verde; `spec:report` regenerado; nenhum import/`etmos:*` restante fora de menção histórica em spec/doc  |
+| **F2** ✅ | Remover Fog conforme fronteira da DEC-SEP-05 (empilhada sobre F1)                                                                                                                                                                                                                              | suíte verde; `token:move` e CRUD de walls/luzes/portas intactos; cenas persistidas continuam abrindo                   |
+| **F3** ✅ | Fronteira da ficha dentro do core: mover os 68 arquivos PF2e p/ `packages/client/src/systems/pf2e/`, chat cards via registry (padrão `conditionRegistry`/`footprintRegistry`), regra nova no dependency-cruiser                                                                                | CI atual prova a fronteira: core não importa ficha de sistema fora do entry point registrado                           |
+| **F4** ✅ | Extrair `fusion-systems-2e` (histórico não preservado por `filter-repo` — o repo satélite nasceu semeado, não migrado; ver PR): regras + fichas + packs + importer; core consome via **git submodule pinado por tag** (DEC-SEP-09, substitui a publicação por tag de pacote npm da DEC-SEP-03) | build+suíte verdes nos dois repos; `spec:report` com cobertura externa mantendo o piso; emenda DEC-ARQ-05 + DEC-SEP-09 |
+| **F5**    | Criar `fusion-avatar` do porte 5762dab; integração no core (seção na aba Configurações + canto da mesa via `@fusion/avatar`); emendas specs 35/37                                                                                                                                              | avatar funcional na mesa a partir do pacote; sem botão na ficha                                                        |
 
 ## 3. Emendas de spec (aplicadas na fase que as motiva)
 

@@ -107,6 +107,8 @@ Toda a UI (HUD, sidebar, fichas, diálogos) é **Svelte 5 (Runes)** buildado por
 
 ### DEC-ARQ-05 — Monorepo pnpm com fronteira `shared` no centro
 
+> **Emenda (F4, DEC-SEP-09, 2026-08-24) — onde vive.** `systems/{pf2e,sf2e}`, a ficha PF2e e `tools/{importer-pf2e,translate-packs}` deixaram de ser diretórios do monorepo `fusion` e passaram a viver no repo satélite `xansde/fusion-systems-2e`, consumido aqui como **git submodule pinado por tag** em `external/fusion-systems-2e/`. O submodule entra no `pnpm-workspace.yaml` do core, então a fronteira `shared` no centro (abaixo) e o executável único (DEC-ARQ-01/06) continuam intactos — muda só onde os arquivos moram, não como o monorepo se compila. Ver `docs/design/separacao-repos/design.md`.
+
 Layout: `packages/server`, `packages/client`, `packages/shared`, `packages/system-api`, `systems/*`, `tools/*`. O pacote `shared` contém schemas, tipos e o protocolo, e é a **única** dependência comum entre server e client.
 
 - **Alternativas rejeitadas:**

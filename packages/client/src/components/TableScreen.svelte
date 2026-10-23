@@ -20,18 +20,35 @@
    */
 
   import { onMount, onDestroy } from "svelte";
+  import FusionMark from "./common/FusionMark.svelte";
+  import Icon from "./common/Icon.svelte";
   import { session, sessionActions } from "../lib/session.svelte.js";
   import { FusionCanvas } from "../lib/canvas/FusionCanvas.js";
   import { loadDevScene } from "../lib/canvas/dev-scene.js";
   import { loadSceneDocument } from "../lib/canvas/sceneLoader.js";
   import { canLoadScene } from "../lib/canvas/canvasReadyGate.js";
+  import { createSceneLoadGuard } from "../lib/canvas/sceneLoadGuard.js";
+  import { swapScene } from "../lib/canvas/sceneSwap.js";
+  import { preloadSceneTexture } from "../lib/canvas/scenePreload.js";
+  import { setScenePreloadListener } from "../lib/canvas/scenePreloadBus.js";
+  import {
+    beginSceneLoadingNotice,
+    endSceneLoadingNotice,
+  } from "../lib/canvas/sceneLoadingState.svelte.js";
+  import SceneLoadingNotice from "./scenes/SceneLoadingNotice.svelte";
   import { activeSceneState } from "../lib/docs/activeScene.svelte.js";
-  import { attachCombatSync } from "../lib/combat/combatStore.svelte.js";
+  import { attachCombatSync, setTargetingViewer } from "../lib/combat/combatStore.svelte.js";
   import { setCombatBadgeViewer } from "../lib/combat/combatBadge.svelte.js";
   import { attachChatSync, attachChatMessageSync } from "../lib/chat/chatStore.svelte.js";
   import Sidebar from "./sidebar/Sidebar.svelte";
+  import ActionBar from "./actionbar/ActionBar.svelte";
+  import AvatarCorner from "./avatar/AvatarCorner.svelte";
   import { registerCoreSidebarTabs } from "../lib/sidebar/registerCoreTabs.js";
+  import { registerCoreChatCardExtensions } from "../lib/chat/registerCoreChatCardExtensions.js";
   import ActiveSceneBadge from "./scenes/ActiveSceneBadge.svelte";
+  import FogToolbar from "./scenes/FogToolbar.svelte";
+  import { ManualFogHost } from "../lib/canvas/fog/fogHost.svelte.js";
+  import { fogToolState } from "../lib/canvas/fog/fogToolState.svelte.js";
   import NoSceneOverlay from "./scenes/NoSceneOverlay.svelte";
   import ScenePrepareNotice from "./scenes/ScenePrepareNotice.svelte";
   import { sceneListState } from "../lib/scenes/scenesState.svelte.js";
@@ -44,28 +61,63 @@
   import WindowHost from "./windows/WindowHost.svelte";
   import { getSocket } from "../lib/session.svelte.js";
   import { SceneOrchestrator } from "../lib/canvas/scene-orchestrator.js";
+  import { footprintOf } from "../lib/canvas/tokens/footprint.js";
   import { TokenLayer } from "../lib/canvas/tokens/TokenLayer.js";
   import { ensureFootprintRegistry } from "../lib/canvas/tokens/footprintRegistry.svelte.js";
   import { initTokenDisplayPrefs } from "../lib/canvas/tokens/tokenDisplayPrefsStore.svelte.js";
+  import { iniciarPreferenciasDoAvatar } from "../lib/avatar/preferenciasDoAvatar.svelte.js";
+  import { attachRuler, type RulerHandle } from "../lib/presence/attachRuler.js";
+  import { attachPing } from "../lib/presence/attachPing.js";
+  import { actorSpeedFt } from "../lib/presence/dragRuler.js";
+import { presenceState } from "../lib/presence/presenceStore.svelte.js";
+  import RulerToolButton from "./RulerToolButton.svelte";
+  import TemplateMenu from "./TemplateMenu.svelte";
+  import ShowPlayersButton from "./ShowPlayersButton.svelte";
+  import ShowPlayersWindow from "./ShowPlayersWindow.svelte";
+  import MapNoteButton from "./MapNoteButton.svelte";
+  import CalibrateGridButton from "./CalibrateGridButton.svelte";
+  import GridCalibrationPanel from "./scenes/GridCalibrationPanel.svelte";
+  import {
+    gridCalibrationState,
+    stopGridCalibration,
+  } from "../lib/scenes/gridCalibrationState.svelte.js";
+  import { cornerPanel } from "../lib/ui/cornerPanel.svelte.js";
+  import MapNotePopup from "./MapNotePopup.svelte";
+  import { attachNotes, type NotesHandle } from "../lib/notes/attachNotes.js";
+  import { noteUi } from "../lib/notes/noteUi.svelte.js";
   import { TokenInteractionManager } from "../lib/canvas/tokens/TokenInteractionManager.js";
+  import { ROLE_ASSISTANT } from "../lib/canvas/tokens/token-interaction.js";
   import { ownedActorIdsOf } from "../lib/combat/combatBadge.svelte.js";
+  import {
+    publishTokenSelection,
+    setActiveActorViewer,
+  } from "../lib/actionbar/activeActorStore.svelte.js";
+  import { barHeight as actionBarHeight } from "../lib/actionbar/barFootprint.svelte.js";
+  import { clearanceAboveBar } from "../lib/actionbar/layout.js";
   import { CombatCanvasController } from "../lib/canvas/combat/combatCanvasController.js";
   import { worldMirror } from "../lib/docs/worldSync.js";
-  import { registerPf2eSheets } from "../systems/pf2e/index.js";
+  import { registerPf2eSheets } from "@fusion/sheets-pf2e";
   import { openTokenSheet } from "../lib/sheets/openTokenSheet.js";
+  import { openActorSheet } from "../lib/sheets/openActorSheet.js";
   import {
     buildActorDropTokenOp,
     buildTokenFromActorFields,
     type ActorDragPayload,
   } from "../lib/actors/actorDirectory.js";
   import { buildTokenCreateOp } from "../lib/docs/tokenCreateOp.js";
-  import { sendOp } from "../lib/docs/sendOp.js";
+  import { sendOp, makeSendOpFn } from "../lib/docs/sendOp.js";
   import { importToWorld as compendiumImportToWorld } from "../lib/compendium/compendiumApi.js";
   import { decideSceneDrop } from "../lib/compendium/importTargets.js";
   import type { CompendiumDragPayload } from "../lib/compendium/compendiumBrowser.js";
   import { hasActorDragType, hasCompendiumDragType } from "../lib/canvas/canvasDragTypes.js";
   import { CANVAS_DROP_EFFECT } from "../lib/canvas/dragEffects.js";
-  import { effectiveGridSize } from "../lib/canvas/sceneCoords.js";
+  import {
+    effectiveGridSize,
+    sceneContentOffset,
+    sceneGridOffset,
+    sceneGridSignature,
+  } from "../lib/canvas/sceneCoords.js";
+  import { captureView, restoreView, type KeptView } from "../lib/canvas/sceneViewKeep.js";
   import type { SceneDocument } from "@fusion/shared";
   import { t } from "../lib/i18n/i18n.js";
 
@@ -75,6 +127,12 @@
   // opens (REQ-GAV-015/016), and it is idempotent, so a remount is harmless.
   registerCoreSidebarTabs();
 
+  // ALQ-F1-10: CORE's own `actor:applyDamage` summary card
+  // (`flags.fusion.damageApplied` — DF-02, core-level, unlike PF2e's
+  // `flags.pf2e.abilityCard`), through the same `chatCardExtensionRegistry`
+  // a system uses. Idempotent, same reasoning as the tabs above.
+  registerCoreChatCardExtensions();
+
   // REQ-CBA-004: the Combate dot goes amber when the participant of the turn belongs
   // to this user, so the badge has to know which seat this is. Who is logged in is the
   // session's fact, and this is where the session meets the drawer — the rail itself
@@ -83,10 +141,33 @@
     setCombatBadgeViewer(session.user?.id ?? null);
   });
 
+  // REQ-CBT-056: getMyTargets()/setMyTargets() (combatStore) are scoped to a
+  // single user — same reasoning as the badge viewer above, this is the one
+  // place session meets the combat store for it.
+  $effect(() => {
+    setTargetingViewer(session.user?.id ?? null);
+  });
+
+  // BAR-F1-01 (D-BA01, REQ-BAR-001): whose seat the action bar is for. `isGm` is the
+  // privileged role — the threshold `canMoveToken` uses and the server's `isRolePrivileged`
+  // (role ≥ ASSISTANT) — because the privileged seat may see any actor's bar; a player only
+  // ever gets an actor they own, decided in the store's gate.
+  $effect(() => {
+    const user = session.user;
+    setActiveActorViewer(
+      user ? { userId: user.id, isGm: user.role >= ROLE_ASSISTANT } : null,
+    );
+  });
+
   let loggingOut = $state(false);
   let canvasContainer: HTMLElement | null = $state(null);
   let fusionCanvas: FusionCanvas | null = null;
   let cleanupScene: (() => void) | null = null;
+  // BUG FIX (#81): decides whether an in-flight scene load's result is still
+  // wanted by the time it resolves — see sceneLoadGuard.ts doc comment. Must
+  // be created once here (module/component scope), not inside the $effect
+  // below, so the generation counter survives across effect re-runs.
+  const sceneLoadGuard = createSceneLoadGuard();
   let cleanupCombatSync: (() => void) | null = null;
   let cleanupChatSync: (() => void) | null = null;
   let cleanupChatMessageSync: (() => void) | null = null;
@@ -101,6 +182,24 @@
   // true only once init() has resolved; the $effect is gated on it so no
   // loadSceneDocument call can reach the canvas before its layers exist.
   let canvasReady = $state(false);
+
+  // ---- Manual fog of war (névoa manual) ----
+  // The host owns the fog layer, the GM's drawing tools and the optimistic copy;
+  // the toolbar is shown to privileged users only (the server enforces it too).
+  // `fogHost` is $state so the toolbar mounts once the canvas exists.
+  let fogHost = $state<ManualFogHost | null>(null);
+  const canUseFog = $derived((session.user?.role ?? 0) >= ROLE_ASSISTANT);
+
+  $effect(() => {
+    // Reads canvasScene + privilege: re-syncs on every scene mutation (cheap).
+    fogHost?.syncScene(canvasScene, canUseFog);
+  });
+
+  $effect(() => {
+    // Toolbar choices (tool, mode, radius, snap) -> controller.
+    void [fogToolState.tool, fogToolState.mode, fogToolState.radius, fogToolState.snap];
+    fogHost?.refreshTool();
+  });
 
   // ---- Refused drop over the scene (REQ-CPD-063) ----
   // A compendium entry with no destination on the map must be refused WITH a
@@ -156,6 +255,12 @@
   // it is bound 1:1 to canvas.getLayer("tokens") + the socket for THIS scene
   // load, not part of the orchestrator's own render/tick contract.
   let _tokenInteraction: TokenInteractionManager | null = null;
+  /** Handle of the ruler adapter (listeners, drawing, drag ruler) for the loaded scene. */
+  let _ruler: RulerHandle | null = null;
+  let _disposePing: (() => void) | null = null;
+  let _notes: NotesHandle | null = null;
+  /** Tokens selected on the canvas (ids), for the emanation source. */
+  let _selectedTokenIds: ReadonlySet<string> = new Set();
   /**
    * The `_id` of the scene the canvas currently has loaded — tracked so the
    * scene-reload $effect below can tell "the GM switched scenes" (reload)
@@ -177,6 +282,14 @@
    * a full reload here is both wrong and redundant for that case.
    */
   let _loadedSceneId: string | null = null;
+  /**
+   * What the loaded scene's grid looked like when it was drawn (size, calibrated
+   * offset, colour, ...). A change reloads the SAME scene: the background, the
+   * grid lines, the snap and the padding all depend on it.
+   */
+  let _loadedGridSig: string | null = null;
+  /** Map corner (scene padding) of the loaded scene, to keep the camera across a grid reload. */
+  let _loadedCorner: { padX: number; padY: number } | null = null;
 
   async function handleLogout(): Promise<void> {
     if (loggingOut) return;
@@ -226,6 +339,10 @@
   // ---- Canvas lifecycle ----
 
   onMount(async () => {
+    // GM's "Pre-carregar para todos": warm the art of a scene that is NOT (yet) on air.
+    setScenePreloadListener(({ sceneId, background }) => {
+      void preloadSceneTexture({ _id: sceneId, background });
+    });
     if (!canvasContainer) return;
 
     const canvas = new FusionCanvas({ container: canvasContainer });
@@ -242,6 +359,13 @@
       }
       // Flip the gate LAST: this gets read by the reactive $effect, which will
       // (re-)run now that the PIXI layer hierarchy is guaranteed to exist.
+      if (canvasContainer) {
+        fogHost = new ManualFogHost({
+          canvas,
+          container: canvasContainer,
+          getSocket: () => getSocket() ?? null,
+        });
+      }
       canvasReady = true;
     } catch (err) {
       console.error("[TableScreen] Canvas init failed:", err);
@@ -275,17 +399,42 @@
       // (tokenDisplayPrefsStore.svelte.ts) — 100% client-local, no socket
       // round-trip (unlike the footprint table above, which is server data).
       initTokenDisplayPrefs(session.worldInfo?.id ?? "", session.user?.id ?? "");
+      // The avatar overlay's size/position/visibility — same client-local contract.
+      iniciarPreferenciasDoAvatar(session.worldInfo?.id ?? "", session.user?.id ?? "");
     }
 
-    // Register PF2e sheets once, after the Svelte runtime is ready (REQ-UIF-018..019).
-    // Errors are non-fatal — the sheets simply won't be available for resolution.
+    // Register PF2e sheets once, after the Svelte runtime is ready (REQ-UIF-018..019). The same
+    // call registers the system's Barra de Ações provider (BAR-F2-07): without one an actor has no
+    // bar. Errors are non-fatal — the sheets and the bar simply won't be available for resolution.
     registerPf2eSheets().catch((err) => {
       console.warn("[TableScreen] registerPf2eSheets failed:", err);
     });
   });
 
   onDestroy(() => {
+    setScenePreloadListener(null);
+    // BUG FIX (#81 follow-up): invalidate any scene load still in flight
+    // BEFORE tearing down. Without this, a load that started just before
+    // unmount is still `isCurrent` when it resolves after onDestroy has
+    // already run: it would assign `cleanupScene = cleanup` after this
+    // function already set `cleanupScene = null` below — a cleanup nobody
+    // ever calls again — and would build/setup a fresh SceneOrchestrator on
+    // the `canvas` closed over by the effect, which `fusionCanvas?.destroy()`
+    // below has already torn down (that call resolves but fails silently in
+    // its own try/catch, leaving orphaned renderers on nothing). Calling
+    // begin() bumps the generation with no paired load, so isCurrent() is
+    // false for every load already in flight and each one discards itself
+    // instead of installing. The returned generation id is unused — only
+    // the side effect (invalidation) matters here.
+    sceneLoadGuard.begin();
+    fogHost?.destroy();
+    fogHost = null;
     _teardownOrchestrator();
+    // BAR-F1-01: the table is gone, and nobody is seated at it any more. Logout changes the
+    // user and the screen in the same tick, so the viewer `$effect` above may never run with
+    // `null`; clearing here keeps the active-actor store from holding the old seat's viewer and
+    // last uses until the next login.
+    setActiveActorViewer(null);
     cleanupScene?.();
     cleanupCombatSync?.();
     cleanupChatSync?.();
@@ -299,6 +448,29 @@
   });
 
   // ---- Canvas drag-and-drop (REQ-UIF-046 [MVP]) ----
+
+  /**
+   * Open the sheet of the actor whose avatar sits in the corner.
+   * Real per-user ownership (never a hardcoded OWNER) and a LAZY socket
+   * accessor: componentProps are captured once at open time.
+   */
+  function abrirFichaDoAvatar(actorId: string): void {
+    const doc = worldMirror
+      .getByType<Record<string, unknown>>("Actor")
+      .find((a) => a["_id"] === actorId);
+    if (doc === undefined) return;
+
+    const userId = session.user?.id ?? "";
+    const souGm = isGm();
+    const ownership = doc["ownership"] as Record<string, number> | undefined;
+    openActorSheet(actorId, doc, {
+      userId,
+      ownership: souGm ? 3 : (ownership?.[userId] ?? ownership?.["default"] ?? 0),
+      isGm: souGm,
+      worldId: session.worldInfo?.id ?? "",
+      sendOpFn: makeSendOpFn(() => getSocket()),
+    });
+  }
 
   /**
    * Validate and extract the ActorDragPayload from a DragEvent.
@@ -334,8 +506,9 @@
   }
 
   function handleCanvasDragOver(event: DragEvent): void {
-    // Only accept actor drags; only GMs can create tokens (permission gate).
-    if (!isGm()) return;
+    // Only accept actor drags. The Master may drop anything the canvas understands; a
+    // player may only drop an actor card, and only the ones he owns (REQ-TOK-030a) —
+    // `dragover` cannot read the payload, so the ownership check runs on `drop`.
     // The drop lands on the scene the Master is LOOKING at — the prepared one while a
     // prepare lasts (REQ-CEN-050), never the one on air behind his back.
     if (!canvasScene) return;
@@ -346,7 +519,10 @@
     // `preventDefault()` never ran, and the browser refused to ever fire `drop`. The
     // types-only predicates live in `canvasDragTypes.ts` so the rule is exercised
     // directly (canvasDragTypes.test.ts) instead of only through this component.
-    if (!hasActorDragType(event.dataTransfer) && !hasCompendiumDragType(event.dataTransfer)) {
+    if (
+      !hasActorDragType(event.dataTransfer) &&
+      !(isGm() && hasCompendiumDragType(event.dataTransfer))
+    ) {
       return;
     }
     event.preventDefault();
@@ -357,7 +533,7 @@
   }
 
   function handleCanvasDrop(event: DragEvent): void {
-    if (!isGm()) return;
+    const gm = isGm();
     const scene = canvasScene;
     if (!scene) return;
     const canvas = fusionCanvas;
@@ -375,6 +551,16 @@
     if (!sock) return;
 
     const actorPayload = _getActorDragPayload(event);
+    if (!gm) {
+      // REQ-TOK-030a: a player creates the token of an actor he owns on the scene on air,
+      // never hidden, and nothing else (no compendium entry). The server re-checks all of it.
+      if (!actorPayload) return;
+      const owned = ownedActorIdsOf(
+        worldMirror.getByType<Record<string, unknown>>("Actor"),
+        session.user?.id ?? null,
+      );
+      if (!owned.has(actorPayload._id)) return;
+    }
     if (actorPayload) {
       event.preventDefault();
       const gridSize = effectiveGridSize(scene);
@@ -384,6 +570,8 @@
         x: worldX,
         y: worldY,
         gridSize,
+        gridOffsetX: sceneGridOffset(scene).x,
+        gridOffsetY: sceneGridOffset(scene).y,
       });
       // REQ-NPC-063: an embedded doc:create (`buildActorDropTokenOp` composes the
       // spec-41 token fields with the shared envelope), awaited with an ack so a
@@ -443,6 +631,8 @@
             x: worldX,
             y: worldY,
             gridSize,
+            gridOffsetX: sceneGridOffset(scene).x,
+            gridOffsetY: sceneGridOffset(scene).y,
           });
           // REQ-CPD-062: an embedded doc:create, awaited with an ack — same
           // shape and same visible-failure treatment as the actor branch
@@ -481,6 +671,18 @@
    * init()), which re-triggers this effect and performs the (now safe) load —
    * covering both the "scene already active at mount" and "GM activates a
    * scene later" cases with the same code path.
+   *
+   * BUG FIX (#81): this effect used to clean up the PREVIOUS scene
+   * (`cleanupScene?.()`) synchronously at the top of its own execution, but
+   * only learned the NEW scene's cleanup after an `await` — so two scene
+   * switches close together raced: the second run's top-of-execution cleanup
+   * found `cleanupScene` still null (the first load hadn't resolved yet), and
+   * whichever load resolved LAST won unconditionally, silently overwriting
+   * whatever the other had assigned (leaked content, orphaned orchestrator).
+   * sceneLoadGuard pairs each in-flight load with the generation that started
+   * it: after every `await`, isCurrent(generation) says whether this load's
+   * result is still wanted. A stale result disposes of itself immediately
+   * instead of being installed — see sceneLoadGuard.ts for the full writeup.
    */
   $effect(() => {
     const canvas = fusionCanvas;
@@ -496,33 +698,97 @@
     // the other per-doc reconcilers already pick this up on their own mirror
     // subscriptions; a full canvas teardown/reload here would only cause a
     // black-screen flash and reset the camera for no reason. See _loadedSceneId.
-    if (scene && scene._id === _loadedSceneId) return;
+    if (scene && scene._id === _loadedSceneId && sceneGridSignature(scene) === _loadedGridSig) {
+      return;
+    }
 
-    // Tear down previous orchestrator before changing scene
-    _teardownOrchestrator();
+    // Same scene, new grid (calibration): reload it, but keep the camera where it is.
+    const keptView: KeptView | null =
+      scene && scene._id === _loadedSceneId && _loadedCorner
+        ? captureView(canvas, _loadedCorner)
+        : null;
 
-    // Cleanup previous scene content
-    cleanupScene?.();
-    cleanupScene = null;
-    _loadedSceneId = null;
+    // Nothing to show (scene cleared): there is no art to wait for, so the old scene comes
+    // down right away. A generation bump still supersedes any swap in flight.
+    if (!scene) {
+      sceneLoadGuard.begin();
+      _swapOutCurrentScene();
+      return;
+    }
 
-    void (async () => {
-      try {
-        if (scene) {
-          cleanupScene = await loadSceneDocument(canvas, scene);
+    // A scene to show: the CURRENT one stays on screen while the next one's texture is fetched
+    // (with a discreet notice if that takes > 300 ms), and only then does the swap happen — in
+    // one step, followed by a short fade. Bump the generation BEFORE any await, synchronously,
+    // so a concurrent effect re-run always sees a strictly newer generation and a superseded
+    // swap does nothing more (see sceneSwap.ts).
+    const generation = sceneLoadGuard.begin();
+
+    void swapScene({
+      isCurrent: () => sceneLoadGuard.isCurrent(generation),
+      preload: () => preloadSceneTexture(scene),
+      showLoading: beginSceneLoadingNotice,
+      hideLoading: endSceneLoadingNotice,
+      teardown: _swapOutCurrentScene,
+      load: async () => {
+        try {
+          const cleanup = await loadSceneDocument(canvas, scene);
+          if (!sceneLoadGuard.isCurrent(generation)) {
+            // Superseded while in flight: this result is stale. Nobody else
+            // holds a reference to it, so this is the only chance to release
+            // the PIXI objects THIS load added (sprite/graphics — see
+            // cleanupFns in sceneLoader.ts) — cleanupScene/sceneOrchestrator
+            // belong to whichever generation is current now, so they are
+            // left untouched. Note this cleanup is NOT fully self-contained:
+            // it also clears the grid, which is global FusionCanvas state,
+            // not scoped to this load — FusionCanvas.clearGridIf() guards
+            // that specific step so it only acts if this load's grid config
+            // is still the one installed (see its doc comment).
+            cleanup?.();
+            return;
+          }
+          cleanupScene = cleanup;
+          if (keptView) restoreView(canvas, keptView, sceneContentOffset(scene));
+          // The new background is in place: fade the stage in (~250 ms) instead of popping.
+          // A grid reload of the same scene keeps the stage as is.
+          _cancelFade = keptView ? null : canvas.fadeInStage();
           // Create and set up orchestrator for the new scene
           sceneOrchestrator = _createOrchestrator(canvas, scene);
           await sceneOrchestrator.setup();
+          if (!sceneLoadGuard.isCurrent(generation)) {
+            // Superseded during setup(): the newer effect run already tore
+            // down sceneOrchestrator/cleanupScene synchronously above, so
+            // there is nothing left to release here — just don't mark this
+            // stale scene as loaded.
+            return;
+          }
           _loadedSceneId = scene._id;
+          _loadedGridSig = sceneGridSignature(scene);
+          _loadedCorner = sceneContentOffset(scene);
+        } catch (err) {
+          console.error("[TableScreen] Scene load failed:", err);
         }
-        // When no active scene: canvas remains empty; NoSceneOverlay is shown
-        // by the Svelte template. Dev-scene is only used in the initial mount
-        // fallback (see onMount above, before canvasReady is set).
-      } catch (err) {
-        console.error("[TableScreen] Scene load failed:", err);
-      }
-    })();
+      },
+    });
   });
+
+  /** Cancels the fade of the previous swap (snaps the stage to opaque) — see `_swapOutCurrentScene`. */
+  let _cancelFade: (() => void) | null = null;
+
+  /**
+   * Take the scene currently on the canvas down: orchestrator first, then whatever the last
+   * WINNING generation installed (a still in-flight loser has nothing here yet: it discards
+   * itself on its own generation check, the moment it resolves).
+   */
+  function _swapOutCurrentScene(): void {
+    _cancelFade?.();
+    _cancelFade = null;
+    _teardownOrchestrator();
+    cleanupScene?.();
+    cleanupScene = null;
+    _loadedSceneId = null;
+    _loadedGridSig = null;
+    _loadedCorner = null;
+  }
 
   // ---- SceneOrchestrator helpers ----
 
@@ -535,6 +801,99 @@
    *
    * CombatCanvasController is wired if the canvas is available.
    */
+  /** Top-left square and size of a token, in cells, from its scene position. */
+  function tokenCells(
+    token: { x: number; y: number; actorId: string },
+    grid: { pixelToCell: (p: { x: number; y: number }) => { i: number; j: number }; config: { size: number } },
+  ): { i: number; j: number; width: number; height: number } {
+    const actor = worldMirror.getDoc<Record<string, unknown>>("Actor", token.actorId);
+    const fp = footprintOf(undefined, actor as Parameters<typeof footprintOf>[1]);
+    const half = grid.config.size / 2;
+    const cell = grid.pixelToCell({ x: token.x + half, y: token.y + half });
+    return { i: cell.i, j: cell.j, width: fp.width, height: fp.height };
+  }
+
+  /** Token being dragged by THIS user right now (top-left, scene px): areas anchored to it follow live. */
+  let _liveDrag: { tokenId: string; x: number; y: number } | null = null;
+
+  /**
+   * Where a token is NOW: the local drag, else another user's drag preview, else the
+   * document. Null when the token is not on the scene (deleted).
+   */
+  function liveToken(
+    sceneId: string,
+    tokenId: string,
+  ): { x: number; y: number; actorId: string; name: string } | null {
+    const scene = worldMirror.getDoc<SceneDocument>("Scene", sceneId);
+    const token = scene?.tokens?.find((t) => t._id === tokenId);
+    if (!token) return null;
+    const preview = presenceState.remoteTokenPreviews.get(tokenId);
+    const pos =
+      _liveDrag?.tokenId === tokenId
+        ? _liveDrag
+        : preview && preview.sceneId === sceneId
+          ? preview
+          : token;
+    const actor = worldMirror.getDoc<Record<string, unknown>>("Actor", token.actorId);
+    const name = token.name ?? (typeof actor?.["name"] === "string" ? actor["name"] : "");
+    return { x: pos.x, y: pos.y, actorId: token.actorId, name };
+  }
+
+  /** Current squares of a token, or null if it is gone. */
+  function liveTokenCells(sceneId: string, tokenId: string) {
+    const grid = fusionCanvas?.gridStrategy;
+    const t = grid ? liveToken(sceneId, tokenId) : null;
+    return grid && t ? tokenCells({ x: t.x, y: t.y, actorId: t.actorId }, grid) : null;
+  }
+
+  /** The (first) selected token on this scene with its squares, or null. */
+  function selectedTokenRef(sceneId: string) {
+    const id = [..._selectedTokenIds].find((tid) => liveToken(sceneId, tid) !== null);
+    const footprint = id ? liveTokenCells(sceneId, id) : null;
+    return id && footprint ? { id, footprint } : null;
+  }
+
+  /** The topmost token whose squares contain a scene point. */
+  function tokenRefAt(sceneId: string, p: { x: number; y: number }) {
+    const grid = fusionCanvas?.gridStrategy;
+    const scene = worldMirror.getDoc<SceneDocument>("Scene", sceneId);
+    if (!grid || !scene) return null;
+    const cell = grid.pixelToCell(p);
+    const tokens = scene.tokens ?? [];
+    for (let k = tokens.length - 1; k >= 0; k--) {
+      const t = tokens[k];
+      if (!t) continue;
+      const fp = liveTokenCells(sceneId, t._id);
+      if (fp && cell.i >= fp.i && cell.i < fp.i + fp.width && cell.j >= fp.j && cell.j < fp.j + fp.height) {
+        return { id: t._id, footprint: fp };
+      }
+    }
+    return null;
+  }
+
+  /** Box and name of a token for the ping highlight. */
+  function pingedToken(sceneId: string, tokenId: string) {
+    const grid = fusionCanvas?.gridStrategy;
+    const t = grid ? liveToken(sceneId, tokenId) : null;
+    const fp = liveTokenCells(sceneId, tokenId);
+    if (!grid || !t || !fp) return null;
+    const size = grid.config.size;
+    return { x: t.x, y: t.y, width: fp.width * size, height: fp.height * size, name: t.name };
+  }
+
+  /** Every token of the scene as a named target, for "who is inside the area". */
+  function sceneTargets(
+    sceneId: string,
+    grid: Parameters<typeof tokenCells>[1],
+  ): Array<{ name: string; i: number; j: number; width: number; height: number }> {
+    const scene = worldMirror.getDoc<SceneDocument>("Scene", sceneId);
+    return (scene?.tokens ?? []).map((t) => {
+      const actor = worldMirror.getDoc<Record<string, unknown>>("Actor", t.actorId);
+      const name = t.name ?? (typeof actor?.["name"] === "string" ? actor["name"] : "?");
+      return { name, ...tokenCells(t, grid) };
+    });
+  }
+
   function _createOrchestrator(canvas: FusionCanvas, scene: SceneDocument): SceneOrchestrator {
     const sock = getSocket();
     const currentIsGm = isGm();
@@ -584,7 +943,35 @@
         // have accepted the move.
         getOwnedActorIds: () =>
           ownedActorIdsOf(worldMirror.getByType<Record<string, unknown>>("Actor"), userId),
-        gridConfig: { size: gridSize, offsetX: 0, offsetY: 0 },
+        // BAR-F1-01 (REQ-BAR-007): the selection goes to the active-actor store, tagged with
+        // THIS manager's scene. The store only listens to the scene the canvas draws, so the
+        // empty selection this manager publishes when torn down on the way to another scene
+        // does not drop the actor — the selection is kept by actor and crosses the change.
+        // Movement ruler: path, distance and the colour against the actor's Speed.
+        onDrag: (info) => {
+          if (!info) {
+            _liveDrag = null;
+            _ruler?.showDrag(null);
+            return;
+          }
+          _liveDrag = { tokenId: info.tokenId, x: info.to.x, y: info.to.y };
+          const dragged = worldMirror
+            .getDoc<SceneDocument>("Scene", scene._id)
+            ?.tokens?.find((candidate) => candidate._id === info.tokenId);
+          const actor = dragged
+            ? worldMirror.getDoc<Record<string, unknown>>("Actor", dragged.actorId)
+            : undefined;
+          _ruler?.showDrag({
+            from: info.from,
+            to: info.to,
+            speedFt: actorSpeedFt(actor?.["system"]),
+          });
+        },
+        onSelectionChange: (tokenIds) => {
+          _selectedTokenIds = new Set(tokenIds);
+          publishTokenSelection({ sceneId: scene._id, tokenIds: [...tokenIds] });
+        },
+        gridConfig: { size: gridSize, offsetX: sceneGridOffset(scene).x, offsetY: sceneGridOffset(scene).y },
         // TK110 (REQ-TOK-110): two clicks on a token open its sheet. The
         // manager already decided the gesture happened and that this user may
         // see the sheet (REQ-TOK-111); everything read here is read NOW, from
@@ -612,10 +999,12 @@
               worldId: session.worldInfo?.id ?? "",
               socket: sock,
               // Lazy socket accessor: a captured socket goes stale across a
-              // reconnect (same pattern as the NPCs tab).
-              sendOpFn: (op: unknown) => {
-                void sendOp(getSocket() ?? sock, op as Parameters<typeof sendOp>[1]);
-              },
+              // reconnect (same pattern as the NPCs tab). `makeSendOpFn`, not the raw
+              // `sendOp`: a sheet emits a FLAT op ({ type, ...fields }) and only the
+              // adapter splits it into the { type, payload } envelope the server reads.
+              // The raw call sent every roll and every autosave of a sheet opened from
+              // a token as an envelope with no payload, which the server refused.
+              sendOpFn: makeSendOpFn(() => getSocket() ?? sock),
             },
           );
         },
@@ -625,6 +1014,46 @@
             dropRefusal = null;
           }, DROP_REFUSAL_MS);
         },
+      });
+    }
+
+    // --- Ruler (hold R, or the on-screen button) ---
+    // Needs the scene's grid geometry (installed by loadSceneDocument before this
+    // runs) and a socket to share the measurement with the table.
+    const rulerGrid = canvas.gridStrategy;
+    if (rulerGrid) {
+      _ruler = attachRuler({
+        canvas,
+        grid: rulerGrid,
+        layer: canvas.getLayer("controls"),
+        socket: sock,
+        sceneId: scene._id,
+        selfUserId: userId,
+        getSelectedToken: () => selectedTokenRef(scene._id),
+        getTokenAt: (p) => tokenRefAt(scene._id, p),
+        getTokenFootprint: (id) => liveTokenCells(scene._id, id),
+        isModerator: currentIsGm,
+        getTargets: () => sceneTargets(scene._id, rulerGrid),
+      });
+      // --- Map ping (hold the left button on empty map; GM Shift+hold pulls the camera) ---
+      _disposePing = attachPing({
+        canvas,
+        layer: canvas.getLayer("controls"),
+        socket: sock,
+        cellPx: rulerGrid.config.size,
+        userId,
+        getTokenIdAt: (p) => tokenRefAt(scene._id, p)?.id ?? null,
+        resolveToken: (id) => pingedToken(scene._id, id),
+        isBusy: (e) =>
+          (_ruler?.isBusy() ?? false) || noteUi.placing || _notes?.pinAt(e.clientX, e.clientY) != null,
+      });
+      // --- Map pins (Scene.notes): drawn from the mirror, clicked on the canvas ---
+      _notes = attachNotes({
+        canvas,
+        layer: canvas.getLayer("controls"),
+        mirror: worldMirror,
+        sceneId: scene._id,
+        isGm: currentIsGm,
       });
     }
 
@@ -669,6 +1098,13 @@
     _tokenInteraction?.destroy();
     _tokenInteraction = null;
 
+    _ruler?.dispose();
+    _ruler = null;
+    _disposePing?.();
+    _disposePing = null;
+    _notes?.dispose();
+    _notes = null;
+
     if (sceneOrchestrator) {
       sceneOrchestrator.teardown();
       sceneOrchestrator = null;
@@ -700,6 +1136,32 @@
     <NoSceneOverlay isGm={isGm()} />
   {/if}
 
+  <RulerToolButton />
+  <TemplateMenu />
+  {#if isGm()}
+    <ShowPlayersButton />
+    <MapNoteButton />
+    <CalibrateGridButton sceneId={canvasScene?._id ?? null} />
+    <!-- Grid calibration: aimed at the scene the canvas is showing; leaving that scene
+         (or closing the corner panel) unmounts it and drops the box. -->
+    {#if cornerPanel.open === "calibrate" && fusionCanvas && canvasScene && gridCalibrationState.sceneId === canvasScene._id}
+      {#key canvasScene._id}
+        <GridCalibrationPanel
+          canvas={fusionCanvas}
+          scene={canvasScene}
+          socket={getSocket()}
+          onClose={stopGridCalibration}
+          footprintOf={(token) => {
+            const actor = worldMirror.getDoc<Record<string, unknown>>("Actor", token.actorId);
+            return footprintOf(undefined, actor as Parameters<typeof footprintOf>[1]);
+          }}
+        />
+      {/key}
+    {/if}
+  {/if}
+  <MapNotePopup />
+  <ShowPlayersWindow />
+
   <!-- REQ-CPD-063: a compendium drop the map has no place for says so. -->
   {#if dropRefusal}
     <p class="drop-refusal" role="status">{dropRefusal}</p>
@@ -707,8 +1169,10 @@
 
   <!-- REQ-CEN-052: while a prepare lasts, the canvas keeps a persistent notice naming
        the scene the TABLE is watching, with the two ways out. -->
+  <SceneLoadingNotice />
+
   {#if prepareNotice}
-    <ScenePrepareNotice notice={prepareNotice} socket={getSocket()} />
+    <ScenePrepareNotice notice={prepareNotice} socket={getSocket()} bottomOffset={clearanceAboveBar(actionBarHeight())} />
   {/if}
 
   <!-- -------------------------------------------------------------------- -->
@@ -717,7 +1181,7 @@
   <header class="table-header">
     <!-- World name -->
     <div class="table-header__world">
-      <span class="table-header__world-icon" aria-hidden="true">&#9889;</span>
+      <span class="table-header__world-icon" aria-hidden="true"><FusionMark size={20} /></span>
       <span class="table-header__world-name">
         {session.worldInfo?.title ?? "Fusion VTT"}
       </span>
@@ -729,18 +1193,23 @@
     <!-- Spacer -->
     <div class="table-header__spacer"></div>
 
-    <!-- Connection indicator -->
-    <div class="table-header__conn" aria-live="polite" aria-atomic="true">
+    <!-- Connection indicator. The latency is a detail for whoever asks (the tooltip), not a
+         number that changes under the reader's eyes every few seconds. -->
+    <div
+      class="table-header__conn"
+      aria-live="polite"
+      aria-atomic="true"
+      title={session.rttMs !== null && session.connection === "connected"
+        ? t("FUSION.Header.Latency", { ms: session.rttMs })
+        : undefined}
+    >
       <span class="indicator {connectionClass()}" aria-hidden="true"></span>
       <span class="table-header__conn-label">{connectionLabel()}</span>
-      {#if session.rttMs !== null && session.connection === "connected"}
-        <span class="table-header__rtt">{session.rttMs}ms</span>
-      {/if}
     </div>
 
     <!-- User badge -->
     {#if session.user}
-      <div class="table-header__user">
+      <div class="table-header__user" title="{session.user.name} · {roleLabel()}">
         <span
           class="user-swatch"
           style="background-color: {session.user.color}"
@@ -753,12 +1222,13 @@
 
     <!-- Logout -->
     <button
-      class="btn btn--ghost btn--sm"
+      class="btn btn--ghost"
       onclick={handleLogout}
       disabled={loggingOut}
       aria-label={t("FUSION.Header.Leave")}
     >
-      {loggingOut ? t("FUSION.Header.Leaving") : t("FUSION.Header.Leave")}
+      <Icon name="log-out" size={18} />
+      <span class="btn__label">{loggingOut ? t("FUSION.Header.Leaving") : t("FUSION.Header.Leave")}</span>
     </button>
   </header>
 
@@ -767,6 +1237,10 @@
   <!-- The rail is the same for every role; the GM group is simply absent    -->
   <!-- for a player (REQ-GAV-003, REQ-GAV-004).                              -->
   <!-- -------------------------------------------------------------------- -->
+  {#if canUseFog && canvasScene && fogHost}
+    <FogToolbar fog={fogHost.current()} onChange={(next) => void fogHost?.commit(next)} />
+  {/if}
+
   {#if getSocket()}
     {@const sock = getSocket()!}
     <Sidebar
@@ -776,9 +1250,25 @@
       isGm={isGm()}
       userId={session.user?.id ?? ""}
     />
+
+    <!-- The action bar (spec 53): the centre-bottom of the table, always of the character (or NPC)
+         in hand. It draws nothing at all for a Mestre with nothing selected, or for an actor
+         whose type has no provider; the ownership gate lives in the active-actor store. -->
+    {#if session.user}
+      <ActionBar
+        socket={sock}
+        worldId={session.worldInfo?.id ?? ""}
+        userId={session.user.id}
+        isGm={session.user.role >= ROLE_ASSISTANT}
+      />
+    {/if}
   {/if}
 
   <!-- -------------------------------------------------------------------- -->
+  <!-- Avatar corner: the viewer's own character, bottom-right. Fixed-regions z band, so any -->
+  <!-- floating window covers it; it steps left of the sidebar and clear of the action bar. -->
+  <AvatarCorner onAbrirFicha={abrirFichaDoAvatar} />
+
   <!-- Window Host — floating windows and dialogs (M3-C)                    -->
   <!-- REQ-UIF-009..016: window manager registry mounted here once.          -->
   <!-- pointer-events: none on the host; individual windows restore them.    -->
@@ -794,18 +1284,19 @@
    */
   .drop-refusal {
     position: absolute;
-    top: calc(var(--fusion-header-height, 48px) + 0.5rem);
+    top: calc(var(--fusion-header-height) + var(--fusion-space-2));
     left: 50%;
     transform: translateX(-50%);
     z-index: 120;
     margin: 0;
     max-width: min(90vw, 32rem);
-    padding: 0.4rem 0.75rem;
-    background: var(--fusion-surface, #1e1e1e);
-    border: 1px solid var(--fusion-border, #444);
-    border-radius: var(--fusion-radius-sm, 4px);
-    color: var(--fusion-text, #eee);
-    font-size: 0.85rem;
+    padding: var(--fusion-space-2) var(--fusion-space-3);
+    background: var(--fusion-surface);
+    border: 1px solid var(--fusion-border);
+    border-radius: var(--fusion-radius);
+    box-shadow: var(--fusion-shadow-popover);
+    color: var(--fusion-text);
+    font-size: var(--fusion-text-sm);
     pointer-events: none;
   }
 
@@ -826,7 +1317,9 @@
     overflow: hidden;
   }
 
-  /* ---- Header overlay ---- */
+  /* ---- Header overlay ----
+     Flat, on the theme's surface (no translucency over the map: text over a moving picture is
+     the hardest to read), every label at 14 px or more, the role in words next to the name. */
   .table-header {
     position: absolute;
     top: 0;
@@ -834,33 +1327,34 @@
     right: 0;
     z-index: 100;
     align-items: center;
-    background: rgba(24, 24, 31, 0.85);
-    backdrop-filter: blur(6px);
+    background: var(--fusion-surface);
     border-bottom: 1px solid var(--fusion-border);
     display: flex;
     flex-shrink: 0;
-    gap: 0.75rem;
+    gap: var(--fusion-space-3);
     height: var(--fusion-header-height);
-    padding: 0 1rem;
+    padding: 0 var(--fusion-space-3) 0 var(--fusion-space-4);
   }
 
   .table-header__world {
     align-items: center;
     display: flex;
-    gap: 0.4rem;
+    flex-shrink: 1;
+    gap: var(--fusion-space-2);
+    min-width: 0;
     overflow: hidden;
   }
 
   .table-header__world-icon {
     color: var(--fusion-accent);
+    display: inline-flex;
     flex-shrink: 0;
-    font-size: 1rem;
   }
 
   .table-header__world-name {
     color: var(--fusion-text);
-    font-size: 0.9375rem;
-    font-weight: 600;
+    font-size: var(--fusion-text-md);
+    font-weight: var(--fusion-weight-bold);
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
@@ -870,24 +1364,25 @@
     flex: 1;
   }
 
-  /* Connection indicator */
+  /* Connection indicator: a dot and a word; the latency is in the tooltip. */
   .table-header__conn {
     align-items: center;
+    cursor: default;
     display: flex;
-    gap: 0.35rem;
+    flex-shrink: 0;
+    gap: var(--fusion-space-2);
   }
 
   .indicator {
     border-radius: 50%;
     display: inline-block;
     flex-shrink: 0;
-    height: 8px;
-    width: 8px;
+    height: 10px;
+    width: 10px;
   }
 
   .indicator--ok {
     background-color: var(--fusion-success);
-    box-shadow: 0 0 0 2px rgba(61, 220, 132, 0.25);
   }
 
   .indicator--warn {
@@ -900,89 +1395,114 @@
   }
 
   @keyframes pulse {
-    0%, 100% { opacity: 1; }
-    50% { opacity: 0.4; }
+    0%,
+    100% {
+      opacity: 1;
+    }
+    50% {
+      opacity: 0.4;
+    }
   }
 
   .table-header__conn-label {
     color: var(--fusion-text-muted);
-    font-size: 0.75rem;
+    font-size: var(--fusion-text-sm);
+    white-space: nowrap;
   }
 
-  .table-header__rtt {
-    color: var(--fusion-text-subtle);
-    font-family: var(--fusion-font-mono);
-    font-size: 0.7rem;
-  }
-
-  /* User badge */
+  /* User badge: the colour swatch, the name, and the role in words. */
   .table-header__user {
     align-items: center;
-    background: var(--fusion-surface-alt);
-    border: 1px solid var(--fusion-border);
-    border-radius: var(--fusion-radius-sm);
     display: flex;
-    gap: 0.45rem;
-    padding: 0.2rem 0.6rem;
+    flex-shrink: 1;
+    gap: var(--fusion-space-2);
+    min-width: 0;
   }
 
   .user-swatch {
     border-radius: 50%;
     display: block;
     flex-shrink: 0;
-    height: 10px;
-    width: 10px;
+    height: 12px;
+    width: 12px;
   }
 
   .table-header__user-name {
     color: var(--fusion-text);
-    font-size: 0.8125rem;
-    font-weight: 500;
-    max-width: 120px;
+    font-size: var(--fusion-text-sm);
+    font-weight: var(--fusion-weight-bold);
+    max-width: 160px;
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
   }
 
   .table-header__user-role {
-    color: var(--fusion-text-subtle);
-    font-size: 0.7rem;
+    color: var(--fusion-text-muted);
+    font-size: var(--fusion-text-sm);
+    white-space: nowrap;
   }
 
   /* Buttons */
   .btn {
     align-items: center;
     border: 1px solid transparent;
-    border-radius: var(--fusion-radius-sm);
+    border-radius: var(--fusion-radius);
     cursor: pointer;
     display: inline-flex;
+    flex-shrink: 0;
     font-family: var(--fusion-font);
-    font-size: 0.875rem;
-    font-weight: 500;
+    font-size: var(--fusion-text-sm);
+    font-weight: var(--fusion-weight-medium);
+    gap: var(--fusion-space-2);
     justify-content: center;
-    padding: 0.5rem 1.25rem;
-    transition: background-color var(--fusion-transition), opacity var(--fusion-transition);
+    min-height: var(--fusion-target);
+    min-width: var(--fusion-target);
+    padding: 0 var(--fusion-space-3);
+    transition:
+      background-color var(--fusion-transition),
+      opacity var(--fusion-transition);
     white-space: nowrap;
   }
 
   .btn:disabled {
     cursor: not-allowed;
-    opacity: 0.45;
+    opacity: 0.5;
   }
 
   .btn--ghost {
     background: transparent;
     border-color: var(--fusion-border);
-    color: var(--fusion-text-muted);
-  }
-
-  .btn--ghost:hover:not(:disabled) {
-    border-color: var(--fusion-text-muted);
     color: var(--fusion-text);
   }
 
-  .btn--sm {
-    font-size: 0.8125rem;
-    padding: 0.3rem 0.75rem;
+  .btn--ghost:hover:not(:disabled) {
+    background: var(--fusion-surface-alt);
+    border-color: var(--fusion-border-strong);
+  }
+
+  /* Phone (ui-mesa-hud, 22/10/2026): the header keeps the mark, the scene, the connection dot,
+     who you are and a "Sair" you can see; the world name and the words that only repeat a
+     colour step aside (the role stays in the tooltip of the name). */
+  @media (max-width: 599.98px) {
+    .table-header {
+      gap: var(--fusion-space-2);
+      padding: 0 var(--fusion-space-2);
+    }
+
+    .table-header__world-name,
+    .table-header__conn-label,
+    .table-header__user-role,
+    .btn__label {
+      display: none;
+    }
+
+    .table-header__user-name {
+      max-width: 96px;
+    }
+
+    .btn {
+      padding: 0;
+    }
   }
 </style>

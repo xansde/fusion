@@ -306,6 +306,26 @@ de Foundry.
 - **Racional:** reusar o _packer_ (JSON-fonte → `pack.db` + índice + licença) evita
   duplicar pipeline; o trabalho editorial humano produz os JSON-fonte.
 
+### DEC-CMP-11 — Packs privados: mesmo formato, raiz fora do repo, nunca sobrescrevem pack oficial
+
+O Mestre pode curar conteúdo que não pode ir para o GitHub (ex.: classes de playtest da
+Paizo — mesma restrição de `docs/etmos-fontes/`, `ver CLAUDE.md` do core). Em vez de um
+formato paralelo, o servidor DEVE descobrir uma **segunda raiz** de packs, no mesmo
+formato dos packs do sistema (REQ-CMP-002/003), fora da árvore git: `<dataDir>/private-packs/
+<systemId>/<slug>/` (override por `FUSION_PRIVATE_PACKS_DIR`, apontando para a raiz que
+contém `<systemId>/`).
+
+- **Rejeitado: um segundo mecanismo de carregamento.** Reusar `discoverPacks`
+  (REQ-CMP-006) sobre a segunda raiz evita duplicar parsing/validação de `pack.json` e
+  mantém plateia (REQ-CMP-004a/010a) e todo o resto da leitura idênticos.
+- **Racional do `slug` prefixado (`private-*`) e da ordem de descoberta:** a raiz oficial é
+  sempre descoberta primeiro; a privada depois, e um `packId` que já exista **não é
+  sobrescrito** — fica logado e ignorado. Isso impede que um pack privado malformado ou
+  mal-nomeado apague silenciosamente um pack oficial versionado.
+- **Racional de "diretório ausente não é erro":** a maioria das instalações do Fusion
+  nunca terá `private-packs/` — é um recurso do Mestre que cura conteúdo próprio, não uma
+  etapa obrigatória do boot (mesmo espírito de REQ-CMP-006 para pack ausente/corrompido).
+
 ## Requisitos funcionais
 
 > Tags: **[MVP]** alinhado à definição de MVP global (jogar uma sessão de PF2e com
@@ -373,6 +393,29 @@ de Foundry.
   presentes em textos importados (`docs/research/10-...md` §9.3) DEVEM ser
   preservados e resolvíveis; quando o alvo não existir, a UI DEVE degradar para o
   label textual (soft reference, `ver 02-`, DEC-DOC-11).
+
+### Packs privados (fora de controle de versão)
+
+- **REQ-CMP-057** [MVP] Além da raiz oficial (REQ-CMP-002), o servidor DEVE, na
+  abertura, tentar descobrir uma **segunda raiz** de packs em
+  `<dataDir>/private-packs/<systemId>/` (override por env `FUSION_PRIVATE_PACKS_DIR`
+  apontando para a raiz que contém `<systemId>/`), no mesmo formato de diretório
+  (`pack.json` + `documents.json`, `index.json`/`i18n.pt-BR.json` opcionais). Diretório
+  ausente NÃO DEVE gerar erro nem log de aviso — é o caso comum (DEC-CMP-11). Em mundo
+  composto (ex.: `pf2e-sf2e`) a descoberta percorre uma raiz privada POR sistema-fonte
+  (`private-packs/pf2e/`, `private-packs/sf2e/`), nunca `private-packs/<id-composto>/`.
+- **REQ-CMP-058** [MVP] Ao descobrir um pack cujo `id` já esteja registrado (de
+  qualquer raiz descoberta antes), o servidor NÃO DEVE sobrescrever o pack já
+  registrado — DEVE logar a colisão e ignorar o duplicado. A raiz oficial é sempre
+  descoberta antes da privada, então um `packId` colidente nunca apaga um pack oficial
+  (DEC-CMP-11).
+- **REQ-CMP-059** [MVP] `(packName, sourceId)` não é identidade entre sistemas (36 documentos
+  do vendor repetem o par entre pf2e e sf2e com conteúdo diferente). A referência de origem
+  DEVE aceitar um `systemId` opcional (aditivo) em `compendium:i18nBySourceRef` e na
+  resolução por referência de origem, e a importação para o mundo e para a ficha DEVE
+  carimbar `flags.fusion.systemId` com o sistema do pack de origem (nos documentos que já
+  trazem `flags.fusion.sourceId`). Com `systemId`, vence a entrada daquele sistema; sem ele
+  (ou com um sistema desconhecido) vale a regra determinística anterior (pf2e vence).
 
 ### Compendium browser (UI)
 
@@ -443,6 +486,28 @@ de Foundry.
   snapshot do pack, não view viva). A alternativa descartada foi gravar `name` em
   pt-BR direto na importação; o risco documentado — "o mundo deixa de ser espelho
   puro do pack" — foi o que decidiu pela opção do snapshot em `flags`.
+- **REQ-CMP-056** [MVP] Item embutido num ator (REQ-CMP-021, "trazer para a ficha") é
+  cópia do pack, mas as **regras** dele DEVEM acompanhar o pack: ao subir o servidor,
+  depois de descobrir os packs, para cada item embutido cuja origem
+  (`flags.fusion.packName` + `flags.fusion.sourceId`) resolva para um documento de pack
+  do mesmo `type`, o servidor DEVE copiar para o item **somente** `system.rules` e as
+  chaves de estado de regra `flags.fusion.{unconvertedRules, disabledRules,
+curatedRules, conversion}`. NUNCA DEVE alterar o que é do personagem: nome,
+  quantidade, equipado, notas, runas e as escolhas do jogador
+  (`flags.system.rulesSelections`). Item sem origem, com origem inexistente nos packs
+  carregados (homebrew, removido do pack) ou de `type` diferente fica intocado. A
+  operação DEVE ser idempotente: `flags.fusion.rulesSync` guarda o hash do conteúdo de
+  regra do pack aplicado; item com marcador igual ao hash atual, ou com regras já
+  iguais às do pack, não é gravado, e uma segunda execução sobre os mesmos dados não
+  grava nada. Atores alterados são gravados uma vez (um `update` por ator) e
+  re-derivados. A falha de um ator é registrada e não derruba o boot. Não é migração
+  numerada do banco: o pack muda independente da versão do esquema e a migração não
+  tem acesso ao compêndio. **Limites conhecidos:** edição manual das regras de um
+  item é sobrescrita quando o pack muda (ou na primeira sincronização, se o item
+  nunca foi marcado); concessões novas (`GrantItem`) que o pack ganhar não
+  materializam itens concedidos em personagens antigos — só a regra do próprio item é
+  trazida. Fecha o caso da Q7 para itens embutidos em atores; documentos importados
+  para o mundo como entidades próprias seguem independentes do pack.
 - **REQ-CMP-022** [MVP] Na importação, referências `@UUID` internas ao **mesmo pack**
   para itens que também forem importados em lote DEVEM ser **remapeadas** para os
   novos `_id` de mundo; referências a documentos não importados DEVEM permanecer como
@@ -921,9 +986,10 @@ packer build                 # empacota arquivos-fonte (Etmos) → pack.db (REQ-
   escolhido em `ver 20-`/`ver 26-`.
 - **Q7 — Atualização de packs já importados no mundo.** Quando um pack do sistema é
   re-importado (nova `source.version`), como (ou se) propagar mudanças para documentos
-  **já copiados** para mundos existentes? No MVP a cópia de mundo é independente e não
-  é atualizada automaticamente; avaliar um fluxo de "atualizar do compendium" em
-  `ver 15-`.
+  **já copiados** para mundos existentes? As **regras** dos itens embutidos em atores já são
+  sincronizadas no boot (REQ-CMP-056); a cópia de mundo como entidade própria segue
+  independente e não é atualizada automaticamente; avaliar um fluxo de "atualizar do
+  compendium" em `ver 15-` para o resto.
 - **Q8 — Lore mecânica vs. setting.** A fronteira entre "texto de regra mecânica"
   (importável) e "lore de setting" (Reserved Material) nem sempre é nítida em
   descrições de feats/spells (`docs/research/14-...md` §5.3). Definir heurística de

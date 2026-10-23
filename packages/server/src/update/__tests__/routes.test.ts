@@ -59,6 +59,10 @@ async function bootWithUpdateContext(
   manifest: UpdateManifest,
   overrides: Partial<BootUpdateContext> = {},
 ): Promise<BootResult> {
+  // The mock binds port 0, so it goes BEFORE the reservation: started after
+  // it, the OS could hand the mock the very port reserveFreePort() had just
+  // released, and boot() then died with EADDRINUSE (seen once on CI).
+  mockServer = await startMockUpdateServer({ manifest });
   const config = loadConfig({
     dataDirOverride: dataDir,
     cliOverrides: { port: await reserveFreePort(), dataDir, logLevel: "silent" },
@@ -66,7 +70,6 @@ async function bootWithUpdateContext(
   const logger = createLogger("silent");
   ensureDataDirLayout(config.dataDir, { logger });
 
-  mockServer = await startMockUpdateServer({ manifest });
   const worldManager = new WorldManager({ dataDir: config.dataDir });
 
   const updateContext: BootUpdateContext = {

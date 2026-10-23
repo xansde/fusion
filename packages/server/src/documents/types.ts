@@ -31,7 +31,9 @@ import {
   AmbientLightDocumentSchema,
   CombatDocumentSchema,
   FolderDocumentSchema,
+  GridConfigSchema,
   InitialViewSchema,
+  ManualFogSchema,
 } from "@fusion/shared";
 import type { DocumentTable } from "@fusion/shared";
 
@@ -121,10 +123,45 @@ export const SceneSchema = BaseDocumentSchema.extend({
   padding: z.number().nonnegative().default(0.25),
   background: z.string().nullable().optional(),
   backgroundColor: z.string().default("#999999"),
+  /**
+   * Grid config (REQ-CNV-067). Optional so scenes saved without one keep the
+   * client default; a partial grid (e.g. a size-only patch from the scene
+   * dialog) is completed with the shared defaults before validation.
+   */
+  grid: z
+    .preprocess(
+      (g) =>
+        g !== null && typeof g === "object"
+          ? {
+              type: "square",
+              size: 100,
+              distance: 5,
+              units: "ft",
+              color: "#000000",
+              alpha: 0.2,
+              ...g,
+            }
+          : g,
+      GridConfigSchema,
+    )
+    .optional(),
+  /**
+   * Grid origin relative to the map image (grid calibration). MUST be declared
+   * here: SceneSchema parses every write and drops undeclared keys. Null/absent
+   * = aligned to the map corner.
+   */
+  gridOffsetX: z.number().finite().nullable().optional(),
+  gridOffsetY: z.number().finite().nullable().optional(),
   /** Token vision enabled (spec 07 REQ-VIS-085). */
   tokenVision: z.boolean().default(false),
   /** Fog of war enabled (spec 07 REQ-VIS-085). */
   fogEnabled: z.boolean().default(false),
+  /**
+   * Manual fog of war. MUST be declared here: SceneSchema is what the store
+   * parses every write with, and Zod drops any key it does not declare (the
+   * same trap that ate `grid` and `initialView`). Absent = off.
+   */
+  manualFog: ManualFogSchema.optional(),
   /** Darkness level 0–1 (spec 07 REQ-VIS-044). */
   darkness: z.number().min(0).max(1).default(0),
   /** Global illumination flag (spec 07 REQ-VIS-044). */

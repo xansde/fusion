@@ -57,13 +57,30 @@
   import type { SceneDocument } from "@fusion/shared";
   import type { SidebarPanelProps } from "../../lib/sidebar/registry.js";
   import { sceneListState } from "../../lib/scenes/scenesState.svelte.js";
-  import { activateScene, OpError } from "../../lib/scenes/sceneController.js";
+  import { activateScene, preloadSceneForAll, OpError } from "../../lib/scenes/sceneController.js";
+
+  let preloadStatus = $state<Record<string, "loading" | "done">>({});
+
+  async function runPreload(sceneId: string): Promise<void> {
+    preloadStatus[sceneId] = "loading";
+    try {
+      await preloadSceneForAll(socket, sceneId);
+      preloadStatus[sceneId] = "done";
+      window.setTimeout(() => {
+        delete preloadStatus[sceneId];
+      }, 3000);
+    } catch {
+      delete preloadStatus[sceneId];
+      activateError = t("FUSION.Scene.Dialog.UnexpectedError");
+    }
+  }
   import {
     openSceneConfigWindow,
     openSceneCreateWindow,
     openSceneDeleteWindow,
   } from "../../lib/scenes/sceneWindows.js";
   import { t } from "../../lib/i18n/i18n.js";
+  import Icon from "../common/Icon.svelte";
   import { buildSceneHeadVM } from "../../lib/scenes/scenesTabVM.js";
   import {
     SCENE_SHELF_KEYS,
@@ -79,6 +96,7 @@
   import { needsAssetQueryToken, resolveAssetUrl } from "../../lib/assets/assetApi.js";
   import { fusionApi } from "../../lib/api.js";
   import TokenAddDialog from "./TokenAddDialog.svelte";
+  import { startGridCalibration } from "../../lib/scenes/gridCalibrationState.svelte.js";
   import {
     enterScenePrepare,
     exitScenePrepare,
@@ -127,8 +145,7 @@
       resolvedBackground = raw;
       return;
     }
-    const token = fusionApi.getToken();
-    if (!token || !userId || onAir === null) {
+    if (!fusionApi.hasToken() || !userId || onAir === null) {
       // No session to mint a token with → the colour box is the honest fallback.
       resolvedBackground = null;
       return;
@@ -138,7 +155,13 @@
     // document the grant is asked for. A player who cannot see the scene gets no
     // grant and the head keeps its colour box — the same thing it already shows
     // while the resolve is in flight, so nothing flashes.
-    void resolveAssetUrl(raw, token, userId, { table: "scenes", id: onAir.sceneId })
+    const sceneId = onAir.sceneId;
+    void fusionApi
+      .getFreshToken()
+      .then((token) => {
+        if (token === null) throw new Error("no session");
+        return resolveAssetUrl(raw, token, userId, { table: "scenes", id: sceneId });
+      })
       .then((url) => {
         if (!cancelled) resolvedBackground = url;
       })
@@ -223,6 +246,18 @@
   function togglePrepare(sceneId: string): void {
     if (scenePrepareState.sceneId === sceneId) exitScenePrepare();
     else enterScenePrepare(sceneId, activeSceneId);
+  }
+
+  /**
+   * Aim the grid calibration at a scene. The tool works on the scene the canvas is
+   * showing, so a scene that is neither on air nor prepared is prepared first — a local
+   * act of this Master that writes nothing (REQ-CEN-051).
+   */
+  function calibrateGrid(sceneId: string): void {
+    if (sceneId !== activeSceneId && scenePrepareState.sceneId !== sceneId) {
+      enterScenePrepare(sceneId, activeSceneId);
+    }
+    startGridCalibration(sceneId);
   }
 
   function toggleGroup(groupKey: string): void {
@@ -391,21 +426,18 @@
           if (scene) openSceneConfigWindow(socket, scene);
         }}
       >
-        <svg
-          viewBox="0 0 16 16"
-          width="14"
-          height="14"
-          fill="none"
-          stroke="currentColor"
-          stroke-width="1.4"
-          stroke-linecap="round"
-          stroke-linejoin="round"
-          aria-hidden="true"
-          focusable="false"
-        >
-          <path d="m10.6 2.9 2.5 2.5L5.5 13H3v-2.5z" />
-          <path d="M9.2 4.3l2.5 2.5" />
-        </svg>
+        <Icon name="pencil" size={18} />
+      </button>
+      <!-- Grid calibration: drag a box over one printed cell and the grid follows. -->
+      <button
+        class="scene-head__calibrate"
+        title={t("FUSION.Scene.Calibrate.Open")}
+        aria-label="{t('FUSION.Scene.Calibrate.Open')} {head.name}"
+        onclick={() => {
+          calibrateGrid(head.sceneId);
+        }}
+      >
+        <Icon name="grid-3x3" size={18} />
       </button>
       <!-- TK022-client: the door into TokenAddDialog — the form path stays reachable
            even when no drag is in progress. Floats over the fixed head, sitting right
@@ -418,20 +450,7 @@
         onclick={openTokenAdd}
       >
         <!-- Drawn glyph (REQ-NPC-094): a token disc with a plus, "put a piece here". -->
-        <svg
-          viewBox="0 0 16 16"
-          width="14"
-          height="14"
-          fill="none"
-          stroke="currentColor"
-          stroke-width="1.4"
-          stroke-linecap="round"
-          aria-hidden="true"
-          focusable="false"
-        >
-          <circle cx="8" cy="8" r="6" />
-          <path d="M8 5.4v5.2M5.4 8h5.2" />
-        </svg>
+        <Icon name="circle-plus" size={18} />
       </button>
       <div class="scene-head__info">
         <span class="scene-head__name" title={head.name}>{head.name}</span>
@@ -509,22 +528,7 @@
             onclick={() => toggleGroup(group.key)}
           >
             <!-- Drawn glyph (REQ-NPC-094): a chevron that points down when open. -->
-            <svg
-              class="scene-group__chevron"
-              class:scene-group__chevron--collapsed={group.collapsed}
-              viewBox="0 0 16 16"
-              width="12"
-              height="12"
-              fill="none"
-              stroke="currentColor"
-              stroke-width="1.6"
-              stroke-linecap="round"
-              stroke-linejoin="round"
-              aria-hidden="true"
-              focusable="false"
-            >
-              <path d="m4 6 4 4 4-4" />
-            </svg>
+            <Icon name="chevron-down" size={14} class={group.collapsed ? "scene-group__chevron scene-group__chevron--collapsed" : "scene-group__chevron"} />
             <span class="scene-group__name" title={groupLabel(group)}>{groupLabel(group)}</span>
             <span class="scene-group__count">{group.entries.length}</span>
           </button>
@@ -561,21 +565,7 @@
                     aria-label="{t(SCENE_SHELF_KEYS.reorder)}: {entry.name}"
                     onkeydown={(event) => handleGripKeydown(event, group, index)}
                   >
-                    <svg
-                      viewBox="0 0 16 16"
-                      width="10"
-                      height="14"
-                      fill="currentColor"
-                      aria-hidden="true"
-                      focusable="false"
-                    >
-                      <circle cx="6" cy="4" r="1.1" />
-                      <circle cx="10" cy="4" r="1.1" />
-                      <circle cx="6" cy="8" r="1.1" />
-                      <circle cx="10" cy="8" r="1.1" />
-                      <circle cx="6" cy="12" r="1.1" />
-                      <circle cx="10" cy="12" r="1.1" />
-                    </svg>
+                    <Icon name="grip-vertical" size={16} />
                   </button>
                   <!-- REQ-CEN-035: name and the environment marks that are on —
                        written out, never carried by colour alone (REQ-CEN-091). -->
@@ -601,15 +591,7 @@
                     >
                       <!-- Drawn glyphs only (REQ-NPC-094): a play triangle, an angled pen
                            and a bin, in the same 16px box as the rail's icon set. -->
-                      <svg
-                        viewBox="0 0 16 16"
-                        width="14"
-                        height="14"
-                        aria-hidden="true"
-                        focusable="false"
-                      >
-                        <path d="M5 3.5 12 8l-7 4.5z" fill="currentColor" />
-                      </svg>
+                      <Icon name="play" size={18} />
                     </button>
                     <!-- REQ-CEN-050: open this scene on THIS canvas without touching the
                          one on air; pressed, the same control leaves the prepare
@@ -627,21 +609,44 @@
                         : t(SCENE_SHELF_KEYS.prepare)}: {entry.name}"
                     >
                       <!-- Drawn glyph (REQ-NPC-094): an eye, "I am looking at this". -->
-                      <svg
-                        viewBox="0 0 16 16"
-                        width="14"
-                        height="14"
-                        fill="none"
-                        stroke="currentColor"
-                        stroke-width="1.4"
-                        stroke-linecap="round"
-                        stroke-linejoin="round"
-                        aria-hidden="true"
-                        focusable="false"
-                      >
-                        <path d="M1.5 8S4 3.8 8 3.8 14.5 8 14.5 8 12 12.2 8 12.2 1.5 8 1.5 8z" />
-                        <circle cx="8" cy="8" r="1.8" />
-                      </svg>
+                      <Icon name="eye" size={18} />
+                    </button>
+                    <button
+                      class="action-btn action-btn--calibrate"
+                      onclick={() => {
+                        calibrateGrid(entry.sceneId);
+                      }}
+                      title={t("FUSION.Scene.Calibrate.Open")}
+                      aria-label="{t('FUSION.Scene.Calibrate.Open')} {entry.name}"
+                    >
+                      <Icon name="grid-3x3" size={18} />
+                    </button>
+                    <!-- "Pre-carregar para todos": every client downloads this scene's map now,
+                         so the switch that follows has nothing left to fetch. It does not
+                         change the scene on air. Icon only (the row is 300px wide); state is
+                         carried by the icon, the title and the aria-label together. -->
+                    <button
+                      type="button"
+                      class="action-btn action-btn--preload"
+                      class:action-btn--preload-done={preloadStatus[entry.sceneId] === "done"}
+                      disabled={preloadStatus[entry.sceneId] === "loading"}
+                      onclick={() => {
+                        void runPreload(entry.sceneId);
+                      }}
+                      title={preloadStatus[entry.sceneId] === "loading"
+                        ? t("FUSION.Scene.Dialog.Preloading")
+                        : preloadStatus[entry.sceneId] === "done"
+                          ? t("FUSION.Scene.Dialog.Preloaded")
+                          : t("FUSION.Scene.Dialog.PreloadForAll")}
+                      aria-label="{t('FUSION.Scene.Dialog.PreloadForAll')}: {entry.name}"
+                    >
+                      {#if preloadStatus[entry.sceneId] === "loading"}
+                        <Icon name="refresh-cw" size={18} class="action-btn__spin" />
+                      {:else if preloadStatus[entry.sceneId] === "done"}
+                        <Icon name="circle-check" size={18} />
+                      {:else}
+                        <Icon name="cloud-download" size={18} />
+                      {/if}
                     </button>
                     <!-- REQ-CEN-061: configuring never happens inside the drawer. -->
                     <button
@@ -652,21 +657,7 @@
                       title={t("FUSION.Scene.Dialog.EditScene")}
                       aria-label="{t('FUSION.Scene.Dialog.EditScene')} {entry.name}"
                     >
-                      <svg
-                        viewBox="0 0 16 16"
-                        width="14"
-                        height="14"
-                        fill="none"
-                        stroke="currentColor"
-                        stroke-width="1.4"
-                        stroke-linecap="round"
-                        stroke-linejoin="round"
-                        aria-hidden="true"
-                        focusable="false"
-                      >
-                        <path d="m10.6 2.9 2.5 2.5L5.5 13H3v-2.5z" />
-                        <path d="M9.2 4.3l2.5 2.5" />
-                      </svg>
+                      <Icon name="pencil" size={18} />
                     </button>
                     <!-- REQ-CEN-063/064: the confirmation names the cascade, and
                          refuses outright for the scene on air. -->
@@ -678,22 +669,7 @@
                       title={t("FUSION.Scene.Dialog.DeleteScene")}
                       aria-label="{t('FUSION.Scene.Dialog.DeleteScene')} {entry.name}"
                     >
-                      <svg
-                        viewBox="0 0 16 16"
-                        width="14"
-                        height="14"
-                        fill="none"
-                        stroke="currentColor"
-                        stroke-width="1.4"
-                        stroke-linecap="round"
-                        stroke-linejoin="round"
-                        aria-hidden="true"
-                        focusable="false"
-                      >
-                        <path d="M3 4.5h10" />
-                        <path d="M6.5 4.5V3h3v1.5" />
-                        <path d="M4.5 4.5 5 13h6l.5-8.5" />
-                      </svg>
+                      <Icon name="trash" size={18} />
                     </button>
                   </div>
                 </div>
@@ -792,29 +768,60 @@
      (REQ-CEN-013: no pixel of height either way). */
   .scene-head__addToken {
     align-items: center;
-    background: rgba(0, 0, 0, 0.55);
-    border: 1px solid rgba(255, 255, 255, 0.18);
+    background: var(--fusion-surface-alt);
+    border: 1px solid var(--fusion-border-strong);
     border-radius: var(--fusion-radius-sm);
-    color: rgba(255, 255, 255, 0.85);
+    color: var(--fusion-text-muted);
     cursor: pointer;
     display: flex;
     justify-content: center;
-    padding: 0.2rem;
+    min-height: var(--fusion-target);
+    min-width: var(--fusion-target);
+    padding: 0;
     position: absolute;
-    right: calc(0.4rem + 1.5rem + 0.3rem);
+    right: calc(0.4rem + var(--fusion-target) + 0.25rem);
     top: 0.4rem;
-    width: 1.5rem;
     z-index: 1;
+  }
+
+  /* Grid calibration door: third chip of the head's top-right corner. */
+  .scene-head__calibrate {
+    align-items: center;
+    background: var(--fusion-surface-alt);
+    border: 1px solid var(--fusion-border-strong);
+    border-radius: var(--fusion-radius-sm);
+    color: var(--fusion-text-muted);
+    cursor: pointer;
+    display: flex;
+    justify-content: center;
+    min-height: var(--fusion-target);
+    min-width: var(--fusion-target);
+    padding: 0;
+    position: absolute;
+    right: calc(0.4rem + 2 * (var(--fusion-target) + 0.25rem));
+    top: 0.4rem;
+    z-index: 1;
+  }
+
+  .scene-head__calibrate:hover {
+    background: var(--fusion-accent);
+    border-color: var(--fusion-accent);
+    color: var(--fusion-on-accent);
+  }
+
+  .scene-head__calibrate:focus-visible {
+    outline: 2px solid var(--fusion-focus);
+    outline-offset: 2px;
   }
 
   .scene-head__addToken:hover {
     background: var(--fusion-accent);
     border-color: var(--fusion-accent);
-    color: #fff;
+    color: var(--fusion-on-accent);
   }
 
   .scene-head__addToken:focus-visible {
-    outline: 2px solid var(--fusion-accent);
+    outline: 2px solid var(--fusion-focus);
     outline-offset: 2px;
   }
 
@@ -824,7 +831,7 @@
     flex-direction: column;
     gap: 0.15rem;
     padding: 0.5rem 0.75rem;
-    background: linear-gradient(to top, rgba(0, 0, 0, 0.82), rgba(0, 0, 0, 0));
+    background: var(--fusion-surface);
   }
 
   /* Ajustes r1, item 27: anchored to the head's own top edge — independent of the
@@ -837,19 +844,17 @@
      placed straight on the canvas. */
   .scene-head__flag {
     align-items: center;
-    background: rgba(0, 0, 0, 0.55);
-    border: 1px solid rgba(255, 255, 255, 0.18);
+    background: var(--fusion-surface-alt);
+    border: 1px solid var(--fusion-border-strong);
     border-radius: var(--fusion-radius-sm);
     color: var(--fusion-success);
     display: flex;
-    font-size: 0.6875rem;
+    font-size: var(--fusion-text-xs);
     font-weight: 600;
     gap: 0.3rem;
     left: 0.4rem;
-    letter-spacing: 0.08em;
     padding: 0.25rem 0.5rem;
     position: absolute;
-    text-transform: uppercase;
     top: 0.4rem;
     z-index: 1;
   }
@@ -860,46 +865,46 @@
      `.scene-head__perception` used to have before item 25 retired it. */
   .scene-head__config {
     align-items: center;
-    background: rgba(0, 0, 0, 0.55);
-    border: 1px solid rgba(255, 255, 255, 0.18);
+    background: var(--fusion-surface-alt);
+    border: 1px solid var(--fusion-border-strong);
     border-radius: var(--fusion-radius-sm);
-    color: rgba(255, 255, 255, 0.85);
+    color: var(--fusion-text-muted);
     cursor: pointer;
     display: flex;
     justify-content: center;
-    padding: 0.2rem;
+    min-height: var(--fusion-target);
+    min-width: var(--fusion-target);
+    padding: 0;
     position: absolute;
     right: 0.4rem;
     top: 0.4rem;
-    width: 1.5rem;
     z-index: 1;
   }
 
   .scene-head__config:hover {
     background: var(--fusion-accent);
     border-color: var(--fusion-accent);
-    color: #fff;
+    color: var(--fusion-on-accent);
   }
 
   .scene-head__config:focus-visible {
-    outline: 2px solid var(--fusion-accent);
+    outline: 2px solid var(--fusion-focus);
     outline-offset: 2px;
   }
 
   .scene-head__flag-dot {
     background: var(--fusion-success);
     border-radius: 50%;
-    box-shadow: 0 0 8px rgba(61, 220, 132, 0.6);
     flex-shrink: 0;
-    height: 7px;
-    width: 7px;
+    height: 8px;
+    width: 8px;
   }
 
   /* REQ-CEN-013: what does not fit is truncated legibly — the whole name stays in the
      `title` tooltip, and the line never wraps into a second one. */
   .scene-head__name {
-    color: #fff;
-    font-size: 0.9375rem;
+    color: var(--fusion-text);
+    font-size: var(--fusion-text-base);
     font-weight: 600;
     overflow: hidden;
     text-overflow: ellipsis;
@@ -907,8 +912,8 @@
   }
 
   .scene-head__meta {
-    color: rgba(255, 255, 255, 0.75);
-    font-size: 0.75rem;
+    color: var(--fusion-text-muted);
+    font-size: var(--fusion-text-xs);
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
@@ -927,18 +932,18 @@
 
   .scene-head__title {
     color: var(--fusion-text);
-    font-size: 0.875rem;
+    font-size: var(--fusion-text-sm);
     font-weight: 600;
   }
 
   .scene-head__notice {
     color: var(--fusion-text-muted);
-    font-size: 0.75rem;
+    font-size: var(--fusion-text-xs);
   }
 
   /* Same visible ring the row actions use (REQ-CEN-090 / REQ-UIF-064). */
   .scene-head__action:focus-visible {
-    outline: 2px solid var(--fusion-accent);
+    outline: 2px solid var(--fusion-focus);
     outline-offset: 2px;
   }
 
@@ -966,23 +971,21 @@
     border-radius: var(--fusion-radius-sm);
     color: var(--fusion-text);
     font-family: var(--fusion-font);
-    font-size: 0.8125rem;
+    font-size: var(--fusion-text-sm);
     min-width: 0;
     padding: 0.3rem 0.5rem;
     width: 100%;
   }
 
   .scenes-tab__search:focus-visible {
-    outline: 2px solid var(--fusion-accent);
+    outline: 2px solid var(--fusion-focus);
     outline-offset: -1px;
   }
 
   .scenes-tab__title {
     color: var(--fusion-text);
-    font-size: 0.8125rem;
+    font-size: var(--fusion-text-sm);
     font-weight: 600;
-    letter-spacing: 0.04em;
-    text-transform: uppercase;
   }
 
   .scenes-tab__body {
@@ -993,14 +996,14 @@
 
   .scenes-tab__empty {
     color: var(--fusion-text-subtle);
-    font-size: 0.8125rem;
+    font-size: var(--fusion-text-sm);
     padding: 1.5rem 1rem;
     text-align: center;
   }
 
   .scenes-tab__error {
     color: var(--fusion-danger);
-    font-size: 0.75rem;
+    font-size: var(--fusion-text-xs);
     padding: 0.5rem 0.75rem;
   }
 
@@ -1010,7 +1013,7 @@
     border-top: 1px solid var(--fusion-border);
     color: var(--fusion-text-subtle);
     flex-shrink: 0;
-    font-size: 0.6875rem;
+    font-size: var(--fusion-text-xs);
     line-height: 1.35;
     padding: 0.45rem 0.75rem;
   }
@@ -1030,14 +1033,12 @@
     cursor: pointer;
     display: flex;
     font-family: var(--fusion-font);
-    font-size: 0.75rem;
+    font-size: var(--fusion-text-xs);
     font-weight: 600;
     gap: 0.35rem;
-    letter-spacing: 0.03em;
     padding: 0.35rem 0.75rem;
     position: sticky;
     text-align: left;
-    text-transform: uppercase;
     top: 0;
     width: 100%;
     z-index: 1;
@@ -1048,17 +1049,17 @@
   }
 
   .scene-group__header:focus-visible {
-    outline: 2px solid var(--fusion-accent);
+    outline: 2px solid var(--fusion-focus);
     outline-offset: -2px;
   }
 
-  .scene-group__chevron {
+  .scene-group :global(.scene-group__chevron) {
     flex-shrink: 0;
     transition: transform var(--fusion-transition);
   }
 
   /* The state is in `aria-expanded` first; the rotation is the visual echo of it. */
-  .scene-group__chevron--collapsed {
+  .scene-group :global(.scene-group__chevron--collapsed) {
     transform: rotate(-90deg);
   }
 
@@ -1078,8 +1079,9 @@
     align-items: center;
     border-radius: var(--fusion-radius-sm);
     display: flex;
-    gap: 0.4rem;
-    padding: 0.35rem 0.75rem;
+    flex-wrap: wrap;
+    gap: var(--fusion-space-1) var(--fusion-space-2);
+    padding: var(--fusion-space-2) var(--fusion-space-3);
     transition: background-color var(--fusion-transition);
   }
 
@@ -1096,8 +1098,9 @@
      ground ON TOP of the written "Em preparo" chip — the shape reads without colour,
      which is exactly what the requirement asks. */
   .scene-row--preparing {
-    background: rgba(124, 92, 252, 0.08);
-    box-shadow: inset 2px 0 0 var(--fusion-accent);
+    background: var(--fusion-accent-dim);
+    border-inline-start: 2px solid var(--fusion-accent);
+    padding-inline-start: calc(var(--fusion-space-3) - 2px);
   }
 
   /* REQ-CEN-090: a button, so it takes focus and the arrows reach it — styled back down
@@ -1110,13 +1113,16 @@
     color: var(--fusion-text-subtle);
     cursor: grab;
     display: flex;
+    align-self: stretch;
     flex-shrink: 0;
+    justify-content: center;
+    min-width: 1.5rem;
     padding: 0;
   }
 
   /* Same visible ring as every other control of the panel (REQ-CEN-090 / REQ-UIF-064). */
   .scene-row__grip:focus-visible {
-    outline: 2px solid var(--fusion-accent);
+    outline: 2px solid var(--fusion-focus);
     outline-offset: -1px;
   }
 
@@ -1129,10 +1135,8 @@
 
   .scene-row__name {
     color: var(--fusion-text);
-    font-size: 0.8125rem;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
+    font-size: var(--fusion-text-sm);
+    overflow-wrap: anywhere;
   }
 
   /* REQ-CEN-035: marks, on one truncating line under the name. `min-height` (Ajustes
@@ -1143,13 +1147,12 @@
      whether or not it has anything to say (REQ-CEN-035 draws the same line either
      way, just sometimes empty). */
   .scene-row__meta {
-    min-height: 1rem;
     color: var(--fusion-text-subtle);
     display: flex;
-    font-size: 0.6875rem;
-    gap: 0.3rem;
-    overflow: hidden;
-    white-space: nowrap;
+    flex-wrap: wrap;
+    font-size: var(--fusion-text-xs);
+    gap: var(--fusion-space-1);
+    min-height: 1.25rem;
   }
 
   /* REQ-CEN-091: a mark is a written word in a chip, never a coloured dot on its own. */
@@ -1158,22 +1161,30 @@
     border: 1px solid var(--fusion-border);
     border-radius: var(--fusion-radius-sm);
     color: var(--fusion-text-muted);
-    padding: 0 0.25rem;
+    padding: 0 var(--fusion-space-1);
   }
 
+  /* Second strip of the line, under the name: six 40px targets do not fit beside a name in a
+     300px drawer. Hidden at rest, shown on hover, on keyboard focus anywhere in the row and,
+     where there is no hover (touch), always. `display` (not opacity) so a hidden button is
+     never a tab stop — focus-within reveals the strip as soon as the row takes focus. */
   .scene-row__actions {
-    display: flex;
-    gap: 0.2rem;
-    opacity: 0;
-    transition: opacity var(--fusion-transition);
+    display: none;
+    flex: 1 0 100%;
+    flex-wrap: wrap;
+    gap: 3px;
   }
 
-  /* REQ-CEN-090 / REQ-UIF-064: the actions may fade in on hover, but hover must not
-     be the ONLY way to reveal them — tabbing into any of them lights the whole group,
-     otherwise the keyboard user focuses a button drawn at `opacity: 0`. */
+  /* REQ-CEN-090 / REQ-UIF-064: hover must not be the ONLY way to reveal the actions. */
   .scene-row:hover .scene-row__actions,
   .scene-row:focus-within .scene-row__actions {
-    opacity: 1;
+    display: flex;
+  }
+
+  @media (hover: none) {
+    .scene-row__actions {
+      display: flex;
+    }
   }
 
   .action-btn {
@@ -1184,13 +1195,13 @@
     color: var(--fusion-text-subtle);
     cursor: pointer;
     display: flex;
-    height: 1.5rem;
     justify-content: center;
+    min-height: var(--fusion-target);
+    min-width: var(--fusion-target);
     padding: 0;
     transition:
       background-color var(--fusion-transition),
       color var(--fusion-transition);
-    width: 1.5rem;
   }
 
   .action-btn:disabled {
@@ -1201,12 +1212,12 @@
   /* REQ-CEN-090: same focus ring the rail uses (`SidebarRail.svelte`), so the row
      action the keyboard landed on is unmistakable. */
   .action-btn:focus-visible {
-    outline: 2px solid var(--fusion-accent);
+    outline: 2px solid var(--fusion-focus);
     outline-offset: -2px;
   }
 
   .action-btn--activate:not(:disabled):hover {
-    background: rgba(61, 220, 132, 0.1);
+    background: var(--fusion-success-dim);
     color: var(--fusion-success);
     border-color: var(--fusion-success);
   }
@@ -1214,25 +1225,57 @@
   /* REQ-CEN-056: the prepare toggle stays lit while it is the prepared scene, with a
      ring so "pressed" is not carried by hue alone (REQ-CEN-091). */
   .action-btn--prepare-on {
-    background: rgba(124, 92, 252, 0.16);
+    background: var(--fusion-accent-dim);
     border-color: var(--fusion-accent);
     color: var(--fusion-accent);
   }
 
   .action-btn--prepare:not(:disabled):hover {
-    background: rgba(124, 92, 252, 0.1);
+    background: var(--fusion-accent-dim);
     color: var(--fusion-accent);
     border-color: var(--fusion-accent);
   }
 
   .action-btn--edit:not(:disabled):hover {
-    background: rgba(124, 92, 252, 0.1);
+    background: var(--fusion-accent-dim);
     color: var(--fusion-accent);
     border-color: var(--fusion-accent);
   }
 
+  .action-btn--preload:not(:disabled):hover {
+    background: var(--fusion-info-dim);
+    border-color: var(--fusion-info);
+    color: var(--fusion-info);
+  }
+
+  .action-btn--preload:disabled {
+    cursor: progress;
+    opacity: 1;
+  }
+
+  .action-btn--preload-done {
+    border-color: var(--fusion-success);
+    color: var(--fusion-success);
+  }
+
+  .action-btn :global(.action-btn__spin) {
+    animation: scenes-tab-spin 1s linear infinite;
+  }
+
+  @keyframes scenes-tab-spin {
+    to {
+      transform: rotate(360deg);
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .action-btn :global(.action-btn__spin) {
+      animation: none;
+    }
+  }
+
   .action-btn--delete:not(:disabled):hover {
-    background: rgba(255, 92, 92, 0.1);
+    background: var(--fusion-danger-dim);
     color: var(--fusion-danger);
     border-color: var(--fusion-danger);
   }
@@ -1244,7 +1287,7 @@
     cursor: pointer;
     display: inline-flex;
     font-family: var(--fusion-font);
-    font-size: 0.875rem;
+    font-size: var(--fusion-text-sm);
     font-weight: 500;
     justify-content: center;
     padding: 0.5rem 1.25rem;
@@ -1254,7 +1297,7 @@
 
   .btn--primary {
     background: var(--fusion-accent);
-    color: #fff;
+    color: var(--fusion-on-accent);
   }
 
   .btn--primary:hover:not(:disabled) {
@@ -1262,7 +1305,8 @@
   }
 
   .btn--sm {
-    font-size: 0.8125rem;
+    font-size: var(--fusion-text-sm);
+    min-height: var(--fusion-target);
     padding: 0.3rem 0.75rem;
   }
 </style>

@@ -9,6 +9,7 @@ export {
   PermissionDeniedError,
   findMonorepoRoot,
   resolveSystemPacksDir,
+  resolvePrivatePacksDir,
   computeI18nSourceHash,
   computeActionCost,
 } from "./service.js";

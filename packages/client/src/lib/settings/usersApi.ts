@@ -9,6 +9,8 @@
  *   POST   /api/users/:id/reset-password — reset, password returned once (REQ-USR-027)
  *   DELETE /api/users/:id                — soft-delete / deactivate (REQ-USR-028)
  *   POST   /api/users/:id/kick           — disconnect (REQ-USR-029)
+ *   POST   /api/users/me/password        — change the caller's OWN password (REQ-USR-040..042);
+ *                                          open to every authenticated seat, not GM-only
  *
  * Every one of these routes enforces `role === GAMEMASTER` server-side
  * (`requireGm`, REQ-USR-030, REQ-CFG-070) — the bearer token is what decides
@@ -55,6 +57,12 @@ export interface ResetPasswordInput {
 export interface ResetPasswordResult {
   /** REQ-CFG-053: the plaintext, shown once by the caller. `null` means passwordless. */
   password: string | null;
+}
+
+export interface ChangeOwnPasswordInput {
+  /** Required by the server whenever the user has a password; leave out for a user who has none. */
+  currentPassword?: string;
+  newPassword: string;
 }
 
 // ---------------------------------------------------------------------------
@@ -176,5 +184,25 @@ export async function kickUser(token: string, id: string): Promise<void> {
   });
   if (!response.ok) {
     await throwForResponse(response, `Failed to disconnect user (HTTP ${String(response.status)})`);
+  }
+}
+
+/**
+ * POST /api/users/me/password — REQ-USR-040 / REQ-CFG-090. The one route here any seat may call: it acts on
+ * the token's own user. `credentials: "include"` carries the httpOnly refresh cookie, which is how the server
+ * knows which session is the current one to keep (REQ-USR-042); every other session of the user is revoked.
+ */
+export async function changeOwnPassword(
+  token: string,
+  input: ChangeOwnPasswordInput,
+): Promise<void> {
+  const response = await fetch("/api/users/me/password", {
+    method: "POST",
+    headers: { ...authHeader(token), "Content-Type": "application/json" },
+    credentials: "include",
+    body: JSON.stringify(input),
+  });
+  if (!response.ok) {
+    await throwForResponse(response, `Failed to change password (HTTP ${String(response.status)})`);
   }
 }

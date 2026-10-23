@@ -20,10 +20,11 @@
 
 import { describe, it, expect, afterEach } from "vitest";
 import { execFileSync } from "node:child_process";
-import { mkdtempSync, rmSync, writeFileSync } from "node:fs";
+import { mkdtempSync, mkdirSync, rmSync, readFileSync, writeFileSync } from "node:fs";
 import { join, dirname } from "node:path";
 import { tmpdir } from "node:os";
 import { fileURLToPath } from "node:url";
+import { brotliDecompressSync } from "node:zlib";
 
 const scriptPath = join(dirname(fileURLToPath(import.meta.url)), "..", "pack-native.mjs");
 
@@ -72,11 +73,29 @@ function runInChildProcess(dir: string, unpackAndVerifyScript: string): string {
   return execFileSync(process.execPath, [scriptFile], { encoding: "utf8" });
 }
 
+// Decodes the catálogo 0.9 compression envelope the same way
+// native-loader.ts's decodeArchive does, then unpacks the classic layout —
+// deliberately reimplemented here (not imported) so this end-to-end test
+// proves the packer's OUTPUT BYTES are self-describing and readable by
+// independent code, exactly like a real runtime extractor would decode them.
 const UNPACK_HELPER = `
 import { readFileSync, writeFileSync, mkdirSync } from "node:fs";
 import { join, dirname } from "node:path";
+import { brotliDecompressSync } from "node:zlib";
 
-export function unpackDirectory(archive, destDir) {
+function decodeArchive(archive) {
+  const hasEnvelope = archive.length >= 21 && archive.subarray(0, 4).toString("ascii") === "FPK1";
+  if (!hasEnvelope) return archive;
+  const codec = archive.readUInt8(4);
+  const compressedLen = Number(archive.readBigUInt64LE(5));
+  const payload = archive.subarray(21, 21 + compressedLen);
+  if (codec === 0) return Buffer.from(payload);
+  if (codec === 1) return brotliDecompressSync(payload);
+  throw new Error("Unknown archive codec " + codec);
+}
+
+export function unpackDirectory(rawArchive, destDir) {
+  const archive = decodeArchive(rawArchive);
   const indexLen = Number(archive.readBigUInt64LE(0));
   const indexJson = archive.subarray(8, 8 + indexLen).toString("utf8");
   const index = JSON.parse(indexJson);
@@ -179,5 +198,49 @@ console.log(JSON.stringify({ okCorrect, okWrong }));
         { encoding: "utf8" },
       ),
     ).toThrow();
+  });
+});
+
+describe("pack-native.mjs --dir mode with --exclude (issue #128 — REQ-DST-046 size budget)", () => {
+  it("omits files matching the glob pattern from the archive, keeping the rest", () => {
+    const dir = makeTempDir();
+    const srcDir = join(dir, "client-dist-fixture");
+    mkdirSync(join(srcDir, "assets-client"), { recursive: true });
+    writeFileSync(join(srcDir, "index.html"), "<html></html>");
+    writeFileSync(join(srcDir, "assets-client", "App-abc123.js"), "console.log('app');");
+    writeFileSync(join(srcDir, "assets-client", "App-abc123.js.map"), "{}");
+    writeFileSync(
+      join(srcDir, "assets-client", "world.offscreen-def456.js"),
+      "console.log('world');",
+    );
+    writeFileSync(join(srcDir, "assets-client", "world.offscreen-def456.js.map"), "{}");
+
+    const archivePath = join(dir, "client-dist.bin");
+    execFileSync(
+      process.execPath,
+      [scriptPath, "--dir", srcDir, archivePath, "--exclude", "*.map"],
+      {
+        encoding: "utf8",
+      },
+    );
+
+    const rawArchive = readFileSync(archivePath);
+    const hasEnvelope =
+      rawArchive.length >= 21 && rawArchive.subarray(0, 4).toString("ascii") === "FPK1";
+    const archive = hasEnvelope
+      ? brotliDecompressSync(rawArchive.subarray(21, 21 + Number(rawArchive.readBigUInt64LE(5))))
+      : rawArchive;
+    const indexLen = Number(archive.readBigUInt64LE(0));
+    const index = JSON.parse(archive.subarray(8, 8 + indexLen).toString("utf8")) as {
+      entries: { path: string }[];
+    };
+    const paths = index.entries.map((e) => e.path).sort();
+
+    expect(paths).toEqual([
+      "assets-client/App-abc123.js",
+      "assets-client/world.offscreen-def456.js",
+      "index.html",
+    ]);
+    expect(paths.some((p) => p.endsWith(".map"))).toBe(false);
   });
 });

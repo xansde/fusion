@@ -1,0 +1,5 @@
+[submodule "external/fusion-systems-2e"]
+	path = external/fusion-systems-2e
+	url = https://github.com/xansde/fusion-systems-2e
+	branch = main
+	shallow = true

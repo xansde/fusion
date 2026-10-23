@@ -124,6 +124,9 @@ retrato ou uma silhueta em seu lugar. `conhecido` — nome, título e categoria.
 - **Isto não afrouxa `oculto`:** um ator que o usuário não conhece continua sem ser emitido
   a ele — a mudança é só no degrau `entrevisto` (REQ-CTT-082 permanece intocado).
 
+  > **Emenda de 2026-10-07:** o degrau `conhecido` sem posse do ator passa a incluir também
+  > as condições do ator (REQ-CTT-086) — nada mais da ficha.
+
   > **Emenda obrigada pela spec 41** (`41-token.md`, DEC-TOK-09 e §12, 2026-08-17): a
   > redação anterior redigia nome, título **e retrato** do payload de um contato
   > `entrevisto`. Mas uma peça no mapa precisa da arte para ser desenhada, e o jogador está
@@ -132,6 +135,14 @@ retrato ou uma silhueta em seu lugar. `conhecido` — nome, título e categoria.
   > silhueta no cartão de contato passa a ser escolha de apresentação daquela tela. _(A
   > redação acima substitui a proibição de retrato; a redação de nome e título, o racional
   > do degrau intermediário e o corte de `oculto` permanecem inalterados.)_
+
+  > **Segunda emenda, obrigada pela spec 17** (`17-sistema-pf2e.md`, DEC-PF2-13, 2026-09-29;
+  > decisão do Alexandre): a **categoria de tamanho** também viaja. É a mesma lógica da arte — o
+  > que a mesa vê na cena não é segredo: o segredo é **quem** a criatura é, não o **espaço que
+  > ela ocupa**. O tamanho sai no lugar em que o ator o guarda (`system.derived.size` ou
+  > `system.traits.size`), e é a única chave de `system` que o payload de um contato `entrevisto`
+  > carrega; o resto da ficha (atributos, perícias, itens, vida) segue redigido, e a regra de
+  > REQ-CTT-082 sobre `oculto` permanece intocada.
 
 ### DEC-CTT-05 — O conhecimento se edita num lugar só, aberto por um rodapé do Mestre
 
@@ -223,7 +234,12 @@ a aba Configurações faz com a seção Mundo (REQ-SYS-047).
 - **Emenda que isso obriga:** `ConditionDefinition` (REQ-SYS-043) ganhou `tone`, `help` e
   `critical`, aplicados em `15-api-de-sistemas.md` em 2026-08-16 — ver §12.
 
-### DEC-CTT-12 — Só o Mestre arrasta um contato para o mapa
+### DEC-CTT-12 — O Mestre arrasta qualquer contato para o mapa; o jogador, só os seus
+
+> **Emenda de 2026-10-11 (pedido do Alexandre):** o jogador também arrasta o cartão do
+> próprio personagem e os sub-personagens dele (companheiros, eidolon, servo) para a cena
+> ativa, criando o token (REQ-CTT-028, REQ-TOK-030a). O texto abaixo é o histórico da decisão
+> original; o cartão de NPC/Conhecidos segue exclusivo do Mestre.
 
 Arrastar um cartão para o canvas, criando token (REQ-UIF-044), é gesto exclusivo do Mestre.
 O cartão do jogador não oferece o gesto — não o oferece e falha.
@@ -298,8 +314,11 @@ botão de ficha alcançável por teclado e por toque.
   visível ao usuário, o sub-personagem também não é.
 - **REQ-CTT-027** [MVP] O duplo-clique no cartão DEVE abrir a ficha em janela flutuante
   (REQ-UIF-009), e cada cartão DEVE oferecer um botão de ficha alcançável por teclado.
-- **REQ-CTT-028** [MVP] Arrastar um cartão para o canvas DEVE criar token (REQ-UIF-044)
-  apenas para papel privilegiado; para os demais o cartão NÃO DEVE ser arrastável.
+- **REQ-CTT-028** [MVP] Arrastar um cartão para o canvas DEVE criar token (REQ-UIF-044).
+  Papel privilegiado arrasta qualquer cartão; os demais arrastam apenas o cartão de um ator
+  do qual são OWNER, e cada sub-personagem aninhado arrasta o próprio ator (nunca o do cartão
+  que o contém) — o servidor recusa o resto (REQ-TOK-030a, `41-token.md`). O cartão de quem
+  não é dono NÃO DEVE ser arrastável. _(Emenda de 2026-10-11, pedido do Alexandre.)_
 
 ### 5.4 Condições
 
@@ -411,12 +430,23 @@ botão de ficha alcançável por teclado e por toque.
 - **REQ-CTT-080** [MVP] Esconder um controle no cliente NÃO É proteção (REQ-GAV-034):
   alterar conhecimento e alterar título DEVEM ser verificados no servidor.
 - **REQ-CTT-081** [MVP] O payload de um contato entregue a usuário cujo estado efetivo seja
-  `entrevisto` NÃO DEVE conter nome, título nem dado de sistema do contato; o retrato
-  (`AssetRef`) NÃO É redigido e DEVE viajar normalmente (DEC-CTT-04).
+  `entrevisto` NÃO DEVE conter nome, título nem dado de sistema do contato, com **uma única
+  exceção**: a categoria de tamanho do ator, e nada mais de `system` — ela DEVE viajar **no
+  mesmo lugar em que o ator a guarda** (`system.derived.size` de um personagem;
+  `system.traits.size` de um não-jogador), para o token aparecer igual para todos e para o
+  `actorDelta` de um token desvinculado seguir valendo (REQ-DOC-034). O retrato (`AssetRef`) NÃO É
+  redigido e DEVE viajar normalmente (DEC-CTT-04). Esta regra é do payload do **Actor**: o
+  `actorDelta` de um token desvinculado viaja na Cena, e o que ele leva é da REQ-DOC-062.
 
   > **Emenda obrigada pela spec 41** (`41-token.md`, DEC-TOK-09 e §12, 2026-08-17): a
   > redação anterior incluía "retrato" entre os campos redigidos do payload — a mesma
   > mudança de REQ-CTT-041. Ver DEC-CTT-04.
+
+  > **Emenda obrigada pela spec 17** (`17-sistema-pf2e.md`, DEC-PF2-13 e REQ-PF2-154,
+  > 2026-09-29; decisão do Alexandre): a redação anterior proibia todo "dado de sistema", e o
+  > tamanho é dado de sistema. Sem ele o jogador vê uma criatura Grande entrevista como uma peça
+  > de 1×1 enquanto o Mestre a vê de 2×2 — as duas telas divergem, e peças Grandes ficam
+  > sobrepostas na tela dos jogadores. Ver DEC-CTT-04.
 
 - **REQ-CTT-082** [MVP] O payload de um contato `oculto` NÃO DEVE ser entregue de forma
   alguma ao usuário — nem em snapshot, nem em broadcast, nem em replay de operações.
@@ -428,6 +458,22 @@ botão de ficha alcançável por teclado e por toque.
   personagens sabem.
 - **REQ-CTT-085** [MVP] Alterar o **título** DEVE ser permitido a papel privilegiado e a
   quem tenha `OWNER` sobre o personagem; qualquer outro DEVE ser recusado pelo servidor.
+- **REQ-CTT-086** [MVP] O payload de um contato `conhecido` entregue a usuário cujo `ownership`
+  não alcança `LIMITED` DEVE conter, além de nome, título, retrato e categoria de tamanho
+  (REQ-CTT-074, DEC-CTT-04), **somente** os itens `type: "condition"` do ator, e de cada um
+  apenas `_id`, `type`, `name`, `img` e, em `system`, `slug` e `value` (o grau). Descrição, regras,
+  referências ao efeito ou ator de origem, `flags` e qualquer outro item (golpes, efeitos,
+  magias, equipamento) NÃO DEVEM viajar; CA, PV e o resto da ficha continuam fora. Quando o ator
+  não carrega condição, `items` fica ausente do payload. A redação ocorre no módulo único
+  (REQ-CTT-083) e vale nos três caminhos de emissão (snapshot, broadcast, replay); quando a
+  condição muda, o delta chega ao usuário que conhece o contato e a mais ninguém — `entrevisto`
+  e `oculto` seguem como em REQ-CTT-081 e REQ-CTT-082. Para papel privilegiado nada muda.
+
+  > **Emenda de 2026-10-07 (decisão do Alexandre):** a correção de segurança da onda 13
+  > (REQ-CTT-074) reduziu o conhecido sem posse a nome, título, retrato e tamanho, e deixou a
+  > condição de fora até a mesa decidir. A mesa decidiu: o jogador VÊ "caído", "sangrando" do
+  > monstro que conhece, como DEC-CTT-02 e DEC-CTT-11 já previam. Conhecer continua não
+  > concedendo a ficha: a allow-list ganha apenas as condições.
 
 ### 5.10 Estado vazio e acessibilidade
 
@@ -506,24 +552,25 @@ botão de ficha alcançável por teclado e por toque.
 
 ## 10. Critérios de aceitação
 
-| ID         | Critério                                                                                                                                                                                              |
-| ---------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| CA-CTT-001 | Jogador abre a aba e vê seu personagem primeiro, os demais em ordem alfabética, e nenhum ponto de vida em nenhum cartão; o Mestre abre a mesma aba e também não vê vida alguma.                       |
-| CA-CTT-002 | O familiar do próprio personagem aparece dentro do cartão dele e em nenhum outro lugar da lista; ocultando o dono para aquele usuário, o familiar some junto.                                         |
-| CA-CTT-003 | Um personagem com sete condições mostra duas etiquetas e "+5"; acionar expande no próprio cartão; a primeira etiqueta é a crítica, preenchida, e a última é o benefício.                              |
-| CA-CTT-004 | Uma condição com valor aparece como "Amedrontado 2" em etiqueta única; ao mudar o valor para 3, a mesma etiqueta passa a "Amedrontado 3", sem surgir uma segunda.                                     |
-| CA-CTT-005 | Apontar uma etiqueta mostra o texto de ajuda do sistema; uma condição declarada sem `help` aparece igual, sem tooltip, e uma sem `tone` aparece como situação.                                        |
-| CA-CTT-006 | O Mestre põe o ferreiro em `conhecido` para o Tobias e `entrevisto` para a Fofurinha; o jogador da Fofurinha vê "Não identificado" sem nome, e o payload recebido por ele não contém o nome.          |
-| CA-CTT-007 | Buscar pelo nome do ferreiro no cliente da Fofurinha não retorna nada; no cliente do Tobias retorna o contato.                                                                                        |
-| CA-CTT-008 | O Mestre aciona o nome do contato na grade: a linha inteira vira `conhecido` e a regra geral passa a `conhecido`; um personagem criado depois já enxerga o contato sem nova operação.                 |
-| CA-CTT-009 | O Mestre aciona o nome de um personagem recém-chegado na grade e a coluna inteira vira `conhecido` num gesto; as demais colunas permanecem como estavam.                                              |
-| CA-CTT-010 | Um jogador com dois personagens, um que conhece e outro que entreviu o mesmo contato, vê o contato identificado (estado maior).                                                                       |
-| CA-CTT-011 | O jogador cria duas categorias, move um conhecido para a segunda, reordena a segunda para o topo e recarrega a página: ordem e associação permanecem; outro usuário no mesmo mundo não vê nada disso. |
-| CA-CTT-012 | Excluir uma categoria com dois contatos devolve os dois para "Sem categoria" e não remove ator algum.                                                                                                 |
-| CA-CTT-013 | Com a aba fechada, o Mestre revela um contato para um personagem do jogador: o ícone da aba ganha o ponto de estado; abrir a aba apaga o ponto; o Mestre nunca vê ponto algum.                        |
-| CA-CTT-014 | O painel não oferece criar nem excluir ator em nenhum papel, nem no estado vazio; o rodapé com "Quem conhece quem" aparece só para o Mestre e não rola com a lista.                                   |
-| CA-CTT-015 | O jogador não consegue arrastar cartão algum para o mapa; o Mestre arrasta um contato e o token é criado.                                                                                             |
-| CA-CTT-016 | Duplo-clique no cartão abre a ficha em janela; o mesmo é alcançável por `Tab` até o botão de ficha e `Enter`, sem depender do duplo-clique.                                                           |
+| ID         | Critério                                                                                                                                                                                                                            |
+| ---------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| CA-CTT-001 | Jogador abre a aba e vê seu personagem primeiro, os demais em ordem alfabética, e nenhum ponto de vida em nenhum cartão; o Mestre abre a mesma aba e também não vê vida alguma.                                                     |
+| CA-CTT-002 | O familiar do próprio personagem aparece dentro do cartão dele e em nenhum outro lugar da lista; ocultando o dono para aquele usuário, o familiar some junto.                                                                       |
+| CA-CTT-003 | Um personagem com sete condições mostra duas etiquetas e "+5"; acionar expande no próprio cartão; a primeira etiqueta é a crítica, preenchida, e a última é o benefício.                                                            |
+| CA-CTT-004 | Uma condição com valor aparece como "Amedrontado 2" em etiqueta única; ao mudar o valor para 3, a mesma etiqueta passa a "Amedrontado 3", sem surgir uma segunda.                                                                   |
+| CA-CTT-005 | Apontar uma etiqueta mostra o texto de ajuda do sistema; uma condição declarada sem `help` aparece igual, sem tooltip, e uma sem `tone` aparece como situação.                                                                      |
+| CA-CTT-006 | O Mestre põe o ferreiro em `conhecido` para o Tobias e `entrevisto` para a Fofurinha; o jogador da Fofurinha vê "Não identificado" sem nome, e o payload recebido por ele não contém o nome.                                        |
+| CA-CTT-007 | Buscar pelo nome do ferreiro no cliente da Fofurinha não retorna nada; no cliente do Tobias retorna o contato.                                                                                                                      |
+| CA-CTT-008 | O Mestre aciona o nome do contato na grade: a linha inteira vira `conhecido` e a regra geral passa a `conhecido`; um personagem criado depois já enxerga o contato sem nova operação.                                               |
+| CA-CTT-009 | O Mestre aciona o nome de um personagem recém-chegado na grade e a coluna inteira vira `conhecido` num gesto; as demais colunas permanecem como estavam.                                                                            |
+| CA-CTT-010 | Um jogador com dois personagens, um que conhece e outro que entreviu o mesmo contato, vê o contato identificado (estado maior).                                                                                                     |
+| CA-CTT-011 | O jogador cria duas categorias, move um conhecido para a segunda, reordena a segunda para o topo e recarrega a página: ordem e associação permanecem; outro usuário no mesmo mundo não vê nada disso.                               |
+| CA-CTT-012 | Excluir uma categoria com dois contatos devolve os dois para "Sem categoria" e não remove ator algum.                                                                                                                               |
+| CA-CTT-013 | Com a aba fechada, o Mestre revela um contato para um personagem do jogador: o ícone da aba ganha o ponto de estado; abrir a aba apaga o ponto; o Mestre nunca vê ponto algum.                                                      |
+| CA-CTT-014 | O painel não oferece criar nem excluir ator em nenhum papel, nem no estado vazio; o rodapé com "Quem conhece quem" aparece só para o Mestre e não rola com a lista.                                                                 |
+| CA-CTT-015 | O jogador não consegue arrastar cartão algum para o mapa; o Mestre arrasta um contato e o token é criado.                                                                                                                           |
+| CA-CTT-016 | Duplo-clique no cartão abre a ficha em janela; o mesmo é alcançável por `Tab` até o botão de ficha e `Enter`, sem depender do duplo-clique.                                                                                         |
+| CA-CTT-017 | Um ogro Grande que o jogador só `entreviu` aparece no mapa dele ocupando 2×2, igual ao mapa do Mestre; o payload recebido traz o tamanho, no lugar em que o ator o guarda, e não traz nome, título, atributos, vida nem item algum. |
 
 ## 11. Questões em aberto
 
@@ -536,6 +583,14 @@ botão de ficha alcançável por teclado e por toque.
 - **Q-CTT-03** — Um personagem pode conhecer outro **personagem de jogador** em grau
   diferente? Hoje a seção Na mesa mostra todos a todos; o conhecimento só se aplica a
   não-jogadores.
+  > **Emenda provisória de 21/10/2026 (xansde/fusion#240, revisar no beta):** "todos a
+  > todos" vale só entre quem tem acesso. O personagem de jogador responde a `ownership`
+  > como qualquer Actor (REQ-NET-096): a seção Na mesa lista os personagens sobre os quais
+  > o usuário tem nível efetivo `LIMITED` ou superior — o próprio (dono) sempre, e os dos
+  > outros só quando o Mestre os compartilhar (REQ-USR-025a nasce com `default = none`).
+  > O servidor aplica o mesmo corte no snapshot de join, no broadcast ao vivo, no replay do
+  > delta e no eco do ack; antes disso o personagem de outro jogador vazava nos três
+  > últimos caminhos a cada `doc:update` do dono.
 - **Q-CTT-04** — Quando um contato é rebaixado (de `conhecido` para `oculto`), o cliente
   deve avisar o jogador de que alguém sumiu da lista, ou o sumiço é silencioso? A posição
   provável é silencioso, como a queda de aba salva na 36.

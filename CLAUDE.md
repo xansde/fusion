@@ -35,7 +35,7 @@ VTT (virtual tabletop) web próprio, inspirado no comportamento do Foundry VTT, 
 
 TypeScript estrito · Node.js 22+ · monorepo pnpm · Fastify + socket.io v4 (servidor autoritativo) · better-sqlite3 · Svelte 5 (Runes) + Vite · PIXI.js v8 · @dice-roller/rpg-dice-roller (RNG no servidor) · @3d-dice/dice-box · clipper2-ts + honeycomb-grid · TipTap · Howler.js · Tauri v2 (fase 2).
 
-Monorepo planejado: `packages/{server,client,shared,system-api}` + `systems/{engine-2e,pf2e,sf2e,stub}` + `tools/importer-pf2e`. `systems/engine-2e` é o núcleo de regras 2e compartilhado entre PF2e e SF2e. Porta default: 33000.
+Monorepo: `packages/{server,client,shared,system-api}` + `systems/stub` (fica no core) + `tools/{release,boundary-test,spec-lint}`. Desde a F4 (2026-08-24, DEC-SEP-09), `systems/{engine-2e,pf2e,sf2e}`, a ficha PF2e (`@fusion/sheets-pf2e`) e `tools/{importer-pf2e,translate-packs}` vivem no repo satélite `xansde/fusion-systems-2e`, consumido aqui como **git submodule pinado por tag** em `external/fusion-systems-2e/` — entra no workspace pnpm do core (`pnpm-workspace.yaml` lista `external/fusion-systems-2e/{systems,sheets,tools}/*`), então `workspace:*` resolve normalmente nos dois sentidos e o `pnpm build` topológico compila tudo junto (o executável continua um artefato só, DEC-ARQ-01/06 intactas). `systems/engine-2e` é o núcleo de regras 2e compartilhado entre PF2e e SF2e. Depois de clonar (ou sempre que `external/fusion-systems-2e` aparecer vazio): `git submodule update --init`. Bump de versão: `cd external/fusion-systems-2e && git fetch --tags && git checkout v0.x.y`, depois commit do pin no core. Porta default: 33000.
 
 ## Convenções
 
@@ -46,6 +46,7 @@ Monorepo planejado: `packages/{server,client,shared,system-api}` + `systems/{eng
 - Rolagens sempre executam no servidor (anti-cheat); toda validação de permissão é no servidor.
 - Redação de visibilidade (hidden tokens, roll modes) usa SEMPRE `packages/server/src/net/redaction.ts` + `isRolePrivileged` de `documents/ownership.ts` — nunca duplicar predicados/strip.
 - Testes do server: pool forks/maxForks 4 (better-sqlite3 crasha em worker_threads). Saída não-zero com "Timeout calling onTaskUpdate" sem teste falhando = flakiness de infra do vitest sob carga; re-rodar o arquivo isolado antes de tratar como regressão.
+- **Suíte rápida (out/2026).** O `vitest.config.ts` da raiz reaproveita o processo dos workers forks entre arquivos, e o projeto `server` roda com `isolate: false` (cache de módulos mantido): arquivo de teste do server que troca registro de módulo (`registerMigrations`, `registerRollResolver`, `registerPackDir`...), usa `vi.mock`/`vi.doMock` ou `spawnSync`/`execFileSync` vai na lista de `packages/server/vitest.isolation.ts` (projeto `server-isolated`); o teste `isolation-list` falha se faltar. Os demais projetos rodam no pool `threads`. Processo filho em teste: `__tests__/helpers/run-cli.ts` (assíncrono), nunca `spawnSync`. Argon2 de teste: custo mínimo via `FUSION_TEST_FAST_ARGON2` (só sob vitest; o custo de produção é fixado por `auth/__tests__/argon2-cost.test.ts`). Para rodar só o server: `pnpm test --project server --project server-isolated`.
 - **Nunca hardcode porta em teste.** Os arquivos rodam em paralelo, então literal colide (EADDRINUSE) e derruba o CI sem defeito nenhum no código. Use `packages/server/src/__tests__/helpers/ports.ts`: `reserveFreePort()` para bootar, `listeningPort()` para nomear a porta em asserção/payload, `holdPort()` quando o teste exigir duas portas distintas. Bootar em `port: 0` **não** funciona: `boot()` injeta `currentPort: config.port` nas rotas admin antes do `listen()`, e o servidor passa a dar 409 contra a própria porta.
 - Toda fase/PR de UI segue `docs/design/PROCESSO-UI.md`: lente protótipo na revisão, roteiro `tutorial-e2e` com prints olhados, print protótipo × tela no PR, smoke como GM e como player.
 
@@ -53,11 +54,12 @@ Monorepo planejado: `packages/{server,client,shared,system-api}` + `systems/{eng
 
 Cada pacote resolve `@fusion/shared` de forma diferente por design:
 
-| Pacote          | Estratégia                      | Motivo                                                    |
-| --------------- | ------------------------------- | --------------------------------------------------------- |
-| `system-api`    | `paths` → `shared/src/index.ts` | compila junto com shared; sem dependência de build prévia |
-| `server`        | `node_modules` → `shared/dist/` | precisa de ESM real com `.js` extensions (NodeNext)       |
-| `client`        | Vite alias                      | Vite resolve TypeScript diretamente; `noEmit: true`       |
-| `boundary-test` | `paths` → `shared/src/index.ts` | ferramenta de análise, não emite                          |
+| Pacote                         | Estratégia                                               | Motivo                                                                                     |
+| ------------------------------ | -------------------------------------------------------- | ------------------------------------------------------------------------------------------ |
+| `system-api`                   | `paths` → `shared/src/index.ts`                          | compila junto com shared; sem dependência de build prévia                                  |
+| `server`                       | `node_modules` → `shared/dist/`                          | precisa de ESM real com `.js` extensions (NodeNext)                                        |
+| `client`                       | Vite alias                                               | Vite resolve TypeScript diretamente; `noEmit: true`                                        |
+| `boundary-test`                | `paths` → `shared/src/index.ts`                          | ferramenta de análise, não emite                                                           |
+| `external/fusion-systems-2e/*` | `node_modules` → `shared/dist/` (workspace do submodule) | mesmo mecanismo do `server` — o submodule entra no workspace pnpm do core (F4, DEC-SEP-09) |
 
 Ordem de build obrigatória: `@fusion/shared` antes de `@fusion/server`. O script `pnpm build` no root garante isso via `-r` (topological order do pnpm workspaces).

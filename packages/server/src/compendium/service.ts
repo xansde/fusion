@@ -68,11 +68,20 @@ import {
   augmentationSlotLimitViolation,
 } from "../documents/embedded-item.js";
 import { recomputeDerivedIfNeeded } from "../documents/derive.js";
+import { stripInvalidActionBarFlags } from "../documents/action-bar-flags.js";
 import type { AugmentationLikeItem } from "@fusion/system-sf2e";
 import type { Database as Db } from "better-sqlite3";
 import { createDocumentId } from "@fusion/shared";
 import type { SystemModule } from "@fusion/system-api";
 import { runActorDerivation } from "../net/derive-runner.js";
+import { resolveWorldVariantRules } from "../documents/world-variant-rules.js";
+import {
+  buildDedupIndex,
+  parseDocKey,
+  buildDocKey,
+  type DedupResult,
+  type DedupPackInput,
+} from "./dedup.js";
 
 // ---------------------------------------------------------------------------
 // Internal types
@@ -151,6 +160,12 @@ export class CompendiumService {
    * `_getSourceRefIndex`).
    */
   private _sourceRefIndex: Map<string, { packId: string; docId: string }> | null = null;
+  /**
+   * Same entries as {@link _sourceRefIndex} but keyed by origin system too
+   * (`"<systemId>\0<packName>\0<sourceId>"`), so a reference that carries its
+   * `systemId` resolves the right side of a cross-system sourceId collision (#264).
+   */
+  private _sourceRefBySystem: Map<string, { packId: string; docId: string }> | null = null;
 
   /**
    * Cross-pack search index for {@link searchAllPacks}: every entry of every
@@ -159,6 +174,19 @@ export class CompendiumService {
    * for the service's lifetime — same shape as `_sourceRefIndex`).
    */
   private _searchAllRows: SearchAllRow[] | null = null;
+
+  /**
+   * Cross-system dedup index (mundo misto, DEC-SF2-07-bis) — `null` = not yet
+   * built. Built lazily on first access (`_ensureDedupIndex`), from every
+   * pack loaded so far, and cached for the service's lifetime (same
+   * lazy-build-and-cache shape as `_sourceRefIndex`/`_searchAllRows`). A
+   * single-systemId service (any world that is not `pf2e-sf2e`) always
+   * resolves to an empty result — see `buildDedupIndex`.
+   */
+  private _dedupIndex: DedupResult | null = null;
+
+  /** Parsed documents per pack id, for {@link getSourceDocumentForSync}. */
+  private readonly _docsByPackId = new Map<string, Map<string, Record<string, unknown>>>();
 
   constructor(logger?: Logger) {
     this.logger = logger ?? null;
@@ -214,6 +242,18 @@ export class CompendiumService {
 
         // Filter by systemId if provided
         if (systemId !== undefined && manifest.systemId !== systemId) {
+          continue;
+        }
+
+        // REQ-CMP-058: a packId already registered (from a root discovered
+        // earlier — e.g. the official root, discovered before the private
+        // one, see DEC-CMP-11) is never overwritten. Log and skip instead of
+        // letting a private/misnamed pack silently replace an official one.
+        if (this.packs.has(manifest.id)) {
+          this.logger?.warn(
+            { packId: manifest.id, packDir },
+            "Pack id already registered — skipping duplicate (collision with a pack discovered earlier)",
+          );
           continue;
         }
 
@@ -303,16 +343,32 @@ export class CompendiumService {
    * REQ-CMP-012: filter by systemId and/or documentType.
    * REQ-CMP-010a / REQ-CPD-071: a `gm` pack is not listed to a non-privileged
    * viewer — it is simply absent, as if it did not exist.
+   *
+   * `filter.systemId` accepts an ARRAY too (B4, revisão adversarial 3): a
+   * composite world's caller (`buildCompendiumListHandler`) resolves the
+   * active composite's `sourceSystemIds` and passes the whole list here, so
+   * a mundo misto `pf2e-sf2e` world lists BOTH the pf2e and the sf2e packs
+   * — every pack in this service is still loaded under its OWN systemId
+   * ("pf2e"/"sf2e"), never "pf2e-sf2e" (no pack is ever re-tagged), so a
+   * bare single-string filter for the composite id would always return
+   * zero packs (this was B4's actual bug: the ficha's `listPacks({systemId:
+   * "pf2e-sf2e"})` silently returned nothing).
    */
   listPacks(
     viewerRole: number,
-    filter?: { systemId?: string; documentType?: string },
+    filter?: { systemId?: string | string[]; documentType?: string },
   ): PackManifest[] {
+    const systemIds =
+      filter?.systemId === undefined
+        ? undefined
+        : Array.isArray(filter.systemId)
+          ? filter.systemId
+          : [filter.systemId];
     const packs: PackManifest[] = [];
     for (const loaded of this.packs.values()) {
       if (!this._isPackVisible(loaded, viewerRole)) continue;
       const { manifest } = loaded;
-      if (filter?.systemId !== undefined && manifest.systemId !== filter.systemId) continue;
+      if (systemIds !== undefined && !systemIds.includes(manifest.systemId)) continue;
       if (filter?.documentType !== undefined && manifest.documentType !== filter.documentType)
         continue;
       packs.push(manifest);
@@ -348,9 +404,46 @@ export class CompendiumService {
     if (!loaded._index) {
       const base = this._buildIndex(loaded);
       const withCost = this._applyActionCostToIndex(loaded, base);
-      loaded._index = this._applyI18nToIndex(loaded, withCost);
+      const withI18n = this._applyI18nToIndex(loaded, withCost);
+      loaded._index = this._applyDedupToIndex(loaded, withI18n);
     }
     return loaded._index;
+  }
+
+  /**
+   * Cross-system dedup pass over an already-built index (mundo misto,
+   * DEC-SF2-07-bis): drops entries that are the LOSING duplicate of a fused
+   * pair (they never appear in `compendium:index`/`compendium:search`/
+   * `compendium:searchAll` — REQ from the task: "o mesmo item não pode
+   * aparecer duplicado no mundo misto"), and stamps the WINNING entry of a
+   * fused pair with `index.mergedFromSystems` so the origin stays visible
+   * ("itens diferentes com o mesmo nome aparecem os dois, com a origem
+   * visível" — already true for non-fused homonyms via each entry's own
+   * `packId`, carried by `CompendiumSearchAllEntry`/pack-scoped reads).
+   * A no-op for a single-systemId service (`_ensureDedupIndex` returns an
+   * empty result), so `base` is returned unchanged — same array reference,
+   * no behavior change for a pure pf2e/sf2e world.
+   */
+  private _applyDedupToIndex(loaded: LoadedPack, base: PackIndexEntry[]): PackIndexEntry[] {
+    const dedup = this._ensureDedupIndex();
+    if (dedup.hidden.size === 0) return base;
+
+    const packId = loaded.manifest.id;
+    const out: PackIndexEntry[] = [];
+    for (const entry of base) {
+      const key = buildDocKey(packId, entry._id);
+      if (dedup.hidden.has(key)) continue;
+      const merged = dedup.mergedFromSystems.get(key);
+      if (!merged) {
+        out.push(entry);
+        continue;
+      }
+      out.push({
+        ...entry,
+        index: { ...entry.index, mergedFromSystems: merged },
+      });
+    }
+    return out;
   }
 
   /**
@@ -489,8 +582,16 @@ export class CompendiumService {
    * nothing about whether the document exists (REQ-CPD-071, REQ-SEC-020).
    */
   getDocument(viewerRole: number, uuid: string): Record<string, unknown> | null {
-    const parsed = parsePackDocUuid(uuid);
-    if (!parsed) return null;
+    const parsedUuid = parsePackDocUuid(uuid);
+    if (!parsedUuid) return null;
+
+    // Mundo misto dedup (DEC-SF2-07-bis): a uuid naming the LOSING duplicate
+    // of a fused pair (e.g. a grant-item reference baked into an sf2e class
+    // that points at the sf2e copy of a reprinted feat) transparently
+    // resolves to the surviving canonical document — every reader of this
+    // method (grantMaterializer via compendium:get, importToWorld,
+    // importToActor) gets the same one document, never the hidden one.
+    const parsed = this._resolveDedupAlias(parsedUuid.packId, parsedUuid.docId);
 
     const loaded = this._packFor(parsed.packId, viewerRole);
     if (!loaded) return null;
@@ -580,16 +681,94 @@ export class CompendiumService {
    */
   getI18nBySourceRef(
     viewerRole: number,
-    ref: { packName: string; sourceId: string },
+    ref: { packName: string; sourceId: string; systemId?: string | undefined },
   ): DocI18n | null {
-    const index = this._getSourceRefIndex();
-    const hit = index.get(buildSourceRefKey(ref.packName, ref.sourceId));
+    const hit = this._resolveSourceRef(ref);
     if (!hit) return null;
 
     const loaded = this._packFor(hit.packId, viewerRole);
     if (!loaded) return null; // unknown, or hidden from this role — same answer
 
     return this._getI18nPtBR(loaded).get(hit.docId) ?? null;
+  }
+
+  /**
+   * Get the full document for a `(packName, sourceId)` origin reference —
+   * the SAME reverse index {@link getI18nBySourceRef} uses, but returning the
+   * raw pack document instead of only its pt-BR overlay.
+   *
+   * ALQ-F2-11 (plan §2.6, REQ-PF2-225): an item's `system.fusion.effectRefs`
+   * names Effect documents by `flags.fusion.sourceId` — the vendor-origin id
+   * (DF-06 identity discipline: "identidade de documento = sourceId, nunca o
+   * nome"), which is NOT the pack-local `_id` `getDocument`'s UUID resolves.
+   * This is the lookup that closes that gap: `item:consume`'s core service
+   * uses it to copy the Effect's `system` onto the actor with origin/start
+   * (never a live reference).
+   *
+   * Same audience gate as `getDocument`/`getI18nBySourceRef`: a ref resolving
+   * into a pack hidden from `viewerRole` answers `null`, identical to an
+   * unresolvable ref — knowing a sourceId teaches nothing about a hidden
+   * pack's contents (REQ-CPD-071, REQ-SEC-020).
+   */
+  getDocumentBySourceRef(
+    viewerRole: number,
+    ref: { packName: string; sourceId: string; systemId?: string | undefined },
+  ): Record<string, unknown> | null {
+    const hit = this._resolveSourceRef(ref);
+    if (!hit) return null;
+
+    const loaded = this._packFor(hit.packId, viewerRole);
+    if (!loaded) return null;
+
+    try {
+      const docs = JSON.parse(readFileSync(loaded.docsPath, "utf8")) as unknown[];
+      const doc = docs.find(
+        (d) =>
+          typeof d === "object" &&
+          d !== null &&
+          (d as Record<string, unknown>)["_id"] === hit.docId,
+      );
+      return doc === undefined ? null : (doc as Record<string, unknown>);
+    } catch (err) {
+      this.logger?.warn({ err, ref }, "Failed to read document from pack by source ref");
+      return null;
+    }
+  }
+
+  /**
+   * Pack document for a `(packName, sourceId)` origin reference, for SERVER-SIDE
+   * callers that are not answering a viewer (REQ-CMP-056: the boot-time sync of
+   * rules into embedded items). Same reverse index as
+   * {@link getDocumentBySourceRef}, but the parsed `documents.json` of each pack
+   * is kept per pack, so syncing N items costs one parse per pack instead of N.
+   *
+   * No audience gate on purpose: the result never reaches a client, it only
+   * decides which rules an item the actor ALREADY owns should carry.
+   */
+  getSourceDocumentForSync(ref: {
+    packName: string;
+    sourceId: string;
+  }): Record<string, unknown> | null {
+    const hit = this._getSourceRefIndex().get(buildSourceRefKey(ref.packName, ref.sourceId));
+    if (!hit) return null;
+    const loaded = this.packs.get(hit.packId);
+    if (!loaded) return null;
+
+    let byId = this._docsByPackId.get(hit.packId);
+    if (!byId) {
+      byId = new Map();
+      try {
+        const docs = JSON.parse(readFileSync(loaded.docsPath, "utf8")) as unknown[];
+        for (const d of docs) {
+          const id = (d as Record<string, unknown> | null)?.["_id"];
+          if (typeof id === "string") byId.set(id, d as Record<string, unknown>);
+        }
+      } catch (err) {
+        this.logger?.warn({ err, packId: hit.packId }, "Failed to read pack documents for sync");
+      }
+      this._docsByPackId.set(hit.packId, byId);
+    }
+    return byId.get(hit.docId) ?? null;
   }
 
   /**
@@ -648,7 +827,10 @@ export class CompendiumService {
        */
       metrics?: WriteMetricsCollector;
     },
-  ): CompendiumImportResult {
+  ): CompendiumImportResult & {
+    /** The documents as persisted, for the handler to announce on the document channel; never sent in the ack. */
+    createdDocs: Array<{ documentType: string; doc: Record<string, unknown> }>;
+  } {
     if (!isRolePrivileged(options.role)) {
       throw new PermissionDeniedError("Only GM/ASSISTANT can import from compendiums");
     }
@@ -658,6 +840,7 @@ export class CompendiumService {
       ...(options.metrics !== undefined ? { metrics: options.metrics } : {}),
     });
     const created: string[] = [];
+    const createdDocs: Array<{ documentType: string; doc: Record<string, unknown> }> = [];
     const failed: Array<{ uuid: string; reason: string }> = [];
 
     for (const uuid of uuids) {
@@ -670,11 +853,16 @@ export class CompendiumService {
           continue;
         }
 
-        const parsed = parsePackDocUuid(uuid);
-        if (!packed(parsed)) {
+        const parsedUuid = parsePackDocUuid(uuid);
+        if (!packed(parsedUuid)) {
           failed.push({ uuid, reason: "Invalid UUID" });
           continue;
         }
+        // Resolve through the dedup alias (mundo misto) — getDocument()
+        // above already served the CANONICAL document; the manifest/table
+        // lookup below must agree with it, not with the hidden pack the
+        // caller's uuid literally named.
+        const parsed = this._resolveDedupAlias(parsedUuid.packId, parsedUuid.docId);
 
         // Determine target table by documentType
         const manifest = this.packs.get(parsed.packId)?.manifest;
@@ -727,10 +915,23 @@ export class CompendiumService {
         // only holds if BOTH import surfaces (world and sheet) snapshot the same
         // way before stripping `i18n` (code review, ajustes r1 Fase 4, 2026-08-17).
         snapshotPtBRLabel(worldDoc);
+        stampOriginSystemId(worldDoc, manifest.systemId);
 
         delete worldDoc["uuid"];
         delete worldDoc["i18n"];
         delete worldDoc["mechanics"];
+
+        // BAR-F3-05 (tasks.md §2.5: the bar is validated on update AND on create/import): an
+        // Actor whose `flags.fusion.actionBar` the schema refuses comes in without it.
+        if (manifest.documentType === "Actor") {
+          const barProblem = stripInvalidActionBarFlags(worldDoc);
+          if (barProblem !== null) {
+            options.logger?.warn(
+              { uuid, problem: barProblem },
+              "Dropped an invalid flags.fusion.actionBar from an imported Actor",
+            );
+          }
+        }
 
         // Derive on import (audit issue 3) — Actor documents only.
         //
@@ -743,7 +944,13 @@ export class CompendiumService {
         // WHOLE worldDoc, exactly as mutated, is what gets persisted below.
         if (manifest.documentType === "Actor" && options.systemModule) {
           try {
-            runActorDerivation(worldDoc, options.systemModule);
+            // #274 (DEC-MCL-09): overlay the world's variant-rule Settings, as every other
+            // runActorDerivation call site does (derive.ts, sync-handlers, combat-handlers).
+            runActorDerivation(
+              worldDoc,
+              options.systemModule,
+              resolveWorldVariantRules(store, options.systemModule),
+            );
           } catch (deriveErr) {
             options.logger?.warn(
               { err: deriveErr, uuid },
@@ -761,6 +968,7 @@ export class CompendiumService {
           const id = first["_id"];
           if (typeof id === "string") {
             created.push(id);
+            createdDocs.push({ documentType: manifest.documentType, doc: first });
           }
         }
       } catch (err) {
@@ -770,7 +978,7 @@ export class CompendiumService {
       }
     }
 
-    return { created, failed };
+    return { created, failed, createdDocs };
   }
 
   /**
@@ -877,11 +1085,13 @@ export class CompendiumService {
           continue;
         }
 
-        const parsed = parsePackDocUuid(uuid);
-        if (!packed(parsed)) {
+        const parsedUuid = parsePackDocUuid(uuid);
+        if (!packed(parsedUuid)) {
           failed.push({ uuid, reason: "Invalid UUID" });
           continue;
         }
+        // Same dedup-alias resolution as importToWorld above.
+        const parsed = this._resolveDedupAlias(parsedUuid.packId, parsedUuid.docId);
 
         const manifest = this.packs.get(parsed.packId)?.manifest;
         if (!manifest) {
@@ -918,6 +1128,7 @@ export class CompendiumService {
         // That second mechanism is a real, separate defect (see openQuestions)
         // and is NOT fixed here.
         snapshotPtBRLabel(embedded);
+        stampOriginSystemId(embedded, manifest.systemId);
         delete embedded["uuid"];
         delete embedded["i18n"];
         delete embedded["mechanics"];
@@ -936,7 +1147,10 @@ export class CompendiumService {
         // batch), then the per-item shape. A uuid failing either is a `failed`
         // entry, not an exception — one bad entry never sinks the batch.
         const augViolation = augmentationSlotLimitViolation(
-          options.systemId,
+          {
+            systemId: options.systemId,
+            sourceSystemIds: options.systemModule?.manifest.sourceSystemIds,
+          },
           [...existing, ...addition] as AugmentationLikeItem[],
           embedded,
         );
@@ -1186,13 +1400,78 @@ export class CompendiumService {
    * packs (14 packs, 4236 docs total): ~176ms cold. Tolerant of a missing/
    * corrupt documents.json for any one pack — that pack is just skipped
    * (matches the discovery philosophy, REQ-CMP-006).
+   *
+   * I5 (revisão adversarial 3) — `(packName, sourceId)` is NOT a
+   * cross-system-safe identity: `flags.fusion.packName` is the unprefixed
+   * VENDOR pack key ("ancestries", "equipment", ...), reused verbatim by
+   * both the pf2e and the sf2e importer, and 36 documents across the two
+   * systems share the SAME `sourceId` while being genuinely different
+   * content (e.g. pf2e's Ratfolk ancestry and sf2e's Ysoki ancestry both
+   * carry vendor sourceId `P6PcVnCkh4XMdefw` under `packName: "ancestries"`
+   * — see `.fusion-build/sf2e-nivel3/mundo-misto/dedup.md`). In a
+   * single-system service this never collides (only one systemId is ever
+   * loaded); in the pf2e+sf2e composite it would, and the OLD code picked
+   * whichever pack happened to load first — an accident of `this.packs`
+   * Map insertion order, not a rule. Two changes close that:
+   *   1. Packs are walked in a DETERMINISTIC order (pf2e before any other
+   *      systemId, then packId) so a collision always resolves the same
+   *      way, run to run — never insertion-order roulette.
+   *   2. A doc the DEDUP index (`_ensureDedupIndex`) already marked
+   *      `hidden` (the LOSING duplicate of a cross-system mechanics fuse,
+   *      `buildDedupIndex`) is skipped here too — indexing it would let a
+   *      stale/superseded overlay entry win a collision it has no business
+   *      winning.
+   * #264: a reference that carries `systemId` (stamped on `flags.fusion` at import,
+   * REQ-CMP-059) resolves its own side via {@link _resolveSourceRef}. The gap below remains only
+   * for references WITHOUT it (world documents imported before the stamp existed).
+   * KNOWN REMAINING GAP: for the Ratfolk/Ysoki shape — same `sourceId`,
+   * same generic `packName`, but DIFFERENT content that dedup correctly
+   * keeps as two separate, unfused documents (not a losing/winning pair) —
+   * `getI18nBySourceRef`'s caller only ever has `{packName, sourceId}` (no
+   * systemId), so on a genuine collision like this it deterministically
+   * resolves to the pf2e side. The sf2e side (Ysoki) still resolves
+   * correctly through every GAMEPLAY path that carries a real uuid/docId
+   * (`compendium:get`, imports, grants — proven by
+   * `dedup-real-packs.test.ts`'s Ratfolk/Ysoki case); only the i18n OVERLAY
+   * lookup by bare origin ref is affected, and only for a world document
+   * whose flags.fusion strips systemId. Fixing that fully needs the world
+   * document (or the protocol payload) to carry its origin systemId, which
+   * is a client-facing protocol change — tracked as a follow-up, not done
+   * here (see conserto-core.md).
    */
+  /**
+   * Resolve an origin reference. With `systemId`, the entry of THAT system wins; when it has none
+   * (or no `systemId` was given) the system-agnostic index answers, pf2e first (I5).
+   */
+  private _resolveSourceRef(ref: {
+    packName: string;
+    sourceId: string;
+    systemId?: string | undefined;
+  }): { packId: string; docId: string } | undefined {
+    const index = this._getSourceRefIndex();
+    const key = buildSourceRefKey(ref.packName, ref.sourceId);
+    if (ref.systemId !== undefined) {
+      const own = this._sourceRefBySystem?.get(`${ref.systemId}\0${key}`);
+      if (own) return own;
+    }
+    return index.get(key);
+  }
+
   private _getSourceRefIndex(): Map<string, { packId: string; docId: string }> {
     if (this._sourceRefIndex) return this._sourceRefIndex;
 
+    const dedup = this._ensureDedupIndex();
     const index = new Map<string, { packId: string; docId: string }>();
+    const bySystem = new Map<string, { packId: string; docId: string }>();
 
-    for (const [packId, loaded] of this.packs) {
+    const sortedPacks = [...this.packs.entries()].sort(([packIdA, a], [packIdB, b]) => {
+      const pa = a.manifest.systemId === "pf2e" ? 0 : 1;
+      const pb = b.manifest.systemId === "pf2e" ? 0 : 1;
+      if (pa !== pb) return pa - pb;
+      return packIdA < packIdB ? -1 : packIdA > packIdB ? 1 : 0;
+    });
+
+    for (const [packId, loaded] of sortedPacks) {
       let docs: unknown[];
       try {
         docs = JSON.parse(readFileSync(loaded.docsPath, "utf8")) as unknown[];
@@ -1209,6 +1488,7 @@ export class CompendiumService {
         const doc = raw as Record<string, unknown>;
         const docId = doc["_id"];
         if (typeof docId !== "string") continue;
+        if (dedup.hidden.has(buildDocKey(packId, docId))) continue;
 
         const flags = doc["flags"];
         if (typeof flags !== "object" || flags === null) continue;
@@ -1219,17 +1499,27 @@ export class CompendiumService {
         if (typeof packName !== "string" || typeof sourceId !== "string") continue;
 
         const key = buildSourceRefKey(packName, sourceId);
+        const systemKey = `${loaded.manifest.systemId}\0${key}`;
+        if (!bySystem.has(systemKey)) bySystem.set(systemKey, { packId, docId });
         const existing = index.get(key);
-        if (existing !== undefined) {
-          // Should never happen — REQ-CMP-041 states fusionId derivation is
-          // collision-free cross-pack, and (packName, sourceId) is exactly
-          // its input. Keep the FIRST match and log loudly so a real
-          // regression is visible instead of silently picking a doc at
-          // random.
-          this.logger?.warn(
-            { packName, sourceId, existing, duplicate: { packId, docId } },
-            "Duplicate origin reference across packs while building source-ref index — keeping first match",
-          );
+        if (existing) {
+          // A same-system duplicate (never expected, REQ-CMP-041) OR a
+          // genuine cross-system sourceId collision that dedup did NOT fuse
+          // (different mechanics — the Ratfolk/Ysoki shape, see docstring
+          // above). Either way: deterministic pf2e-first order (sortedPacks)
+          // means the FIRST writer here is always the same one across runs,
+          // so "keep first" is now a rule, not an accident. Logged so a
+          // same-system duplicate (the actually-unexpected case) stays
+          // visible.
+          if (
+            loaded.manifest.systemId ===
+            (this.packs.get(existing.packId)?.manifest.systemId ?? null)
+          ) {
+            this.logger?.warn(
+              { packName, sourceId, existing, duplicate: { packId, docId } },
+              "Duplicate origin reference within the same system while building source-ref index — keeping first match",
+            );
+          }
           continue;
         }
         index.set(key, { packId, docId });
@@ -1237,7 +1527,71 @@ export class CompendiumService {
     }
 
     this._sourceRefIndex = index;
+    this._sourceRefBySystem = bySystem;
     return index;
+  }
+
+  // ---------------------------------------------------------------------------
+  // Private helpers — cross-system dedup (mundo misto, DEC-SF2-07-bis)
+  // ---------------------------------------------------------------------------
+
+  /**
+   * Lazily build (once) the cross-system dedup index over every pack
+   * currently loaded. `buildDedupIndex` itself no-ops (returns an empty
+   * result) unless at least 2 distinct `manifest.systemId`s are present —
+   * so a pure pf2e or pure sf2e world pays only the systemId-set check, never
+   * the full documents.json scan. A composite world (pf2e-sf2e) pays one
+   * JSON.parse per pack, same cost class as `_getSourceRefIndex`.
+   */
+  private _ensureDedupIndex(): DedupResult {
+    if (this._dedupIndex) return this._dedupIndex;
+
+    const inputs: DedupPackInput[] = [];
+    for (const [packId, loaded] of this.packs) {
+      let docs: unknown[];
+      try {
+        docs = JSON.parse(readFileSync(loaded.docsPath, "utf8")) as unknown[];
+      } catch (err) {
+        this.logger?.warn(
+          { err, packId },
+          "Failed to read documents.json while building dedup index",
+        );
+        continue;
+      }
+      inputs.push({
+        packId,
+        systemId: loaded.manifest.systemId,
+        docs: docs.filter(
+          (d): d is Record<string, unknown> => typeof d === "object" && d !== null,
+        ) as unknown as DedupPackInput["docs"],
+      });
+    }
+
+    const result = buildDedupIndex(inputs);
+    this._dedupIndex = result;
+    if (result.hidden.size > 0) {
+      this.logger?.info(
+        { hidden: result.hidden.size, fused: result.mergedFromSystems.size },
+        "Cross-system compendium dedup index built (mundo misto)",
+      );
+    }
+    return result;
+  }
+
+  /**
+   * Resolves a `(packId, docId)` pair through the dedup alias, if any. A
+   * document hidden as the losing duplicate of a cross-system fuse (see
+   * `buildDedupIndex`) always resolves to its canonical winner — used by
+   * `getDocument` so every path that reaches a compendium uuid (grant items,
+   * `compendium:get`, imports) transparently lands on the surviving copy,
+   * never on a hidden one.
+   */
+  private _resolveDedupAlias(packId: string, docId: string): { packId: string; docId: string } {
+    const key = buildDocKey(packId, docId);
+    const dedup = this._ensureDedupIndex();
+    const canonicalKey = dedup.aliasTo.get(key);
+    if (!canonicalKey) return { packId, docId };
+    return parseDocKey(canonicalKey);
   }
 
   // ---------------------------------------------------------------------------
@@ -1472,7 +1826,7 @@ export class CompendiumService {
  * decision, issue #43, is untouched by this helper — it only copies, never
  * keeps a live view of the overlay).
  */
-function snapshotPtBRLabel(doc: Record<string, unknown>): void {
+export function snapshotPtBRLabel(doc: Record<string, unknown>): void {
   const overlay = doc["i18n"];
   if (typeof overlay !== "object" || overlay === null) return;
   const ptBR = (overlay as Record<string, unknown>)["ptBR"];
@@ -1498,6 +1852,22 @@ function snapshotPtBRLabel(doc: Record<string, unknown>): void {
   fusion["i18n"] = { "pt-BR": label };
   flags["fusion"] = fusion;
   doc["flags"] = flags;
+}
+
+/**
+ * #264 (REQ-CMP-059): `(packName, sourceId)` is not a cross-system identity (36 vendor
+ * documents share it between pf2e and sf2e with different content). Stamp the ORIGIN
+ * `systemId` on `flags.fusion` of an imported document so a reader can pass it back to
+ * `getI18nBySourceRef`/`getDocumentBySourceRef`. Only documents that already carry an
+ * origin reference (`flags.fusion.sourceId`) are stamped; mutates `doc` in place.
+ */
+export function stampOriginSystemId(doc: Record<string, unknown>, systemId: string): void {
+  const flags = doc["flags"];
+  if (typeof flags !== "object" || flags === null) return;
+  const fusion = (flags as Record<string, unknown>)["fusion"];
+  if (typeof fusion !== "object" || fusion === null) return;
+  if (typeof (fusion as Record<string, unknown>)["sourceId"] !== "string") return;
+  doc["flags"] = { ...(flags as Record<string, unknown>), fusion: { ...fusion, systemId } };
 }
 
 function packed<T>(v: T | null): v is T {
@@ -1729,7 +2099,10 @@ export function findMonorepoRoot(startDir: string): string | null {
 }
 
 /**
- * Resolve the packs directory for a game system: `<root>/systems/<systemId>/packs`.
+ * Resolve the packs directory for a game system: `<root>/systems/<systemId>/packs`
+ * for a system that still lives in the core (`stub`), or
+ * `<root>/external/fusion-systems-2e/systems/<systemId>/packs` for a system
+ * extracted to the satellite submodule (`pf2e`, `sf2e` — F4, DEC-SEP-09).
  *
  * Resolution order (B3-FIXES MÉDIA B added step 2 — the other two were the
  * original M3 behaviour):
@@ -1744,8 +2117,10 @@ export function findMonorepoRoot(startDir: string): string | null {
  *      running the packaged exe there IS no monorepo checkout next to it —
  *      step 3 always returns null in that case, which is exactly the gap
  *      this step closes (compendium:list was returning [] in the exe).
- *   3. `<monorepoRoot>/systems/<systemId>/packs` discovered from this module's
- *      location via {@link findMonorepoRoot} — dev/test/non-SEA path.
+ *   3. `<monorepoRoot>/systems/<systemId>/packs`, then
+ *      `<monorepoRoot>/external/fusion-systems-2e/systems/<systemId>/packs`
+ *      (F4) — both discovered from this module's location via
+ *      {@link findMonorepoRoot} — dev/test/non-SEA path.
  *
  * Returns null when the directory cannot be located or does not exist; callers
  * should treat that as "no packs available" and continue (REQ-CMP-006).
@@ -1773,6 +2148,53 @@ export function resolveSystemPacksDir(systemId: string, packsDirOverride?: strin
   const root = findMonorepoRoot(here);
   if (root === null) return null;
 
-  const packsDir = join(root, "systems", systemId, "packs");
-  return existsSync(packsDir) ? packsDir : null;
+  const corePacksDir = join(root, "systems", systemId, "packs");
+  if (existsSync(corePacksDir)) return corePacksDir;
+
+  // F4 (DEC-SEP-09): pf2e/sf2e's packs moved to the fusion-systems-2e
+  // submodule, checked out for real at external/fusion-systems-2e/.
+  const satellitePacksDir = join(
+    root,
+    "external",
+    "fusion-systems-2e",
+    "systems",
+    systemId,
+    "packs",
+  );
+  return existsSync(satellitePacksDir) ? satellitePacksDir : null;
+}
+
+/**
+ * Resolve the **private** packs directory for a game system (DEC-CMP-11,
+ * REQ-CMP-057): a second, non-versioned root the GM can point the server at
+ * to load compendium content that must never reach git (e.g. Paizo playtest
+ * classes — same restriction as `docs/etmos-fontes/`).
+ *
+ * Layout mirrors {@link resolveSystemPacksDir}'s target: `<root>/<systemId>/`
+ * contains `<slug>/pack.json` + `documents.json` (+ optional `index.json` /
+ * `i18n.pt-BR.json`), same as `systems/<systemId>/packs/` — so it is
+ * discovered by the exact same {@link CompendiumService.discoverPacks}.
+ *
+ * Resolution order:
+ *   1. `FUSION_PRIVATE_PACKS_DIR` env var, if set — the root that contains
+ *      `<systemId>/` (analogous to `FUSION_PACKS_DIR`'s override role for
+ *      {@link resolveSystemPacksDir}).
+ *   2. `<dataDir>/private-packs/<systemId>/` — the default, next to the
+ *      world data the GM already keeps out of any repo.
+ *
+ * Returns `null` when the directory does not exist — this is the expected,
+ * silent case for the overwhelming majority of installs (REQ-CMP-057: no
+ * error, no warning log).
+ *
+ * @param dataDir  the server's resolved data directory (`config.dataDir`).
+ * @param systemId active world system id (e.g. "pf2e").
+ */
+export function resolvePrivatePacksDir(dataDir: string, systemId: string): string | null {
+  const overrideRoot = process.env["FUSION_PRIVATE_PACKS_DIR"];
+  const privateRoot =
+    overrideRoot !== undefined && overrideRoot.length > 0
+      ? overrideRoot
+      : join(dataDir, "private-packs");
+  const dir = join(privateRoot, systemId);
+  return existsSync(dir) ? dir : null;
 }

@@ -7,14 +7,16 @@
     "build": "pnpm -r build",
     "typecheck": "pnpm -r typecheck",
     "lint": "eslint .",
-    "lint:boundaries": "depcruise --config .dependency-cruiser.cjs packages systems tools",
+    "lint:boundaries": "depcruise --config .dependency-cruiser.cjs packages systems tools external/fusion-systems-2e/systems external/fusion-systems-2e/sheets",
     "test": "vitest run --workspace vitest.workspace.ts",
+    "test:server:shuffle": "vitest run --workspace vitest.workspace.ts --project server --project server-isolated --sequence.shuffle",
     "test:watch": "vitest --workspace vitest.workspace.ts",
     "spec:report": "node --experimental-strip-types tools/spec-lint/bin/report.ts",
     "format": "prettier --write \"**/*.{ts,tsx,json,md}\"",
     "format:check": "prettier --check \"**/*.{ts,tsx,json,md}\"",
     "build:release": "node tools/release/build-release.mjs",
-    "smoke:release": "node tools/release/smoke-release.mjs"
+    "smoke:release": "node tools/release/smoke-release.mjs",
+    "mesa": "node tools/mesa-cli/bin/mesa.mjs"
   },
   "devDependencies": {
     "@typescript-eslint/eslint-plugin": "^8.33.0",

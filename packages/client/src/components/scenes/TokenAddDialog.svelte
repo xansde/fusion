@@ -33,9 +33,11 @@
 
   import type { Socket } from "socket.io-client";
   import { untrack } from "svelte";
+  import ActorPortrait from "../../lib/components/common/ActorPortrait.svelte";
   import { sendOp } from "../../lib/docs/sendOp.js";
   import { worldMirror } from "../../lib/docs/worldSync.js";
   import { t } from "../../lib/i18n/i18n.js";
+  import Icon from "../common/Icon.svelte";
   import type { SceneDimensionsInput } from "../../lib/canvas/sceneCoords.js";
   import {
     buildCreateTokenOp,
@@ -170,8 +172,9 @@
       class="dialog__close btn btn--icon"
       onclick={onClose}
       aria-label={t("FUSION.Dialog.Close")}
+      title={t("FUSION.Dialog.Close")}
     >
-      &#x2715;
+      <Icon name="x" size={18} />
     </button>
   </header>
 
@@ -184,9 +187,12 @@
 
       {#if selectedActor}
         <div class="actor-selected">
-          {#if selectedActor.img}
-            <img class="actor-selected__img" src={selectedActor.img} alt="" />
-          {/if}
+          <ActorPortrait
+            img={selectedActor.img}
+            docRef={{ table: "actors", id: selectedActor.id }}
+            name={selectedActor.name}
+            size={28}
+          />
           <span class="actor-selected__name">{selectedActor.name}</span>
           <button
             type="button"
@@ -218,9 +224,12 @@
                 onclick={() => selectActor(actor.id)}
                 disabled={submitting}
               >
-                {#if actor.img}
-                  <img class="actor-option__img" src={actor.img} alt="" />
-                {/if}
+                <ActorPortrait
+                  img={actor.img}
+                  docRef={{ table: "actors", id: actor.id }}
+                  name={actor.name}
+                  size={24}
+                />
                 <span class="actor-option__name">{actor.name}</span>
               </button>
             </li>
@@ -320,7 +329,7 @@
   .dialog-backdrop {
     position: fixed;
     inset: 0;
-    background: rgba(0, 0, 0, 0.55);
+    background: color-mix(in srgb, var(--fusion-bg) 72%, transparent);
     z-index: 200;
   }
 
@@ -333,7 +342,7 @@
     background: var(--fusion-surface);
     border: 1px solid var(--fusion-border);
     border-radius: var(--fusion-radius-lg);
-    box-shadow: 0 24px 64px rgba(0, 0, 0, 0.6);
+    box-shadow: var(--fusion-shadow-modal);
     color: var(--fusion-text);
     font-family: var(--fusion-font);
     padding: 0;
@@ -356,7 +365,7 @@
   }
 
   .dialog__title {
-    font-size: 1rem;
+    font-size: var(--fusion-text-md);
     font-weight: 600;
     margin: 0;
   }
@@ -365,10 +374,14 @@
     background: transparent;
     border: none;
     color: var(--fusion-text-muted);
+    align-items: center;
+    border-radius: var(--fusion-radius-sm);
     cursor: pointer;
-    font-size: 1.1rem;
-    padding: 0.25rem;
-    line-height: 1;
+    display: inline-flex;
+    justify-content: center;
+    min-height: var(--fusion-target);
+    min-width: var(--fusion-target);
+    padding: 0;
     transition: color var(--fusion-transition);
   }
 
@@ -397,7 +410,7 @@
 
   .field__label {
     color: var(--fusion-text-muted);
-    font-size: 0.8125rem;
+    font-size: var(--fusion-text-xs);
     font-weight: 500;
   }
 
@@ -407,12 +420,13 @@
   }
 
   .field__input {
+    min-height: var(--fusion-target);
     background: var(--fusion-surface-alt);
     border: 1px solid var(--fusion-border);
     border-radius: var(--fusion-radius-sm);
     color: var(--fusion-text);
     font-family: var(--fusion-font);
-    font-size: 0.875rem;
+    font-size: var(--fusion-text-sm);
     padding: 0.45rem 0.6rem;
     transition: border-color var(--fusion-transition);
     width: 100%;
@@ -420,7 +434,6 @@
 
   .field__input:focus {
     border-color: var(--fusion-accent);
-    outline: none;
   }
 
   .field__input:disabled {
@@ -434,7 +447,7 @@
 
   .field__error {
     color: var(--fusion-danger);
-    font-size: 0.75rem;
+    font-size: var(--fusion-text-xs);
   }
 
   .actor-list {
@@ -452,7 +465,7 @@
 
   .actor-list__empty {
     color: var(--fusion-text-subtle);
-    font-size: 0.8125rem;
+    font-size: var(--fusion-text-xs);
     padding: 0.5rem;
   }
 
@@ -465,7 +478,7 @@
     cursor: pointer;
     display: flex;
     font-family: var(--fusion-font);
-    font-size: 0.875rem;
+    font-size: var(--fusion-text-sm);
     gap: 0.5rem;
     padding: 0.4rem 0.5rem;
     text-align: left;
@@ -481,13 +494,6 @@
     opacity: 0.5;
   }
 
-  .actor-option__img {
-    border-radius: var(--fusion-radius-sm);
-    height: 1.5rem;
-    object-fit: cover;
-    width: 1.5rem;
-  }
-
   .actor-selected {
     align-items: center;
     background: var(--fusion-surface-alt);
@@ -498,32 +504,25 @@
     padding: 0.4rem 0.6rem;
   }
 
-  .actor-selected__img {
-    border-radius: var(--fusion-radius-sm);
-    height: 1.75rem;
-    object-fit: cover;
-    width: 1.75rem;
-  }
-
   .actor-selected__name {
     flex: 1;
-    font-size: 0.875rem;
+    font-size: var(--fusion-text-sm);
   }
 
   .checkbox-row {
     align-items: center;
     cursor: pointer;
     display: flex;
-    font-size: 0.875rem;
+    font-size: var(--fusion-text-sm);
     gap: 0.5rem;
   }
 
   .server-error {
-    background: rgba(255, 92, 92, 0.12);
+    background: var(--fusion-danger-dim);
     border: 1px solid var(--fusion-danger);
     border-radius: var(--fusion-radius-sm);
     color: var(--fusion-danger);
-    font-size: 0.8125rem;
+    font-size: var(--fusion-text-xs);
     padding: 0.6rem 0.75rem;
   }
 
@@ -536,13 +535,14 @@
   }
 
   .btn {
+    min-height: var(--fusion-target);
     align-items: center;
     border: 1px solid transparent;
     border-radius: var(--fusion-radius-sm);
     cursor: pointer;
     display: inline-flex;
     font-family: var(--fusion-font);
-    font-size: 0.875rem;
+    font-size: var(--fusion-text-sm);
     font-weight: 500;
     justify-content: center;
     padding: 0.45rem 1rem;
@@ -557,7 +557,7 @@
 
   .btn--primary {
     background: var(--fusion-accent);
-    color: #fff;
+    color: var(--fusion-on-accent);
   }
 
   .btn--primary:hover:not(:disabled) {
@@ -576,7 +576,7 @@
   }
 
   .btn--sm {
-    font-size: 0.75rem;
+    font-size: var(--fusion-text-xs);
     padding: 0.3rem 0.6rem;
   }
 

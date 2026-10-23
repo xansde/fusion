@@ -13,6 +13,7 @@
  *   - Forged payload (client submitting a pre-made roll result) is rejected
  *     because chat:send only accepts the raw formula string, not roll data
  *   - Rate limit: 6th message in 1s returns RATE_LIMIT error code
+ *   - BAR-F4-01: only the GM or an OWNER may speak as an actor (the NPC sheet speaks as the NPC)
  */
 
 import { describe, it, expect, beforeEach, afterEach } from "vitest";
@@ -33,7 +34,7 @@ import { Role } from "../auth/user-store.js";
 import { loadOrCreateSecret } from "../auth/crypto.js";
 import { registerAuthRoutes } from "../auth/routes.js";
 import { SocketManager } from "../net/socket-manager.js";
-import { PROTOCOL_VERSION } from "@fusion/shared";
+import { CHAT_ERROR_CODES, PROTOCOL_VERSION } from "@fusion/shared";
 
 // ---------------------------------------------------------------------------
 // Test helpers
@@ -183,7 +184,7 @@ function connectSocket(port: number, worldId: string, token: string): Promise<Cl
       socket.once("op", () => resolve(socket));
     });
     socket.once("connect_error", reject);
-    setTimeout(() => reject(new Error("connect timeout")), 5000);
+    setTimeout(() => reject(new Error("connect timeout")), 15_000);
   });
 }
 
@@ -227,7 +228,7 @@ function connectAndCollectJoinOps(
       arm();
     });
     socket.once("connect_error", reject);
-    setTimeout(() => reject(new Error("connect timeout")), 5000);
+    setTimeout(() => reject(new Error("connect timeout")), 15_000);
   });
 }
 
@@ -356,6 +357,28 @@ describe("chat:send + roll visibility", () => {
   }, 10_000);
 
   // -------------------------------------------------------------------------
+  it("a damage roll with no dice (the Blowgun's '1' and its critical '(1)*2') is accepted and totals what it says (closing review, I-2)", async () => {
+    const ackFlat = await sendOp(playerSocket, "chat:send", {
+      content: "/r 1 # Blowgun — Dano",
+      worldId: ctx.worldId,
+    });
+    expect(ackFlat["ok"], JSON.stringify(ackFlat)).toBe(true);
+    const ackCrit = await sendOp(playerSocket, "chat:send", {
+      content: "/r (1)*2 # Blowgun — Dano crítico",
+      worldId: ctx.worldId,
+    });
+    expect(ackCrit["ok"], JSON.stringify(ackCrit)).toBe(true);
+
+    const totalOf = (ack: Record<string, unknown>): number | undefined => {
+      const message = (ack["result"] as { message?: { rolls?: Array<{ total?: number }> } })
+        .message;
+      return message?.rolls?.[0]?.total;
+    };
+    expect(totalOf(ackFlat)).toBe(1);
+    expect(totalOf(ackCrit)).toBe(2);
+  }, 10_000);
+
+  // -------------------------------------------------------------------------
   it("/gmroll: player author sees result, other player does NOT, GM sees result", async () => {
     const gmOps = collectOps(gmSocket, 1);
     const playerOps = collectOps(playerSocket, 1);
@@ -392,8 +415,11 @@ describe("chat:send + roll visibility", () => {
     // Player author gets full result (gmroll — whisper includes gmIds but author also gets it)
     expect(p1Doc).toBeDefined();
 
-    // Player2 must NOT receive any chat message about this roll
-    expect(p2ChatOp).toBeUndefined();
+    // Player2 must NOT receive any chat content about this roll. The envelope itself still
+    // arrives, empty, so the seq the server burned leaves no hole in the player's mirror.
+    expect((p2ChatOp?.payload as { documents?: unknown[] } | undefined)?.documents ?? []).toEqual(
+      [],
+    );
   }, 10_000);
 
   // -------------------------------------------------------------------------
@@ -465,6 +491,58 @@ describe("chat:send + roll visibility", () => {
 
     // Recipient (player2) gets the message
     expect(chatDoc(player2Msgs)).toBeDefined();
+  }, 10_000);
+
+  // -------------------------------------------------------------------------
+  it("/w to a compound user name without brackets or quotes is a whisper, not public text", async () => {
+    const { user: huo } = await ctx.authService.createUser({
+      name: "Huo Jinwu",
+      role: Role.PLAYER,
+      password: "huo-pass",
+      color: "#3aa335",
+    });
+
+    const ack = await sendOp(playerSocket, "chat:send", {
+      content: "/w huo jinwu fica atrás de mim",
+      worldId: ctx.worldId,
+    });
+
+    expect(ack["ok"]).toBe(true);
+    const message = (ack["result"] as Record<string, unknown>)["message"] as Record<
+      string,
+      unknown
+    >;
+    expect(message["type"]).toBe("whisper");
+    expect(message["content"]).toBe("fica atrás de mim");
+    expect(message["whisper"]).toContain(huo.id);
+
+    // An unknown name is refused by name — never posted to the whole table.
+    const refused = await sendOp(playerSocket, "chat:send", {
+      content: "/w Ninguém oi",
+      worldId: ctx.worldId,
+    });
+    expect(refused["ok"]).toBe(false);
+    expect(String(refused["message"])).toContain("Ninguém");
+  }, 10_000);
+
+  // -------------------------------------------------------------------------
+  it("a malformed /w is refused and never published to the table", async () => {
+    await ctx.authService.createUser({
+      name: "Huo Jinwu",
+      role: Role.PLAYER,
+      password: "huo-pass",
+      color: "#3aa335",
+    });
+    const player2Ops = collectOps(player2Socket, 1, 600);
+
+    for (const content of ['/w "Huo Jinwu psiu', "/w [Huo psiu", "/w"]) {
+      const ack = await sendOp(playerSocket, "chat:send", { content, worldId: ctx.worldId });
+      expect(ack["ok"], content).toBe(false);
+      expect(String(ack["message"]), content).toContain(CHAT_ERROR_CODES.INVALID_COMMAND);
+    }
+
+    const leaked = (await player2Ops).filter((op) => op.type === "doc:create");
+    expect(leaked).toEqual([]);
   }, 10_000);
 
   // -------------------------------------------------------------------------
@@ -748,6 +826,24 @@ describe("RollService unit", () => {
     ).toThrowError(RollError);
   });
 
+  it("rolls a formula with no dice at all, the way the Blowgun's fixed damage is written (closing review, I-2)", async () => {
+    // The Blowgun deals "1 piercing": the sheet used to write "0d4+1", which the parser refuses, so that damage
+    // could not be rolled at all. It now writes "1" (and "(1)*2" on a critical hit); a precision die is the pool.
+    const { RollService, RollError } = await import("../chat/roll-service.js");
+    const svc = new RollService({ db: ctx.fusionDb.raw });
+    const roll = (formula: string) =>
+      svc.roll({ formula, mode: "public", worldId: ctx.worldId, userId: ctx.gmId });
+
+    expect(roll("1").total).toBe(1);
+    expect(roll("(1)*2").total).toBe(2);
+    expect(roll("0").total).toBe(0);
+    const sneaky = roll("1d6+1").total;
+    expect(sneaky).toBeGreaterThanOrEqual(2);
+    expect(sneaky).toBeLessThanOrEqual(7);
+    // ...and the string the sheet used to write is refused, which is why it has to stay out of it.
+    expect(() => roll("0d4+1")).toThrowError(RollError);
+  });
+
   it("extracts flavor from formula", async () => {
     const { RollService } = await import("../chat/roll-service.js");
 
@@ -958,4 +1054,255 @@ describe("join-snapshot after /blindroll (FIX-6)", () => {
     );
     expect(blindWithResult).toBeDefined();
   }, 10_000);
+});
+
+// ---------------------------------------------------------------------------
+// BAR-F4-01: who may speak AS an actor
+//
+// The NPC sheet speaks as the NPC (`speakerActorId`, which is also how the server finds the combatant that
+// is attacking). The server decides whether the sender may: the GM always may; anyone else must be an OWNER
+// of the actor. Before this, only a maneuver's roll and a roll that carried a `rollContext` asked, so a
+// player could post any message as any actor whose id they knew.
+// ---------------------------------------------------------------------------
+
+/** Insert an actor row the way the document store reads it. */
+function insertActor(
+  db: FusionDatabase,
+  actor: { _id: string; name: string; type: string } & Record<string, unknown>,
+): void {
+  const now = Date.now();
+  db.raw
+    .prepare(
+      `INSERT INTO actors (id, data, name, type, sort, created_at, updated_at)
+       VALUES (?, ?, ?, ?, 0, ?, ?)`,
+    )
+    .run(actor._id, JSON.stringify(actor), actor.name, actor.type, now, now);
+}
+
+describe("chat:send — who may speak as an actor (BAR-F4-01)", () => {
+  const PC_OF_PLAYER = "pcOfPlayerOne0001";
+  const PC_OF_PLAYER2 = "pcOfPlayerTwo0001";
+  const NPC = "goblinChief000001";
+  const HIRELING = "hirelingOfOne0001";
+
+  let ctx: TestContext;
+  let gmSocket: ClientSocket;
+  let playerSocket: ClientSocket;
+
+  beforeEach(async () => {
+    ctx = await buildTestContext();
+    insertActor(ctx.fusionDb, {
+      _id: PC_OF_PLAYER,
+      name: "Bhrotto",
+      type: "character",
+      ownership: { default: 0, [ctx.playerId]: 3 },
+    });
+    insertActor(ctx.fusionDb, {
+      _id: PC_OF_PLAYER2,
+      name: "Huo Jinwu",
+      type: "character",
+      ownership: { default: 0, [ctx.player2Id]: 3 },
+    });
+    insertActor(ctx.fusionDb, {
+      _id: NPC,
+      name: "Goblin Chefe",
+      type: "npc",
+      ownership: { default: 0 },
+    });
+    // A hireling the GM handed over: an NPC whose OWNER is a player.
+    insertActor(ctx.fusionDb, {
+      _id: HIRELING,
+      name: "Mercenário",
+      type: "npc",
+      ownership: { default: 0, [ctx.playerId]: 3 },
+    });
+    [gmSocket, playerSocket] = await Promise.all([
+      connectSocket(ctx.port, ctx.worldId, ctx.gmToken),
+      connectSocket(ctx.port, ctx.worldId, ctx.playerToken),
+    ]);
+  }, 15_000);
+
+  afterEach(async () => {
+    gmSocket?.disconnect();
+    playerSocket?.disconnect();
+    await teardown(ctx);
+  });
+
+  const persistedMessages = (): number =>
+    (ctx.fusionDb.raw.prepare(`SELECT count(*) AS n FROM chat_messages`).get() as { n: number }).n;
+
+  it("a player speaks as the character they own, and the message names it", async () => {
+    const ack = await sendOp(playerSocket, "chat:send", {
+      content: "/r 1d20+5 # Percepção",
+      worldId: ctx.worldId,
+      rollMode: "public",
+      speakerActorId: PC_OF_PLAYER,
+    });
+    expect(ack["ok"], JSON.stringify(ack)).toBe(true);
+    const message = (ack["result"] as { message: { speaker: { actorId?: string; alias: string } } })
+      .message;
+    expect(message.speaker).toMatchObject({ actorId: PC_OF_PLAYER, alias: "Bhrotto" });
+  });
+
+  it("a player is REFUSED when the actor they name is an NPC they do not own, and nothing is posted", async () => {
+    const gmSees = collectOps(gmSocket, 1, 600);
+    const ack = await sendOp(playerSocket, "chat:send", {
+      content: "/r 1d20+9 # Golpe",
+      worldId: ctx.worldId,
+      rollMode: "public",
+      speakerActorId: NPC,
+      flags: { checkContext: { kind: "attack", mapIndex: 0 } },
+    });
+    expect(ack["ok"]).toBe(false);
+    expect(ack["code"]).toBe("VALIDATION_FAILED");
+    expect(String(ack["message"])).toMatch(/not yours/i);
+    // Neither stored nor broadcast: the NPC's name did not reach a single socket.
+    expect(chatDocsFromOps(await gmSees)).toHaveLength(0);
+    expect(persistedMessages()).toBe(0);
+  });
+
+  it("a player is refused when the actor is another player's character", async () => {
+    const ack = await sendOp(playerSocket, "chat:send", {
+      content: "/r 1d20",
+      worldId: ctx.worldId,
+      speakerActorId: PC_OF_PLAYER2,
+    });
+    expect(ack["ok"]).toBe(false);
+    expect(ack["code"]).toBe("VALIDATION_FAILED");
+    expect(persistedMessages()).toBe(0);
+  });
+
+  it("a player is refused when the actor does not exist", async () => {
+    const ack = await sendOp(playerSocket, "chat:send", {
+      content: "/r 1d20",
+      worldId: ctx.worldId,
+      speakerActorId: "noSuchActor000001",
+    });
+    expect(ack["ok"]).toBe(false);
+    expect(persistedMessages()).toBe(0);
+  });
+
+  it("the refusal covers every kind of message, not only rolls: text, an emote and a whisper", async () => {
+    for (const content of ["Eu sou o Goblin Chefe!", "/me rosna", "/w Player2 psiu"]) {
+      const ack = await sendOp(playerSocket, "chat:send", {
+        content,
+        worldId: ctx.worldId,
+        speakerActorId: NPC,
+      });
+      expect(ack["ok"], content).toBe(false);
+    }
+    expect(persistedMessages()).toBe(0);
+  });
+
+  it("the owner of an NPC (a hireling the GM handed over) may speak as it", async () => {
+    const ack = await sendOp(playerSocket, "chat:send", {
+      content: "/r 1d20+6",
+      worldId: ctx.worldId,
+      rollMode: "public",
+      speakerActorId: HIRELING,
+    });
+    expect(ack["ok"], JSON.stringify(ack)).toBe(true);
+  });
+
+  it("the GM speaks as any actor, an NPC included", async () => {
+    const ack = await sendOp(gmSocket, "chat:send", {
+      content: "/r 1d20+9 # Golpe",
+      worldId: ctx.worldId,
+      rollMode: "public",
+      speakerActorId: NPC,
+    });
+    expect(ack["ok"], JSON.stringify(ack)).toBe(true);
+    const message = (ack["result"] as { message: { speaker: { actorId?: string; alias: string } } })
+      .message;
+    expect(message.speaker).toMatchObject({ actorId: NPC, alias: "Goblin Chefe" });
+  });
+
+  it("naming no actor changes nothing: the speaker is the user", async () => {
+    const ack = await sendOp(playerSocket, "chat:send", {
+      content: "/r 1d20",
+      worldId: ctx.worldId,
+      rollMode: "public",
+    });
+    expect(ack["ok"], JSON.stringify(ack)).toBe(true);
+    const message = (ack["result"] as { message: { speaker: { actorId?: string; alias: string } } })
+      .message;
+    expect(message.speaker.actorId).toBeUndefined();
+    expect(message.speaker.alias).toBe("Player1");
+  });
+
+  // `speakerTokenId` is NOT a way to speak as someone, and the server does not gate it (as on alfa/app): the
+  // speaker's name and actor come from `speakerActorId` alone, and the MAP counter, the one reader of the token,
+  // checks the ownership of the combatant itself (combat/__tests__/map-counter.test.ts). A gate here would
+  // either refuse the combatant whose token left the scene (alfa/app's MAP tests send exactly that) or, relaxed
+  // for it, answer differently for a token that exists — an oracle of the hidden ones.
+  describe("the token names no identity: the same answer for any token, and the speaker stays the user", () => {
+    const TOKEN_MINE = "tokMine00000001";
+    const TOKEN_GOBLIN = "tokGoblin000001";
+    const TOKEN_ORPHAN = "tokNoActor00001";
+    const TOKEN_OTHER_PLAYER = "tokPlayer200001";
+
+    beforeEach(() => {
+      const now = Date.now();
+      const scene = {
+        _id: "sceneSpeaker0001",
+        name: "Sala",
+        active: true,
+        tokens: [
+          { _id: TOKEN_MINE, name: "Bhrotto", actorId: PC_OF_PLAYER, hidden: false },
+          // Hidden from the player: he cannot see it, and still may not speak through it.
+          { _id: TOKEN_GOBLIN, name: "Goblin", actorId: NPC, hidden: true },
+          { _id: TOKEN_ORPHAN, name: "Sem ator", hidden: false },
+          // Visible to the table and still not his: the character of the other player.
+          { _id: TOKEN_OTHER_PLAYER, name: "Outro", actorId: PC_OF_PLAYER2, hidden: false },
+        ],
+      };
+      ctx.fusionDb.raw
+        .prepare(
+          `INSERT INTO scenes (id, data, name, navigation, sort, created_at, updated_at)
+           VALUES (?, ?, ?, 1, 0, ?, ?)`,
+        )
+        .run(scene._id, JSON.stringify(scene), scene.name, now, now);
+    });
+
+    const speakingThrough = (socket: ClientSocket, speakerTokenId: string) =>
+      sendOp(socket, "chat:send", {
+        content: "/r 1d20+5 # Golpe",
+        worldId: ctx.worldId,
+        rollMode: "public",
+        speakerTokenId,
+        flags: { checkContext: { kind: "attack", mapIndex: 0 } },
+      });
+
+    /** The ack a player gets for `token`, reduced to what could tell one token from another. */
+    const answerFor = async (token: string) => {
+      const ack = await speakingThrough(playerSocket, token);
+      expect(ack["ok"], `${token} ${JSON.stringify(ack)}`).toBe(true);
+      const message = (
+        ack["result"] as { message: { speaker: { actorId?: string; alias: string } } }
+      ).message;
+      // Nothing of the token's actor rides on the message: not the hidden NPC's name, not its id.
+      expect(JSON.stringify(ack), token).not.toContain("Goblin Chefe");
+      expect(JSON.stringify(ack), token).not.toContain(NPC);
+      return { actorId: message.speaker.actorId, alias: message.speaker.alias };
+    };
+
+    it("his own token, a hidden NPC's and another player's character's: one answer, and the speaker is the user", async () => {
+      for (const token of [TOKEN_MINE, TOKEN_GOBLIN, TOKEN_OTHER_PLAYER]) {
+        expect(await answerFor(token), token).toEqual({ actorId: undefined, alias: "Player1" });
+      }
+    });
+
+    it("a token with no actor and a token on no scene get that same answer: no refusal tells which tokens exist", async () => {
+      for (const token of [TOKEN_ORPHAN, "tokNoSuchToken001"]) {
+        expect(await answerFor(token), token).toEqual({ actorId: undefined, alias: "Player1" });
+      }
+    });
+
+    it("the GM speaks through any token", async () => {
+      for (const token of [TOKEN_MINE, TOKEN_GOBLIN]) {
+        const ack = await speakingThrough(gmSocket, token);
+        expect(ack["ok"], JSON.stringify(ack)).toBe(true);
+      }
+    });
+  });
 });

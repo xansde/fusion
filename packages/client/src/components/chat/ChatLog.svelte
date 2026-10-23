@@ -27,11 +27,13 @@
     ScrollStateManager,
     resolveMarkerAnchorId,
     lastMessageStamp,
+    logPositionToKeep,
   } from "../../lib/chat/scrollState.js";
   import { groupChatMessages } from "../../lib/chat/chatGrouping.js";
   import { registerLogScroller } from "../../lib/chat/logScroller.js";
   import { t } from "../../lib/i18n/i18n.js";
   import ChatMessageComponent from "./ChatMessage.svelte";
+  import Icon from "../common/Icon.svelte";
 
   const {
     socket,
@@ -164,6 +166,14 @@
       scrollManager.forceScrollToBottom();
     });
 
+    // One frame later: the panel's own onMount (which raises the "N novas" divider) runs AFTER this child's,
+    // and the rows must be laid out for an offset to mean anything. Positioned synchronously, the divider was not
+    // there yet and the log opened at the top of the history (fechamento 22/10/2026).
+    const frame = requestAnimationFrame(openLog);
+    return () => cancelAnimationFrame(frame);
+  });
+
+  function openLog(): void {
     if (positionAtUnreadMarker()) return;
 
     const saved = chatSession.scrollTop;
@@ -174,12 +184,13 @@
     }
 
     scrollManager.forceScrollToBottom();
-  });
+  }
 
   onDestroy(() => {
     registerLogScroller(null);
-    // Hand the position to the session before the component goes (REQ-ACH-026).
-    if (logEl) chatSession.scrollTop = logEl.scrollTop;
+    // Hand the position to the session (REQ-ACH-026) only while the log is still in the document: detached, it
+    // reads scrollTop 0. The position is also kept on every scroll (handleScroll), which is what normally holds.
+    if (logEl?.isConnected) chatSession.scrollTop = logPositionToKeep(logEl.scrollTop, scrollManager.pinned);
   });
 
   /**
@@ -211,6 +222,7 @@
   function handleScroll(): void {
     if (!logEl) return;
     scrollManager.onScroll(logEl.scrollTop, logEl.scrollHeight, logEl.clientHeight);
+    chatSession.scrollTop = logPositionToKeep(logEl.scrollTop, scrollManager.pinned);
 
     // Load more when near the top (threshold: 80px)
     if (logEl.scrollTop < 80 && chatStore.hasMore && !chatStore.loadingMore) {
@@ -289,20 +301,12 @@
   -->
   {#if showIndicator}
     <button
+      type="button"
       class="chat-log__new-indicator"
       onclick={jumpToBottom}
       aria-label={t("FUSION.Chat.Log.NewBelowHint", { count: pendingBelow })}
     >
-      <svg class="chat-log__new-arrow" viewBox="0 0 12 12" aria-hidden="true" focusable="false">
-        <path
-          d="M6 1.5v7.5M2.5 6.5 6 10l3.5-3.5"
-          fill="none"
-          stroke="currentColor"
-          stroke-width="1.6"
-          stroke-linecap="round"
-          stroke-linejoin="round"
-        />
-      </svg>
+      <Icon name="arrow-down" size={18} />
       {t("FUSION.Chat.Log.NewBelow", { count: pendingBelow })}
     </button>
   {/if}
@@ -322,52 +326,46 @@
     overflow-y: auto;
     overflow-x: hidden;
     min-height: 0;
-    /* Smooth scrolling */
     scroll-behavior: auto; /* don't animate auto-scroll, only user scrolls */
   }
 
   .chat-log__loading,
   .chat-log__empty {
-    color: var(--fusion-text-subtle);
-    font-size: 0.8125rem;
+    color: var(--fusion-text-muted);
+    font-size: var(--fusion-text-base);
     text-align: center;
-    padding: 1.5rem 1rem;
+    padding: var(--fusion-space-6) var(--fusion-space-4);
     margin: 0;
   }
 
   .chat-log__empty-hint {
     display: block;
-    font-size: 0.75rem;
-    margin-top: 0.25rem;
-    opacity: 0.85;
+    font-size: var(--fusion-text-sm);
+    margin-top: var(--fusion-space-1);
   }
 
   .chat-log__error {
     color: var(--fusion-danger);
-    font-size: 0.75rem;
-    padding: 0.3rem 0.75rem;
+    font-size: var(--fusion-text-sm);
+    padding: var(--fusion-space-1) var(--fusion-space-3);
     margin: 0;
   }
 
   /* Load more indicator */
   .chat-log__load-indicator {
     text-align: center;
-    font-size: 0.7rem;
-    color: var(--fusion-text-subtle);
-    padding: 0.3rem;
+    font-size: var(--fusion-text-sm);
+    color: var(--fusion-text-muted);
+    padding: var(--fusion-space-1);
     flex-shrink: 0;
-  }
-
-  .chat-log__load-indicator--hint {
-    color: var(--fusion-text-subtle);
   }
 
   /* Unread divider (REQ-ACH-004) */
   .chat-log__unread-marker {
     display: flex;
     align-items: center;
-    gap: 0.5rem;
-    padding: 0.35rem 0.75rem;
+    gap: var(--fusion-space-2);
+    padding: var(--fusion-space-1) var(--fusion-space-3);
   }
 
   .chat-log__unread-marker::before,
@@ -376,34 +374,36 @@
     flex: 1;
     height: 1px;
     background: var(--fusion-accent);
-    opacity: 0.55;
   }
 
   .chat-log__unread-marker-label {
-    color: var(--fusion-accent);
+    color: var(--fusion-text);
     font-family: var(--fusion-font);
-    font-size: 0.7rem;
-    font-weight: 600;
-    letter-spacing: 0.02em;
+    font-size: var(--fusion-text-sm);
+    font-weight: var(--fusion-weight-bold);
     white-space: nowrap;
   }
 
-  /* New messages indicator */
+  /* New messages indicator — floats over the log, so it carries the popover shadow. */
   .chat-log__new-indicator {
     position: absolute;
-    bottom: 0.5rem;
+    bottom: var(--fusion-space-2);
     left: 50%;
     transform: translateX(-50%);
+    display: inline-flex;
+    align-items: center;
+    gap: var(--fusion-space-1);
+    min-height: var(--fusion-target);
+    padding: 0 var(--fusion-space-4);
     background: var(--fusion-accent);
     border: none;
-    border-radius: 1rem;
-    color: #fff;
+    border-radius: var(--fusion-radius-lg);
+    color: var(--fusion-on-accent);
     cursor: pointer;
     font-family: var(--fusion-font);
-    font-size: 0.75rem;
-    font-weight: 600;
-    padding: 0.3rem 0.9rem;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
+    font-size: var(--fusion-text-sm);
+    font-weight: var(--fusion-weight-bold);
+    box-shadow: var(--fusion-shadow-popover);
     animation: slide-up 0.15s ease-out;
     white-space: nowrap;
     z-index: 10;
@@ -411,13 +411,6 @@
 
   .chat-log__new-indicator:hover {
     background: var(--fusion-accent-hover);
-  }
-
-  .chat-log__new-arrow {
-    width: 0.75rem;
-    height: 0.75rem;
-    vertical-align: -0.1em;
-    margin-right: 0.25rem;
   }
 
   @keyframes slide-up {

@@ -561,7 +561,7 @@ describe("fallbackIcon", () => {
   });
 
   it("returns a generic icon for unknown documentType", () => {
-    expect(fallbackIcon("Whatever", null)).toBe("❓");
+    expect(fallbackIcon("Whatever", null)).toBe("circle-question-mark");
   });
 });
 

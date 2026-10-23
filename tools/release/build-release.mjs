@@ -35,11 +35,18 @@
  *      directory (B3-FIXES MÉDIA B — REQ-CMP-006 in the packaged exe) into
  *      the custom archive format (pack-native.mjs / native-loader.ts's
  *      packDirectory).
+ *      The avatar acervo (`packages/client/dist/avatar`, copied there by the Vite
+ *      plugin) is EXCLUDED from the client-dist archive: it is third-party,
+ *      partly share-alike art and ships as a sidecar instead (step 8b).
  *   6. Assemble the SEA: generate sea-config.json (make-sea-config.mjs),
  *      run `node --experimental-sea-config`, copy the CURRENT node.exe,
  *      inject the blob via postject, name the result
  *      `fusion-server-<version>-<platform>-<arch>[.exe]` (REQ-DST-004).
- *   7. Compute SHA-256 + size; fail if size > 150 MB (REQ-DST-046, DA-04).
+ *   7. Compute SHA-256 + size; fail if size > 180 MB (REQ-DST-046, DA-04;
+ *      teto elevado de 150 para 180 MB em DEC-DST-08, 2026-09-28).
+ *   8b. Emit the avatar acervo as a sidecar folder `dist-release/avatar/` next to the
+ *      executable, with LICENSES.txt, plus `dist-release/NOTICE` and an optional
+ *      `fusion-avatar-acervo-<version>.zip` (decisoes 2026-10-21, item 10; spec 35 6.1).
  *   8. Write `latest-<channel>.json` (UpdateManifest shape, spec 22) into
  *      dist-release/ alongside the artefact.
  *
@@ -62,6 +69,12 @@ import {
 } from "node:fs";
 import { join, dirname } from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
+import { createRequire } from "node:module";
+import {
+  AVATAR_SIDECAR_STALE_NAMES,
+  AVATAR_SIDECAR_ZIP_PREFIX,
+  emitAvatarSidecar,
+} from "./avatar-sidecar.mjs";
 import { writeManifest } from "./manifest.mjs";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
@@ -69,7 +82,7 @@ const repoRoot = join(__dirname, "..", "..");
 const distReleaseDir = join(repoRoot, "dist-release");
 const workDir = join(distReleaseDir, ".work");
 
-const MAX_ARTIFACT_BYTES = 150 * 1024 * 1024; // REQ-DST-046
+const MAX_ARTIFACT_BYTES = 180 * 1024 * 1024; // REQ-DST-046 (DEC-DST-08, 2026-09-28)
 
 // ---------------------------------------------------------------------------
 // Small helpers
@@ -130,7 +143,8 @@ function platformArchLabel() {
   const platform = process.platform;
   const arch = process.arch;
 
-  const platformLabel = platform === "win32" ? "windows" : platform === "darwin" ? "macos" : "linux";
+  const platformLabel =
+    platform === "win32" ? "windows" : platform === "darwin" ? "macos" : "linux";
   if (arch !== "x64" && arch !== "arm64") {
     throw new Error(`Unsupported build arch: "${arch}". Expected x64 or arm64.`);
   }
@@ -160,7 +174,11 @@ function phaseCleanStaleArtifacts() {
     // nothing outside dist-release/ is ever touched.
     const isArtifact = entry.name.startsWith("fusion-server-");
     const isManifest = /^latest-.*\.json$/.test(entry.name);
-    if (!isArtifact && !isManifest) continue;
+    // The avatar sidecar (folder + NOTICE + optional zip) is regenerated every build.
+    const isAvatarSidecar =
+      AVATAR_SIDECAR_STALE_NAMES.includes(entry.name) ||
+      (entry.name.startsWith(AVATAR_SIDECAR_ZIP_PREFIX) && entry.name.endsWith(".zip"));
+    if (!isArtifact && !isManifest && !isAvatarSidecar) continue;
 
     const fullPath = join(distReleaseDir, entry.name);
     rmSync(fullPath, { recursive: true, force: true });
@@ -178,10 +196,7 @@ function phaseVersionDrift() {
 }
 
 function readFusionVersion() {
-  const versionTs = readFileSync(
-    join(repoRoot, "packages", "shared", "src", "version.ts"),
-    "utf8",
-  );
+  const versionTs = readFileSync(join(repoRoot, "packages", "shared", "src", "version.ts"), "utf8");
   const match = /export const FUSION_VERSION = "([^"]+)";/.exec(versionTs);
   if (match === null) throw new Error("Could not read FUSION_VERSION from version.ts");
   return match[1];
@@ -192,7 +207,9 @@ function readFusionVersion() {
 // ---------------------------------------------------------------------------
 
 function phaseWorkspaceBuild() {
-  log("Phase 2/8 — pnpm -r build (topological: shared -> system-api/engine/systems -> server -> client)");
+  log(
+    "Phase 2/8 — pnpm -r build (topological: shared -> system-api/engine/systems -> server -> client)",
+  );
   run("pnpm", ["-r", "build"]);
 }
 
@@ -263,7 +280,14 @@ function phaseBundle() {
 // ---------------------------------------------------------------------------
 
 async function loadAssetKeyConstants() {
-  const nativeLoaderPath = join(repoRoot, "packages", "server", "dist", "runtime", "native-loader.js");
+  const nativeLoaderPath = join(
+    repoRoot,
+    "packages",
+    "server",
+    "dist",
+    "runtime",
+    "native-loader.js",
+  );
   const seaAssetsPath = join(repoRoot, "packages", "server", "dist", "runtime", "sea-assets.js");
   if (!existsSync(nativeLoaderPath) || !existsSync(seaAssetsPath)) {
     throw new Error(
@@ -272,7 +296,9 @@ async function loadAssetKeyConstants() {
     );
   }
   const { NATIVE_PACKAGES } = await import(pathToFileURL(nativeLoaderPath).href);
-  const { CLIENT_DIST_ASSET_KEY, SYSTEM_PACKS_ASSET_KEY } = await import(pathToFileURL(seaAssetsPath).href);
+  const { CLIENT_DIST_ASSET_KEY, SYSTEM_PACKS_ASSET_KEY } = await import(
+    pathToFileURL(seaAssetsPath).href
+  );
   return { NATIVE_PACKAGES, CLIENT_DIST_ASSET_KEY, SYSTEM_PACKS_ASSET_KEY };
 }
 
@@ -305,7 +331,12 @@ async function phasePackAssets(assetKeys) {
       );
     }
     const nestArgs = nestFlags.flatMap((n) => ["--nest", n]);
-    run(process.execPath, [join(__dirname, "pack-native.mjs"), pkg.specifier, archivePath, ...nestArgs]);
+    run(process.execPath, [
+      join(__dirname, "pack-native.mjs"),
+      pkg.specifier,
+      archivePath,
+      ...nestArgs,
+    ]);
     nativeAssetPaths[pkg.assetKey] = archivePath;
   }
 
@@ -323,7 +354,25 @@ async function phasePackAssets(assetKeys) {
   // format as the two native-addon packs above — guaranteeing this pipeline
   // can never write a client-dist archive in a format native-loader.ts's
   // extraction code (sea-assets.ts) does not understand.
-  run(process.execPath, [join(__dirname, "pack-native.mjs"), "--dir", clientDistDir, clientDistArchive]);
+  //
+  // --exclude "*.map" (issue #128): vite.config.ts builds the client with
+  // sourcemap: true (kept for browser devtools debugging of a served dist),
+  // but the release .exe never needs those .map files at runtime — packing
+  // them was the single biggest contributor pushing the artifact over the
+  // REQ-DST-046 180 MB budget. Filtering here, not in vite.config.ts, keeps
+  // sourcemaps available for the normal (non-SEA) served build.
+  run(process.execPath, [
+    join(__dirname, "pack-native.mjs"),
+    "--dir",
+    clientDistDir,
+    clientDistArchive,
+    "--exclude",
+    "*.map",
+    // The avatar acervo is third-party art (CC-BY-SA among others): it ships as a
+    // sidecar folder next to the exe, never inside it (decisoes item 10, spec 35 6.1).
+    "--exclude",
+    "avatar",
+  ]);
 
   // B3-FIXES MÉDIA B: pack every game system's committed packs/ directory
   // into ONE archive, each nested under "<systemId>/packs/..." — the exact
@@ -331,16 +380,27 @@ async function phasePackAssets(assetKeys) {
   // "packsRoot" to have. Only systems that actually ship packs are included
   // (engine-2e/stub have none); missing/empty is fine, `--multi-dir` just
   // gets fewer --entry flags.
-  const systemsRootDir = join(repoRoot, "systems");
-  const systemPackEntries = existsSync(systemsRootDir)
-    ? readdirSync(systemsRootDir, { withFileTypes: true })
-        .filter((d) => d.isDirectory())
-        .map((d) => ({ systemId: d.name, packsDir: join(systemsRootDir, d.name, "packs") }))
-        .filter(({ packsDir }) => existsSync(packsDir))
-    : [];
+  //
+  // F4 (DEC-SEP-09): pf2e/sf2e moved to the fusion-systems-2e submodule —
+  // scan BOTH systems/ (stub, still in the core) and
+  // external/fusion-systems-2e/systems/ (pf2e, sf2e) for packs/.
+  const systemsRoots = [
+    join(repoRoot, "systems"),
+    join(repoRoot, "external", "fusion-systems-2e", "systems"),
+  ];
+  const systemPackEntries = systemsRoots.flatMap((systemsRootDir) =>
+    existsSync(systemsRootDir)
+      ? readdirSync(systemsRootDir, { withFileTypes: true })
+          .filter((d) => d.isDirectory())
+          .map((d) => ({ systemId: d.name, packsDir: join(systemsRootDir, d.name, "packs") }))
+          .filter(({ packsDir }) => existsSync(packsDir))
+      : [],
+  );
 
   if (systemPackEntries.length === 0) {
-    log("No systems/<id>/packs directories found — system-packs asset will be empty");
+    log(
+      "No systems/<id>/packs or external/fusion-systems-2e/systems/<id>/packs directories found — system-packs asset will be empty",
+    );
   }
 
   const multiDirArgs = [join(__dirname, "pack-native.mjs"), "--multi-dir", systemPacksArchive];
@@ -353,7 +413,11 @@ async function phasePackAssets(assetKeys) {
     // --multi-dir requires at least one --entry; write an empty archive
     // directly rather than special-casing the packer script for a scenario
     // that should never happen in this repo (pf2e/sf2e always ship packs)
-    // but must not crash the whole pipeline if it ever did.
+    // but must not crash the whole pipeline if it ever did. Written in the
+    // pre-0.9 CLASSIC (uncompressed, no envelope) layout deliberately —
+    // native-loader.ts's `decodeArchive` reads that layout unconditionally
+    // as a fallback, so this trivial empty case doesn't need to duplicate
+    // the compression envelope too.
     mkdirSync(dirname(systemPacksArchive), { recursive: true });
     const emptyIndex = Buffer.from(JSON.stringify({ entries: [] }), "utf8");
     const lenBuf = Buffer.alloc(8);
@@ -407,7 +471,13 @@ function phaseAssembleSea(bundlePath, assets, version) {
   // these keys cannot drift from native-loader.ts/sea-assets.ts (BAIXA (b)).
   const assetArgs = Object.entries(assets).flatMap(([key, path]) => ["--asset", `${key}=${path}`]);
 
-  run(process.execPath, [join(__dirname, "make-sea-config.mjs"), bundlePath, seaConfigPath, seaBlobPath, ...assetArgs]);
+  run(process.execPath, [
+    join(__dirname, "make-sea-config.mjs"),
+    bundlePath,
+    seaConfigPath,
+    seaBlobPath,
+    ...assetArgs,
+  ]);
 
   run(process.execPath, ["--experimental-sea-config", seaConfigPath]);
   if (!existsSync(seaBlobPath)) {
@@ -456,6 +526,46 @@ function phaseAssembleSea(bundlePath, assets, version) {
 }
 
 // ---------------------------------------------------------------------------
+// Phase 8b — avatar acervo sidecar (outside the exe)
+// ---------------------------------------------------------------------------
+
+function phaseAvatarSidecar(version) {
+  log("Phase 8b — avatar acervo sidecar (next to the executable, not inside it)");
+  const clientRequire = createRequire(join(repoRoot, "packages", "client", "package.json"));
+  let acervoDir;
+  try {
+    acervoDir = dirname(clientRequire.resolve("waybuilder-avatar/catalogo.json"));
+  } catch (err) {
+    throw new Error(
+      `waybuilder-avatar is not installed — run "pnpm install" before the release ` +
+        `(the sidecar carries the avatar attribution): ${String(err)}`,
+    );
+  }
+  const { sidecarDir } = emitAvatarSidecar({
+    acervoDir,
+    outDir: distReleaseDir,
+    noticePath: join(repoRoot, "NOTICE"),
+  });
+  log(`Avatar acervo sidecar: ${sidecarDir}`);
+
+  // Optional single-file bundle of the sidecar. Non-fatal: the folder is the deliverable.
+  const zipPath = join(distReleaseDir, `${AVATAR_SIDECAR_ZIP_PREFIX}${version}.zip`);
+  try {
+    // Windows: the bsdtar in System32 writes zips; a GNU tar earlier on PATH (Git Bash) does not.
+    const tarBin =
+      process.platform === "win32"
+        ? join(process.env["SystemRoot"] ?? String.raw`C:\Windows`, "System32", "tar.exe")
+        : "tar";
+    execFileSync(tarBin, ["-a", "-c", "-f", zipPath, "-C", distReleaseDir, "avatar", "NOTICE"], {
+      stdio: "inherit",
+    });
+    log(`Avatar acervo zip: ${zipPath}`);
+  } catch (err) {
+    log(`Could not create ${zipPath} (optional, continuing): ${String(err)}`);
+  }
+}
+
+// ---------------------------------------------------------------------------
 // Phase 7 — size + hash
 // ---------------------------------------------------------------------------
 
@@ -466,7 +576,7 @@ function phaseSizeAndHash(artifactPath) {
 
   if (size > MAX_ARTIFACT_BYTES) {
     throw new Error(
-      `Artifact ${artifactPath} is ${sizeMb} MB, exceeding the REQ-DST-046 150 MB budget. ` +
+      `Artifact ${artifactPath} is ${sizeMb} MB, exceeding the REQ-DST-046 180 MB budget. ` +
         `See design doc DA-04 — consider compressing client assets or the 1b zip-portable fallback.`,
     );
   }
@@ -540,6 +650,7 @@ async function main() {
   const artifactPath = phaseAssembleSea(bundlePath, assets, version);
   const sizeAndHash = phaseSizeAndHash(artifactPath);
   const manifestPath = phaseManifest(version, artifactPath, sizeAndHash, channel);
+  phaseAvatarSidecar(version);
 
   // Clean up the scratch working directory — the archives/bundle/blob are
   // intermediate build products, not release deliverables.

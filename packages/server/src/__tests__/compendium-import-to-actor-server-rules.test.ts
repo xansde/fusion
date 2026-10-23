@@ -31,7 +31,7 @@
  * `netContext.packsDir` boot path — the server code under test is untouched.
  */
 
-import { describe, it, expect, beforeAll, afterAll } from "vitest";
+import { describe, it, expect, beforeAll, afterAll, beforeEach } from "vitest";
 import { mkdirSync, rmSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { tmpdir } from "node:os";
@@ -358,7 +358,6 @@ describe("the sheet door runs the same embedded-Item rules as doc:create", () =>
     await waitForConnect(gm);
     await waitForConnect(player);
 
-    slotActorId = await createOwnedActor("Slot Limit Sheet");
     deriveActorId = await createOwnedActor("Derivation Sheet");
     typeActorId = await createOwnedActor("Type Check Sheet");
   }, 120_000);
@@ -368,6 +367,23 @@ describe("the sheet door runs the same embedded-Item rules as doc:create", () =>
     player?.disconnect();
     await teardown(ctx);
   });
+
+  // Test independence: every test gets its own slot-limit destination, so the
+  // augmentations one test installs never fill another's slots.
+  beforeEach(async () => {
+    slotActorId = await createOwnedActor("Slot Limit Sheet");
+  });
+
+  /** The player fills the four regular slots (a batch of six: four in, two refused). */
+  async function fillRegularSlots(): Promise<void> {
+    const ack = await send(player, "op", "compendium:importToActor", {
+      uuids: NON_APEX_IDS.map(uuidOf),
+      actorId: slotActorId,
+    });
+    expect(ack["ok"]).toBe(true);
+    expect((ack["result"] as ImportResult).created).toHaveLength(4);
+    expect(countNonApexAugmentations(slotActorId)).toBe(4);
+  }
 
   // -------------------------------------------------------------------------
   // The cross-item business rule: SF2e's augmentation slot limit
@@ -394,6 +410,7 @@ describe("the sheet door runs the same embedded-Item rules as doc:create", () =>
   });
 
   it("REQ-SF2-024: an apex augmentation still comes in with the four regular slots full", async () => {
+    await fillRegularSlots();
     const ack = await send(player, "op", "compendium:importToActor", {
       uuids: [uuidOf(APEX_ID)],
       actorId: slotActorId,
@@ -408,6 +425,7 @@ describe("the sheet door runs the same embedded-Item rules as doc:create", () =>
   });
 
   it("REQ-CPD-064 / REQ-SF2-024: what refuses a fifth is the limit, and the two doors agree", async () => {
+    await fillRegularSlots();
     const shelf = await send(player, "op", "compendium:importToActor", {
       uuids: [uuidOf(NON_APEX_IDS[0]!)],
       actorId: slotActorId,

@@ -10,12 +10,13 @@
 
 import { Sprite, Assets, Graphics, type Texture } from "pixi.js";
 import type { SceneDocument, GridConfig } from "@fusion/shared";
+import { createGridStrategy } from "@fusion/shared";
 import { GridRenderer } from "./GridRenderer.js";
 import type { FusionCanvas } from "./FusionCanvas.js";
 import { resolveAssetUrl } from "../assets/assetApi.js";
 import { fusionApi } from "../api.js";
 import { session } from "../session.svelte.js";
-import { sceneContentOffset } from "./sceneCoords.js";
+import { sceneContentOffset, sceneGridOffset } from "./sceneCoords.js";
 
 /**
  * Load a SceneDocument onto the canvas.
@@ -49,7 +50,11 @@ export async function loadSceneDocument(
   // ---- Background ----
   if (scene.background) {
     try {
-      const accessToken = fusionApi.getToken();
+      // getFreshToken, not getToken: the in-memory JWT lives 15 min and nothing renews it
+      // in the background, so a player who only listened to the socket holds a dead one
+      // when the GM changes scene. The grant mint below is a raw fetch (no auto-refresh);
+      // with the stale token it 401s, the catch paints the empty fill, and only F5 fixed it.
+      const accessToken = await fusionApi.getFreshToken();
       const userId = session.user?.id;
       const loadUrl =
         accessToken && userId
@@ -100,6 +105,12 @@ export async function loadSceneDocument(
   // ---- Grid ----
   // Cast needed: scene.grid is inferred from Zod with `| undefined` on optional
   // fields, which is incompatible with GridConfig under exactOptionalPropertyTypes.
+  // A calibrated scene starts its grid `gridOffset` px into the map; otherwise
+  // the origin is the padding corner. Drawing and geometry take the same origin
+  // or the lines the GM sees would sit away from the cells tokens snap to.
+  const gridOffset = sceneGridOffset(scene);
+  const originX = padX + gridOffset.x;
+  const originY = padY + gridOffset.y;
   const gridCfg = GridRenderer.fromGridConfig(
     // scene.grid can be undefined at runtime (scenes persisted without a grid,
     // see r7.1) despite the type saying otherwise; `?? null` normalizes it for
@@ -108,12 +119,38 @@ export async function loadSceneDocument(
     (scene.grid ?? null) as unknown as GridConfig | null,
     totalWidth,
     totalHeight,
-    padX,
-    padY,
+    originX,
+    originY,
   );
   canvas.setGrid(gridCfg);
+  // The grid GEOMETRY (snap, measure) for this scene, built from the same size
+  // and origin the renderer just drew with, so a measurement lands on the lines.
+  // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
+  const sceneGrid = (scene.grid ?? null) as unknown as GridConfig | null;
+  // A scene persisted without a grid block still gets a measuring grid (the
+  // factory's default square, the same size tokens already snap to), otherwise
+  // the ruler and the area templates silently do nothing on it.
+  const gridStrategy = createGridStrategy(
+    sceneGrid ? { ...sceneGrid, size: gridCfg?.size ?? sceneGrid.size } : null,
+    { x: originX, y: originY },
+    (reason) => {
+      console.warn("[sceneLoader]", reason);
+    },
+  );
+  canvas.setGridStrategy(gridStrategy);
   cleanupFns.push(() => {
-    canvas.setGrid(null);
+    if (canvas.gridStrategy === gridStrategy) canvas.setGridStrategy(null);
+    // BUG FIX (#81 follow-up): the grid is GLOBAL FusionCanvas state, not
+    // scoped to this load. If this cleanup runs because sceneLoadGuard found
+    // THIS load stale (superseded by a newer scene switch that already
+    // installed its own grid via canvas.setGrid()), an unconditional
+    // `canvas.setGrid(null)` here would wipe out the winning generation's
+    // grid — the grade of the scene now on screen would silently disappear
+    // and never come back until the next scene switch (the $effect that
+    // would normally re-run is gated on _loadedSceneId, which the winning
+    // load already set). clearGridIf() only clears when `gridCfg` is still
+    // the config actually installed, so a stale cleanup is a no-op here.
+    canvas.clearGridIf(gridCfg);
   });
 
   // ---- Camera ----

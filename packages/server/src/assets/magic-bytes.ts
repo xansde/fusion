@@ -5,9 +5,14 @@
  * the leading bytes of the file buffer, never by trusting the client-supplied
  * Content-Type or file extension.
  *
- * For the MVP we accept images (PNG, JPEG, WebP, SVG) only.
+ * We accept images (PNG, JPEG, WebP, SVG) and ambient audio (MP3, OGG).
  * SVG is detected as UTF-8/XML text starting with an optional BOM followed
  * by a `<svg` or `<?xml` prefix — no binary magic bytes.
+ *
+ * WAV is deliberately NOT accepted: it shares the `RIFF` prefix with WebP and
+ * only bytes 8-11 tell them apart (`WAVE` vs `WEBP`). Supporting it would mean
+ * reworking `isWebp`, which already reads those bytes correctly — risk with no
+ * caller asking for it.
  *
  * Supported MIME types → canonical extension mappings are defined in
  * ALLOWED_TYPES below and are the single source of truth for what the upload
@@ -23,6 +28,8 @@ export const ALLOWED_TYPES: Record<string, string> = {
   "image/jpeg": ".jpg",
   "image/webp": ".webp",
   "image/svg+xml": ".svg",
+  "audio/mpeg": ".mp3",
+  "audio/ogg": ".ogg",
 };
 
 // ---------------------------------------------------------------------------
@@ -66,6 +73,32 @@ function isWebp(buf: Buffer): boolean {
     buf[10] === 0x42 &&
     buf[11] === 0x50
   );
+}
+
+/**
+ * OGG: 4F 67 67 53 ("OggS") — the container's page header.
+ * No conflict with any other allowlisted format.
+ */
+function isOgg(buf: Buffer): boolean {
+  return (
+    buf.length >= 4 && buf[0] === 0x4f && buf[1] === 0x67 && buf[2] === 0x67 && buf[3] === 0x53
+  );
+}
+
+/**
+ * MP3, in the two framings found in the wild:
+ *   - with an ID3v2 tag: 49 44 33 ("ID3")
+ *   - without a tag: a raw frame sync, FF followed by a byte whose three high
+ *     bits are set (`b1 & 0xE0 === 0xE0`, i.e. FF Ex / FF Fx)
+ *
+ * The frame sync does NOT collide with JPEG's FF D8 FF: 0xD8 & 0xE0 is 0xC0.
+ * `detectType` still evaluates `isJpeg` first — defensive ordering at zero cost.
+ */
+function isMp3(buf: Buffer): boolean {
+  if (buf.length >= 3 && buf[0] === 0x49 && buf[1] === 0x44 && buf[2] === 0x33) return true;
+
+  const second = buf[1];
+  return buf.length >= 2 && buf[0] === 0xff && second !== undefined && (second & 0xe0) === 0xe0;
 }
 
 /**
@@ -116,12 +149,18 @@ export interface DetectedType {
  * allowlisted types, or `null` when the bytes do not match any supported
  * format.
  *
- * REQ-AST-007: Supported for MVP — PNG, JPEG, WebP, SVG.
+ * REQ-AST-007: Supported — PNG, JPEG, WebP, SVG, MP3, OGG.
+ *
+ * Order matters: the binary signatures that anchor on fixed bytes come first,
+ * `isJpeg` before `isMp3` (see {@link isMp3}), and `isSvg` last because it is
+ * the only heuristic one (it sniffs text).
  */
 export function detectType(buf: Buffer): DetectedType | null {
   if (isPng(buf)) return { mime: "image/png", ext: ".png" };
   if (isJpeg(buf)) return { mime: "image/jpeg", ext: ".jpg" };
   if (isWebp(buf)) return { mime: "image/webp", ext: ".webp" };
+  if (isOgg(buf)) return { mime: "audio/ogg", ext: ".ogg" };
+  if (isMp3(buf)) return { mime: "audio/mpeg", ext: ".mp3" };
   if (isSvg(buf)) return { mime: "image/svg+xml", ext: ".svg" };
   return null;
 }

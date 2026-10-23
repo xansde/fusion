@@ -46,7 +46,7 @@
   import { getSocket } from "../../lib/session.svelte.js";
   import { Dialog } from "../../lib/windows/dialogs.svelte.js";
   import { t } from "../../lib/i18n/i18n.js";
-  import ActorPortrait from "../common/ActorPortrait.svelte";
+  import ActorPortrait from "$lib/components/common/ActorPortrait.svelte";
   import ConditionChips from "../common/ConditionChips.svelte";
   import NpcsFooter from "./NpcsFooter.svelte";
   import NpcKnowledgeCount from "./NpcKnowledgeCount.svelte";
@@ -93,6 +93,7 @@
     NPC_FOLDER_DROP_EFFECT,
   } from "../../lib/canvas/dragEffects.js";
   import { openNpcCreateWindow } from "../../lib/npcs/npcCreateWindow.js";
+  import Icon from "../common/Icon.svelte";
   import { openNpcDeleteWindow } from "../../lib/npcs/npcDeleteWindow.js";
   import { isDeletableNpcSubtype } from "../../lib/npcs/deleteNpc.js";
   import {
@@ -637,16 +638,7 @@
               })}
               onclick={() => void onCycleAttitude(row)}
             >
-              <svg viewBox="0 0 16 16" width="11" height="11" aria-hidden="true" focusable="false">
-                <path
-                  d="M3.4 8a4.6 4.6 0 0 1 7.9-3.2M12.6 8a4.6 4.6 0 0 1-7.9 3.2M11.3 2.4v2.4H8.9M4.7 13.6v-2.4h2.4"
-                  fill="none"
-                  stroke="currentColor"
-                  stroke-width="1.3"
-                  stroke-linejoin="round"
-                  stroke-linecap="round"
-                />
-              </svg>
+              <Icon name="refresh-cw" size={16} />
             </button>
           {/if}
         </span>
@@ -682,16 +674,7 @@
                 aria-label={t("FUSION.Npcs.Title.Edit", { name: row.name })}
                 onclick={() => startEditingTitle(row)}
               >
-                <!-- Drawn glyph, never an emoji (REQ-NPC-094): a slanted pen. -->
-                <svg viewBox="0 0 16 16" width="11" height="11" aria-hidden="true" focusable="false">
-                  <path
-                    d="M11.2 2.3 13.7 4.8 5.6 12.9 2.6 13.4 3.1 10.4z"
-                    fill="none"
-                    stroke="currentColor"
-                    stroke-width="1.4"
-                    stroke-linejoin="round"
-                  />
-                </svg>
+                <Icon name="pencil" size={16} />
               </button>
             {/if}
           </span>
@@ -719,6 +702,9 @@
         <NpcKnowledgeCount knowledge={row.knowledge} />
       </div>
 
+      <!-- Sheet, delete and move live in one group: hidden at rest, shown on
+           hover and focus-within, and always shown on touch screens. -->
+      <div class="npcs-row__actions">
       <!-- REQ-NPC-035: the keyboard path to the very sheet the double-click opens. -->
       <button
         class="npcs-panel__icon-btn"
@@ -727,15 +713,7 @@
         aria-label={t("FUSION.Npcs.Sheet.Open", { name: row.name })}
         onclick={() => openSheet(row)}
       >
-        <svg viewBox="0 0 16 16" width="12" height="12" aria-hidden="true" focusable="false">
-          <path
-            d="M4 2.4h5.2L12 5.2V13.6H4z M9.2 2.4V5.2H12"
-            fill="none"
-            stroke="currentColor"
-            stroke-width="1.3"
-            stroke-linejoin="round"
-          />
-        </svg>
+        <Icon name="file-text" size={18} />
       </button>
 
       {#if isGm && isDeletableNpcSubtype(row.subtype)}
@@ -751,20 +729,12 @@
           aria-label={t("FUSION.Npcs.Delete.Open", { name: row.name })}
           onclick={() => openDelete(row)}
         >
-          <!-- Drawn glyph, never an emoji (REQ-NPC-094): a lidded bin. -->
-          <svg viewBox="0 0 16 16" width="12" height="12" aria-hidden="true" focusable="false">
-            <path
-              d="M3.4 4.6h9.2M6.4 4.6V3h3.2v1.6M4.6 4.6l.6 8.4h5.6l.6-8.4"
-              fill="none"
-              stroke="currentColor"
-              stroke-width="1.3"
-              stroke-linejoin="round"
-            />
-          </svg>
+          <Icon name="trash" size={18} />
         </button>
       {/if}
 
       {@render moveControl(movableOf(row))}
+      </div>
     </div>
 
     {#if row.subCharacters.length > 0}
@@ -813,15 +783,7 @@
       title={t("FUSION.Npcs.Create.New")}
       onclick={() => openCreate(null)}
     >
-      <svg viewBox="0 0 16 16" width="14" height="14" aria-hidden="true" focusable="false">
-        <path
-          d="M8 3v10M3 8h10"
-          fill="none"
-          stroke="currentColor"
-          stroke-width="1.6"
-          stroke-linecap="round"
-        />
-      </svg>
+      <Icon name="plus" size={18} />
     </button>
   </header>
 
@@ -870,15 +832,7 @@
             aria-label={t("FUSION.Npcs.Folder.Unpin", { name: entry.node.name })}
             onclick={() => onTogglePin(entry.node.id)}
           >
-            <svg viewBox="0 0 16 16" width="11" height="11" aria-hidden="true" focusable="false">
-              <path
-                d="M6 2h4l-.6 4.2 2.2 2.2H4.4l2.2-2.2z M8 8.4V14"
-                fill="none"
-                stroke="currentColor"
-                stroke-width="1.4"
-                stroke-linejoin="round"
-              />
-            </svg>
+            <Icon name="pin-off" size={16} />
           </button>
         </div>
       {/each}
@@ -900,22 +854,7 @@
         aria-label={t("FUSION.Npcs.Folder.New")}
         onclick={() => startCreate("")}
       >
-        <svg viewBox="0 0 16 16" width="12" height="12" aria-hidden="true" focusable="false">
-          <path
-            d="M2.4 5.4a1 1 0 0 1 1-.9h2.4l1.1 1.1h5.7a1 1 0 0 1 1 .9v5.3a1 1 0 0 1-1 1H3.4a1 1 0 0 1-1-1z"
-            fill="none"
-            stroke="currentColor"
-            stroke-width="1.2"
-            stroke-linejoin="round"
-          />
-          <path
-            d="M8 7.4v3.2M6.4 9h3.2"
-            fill="none"
-            stroke="currentColor"
-            stroke-width="1.2"
-            stroke-linecap="round"
-          />
-        </svg>
+        <Icon name="folder-plus" size={16} />
         {t("FUSION.Npcs.Folder.NewShort")}
       </button>
     </div>
@@ -965,15 +904,11 @@
                 : t("FUSION.Npcs.Folder.Collapse", { name: row.node.name })}
               onclick={() => onToggleCollapse(row.node.id)}
             >
-              <svg viewBox="0 0 16 16" width="11" height="11" aria-hidden="true" focusable="false">
-                <path
-                  d={row.collapsed ? "M6 3.6 10.4 8 6 12.4" : "M3.6 6 8 10.4 12.4 6"}
-                  fill="none"
-                  stroke="currentColor"
-                  stroke-width="1.6"
-                  stroke-linejoin="round"
-                />
-              </svg>
+              {#if row.collapsed}
+                <Icon name="chevron-right" size={16} />
+              {:else}
+                <Icon name="chevron-down" size={16} />
+              {/if}
             </button>
 
             {#if renamingId === row.node.id}
@@ -1007,16 +942,7 @@
                 aria-label={t("FUSION.Npcs.Create.NewInFolder", { name: row.node.name })}
                 onclick={() => openCreate(row.node.id)}
               >
-                <svg viewBox="0 0 16 16" width="11" height="11" aria-hidden="true" focusable="false">
-                  <path
-                    d="M8 4.2v7.6M4.2 8h7.6"
-                    fill="none"
-                    stroke="currentColor"
-                    stroke-width="1.6"
-                    stroke-linecap="round"
-                  />
-                  <circle cx="8" cy="8" r="6" fill="none" stroke="currentColor" stroke-width="1.2" />
-                </svg>
+                <Icon name="user-plus" size={16} />
               </button>
               <button
                 class="npcs-panel__icon-btn"
@@ -1028,21 +954,7 @@
                   : t("FUSION.Npcs.Folder.Pin", { name: row.node.name })}
                 onclick={() => onTogglePin(row.node.id)}
               >
-                <svg
-                  viewBox="0 0 16 16"
-                  width="11"
-                  height="11"
-                  aria-hidden="true"
-                  focusable="false"
-                >
-                  <path
-                    d="M6 2h4l-.6 4.2 2.2 2.2H4.4l2.2-2.2z M8 8.4V14"
-                    fill="none"
-                    stroke="currentColor"
-                    stroke-width="1.4"
-                    stroke-linejoin="round"
-                  />
-                </svg>
+                <Icon name="pin" size={16} />
               </button>
               <button
                 class="npcs-panel__icon-btn"
@@ -1051,15 +963,7 @@
                 aria-label={t("FUSION.Npcs.Folder.NewChild", { name: row.node.name })}
                 onclick={() => startCreate(row.node.id)}
               >
-                <svg
-                  viewBox="0 0 16 16"
-                  width="11"
-                  height="11"
-                  aria-hidden="true"
-                  focusable="false"
-                >
-                  <path d="M8 3.2v9.6M3.2 8h9.6" fill="none" stroke="currentColor" stroke-width="1.6" />
-                </svg>
+                <Icon name="folder-plus" size={16} />
               </button>
               <button
                 class="npcs-panel__icon-btn"
@@ -1068,21 +972,7 @@
                 aria-label={t("FUSION.Npcs.Folder.Rename", { name: row.node.name })}
                 onclick={() => startRename(row.node.id, row.node.name)}
               >
-                <svg
-                  viewBox="0 0 16 16"
-                  width="11"
-                  height="11"
-                  aria-hidden="true"
-                  focusable="false"
-                >
-                  <path
-                    d="M11 2.6 13.4 5 5.4 13H3v-2.4z"
-                    fill="none"
-                    stroke="currentColor"
-                    stroke-width="1.4"
-                    stroke-linejoin="round"
-                  />
-                </svg>
+                <Icon name="pencil" size={16} />
               </button>
               <button
                 class="npcs-panel__icon-btn npcs-panel__icon-btn--danger"
@@ -1092,21 +982,7 @@
                 onclick={() =>
                   void onDeleteFolder(row.node.id, row.node.name, row.node.subtreeCount)}
               >
-                <svg
-                  viewBox="0 0 16 16"
-                  width="11"
-                  height="11"
-                  aria-hidden="true"
-                  focusable="false"
-                >
-                  <path
-                    d="M3.4 4.6h9.2M6.4 4.6V3h3.2v1.6M4.6 4.6l.6 8.4h5.6l.6-8.4"
-                    fill="none"
-                    stroke="currentColor"
-                    stroke-width="1.4"
-                    stroke-linejoin="round"
-                  />
-                </svg>
+                <Icon name="trash" size={16} />
               </button>
             </span>
           </div>
@@ -1188,15 +1064,15 @@
 
   .npcs-panel__tools {
     display: flex;
-    gap: 0.375rem;
-    padding: 0.5rem;
+    gap: var(--fusion-space-2);
+    padding: var(--fusion-space-2);
     border-bottom: 1px solid var(--fusion-border);
     flex: 0 0 auto;
   }
 
   .npcs-panel__tool-btn {
     font: inherit;
-    font-size: 0.8125rem;
+    font-size: var(--fusion-text-sm);
     padding: 0.25rem 0.625rem;
     border: 1px solid var(--fusion-border);
     border-radius: var(--fusion-radius-sm);
@@ -1218,8 +1094,8 @@
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    width: 1.625rem;
-    height: 1.625rem;
+    width: var(--fusion-target);
+    height: var(--fusion-target);
     padding: 0;
     flex: 0 0 auto;
     border-color: var(--fusion-accent);
@@ -1230,14 +1106,15 @@
   .npcs-panel__error {
     margin: 0;
     padding: 0.375rem 0.5rem;
-    font-size: 0.75rem;
+    font-size: var(--fusion-text-xs);
     color: var(--fusion-danger);
   }
 
   .npcs-panel__name-input {
     font: inherit;
-    font-size: 0.8125rem;
-    margin: 0.25rem 0.5rem;
+    font-size: var(--fusion-text-sm);
+    margin: var(--fusion-space-1) var(--fusion-space-2);
+    min-height: var(--fusion-target);
     padding: 0.25rem 0.5rem;
     border: 1px solid var(--fusion-accent);
     border-radius: var(--fusion-radius-sm);
@@ -1255,24 +1132,24 @@
   .npcs-pinned-row {
     display: flex;
     align-items: center;
-    gap: 0.375rem;
-    padding: 0.1875rem 0.5rem;
-    font-size: 0.8125rem;
+    gap: var(--fusion-space-2);
+    padding: 0 var(--fusion-space-2);
+    font-size: var(--fusion-text-sm);
   }
 
   .npcs-pinned-row__name {
-    font-weight: 600;
+    font-weight: 500;
   }
 
   .npcs-pinned-row__path {
-    font-size: 0.6875rem;
+    font-size: var(--fusion-text-xs);
     color: var(--fusion-text-subtle);
   }
 
   .npcs-pinned-row__count,
   .npcs-folder__count {
     margin-left: auto;
-    font-size: 0.6875rem;
+    font-size: var(--fusion-text-xs);
     color: var(--fusion-text-muted);
     font-variant-numeric: tabular-nums;
   }
@@ -1288,17 +1165,15 @@
   .npcs-tree__section {
     display: flex;
     align-items: center;
-    gap: 0.3125rem;
-    padding: 0.0625rem 0.5rem;
-    margin: 0.5rem 0 0.25rem;
+    gap: var(--fusion-space-2);
+    padding: 0 var(--fusion-space-2);
+    margin: var(--fusion-space-2) 0 var(--fusion-space-1);
   }
 
   .npcs-tree__section-label {
-    font-size: 0.625rem;
-    font-weight: 700;
-    letter-spacing: 0.05em;
-    text-transform: uppercase;
-    color: var(--fusion-text-subtle);
+    font-size: var(--fusion-text-sm);
+    font-weight: 500;
+    color: var(--fusion-text-muted);
   }
 
   .npcs-tree__section-line {
@@ -1310,13 +1185,15 @@
   .npcs-tree__section-add {
     display: inline-flex;
     align-items: center;
-    gap: 0.1875rem;
-    padding: 0;
+    gap: var(--fusion-space-1);
+    min-height: var(--fusion-target);
+    padding: 0 var(--fusion-space-2);
     border: none;
+    border-radius: var(--fusion-radius-sm);
     background: none;
     font: inherit;
-    font-size: 0.6875rem;
-    color: var(--fusion-text-subtle);
+    font-size: var(--fusion-text-sm);
+    color: var(--fusion-text-muted);
     cursor: pointer;
     transition: var(--fusion-transition);
   }
@@ -1334,31 +1211,69 @@
   }
 
   .npcs-folder {
+    position: relative;
     display: flex;
     align-items: center;
-    gap: 0.25rem;
-    padding: 0.1875rem 0.5rem;
-    padding-left: calc(0.5rem + var(--npc-depth, 0) * 0.75rem);
-    font-size: 0.8125rem;
+    gap: var(--fusion-space-1);
+    min-height: var(--fusion-target);
+    padding: 0 var(--fusion-space-2);
+    padding-left: calc(var(--fusion-space-2) + var(--npc-depth) * var(--fusion-space-3));
+    font-size: var(--fusion-text-sm);
   }
 
   .npcs-folder__name {
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
+    min-width: 0;
+    font-weight: 500;
+    overflow-wrap: anywhere;
   }
 
+  /* Folder tools: hidden at rest, shown on hover and focus-within as a floating
+     strip over the right edge, and always shown (in a row of their own) on touch
+     screens, where there is no hover. */
   .npcs-folder__tools {
+    position: absolute;
+    top: 0;
+    right: var(--fusion-space-2);
     display: inline-flex;
-    gap: 0.125rem;
+    background: var(--fusion-surface);
+    border: 1px solid var(--fusion-border);
+    border-radius: var(--fusion-radius);
+    box-shadow: var(--fusion-shadow-popover);
+    opacity: 0;
+    pointer-events: none;
+    transition: var(--fusion-transition);
+  }
+
+  .npcs-folder:hover .npcs-folder__tools,
+  .npcs-folder:focus-within .npcs-folder__tools {
+    opacity: 1;
+    pointer-events: auto;
+  }
+
+  @media (hover: none) {
+    .npcs-folder {
+      flex-wrap: wrap;
+    }
+
+    .npcs-folder__tools {
+      position: static;
+      flex: 1 0 100%;
+      justify-content: flex-end;
+      background: none;
+      border: none;
+      box-shadow: none;
+      opacity: 1;
+      pointer-events: auto;
+    }
   }
 
   .npcs-panel__icon-btn {
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    width: 1.25rem;
-    height: 1.25rem;
+    flex: none;
+    min-width: var(--fusion-target);
+    min-height: var(--fusion-target);
     padding: 0;
     border: none;
     border-radius: var(--fusion-radius-sm);
@@ -1378,11 +1293,20 @@
     color: var(--fusion-danger);
   }
 
+  /* Inline buttons (attitude, title) keep the line's height: the 40px hit area
+     overflows with a negative margin instead of growing the line. */
+  .npcs-row__name-line .npcs-panel__icon-btn,
+  .npcs-row__title-line .npcs-panel__icon-btn,
+  .npcs-pinned-row .npcs-panel__icon-btn {
+    margin-block: calc((var(--fusion-target) - 1.5rem) / -2);
+  }
+
   .npcs-panel__search {
     flex: 1 1 auto;
     min-width: 0;
     font: inherit;
-    font-size: 0.8125rem;
+    font-size: var(--fusion-text-sm);
+    min-height: var(--fusion-target);
     padding: 0.25rem 0.5rem;
     border: 1px solid var(--fusion-border);
     border-radius: var(--fusion-radius-sm);
@@ -1391,15 +1315,16 @@
   }
 
   .npcs-row {
-    padding: 0.1875rem 0.5rem 0.1875rem 1.75rem;
-    font-size: 0.8125rem;
+    position: relative;
+    padding: var(--fusion-space-2) var(--fusion-space-2) var(--fusion-space-2) var(--fusion-space-5);
+    font-size: var(--fusion-text-sm);
     color: var(--fusion-text);
   }
 
   .npcs-row__head {
     display: flex;
     align-items: flex-start;
-    gap: 0.375rem;
+    gap: var(--fusion-space-2);
   }
 
   .npcs-row__identity {
@@ -1412,28 +1337,25 @@
 
   .npcs-row__name-line {
     display: flex;
+    flex-wrap: wrap;
     align-items: baseline;
-    gap: 0.25rem;
+    gap: 0 var(--fusion-space-2);
     min-width: 0;
   }
 
+  /* The name is read whole: it breaks onto a second line instead of being cut. */
   .npcs-row__name {
-    /* A033: a flex item's default min-width is auto (the size of its content),
-       so ellipsis truncation never engages and the name pushes its siblings
-       (level/attitude/cycle button) instead of shrinking. min-width: 0 lets it
-       shrink below its content, and flex: 1 1 0 makes it the one that yields
-       the available row width to the fixed-size siblings. */
-    flex: 1 1 0;
+    flex: 1 1 auto;
     min-width: 0;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
+    font-size: var(--fusion-text-base);
+    font-weight: 500;
+    overflow-wrap: anywhere;
   }
 
   .npcs-row__level,
   .npcs-row__attitude,
   .npcs-row__presence {
-    font-size: 0.6875rem;
+    font-size: var(--fusion-text-xs);
     color: var(--fusion-text-muted);
     font-variant-numeric: tabular-nums;
   }
@@ -1455,22 +1377,21 @@
   }
 
   .npcs-row__title {
-    font-size: 0.6875rem;
+    min-width: 0;
+    font-size: var(--fusion-text-xs);
     color: var(--fusion-text-muted);
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
+    overflow-wrap: anywhere;
   }
 
   /* REQ-NPC-032: the system's own line is visibly not a written title. */
   .npcs-row__title--fallback {
-    font-style: italic;
     color: var(--fusion-text-subtle);
   }
 
   .npcs-row__title-input {
     font: inherit;
-    font-size: 0.6875rem;
+    font-size: var(--fusion-text-sm);
+    min-height: var(--fusion-target);
     padding: 0.0625rem 0.25rem;
     border: 1px solid var(--fusion-accent);
     border-radius: var(--fusion-radius-sm);
@@ -1478,32 +1399,35 @@
     color: var(--fusion-text);
   }
 
+  /* The count and the scenes read as two short lines, not one run-on sentence. */
   .npcs-row__presence-scenes {
+    display: block;
     color: var(--fusion-text-subtle);
   }
 
   .npcs-row__subs {
     list-style: none;
-    margin: 0.125rem 0 0;
-    padding: 0 0 0 1.75rem;
+    margin: var(--fusion-space-1) 0 0;
+    padding: var(--fusion-space-1) 0 0 var(--fusion-space-5);
+    border-top: 1px solid var(--fusion-border);
   }
 
   .npcs-row__sub {
     display: flex;
+    flex-wrap: wrap;
     align-items: center;
-    gap: 0.25rem;
-    font-size: 0.75rem;
+    gap: var(--fusion-space-1) var(--fusion-space-2);
+    font-size: var(--fusion-text-xs);
     color: var(--fusion-text-muted);
   }
 
   .npcs-row__sub-kind {
-    font-size: 0.6875rem;
+    font-size: var(--fusion-text-xs);
     color: var(--fusion-text-subtle);
   }
 
   .npcs-folder--unfiled .npcs-folder__name {
     color: var(--fusion-text-muted);
-    font-style: italic;
   }
 
   /* REQ-UIF-045: the zone says it accepts the drag BEFORE the drop happens. */
@@ -1514,39 +1438,59 @@
     background: var(--fusion-surface-alt);
   }
 
-  /* REQ-NPC-028: the keyboard path. Visible on focus as well as on hover, so it
-     is never an affordance that only a pointer can find (REQ-UIF-064).
+  /* REQ-NPC-028: the keyboard path. The group (sheet, delete, move) floats over the
+     right edge of the row: hidden at rest, so it never takes width from the name,
+     and shown on hover as well as on focus-within, so it is never an affordance only
+     a pointer can find (REQ-UIF-064). On touch screens there is no hover, so it is
+     always shown, in a row of its own under the name. */
+  .npcs-row__actions {
+    position: absolute;
+    top: 0;
+    right: var(--fusion-space-2);
+    display: flex;
+    align-items: center;
+    background: var(--fusion-surface);
+    border: 1px solid var(--fusion-border);
+    border-radius: var(--fusion-radius);
+    box-shadow: var(--fusion-shadow-popover);
+    opacity: 0;
+    pointer-events: none;
+    transition: var(--fusion-transition);
+  }
 
-     A033: `opacity: 0` alone hides the control but keeps reserving its full
-     layout box, so a hidden 8rem-wide <select> was permanently stealing width
-     from `.npcs-row__name` next door — the name kept truncating even when the
-     row had room to spare (a defect the name's own min-width fix could not
-     touch, because the cause lived here). At rest the control collapses to a
-     1.25rem footprint (matching the icon buttons beside it) and only grows to
-     8rem on hover/focus, where it is genuinely visible and needs the room to
-     read the folder names. */
+  .npcs-row:hover .npcs-row__actions,
+  .npcs-row:focus-within .npcs-row__actions {
+    opacity: 1;
+    pointer-events: auto;
+  }
+
   .npcs-row__move {
     font: inherit;
-    font-size: 0.6875rem;
-    margin-left: auto;
-    width: 1.25rem;
-    padding: 0.0625rem 0.25rem;
-    border: 1px solid transparent;
+    font-size: var(--fusion-text-sm);
+    width: 8rem;
+    min-height: var(--fusion-target);
+    padding: 0 var(--fusion-space-2);
+    border: none;
     border-radius: var(--fusion-radius-sm);
     background: transparent;
     color: var(--fusion-text-muted);
     cursor: pointer;
-    opacity: 0;
-    overflow: hidden;
-    transition: var(--fusion-transition);
   }
 
-  .npcs-row:hover .npcs-row__move,
-  .npcs-row:focus-within .npcs-row__move,
-  .npcs-row__move:focus-visible {
-    opacity: 1;
-    width: 8rem;
-    border-color: var(--fusion-border);
-    background: var(--fusion-surface);
+  @media (hover: none) {
+    .npcs-row__head {
+      flex-wrap: wrap;
+    }
+
+    .npcs-row__actions {
+      position: static;
+      flex: 1 0 100%;
+      justify-content: flex-end;
+      background: none;
+      border: none;
+      box-shadow: none;
+      opacity: 1;
+      pointer-events: auto;
+    }
   }
 </style>

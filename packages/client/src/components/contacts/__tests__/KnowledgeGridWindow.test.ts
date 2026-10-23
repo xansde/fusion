@@ -292,12 +292,12 @@ describe("the cell is a compact SVG icon, not a written label or a text glyph (R
     return row.slice(spanStart, spanEnd);
   }
 
-  it("REQ-CTT-062: each state draws its own SVG icon (dot / half-circle / check), matching the prototype's shapes", () => {
+  it("REQ-CTT-062: each state draws its own shared-set icon (minus / circle-dot / check)", () => {
     const row = rowOf(renderWindow(), "act-ferreiro01");
 
     // Ferreiro's general rule is hidden (dot); Tobias overrides it to known (check).
     expect(symbolMarkupFor(row, 0)).toContain("<svg");
-    expect(symbolMarkupFor(row, 0)).toContain("<circle");
+    expect(symbolMarkupFor(row, 0)).toContain("<path");
     expect(symbolMarkupFor(row, 2)).toContain("<svg");
     expect(symbolMarkupFor(row, 2)).toContain("<path");
     expect(row).toContain('class="knowledge-grid__state-symbol');
@@ -308,9 +308,8 @@ describe("the cell is a compact SVG icon, not a written label or a text glyph (R
       { ...FERREIRO, flags: { fusion: { knowledge: { general: 1, exceptions: {} } } } },
     ]);
     const glimpsed = rowOf(renderWindow(), "act-ferreiro01");
-    // Half-glimpsed draws both a stroked circle and a filled half.
+    // Glimpsed draws the shared set's circle-dot (two circles, no path).
     expect(symbolMarkupFor(glimpsed, 1)).toContain("<circle");
-    expect(symbolMarkupFor(glimpsed, 1)).toContain("<path");
   });
 
   it("REQ-NPC-094: no state icon is a text glyph in the emoji-ish range — every state is an SVG path/circle, never emoji (DEC-ACH-04, a principle of the whole gaveta per spec 42)", () => {

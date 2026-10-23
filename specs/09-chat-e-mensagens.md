@@ -217,6 +217,21 @@ _(Emenda obrigada por `specs/41-token.md` §12, 2026-08-17.)_
 
 ---
 
+### DEC-CHT-12: Aplicar a partir do card lê a mensagem gravada; o resumo é redigido por papel
+
+**Decisão:** Os botões de aplicar de um card de dano (Aplicar, ½, ×2, Curar, PV temporário) NÃO carregam montante nem alvo escolhidos no cliente. Cada botão emite o op `actor:applyDamage` (`15-api-de-sistemas.md`, REQ-SYS-142) apontando para a rolagem por `source: { messageId, rollIndex }`, e o servidor relê da mensagem persistida o total rolado **e** a foto dos alvos gravada no momento da rolagem (`flags.fusion.targetSnapshot`, `10-combate-e-iniciativa.md`, DEC-CBT-10). O resultado da aplicação vira uma `ChatMessage` de resumo (`actor:damageApplied`) persistida como qualquer outra, cuja visibilidade de conteúdo depende do papel: papel privilegiado vê os PV antes e depois; os demais veem só o dano causado, com a linha de resistência/fraqueza/imunidade, e nunca os PV restantes do alvo.
+
+**Alternativas rejeitadas:**
+
+- _Botão envia `amount` e `targetTokenIds` montados no cliente:_ um jogador editaria o payload e aplicaria 999 em qualquer token; contraria "rolagem e permissão no servidor" (DEC-CHT-08, `21-seguranca.md`).
+- _Alvos lidos da seleção viva no momento do clique:_ a seleção muda entre a rolagem e o clique (e é limpa no fim do turno, REQ-CBT-055); o dano cairia em quem está marcado agora, não em quem foi atacado.
+- _Resumo igual para todos, com PV:_ vida de criatura não é informação de jogador (`40-aba-combate.md`, DEC-CBA-03); o resumo seria uma via lateral para lê-la.
+- _Resumo efêmero (só broadcast):_ some do histórico e do snapshot de entrada, o mesmo defeito que DEC-CHT-10 rejeitou para a revelação.
+
+**Racional:** A mensagem gravada já é a fonte autoritativa da rolagem (DEC-CHT-08); estender essa autoridade aos alvos fecha a última entrada do cliente no cálculo. A decisão de produto de 2026-09-15 (plano do Alquimista, decisões D-02 e D-04) é que o jogador aperta "Aplicar" e o dano vai para todos os alvos daquela ação, e que ele vê só quanto causou. A redação do resumo reaproveita o único caminho de redação do servidor (`packages/server/src/net/redaction.ts` + `isRolePrivileged`), sem predicado paralelo.
+
+---
+
 ## Requisitos funcionais
 
 ### Modelo e persistência
@@ -263,6 +278,8 @@ _(Emenda obrigada por `specs/41-token.md` §12, 2026-08-17.)_
 | `/ooc <texto>`                                             | Mensagem out-of-character explícita |
 
 **REQ-CHT-014** [MVP] Para o comando `/w`, alvos DEVEM ser especificáveis como nome de usuário entre colchetes, com múltiplos alvos separados por vírgula: `/w [João, Maria] mensagem`. As palavras-chave `gm` e `players` DEVEM ser resolvidas para os IDs dos usuários GM e não-GM respectivamente.
+
+_Emenda de 2026-10-22 (auditoria da `beta/app`, decisão provisória da lane auditoria-fix):_ um comando de sussurro (`/w`, `/whisper`) malformado — sem destinatário, com colchete ou aspas sem fechar (`/w "Huo Jinwu psiu`, `/w [Huo psiu`) — NUNCA DEVE virar texto público: o parser devolve erro de parse, o servidor recusa sem publicar nada e o cliente mantém o texto na caixa com o motivo em pt-BR.
 
 **REQ-CHT-015** [MVP] Comandos não reconhecidos pelo cliente DEVEM ser enviados ao servidor para verificação no `CommandRegistry`; o servidor retorna erro se o comando for desconhecido.
 
@@ -352,11 +369,40 @@ _(Emenda obrigada por `specs/41-token.md` §12, 2026-08-17.)_
 
 **REQ-CHT-049** [MVP] Revelar NÃO DEVE reexecutar a rolagem nem expor a semente do RNG: o payload emitido é exatamente o resultado persistido no momento da rolagem, e o `seed` permanece restrito ao log de auditoria (ver `08-motor-de-rolagens.md`, REQ-ROL-049). Em particular, o autor de uma `blindroll` revelada DEVE passar a receber o resultado real no lugar do texto substituto de confirmação previsto em REQ-ROL-032.
 
+### Cards de ação do caçador e do companheiro _(emenda da spec 52, 2026-10-05)_
+
+**REQ-CHT-061** [MVP] Uma ação que rola, marca e aplica efeito (ex.: Caçar Presa, `52-cacador-companheiro-e-montaria.md`) DEVE produzir **uma** mensagem: o card carrega o alvo (`targetSnapshot`), a marca e o efeito aplicado; o efeito NÃO DEVE sair como segunda mensagem.
+
+**REQ-CHT-062** [MVP] Uma rolagem secundária disparada pela mesma ação (ex.: o Rememorar Conhecimento do Caçador de Monstros) DEVE entrar no **mesmo** card, rolada no servidor, e o efeito condicionado ao grau dela DEVE ser aplicado pelo servidor e mostrado no card.
+
+**REQ-CHT-063** [MVP] O card de Comandar um companheiro animal DEVE ser registro sem rolagem: "`<dono>` comanda `<companheiro>`: 2 ações".
+
+**REQ-CHT-064** [MVP] Com efeito de Apoio ativo no atacante, o card de dano do golpe que cumpre a condição do Apoio contra criatura ao alcance do companheiro (medido no servidor) DEVE incluir o dano extra do Apoio, anotado no card; alvo fora do alcance, golpe que errou, ou golpe que não cumpre a condição, NÃO DEVE incluir. O acerto crítico NÃO dobra o dano extra do urso.
+
 ### Busca para todos e leitura de contexto
 
 **REQ-CHT-050** [MVP] A busca de REQ-CHT-036 DEVE estar disponível a **qualquer papel**, e o servidor DEVE aplicar aos resultados o mesmo predicado de visibilidade do broadcast e do histórico (REQ-CHT-004, DEC-CHT-02): ninguém encontra sussurro alheio nem rolagem cega de terceiro. NÃO DEVE existir um segundo predicado de visibilidade para busca.
 
 **REQ-CHT-051** [MVP] O servidor DEVE oferecer uma consulta de **contexto** ao redor de uma mensagem: dados o `_id` de uma mensagem visível ao solicitante e um limite `N`, retorna as `N` mensagens **visíveis** imediatamente anteriores e as `N` posteriores. A contagem DEVE considerar apenas mensagens visíveis ao solicitante — mensagem invisível não ocupa lugar na contagem nem é sinalizada de nenhuma forma (apresentação em `38-aba-chat.md`, REQ-ACH-013).
+
+### Aplicar dano e resumo no card
+
+> **Emenda de 2026-09-15** (plano do Alquimista, tarefa ALQ-F1-01; DEC-CHT-12). Os
+> contratos `ApplyDamage` e `TargetSelection` são definidos em `15-api-de-sistemas.md`
+> (REQ-SYS-142) e `10-combate-e-iniciativa.md` (REQ-CBT-056); a conta do dano é do
+> sistema (`17-sistema-pf2e.md`, REQ-PF2-209..213). Aqui fica só o que é do chat.
+>
+> **Emenda de 2026-09-15** (revisão adversarial da onda 1, achado importante —
+> replay sem limite). A frase "desabilitar o botão depois do uso é escolha do
+> sistema, não obrigação" deixava a reaplicação do mesmo dano gravado sem limite
+> nenhum: o dono do ator podia reenviar o op e aplicar o mesmo dano em todos os
+> alvos do snapshot quantas vezes quisesse. Desabilitar o botão na UI continua
+> opcional (é só affordance) — a garantia real agora é no servidor, e é
+> obrigatória: REQ-SYS-142 (idempotência por `(messageId, rollIndex, multiplier)`).
+
+**REQ-CHT-052** [MVP] Todo card de rolagem de dano ou de cura DEVE exibir, abaixo de cada dano rolado, os botões **Aplicar**, **½**, **×2**, **Curar** e **PV temporário**, e a linha "Alvos: …" com os nomes lidos de `flags.fusion.targetSnapshot` da própria mensagem (REQ-CBT-056). Cada botão DEVE emitir `actor:applyDamage` com `instances[].source = { messageId, rollIndex }` e o `multiplier` correspondente (`1`, `0.5`, `2`; Curar e PV temporário mudam o `type` da instância para `healing`/`temp-hp`), e NÃO DEVE enviar `amount` nem `targetTokenIds` quando o usuário não tiver papel privilegiado. Com o snapshot vazio, os botões de aplicar em alvo DEVEM aparecer desabilitados com o texto "a rolagem não tinha alvo"; aplicar em si mesmo (`selfActorId`) continua disponível. Os botões DEVEM aparecer habilitados apenas para papel privilegiado e para o dono do ator que rolou; para os demais usuários NÃO DEVEM aparecer. Nomes de alvos cujo token esteja oculto para o usuário DEVEM ser redigidos pelo mesmo caminho de redação do broadcast (`net/redaction.ts`). REQ-CHT-028 continua valendo para a UI: desabilitar o botão depois do uso é escolha do sistema, não obrigação — mas a autoridade real é do servidor, e **é** obrigação: uma segunda aplicação da mesma `(messageId, rollIndex, multiplier)` por usuário sem papel privilegiado DEVE ser rejeitada (`FORBIDDEN`), nunca reaplicada (REQ-SYS-142).
+
+**REQ-CHT-053** [MVP] Toda aplicação aceita de `actor:applyDamage` DEVE produzir uma `ChatMessage` de resumo `actor:damageApplied`, persistida antes do broadcast (REQ-CHT-001), com uma linha por alvo. Para papel privilegiado a linha DEVE conter o dano final por tipo, o breakdown de IWR/dureza/PV temporário e os PV antes → depois (ex.: "Goblin: 12 fogo − resistência 5 = 7 · PV 18 → 11"). Para usuário sem papel privilegiado a mesma linha DEVE conter só o dano causado e a linha de IWR (ex.: "Goblin sofreu 7 de fogo (resistência 5)"), e NÃO DEVE conter `hp`, `hp.max`, PV temporário restante, nem condição de morte do alvo que o usuário não possa ver na ficha — nem no payload, nem no histórico, nem no snapshot de entrada. A redação DEVE usar `packages/server/src/net/redaction.ts` + `isRolePrivileged` (`documents/ownership.ts`); NÃO DEVE existir segundo predicado. O dono do ator atingido vê a própria vida na ficha, como sempre; o resumo não é o lugar dela.
 
 ---
 
@@ -530,15 +576,18 @@ export type ServerChatCommandHandler = (
 | `chat:card-action`       | `CardActionRequest`                 | Clique em botão de card.                                                     |
 | `chat:flush` (request)   | `{}`                                | GM solicita limpeza do log.                                                  |
 | `chat:reveal`            | `ChatRevealPayload`                 | GM revela mensagem privada já enviada (REQ-CHT-045).                         |
+| `actor:applyDamage`      | `ActorApplyDamagePayload`           | Botões de aplicar do card de dano (REQ-CHT-052; shape em REQ-SYS-142).       |
+| `actor:applyCondition`   | `ActorApplyConditionPayload`        | Aplicar/remover condição em si ou nos alvos (REQ-PF2-215).                   |
 
 ### Eventos socket.io (servidor → clientes)
 
-| Evento                   | Destinatários      | Payload                                          | Descrição                                        |
-| ------------------------ | ------------------ | ------------------------------------------------ | ------------------------------------------------ |
-| `document:create` (chat) | Clientes elegíveis | `ChatMessage`                                    | Nova mensagem; roll payload omitido para blind.  |
-| `document:update` (chat) | Clientes elegíveis | `Partial<ChatMessage>` + `_id`                   | Atualização (ex.: `card.buttons[n].disabled`).   |
-| `document:update` (chat) | Clientes elegíveis | `{ _id, invalid, invalidatedBy, invalidatedAt }` | Mensagem invalidada ou revalidada (REQ-CHT-005). |
-| `chat:flush`             | Todos              | `{}`                                             | Log limpo; cliente limpa painel.                 |
+| Evento                   | Destinatários      | Payload                                          | Descrição                                              |
+| ------------------------ | ------------------ | ------------------------------------------------ | ------------------------------------------------------ |
+| `document:create` (chat) | Clientes elegíveis | `ChatMessage`                                    | Nova mensagem; roll payload omitido para blind.        |
+| `document:update` (chat) | Clientes elegíveis | `Partial<ChatMessage>` + `_id`                   | Atualização (ex.: `card.buttons[n].disabled`).         |
+| `document:update` (chat) | Clientes elegíveis | `{ _id, invalid, invalidatedBy, invalidatedAt }` | Mensagem invalidada ou revalidada (REQ-CHT-005).       |
+| `document:create` (chat) | Clientes elegíveis | `ChatMessage` com card `actor:damageApplied`     | Resumo da aplicação, redigido por papel (REQ-CHT-053). |
+| `chat:flush`             | Todos              | `{}`                                             | Log limpo; cliente limpa painel.                       |
 
 ### REST (HTTP Fastify)
 

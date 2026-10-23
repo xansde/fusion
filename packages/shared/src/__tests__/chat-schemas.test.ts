@@ -215,8 +215,66 @@ describe("CheckContextSchema (r17.1 save context)", () => {
 
   it("rejects an unknown kind", () => {
     expect(() =>
-      CheckContextSchema.parse({ kind: "attack", dcValue: 19, saveType: "reflex" }),
+      CheckContextSchema.parse({ kind: "spell", dcValue: 19, saveType: "reflex" }),
     ).toThrow();
+  });
+
+  it("accepts an attack context (BHR-F3-03) with no AC field", () => {
+    const ctx = CheckContextSchema.parse({
+      kind: "attack",
+      targetTokenId: "tok1",
+      mapIndex: 2,
+      agile: true,
+    });
+    expect(ctx).toEqual({ kind: "attack", targetTokenId: "tok1", mapIndex: 2, agile: true });
+  });
+
+  it("drops an AC a client tries to smuggle into the attack context", () => {
+    const ctx = CheckContextSchema.parse({
+      kind: "attack",
+      targetTokenId: "tok1",
+      mapIndex: 0,
+      ac: 1,
+    });
+    expect(ctx).not.toHaveProperty("ac");
+  });
+
+  it("rejects an attack context with a MAP index outside 0..2 or an empty target", () => {
+    expect(() =>
+      CheckContextSchema.parse({ kind: "attack", targetTokenId: "tok1", mapIndex: 3 }),
+    ).toThrow();
+    expect(() =>
+      CheckContextSchema.parse({ kind: "attack", targetTokenId: "", mapIndex: 0 }),
+    ).toThrow();
+  });
+
+  it("accepts an attack context with NO target: a Strike thrown at nobody still counts for the MAP (onda-6 I-7)", () => {
+    expect(CheckContextSchema.parse({ kind: "attack", mapIndex: 1 })).toEqual({
+      kind: "attack",
+      mapIndex: 1,
+    });
+  });
+
+  it("accepts a skill context (BHR-F6-01) with no DC field", () => {
+    const ctx = CheckContextSchema.parse({
+      kind: "skill",
+      targetTokenId: "tok1",
+      against: "reflex",
+      maneuver: "trip",
+    });
+    expect(ctx).toEqual({
+      kind: "skill",
+      targetTokenId: "tok1",
+      against: "reflex",
+      maneuver: "trip",
+    });
+  });
+
+  it("rejects a skill context with an unknown defence or no target", () => {
+    expect(() =>
+      CheckContextSchema.parse({ kind: "skill", targetTokenId: "tok1", against: "charisma" }),
+    ).toThrow();
+    expect(() => CheckContextSchema.parse({ kind: "skill", against: "will" })).toThrow();
   });
 
   it("rejects a missing dcValue", () => {

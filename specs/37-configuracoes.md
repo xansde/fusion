@@ -140,6 +140,8 @@ sistema de temas.
   sala). Sem servidor, a seção não precisa de rede, de permissão nem de documento.
 - **Consequência:** o campo `preferences` de REQ-USR-003 continua existindo no modelo e
   segue **sem UI** no MVP; `locale` não é oferecido a ninguém.
+- **Emenda de 22/10/2026 (provisória):** a parte "sem tema" foi substituída por
+  DEC-CFG-11; idioma continua fora.
 
 ### DEC-CFG-07 — A seção Mundo é renderizador puro do que o sistema declarou
 
@@ -198,6 +200,24 @@ Toda escrita das seções Mundo, Permissões, Usuários e Mods exige `role === G
   `ASSISTANT` da spec 05 com o GM — foi removido; o papel `ASSISTANT` (REQ-USR-005)
   continua ativo e privilegiado para ações de jogo, só não para administração de mesa.
 
+### DEC-CFG-11 — Tema escuro, claro ou do sistema, escolhido por navegador (emenda provisória de 22/10/2026)
+
+Minhas preferências oferece o tema: **Escuro** (padrão), **Claro** e **Seguir o sistema**.
+A escolha vale para o navegador em que foi feita (`localStorage`, chave `fusion.theme`,
+escrita por `lib/ui/theme.ts`), não para o mundo nem para o assento, e nunca vai ao
+servidor. O claro saiu de "experimental" em 22/10/2026 (lane ui-acabamento), depois de
+medido com axe-core (contraste AA) nos dois temas: mesa, gaveta inteira, ficha (todas as
+abas e o Plano), barra de ações, chat e entrada.
+
+- **Racional:** a fundação visual de 22/10 (lane ui-fundacao) pôs as cores dos dois temas
+  em tokens únicos (`styles/base.css`); um jogador da mesa tem dislexia e lê melhor em
+  papel claro, enquanto o Mestre mantém a mesa escura por causa dos mapas. É ergonomia de
+  aparelho, a mesma régua de DEC-UIF-10 e DEC-CFG-06: o tema do celular não é o da TV.
+- **Consequência:** REQ-CFG-023 passa a proibir só o idioma; o seletor não gera operação
+  de rede nem Document (REQ-CFG-022 intacto). Provisória: o Alexandre pode reverter na
+  revisão do pacote de melhoria.
+- **Supera:** a parte "sem tema" de DEC-CFG-06.
+
 ## 5. Requisitos funcionais
 
 > Blocos de dezena: 001–009 identidade e índice; 010–019 navegação; 020–029 Minhas
@@ -239,8 +259,16 @@ Toda escrita das seções Mundo, Permissões, Usuários e Mods exige `role === G
   cliente (no mínimo: som ao receber mensagem de chat; aviso quando for o turno do
   usuário), gravadas no dispositivo.
 - **REQ-CFG-022** [MVP] Toda preferência desta seção DEVE ser gravada exclusivamente
-  no cliente (DEC-UIF-10); nenhuma DEVE gerar operação de rede ou Document.
-- **REQ-CFG-023** [MVP] A seção NÃO DEVE oferecer seleção de idioma nem de tema.
+  no cliente (DEC-UIF-10); nenhuma DEVE gerar operação de rede ou Document — exceto o
+  formulário de troca de senha (REQ-CFG-090), que afeta autenticação e por isso é a
+  única exceção explícita a esta regra.
+- **REQ-CFG-023** [MVP] A seção NÃO DEVE oferecer seleção de idioma. DEVE oferecer a
+  seleção de tema — Escuro (padrão), Claro e Seguir o sistema — gravada só no navegador
+  e aplicada na hora, sem operação de rede (DEC-CFG-11).
+
+  > **Emenda de 22/10/2026** (provisória, lane ui-gaveta) — a redação anterior proibia
+  > também o tema; DEC-CFG-11 o libera como preferência do aparelho.
+
 - **REQ-CFG-024** [MVP] Preferências declaradas por um mod ativo DEVEM aparecer nesta
   seção quando seu escopo for de cliente, identificadas com o nome do mod de origem, e
   DEVEM desaparecer quando o mod for desligado. [V2] enquanto não houver mods.
@@ -256,6 +284,25 @@ Toda escrita das seções Mundo, Permissões, Usuários e Mods exige `role === G
   > preferências de exibição de nome e barras na cena são ergonomia local do aparelho
   > (DEC-UIF-10), na mesma régua dos volumes de REQ-CFG-020..023: gravadas no
   > `localStorage`, nunca em Document, nunca geram operação de rede (REQ-CFG-022).
+
+- **REQ-CFG-090** [MVP] A seção DEVE oferecer um formulário de troca da própria senha
+  (senha atual + nova senha), disponível a qualquer usuário logado (GM ou player),
+  gravado via `POST /api/users/me/password` (REQ-USR-040). Senha atual incorreta DEVE
+  ser recusada sem alterar a senha; sucesso NÃO DEVE derrubar a sessão que originou a
+  troca (REQ-USR-042 revoga só as demais).
+
+  > **Emenda de 2026-08-17** — fecha a lacuna registrada pela
+  > `docs/design/gaveta-lateral/tasks-ajustes-r1.md` (item 30, A061): nem esta spec nem
+  > a `05-usuarios-e-permissoes.md` mencionavam troca da própria senha; o único fluxo de
+  > senha documentado era o reset **pelo GM sobre outro usuário** (REQ-CFG-051/053,
+  > REQ-USR-027). Este REQ e REQ-USR-040..042 fecham a spec; a implementação do campo em
+  > `PreferencesSection.svelte` e do endpoint é PR seguinte, fora deste ajuste.
+
+  > **Implementado em 2026-10-21** — `OwnPasswordForm.svelte` (dentro de Minhas preferências), três campos
+  > (atual, nova, repetir), validação local do piso de 8 caracteres e da confirmação, mensagem própria para
+  > senha atual errada e para bloqueio por tentativas, e aviso de que os outros dispositivos foram
+  > desconectados. Usuário sem senha deixa a atual em branco. Detalhes e decisões provisórias em
+  > `05-usuarios-e-permissoes.md` (REQ-USR-040..042).
 
 ### 5.3a Avatar
 
@@ -296,6 +343,51 @@ Toda escrita das seções Mundo, Permissões, Usuários e Mods exige `role === G
   > numeradas; a numeração é o valor inicial do rótulo da peça, não um campo separado, e
   > o contador nunca reaproveita número de peça removida (REQ-TOK-065) — comportamento
   > do motor, não desta aba.
+
+- **REQ-CFG-037** [MVP] A seção DEVE renderizar uma setting cujo schema é uma **lista tirada de um
+  conjunto fechado** (`array` de `enum`) como seleção múltipla — uma caixa por opção, texto de cada
+  opção vindo da declaração do sistema (`optionLabels`, com a própria opção como reserva). Cada
+  marcação grava a lista inteira, na ordem declarada das opções (REQ-CFG-030/031: nenhum
+  conhecimento de sistema na aba).
+- **REQ-CFG-038** [MVP] **Perícias treinadas pela campanha** (HJ-09, decisão D4 do Alexandre,
+  02/10/2026): o sistema ativo PODE declarar a setting de mundo `campaign.trainedSkills` (lista de
+  slugs de perícia). É configuração do mundo, não regra do sistema: cada campanha escolhe as
+  perícias que todo personagem recebe treinadas. Regras:
+  1. só o GAMEMASTER escreve (REQ-CFG-070); o jogador LÊ a lista (chave na allowlist de leitura do
+     jogador), porque o Plano mostra a origem "Campanha" e o seletor de perícias a marca como
+     já treinada;
+  2. o servidor entrega a lista à derivação como `system.build.campaignSkills`, **sempre vinda do
+     mundo**: um valor que o próprio documento do ator traga nessa chave é descartado (senão o
+     dono do ator se concederia perícias). Sem `Setting` gravada, a chave fica ausente;
+  3. o treino vale como piso (nunca rebaixa um rank maior) e é aplicado **fora do orçamento** de
+     perícias da classe;
+  4. mudar a lista re-deriva todos os personagens e propaga o resultado (REQ-CFG-035), sem
+     recarga; personagens existentes passam a ter, ou a perder, o treino na hora.
+
+- **REQ-CFG-039** [MVP] **Regras da casa da campanha A Queda** (decisão do Alexandre, 05/10/2026):
+  o sistema ativo PODE declarar quatro settings de mundo booleanas, todas em
+  `variantRules.<chave>`, que relaxam as regras de talentos do personagem — desligadas = regra
+  oficial (RAW):
+  1. `bonusGeneralFeatLevel1`: existe um espaço extra de talento geral no nível 1;
+  2. `freeOccultismOrReligion`: o personagem recebe treinado em Ocultismo ou Religião, à escolha;
+  3. `ancestryFeatsInGeneralSlots`: os espaços de talento geral (nível > 1) também aceitam
+     talentos de ancestralidade;
+  4. `ancestryFeatLevelMinus2`: um talento de ancestralidade de nível N cabe num espaço de nível
+     max(1, N-2);
+  5. `skillFeatInClassSlot` (19/10/2026, DEC-MCL-29 da spec 30): o espaço de talento de classe
+     também aceita talento de perícia, pelo nível do personagem. Desligada por padrão; o
+     GAMEMASTER liga em Configurações → Mundo ("Talento de perícia no lugar de talento de classe").
+     Regras de plumbing no núcleo (espelham HJ-09/REQ-CFG-038):
+  - só o GAMEMASTER escreve (REQ-CFG-070); o jogador LÊ as quatro chaves (allowlist de leitura do
+    jogador, inclusive no broadcast ao vivo), porque a ficha aplica as regras;
+  - o servidor entrega os valores à derivação como `system.build.variantRules.<chave>`,
+    **sempre vindos do mundo**: não existe campo legado por ator, então um valor que o documento
+    do ator traga é descartado quando o mundo não tem `Setting` (um jogador não forja a regra);
+    `true`/`false` do mundo valem como estão;
+  - a validação de legalidade da ficha no servidor (escrita de `doc:create`/`doc:update` e de itens
+    embutidos) recebe os mesmos flags de espaço/nível (1, 3, 4 e 5), tanto para o documento
+    mesclado quanto para o anterior;
+  - mudar qualquer das cinco re-deriva todos os personagens e propaga o resultado (REQ-CFG-035).
 
 ### 5.5 Permissões
 
@@ -392,6 +484,7 @@ Toda escrita das seções Mundo, Permissões, Usuários e Mods exige `role === G
 | Volume dos três canais                          | `localStorage` do cliente              | o próprio    | REQ-AUD-016, DEC-AUD-02              |
 | Notificações (som de chat, aviso de turno)      | `localStorage` do cliente              | o próprio    | DEC-CFG-06, DEC-UIF-10               |
 | Exibição de nome/barras de token na cena        | `localStorage` do cliente              | o próprio    | REQ-CFG-025/026, REQ-TOK-074         |
+| Tema (escuro, claro, sistema)                   | `localStorage` do navegador            | o próprio    | REQ-CFG-023, DEC-CFG-11              |
 | Avatar (seleção de peças e cores)               | `flags.fusion.avatar` do Actor         | o próprio    | REQ-CFG-027, REQ-AVT-001, DEC-AVT-07 |
 | Settings declaradas com escopo `world`          | `Setting` (chave namespaceada)         | GAMEMASTER   | REQ-CFG-071, REQ-SYS-047             |
 | Regras variantes (arquétipo livre, multiclasse) | `Setting` de mundo                     | GAMEMASTER   | DEC-CFG-08                           |
@@ -424,7 +517,8 @@ aba** enquanto Minhas preferências for 100% local — ver Q-CFG-01.
   recolher (DEC-GAV-03), badge (DEC-GAV-06), fronteira de segurança (REQ-GAV-034).
 - `05` — REQ-USR-008/009 (permissões), REQ-USR-025..031 (usuários), REQ-USR-025a..025d (o
   personagem que nasce com o usuário), REQ-USR-030 (o limite de papel), REQ-USR-003 (o
-  campo `preferences`, que segue sem UI).
+  campo `preferences`, que segue sem UI), REQ-USR-040..042 (troca da própria senha,
+  hospedada em Minhas preferências — REQ-CFG-090).
 - `42` — DEC-NPC-02: a aba NPCs não cria personagem de jogador (REQ-NPC-044), e por isso a
   criação vive na seção Usuários desta aba (REQ-NPC-055a); excluir personagem de jogador
   segue sem tela em lugar nenhum (REQ-NPC-055, Q-NPC-06).
@@ -442,20 +536,21 @@ aba** enquanto Minhas preferências for 100% local — ver Q-CFG-01.
 
 ## 10. Critérios de aceitação
 
-| ID         | Critério                                                                                                                                                                                   |
-| ---------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| CA-CFG-001 | Jogador abre a aba e vê um índice com uma única entrada, "Minhas preferências"; não há nada de Mundo, Permissões, Usuários ou Mods na tela nem no DOM.                                     |
-| CA-CFG-002 | GM abre a aba e vê cinco entradas; entrar em Mundo troca o conteúdo da gaveta sem mudar a largura; "voltar" retorna ao índice; recolher e reabrir volta ao índice.                         |
-| CA-CFG-003 | Nenhuma interação da aba abre janela flutuante — inclusive editar usuário e alterar permissões.                                                                                            |
-| CA-CFG-004 | Ajustar o volume de `music` grava em `localStorage` e não emite nenhuma operação de rede; recarregar mantém o valor; entrar de outro navegador mostra o default.                           |
-| CA-CFG-005 | Com sistema PF2e ativo, a seção Mundo lista arquétipo livre e multiclasse por nível; trocando para um sistema sem settings de mundo declaradas, a seção mostra o estado vazio.             |
-| CA-CFG-006 | A ficha de personagem não tem nenhum controle de regra variante; ligar arquétipo livre na aba re-deriva os personagens da mesa e os clientes conectados veem o novo slot sem recarregar.   |
-| CA-CFG-007 | Mundo com um ator que tinha `freeArchetype: true`: ao abrir depois da migração, a setting de mundo está ligada e o campo sumiu do ator; a build do personagem continua válida.             |
-| CA-CFG-008 | Desligar arquétipo livre com 3 personagens dependentes abre confirmação dizendo "3"; cancelar não grava nada; ligar de novo não abre confirmação.                                          |
-| CA-CFG-009 | Uma escrita de setting de mundo forjada por socket de jogador é recusada pelo servidor, e o valor no banco não muda.                                                                       |
-| CA-CFG-010 | Sem nenhum mod instalado, o GM vê a seção Mods com o estado vazio e o controle de instalar desabilitado com motivo; o jogador não vê a seção.                                              |
-| CA-CFG-011 | Uma setting nova declarada por um sistema aparece na seção Mundo sem nenhuma alteração no código da aba.                                                                                   |
-| CA-CFG-012 | O GM cria um usuário `PLAYER` na seção Usuários: nenhuma janela abre, o GM continua na gaveta, e o jogador entra no mundo já com um personagem em branco do qual é `OWNER` (REQ-USR-025a). |
+| ID         | Critério                                                                                                                                                                                                                                                                                    |
+| ---------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| CA-CFG-001 | Jogador abre a aba e vê um índice com uma única entrada, "Minhas preferências"; não há nada de Mundo, Permissões, Usuários ou Mods na tela nem no DOM.                                                                                                                                      |
+| CA-CFG-002 | GM abre a aba e vê cinco entradas; entrar em Mundo troca o conteúdo da gaveta sem mudar a largura; "voltar" retorna ao índice; recolher e reabrir volta ao índice.                                                                                                                          |
+| CA-CFG-003 | Nenhuma interação da aba abre janela flutuante — inclusive editar usuário e alterar permissões.                                                                                                                                                                                             |
+| CA-CFG-004 | Ajustar o volume de `music` grava em `localStorage` e não emite nenhuma operação de rede; recarregar mantém o valor; entrar de outro navegador mostra o default.                                                                                                                            |
+| CA-CFG-005 | Com sistema PF2e ativo, a seção Mundo lista arquétipo livre e multiclasse por nível; trocando para um sistema sem settings de mundo declaradas, a seção mostra o estado vazio.                                                                                                              |
+| CA-CFG-006 | A ficha de personagem não tem nenhum controle de regra variante; ligar arquétipo livre na aba re-deriva os personagens da mesa e os clientes conectados veem o novo slot sem recarregar.                                                                                                    |
+| CA-CFG-007 | Mundo com um ator que tinha `freeArchetype: true`: ao abrir depois da migração, a setting de mundo está ligada e o campo sumiu do ator; a build do personagem continua válida.                                                                                                              |
+| CA-CFG-008 | Desligar arquétipo livre com 3 personagens dependentes abre confirmação dizendo "3"; cancelar não grava nada; ligar de novo não abre confirmação.                                                                                                                                           |
+| CA-CFG-009 | Uma escrita de setting de mundo forjada por socket de jogador é recusada pelo servidor, e o valor no banco não muda.                                                                                                                                                                        |
+| CA-CFG-010 | Sem nenhum mod instalado, o GM vê a seção Mods com o estado vazio e o controle de instalar desabilitado com motivo; o jogador não vê a seção.                                                                                                                                               |
+| CA-CFG-011 | Uma setting nova declarada por um sistema aparece na seção Mundo sem nenhuma alteração no código da aba.                                                                                                                                                                                    |
+| CA-CFG-012 | O GM cria um usuário `PLAYER` na seção Usuários: nenhuma janela abre, o GM continua na gaveta, e o jogador entra no mundo já com um personagem em branco do qual é `OWNER` (REQ-USR-025a).                                                                                                  |
+| CA-CFG-013 | Um jogador troca a própria senha em Minhas preferências informando a senha atual correta: a operação é aceita e o formulário confirma sucesso sem derrubar a sessão atual. Informando a senha atual errada, a troca é recusada e a senha antiga continua válida (REQ-CFG-027, REQ-USR-040). |
 
 ## 11. Questões em aberto
 
@@ -475,14 +570,15 @@ aba** enquanto Minhas preferências for 100% local — ver Q-CFG-01.
 Registradas aqui para que o PR não deixe nenhuma spec contrariada em silêncio
 (`CONVENCOES.md` §2):
 
-| Spec | O que muda                                                                                                                                                                                                                                                            |
-| ---- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `35` | Emendada em paralelo pela mesma DEC-SEP-06 (não por esta spec): REQ-AVT-010 reescrito, nova DEC-AVT-07 — entrada pela aba Configurações, não pela ficha; §5 lista "onde vive" com pacote externo `@fusion/avatar`. Citada aqui só para deixar as duas emendas juntas. |
-| `36` | DEC-GAV-01, REQ-GAV-003, REQ-GAV-004 e CA-GAV-001: Configurações sai do grupo GM, vira grupo `all` ancorado no rodapé; o grupo GM fica com NPCs e Cenas. §8 aponta para esta spec.                                                                                    |
-| `30` | DEC-MCL-01 substituída por decisão nova (flag por mundo, que ela havia rejeitado); REQ-MCL-001 e REQ-MCL-004 reescritos: o toggle sai da ficha e do `system.build`.                                                                                                   |
-| `13` | REQ-AUD-015 diz que os sliders de canal ficam "na sidebar de áudio", que não existe no trilho das sete abas; passam a viver aqui (REQ-CFG-020).                                                                                                                       |
-| `02` | A questão Q4 (fronteira `Setting` de cliente × mundo) fica respondida para este caso: preferência de cliente não vira Document; setting declarada de escopo `world` vira.                                                                                             |
-| `15` | REQ-SYS-047 ganha `requiresConfirmOnDisable?` e `countAffectedActors?` na forma pública de `SettingDefinition`, para servir REQ-CFG-082; `countAffectedActors` é server-only.                                                                                         |
+| Spec | O que muda                                                                                                                                                                                                                                                                    |
+| ---- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `35` | Emendada em paralelo pela mesma DEC-SEP-06 (não por esta spec): REQ-AVT-010 reescrito, nova DEC-AVT-07 — entrada pela aba Configurações, não pela ficha; §5 lista "onde vive" com pacote externo `@fusion/avatar`. Citada aqui só para deixar as duas emendas juntas.         |
+| `36` | DEC-GAV-01, REQ-GAV-003, REQ-GAV-004 e CA-GAV-001: Configurações sai do grupo GM, vira grupo `all` ancorado no rodapé; o grupo GM fica com NPCs e Cenas. §8 aponta para esta spec.                                                                                            |
+| `30` | DEC-MCL-01 substituída por decisão nova (flag por mundo, que ela havia rejeitado); REQ-MCL-001 e REQ-MCL-004 reescritos: o toggle sai da ficha e do `system.build`.                                                                                                           |
+| `13` | REQ-AUD-015 diz que os sliders de canal ficam "na sidebar de áudio", que não existe no trilho das sete abas; passam a viver aqui (REQ-CFG-020).                                                                                                                               |
+| `02` | A questão Q4 (fronteira `Setting` de cliente × mundo) fica respondida para este caso: preferência de cliente não vira Document; setting declarada de escopo `world` vira.                                                                                                     |
+| `15` | REQ-SYS-047 ganha `requiresConfirmOnDisable?` e `countAffectedActors?` na forma pública de `SettingDefinition`, para servir REQ-CFG-082; `countAffectedActors` é server-only.                                                                                                 |
+| `05` | Ganha REQ-USR-040..042 (troca da própria senha) e o endpoint `POST /api/users/me/password`, fechando a lacuna do item 30/A061 (`tasks-ajustes-r1.md`); ganha também o Anexo A (A060) mapeando cada Permission Key de REQ-USR-008 ao gate atual, sem mudança de comportamento. |
 
 ## 13. Referências
 

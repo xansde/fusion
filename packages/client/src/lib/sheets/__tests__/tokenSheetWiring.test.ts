@@ -17,6 +17,9 @@
 import { describe, expect, it } from "vitest";
 import { readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
+import type { Socket } from "socket.io-client";
+import { ChatSendPayloadSchema } from "@fusion/shared";
+import { makeSendOpFn, sendOp } from "../../docs/sendOp.js";
 
 function source(relative: string): string {
   return readFileSync(fileURLToPath(new URL(relative, import.meta.url)), "utf8")
@@ -46,6 +49,57 @@ describe("REQ-TOK-114: the double-click gesture is wired into the table screen",
 
   it("the screen imports the opener it calls", () => {
     expect(table).toContain('from "../lib/sheets/openTokenSheet.js"');
+  });
+});
+
+describe("BAR-F4-01: the sheet a token opens sends its ops through makeSendOpFn", () => {
+  const table = source("../../../components/TableScreen.svelte");
+
+  /** The `onOpenSheet` callback of the screen, up to the `onError` that follows it. */
+  function onOpenSheet(): string {
+    const start = table.indexOf("onOpenSheet:");
+    const end = table.indexOf("onError:", start);
+    expect(start, "onOpenSheet not found").toBeGreaterThan(-1);
+    expect(end, "onError (the delimiter after onOpenSheet) not found").toBeGreaterThan(start);
+    return table.slice(start, end);
+  }
+
+  it("the sender handed to the sheet is makeSendOpFn over the live socket, not the raw sendOp", () => {
+    const callback = onOpenSheet();
+    expect(callback).toContain("makeSendOpFn(");
+    expect(callback).toMatch(/getSocket\(\)/);
+    expect(callback).not.toMatch(/\bsendOp\(/);
+  });
+
+  it("why it matters: a sheet emits a FLAT op, and only makeSendOpFn turns it into the { type, payload } envelope the server reads", () => {
+    const sent: Array<{ type: string; payload?: unknown }> = [];
+    const socket = {
+      emit: (
+        _event: string,
+        envelope: { type: string; payload?: unknown; requestId: string },
+        ack: (a: unknown) => void,
+      ) => {
+        sent.push(envelope);
+        ack({ ok: true, requestId: envelope.requestId, result: {} });
+      },
+    } as unknown as Socket;
+    // What every sheet VM builds for a roll (NpcSheetVM.rollStrike and the character's alike).
+    const flat = {
+      type: "chat:send",
+      content: "/r 1d20+7 # Golpe",
+      worldId: "w",
+      speakerActorId: "a",
+    };
+
+    // The raw sendOp used to be the screen's sender: it puts the fields beside `type`, with no `payload` at all.
+    void sendOp(socket, flat as unknown as Parameters<typeof sendOp>[1]);
+    makeSendOpFn(socket)(flat);
+
+    const [raw, adapted] = sent;
+    expect(raw?.payload).toBeUndefined();
+    expect(ChatSendPayloadSchema.safeParse(raw?.payload).success).toBe(false);
+    expect(adapted?.type).toBe("chat:send");
+    expect(ChatSendPayloadSchema.safeParse(adapted?.payload).success).toBe(true);
   });
 });
 

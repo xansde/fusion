@@ -34,7 +34,19 @@
  *
  * REQ-ARQ-005: system-api must NOT import from server or client.
  */
-import type { Predicate } from "./derive.js";
+import type { Predicate, Synthetics } from "./derive.js";
+import type {
+  ChatMessage,
+  DegreeOfSuccess,
+  FusionRollContext,
+  ResolvedRollModifier,
+  ResolvedRollNote,
+  RollBreakdownPart,
+  RollDamageFlag,
+} from "@fusion/shared";
+import type { TurnHookContext } from "./combat.js";
+
+export type { FusionRollContext, ResolvedRollModifier, ResolvedRollNote };
 
 // ---------------------------------------------------------------------------
 // Rule element type keys (discriminator enum)
@@ -363,13 +375,76 @@ export class UnsupportedRuleElementLog {
   }
 }
 
+// ---------------------------------------------------------------------------
+// Rule element registry contract
+// REQ-SYS-089: rule element kinds are handlers registered in a compiled
+// registry (no dynamic plugins); the engine dispatches by `kind`.
+// ---------------------------------------------------------------------------
+
 /**
- * Determine whether a given rule element type is supported in the MVP.
+ * Canonical processing phases, in execution order.
+ *
+ * - `pre-base`: runs to a fixed point before anything else (roll options).
+ * - `synthetics`: writes into the Synthetics accumulator.
+ * - `item` / `strike` / `roll`: reserved for item alterations, derived strikes
+ *   and roll-time adjustments.
+ */
+export const RULE_PHASES = ["pre-base", "synthetics", "item", "strike", "roll"] as const;
+
+export type RulePhase = (typeof RULE_PHASES)[number];
+
+/**
+ * Mutable context handed to a handler's `apply`.
+ *
+ * `rollOptions` is the actor's accumulated option set: `pre-base` handlers add
+ * to it (the engine iterates that phase until the set stops growing), later
+ * phases read the final set for build-time predicates.
+ */
+export interface RuleApplyContext {
+  /** Stable id of the EffectSource that owns the rule. */
+  readonly sourceId: string;
+  /** Display label of the EffectSource. */
+  readonly label: string;
+  readonly synthetics: Synthetics;
+  readonly rollOptions: Set<string>;
+  /** Conditions to toggle on the actor (slug to value). */
+  readonly conditionsToToggle: Map<string, number | undefined>;
+}
+
+/** Processes one rule element kind. REQ-SYS-089. */
+export interface RuleElementHandler<R extends EffectRule = EffectRule> {
+  /** Rule `type` this handler owns. */
+  readonly kind: string;
+  readonly phase: RulePhase;
+  /** Turn raw rule data into the typed rule; `null` sends it to the unsupported log. */
+  normalize(raw: Record<string, unknown>): R | null;
+  apply(rule: R, ctx: RuleApplyContext): void;
+}
+
+/** Compiled registry of rule element handlers. REQ-SYS-089. */
+export interface RuleElementRegistry {
+  /** Throws when `h.kind` is already registered. */
+  register(h: RuleElementHandler): void;
+  get(kind: string): RuleElementHandler | undefined;
+  /** Handlers of one phase, in registration order. */
+  handlersFor(phase: RulePhase): readonly RuleElementHandler[];
+  kinds(): ReadonlySet<string>;
+}
+
+/**
+ * Determine whether a given rule element type is supported.
+ *
+ * With a registry, the answer is whatever kinds it has registered
+ * (REQ-SYS-089). Without one, the static MVP key set is used — it matches the
+ * engine's default registry.
  *
  * Unknown types should be passed to UnsupportedRuleElementLog and skipped.
  */
-export function isMvpRuleType(type: string): boolean {
-  return MVP_EFFECT_RULE_KEYS.has(type);
+export function isMvpRuleType(
+  type: string,
+  registry?: Pick<RuleElementRegistry, "kinds">,
+): boolean {
+  return (registry ? registry.kinds() : MVP_EFFECT_RULE_KEYS).has(type);
 }
 
 // ---------------------------------------------------------------------------
@@ -475,3 +550,205 @@ export function aggregateModifiers(
 
   return total;
 }
+
+// ---------------------------------------------------------------------------
+// Roll resolution — RollNotes + onRollResolved (ALQ-F4-09, imported by BHR-F2-05)
+// Plan of the Alquimista §2.8; spec 52 REQ-BHR-051..053, REQ-BHR-069/070.
+// ---------------------------------------------------------------------------
+
+/**
+ * One party to a roll other than the roller, as the server sees it when the
+ * roll is resolved. `options` are that party's OWN options, unprefixed
+ * (`mark:hunted-prey`, `condition:frightened`): the system enters them into the
+ * roll's flat option set with the `target:`/`origin:` prefix (BHR-F2-02).
+ */
+export interface RollResolutionParty {
+  readonly tokenId: string | null;
+  readonly actorId: string | null;
+  readonly options: readonly string[];
+}
+
+/**
+ * What the server hands the system's roll resolver. Every field is the
+ * server's own reading — nothing here is a number the client computed (DF-17).
+ */
+export interface RollResolutionInput {
+  /** The rolling actor, re-derived by the server right before the roll. */
+  readonly actor: Record<string, unknown>;
+  /**
+   * The roll's description as the client sent it, minus any `target:`/`origin:`
+   * option (those are the server's to write — see `target`/`origin`).
+   */
+  readonly rollContext: FusionRollContext;
+  /**
+   * The roll's target, when the roll has EXACTLY one (the message's
+   * `targetSnapshot`). `null` = no target, or several: a modifier or note
+   * whose predicate cites `target:` MUST then stay unresolved — an absent option
+   * is false, so `not target:x` would otherwise pass on a roll with no target.
+   */
+  readonly target: RollResolutionParty | null;
+  /** The attacker, when the roller defends. `null` = no attacker known. Same rule as `target`. */
+  readonly origin: RollResolutionParty | null;
+  /**
+   * The animal companions of the roller (`system.companionKind = "animalCompanion"`, `system.masterActorId`
+   * = the roller), as the server stored them, active or not (BHR-F4-09). The system picks the one a rule
+   * speaks of; the server never decides which. Absent/empty = the roller has none.
+   */
+  readonly companions?: readonly Record<string, unknown>[];
+  /**
+   * The re-derived owner of the roller, only when the roller is that owner's ACTIVE companion (BHR-F4-11, DC-08).
+   * Absent or `null` = the roller has no owner to share with (not a companion, the inactive one, an orphan).
+   */
+  readonly masterActor?: Record<string, unknown> | null;
+}
+
+/**
+ * A gate on an extra damage part that only the SERVER can settle, because it measures the scene
+ * (BHR-F4-09, spec 52 emenda "Alcance e montaria do Apoio"). `withinReachOf: "companion"`: the roll's target
+ * must be within `reachFeet` of the token of `companionActorId` (edge to edge, `PositionQuery.distanceBetween`).
+ */
+export interface ExtraDamageGate {
+  readonly withinReachOf: "companion";
+  readonly companionActorId: string;
+  readonly reachFeet: number;
+  /**
+   * The roller must be mounted on that companion (REQ-PET-125, REQ-BHR-182): the roller's token and the
+   * companion's token confirm each other in the mount flag. Absent = the part does not ask for the mount.
+   */
+  readonly requiresMounted?: boolean;
+}
+
+/**
+ * Extra damage dice a roll earns from the actor's own effects (the Apoio of an animal companion). The system
+ * names them; the server decides whether they count (the gate, and that the Strike really hit) and appends
+ * them to the damage formula it rolls. `doubleOnCrit: false` = the dice are NOT doubled by a critical hit
+ * (the damage is dealt by someone else, as the bear's); absent/true = doubled on a critical hit.
+ */
+export interface ResolvedExtraDamage {
+  readonly slug: string;
+  readonly label: string;
+  readonly sourceItemId?: string;
+  readonly count: number;
+  /** `d8`. */
+  readonly die: string;
+  readonly damageType: string;
+  /** `persistent`, `precision`... absent = plain damage. */
+  readonly category?: string;
+  readonly doubleOnCrit: boolean;
+  readonly gate?: ExtraDamageGate;
+}
+
+/** The system's verdict on a roll's context, before the server rolls the dice. */
+export interface RollResolution {
+  /** The conditional modifiers that apply to this roll, after the system's stacking. */
+  readonly modifiers: readonly ResolvedRollModifier[];
+  /** Their stacked sum — what the server adds to the client's formula. */
+  readonly total: number;
+  /** Every note whose selector and predicate match; the server filters by `outcome` once it grades. */
+  readonly notes: readonly ResolvedRollNote[];
+  /** Extra damage dice the actor's effects add to a Strike's damage roll (BHR-F4-09); the server gates them. */
+  readonly extraDamage?: readonly ResolvedExtraDamage[];
+}
+
+/**
+ * The pure rule that settles a roll's conditional modifiers and notes
+ * (DF-17). Registered at most once per system (`registerRollResolver`);
+ * synchronous and I/O-free, like a DeriveStep.
+ */
+export interface RollResolverDefinition {
+  resolve(input: RollResolutionInput): RollResolution;
+  /**
+   * The parts of the statistic a sheet roll was made with (ui-fundacao, 22/10/2026), for the chat
+   * card's decomposition: `statistic` is the key the sheet sent (`skill:athletics`, `perception`,
+   * `save:will`, `strike:<id>`...), `actor` the server's re-derived actor. Optional; `null` (or no
+   * method) = the card shows no decomposition. The server keeps the parts only when the applied ones
+   * add up to the flat part of the formula. Pure and synchronous, like `resolve`.
+   */
+  breakdown?(input: RollBreakdownInput): readonly RollBreakdownPart[] | null;
+  /**
+   * The damage components of a damage roll (#225, REQ-SYS-166): type, category, traits and materials, derived
+   * from the item, strike or spell the roll was made with — never from what the client claimed. The server
+   * records the answer as `flags.fusion.damage` on the roll message and `actor:applyDamage` rereads it for a
+   * non-privileged caller. `null` (or no method) = the roll carries no recorded components, and only a
+   * privileged caller can apply it. Pure and synchronous, like `resolve`.
+   *
+   * REQ-SYS-167: the answer also names the `formulas` the system derives for that source; a non-privileged
+   * roll records the components only when its own formula is one of them (see {@link RollDamageAnswer}).
+   */
+  damageComponents?(input: RollDamageInput): RollDamageAnswer | null;
+}
+
+/**
+ * The answer of {@link RollResolverDefinition.damageComponents} (REQ-SYS-167): the components the server
+ * records plus the formulas the SYSTEM derives for the same source, on the server's re-derivation of the
+ * roller — the Strike's `damageRoll`/`critDamageRoll`, the spell heightened to the card's rank, the blast's
+ * dice. They are compared, whitespace and flavor aside, with the formula the client rolled: a player's roll
+ * whose formula is not one of them (`/r 50d6` nested under the card) records no components and so cannot be
+ * applied by that player. `critical` formulas count only when the server graded the Strike under the same
+ * card as a critical success. The conditional modifiers and extra dice the server itself appends are not
+ * part of the comparison: the client never writes them. No `formulas` = the system vouches for no amount,
+ * and only a privileged caller's roll records the components. Never stored on the message.
+ */
+export interface RollDamageAnswer extends RollDamageFlag {
+  readonly formulas?: {
+    readonly normal: readonly string[];
+    readonly critical?: readonly string[];
+  };
+}
+
+/**
+ * Input of {@link RollResolverDefinition.damageComponents}. `actor` is the server's re-derived ROLLER (the
+ * roll's speaker actor). `statistic` is the key the roll (or the card it nests under) names
+ * (`strikeDamage:<id>`); `card` is the ability card the roll nests under, as the server stored it, only when
+ * that card belongs to the same actor. Both describe; the system decides what, if anything, they prove.
+ */
+export interface RollDamageInput {
+  readonly actor: Record<string, unknown>;
+  readonly statistic?: string;
+  readonly card?: {
+    readonly kind: string;
+    readonly name: string;
+    readonly nameEn?: string;
+    readonly rank?: number;
+    readonly damageType?: string;
+  };
+}
+
+/** Input of {@link RollResolverDefinition.breakdown}. */
+export interface RollBreakdownInput {
+  readonly actor: Record<string, unknown>;
+  readonly statistic: string;
+}
+
+/** One entry of a roll's `flags.fusion.targetSnapshot` (plan §2.3, ALQ-F1-05). */
+export interface RollTargetSnapshotEntry {
+  readonly tokenId: string;
+  readonly actorId: string | null;
+  readonly sceneId: string;
+}
+
+/** The event `onRollResolved` callbacks receive (plan §2.8). */
+export interface RollResolvedEvent {
+  /** The stored roll message, unredacted (server side). */
+  readonly message: ChatMessage;
+  readonly rollContext: FusionRollContext;
+  /** The degree the server graded, or null when the roll had nothing to grade against. */
+  readonly degree: DegreeOfSuccess | null;
+  readonly targets: readonly RollTargetSnapshotEntry[];
+  /**
+   * The options of the roll's single target the SERVER resolved (the same list the roll resolver
+   * saw), unprefixed: `mark:<slug>` and `condition:<slug>[:<value>]`. A listener prefixes them
+   * with `target:` to judge a predicate. Absent/empty when the roll had no single target.
+   */
+  readonly targetOptions?: readonly string[];
+}
+
+/**
+ * Called ONCE per resolved roll (REQ-BHR-053), after the message is persisted
+ * and before it is broadcast, in series, error-isolated (same discipline as the
+ * turn hooks — REQ-SYS-139, REQ-BHR-070). Writes go through `ctx` only.
+ */
+export type RollResolvedHookFn = (
+  e: RollResolvedEvent,
+  ctx: TurnHookContext,
+) => void | Promise<void>;

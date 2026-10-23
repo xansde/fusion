@@ -27,6 +27,14 @@ import SettingsTab from "../../settings/SettingsTab.svelte";
 import { sidebarIcons } from "../icons.js";
 import { clearSidebarTabs, registerSidebarTab } from "../../../lib/sidebar/registry.js";
 import { sidebarPreferencesKey } from "../../../lib/sidebar/preferences.js";
+import { SidebarDrawerState } from "../../../lib/sidebar/drawerState.svelte.js";
+import {
+  DRAWER_NARROW_BREAKPOINT,
+  DRAWER_PANEL_WIDTH,
+  DRAWER_RAIL_WIDTH,
+  isDrawerOpen,
+  publishDrawerOpen,
+} from "../../../lib/sidebar/drawerLayout.svelte.js";
 import "../../../lib/i18n/index.js";
 
 // ---------------------------------------------------------------------------
@@ -216,12 +224,17 @@ describe("Sidebar / SidebarDrawer", () => {
       seedPreferences(true, "chat");
       const html = renderSidebar();
 
-      const buttons = [...html.matchAll(/<button[^>]*>/g)].map((m) => m[0]);
+      const all = [...html.matchAll(/<button[^>]*>/g)].map((m) => m[0]);
+      // The phone peek strip (REQ-GAV-040, emenda 22/10/2026) is the one exception: shown
+      // only under 600px, it does what clicking the active tab does.
+      const peek = all.filter((tag) => tag.includes("fusion-sidebar__peek"));
+      const buttons = all.filter((tag) => !tag.includes("fusion-sidebar__peek"));
       const railButtons = buttons.filter((tag) => tag.includes("data-tab-id="));
       // Five registered tabs for the GM, and not one control beyond them: no chevron
       // in the rail, no ✕ in the panel (DEC-GAV-03).
       expect(railButtons).toHaveLength(5);
       expect(buttons).toHaveLength(railButtons.length);
+      expect(peek).toHaveLength(1);
       expect(html).not.toMatch(/close|collapse|toggle/i);
     });
 
@@ -336,5 +349,98 @@ describe("Sidebar / SidebarDrawer", () => {
       expect([...drawerSource.matchAll(/<Panel\b/g)]).toHaveLength(1);
       expect(drawerSource).not.toMatch(/\{#if\s+activeTabId\s*===/);
     });
+  });
+});
+
+// ---------------------------------------------------------------------------
+// BAR-F1-04 — the drawer tells the action bar how much of the screen it covers
+// ---------------------------------------------------------------------------
+//
+// The drawer is an overlay (REQ-GAV-013): it never moves the canvas, so nothing else knows how wide it
+// is at the moment. The action bar centres itself in the strip the drawer leaves free (spec 53
+// REQ-BAR-022), so the drawer's open state — private to `SidebarDrawerState` — is published to
+// `drawerLayout`, read-only, at the moments the preference is written.
+
+describe("Sidebar publishes its open state (BAR-F1-04, REQ-BAR-022)", () => {
+  beforeEach(() => {
+    localStorage.clear();
+    clearSidebarTabs();
+    registerCoreTabs();
+    publishDrawerOpen(false);
+  });
+
+  it("a drawer that starts open is published as open", () => {
+    seedPreferences(true, "chat");
+
+    renderSidebar();
+
+    expect(isDrawerOpen()).toBe(true);
+  });
+
+  it("a drawer that starts collapsed is published as collapsed, even after an open one", () => {
+    publishDrawerOpen(true);
+    seedPreferences(false, "chat");
+
+    renderSidebar();
+
+    expect(isDrawerOpen()).toBe(false);
+  });
+
+  it("every gesture is published: open, switch, collapse", () => {
+    // A seat that starts collapsed: the preference says so.
+    localStorage.setItem(
+      sidebarPreferencesKey(WORLD_ID, "user-2"),
+      JSON.stringify({ open: false, activeTab: "chat" }),
+    );
+    const state = new SidebarDrawerState({
+      worldId: WORLD_ID,
+      userId: "user-2",
+      isGm: true,
+      visibleTabIds: ["chat", "combat", "compendium"],
+    });
+    expect(isDrawerOpen()).toBe(false);
+
+    state.select("combat");
+    expect(isDrawerOpen()).toBe(state.open);
+    expect(isDrawerOpen()).toBe(true);
+
+    state.select("compendium");
+    expect(isDrawerOpen()).toBe(true);
+
+    state.select("compendium");
+    expect(state.open).toBe(false);
+    expect(isDrawerOpen()).toBe(false);
+  });
+
+  it("a tab this seat cannot see changes nothing, published or not (REQ-GAV-034)", () => {
+    const state = new SidebarDrawerState({
+      worldId: WORLD_ID,
+      userId: "user-3",
+      isGm: false,
+      visibleTabIds: ["chat"],
+    });
+    const before = isDrawerOpen();
+
+    state.select("scenes");
+
+    expect(isDrawerOpen()).toBe(before);
+  });
+
+  it("the widths the bar reads are the theme's (44 px rail, 300 px panel, 900 px breakpoint)", () => {
+    const css = readFileSync(
+      fileURLToPath(new URL("../../../styles/base.css", import.meta.url)),
+      "utf8",
+    );
+
+    const declared = (token: string): number =>
+      Number(new RegExp(`${token}:\\s*(\\d+)px`).exec(css)?.[1]);
+    expect(declared("--fusion-sidebar-rail-width")).toBe(DRAWER_RAIL_WIDTH);
+    expect(declared("--fusion-sidebar-width")).toBe(DRAWER_PANEL_WIDTH);
+    // The narrow rule of the drawer itself: `@media (max-width: 899.98px)`, i.e. under 900.
+    const sidebarSource = readFileSync(
+      fileURLToPath(new URL("../Sidebar.svelte", import.meta.url)),
+      "utf8",
+    );
+    expect(sidebarSource).toContain(`max-width: ${String(DRAWER_NARROW_BREAKPOINT - 0.02)}px`);
   });
 });

@@ -57,6 +57,7 @@ import {
 } from "@fusion/shared";
 import { broadcastToWorld } from "./doc-handlers.js";
 import { sceneIsInvisibleToRole } from "../redaction.js";
+import { applyMountMovement } from "../../combat/mount-follow.js";
 
 // ---------------------------------------------------------------------------
 // Handler context shape (same deps pattern as doc-handlers.ts)
@@ -67,6 +68,8 @@ export interface VisionHandlerDeps {
   seqStore: SeqStore;
   opBuffer: OpBuffer;
   ns: Namespace;
+  /** The GM moved a mounted rider off its mount (BHR-F5-03): see `DocHandlerDeps.onRiderDismounted`. */
+  onRiderDismounted?: (info: { sceneId: string; riderTokenId: string; userId: string }) => void;
 }
 
 // ---------------------------------------------------------------------------
@@ -565,9 +568,19 @@ export function buildTokenMoveHandler(deps: VisionHandlerDeps): HandlerFn {
     // defensive only.
     const rawScene = deps.store.getRaw("scenes", sceneId);
     const rawTokens = getCollection<Record<string, unknown>>(rawScene, "tokens");
-    const updatedTokens: Record<string, unknown>[] = rawTokens.map((t) =>
-      t["_id"] === tokenId ? updatedToken : t,
+    // BHR-F5-03 (D-B03): a mounted pair is one body — the mount drags its rider in this same write; a
+    // mounted rider is not movable by a player (the GM moving him takes him off the mount).
+    const rawIdx = rawTokens.findIndex((t) => t["_id"] === tokenId);
+    const moved = applyMountMovement(
+      deps.store,
+      sceneId,
+      rawTokens,
+      rawIdx,
+      updatedToken,
+      isPrivileged,
     );
+    if (!moved.ok) return ackError(moved.code, moved.message);
+    const updatedTokens: Record<string, unknown>[] = moved.tokens;
 
     const updatedParent = deps.store.update(
       "scenes",
@@ -598,6 +611,14 @@ export function buildTokenMoveHandler(deps: VisionHandlerDeps): HandlerFn {
     // It used to be a bare `ns.emit`, which handed every player the document of
     // whatever scene the GM happened to be arranging.
     broadcastToWorld(deps.ns, envelope, "Scene");
+
+    if (moved.dismounted) {
+      deps.onRiderDismounted?.({
+        sceneId,
+        riderTokenId: moved.dismounted.riderTokenId,
+        userId: ctx.userId,
+      });
+    }
 
     return ackOk({ sceneId, tokenId, x, y }, seq);
   };

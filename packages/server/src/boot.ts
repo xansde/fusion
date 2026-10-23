@@ -154,6 +154,12 @@ export interface BootNetContext {
    * undefined leaves the registry with only the generic-1d20 fallback.
    */
   systemModule?: SystemModule;
+  /**
+   * The world's assets directory (same value as BootAssetContext.assetsDir).
+   * Forwarded to SocketManager so sound:play can validate the requested track
+   * exists in the library. Optional — undefined leaves that to the picker UI.
+   */
+  assetsDir?: string;
 }
 
 // ---------------------------------------------------------------------------
@@ -462,6 +468,9 @@ export async function boot(options: BootOptions): Promise<BootResult> {
 
   // Register auth routes if a world context is provided.
   let authServiceInstance: AuthService | undefined;
+  // Deferred like `updateHooks`: the routes are registered before the socket layer exists (Phase 3b).
+  const authHooks: { onCharacterCreated: ((actor: Record<string, unknown>) => void) | undefined } =
+    { onCharacterCreated: undefined };
   if (authContext) {
     const { AuthService, registerAuthRoutes } = await import("./auth/index.js");
     authServiceInstance = new AuthService(authContext.db, authContext.secret, authContext.worldId);
@@ -472,6 +481,7 @@ export async function boot(options: BootOptions): Promise<BootResult> {
         title: authContext.worldTitle,
         systemId: authContext.worldSystemId,
       },
+      onCharacterCreated: (actor) => authHooks.onCharacterCreated?.(actor),
     });
     logger.info({ worldId: authContext.worldId }, "Auth routes registered");
   }
@@ -523,6 +533,18 @@ export async function boot(options: BootOptions): Promise<BootResult> {
       },
     });
     logger.info("Update routes registered (GET/POST /admin/update/*)");
+  }
+
+  // Avatar acervo (spec 35, REQ-AVT-041). Registered BEFORE the SPA so that a
+  // missing acervo answers an honest 404 instead of index.html (the client
+  // parses these as JSON). See avatar/routes.ts for the resolution order.
+  {
+    const { registerAvatarRoutes } = await import("./avatar/routes.js");
+    const { resolveClientDistDir } = await import("./spa/routes.js");
+    registerAvatarRoutes(fastify, {
+      clientDistDir: resolveClientDistDir(spaContext?.distDir),
+      logger,
+    });
   }
 
   // Register the SPA static build (REQ-DST-002) — ON by default. Registered
@@ -675,31 +697,105 @@ export async function boot(options: BootOptions): Promise<BootResult> {
     // so compendium:list / index / get / import work over the real boot path
     // (not only when the service is wired manually in tests). REQ-CMP-006..012.
     // ----------------------------------------------------------------------
-    const { CompendiumService, resolveSystemPacksDir } = await import("./compendium/index.js");
+    const { CompendiumService, resolveSystemPacksDir, resolvePrivatePacksDir } =
+      await import("./compendium/index.js");
     const compendiumService = new CompendiumService(logger);
     if (netContext.systemId !== undefined) {
-      const packsDir = resolveSystemPacksDir(netContext.systemId, netContext.packsDir);
-      if (packsDir !== null) {
-        compendiumService.discoverPacks(packsDir, netContext.systemId);
+      // DEC-SYS-06-bis (spec 15, mundo misto): a composite system (e.g.
+      // "pf2e-sf2e") declares `sourceSystemIds` in its manifest instead of
+      // shipping its own packs/ — discover EACH source system's real packs
+      // dir and accumulate them into the same CompendiumService (packs are
+      // keyed by `manifest.id`, already namespaced per system — e.g.
+      // "pf2e.feats-core" / "sf2e.weapons-core" — so no collision). A
+      // non-composite system just falls back to its own single id, same as
+      // before this change.
+      const sourceSystemIds = netContext.systemModule?.manifest.sourceSystemIds ?? [
+        netContext.systemId,
+      ];
+      let anyDiscovered = false;
+      for (const sourceSystemId of sourceSystemIds) {
+        // packsDirOverride only makes sense for a single-source system; a
+        // composite system always resolves each source from the monorepo
+        // layout.
+        const packsDirOverride = sourceSystemIds.length === 1 ? netContext.packsDir : undefined;
+        const packsDir = resolveSystemPacksDir(sourceSystemId, packsDirOverride);
+        if (packsDir !== null) {
+          compendiumService.discoverPacks(packsDir, sourceSystemId);
+          anyDiscovered = true;
+          logger.info(
+            { systemId: netContext.systemId, sourceSystemId, packsDir },
+            "Compendium packs discovered",
+          );
+        } else {
+          logger.warn(
+            { systemId: netContext.systemId, sourceSystemId, packsDirOverride },
+            "Compendium packs directory not found for source system — skipping",
+          );
+        }
+      }
+      if (anyDiscovered) {
         logger.info(
           {
             systemId: netContext.systemId,
-            packsDir,
+            sourceSystemIds,
             // Server-side startup log: count the whole shelf, GM audience —
             // this never reaches a client (REQ-CMP-010a is enforced per-request
             // in the handlers, from the socket's own role).
             packs: compendiumService.listPacks(UserRole.GAMEMASTER).length,
           },
-          "Compendium packs discovered",
+          "Compendium packs discovery complete",
         );
       } else {
         logger.warn(
-          { systemId: netContext.systemId, packsDirOverride: netContext.packsDir },
-          "Compendium packs directory not found — compendium:list will be empty",
+          { systemId: netContext.systemId, sourceSystemIds },
+          "No compendium packs directory found for any source system — compendium:list will be empty",
+        );
+      }
+
+      // Private packs (DEC-CMP-11, REQ-CMP-057/058): a second, non-versioned
+      // root the GM can point the server at (default
+      // `<dataDir>/private-packs/<systemId>/`, override via
+      // FUSION_PRIVATE_PACKS_DIR) to load content that must never reach git —
+      // e.g. Paizo playtest classes, same restriction as docs/etmos-fontes/.
+      // Discovered AFTER the official root above, so a colliding packId
+      // (REQ-CMP-058) never overwrites an official pack. Missing directory is
+      // the expected, silent common case — no warning log.
+      // Composite worlds (pf2e-sf2e) read one private root PER source system.
+      for (const sourceSystemId of sourceSystemIds) {
+        const privatePacksDir = resolvePrivatePacksDir(config.dataDir, sourceSystemId);
+        if (privatePacksDir === null) continue;
+        const beforeCount = compendiumService.listPacks(UserRole.GAMEMASTER).length;
+        compendiumService.discoverPacks(privatePacksDir, sourceSystemId);
+        logger.info(
+          {
+            systemId: netContext.systemId,
+            sourceSystemId,
+            privatePacksDir,
+            packs: compendiumService.listPacks(UserRole.GAMEMASTER).length - beforeCount,
+          },
+          "Private compendium packs discovered",
         );
       }
     } else {
       logger.warn("No systemId provided to net context — compendium packs not loaded");
+    }
+
+    // REQ-CMP-056: characters created before a pack gained a rule get it now.
+    // Idempotent (a second boot writes nothing) and never fatal to the boot.
+    if (netContext.systemId !== undefined) {
+      try {
+        const { syncEmbeddedPackRules } = await import("./compendium/embedded-rules-sync.js");
+        syncEmbeddedPackRules({
+          db: netContext.db,
+          compendiumService,
+          ...(netContext.systemModule !== undefined
+            ? { systemModule: netContext.systemModule }
+            : {}),
+          logger,
+        });
+      } catch (err) {
+        logger.warn({ err }, "Embedded pack rules sync failed — characters left as they were");
+      }
     }
 
     const nsOptions: WorldNamespaceOptions = {
@@ -718,7 +814,16 @@ export async function boot(options: BootOptions): Promise<BootResult> {
     if (netContext.maxConnections !== undefined) {
       nsOptions.maxConnections = netContext.maxConnections;
     }
+    if (netContext.assetsDir !== undefined) {
+      nsOptions.assetsDir = netContext.assetsDir;
+    }
     socketManager.registerWorldNamespace(nsOptions);
+    // #254: the character born with a new user (REST path) reaches the clients already connected.
+    const smForCharacters = socketManager;
+    const netWorldId = netContext.worldId;
+    authHooks.onCharacterCreated = (actor) => {
+      smForCharacters.broadcastDocCreated(netWorldId, "Actor", [actor]);
+    };
 
     logger.info(
       { worldId: netContext.worldId, path: `/world/${netContext.worldId}` },

@@ -2,6 +2,8 @@
 <html lang="pt-BR">
 <head>
 <meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<!-- Atualizado para a linguagem visual de 22/10/2026 (lane ui-gaveta). Fonte dos tokens: packages/client/src/styles/base.css. -->
 <title>PROTOTYPE — Sidebar rail (3 variantes; C aprovada)</title>
 <!--
   PROTOTYPE — throwaway. Pergunta original: "como a barra lateral direita deve ficar
@@ -13,215 +15,490 @@
   abas e os mesmos gestos:
    · sete abas em três blocos: Chat/Contatos/Combate/Compêndio, grupo GM (NPCs/Cenas)
      e Configurações ancorada no RODAPÉ (DEC-GAV-01 emendada por DEC-GAV-09);
-   · recolher = clicar no ícone da aba ativa; sem chevron e sem ✕ (DEC-GAV-03);
+   · recolher = clicar no ícone da aba ativa; sem chevron e sem X (DEC-GAV-03);
    · sem atalhos de teclado (DEC-GAV-05);
    · badge aparece mesmo na aba ativa e aberta (REQ-GAV-021).
+
+  LINGUAGEM VISUAL (22/10/2026): trilho só com ícones SVG (Lucide, mesmo traço do set do
+  app), alvos de 44x44, badge sem brilho, tooltip como camada flutuante (visível também no
+  foco de teclado), tokens --fusion-* nos dois temas.
 
   O painel de cada aba é assunto da spec-filha: Configurações → 37 e
   settings-tab.prototype.html; Chat → 38 e chat-tab.prototype.html.
   Não é código de produção; não importar nada daqui sem reescrever.
 -->
 <style>
-  :root{
-    --bg:#0e0e12;--surface:#18181f;--surface-alt:#1f1f2a;--border:#2e2e3d;
-    --text:#e8e8f0;--muted:#8888a0;--subtle:#55556a;
-    --accent:#7c5cfc;--accent-hover:#9b7ffe;--accent-dim:rgba(124,92,252,.15);
-    --danger:#ff5c5c;--radius-sm:4px;--radius:8px;--radius-lg:12px;
-    --font:system-ui,-apple-system,"Segoe UI",sans-serif;
-    --header:48px;--panel-w:300px;--rail-w:44px;
-  }
-  *{box-sizing:border-box}
-  html,body{margin:0;height:100%;background:var(--bg);color:var(--text);font-family:var(--font);font-size:14px;overflow:hidden}
+/* ===== BLOCO DE TOKENS (copiar integral para o <style> de cada protótipo) ===== */
+@font-face{font-family:"Atkinson Hyperlegible Next";font-style:normal;font-display:swap;font-weight:200 800;src:url("../src/styles/fonts/atkinson-hyperlegible-next-latin-wght-normal.woff2") format("woff2")}
+@font-face{font-family:"Atkinson Hyperlegible Mono";font-style:normal;font-display:swap;font-weight:200 800;src:url("../src/styles/fonts/atkinson-hyperlegible-mono-latin-wght-normal.woff2") format("woff2")}
+:root {
+  color-scheme: dark;
+
+  /* Surfaces: warm charcoal, three flat steps. */
+  --fusion-bg: #141311;
+  --fusion-surface: #1c1b18;
+  --fusion-surface-alt: #25231f;
+  --fusion-input-bg: #11100e;
+  --fusion-border: #3b3830;
+  --fusion-border-strong: #575245;
+
+  /* Text: off-white, never #fff. Muted and subtle stay AA on every surface. */
+  --fusion-text: #ebe5d6;
+  --fusion-text-muted: #b8b09e;
+  --fusion-text-subtle: #9a927f;
+
+  /* The one accent — brass. Interactive and "selected" only, never decoration. */
+  --fusion-accent: #d6a24a;
+  --fusion-accent-hover: #e4b765;
+  --fusion-accent-dim: rgba(214, 162, 74, 0.16);
+  --fusion-on-accent: #1a1408;
+
+  /* Semantic */
+  --fusion-success: #7cc395;
+  --fusion-warning: #e8925a;
+  --fusion-danger: #ec7468;
+  --fusion-info: #7fb2dc;
+  --fusion-magic: #b9a0ea;
+
+  /* Semantic washes — subtle tinted fills for badges / states */
+  --fusion-success-dim: rgba(124, 195, 149, 0.15);
+  --fusion-warning-dim: rgba(232, 146, 90, 0.15);
+  --fusion-danger-dim: rgba(236, 116, 104, 0.15);
+  --fusion-info-dim: rgba(127, 178, 220, 0.15);
+  --fusion-magic-dim: rgba(185, 160, 234, 0.15);
+
+  /* Chat system card (A022, spec 38, DEC-ACH-02/03 + REQ-ACH-025): a card's left border is
+     this fixed blue regardless of sender, so "this is a system card" reads apart from
+     "this is <someone>'s message". Not derived from the accent/semantic tones on purpose —
+     those already carry meaning in chat (crit, fumble, blind). */
+  --fusion-chat-sys: #6fa6cc;
+
+  /* Focus ring: its own colour, never the accent, so focus never reads as "selected". */
+  --fusion-focus: #9ccaff;
+
+  /* Elevation: one soft shadow, for floating windows, popovers and menus only. */
+  --fusion-shadow-modal: 0 12px 32px rgba(0, 0, 0, 0.45);
+  --fusion-shadow-popover: 0 6px 18px rgba(0, 0, 0, 0.35);
+
+  /* Proficiency (TEML — Destreinado, Treinado, Expert, Mestre, Lendário). */
+  --fusion-prof-u: var(--fusion-text-subtle);
+  --fusion-prof-t: var(--fusion-info);
+  --fusion-prof-e: var(--fusion-success);
+  --fusion-prof-m: var(--fusion-accent);
+  --fusion-prof-l: var(--fusion-magic);
+
+  --fusion-prof-u-bg: rgba(154, 146, 127, 0.14);
+  --fusion-prof-t-bg: var(--fusion-info-dim);
+  --fusion-prof-e-bg: var(--fusion-success-dim);
+  --fusion-prof-m-bg: var(--fusion-accent-dim);
+  --fusion-prof-l-bg: var(--fusion-magic-dim);
+
+  --fusion-prof-u-border: var(--fusion-border);
+  --fusion-prof-t-border: rgba(127, 178, 220, 0.45);
+  --fusion-prof-e-border: rgba(124, 195, 149, 0.45);
+  --fusion-prof-m-border: rgba(214, 162, 74, 0.45);
+  --fusion-prof-l-border: rgba(185, 160, 234, 0.45);
+
+  /* Typography. rem sizes (the reader's browser zoom wins); nothing below xs. */
+  --fusion-font:
+    "Atkinson Hyperlegible Next", system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial,
+    sans-serif;
+  --fusion-font-mono:
+    "Atkinson Hyperlegible Mono", ui-monospace, "Cascadia Code", "Source Code Pro", Menlo, Consolas,
+    monospace;
+  --fusion-text-xs: 0.8125rem; /* 13px — captions, badges: the floor */
+  --fusion-text-sm: 0.875rem; /* 14px — dense lists, secondary text */
+  --fusion-text-base: 0.9375rem; /* 15px — body */
+  --fusion-text-md: 1rem; /* 16px — reading text (journal, descriptions) */
+  --fusion-text-lg: 1.125rem; /* 18px — section titles */
+  --fusion-text-xl: 1.375rem; /* 22px — window / sheet titles */
+  --fusion-text-2xl: 1.75rem; /* 28px — the big number of a stat or a roll */
+  --fusion-leading: 1.5;
+  --fusion-leading-tight: 1.25;
+  --fusion-tracking: 0.012em;
+  --fusion-word-spacing: 0.06em;
+  --fusion-weight-regular: 400;
+  --fusion-weight-medium: 500;
+  --fusion-weight-bold: 700;
+  /* Readable line length for prose. */
+  --fusion-measure: 68ch;
+
+  /* Spacing (4px grid) */
+  --fusion-space-1: 4px;
+  --fusion-space-2: 8px;
+  --fusion-space-3: 12px;
+  --fusion-space-4: 16px;
+  --fusion-space-5: 20px;
+  --fusion-space-6: 24px;
+  --fusion-space-8: 32px;
+
+  /* Radii: small and few. Pills only for counters. */
+  --fusion-radius-sm: 3px;
+  --fusion-radius: 6px;
+  --fusion-radius-lg: 8px;
+  --fusion-radius-pill: 999px;
+
+  /* Touch target floor (mouse and finger). */
+  --fusion-target: 40px;
+
+  /* Motion */
+  --fusion-transition: 150ms ease;
+
+  /* Layout.
+     The side drawer is one fixed width for every tab (REQ-GAV-012, DEC-GAV-04):
+     300px of panel plus a 44px rail, and no user resize — a tab that needs more
+     room opens a floating window instead of stretching the drawer. */
+  --fusion-sidebar-width: 300px;
+  --fusion-sidebar-rail-width: 44px;
+  --fusion-header-height: 48px;
+
+  /* Layer scale (spec 11 REQ-UIF-008; spec 53 §2.7 — BAR-F1-03).
+     The z-index of the shell's layers, declared in one place so nobody hard-codes a number:
+
+       canvas
+       < scene notice               60  literal in ScenePrepareNotice.svelte
+       < action bar                 70  --fusion-z-actionbar
+       < side drawer                90  literal in Sidebar.svelte
+       < header                    100  literal in TableScreen.svelte
+       < floating windows         101+  counted up by the window manager, inside the host
+       < window host               200  --fusion-z-windows
+       < tooltip, popover          400  --fusion-z-tooltip
+       < context menu              410  --fusion-z-menu
+
+     Tooltip, popover and menu are portaled to <body> (lib/ui/floatingLayer.ts), so these
+     numbers are compared with the window host's own: the host is a stacking context at
+     200, and a layer rendered *inside* a window could never rise above it.
+     They also clear the in-page modals that still use literals (token dialogs 200/201, file
+     picker 300/301), so a tooltip or menu opened from inside one stays visible. REQ-UIF-008
+     wants modals above menus and tooltips; that is for the day modals get tokens of their own
+     (above 410) — a native <dialog> is already above everything, in the top layer. */
+  --fusion-z-actionbar: 70;
+  --fusion-z-windows: 200;
+  --fusion-z-tooltip: 400;
+  --fusion-z-menu: 410;
+
+  /* Combat turn head (spec 40, DEC-CBA-02 / REQ-CBA-021).
+     The head of the turn is one fixed height for every participant — a new condition, a
+     long name or a health bar must never move the advance control, which is anchored to
+     the footer strip below (RNF-CBA-03). Mirrored in TS by TURN_HEAD_HEIGHT_REM /
+     TURN_HEAD_FOOTER_HEIGHT_REM in lib/combat/turnHead.svelte.ts. */
+  --fusion-combat-turn-head-height: 6.5rem;
+  --fusion-combat-turn-head-footer-height: 2.25rem;
+
+  /* Condition tone (DEC-CTT-11, REQ-SYS-043 / REQ-CTT-031).
+     The colour of a condition chip says what the condition does to whoever carries it,
+     never how grave it is: green helps, red hinders, purple is a situation (detection,
+     attitude, control). Aliases rather than raw colours so the combat tab (REQ-CBA-050)
+     and the contacts tab paint the same three tones. The `-dim` fills are the emphasis of
+     a critical condition (REQ-CTT-032) — emphasis on the tone it already has, never a
+     fourth colour. */
+  --fusion-condition-benefit: var(--fusion-success);
+  --fusion-condition-harm: var(--fusion-danger);
+  --fusion-condition-special: var(--fusion-magic);
+  --fusion-condition-benefit-dim: var(--fusion-success-dim);
+  --fusion-condition-harm-dim: var(--fusion-danger-dim);
+  --fusion-condition-special-dim: var(--fusion-magic-dim);
+
+  /* The "no ar" head of the Cenas tab is one fixed height for every state
+     (REQ-CEN-010/013): a long scene name, a missing background image or the
+     environment row must never move the controls the GM presses all session. */
+  --fusion-scene-head-height: 132px;
+}
+
+:root[data-theme="light"] {
+  color-scheme: light;
+
+  --fusion-bg: #efe9dc;
+  --fusion-surface: #f9f6ef;
+  --fusion-surface-alt: #f1ebdf;
+  --fusion-input-bg: #fffdf8;
+  --fusion-border: #d3c9b5;
+  --fusion-border-strong: #b0a48c;
+
+  --fusion-text: #29251f;
+  --fusion-text-muted: #554e42;
+  --fusion-text-subtle: #6e665a;
+
+  --fusion-accent: #8a5a12;
+  --fusion-accent-hover: #6f480c;
+  --fusion-accent-dim: rgba(138, 90, 18, 0.12);
+  --fusion-on-accent: #fffaf0;
+
+  --fusion-success: #2e7448;
+  --fusion-warning: #a14f12;
+  --fusion-danger: #b0352b;
+  --fusion-info: #23628f;
+  --fusion-magic: #6a46b0;
+  --fusion-success-dim: rgba(46, 116, 72, 0.12);
+  --fusion-warning-dim: rgba(161, 79, 18, 0.12);
+  --fusion-danger-dim: rgba(176, 53, 43, 0.12);
+  --fusion-info-dim: rgba(35, 98, 143, 0.12);
+  --fusion-magic-dim: rgba(106, 70, 176, 0.12);
+
+  --fusion-chat-sys: #2d6f99;
+  --fusion-focus: #1d5fa8;
+
+  --fusion-shadow-modal: 0 12px 32px rgba(60, 45, 20, 0.22);
+  --fusion-shadow-popover: 0 6px 18px rgba(60, 45, 20, 0.18);
+
+  --fusion-prof-u-bg: rgba(110, 102, 90, 0.1);
+  --fusion-prof-t-border: rgba(35, 98, 143, 0.4);
+  --fusion-prof-e-border: rgba(46, 116, 72, 0.4);
+  --fusion-prof-m-border: rgba(138, 90, 18, 0.4);
+  --fusion-prof-l-border: rgba(106, 70, 176, 0.4);
+}
+
+/* reset + base do protótipo (sem overflow:hidden; o protótipo rola) */
+*,*::before,*::after{box-sizing:border-box}
+html,body{margin:0;min-height:100%}
+body{background:var(--fusion-bg);color:var(--fusion-text);font-family:var(--fusion-font);font-size:var(--fusion-text-base);line-height:var(--fusion-leading);letter-spacing:var(--fusion-tracking);word-spacing:var(--fusion-word-spacing);font-variant-numeric:tabular-nums;text-align:left;-webkit-font-smoothing:antialiased}
+button,input,select,textarea{font-family:inherit;font-size:inherit;letter-spacing:inherit;word-spacing:inherit;color:inherit}
+h1,h2,h3,h4,h5,h6{font-weight:var(--fusion-weight-bold);line-height:var(--fusion-leading-tight);color:var(--fusion-text);margin:0}
+:focus-visible{outline:2px solid var(--fusion-focus);outline-offset:2px}
+@media (prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:.01ms!important;transition-duration:.01ms!important}}
+.svg-i{width:1em;height:1em;flex:none;fill:none;stroke:currentColor;stroke-width:1.75;stroke-linecap:round;stroke-linejoin:round}
+.theme-toggle{position:fixed;top:8px;right:8px;z-index:9999;min-height:var(--fusion-target);padding:0 var(--fusion-space-3);background:var(--fusion-surface-alt);color:var(--fusion-text);border:1px solid var(--fusion-border-strong);border-radius:var(--fusion-radius);font-size:var(--fusion-text-sm);cursor:pointer}
+/* ===== fim do bloco de tokens ===== */
+
+
+  :root{ --panel-w:var(--fusion-sidebar-width); --rail-w:var(--fusion-sidebar-rail-width); }
+  html,body{height:100%;overflow:hidden}
 
   /* ---------- App shell (mock) ---------- */
-  .header{height:var(--header);display:flex;align-items:center;gap:.75rem;padding:0 .75rem;background:var(--surface);border-bottom:1px solid var(--border);position:relative;z-index:200}
-  .header .bolt{color:#f5a623}
-  .header .world{font-weight:600}
-  .header .pill{background:var(--accent-dim);border:1px solid var(--accent);color:var(--accent-hover);border-radius:var(--radius-sm);padding:.15rem .5rem;font-size:.8rem;font-weight:600}
+  .header{height:var(--fusion-header-height);display:flex;align-items:center;gap:var(--fusion-space-3);padding:0 9rem 0 var(--fusion-space-3);background:var(--fusion-surface);border-bottom:1px solid var(--fusion-border);position:relative;z-index:200;font-size:var(--fusion-text-sm)}
+  .header .bolt{color:var(--fusion-warning);display:grid;place-items:center;font-size:var(--fusion-text-lg)}
+  .header .world{font-weight:var(--fusion-weight-bold)}
+  .header .pill{display:inline-flex;align-items:center;gap:var(--fusion-space-1);background:var(--fusion-accent-dim);border:1px solid var(--fusion-accent);color:var(--fusion-accent);border-radius:var(--fusion-radius-sm);padding:0 var(--fusion-space-2);font-size:var(--fusion-text-xs);font-weight:var(--fusion-weight-bold);min-height:24px}
   .header .spacer{flex:1}
-  .header .status{color:var(--muted);font-size:.8rem;display:flex;align-items:center;gap:.35rem}
-  .header .dot{width:8px;height:8px;border-radius:50%;background:#3ddc84}
-  .header .gm{background:var(--surface-alt);border:1px solid var(--border);border-radius:var(--radius-sm);padding:.15rem .5rem;font-size:.8rem}
-  .header .gm b{color:var(--danger)}
-  .header .btn{background:var(--surface-alt);border:1px solid var(--border);color:var(--text);border-radius:var(--radius-sm);padding:.2rem .6rem;font:inherit;font-size:.8rem}
-  .stage{position:absolute;top:var(--header);left:0;right:0;bottom:0;background:#0b0b0f;display:grid;place-items:center}
-  .stage .art{width:44vh;height:44vh;border-radius:6px;background:radial-gradient(circle at 50% 45%,#2f6bd6 0%,#1a3f8f 55%,#132c68 100%);display:grid;place-items:center;box-shadow:0 0 0 1px #21407f}
-  .stage .art .house{width:60%;height:60%;background:#fff;clip-path:polygon(50% 0,100% 40%,88% 40%,88% 100%,12% 100%,12% 40%,0 40%);display:grid;place-items:center}
-  .stage .art .star{font-size:9vh;color:#e5b83b;margin-top:22%}
+  .header .status{color:var(--fusion-text-muted);font-size:var(--fusion-text-xs);display:flex;align-items:center;gap:var(--fusion-space-1)}
+  .header .dot{width:8px;height:8px;border-radius:50%;background:var(--fusion-success)}
+  .header .gm{display:inline-flex;align-items:center;gap:var(--fusion-space-1);background:var(--fusion-surface-alt);border:1px solid var(--fusion-border);border-radius:var(--fusion-radius-sm);padding:0 var(--fusion-space-2);min-height:28px;font-size:var(--fusion-text-xs)}
+  .header .gm .dot{background:var(--fusion-danger)}
+  .header .gm .role{color:var(--fusion-text-muted)}
+  .header .btn{background:var(--fusion-surface-alt);border:1px solid var(--fusion-border);color:var(--fusion-text);border-radius:var(--fusion-radius-sm);padding:0 var(--fusion-space-3);min-height:var(--fusion-target);font-size:var(--fusion-text-sm);cursor:pointer}
+  .stage{position:absolute;top:var(--fusion-header-height);left:0;right:0;bottom:0;background:var(--fusion-bg);display:grid;place-items:center}
+  .stage .art{width:44vh;height:44vh;border-radius:var(--fusion-radius);background:var(--fusion-info-dim);border:1px solid var(--fusion-info);display:grid;place-items:center}
+  .stage .art .house{width:60%;height:60%;background:var(--fusion-text);clip-path:polygon(50% 0,100% 40%,88% 40%,88% 100%,12% 100%,12% 40%,0 40%);display:grid;place-items:center}
+  .stage .art .star{font-size:9vh;color:var(--fusion-warning);margin-top:22%;display:grid}
 
   /* ---------- Shared bits ---------- */
-  .icon{width:20px;height:20px;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;display:block}
-  .tabbtn{position:relative;display:grid;place-items:center;background:none;border:0;color:var(--muted);cursor:pointer;padding:0;transition:color .12s,background .12s}
-  .tabbtn:hover{color:var(--text)}
-  .tabbtn.is-active{color:var(--accent-hover)}
-  .tabbtn .badge{position:absolute;top:4px;right:4px;min-width:16px;height:16px;padding:0 4px;border-radius:999px;background:var(--danger);color:#fff;font-size:.62rem;font-weight:700;display:grid;place-items:center;line-height:1}
-  .tabbtn .badge.combat{background:rgba(255,215,0,.18);border:1px solid #ffd700;color:#ffd700;font-size:.6rem}
-  .tabbtn .tip{position:absolute;right:calc(100% + 10px);top:50%;transform:translateY(-50%);background:#0b0b0f;border:1px solid var(--border);color:var(--text);padding:.25rem .5rem;border-radius:var(--radius-sm);font-size:.75rem;white-space:nowrap;opacity:0;pointer-events:none;transition:opacity .1s;box-shadow:0 4px 14px rgba(0,0,0,.5);z-index:5}
-  .tabbtn:hover .tip{opacity:1}
-  .tabbtn .tip .kbd{color:var(--subtle);margin-left:.4rem;font-family:ui-monospace,monospace;font-size:.7rem}
-  .divider{height:1px;background:var(--border);margin:6px 8px}
+  .tabbtn{position:relative;display:grid;place-items:center;background:none;border:0;color:var(--fusion-text-muted);cursor:pointer;padding:0;min-width:var(--fusion-target);min-height:var(--fusion-target);font-size:20px;transition:color var(--fusion-transition),background var(--fusion-transition)}
+  .tabbtn:hover{color:var(--fusion-text)}
+  .tabbtn.is-active{color:var(--fusion-accent)}
+  .tabbtn .badge{position:absolute;top:2px;right:2px;min-width:18px;height:18px;padding:0 var(--fusion-space-1);border-radius:var(--fusion-radius-pill);background:var(--fusion-danger);color:var(--fusion-bg);font-size:var(--fusion-text-xs);font-weight:var(--fusion-weight-bold);display:grid;place-items:center;line-height:1}
+  .tabbtn .badge.combat{background:var(--fusion-warning-dim);border:1px solid var(--fusion-warning);color:var(--fusion-warning)}
+  .tabbtn .badge .svg-i{width:12px;height:12px}
+  .tabbtn .tip{position:absolute;right:calc(100% + 10px);top:50%;transform:translateY(-50%);background:var(--fusion-surface-alt);border:1px solid var(--fusion-border-strong);color:var(--fusion-text);padding:var(--fusion-space-1) var(--fusion-space-2);border-radius:var(--fusion-radius-sm);font-size:var(--fusion-text-xs);white-space:nowrap;opacity:0;pointer-events:none;transition:opacity var(--fusion-transition);box-shadow:var(--fusion-shadow-popover);z-index:5}
+  .tabbtn:hover .tip,.tabbtn:focus-visible .tip{opacity:1}
+  .divider{height:1px;background:var(--fusion-border);margin:6px 8px}
   .grow{flex:1}
+  .gm-tag{font-size:var(--fusion-text-xs);color:var(--fusion-danger);border:1px solid var(--fusion-danger);border-radius:var(--fusion-radius-sm);padding:0 var(--fusion-space-1);margin-left:var(--fusion-space-2)}
 
   /* panel content mock */
-  .panel-head{display:flex;align-items:center;justify-content:space-between;padding:.6rem .8rem;border-bottom:1px solid var(--border);font-size:.72rem;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
-  .panel-head .close{background:none;border:0;color:var(--muted);cursor:pointer;font-size:1rem;line-height:1}
-  .panel-body{flex:1;overflow:auto;padding:.75rem .8rem;color:var(--muted);font-size:.85rem}
-  .empty{text-align:center;padding:1.5rem 0 .75rem;color:var(--muted)}
-  .row{display:flex;align-items:center;gap:.5rem;padding:.4rem .5rem;border-radius:var(--radius-sm)}
-  .row:hover{background:var(--surface-alt)}
-  .row .name{color:var(--text)}
-  .row .sub{color:var(--subtle);font-size:.75rem;margin-left:auto}
-  .btnp{background:var(--accent);color:#fff;border:0;border-radius:var(--radius-sm);padding:.35rem .7rem;font:inherit;font-size:.8rem;font-weight:600;cursor:pointer}
-  .btns{background:var(--surface-alt);color:var(--text);border:1px solid var(--border);border-radius:var(--radius-sm);padding:.35rem .7rem;font:inherit;font-size:.8rem;cursor:pointer}
-  .actions{display:flex;gap:.5rem;justify-content:center;flex-wrap:wrap}
-  .msg{padding:.4rem .5rem;border-left:2px solid var(--border);margin-bottom:.5rem}
-  .msg b{color:var(--text)}
-  .mods-empty{border:1px dashed var(--border);border-radius:var(--radius);padding:1rem;text-align:center;color:var(--subtle)}
-  .mods-empty .btnp{margin-top:.6rem}
-  .setting{display:flex;justify-content:space-between;align-items:center;padding:.5rem 0;border-bottom:1px solid var(--border)}
-  .setting .name{color:var(--text)}
-  .toggle{width:32px;height:18px;border-radius:999px;background:var(--border);position:relative}
-  .toggle::after{content:"";position:absolute;top:2px;left:2px;width:14px;height:14px;border-radius:50%;background:var(--muted)}
-  .toggle.on{background:var(--accent)}.toggle.on::after{left:16px;background:#fff}
-  .gm-tag{font-size:.6rem;color:var(--danger);border:1px solid var(--danger);border-radius:3px;padding:0 3px;margin-left:.4rem;letter-spacing:.05em}
-  .sec-title{font-size:.7rem;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--subtle);margin:.2rem 0 .5rem}
+  .panel-head{display:flex;align-items:center;justify-content:space-between;min-height:var(--fusion-target);padding:var(--fusion-space-2) var(--fusion-space-3);border-bottom:1px solid var(--fusion-border);font-size:var(--fusion-text-md);font-weight:var(--fusion-weight-bold);color:var(--fusion-text)}
+  .panel-body{flex:1;overflow:auto;padding:var(--fusion-space-3);color:var(--fusion-text-muted);font-size:var(--fusion-text-base)}
+  .empty{text-align:center;padding:var(--fusion-space-6) 0 var(--fusion-space-3);color:var(--fusion-text-muted);margin:0}
+  .row{display:flex;align-items:center;gap:var(--fusion-space-2);min-height:var(--fusion-target);padding:var(--fusion-space-1) var(--fusion-space-2);border-radius:var(--fusion-radius-sm)}
+  .row:hover,.row:focus-within{background:var(--fusion-surface-alt)}
+  .row .name{color:var(--fusion-text);flex:1;min-width:0}
+  .row .sub{color:var(--fusion-text-subtle);font-size:var(--fusion-text-xs);margin-left:auto;display:inline-flex;align-items:center}
+  .row .lead{display:grid;place-items:center;font-size:18px;color:var(--fusion-text-muted);flex:none}
+  .st-on,.st-off{width:10px;height:10px;border-radius:50%;flex:none;margin:0 5px}
+  .st-on{background:var(--fusion-success)}
+  .st-off{border:2px solid var(--fusion-text-subtle)}
+  .row-actions{display:flex;opacity:0;transition:opacity var(--fusion-transition)}
+  .row:hover .row-actions,.row:focus-within .row-actions{opacity:1}
+  @media (hover:none){.row-actions{opacity:1}}
+  .iconbtn{display:grid;place-items:center;min-width:var(--fusion-target);min-height:var(--fusion-target);background:none;border:0;color:var(--fusion-text-muted);cursor:pointer;border-radius:var(--fusion-radius-sm);font-size:18px;padding:0}
+  .iconbtn:hover{color:var(--fusion-text);background:var(--fusion-surface-alt)}
+  .iconbtn.danger:hover{color:var(--fusion-danger)}
+  .btnp{background:var(--fusion-accent);color:var(--fusion-on-accent);border:0;border-radius:var(--fusion-radius-sm);padding:0 var(--fusion-space-3);min-height:var(--fusion-target);font-size:var(--fusion-text-sm);font-weight:var(--fusion-weight-bold);cursor:pointer}
+  .btnp:hover{background:var(--fusion-accent-hover)}
+  .btns{background:var(--fusion-surface-alt);color:var(--fusion-text);border:1px solid var(--fusion-border);border-radius:var(--fusion-radius-sm);padding:0 var(--fusion-space-3);min-height:var(--fusion-target);font-size:var(--fusion-text-sm);cursor:pointer}
+  .actions{display:flex;gap:var(--fusion-space-2);justify-content:center;flex-wrap:wrap;margin-top:var(--fusion-space-3)}
+  .msg{padding:var(--fusion-space-1) var(--fusion-space-2);border-left:2px solid var(--fusion-border);margin-bottom:var(--fusion-space-2)}
+  .msg b{color:var(--fusion-text)}
+  .msg .time{font-size:var(--fusion-text-xs)}
+  .field{display:flex;align-items:center;gap:var(--fusion-space-2);min-height:var(--fusion-target);border:1px solid var(--fusion-border);background:var(--fusion-input-bg);border-radius:var(--fusion-radius-sm);padding:0 var(--fusion-space-2);color:var(--fusion-text-subtle);margin-top:var(--fusion-space-3)}
+  .field.top{margin:0 0 var(--fusion-space-3)}
+  .go{color:var(--fusion-text-subtle);font-size:18px;display:grid}
 
   /* ========== VARIANTE A — Trilho fixo na borda (activity bar) ========== */
-  .A .sidebar{position:absolute;top:var(--header);right:0;bottom:0;display:flex;z-index:90}
-  .A .rail{width:var(--rail-w);background:var(--surface);border-left:1px solid var(--border);display:flex;flex-direction:column;align-items:stretch;padding:6px 0}
-  .A .rail .tabbtn{height:40px;margin:2px 4px;border-radius:var(--radius-sm)}
-  .A .rail .tabbtn.is-active{background:var(--accent-dim)}
-  .A .rail .tabbtn.is-active::before{content:"";position:absolute;left:-4px;top:8px;bottom:8px;width:2px;background:var(--accent);border-radius:2px}
-  .A .panel{width:var(--panel-w);background:var(--surface);border-left:1px solid var(--border);display:none;flex-direction:column}
+  .A .sidebar{position:absolute;top:var(--fusion-header-height);right:0;bottom:0;display:flex;z-index:90}
+  .A .rail{width:var(--rail-w);background:var(--fusion-surface);border-left:1px solid var(--fusion-border);display:flex;flex-direction:column;align-items:stretch;padding:6px 0}
+  .A .rail .tabbtn{height:44px;margin:2px 0;border-radius:var(--fusion-radius-sm)}
+  .A .rail .tabbtn.is-active{background:var(--fusion-accent-dim)}
+  .A .rail .tabbtn.is-active::before{content:"";position:absolute;left:0;top:8px;bottom:8px;width:2px;background:var(--fusion-accent);border-radius:2px}
+  .A .panel{width:var(--panel-w);background:var(--fusion-surface);border-left:1px solid var(--fusion-border);display:none;flex-direction:column}
   .A.is-open .panel{display:flex}
 
-  /* ========== VARIANTE B — Dock flutuante + painel-cartão ========== */
-  .B .sidebar{position:absolute;top:var(--header);right:0;bottom:0;display:flex;align-items:center;gap:10px;padding:12px;z-index:90;pointer-events:none}
+  /* ========== VARIANTE B — Dock flutuante + painel (camadas flutuantes) ========== */
+  .B .sidebar{position:absolute;top:var(--fusion-header-height);right:0;bottom:0;display:flex;align-items:center;gap:10px;padding:var(--fusion-space-3);z-index:90;pointer-events:none}
   .B .sidebar>*{pointer-events:auto}
-  .B .dock{display:flex;flex-direction:column;gap:2px;background:rgba(24,24,31,.92);backdrop-filter:blur(8px);border:1px solid var(--border);border-radius:999px;padding:6px 4px;box-shadow:0 8px 30px rgba(0,0,0,.55)}
-  .B .dock .tabbtn{width:38px;height:38px;border-radius:50%}
-  .B .dock .tabbtn.is-active{background:var(--accent);color:#fff}
-  .B .dock .sep{height:1px;background:var(--border);margin:4px 8px}
-  .B .panel{width:var(--panel-w);max-height:min(78vh,720px);align-self:center;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);display:none;flex-direction:column;box-shadow:0 12px 40px rgba(0,0,0,.6);overflow:hidden}
+  .B .dock{display:flex;flex-direction:column;gap:2px;background:var(--fusion-surface-alt);border:1px solid var(--fusion-border-strong);border-radius:var(--fusion-radius-lg);padding:6px 4px;box-shadow:var(--fusion-shadow-popover)}
+  .B .dock .tabbtn{width:44px;height:44px;border-radius:var(--fusion-radius)}
+  .B .dock .tabbtn.is-active{background:var(--fusion-accent);color:var(--fusion-on-accent)}
+  .B .dock .sep{height:1px;background:var(--fusion-border);margin:4px 8px}
+  .B .panel{width:var(--panel-w);max-height:min(78vh,720px);align-self:center;background:var(--fusion-surface);border:1px solid var(--fusion-border-strong);border-radius:var(--fusion-radius-lg);display:none;flex-direction:column;box-shadow:var(--fusion-shadow-modal);overflow:hidden}
   .B.is-open .panel{display:flex}
-  .B .panel-head{background:var(--surface-alt)}
+  .B .panel-head{background:var(--fusion-surface-alt)}
 
   /* ========== VARIANTE C — Abas físicas grudadas ao painel (gaveta) ========== */
-  .C .sidebar{position:absolute;top:var(--header);right:0;bottom:0;display:flex;z-index:90}
+  .C .sidebar{position:absolute;top:var(--fusion-header-height);right:0;bottom:0;display:flex;z-index:90}
   .C .tabs{width:var(--rail-w);display:flex;flex-direction:column;padding-top:10px;gap:3px;align-items:flex-end}
-  .C .tabs .tabbtn{width:40px;height:44px;border:1px solid var(--border);border-right:0;border-radius:var(--radius) 0 0 var(--radius);background:var(--surface-alt);color:var(--muted)}
-  .C .tabs .tabbtn.is-active{background:var(--surface);color:var(--accent-hover);width:44px;border-color:var(--accent);z-index:2}
-  .C.is-open .tabs .tabbtn.is-active{box-shadow:1px 0 0 0 var(--surface)}
-  .C .tabs .tabbtn.is-active .icon{width:22px;height:22px}
+  .C .tabs .tabbtn{width:var(--rail-w);height:44px;border:1px solid var(--fusion-border);border-right:0;border-radius:var(--fusion-radius) 0 0 var(--fusion-radius);background:var(--fusion-surface-alt);color:var(--fusion-text-muted)}
+  .C .tabs .tabbtn:hover{color:var(--fusion-text)}
+  .C .tabs .tabbtn.is-active{background:var(--fusion-surface);color:var(--fusion-accent);border-color:var(--fusion-accent);z-index:2;font-size:22px}
+  .C.is-open .tabs .tabbtn.is-active{margin-right:-1px;width:calc(var(--rail-w) + 1px);border-right:1px solid var(--fusion-surface)}
   .C .tabs .grp{display:flex;flex-direction:column;gap:3px;align-items:flex-end}
   .C .tabs .grp.gm{margin-top:14px;position:relative}
-  .C .tabs .grp.gm::before{content:"";position:absolute;top:-8px;right:6px;width:28px;height:1px;background:var(--border)}
-  .C .tabs .grp.gm .tabbtn{border-color:rgba(255,92,92,.35)}
+  .C .tabs .grp.gm::before{content:"";position:absolute;top:-8px;right:6px;width:28px;height:1px;background:var(--fusion-border)}
+  .C .tabs .grp.gm .tabbtn{border-color:var(--fusion-danger-dim)}
+  .C .tabs .grp.gm .tabbtn.is-active{border-color:var(--fusion-accent)}
   .C .tabs .foot{margin-top:auto;margin-bottom:10px;position:relative;display:flex;flex-direction:column;gap:3px;align-items:flex-end}
-  .C .tabs .foot::before{content:"";position:absolute;top:-8px;right:6px;width:28px;height:1px;background:var(--border)}
-  .C .panel{width:var(--panel-w);background:var(--surface);border-left:1px solid var(--accent);display:none;flex-direction:column}
+  .C .tabs .foot::before{content:"";position:absolute;top:-8px;right:6px;width:28px;height:1px;background:var(--fusion-border)}
+  .C .panel{width:var(--panel-w);background:var(--fusion-surface);border-left:1px solid var(--fusion-accent);display:none;flex-direction:column}
   .C.is-open .panel{display:flex}
-  .C .panel .panel-head{border-bottom-color:var(--accent-dim)}
+  .C .panel .panel-head{border-bottom-color:var(--fusion-accent-dim)}
 
-  /* ---------- Floating switcher (não faz parte do design) ---------- */
-  .switcher{position:fixed;left:50%;bottom:16px;transform:translateX(-50%);z-index:9999;display:flex;align-items:center;gap:.5rem;background:#fff;color:#111;border-radius:999px;padding:.35rem .5rem .35rem .75rem;box-shadow:0 8px 30px rgba(0,0,0,.6);font-size:.85rem;font-weight:600}
-  .switcher button{border:0;background:#111;color:#fff;width:28px;height:28px;border-radius:50%;cursor:pointer;font-size:1rem}
+  /* ---------- Switcher (não faz parte do design) ---------- */
+  .switcher{position:fixed;left:50%;bottom:var(--fusion-space-4);transform:translateX(-50%);z-index:9999;display:flex;align-items:center;gap:var(--fusion-space-2);background:var(--fusion-surface-alt);color:var(--fusion-text);border:1px solid var(--fusion-border-strong);border-radius:var(--fusion-radius-lg);padding:var(--fusion-space-1) var(--fusion-space-2);box-shadow:var(--fusion-shadow-popover);font-size:var(--fusion-text-sm);font-weight:var(--fusion-weight-bold)}
+  .switcher button{display:grid;place-items:center;border:1px solid var(--fusion-border);background:var(--fusion-surface);color:var(--fusion-text);min-width:var(--fusion-target);min-height:var(--fusion-target);border-radius:var(--fusion-radius);cursor:pointer;font-size:20px;padding:0}
   .switcher .lbl{min-width:260px;text-align:center}
-  .switcher .lbl small{display:block;font-weight:400;color:#555;font-size:.72rem}
+  .switcher .lbl small{display:block;font-weight:var(--fusion-weight-regular);color:var(--fusion-text-muted);font-size:var(--fusion-text-xs)}
 </style>
 </head>
 <body>
+<button type="button" class="theme-toggle" id="theme-toggle" aria-label="Alternar tema">Tema: escuro</button>
+<script>
+  (function () {
+    var b = document.getElementById("theme-toggle");
+    function paint() { b.textContent = "Tema: " + (document.documentElement.dataset.theme === "light" ? "claro" : "escuro"); }
+    b.addEventListener("click", function () {
+      document.documentElement.dataset.theme = document.documentElement.dataset.theme === "light" ? "dark" : "light";
+      paint();
+    });
+    paint();
+  })();
+</script>
+
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <symbol id="i-zap" viewBox="0 0 24 24"><path d="M15.914 4a1.5 1.5 0 00-2.474-1.561l-9 9A1.5 1.5 0 005.5 14h4.002a.5.5 0 01.471.666L8.086 20a1.5 1.5 0 002.475 1.56l9-9A1.5 1.5 0 0018.5 10h-3.997a.5.5 0 01-.472-.667z"/></symbol>
+  <symbol id="i-map" viewBox="0 0 24 24"><path d="M14.106 5.553a2 2 0 0 0 1.788 0l3.659-1.83A1 1 0 0 1 21 4.619v12.764a1 1 0 0 1-.553.894l-4.553 2.277a2 2 0 0 1-1.788 0l-4.212-2.106a2 2 0 0 0-1.788 0l-3.659 1.83A1 1 0 0 1 3 19.381V6.618a1 1 0 0 1 .553-.894l4.553-2.277a2 2 0 0 1 1.788 0z"/><path d="M15 5.764v15"/><path d="M9 3.236v15"/></symbol>
+  <symbol id="i-star" viewBox="0 0 24 24"><path d="M11.525 2.295a.53.53 0 0 1 .95 0l2.31 4.679a2.123 2.123 0 0 0 1.595 1.16l5.166.756a.53.53 0 0 1 .294.904l-3.736 3.638a2.123 2.123 0 0 0-.611 1.878l.882 5.14a.53.53 0 0 1-.771.56l-4.618-2.428a2.122 2.122 0 0 0-1.973 0L6.396 21.01a.53.53 0 0 1-.77-.56l.881-5.139a2.122 2.122 0 0 0-.611-1.879L2.16 9.795a.53.53 0 0 1 .294-.906l5.165-.755a2.122 2.122 0 0 0 1.597-1.16z"/></symbol>
+  <symbol id="i-message-square" viewBox="0 0 24 24"><path d="M22 17a2 2 0 0 1-2 2H6.828a2 2 0 0 0-1.414.586l-2.202 2.202A.71.71 0 0 1 2 21.286V5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2z"/></symbol>
+  <symbol id="i-users" viewBox="0 0 24 24"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><path d="M16 3.128a4 4 0 0 1 0 7.744"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><circle cx="9" cy="7" r="4"/></symbol>
+  <symbol id="i-swords" viewBox="0 0 24 24"><path d="m13 19 6-6"/><path d="M14.5 17.5 3.586 6.586A2 2 0 013 5.172V3h2.172a2 2 0 011.414.586L17.5 14.5"/><path d="m14.828 6.172 2.586-2.586A2 2 0 0118.828 3H21v2.172a2 2 0 01-.586 1.414l-2.586 2.586"/><path d="m16 16 4 4"/><path d="m19 21 2-2"/><path d="m5 14 4 4"/><path d="m5 21-2-2"/><path d="M7.5 16.5 4 20"/></symbol>
+  <symbol id="i-library" viewBox="0 0 24 24"><path d="m16 6 4 14"/><path d="M12 6v14"/><path d="M8 8v12"/><path d="M4 4v16"/></symbol>
+  <symbol id="i-ghost" viewBox="0 0 24 24"><path d="M15 10v1"/><path d="M7.528 20.472a1.6 1.6 0 012.277 0l1.057 1.056a1.6 1.6 0 002.276 0l1.057-1.056a1.6 1.6 0 012.277 0l1.114 1.114a1.4 1.4 0 002.414-1V10a8 8 0 00-16 0v10.586a1.4 1.4 0 002.414 1z"/><path d="M9 10v1"/></symbol>
+  <symbol id="i-image" viewBox="0 0 24 24"><rect width="18" height="18" x="3" y="3" rx="2" ry="2"/><circle cx="9" cy="9" r="2"/><path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21"/></symbol>
+  <symbol id="i-settings" viewBox="0 0 24 24"><path d="M9.671 4.136a2.34 2.34 0 0 1 4.659 0 2.34 2.34 0 0 0 3.319 1.915 2.34 2.34 0 0 1 2.33 4.033 2.34 2.34 0 0 0 0 3.831 2.34 2.34 0 0 1-2.33 4.033 2.34 2.34 0 0 0-3.319 1.915 2.34 2.34 0 0 1-4.659 0 2.34 2.34 0 0 0-3.32-1.915 2.34 2.34 0 0 1-2.33-4.033 2.34 2.34 0 0 0 0-3.831A2.34 2.34 0 0 1 6.35 6.051a2.34 2.34 0 0 0 3.319-1.915"/><circle cx="12" cy="12" r="3"/></symbol>
+  <symbol id="i-play" viewBox="0 0 24 24"><path d="M5 5a2 2 0 0 1 3.008-1.728l11.997 6.998a2 2 0 0 1 .003 3.458l-12 7A2 2 0 0 1 5 19z"/></symbol>
+  <symbol id="i-square-pen" viewBox="0 0 24 24"><path d="M12 3H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.375 2.625a1 1 0 0 1 3 3l-9.013 9.014a2 2 0 0 1-.853.505l-2.873.84a.5.5 0 0 1-.62-.62l.84-2.873a2 2 0 0 1 .506-.852z"/></symbol>
+  <symbol id="i-trash" viewBox="0 0 24 24"><path d="M10 11v6"/><path d="M14 11v6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/><path d="M3 6h18"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></symbol>
+  <symbol id="i-user" viewBox="0 0 24 24"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></symbol>
+  <symbol id="i-skull" viewBox="0 0 24 24"><path d="m12.5 17-.5-1-.5 1h1z"/><path d="M15 22a1 1 0 0 0 1-1v-1a2 2 0 0 0 1.56-3.25 8 8 0 1 0-11.12 0A2 2 0 0 0 8 20v1a1 1 0 0 0 1 1z"/><circle cx="15" cy="12" r="1"/><circle cx="9" cy="12" r="1"/></symbol>
+  <symbol id="i-paw-print" viewBox="0 0 24 24"><circle cx="11" cy="4" r="2"/><circle cx="18" cy="8" r="2"/><circle cx="20" cy="16" r="2"/><path d="M9 10a5 5 0 0 1 5 5v3.5a3.5 3.5 0 0 1-6.84 1.045Q6.52 17.48 4.46 16.84A3.5 3.5 0 0 1 5.5 10Z"/></symbol>
+  <symbol id="i-search" viewBox="0 0 24 24"><path d="m21 21-4.34-4.34"/><circle cx="11" cy="11" r="8"/></symbol>
+  <symbol id="i-chevron-left" viewBox="0 0 24 24"><path d="m15 18-6-6 6-6"/></symbol>
+  <symbol id="i-chevron-right" viewBox="0 0 24 24"><path d="m9 18 6-6-6-6"/></symbol>
+  <symbol id="i-action-filled" viewBox="0 0 24 24"><polygon points="12 3 21 12 12 21 3 12" fill="currentColor"/></symbol>
+  <symbol id="i-action-free" viewBox="0 0 24 24"><polygon points="12 3 21 12 12 21 3 12" fill="none"/></symbol>
+</svg>
 
 <div class="header">
-  <span class="bolt">⚡</span><span class="world">teste_xande</span><span class="pill">🗺 aha</span>
+  <span class="bolt"><svg class="svg-i" aria-hidden="true"><use href="#i-zap"/></svg></span><span class="world">teste_xande</span><span class="pill"><svg class="svg-i" aria-hidden="true"><use href="#i-map"/></svg>aha</span>
   <span class="spacer"></span>
-  <span class="status"><span class="dot"></span>Conectado <sup>2ms</sup></span>
-  <span class="gm"><b>●</b> Gamemaster · <span style="color:var(--muted)">Mestre</span></span>
+  <span class="status"><span class="dot"></span>Conectado <span>2ms</span></span>
+  <span class="gm"><span class="dot"></span>Gamemaster · <span class="role">Mestre</span></span>
   <button class="btn">Sair</button>
 </div>
-<div class="stage"><div class="art"><div class="house"><div class="star">★</div></div></div></div>
+<div class="stage"><div class="art"><div class="house"><div class="star"><svg class="svg-i" aria-hidden="true"><use href="#i-star"/></svg></div></div></div></div>
 
 <div id="root"></div>
 
 <div class="switcher" id="switcher">
-  <button id="prev" title="Anterior (←)">‹</button>
+  <button id="prev" title="Variante anterior (seta esquerda)" aria-label="Variante anterior"><svg class="svg-i" aria-hidden="true"><use href="#i-chevron-left"/></svg></button>
   <span class="lbl" id="lbl"></span>
-  <button id="next" title="Próxima (→)">›</button>
+  <button id="next" title="Próxima variante (seta direita)" aria-label="Próxima variante"><svg class="svg-i" aria-hidden="true"><use href="#i-chevron-right"/></svg></button>
 </div>
 
 <script>
 /* ---------- dados mock ---------- */
+const ic = (n) => `<svg class="svg-i" aria-hidden="true"><use href="#i-${n}"/></svg>`;
 const ICONS = {
-  scenes:  '<svg class="icon" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M3 16l5-5 4 4 3-3 6 6"/><circle cx="16" cy="9" r="1.5"/></svg>',
-  combat:  '<svg class="icon" viewBox="0 0 24 24"><path d="M4 4l11 11M20 4L9 15"/><path d="M14 16l2 2M10 16l-2 2M17 13l3 3-2 2-3-3M7 13l-3 3 2 2 3-3"/></svg>',
-  chat:    '<svg class="icon" viewBox="0 0 24 24"><path d="M4 5h16v11H9l-5 4z"/></svg>',
-  actors:  '<svg class="icon" viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 21c1-4 4-6 8-6s7 2 8 6"/></svg>',
-  compendium:'<svg class="icon" viewBox="0 0 24 24"><path d="M4 4h6a3 3 0 0 1 3 3v13a2 2 0 0 0-2-2H4z"/><path d="M20 4h-6a3 3 0 0 0-3 3v13a2 2 0 0 1 2-2h7z"/></svg>',
-  npcs:    '<svg class="icon" viewBox="0 0 24 24"><path d="M12 3l7 4v6c0 4-3 7-7 8-4-1-7-4-7-8V7z"/><circle cx="12" cy="11" r="2.2"/></svg>',
-  settings:'<svg class="icon" viewBox="0 0 24 24"><path d="M4 7h10M18 7h2M4 12h4M12 12h8M4 17h12M20 17h0"/><circle cx="16" cy="7" r="2"/><circle cx="10" cy="12" r="2"/><circle cx="18" cy="17" r="2"/></svg>',
+  scenes:     ic('image'),
+  combat:     ic('swords'),
+  chat:       ic('message-square'),
+  actors:     ic('users'),
+  compendium: ic('library'),
+  npcs:       ic('ghost'),
+  settings:   ic('settings'),
 };
 const TABS = [
   {id:'chat',      label:'Chat',          badge:'3'},
   {id:'actors',    label:'Contatos'},
-  {id:'combat',    label:'Combate',       badge:'⚔', badgeCls:'combat'},
+  {id:'combat',    label:'Combate',       badge:ic('swords'), badgeCls:'combat', badgeLabel:'combate em andamento'},
   {id:'compendium',label:'Compêndio'},
   {id:'npcs',      label:'NPCs',          gm:true},
   {id:'scenes',    label:'Cenas',         gm:true},
   {id:'settings',  label:'Configurações', foot:true},   /* DEC-GAV-09: grupo "all", no rodapé */
 ];
+const act = (icon, label, cls='') => `<button class="iconbtn ${cls}" title="${label}" aria-label="${label}">${ic(icon)}</button>`;
+const sceneActs = `<span class="row-actions">${act('play','Ativar cena')}${act('square-pen','Editar cena')}${act('trash','Apagar cena','danger')}</span>`;
 const CONTENT = {
   scenes: `<div class="panel-body">
-      <div class="row"><span style="color:#3ddc84">●</span><span class="name">Fortaleza (mapa)</span><span class="sub">ativa</span></div>
-      <div class="row"><span style="color:var(--subtle)">○</span><span class="name">Sala do trono</span><span class="sub">▶ ✎ 🗑</span></div>
-      <div class="row"><span style="color:var(--subtle)">○</span><span class="name">Caverna dos goblins</span><span class="sub">▶ ✎ 🗑</span></div>
-      <div class="actions" style="margin-top:.8rem"><button class="btnp">Nova cena</button></div></div>`,
+      <div class="row"><span class="st-on"></span><span class="name">Fortaleza (mapa)</span><span class="sub">ativa</span></div>
+      <div class="row"><span class="st-off"></span><span class="name">Sala do trono</span>${sceneActs}</div>
+      <div class="row"><span class="st-off"></span><span class="name">Caverna dos goblins</span>${sceneActs}</div>
+      <div class="actions"><button class="btnp">Nova cena</button></div></div>`,
   combat: `<div class="panel-body"><p class="empty">Nenhum combate ativo.</p>
-      <div class="actions"><button class="btnp">Criar Combate</button><button class="btns">Adicionar tokens</button></div></div>`,
+      <div class="actions"><button class="btnp">Criar combate</button><button class="btns">Adicionar tokens</button></div></div>`,
   chat: `<div class="panel-body">
-      <div class="msg"><b>Gamemaster</b> · <span style="font-size:.75rem">21:04</span><br>Vocês entram na sala do trono…</div>
-      <div class="msg"><b>Fofurinha</b> · <span style="font-size:.75rem">21:05</span><br>Rolo Percepção — <b>1d20+7 = 19</b></div>
-      <div class="msg"><b>Tobias</b> · <span style="font-size:.75rem">21:05</span><br>eu saco a espada</div>
-      <div style="margin-top:.6rem;border:1px solid var(--border);border-radius:var(--radius-sm);padding:.4rem .5rem;color:var(--subtle)">Digite uma mensagem ou /r 1d20…</div></div>`,
+      <div class="msg"><b>Gamemaster</b> · <span class="time">21:04</span><br>Vocês entram na sala do trono…</div>
+      <div class="msg"><b>Fofurinha</b> · <span class="time">21:05</span><br>Rolo Percepção — <b>1d20+7 = 19</b></div>
+      <div class="msg"><b>Tobias</b> · <span class="time">21:05</span><br>eu saco a espada</div>
+      <div class="field">Digite uma mensagem ou /r 1d20…</div></div>`,
   actors: `<div class="panel-body">
-      <div class="row"><span>🧝</span><span class="name">Fofurinha</span><span class="sub">Druida 5</span></div>
-      <div class="row"><span>🧔</span><span class="name">Tobias</span><span class="sub">Guerreiro 5</span></div></div>`,
+      <div class="row"><span class="lead">${ic('user')}</span><span class="name">Fofurinha</span><span class="sub">Druida 5</span></div>
+      <div class="row"><span class="lead">${ic('user')}</span><span class="name">Tobias</span><span class="sub">Guerreiro 5</span></div></div>`,
   npcs: `<div class="panel-body">
-      <div class="row"><span>👹</span><span class="name">Goblin Guerreiro</span><span class="sub">NPC</span></div>
-      <div class="row"><span>🐺</span><span class="name">Lobo atroz</span><span class="sub">NPC</span></div>
-      <div class="actions" style="margin-top:.8rem"><button class="btnp">Novo NPC</button><button class="btns">Importar</button></div></div>`,
+      <div class="row"><span class="lead">${ic('skull')}</span><span class="name">Goblin Guerreiro</span><span class="sub">NPC</span></div>
+      <div class="row"><span class="lead">${ic('paw-print')}</span><span class="name">Lobo atroz</span><span class="sub">NPC</span></div>
+      <div class="actions"><button class="btnp">Novo NPC</button><button class="btns">Importar</button></div></div>`,
   compendium: `<div class="panel-body">
-      <div style="border:1px solid var(--border);border-radius:var(--radius-sm);padding:.4rem .5rem;color:var(--subtle);margin-bottom:.6rem">🔍 Buscar no compêndio…</div>
+      <div class="field top">${ic('search')}<span>Buscar no compêndio…</span></div>
       <div class="row"><span class="name">Talentos</span><span class="sub">1.812</span></div>
       <div class="row"><span class="name">Magias</span><span class="sub">1.024</span></div>
       <div class="row"><span class="name">Equipamentos</span><span class="sub">2.310</span></div>
       <div class="row"><span class="name">Bestiário</span><span class="sub">492</span></div></div>`,
-  /* conteúdo real da aba: spec 37 + settings-tab.prototype.html (índice → seção) */
+  /* conteúdo real da aba: spec 37 + settings-tab.prototype.html (índice e seção) */
   settings: `<div class="panel-body">
-      <div class="row"><span class="name">Minhas preferências</span><span class="sub">›</span></div>
-      <div class="row"><span class="name">Mundo</span><span class="sub">›</span></div>
-      <div class="row"><span class="name">Permissões</span><span class="sub">›</span></div>
-      <div class="row"><span class="name">Usuários</span><span class="sub">›</span></div>
-      <div class="row"><span class="name">Mods</span><span class="sub">›</span></div></div>`,
+      <div class="row"><span class="name">Minhas preferências</span><span class="go">${ic('chevron-right')}</span></div>
+      <div class="row"><span class="name">Mundo</span><span class="go">${ic('chevron-right')}</span></div>
+      <div class="row"><span class="name">Permissões</span><span class="go">${ic('chevron-right')}</span></div>
+      <div class="row"><span class="name">Usuários</span><span class="go">${ic('chevron-right')}</span></div>
+      <div class="row"><span class="name">Mods</span><span class="go">${ic('chevron-right')}</span></div></div>`,
 };
 const TITLE = {scenes:'Cenas',combat:'Rastreador de combate',chat:'Chat',actors:'Contatos',npcs:'NPCs',compendium:'Compêndio',settings:'Configurações'};
 
 /* ---------- estado ---------- */
 const params = new URLSearchParams(location.search);
 const VARIANTS = ['A','B','C'];
-const NAMES = {A:'Trilho fixo na borda (activity bar)',B:'Dock flutuante + painel-cartão',C:'Abas físicas à esquerda da gaveta (movem juntas)'};
+const NAMES = {A:'Trilho fixo na borda (activity bar)',B:'Dock flutuante + painel',C:'Abas físicas à esquerda da gaveta (movem juntas)'};
 let variant = VARIANTS.includes(params.get('variant')) ? params.get('variant') : 'A';
 let active = 'combat', open = true;
 const isGm = true;
 
 function tabButton(t){
   /* REQ-GAV-021: o badge aparece sempre que existir — inclusive na aba ativa e aberta */
-  const badge = t.badge ? `<span class="badge ${t.badgeCls||''}">${t.badge}</span>` : '';
-  return `<button class="tabbtn ${active===t.id&&open?'is-active':''}" data-tab="${t.id}" aria-label="${t.label}">
-    ${ICONS[t.id]}${badge}<span class="tip">${t.label}${t.gm?'<span class="gm-tag">GM</span>':''}</span></button>`;
+  const badge = t.badge ? `<span class="badge ${t.badgeCls||''}" ${t.badgeLabel?`role="img" aria-label="${t.badgeLabel}"`:''}>${t.badge}</span>` : '';
+  return `<button class="tabbtn ${active===t.id&&open?'is-active':''}" data-tab="${t.id}" aria-label="${t.label}" title="${t.label}">
+    ${ICONS[t.id]}${badge}<span class="tip" aria-hidden="true">${t.label}${t.gm?'<span class="gm-tag">GM</span>':''}</span></button>`;
 }
 function panel(){
   const gm = TABS.find(t=>t.id===active).gm ? '<span class="gm-tag">GM</span>' : '';
-  /* DEC-GAV-03: sem ✕ — recolher é clicar no ícone da aba ativa */
+  /* DEC-GAV-03: sem X — recolher é clicar no ícone da aba ativa */
   return `<div class="panel"><div class="panel-head"><span>${TITLE[active]}${gm}</span></div>${CONTENT[active]}</div>`;
 }
 const players = TABS.filter(t=>!t.gm && !t.foot),
@@ -245,8 +522,8 @@ function render(){
       <div class="foot">${foot.map(tabButton).join('')}</div></nav>${panel()}</aside></div>`;
   }
   root.innerHTML = html;
-  root.querySelectorAll('[data-tab]').forEach(b=>b.onclick=()=>{const id=b.dataset.tab; if(open&&active===id){open=false;} else {active=id;open=true;} render();});
-  document.getElementById('lbl').innerHTML = `${variant} — ${NAMES[variant]}<small>clique no ícone ativo recolhe (único gesto) · ← → troca variante</small>`;
+  root.querySelectorAll('[data-tab]').forEach(b=>b.onclick=()=>{const id=b.dataset.tab; if(open&&active===id){open=false;} else {active=id;open=true;} render(); const nb=root.querySelector('[data-tab="'+id+'"]'); if(nb) nb.focus();});
+  document.getElementById('lbl').innerHTML = `${variant} — ${NAMES[variant]}<small>clique no ícone ativo recolhe (único gesto) · setas esquerda e direita trocam a variante</small>`;
   const u=new URL(location); u.searchParams.set('variant',variant); history.replaceState(null,'',u);
 }
 function cycle(d){variant=VARIANTS[(VARIANTS.indexOf(variant)+d+3)%3];render();}

@@ -33,7 +33,7 @@ import { registerSkillNameResolver, resetSkillNameResolver } from "../skillNameR
 // combatSetup.ts actually depends on; PF2e's own table is registered into it
 // here only to exercise the REQ-CBA-066 assertions with real pt-BR labels,
 // the same way PF2e's registerPf2eSheets() would at boot.
-import { skillNamePt } from "../../../systems/pf2e/lib/sheets/pf2e/skillNames.js";
+import { skillNamePt } from "@fusion/sheets-pf2e";
 
 // ---------------------------------------------------------------------------
 // Fixtures

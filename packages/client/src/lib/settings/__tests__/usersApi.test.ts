@@ -15,6 +15,7 @@ import {
   resetPassword,
   deactivateUser,
   kickUser,
+  changeOwnPassword,
   UsersApiError,
 } from "../usersApi.js";
 
@@ -212,5 +213,50 @@ describe("kickUser — REQ-USR-029: POST /api/users/:id/kick", () => {
     }) as unknown as typeof fetch;
 
     await expect(kickUser("tok-1", "ghost")).rejects.toThrow("User not found.");
+  });
+});
+
+describe("changeOwnPassword — REQ-USR-040 / REQ-CFG-090: POST /api/users/me/password", () => {
+  it("posts the current and the new password as JSON with the bearer token", async () => {
+    const fetchMock = vi.fn().mockResolvedValue({ ok: true, json: async () => ({ ok: true }) });
+    global.fetch = fetchMock as unknown as typeof fetch;
+
+    await changeOwnPassword("tok-1", { currentPassword: "old-pass", newPassword: "new-pass-123" });
+
+    expect(fetchMock).toHaveBeenCalledWith(
+      "/api/users/me/password",
+      expect.objectContaining({
+        method: "POST",
+        headers: { Authorization: "Bearer tok-1", "Content-Type": "application/json" },
+        // the httpOnly refresh cookie travels so the server can tell which session is the current one
+        credentials: "include",
+        body: JSON.stringify({ currentPassword: "old-pass", newPassword: "new-pass-123" }),
+      }),
+    );
+  });
+
+  it("omits the current password for a user who has none yet", async () => {
+    const fetchMock = vi.fn().mockResolvedValue({ ok: true, json: async () => ({ ok: true }) });
+    global.fetch = fetchMock as unknown as typeof fetch;
+
+    await changeOwnPassword("tok-1", { newPassword: "new-pass-123" });
+
+    const init = fetchMock.mock.calls[0]?.[1] as RequestInit;
+    expect(init.body).toBe(JSON.stringify({ newPassword: "new-pass-123" }));
+  });
+
+  it("throws UsersApiError carrying the server's code (wrong current password is INVALID_CREDENTIALS)", async () => {
+    global.fetch = vi.fn().mockResolvedValue({
+      ok: false,
+      status: 401,
+      json: async () => ({ code: "INVALID_CREDENTIALS", message: "Invalid credentials." }),
+    }) as unknown as typeof fetch;
+
+    const failure = await changeOwnPassword("tok-1", {
+      currentPassword: "nope",
+      newPassword: "new-pass-123",
+    }).catch((err: unknown) => err);
+    expect(failure).toBeInstanceOf(UsersApiError);
+    expect((failure as UsersApiError).code).toBe("INVALID_CREDENTIALS");
   });
 });

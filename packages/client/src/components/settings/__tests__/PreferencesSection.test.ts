@@ -7,7 +7,7 @@
  * itself (`lib/settings/clientPrefs.ts`) already carries the exhaustive behavioral
  * coverage, including the "never touches a socket" proof for RNF-CFG-01.
  *
- * Covers REQ-CFG-020, REQ-CFG-021, REQ-CFG-023, REQ-TOK-074 (TK080).
+ * Covers REQ-CFG-020, REQ-CFG-021, REQ-CFG-023 (emendado por DEC-CFG-11), REQ-TOK-074 (TK080).
  */
 
 import { beforeEach, describe, expect, it } from "vitest";
@@ -79,9 +79,9 @@ describe("PreferencesSection — REQ-CFG-021: client notification preferences", 
     expect(html).toContain(t("FUSION.Settings.Preferences.Notifications.TurnAlert"));
     // Total checkbox count includes the two TK080 token-display toggles too
     // (see the describe block below) — the notifications section itself is
-    // asserted by its two labels above and by the 4-checkbox count here.
+    // asserted by its two labels above, plus the avatar overlay's "show" toggle (spec 35 REQ-AVT-038) — 5 in all.
     const checkboxCount = (html.match(/type="checkbox"/g) ?? []).length;
-    expect(checkboxCount).toBe(4);
+    expect(checkboxCount).toBe(5);
   });
 
   it("reflects a saved 'off' state instead of always showing the default", () => {
@@ -90,7 +90,7 @@ describe("PreferencesSection — REQ-CFG-021: client notification preferences", 
 
     // Order on the page: chatSound, turnAlert, then TK080's showNames/showBars.
     const checkboxes = [...html.matchAll(/<input type="checkbox"([^>]*)>/g)];
-    expect(checkboxes).toHaveLength(4);
+    expect(checkboxes).toHaveLength(5);
     expect(checkboxes[0]?.[1]).not.toMatch(/checked/);
     expect(checkboxes[1]?.[1]).toMatch(/checked/);
   });
@@ -109,10 +109,19 @@ describe("PreferencesSection — REQ-TOK-074: token display preferences", () => 
     expect(html).toContain(t("FUSION.Settings.Preferences.TokenDisplay.ShowBars"));
 
     const checkboxes = [...html.matchAll(/<input type="checkbox"([^>]*)>/g)];
-    expect(checkboxes).toHaveLength(4);
+    expect(checkboxes).toHaveLength(5);
     // The last two checkboxes are showNames/showBars — both on by default.
     expect(checkboxes[2]?.[1]).toMatch(/checked/);
     expect(checkboxes[3]?.[1]).toMatch(/checked/);
+  });
+
+  it("offers the avatar overlay's 'show' toggle, on by default (REQ-AVT-038: the way back from hidden)", () => {
+    const html = render(PreferencesSection, {
+      props: { worldId: "world-1", userId: "user-1" },
+    }).body;
+    expect(html).toContain("Mostrar meu avatar na tela");
+    const checkboxes = [...html.matchAll(/<input type="checkbox"([^>]*)>/g)];
+    expect(checkboxes[4]?.[1]).toMatch(/checked/);
   });
 
   it("reflects a saved 'off' state for showNames without disturbing showBars", () => {
@@ -125,10 +134,39 @@ describe("PreferencesSection — REQ-TOK-074: token display preferences", () => 
   });
 });
 
-describe("PreferencesSection — REQ-CFG-023: no locale or theme control", () => {
-  it("renders no <select> and no idiom/theme labels", () => {
+describe("PreferencesSection — REQ-CFG-023: no locale control", () => {
+  it("renders no <select> and no idiom/locale label", () => {
     const html = renderSection("world-1", "user-1");
     expect(html).not.toMatch(/<select/);
-    expect(html.toLowerCase()).not.toMatch(/idioma|tema|locale|theme/);
+    expect(html.toLowerCase()).not.toMatch(/idioma|locale/);
+  });
+});
+
+describe("PreferencesSection — REQ-CFG-023 (emenda DEC-CFG-11): the theme choice", () => {
+  function themeRadios(html: string): { value: string; checked: boolean }[] {
+    return [...html.matchAll(/<input type="radio"([^>]*)>/g)].map((m) => ({
+      value: /value="([^"]*)"/.exec(m[1] ?? "")?.[1] ?? "",
+      checked: /\schecked/.test(m[1] ?? ""),
+    }));
+  }
+
+  it("offers dark, light and system as one radio group, with a title", () => {
+    const html = renderSection("world-1", "user-1");
+    expect(html).toContain(t("FUSION.Settings.Preferences.ThemeTitle"));
+    expect(themeRadios(html).map((r) => r.value)).toEqual(["dark", "light", "system"]);
+    expect(html).toContain(t("FUSION.Settings.Preferences.Theme.Dark"));
+    expect(html).toContain(t("FUSION.Settings.Preferences.Theme.Light"));
+    expect(html).toContain(t("FUSION.Settings.Preferences.Theme.System"));
+  });
+
+  it("marks dark when this browser never chose", () => {
+    const radios = themeRadios(renderSection("world-1", "user-1"));
+    expect(radios.filter((r) => r.checked).map((r) => r.value)).toEqual(["dark"]);
+  });
+
+  it("marks the choice this browser stored, whatever the world or seat", () => {
+    store.set("fusion.theme", "light");
+    const radios = themeRadios(renderSection("world-2", "user-9"));
+    expect(radios.filter((r) => r.checked).map((r) => r.value)).toEqual(["light"]);
   });
 });

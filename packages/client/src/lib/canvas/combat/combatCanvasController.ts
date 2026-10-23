@@ -31,6 +31,19 @@ import { resolveCombatantTokenId } from "../../combat/combatTracker.js";
 import { computeReticlePositions, type TokenFootprint } from "../../combat/targeting.js";
 import { CombatTurnMarker } from "./CombatTurnMarker.js";
 import { TargetingMarkerLayer } from "./TargetingMarker.js";
+import { PreyMarkerLayer, type PreySealPosition } from "./PreyMarker.js";
+import {
+  collectPreyMarks,
+  type PreyActorLike,
+  type PreySceneLike,
+} from "../../combat/preyMarks.js";
+import { t } from "../../i18n/i18n.js";
+import { worldMirror } from "../../docs/worldSync.js";
+
+/** The slice of DocumentMirror the Prey seal reads (injectable for tests). */
+export interface PreyMirrorLike {
+  getByType<T>(type: string): T[];
+}
 
 // ---------------------------------------------------------------------------
 // CombatCanvasController
@@ -41,6 +54,8 @@ export class CombatCanvasController {
   private _tokenLayer: TokenLayer;
   private _marker: CombatTurnMarker;
   private _targeting: TargetingMarkerLayer;
+  private _prey: PreyMarkerLayer;
+  private _mirror: PreyMirrorLike;
 
   /** Local user id (drives reticle color: own targets vs others). */
   private _userId: string;
@@ -67,6 +82,7 @@ export class CombatCanvasController {
     gridSize: number,
     isGm: boolean,
     userId: string,
+    mirror: PreyMirrorLike = worldMirror,
   ) {
     this._canvas = canvas;
     this._tokenLayer = tokenLayer;
@@ -75,6 +91,8 @@ export class CombatCanvasController {
     this._userId = userId;
     this._marker = new CombatTurnMarker(controlsLayer, gridSize);
     this._targeting = new TargetingMarkerLayer(controlsLayer);
+    this._prey = new PreyMarkerLayer(controlsLayer);
+    this._mirror = mirror;
   }
 
   // ---------------------------------------------------------------------------
@@ -89,6 +107,8 @@ export class CombatCanvasController {
     // Targeting reticles are independent of an active combat — they can be set
     // outside combat too. Reconcile them every frame so they follow token moves.
     this._reconcileTargeting();
+    // Same for the Prey seal: a persistent TokenMark (BHR-F3-06), not tied to combat.
+    this._reconcilePrey();
 
     const combat = combatStore.combat;
 
@@ -119,14 +139,16 @@ export class CombatCanvasController {
       return;
     }
 
-    // Update marker position (TokenSprite.container is at the token's top-left)
+    // Update marker position (TokenSprite.container is at the token's top-left). The ring wraps the whole
+    // footprint: a Large token's marker on its top-left cell only was seen live (fechamento 22/10/2026).
     const pos = sprite.container;
-    this._marker.setActiveToken(pos.x, pos.y, this._gridSize);
+    const size = this._footprintSize(sprite);
+    this._marker.setActiveToken(pos.x, pos.y, size);
 
     // Auto-pan on turn change (REQ-CBT-045)
     if (turnChanged && combat.autoPan) {
-      const cx = pos.x + this._gridSize / 2;
-      const cy = pos.y + this._gridSize / 2;
+      const cx = pos.x + size / 2;
+      const cy = pos.y + size / 2;
       this._canvas.zoomTo({ x: cx, y: cy, scale: this._canvas.camera.scale }, 400);
     }
 
@@ -148,12 +170,22 @@ export class CombatCanvasController {
   destroy(): void {
     this._marker.destroy();
     this._targeting.destroy();
+    this._prey.destroy();
     this._lastActiveTokenId = null;
   }
 
   // ---------------------------------------------------------------------------
   // Private
   // ---------------------------------------------------------------------------
+
+  /**
+   * Side of the square a marker wraps, in scene pixels: the token's footprint (2 cells for a Large token), the grid
+   * cell when the sprite does not say (a 1x1 token, or a fake without `pixelSize`).
+   */
+  private _footprintSize(sprite: { pixelSize?: { w: number; h: number } }): number {
+    const px = sprite.pixelSize;
+    return px !== undefined && px.w > 0 ? Math.max(px.w, px.h) : this._gridSize;
+  }
 
   /**
    * Reconcile the targeting reticles with the current targeting state.
@@ -168,10 +200,47 @@ export class CombatCanvasController {
       const sprite = this._tokenLayer.getSprite(tokenId);
       if (!sprite) return null;
       const pos = sprite.container;
-      return { x: pos.x, y: pos.y, gridSize: this._gridSize };
+      return { x: pos.x, y: pos.y, gridSize: this._footprintSize(sprite) };
     };
 
     const positions = computeReticlePositions(getTargetingState(), this._userId, resolve);
     this._targeting.sync(positions);
+  }
+
+  /**
+   * Reconcile the Prey seals with `flags.fusion.tokenMarks` of the mirrored actors.
+   *
+   * The server already withholds a mark on a token hidden from the viewer; the
+   * collector repeats the cut. Tokens not rendered here (other scene) get no seal.
+   * REQ-BHR-091, REQ-CNV-105.
+   */
+  private _reconcilePrey(): void {
+    const marks = collectPreyMarks({
+      actors: this._mirror.getByType<PreyActorLike>("Actor"),
+      scenes: this._mirror.getByType<PreySceneLike>("Scene"),
+      viewerIsPrivileged: this._isGm,
+      viewerUserId: this._userId,
+    });
+    const positions: PreySealPosition[] = [];
+    const seen = new Set<string>();
+    for (const m of marks) {
+      if (seen.has(m.tokenId)) continue; // one seal per token; first marker names the tooltip
+      const sprite = this._tokenLayer.getSprite(m.tokenId);
+      if (!sprite) continue;
+      seen.add(m.tokenId);
+      positions.push({
+        tokenId: m.tokenId,
+        x: sprite.container.x,
+        y: sprite.container.y,
+        gridSize: this._gridSize,
+        label: t("FUSION.Combat.PreyOf", { name: m.sourceName }),
+      });
+    }
+    this._prey.sync(positions);
+  }
+
+  /** Tooltip text of the Prey seal on a token (test/inspection hook). */
+  preyTooltipOf(tokenId: string): string | null {
+    return this._prey.tooltipOf(tokenId);
   }
 }

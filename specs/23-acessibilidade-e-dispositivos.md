@@ -255,11 +255,20 @@ A detecção é feita via `MediaQuery` reativa do Svelte 5 (`import { MediaQuery
 
 **REQ-A11-020** [MVP] O Fusion deve implementar um `KeybindingRegistry` centralizado que mapeia ações nomeadas para combinações de tecla padrão fixas. Ações obrigatórias incluem: navegar entre tokens no canvas (`Tab`/`Shift+Tab`), mover token selecionado (setas), abrir sheet do token selecionado (`Enter`/`E`), abrir chat (`C`), abrir combat tracker (`I`), fechar janela ativa (`Escape`), deselecionar tudo (`Escape` sem foco em campo). No MVP os bindings são os defaults do registry — sem UI de remapeamento.
 
+> **Emenda obrigada pela spec 53** (`53-barra-de-acoes.md`, REQ-BAR-048, REQ-BAR-050 e §12,
+> 2026-10-11): as ações nomeadas da barra de ações — executar o favorito 1 a 12 (teclas 1–9, 0, − e
+> =) e cancelar a mira ou o menu (`Esc`) — entram no `KeybindingRegistry` com defaults fixos, e o
+> registro mínimo da BAR-F1-05 é o começo desse registro, não um segundo.
+
 **REQ-A11-021** [V2] O usuário deve poder remapear qualquer ação do `KeybindingRegistry` via painel de configurações de controles. A configuração é persistida por usuário no banco.
 
 **REQ-A11-022** [V2] O painel de remapeamento deve detectar e avisar sobre conflitos de atalho (mesma combinação mapeada para duas ações no mesmo contexto).
 
 **REQ-A11-023** [MVP] Atalhos de teclado não devem interferir com a digitação normal em campos de texto. O sistema deve suspender atalhos de cena quando o foco está em `<input>`, `<textarea>`, `[contenteditable]` ou dentro de `<dialog>`.
+
+> **Emenda obrigada pela spec 53** (`53-barra-de-acoes.md`, REQ-BAR-049, REQ-BAR-051 e §12,
+> 2026-10-11): a suspensão dos atalhos da barra de ações passa a cobrir também o **botão em foco**,
+> além de `<input>`, `<textarea>`, `[contenteditable]` e `<dialog>`, com teste para cada alvo.
 
 **REQ-A11-024** [V2] O Fusion deve expor um painel de referência de todos os atalhos ativos, acessível via `?` ou menu de ajuda, com os bindings atuais do usuário.
 
@@ -306,6 +315,13 @@ A detecção é feita via `MediaQuery` reativa do Svelte 5 (`import { MediaQuery
 **REQ-A11-043** [MVP] O layout em modo tablet (`deviceMode === 'tablet'`) deve: maximizar o canvas para 100% da viewport; ocultar scene controls de GM; colapsar a sidebar por padrão; renderizar um FAB no canto inferior direito para acesso rápido a chat/sheet/rolls; exibir sheets como bottom drawers, não como janelas flutuantes.
 
 **REQ-A11-044** [MVP] Todo elemento interativo da UI (botões, tabs, inputs, ícones de ação, macros da hotbar) deve ter área de toque mínima de 44×44 CSS pixels (Apple HIG) em modo tablet e 24×24 CSS pixels em modo desktop (WCAG 2.5.8). Usar padding para aumentar área de toque sem alterar tamanho visual quando necessário.
+
+> **Emenda obrigada pela spec 53** (`53-barra-de-acoes.md`, REQ-BAR-100 e §12, 2026-10-11): "macros
+> da hotbar" lê-se como os **slots da barra de ações**. No modo tablet, os slots têm 44×44 px, o
+> tooltip deles vale sem hover (REQ-A11-046) e a barra respeita `env(safe-area-inset-bottom)`
+> (REQ-A11-049); a "bottom bar (hotbar)" do item 7 de "Questões em Aberto" é a barra de ações. As
+> demais menções à hotbar nesta spec (REQ-A11-005 e as listas de regiões do shell) leem-se como a
+> barra de ações.
 
 **REQ-A11-045** [MVP] A sidebar em modo tablet deve ser colapsável/expansível via: swipe from the right edge (gesto de pan a partir de ≤ 24px da borda direita), toque no FAB, e botão dedicado no topo. O estado (colapsada/expandida) é persistido por sessão.
 

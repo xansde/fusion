@@ -448,29 +448,42 @@ describe("REQ-NPC-028 / REQ-NPC-029: moving has two paths, and both are drawn", 
   });
 });
 
-describe("A033: the move control does not steal the name's width at rest", () => {
-  it("REQ-NPC-028: `.npcs-row__move` collapses to a fixed footprint at rest, not the select's full outline", () => {
-    const rule = /\.npcs-row__move\s*\{([\s\S]*?)\}/.exec(SOURCE)?.[1] ?? "";
+describe("A033: the row's actions do not steal the name's width at rest", () => {
+  it("REQ-NPC-028: `.npcs-row__actions` floats over the row (out of the flex flow) and is hidden at rest", () => {
+    const rule = /\.npcs-row__actions\s*\{([\s\S]*?)\}/.exec(SOURCE)?.[1] ?? "";
 
-    // `opacity: 0` alone hides the control but still reserves its full box in
-    // the flex row, so a hidden 8rem-wide <select> was permanently taking
-    // width away from `.npcs-row__name` next door — the name kept truncating
-    // (e.g. "Eagle", 5 characters, cut down to "Ea…") even when the row had
-    // room to spare. Collapsing to a small fixed width at rest is what fixes
-    // the actual cause, not just hiding the control.
+    // Absolutely positioned, so the group (sheet, delete, a 8rem <select>) never
+    // reserves width in the row and the name keeps all of it.
+    expect(rule).toContain("position: absolute");
     expect(rule).toContain("opacity: 0");
-    expect(rule).toMatch(/width:\s*1\.25rem/);
-    expect(rule).not.toMatch(/max-width:\s*8rem/);
   });
 
-  it("REQ-NPC-028: the control still widens on hover/focus, so it stays reachable by keyboard", () => {
+  it("REQ-NPC-028: the group shows on hover AND on focus-within, so it stays reachable by keyboard", () => {
     const hoverBlock =
-      /\.npcs-row:hover \.npcs-row__move,[\s\S]*?\.npcs-row__move:focus-visible\s*\{([\s\S]*?)\}/.exec(
+      /\.npcs-row:hover \.npcs-row__actions,[\s\S]*?\.npcs-row:focus-within \.npcs-row__actions\s*\{([\s\S]*?)\}/.exec(
         SOURCE,
       )?.[1] ?? "";
 
     expect(hoverBlock).toContain("opacity: 1");
-    expect(hoverBlock).toMatch(/width:\s*8rem/);
+  });
+
+  it("REQ-UIF-064: on touch screens (no hover) the group is always shown", () => {
+    // The row's own touch block (the folder tools have one of their own just before it).
+    const touch =
+      /@media \(hover: none\)\s*\{\s*\.npcs-row__head\s*\{[^}]*\}\s*\.npcs-row__actions\s*\{([^}]*)\}/.exec(
+        SOURCE,
+      )?.[1] ?? "";
+
+    expect(touch).toContain("opacity: 1");
+    expect(touch).toContain("position: static");
+  });
+
+  it("the name is read whole: it wraps instead of being cut with an ellipsis", () => {
+    const rule = /\.npcs-row__name\s*\{([\s\S]*?)\}/.exec(SOURCE)?.[1] ?? "";
+
+    expect(rule).toContain("overflow-wrap: anywhere");
+    expect(rule).not.toContain("text-overflow");
+    expect(rule).not.toContain("nowrap");
   });
 });
 

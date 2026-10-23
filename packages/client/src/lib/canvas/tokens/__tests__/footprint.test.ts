@@ -64,3 +64,63 @@ describe("footprintOf (REQ-TOK-012, REQ-SYS-009)", () => {
     expect(footprintOf(undefined, actor)).toEqual({ width: 1, height: 1 });
   });
 });
+
+// Spec 17 DEC-PF2-13 / REQ-PF2-154 (core #288): nothing wrote a character's `traits.size` — it sat
+// at the schema default `med` — so a Minotaur took one square. The sheet now DERIVES the size and
+// the server persists and transmits it in `system.derived.size`; the token reads that first.
+describe("footprintOf — the derived size (REQ-PF2-154, REQ-TOK-012)", () => {
+  it("a Minotaur character occupies 2x2: `derived.size` is Large although `traits.size` sits at the default", () => {
+    seedFootprintRegistry(PF2E_TABLE);
+    const minotaur = { system: { derived: { size: "lg" }, traits: { size: "med" } } };
+
+    expect(footprintOf(undefined, minotaur)).toEqual({ width: 2, height: 2 });
+  });
+
+  it("the derived size WINS over a stored `traits.size`, in both directions (a Littlehorn Minotaur is Medium)", () => {
+    seedFootprintRegistry(PF2E_TABLE);
+    expect(
+      footprintOf(undefined, { system: { derived: { size: "med" }, traits: { size: "lg" } } }),
+    ).toEqual({
+      width: 1,
+      height: 1,
+    });
+    expect(
+      footprintOf(undefined, { system: { derived: { size: "huge" }, traits: { size: "med" } } }),
+    ).toEqual({
+      width: 3,
+      height: 3,
+    });
+  });
+
+  it("REQ-TOK-017: the same character changes footprint when its heritage changes — no write to the token", () => {
+    seedFootprintRegistry(PF2E_TABLE);
+    const minotaur = { system: { derived: { size: "lg" } } };
+    const littlehorn = { system: { derived: { size: "med" } } };
+
+    expect(footprintOf(undefined, minotaur)).toEqual({ width: 2, height: 2 });
+    expect(footprintOf(undefined, littlehorn)).toEqual({ width: 1, height: 1 });
+  });
+
+  it("an NPC has no derived size: `traits.size` still decides (a Large ogre is 2x2)", () => {
+    seedFootprintRegistry(PF2E_TABLE);
+    const ogre = { system: { derived: { ac: { value: 20 } }, traits: { size: "lg" } } };
+
+    expect(footprintOf(undefined, ogre)).toEqual({ width: 2, height: 2 });
+  });
+
+  it("a glimpsed contact carries only its size in its payload (REQ-CTT-081) — in the slot the actor keeps it in — and still occupies its squares", () => {
+    seedFootprintRegistry(PF2E_TABLE);
+    const glimpsedNpc = { system: { traits: { size: "lg" } } };
+    const glimpsedCharacter = { system: { derived: { size: "lg" } } };
+
+    expect(footprintOf(undefined, glimpsedNpc)).toEqual({ width: 2, height: 2 });
+    expect(footprintOf(undefined, glimpsedCharacter)).toEqual({ width: 2, height: 2 });
+  });
+
+  it("a derived size the system's table does not declare falls back to 1x1 — it does not fall through to `traits.size`", () => {
+    seedFootprintRegistry({ lg: { width: 2, height: 2 } });
+    const actor = { system: { derived: { size: "grg" }, traits: { size: "lg" } } };
+
+    expect(footprintOf(undefined, actor)).toEqual({ width: 1, height: 1 });
+  });
+});

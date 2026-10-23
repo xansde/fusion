@@ -13,19 +13,20 @@
  */
 
 /**
- * Curated fallback palette — deep, saturated jewel tones that read well on the
- * dark theme (--fusion-bg #0e0e12) with white initials. The first entry is the
- * design-system accent so an unnamed/empty actor still lands on brand.
+ * Curated fallback palette — deep, saturated jewel tones under white initials. Every
+ * tone carries white text at 4.5:1 or more (WCAG AA for the small initials; measured
+ * with axe-core in both themes, ui-acabamento 22/10/2026). The first entry is the
+ * violet of the old accent so an unnamed/empty actor keeps the same colour.
  */
 export const PORTRAIT_PALETTE: readonly string[] = [
-  "#7c5cfc", // violet (design-system accent)
-  "#4c84e0", // blue
-  "#2fa968", // green
-  "#b8862a", // bronze / gold
-  "#d0574e", // coral red
-  "#9b59c4", // purple
-  "#2a9d9d", // teal
-  "#c56a2e", // orange
+  "#7859f4", // violet (design-system accent)
+  "#4374c5", // blue
+  "#258451", // green
+  "#956d22", // bronze / gold
+  "#c15149", // coral red
+  "#9958c2", // purple
+  "#228181", // teal
+  "#b15f29", // orange
 ];
 
 /**
@@ -37,16 +38,21 @@ export const PORTRAIT_PALETTE: readonly string[] = [
  */
 export function portraitInitials(name: string | null | undefined): string {
   if (!name) return "?";
+  // Letters and digits only: "C.L.A.U.D.E." reads "CL", not "C.".
   const words = name
     .trim()
     .split(/\s+/)
+    .map((w) => w.replace(/[^\p{L}\p{N}]/gu, ""))
     .filter((w) => w.length > 0);
   if (words.length === 0) return "?";
   if (words.length === 1) {
-    return (words[0] ?? "").slice(0, 2).toUpperCase();
+    return Array.from(words[0] ?? "")
+      .slice(0, 2)
+      .join("")
+      .toUpperCase();
   }
-  const first = words[0]?.[0] ?? "";
-  const last = words[words.length - 1]?.[0] ?? "";
+  const first = Array.from(words[0] ?? "")[0] ?? "";
+  const last = Array.from(words[words.length - 1] ?? "")[0] ?? "";
   return (first + last).toUpperCase();
 }
 

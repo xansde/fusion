@@ -8,6 +8,8 @@
   - `docs/research/12b-etmos-fontes-locais.md` — licença do SRD ETMOS (todos os direitos reservados presumido), autoria/créditos da Balde Galáctico, símbolos rúnicos como assets proprietários
   - `docs/research/10-pf2e-sistema-internals.md` — três camadas de licença do `foundryvtt/pf2e` (código Apache-2.0, dados ORC/OGL, arte Paizo proibida), metadados de `publication`, separação regras-puras vs. acoplamento ao Foundry, relação SF2e
 
+> **Emenda (F4, DEC-SEP-09, 2026-08-24) — onde vive.** Packs ORC/OGL e material de licença aberta do PF2e/SF2e vivem no repo satélite `xansde/fusion-systems-2e` (git submodule pinado por tag do core). O Etmos permanece legado, fora da linha alfa (DEC-SEP-04). As obrigações e a matriz de risco desta spec não mudam de conteúdo — mudou só onde os arquivos que ela normatiza moram.
+
 > Esta spec é a **fonte normativa legal** do Fusion. Ela é referenciada por
 > praticamente todas as specs irmãs (notadamente `00-visao-e-escopo.md`,
 > `16-compendiums-e-importacao.md`, `17-sistema-pf2e.md`, `18-sistema-sf2e.md`,
@@ -404,6 +406,12 @@ release.
 - **REQ-LEG-014** [MVP] O produto NÃO PODE incluir arte, tokens, ícones de condição,
   ilustrações de itens/spells ou mapas oriundos do repositório `pf2e`/Foundry. Um
   passo de auditoria de assets DEVE detectar e bloquear esses arquivos.
+- **REQ-LEG-026** [MVP] A arte de terceiros do criador de avatar (Liberated Pixel Cup, licença por
+  peça) DEVE constar no `NOTICE` (seção do avatar), o PNG gerado é tratado como obra derivada
+  CC-BY-SA 3.0 e leva a atribuição gravada no arquivo, e o acervo NÃO vai embutido no executável:
+  o release o publica como pasta `avatar/` ao lado dele, com `creditos.json` e `LICENSES.txt`.
+  Decisão provisória de 21/10/2026 (revisar no beta); detalhes e alternativas descartadas em
+  DEC-AVT-08 (spec 35, §6.1).
 
 ### Etmos
 

@@ -79,6 +79,60 @@ describe("parseSpecs", () => {
   });
 });
 
+describe("regra citacao-coerente (#227)", () => {
+  const defs = [
+    "- **REQ-ROL-001** [MVP] O servidor grava o `targetSnapshot` de cada alvo.",
+    "- **REQ-ROL-002** [MVP] O evento de turno dispara no início do turno.",
+  ].join("\n");
+
+  it("flags a citation annotated with a term the cited requirement never mentions", () => {
+    const dir = corpus({
+      "08-rolagens.md": [
+        defs,
+        "- **REQ-ROL-003** [MVP] No início do turno (REQ-ROL-001 (`evento de turno`)).",
+      ].join("\n"),
+    });
+
+    const violations = lintSpecs(dir).filter((v) => v.rule === "citacao-coerente");
+
+    expect(violations).toHaveLength(1);
+    expect(violations[0]?.message).toContain("REQ-ROL-001");
+    expect(violations[0]?.message).toContain("evento de turno");
+  });
+
+  it("accepts an annotation whose term appears in the cited requirement, ignoring case", () => {
+    const dir = corpus({
+      "08-rolagens.md": [
+        defs,
+        "- **REQ-ROL-003** [MVP] Como em REQ-ROL-002 (`Evento de Turno`).",
+      ].join("\n"),
+    });
+
+    expect(lintSpecs(dir).filter((v) => v.rule === "citacao-coerente")).toEqual([]);
+  });
+
+  it("reads the whole body of a multi-line requirement", () => {
+    const dir = corpus({
+      "08-rolagens.md": [
+        "- **REQ-ROL-001** [MVP] O servidor grava",
+        "  o `targetSnapshot` de cada alvo.",
+        "",
+        "- **REQ-ROL-003** [MVP] Veja REQ-ROL-001 (`targetSnapshot`).",
+      ].join("\n"),
+    });
+
+    expect(lintSpecs(dir).filter((v) => v.rule === "citacao-coerente")).toEqual([]);
+  });
+
+  it("leaves a plain citation without annotation alone", () => {
+    const dir = corpus({
+      "08-rolagens.md": [defs, "- **REQ-ROL-003** [MVP] Ver REQ-ROL-001 para o resto."].join("\n"),
+    });
+
+    expect(lintSpecs(dir).filter((v) => v.rule === "citacao-coerente")).toEqual([]);
+  });
+});
+
 describe("regra id-unico", () => {
   it("flags the same id defined in two specs", () => {
     const dir = corpus(

@@ -50,6 +50,12 @@
   import { activeSceneState } from "../../lib/docs/activeScene.svelte.js";
   import { untrack } from "svelte";
   import { t } from "../../lib/i18n/i18n.js";
+  import Icon from "../common/Icon.svelte";
+  import { resolveCombatPortraits } from "../../lib/combat/combatPortraits.js";
+  import { resolveAssetUrl } from "../../lib/assets/assetApi.js";
+  import { fusionApi } from "../../lib/api.js";
+  import { session } from "../../lib/session.svelte.js";
+  import { pickLocalizedName } from "../../lib/compendium/documentDetails.js";
 
   const {
     socket,
@@ -138,6 +144,37 @@
   // running: montagem and the empty state have no turn to head.
   const inProgress = $derived(combat !== null && combat.started && !combat.ended);
   const activeRow = $derived(rows.find((row) => row.isActive) ?? null);
+
+  // Portraits signed through the asset grant against this Combat (`combatants[].img` is a grantable field): the
+  // stored `/assets/<name>` alone answers 401 and drew a broken image on every row (fechamento 22/10/2026).
+  let portraits = $state<ReadonlyMap<string, string>>(new Map());
+  $effect(() => {
+    const combatId = combat?._id ?? null;
+    const wanted = rows.map((row) => ({ id: row.id, img: row.img }));
+    const userId = session.user?.id ?? null;
+    if (combatId === null || userId === null || wanted.length === 0) {
+      portraits = new Map();
+      return;
+    }
+    let cancelled = false;
+    void fusionApi
+      .getFreshToken()
+      .then((token) => {
+        if (token === null) return new Map<string, string>();
+        return resolveCombatPortraits(wanted, (img) =>
+          resolveAssetUrl(img, token, userId, { table: "combats", id: combatId }),
+        );
+      })
+      .then((urls) => {
+        if (!cancelled) portraits = urls;
+      })
+      .catch(() => {
+        if (!cancelled) portraits = new Map();
+      });
+    return () => {
+      cancelled = true;
+    };
+  });
   const showTurnHead = $derived(inProgress && activeRow !== null);
 
   // REQ-CBA-023: advancing or rewinding drops the expansion the previous turn had. The
@@ -244,7 +281,8 @@
     if (!actor || typeof actor["name"] !== "string") return undefined;
     const system = actor["system"];
     return {
-      name: actor["name"],
+      // The pt-BR name an import snapshotted ("Águia"), not the stored EN one ("Eagle").
+      name: pickLocalizedName(actor, "pt-BR"),
       img: typeof actor["img"] === "string" ? actor["img"] : null,
       system: typeof system === "object" && system !== null ? (system as Record<string, unknown>) : {},
     };
@@ -421,7 +459,7 @@
               disabled={busy}
               title={t("FUSION.Combat.PreviousTurn")}
               aria-label={t("FUSION.Combat.PreviousTurn")}
-            >&#x276E;</button>
+            ><Icon name="chevron-left" size={18} /></button>
           {/if}
 
           {#if controls.canNext && !showTurnHead}
@@ -431,7 +469,7 @@
               disabled={busy}
               title={t("FUSION.Combat.NextTurn")}
               aria-label={t("FUSION.Combat.NextTurn")}
-            >&#x276F;</button>
+            ><Icon name="chevron-right" size={18} /></button>
           {/if}
 
           {#if controls.canEnd && !showTurnHead}
@@ -505,8 +543,10 @@
             onclick={() => { candidatesOpen = false; }}
             aria-expanded="true"
             aria-controls="combat-candidates"
+            aria-label={t("FUSION.Combat.Setup.Collapse")}
+            title={t("FUSION.Combat.Setup.Collapse")}
             type="button"
-          >{t("FUSION.Combat.Setup.Collapse")}</button>
+          ><Icon name="chevron-up" size={18} /></button>
         </div>
         {#if candidates.length === 0}
           <p class="candidates__empty">{t("FUSION.Combat.Setup.CandidatesEmpty")}</p>
@@ -540,7 +580,7 @@
       {@const row = activeRow}
       <TurnHead
         name={row.name}
-        img={row.img}
+        img={portraits.get(row.id) ?? null}
         isYours={isMyTurn}
         defeated={row.isDefeated}
         health={vitals.get(row.id)?.health ?? null}
@@ -583,6 +623,7 @@
       {:else}
         <CombatQueue
           {queue}
+          {portraits}
           {vitals}
           {initiativeCells}
           {statisticOptions}
@@ -626,13 +667,15 @@
   }
 
   .combat-panel__empty-text {
-    color: var(--fusion-text-subtle);
-    font-size: 0.8125rem;
+    color: var(--fusion-text-muted);
+    font-size: var(--fusion-text-sm);
   }
 
   .combat-panel__empty-actions {
     display: flex;
-    gap: 0.5rem;
+    flex-direction: column;
+    gap: var(--fusion-space-2);
+    width: 100%;
   }
 
   /* ---- Candidates block (REQ-CBA-060/061) ----
@@ -654,15 +697,13 @@
 
   .candidates__title {
     color: var(--fusion-text);
-    font-size: 0.75rem;
+    font-size: var(--fusion-text-xs);
     font-weight: 600;
-    letter-spacing: 0.03em;
-    text-transform: uppercase;
   }
 
   .candidates__empty {
     color: var(--fusion-text-subtle);
-    font-size: 0.75rem;
+    font-size: var(--fusion-text-xs);
     padding: 0.4rem 0;
   }
 
@@ -687,7 +728,7 @@
 
   .candidates__name {
     color: var(--fusion-text);
-    font-size: 0.75rem;
+    font-size: var(--fusion-text-xs);
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
@@ -706,17 +747,15 @@
 
   .combat-panel__round {
     color: var(--fusion-text);
-    font-size: 0.8125rem;
+    font-size: var(--fusion-text-xs);
     font-weight: 600;
-    letter-spacing: 0.04em;
-    text-transform: uppercase;
   }
 
   /* REQ-CBA-011: the montagem count, next to the state, in the same header. */
   .combat-panel__count {
     color: var(--fusion-text-muted);
     flex: 1;
-    font-size: 0.6875rem;
+    font-size: var(--fusion-text-xs);
     font-variant-numeric: tabular-nums;
     overflow: hidden;
     text-align: right;
@@ -734,6 +773,7 @@
     border-bottom: 1px solid var(--fusion-border);
     display: flex;
     flex-shrink: 0;
+    flex-wrap: wrap;
     gap: 0.25rem;
     padding: 0.3rem 0.5rem;
   }
@@ -741,7 +781,7 @@
   /* ---- Error ---- */
   .combat-panel__error {
     color: var(--fusion-danger);
-    font-size: 0.75rem;
+    font-size: var(--fusion-text-xs);
     padding: 0.4rem 0.75rem;
   }
 
@@ -757,7 +797,7 @@
   .combat-panel__turn-notice {
     color: var(--fusion-text-muted);
     flex: none;
-    font-size: 0.75rem;
+    font-size: var(--fusion-text-xs);
     margin: 0;
     overflow: hidden;
     padding: 0.25rem 0.5rem;
@@ -773,7 +813,7 @@
     cursor: pointer;
     display: inline-flex;
     font-family: var(--fusion-font);
-    font-size: 0.875rem;
+    font-size: var(--fusion-text-sm);
     font-weight: 500;
     justify-content: center;
     padding: 0.5rem 1.25rem;
@@ -788,7 +828,7 @@
 
   .btn--primary {
     background: var(--fusion-accent);
-    color: #fff;
+    color: var(--fusion-on-accent);
   }
 
   .btn--primary:hover:not(:disabled) {
@@ -807,13 +847,13 @@
   }
 
   .btn--accent {
-    background: rgba(255, 215, 0, 0.15);
-    border-color: #ffd700;
-    color: #ffd700;
+    background: var(--fusion-accent-dim);
+    border-color: var(--fusion-accent);
+    color: var(--fusion-accent);
   }
 
   .btn--accent:hover:not(:disabled) {
-    background: rgba(255, 215, 0, 0.25);
+    background: var(--fusion-accent-dim);
   }
 
   .btn--danger {
@@ -823,16 +863,19 @@
   }
 
   .btn--danger:hover:not(:disabled) {
-    background: rgba(255, 92, 92, 0.1);
+    background: var(--fusion-danger-dim);
   }
 
   .btn--sm {
-    font-size: 0.8125rem;
+    font-size: var(--fusion-text-sm);
+    min-height: var(--fusion-target);
     padding: 0.3rem 0.75rem;
   }
 
   .btn--xs {
-    font-size: 0.75rem;
+    font-size: var(--fusion-text-xs);
+    min-height: var(--fusion-target);
+    min-width: var(--fusion-target);
     padding: 0.2rem 0.5rem;
   }
 </style>

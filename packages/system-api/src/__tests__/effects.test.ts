@@ -14,6 +14,8 @@ import {
   aggregateModifiers,
   EFFECT_RULE_KEYS,
   MVP_EFFECT_RULE_KEYS,
+  RULE_PHASES,
+  type RuleElementRegistry,
   type FlatModifierRule,
   type StackingTable,
 } from "../effects.js";
@@ -47,6 +49,19 @@ describe("isMvpRuleType", () => {
   it("returns false for completely unknown types", () => {
     expect(isMvpRuleType("unknownRule")).toBe(false);
     expect(isMvpRuleType("")).toBe(false);
+  });
+
+  // REQ-SYS-089: the supported set is whatever the rule element registry knows.
+  it("consults the given rule element registry instead of the static MVP set", () => {
+    const registry: Pick<RuleElementRegistry, "kinds"> = {
+      kinds: () => new Set(["customRule"]),
+    };
+    expect(isMvpRuleType("customRule", registry)).toBe(true);
+    expect(isMvpRuleType(EFFECT_RULE_KEYS.FlatModifier, registry)).toBe(false);
+  });
+
+  it("declares the canonical rule phase order", () => {
+    expect(RULE_PHASES).toEqual(["pre-base", "synthetics", "item", "strike", "roll"]);
   });
 });
 

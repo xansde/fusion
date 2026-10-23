@@ -39,7 +39,7 @@ canto inferior direito da mesa do jogador que controla aquele personagem.
 
 ### 2.2 Não inclui
 
-- Avatar no token do canvas (o token segue usando `texture`).
+- Token com sprite animado: o token continua sendo uma imagem estática (a arte do ator, `img`).
 - Avatar de NPC exibido para os jogadores.
 - Giro do boneco: o recorte do acervo tem `frente` e `perfil_dir`; a UI usa
   **frente** apenas.
@@ -90,10 +90,18 @@ canto inferior direito da mesa do jogador que controla aquele personagem.
 - **REQ-AVT-018** [MVP] Sem permissão de edição o criador abre em leitura.
 - **REQ-AVT-019** [MVP] Os créditos da arte (fonte, pin, autores, licenças) são
   acessíveis dentro do criador — atribuição é obrigação de licença, não enfeite.
+- **REQ-AVT-020** [MVP] O criador **se salva sozinho**: cada edição agenda um salvamento
+  (rajada vira uma gravação do estado mais novo, gravações nunca se sobrepõem), e fechar a
+  janela ou "Usar como token/retrato" descarregam o pendente antes. Motivo (mesa, 18/10): a
+  figura montada e usada como token se perdeu ao fechar a janela sem "Salvar avatar" — o
+  documento ficou com as 3 peças iniciais. Ver `lib/avatar/salvamento.ts`.
+- **REQ-AVT-021** [MVP] A coluna esquerda do criador tem três faixas: prévia (encolhe com a
+  janela), meio rolável (corpo, animação, equipado, ajustes, créditos) e rodapé fixo com as
+  ações em grade de duas colunas. A janela abre do tamanho da tela (máx. 940×640).
 
 ### Canto da tela
 
-- **REQ-AVT-030** [MVP] O canto inferior direito mostra **um** avatar: o do
+- **REQ-AVT-030** [MVP] O overlay (por padrão no canto inferior direito) mostra **um** avatar: o do
   personagem que o usuário possui **explicitamente** (o mapa de ownership nomeia
   o usuário). Posse por papel não conta — o GM tem OWNER implícito em tudo e o
   canto mostraria um NPC qualquer como se fosse dele.
@@ -106,28 +114,84 @@ canto inferior direito da mesa do jogador que controla aquele personagem.
   flutuante cobre o avatar — decoração cede lugar a trabalho.
 - **REQ-AVT-035** [MVP] `prefers-reduced-motion` remove a entrada e o loop.
 - **REQ-AVT-036** [MVP] O overlay não intercepta clique destinado ao canvas.
+- **REQ-AVT-037** [MVP] **Cada jogador decide na própria tela** (preferência de cliente,
+  `clientPrefs.avatarOverlay`, localStorage por mundo + usuário, nunca sai do aparelho):
+  mostrar/ocultar, tamanho 64–320 px (canvas no zoom inteiro que cobre o tamanho, reduzido por
+  CSS pixelado) e posição — um dos 4 cantos ou um ponto arrastado à mão (guardado como fração da
+  viewport). Arrastar não abre a ficha; clicar abre.
+- **REQ-AVT-038** [MVP] Os ajustes ficam numa engrenagem que aparece no hover/foco do overlay,
+  no criador ("Meu avatar na tela") e em Configurações → Minhas preferências — os dois últimos
+  são o caminho de volta de um overlay oculto.
+- **REQ-AVT-039** [MVP] Qualquer que seja a escolha, o overlay fica fora da gaveta, do
+  cabeçalho e da viewport, e sobe acima da barra de ações quando a cruzaria — com a barra
+  **medida** na tela (`[data-action-bar]`), porque a altura dela depende da fileira de abas.
+
+### Miniatura (token e retrato) — adaptação à mesa
+
+- **REQ-AVT-060** [MVP] O criador oferece "Usar como token" e "Usar como retrato": renderizam o
+  avatar atual (frente, primeiro quadro de `idle`) num PNG 256x256 de fundo transparente, recortado
+  na figura (token: figura inteira; retrato: busto), com ampliação por fator INTEIRO e
+  nearest-neighbor. Publicam na biblioteca (aba Tokens) e gravam `img` do ator por `doc:update`.
+- **REQ-AVT-061** [MVP] A arte do token É `Actor.img` (REQ-TOK-010/011): token e retrato da ficha
+  compartilham o campo, então os dois botões escrevem o mesmo `img` e diferem só no recorte. Não há
+  `prototypeToken.texture` nem `texture` por token nesta linha.
+- **REQ-AVT-062** [MVP] O upload usa `?purpose=avatar`: aberto a todo PLAYER, só PNG, até 512 KB,
+  sempre na aba tokens. O upload genérico continua exigindo TRUSTED.
+- **REQ-AVT-063** [MVP] Todo `doc:update` primário do avatar leva `expectedVersion` (o servidor
+  recusa jogador sem ele) e espera o ack; ver `lib/avatar/escrita.ts`.
+- **REQ-AVT-064** [MVP] Arte cujo nome começa com `avatar-token`/`avatar-retrato` é desenhada no
+  canvas sem suavização (pixel art).
+- **REQ-AVT-065** [MVP] O botão "Avatar" é uma ação do cabeçalho da janela (`headerActions`), posta
+  pelo core em toda ficha de `character`; nenhuma ficha de sistema conhece o avatar. O overlay do
+  canto desvia da gaveta e sobe acima da barra de ações quando as duas colidiriam.
+- **REQ-AVT-066** [MVP] **A imagem do ator nunca se perde.** O servidor guarda em
+  `flags.fusion.imagemAnterior` a imagem substituída em todo `doc:update` que troca o `img` de um
+  Actor — quem quer que troque (criador, FilePicker da ficha, botão de remover retrato). Vazio
+  nunca sobrescreve a memória; o cliente não forja o valor. Restaurar é gravar de volta, e alterna.
+  Incidente de origem (mesa, 18/10): o `img` do Bhrotto foi a `""` 6 s depois do "Usar como token".
+- **REQ-AVT-067** [MVP] O criador só grava um `img` que valida como `/assets/<nome>.png` (upload
+  falho ou caminho vazio abortam com erro visível, `img` intacto), pede confirmação mostrando a
+  imagem atual e a nova quando o ator tem arte própria (que não é arte de avatar) e oferece
+  "Restaurar imagem anterior".
+
+- **REQ-AVT-068** [MVP] Todo PNG gerado pelo criador (token e retrato) leva a atribuição da arte
+  gravada dentro do arquivo, em chunks `tEXt` logo após o IHDR: `Source` (Liberated Pixel Cup /
+  waybuilder-avatar), `License` (CC-BY-SA 3.0, obra derivada; cada peça tem licença própria),
+  `Credits-URL` e `Credits` (`/avatar/creditos.json`). O chunk não duplica se o PNG já o tem e o
+  arquivo continua um PNG válido (CRC correto). Ver `lib/avatar/atribuicaoPng.ts` e DEC-AVT-08.
 
 ### Acervo e distribuição
 
 - **REQ-AVT-040** [MVP] O acervo entra como dependência npm **pinada em commit**;
   atualizar é trocar o SHA. Nenhum arquivo de arte é versionado no Fusion.
 - **REQ-AVT-041** [MVP] O acervo é publicado em `/avatar/*`: em dev/preview por
-  middleware do plugin Vite lendo o `node_modules`; no build, copiado para
-  `dist/avatar/`, que a fase 5 do `build-release.mjs` já empacota no executável.
+  middleware do plugin Vite lendo o `node_modules`; num `pnpm build` de monorepo, copiado para
+  `dist/avatar/`. No executável empacotado ele **não** vai embutido (REQ-AVT-069): o servidor o
+  serve de `<pasta do executável>/avatar` (ou de `FUSION_AVATAR_DIR`).
 - **REQ-AVT-042** [MVP] O guarda de traversal do middleware é obrigatório:
   `/avatar/` nunca pode ler fora do `saida/` do pacote.
 - **REQ-AVT-043** [MVP] Catálogo (1,7 MB) e atlas são buscados em **runtime**,
   nunca importados — import viraria chunk de JS pago em todo carregamento.
 - **REQ-AVT-044** [MVP] O catálogo só é buscado quando há avatar para desenhar.
+- **REQ-AVT-069** [MVP] O acervo fica **fora do executável**. A fase 5 do `build-release.mjs` exclui
+  `avatar/` do client-dist embutido; a fase 8b emite a pasta `dist-release/avatar/` (acervo +
+  `creditos.json` + `LICENSES.txt` + `NOTICE`), o `NOTICE` ao lado do executável e, opcionalmente,
+  `fusion-avatar-acervo-<versão>.zip`. Instalar = copiar a pasta `avatar/` para o diretório do
+  executável. Sem ela o Fusion funciona e `/avatar/*` responde 404 `AVATAR_ACERVO_MISSING`
+  (REQ-AVT-054). O `smoke:release` confere os dois lados e o guarda de traversal.
 
 ### Desenho
 
 - **REQ-AVT-050** [MVP] A unidade de cache é o **quadro de 64×64**, não o atlas: o
   atlas de cabelo tem 3072×5696 (~67 MB em RGBA) porque empilha as 90 peças do
   slot. Recolorir por arquivo custaria isso por cor.
-- **REQ-AVT-051** [MVP] Todo quadro passa pelo cache, recolorido ou não, para que
-  a evicção do LRU de atlas custe no máximo um re-decode e nunca uma camada
-  faltando.
+- **REQ-AVT-051** [MVP] Todos os quadros do ciclo são fatiados ao **preparar** o avatar, e o avatar
+  preparado guarda as referências: o desenho nunca consulta atlas. Cada camada é um atlas próprio
+  (19 num boneco de 16 slots) e o LRU guarda 8 — consultar o atlas a cada quadro fazia ~11 camadas
+  piscarem para sempre e o PNG do token sair com camadas faltando.
+- **REQ-AVT-055** [MVP] O sprite só se prepara de novo quando o **conteúdo** muda (chave estável
+  da seleção) e só repinta quando o passo da animação muda (8 fps), não a cada broadcast do ator
+  nem a cada frame do monitor.
 - **REQ-AVT-052** [MVP] O tempo da animação é monotônico e compartilhado: todos os
   avatares na tela ficam em fase.
 - **REQ-AVT-053** [MVP] A ordem dos frames vem do ciclo do acervo, não de `0..n`:
@@ -162,6 +226,17 @@ canto inferior direito da mesa do jogador que controla aquele personagem.
   como pacote (mesmo padrão de "repo externo consumido por artefato"). Entrada de UI:
   **aba Configurações da gaveta** (não mais botão na ficha). O "behind 63" da worktree
   deixa de importar: só o ponto de integração precisa da alfa atual.
+
+- **DEC-AVT-08 — PNG gerado é obra derivada CC-BY-SA 3.0; acervo fora do exe.** Provisória
+  (21/10/2026 — revisar no beta). Decisão de projeto, não parecer jurídico. O acervo mistura licenças por
+  peça (GPL 3.0, OGA-BY, CC-BY-SA 3.0, CC-BY, CC0...); trata-se o PNG como derivado sob a mais
+  restritiva entre as não-GPL, com atribuição. Medidas: `NOTICE` na raiz com a seção do avatar
+  (REQ-LEG-026), chunk de texto no PNG (REQ-AVT-068) e acervo como pacote opcional ao lado do
+  executável (REQ-AVT-069), que separa a arte share-alike do binário do Fusion e não incha o exe.
+  Descartadas: licenciar o PNG como CC0/domínio próprio (a arte não é nossa); embutir no exe
+  (mistura a SA com o binário); remover as peças SA (esvazia o acervo). PNGs já gerados ficam sem
+  o chunk (regenerar é opcional). Uso é privado do grupo (mesa fechada), o que reduz, mas não
+  elimina, a obrigação de atribuição.
 
 ## 5. Onde vive
 
@@ -198,9 +273,24 @@ das 12 classes, `docs/lessons.md`):
   remove de verdade, e um **teste negativo** mostra a peça voltando quando o diff
   não poda.
 
+## 6.1 Atribuição e licença (decisão provisória, 21/10/2026)
+
+O acervo mistura arte LPC sob licenças diversas (CC-BY-SA, CC-BY, OGA-BY, GPL). Decisão
+provisória (DEC-AVT-08, revisar no beta): o PNG publicado como token/retrato é **obra derivada sob
+CC-BY-SA 3.0**, com atribuição. Está implementado assim:
+
+- `NOTICE` na raiz (REQ-LEG-023/026) com a seção do avatar; o release o copia para
+  `dist-release/NOTICE` e para dentro de `avatar/`;
+- chunk `tEXt` com a atribuição em todo PNG gerado (REQ-AVT-068);
+- acervo fora do exe, em `avatar/` ao lado do executável, com `creditos.json` e `LICENSES.txt`
+  (REQ-AVT-069); o criador segue mostrando os créditos (REQ-AVT-019).
+
+Fica em aberto o que só uma pessoa decide: parecer jurídico se o grupo passar a distribuir o
+Fusion ou os PNGs fora da mesa fechada.
+
 ## 7. Aberto
 
-- Avatar no token do canvas (usar o sprite montado como textura).
+- Token animado no canvas (hoje o token usa um quadro parado, ver REQ-AVT-060).
 - Fileira de avatares dos outros jogadores conectados.
 - Expressão/pose reagindo a estado de jogo (HP baixo, condição).
 - Bump do acervo: hoje é manual (trocar o SHA); vale um verificador que compare o
