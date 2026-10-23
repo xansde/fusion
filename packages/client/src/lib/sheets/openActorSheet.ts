@@ -62,7 +62,10 @@ export function openActorSheet(
 ): void {
   // Lazy import to avoid circular imports when this module is loaded server-side.
   // In browser context these are synchronous after the first load.
-  void import("$lib/windows/window-manager.js").then(({ windowManager }) => {
+  void Promise.all([
+    import("$lib/windows/window-manager.js"),
+    import("../docs/worldSync.js"),
+  ]).then(([{ windowManager }, { worldMirror }]) => {
     const systemDoc = actorDoc["system"] as Record<string, unknown> | undefined;
     const rawSubtype = systemDoc?.["subtype"] ?? actorDoc["type"] ?? "character";
     const subtype = typeof rawSubtype === "string" ? rawSubtype : "character";
@@ -90,6 +93,8 @@ export function openActorSheet(
       icon: "scroll",
       resizable: true,
       minimizable: true,
+      // A sheet can be detached to its own browser window (second monitor).
+      poppable: true,
       position: {
         width: reg.defaultSize?.width ?? 640,
         height: reg.defaultSize?.height ?? 480,
@@ -100,11 +105,33 @@ export function openActorSheet(
         isGm: sheetProps.isGm,
       }),
       component: reg.component,
-      componentProps: {
-        actorId,
-        doc: actorDoc,
-        ...sheetProps,
-      },
+      componentProps: sheetComponentProps(actorId, actorDoc, sheetProps, singletonKey === `sheet:Actor:${actorId}`
+        ? () => worldMirror.getDoc<Record<string, unknown>>("Actor", actorId)
+        : undefined),
     });
   });
+}
+
+/**
+ * Props for the sheet component. The window's content is unmounted and mounted again when
+ * it is popped out to its own browser window, popped back in, or minimized and restored;
+ * the sheet seeds its live copy from `doc` and only follows FUTURE mirror changes. So, for
+ * a world actor, `doc` is a getter onto the mirror's current copy — a remount starts from
+ * the value the table sees now, not from the snapshot taken when the window first opened.
+ * An unlinked token's sheet (own window key) is given a synthetic doc: that one is kept.
+ */
+function sheetComponentProps(
+  actorId: string,
+  actorDoc: Record<string, unknown>,
+  sheetProps: Record<string, unknown>,
+  current: (() => Record<string, unknown> | undefined) | undefined,
+): Record<string, unknown> {
+  const props: Record<string, unknown> = { actorId, doc: actorDoc, ...sheetProps };
+  if (current !== undefined) {
+    Object.defineProperty(props, "doc", {
+      enumerable: true,
+      get: () => current() ?? actorDoc,
+    });
+  }
+  return props;
 }

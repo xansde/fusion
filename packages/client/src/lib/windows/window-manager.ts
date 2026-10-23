@@ -85,6 +85,16 @@ export interface WindowEntry {
   componentProps?: Record<string, unknown>;
   /** Extra title-bar buttons (see {@link WindowHeaderAction}). */
   headerActions?: readonly WindowHeaderAction[];
+  /** The window may be detached into its own browser window (title-bar pop-out button). */
+  poppable: boolean;
+  /**
+   * The window currently lives in its own browser window: WindowHost draws no floating
+   * shell for it and mounts its content in the detached document instead. Never persisted —
+   * a reopened window always starts inside the table.
+   */
+  poppedOut: boolean;
+  /** A short message the chrome shows under the title bar (e.g. "pop-up blocked"). */
+  notice?: string;
 }
 
 export interface WindowOpenOptions {
@@ -108,6 +118,8 @@ export interface WindowOpenOptions {
   componentProps?: Record<string, unknown>;
   /** Extra title-bar buttons (see {@link WindowHeaderAction}). */
   headerActions?: readonly WindowHeaderAction[];
+  /** Offer the pop-out button (detach into a separate browser window). Default false. */
+  poppable?: boolean;
 }
 
 export interface WindowHandle {
@@ -382,6 +394,8 @@ export class WindowManager {
       height: geo.height,
       minimized: saved?.minimized ?? false,
       zIndex: this._highestZ,
+      poppable: opts.poppable ?? false,
+      poppedOut: false,
       // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
       ...(opts.component !== undefined ? { component: opts.component } : {}),
       ...(opts.componentProps !== undefined ? { componentProps: opts.componentProps } : {}),
@@ -428,6 +442,34 @@ export class WindowManager {
     this.windows.set(id, updated);
     this._persist(updated);
     this.focus(id);
+  }
+
+  // -------------------------------------------------------------------------
+  // pop-out (detached browser window) — the DOM side lives in popout.ts
+  // -------------------------------------------------------------------------
+
+  /** Mark a poppable window as living in its own browser window. */
+  popOut(id: WindowId): void {
+    const entry = this.windows.get(id);
+    if (!entry || !entry.poppable) return;
+    const { notice: _notice, ...rest } = entry;
+    this.windows.set(id, { ...rest, poppedOut: true, minimized: false });
+  }
+
+  /** Bring a detached window back inside the table. */
+  popIn(id: WindowId): void {
+    const entry = this.windows.get(id);
+    if (!entry || !entry.poppedOut) return;
+    this.windows.set(id, { ...entry, poppedOut: false });
+    this.focus(id);
+  }
+
+  /** Show (or, with `undefined`, clear) a short message in the window chrome. */
+  setNotice(id: WindowId, notice: string | undefined): void {
+    const entry = this.windows.get(id);
+    if (!entry) return;
+    const { notice: _old, ...rest } = entry;
+    this.windows.set(id, notice === undefined ? rest : { ...rest, notice });
   }
 
   // -------------------------------------------------------------------------

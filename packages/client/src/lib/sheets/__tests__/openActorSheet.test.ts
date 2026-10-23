@@ -17,6 +17,7 @@ import { windowManager } from "$lib/windows/window-manager.js";
 import { sheetRegistry } from "$lib/sheets/sheetRegistry.js";
 import "$lib/i18n/index.js";
 import { i18n } from "$lib/i18n/i18n.js";
+import { worldMirror } from "$lib/docs/worldSync.js";
 
 // Dynamic import inside openActorSheet resolves on a microtask; flush it.
 function flushMicrotasks(): Promise<void> {
@@ -169,5 +170,70 @@ describe("openActorSheet — window title (REQ-CMP-055)", () => {
       });
       expect(title).not.toMatch(/FUSION\./);
     });
+  });
+});
+
+describe("openActorSheet — a re-mounted sheet starts from the current doc", () => {
+  beforeEach(() => {
+    for (const id of [...windowManager.windows.keys()]) {
+      windowManager.close(id);
+    }
+    sheetRegistry.register("Actor", "npc", {}, { defaultSize: { width: 480, height: 520 } });
+  });
+
+  // The sheet content is unmounted and mounted again when the window is popped out to
+  // its own browser window, popped back in, or minimized and restored. The sheet seeds
+  // its live copy from the `doc` prop and only follows FUTURE mirror changes, so a prop
+  // frozen at open time would show stale values (an edit made meanwhile) after a remount.
+  it("the doc prop reads the world mirror's current copy, not the snapshot taken at open", async () => {
+    const opened = { _id: "actor-hp", name: "Hp", type: "npc", system: { subtype: "npc", hp: 10 } };
+    worldMirror.applySnapshot({
+      seq: 1,
+      documents: { Actor: [opened] },
+    } as unknown as Parameters<typeof worldMirror.applySnapshot>[0]);
+
+    openActorSheet("actor-hp", opened, { userId: "gm-1", ownership: 3, isGm: true });
+    await flushMicrotasks();
+
+    const edited = { ...opened, system: { subtype: "npc", hp: 7 } };
+    worldMirror.applySnapshot({
+      seq: 2,
+      documents: { Actor: [edited] },
+    } as unknown as Parameters<typeof worldMirror.applySnapshot>[0]);
+
+    const entry = [...windowManager.windows.values()].find((w) => w.singletonKey === "sheet:Actor:actor-hp");
+    const doc = entry?.componentProps?.["doc"] as { system: { hp: number } } | undefined;
+    expect(doc?.system.hp).toBe(7);
+  });
+
+  it("a sheet opened with its own window key (unlinked token) keeps the doc it was given", async () => {
+    const synthetic = { _id: "actor-base", name: "Base", type: "npc", system: { subtype: "npc", hp: 3 } };
+    worldMirror.applySnapshot({
+      seq: 3,
+      documents: { Actor: [{ ...synthetic, system: { subtype: "npc", hp: 99 } }] },
+    } as unknown as Parameters<typeof worldMirror.applySnapshot>[0]);
+
+    openActorSheet("actor-base", synthetic, {
+      userId: "gm-1",
+      ownership: 3,
+      isGm: true,
+      singletonKey: "sheet:Token:t1",
+    });
+    await flushMicrotasks();
+
+    const entry = [...windowManager.windows.values()].find((w) => w.singletonKey === "sheet:Token:t1");
+    const doc = entry?.componentProps?.["doc"] as { system: { hp: number } } | undefined;
+    expect(doc?.system.hp).toBe(3);
+  });
+
+  it("windows opened by openActorSheet are poppable", async () => {
+    openActorSheet("actor-pop", { _id: "actor-pop", name: "P", type: "npc", system: { subtype: "npc" } }, {
+      userId: "gm-1",
+      ownership: 3,
+      isGm: true,
+    });
+    await flushMicrotasks();
+    const entry = [...windowManager.windows.values()].find((w) => w.singletonKey === "sheet:Actor:actor-pop");
+    expect(entry?.poppable).toBe(true);
   });
 });

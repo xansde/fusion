@@ -22,6 +22,8 @@
   import { windowManager } from "$lib/windows/window-manager.js";
   import { isIconName } from "@fusion/shared";
   import Icon from "../common/Icon.svelte";
+  import { requestPopout } from "$lib/windows/popout.js";
+  import { t } from "$lib/i18n/i18n.js";
 
   interface Props {
     entry: WindowEntry;
@@ -207,6 +209,18 @@
     {/each}
 
     <div class="fusion-window__controls">
+      {#if entry.poppable}
+        <button
+          class="fusion-window__btn fusion-window__btn--popout"
+          aria-label={t("FUSION.Window.PopOut")}
+          title={t("FUSION.Window.PopOut")}
+          data-testid="window-popout"
+          onclick={() => requestPopout(entry.id)}
+          onpointerdown={(e) => e.stopPropagation()}
+        >
+          <Icon name="external-link" size={20} />
+        </button>
+      {/if}
       {#if entry.minimizable}
         <button
           class="fusion-window__btn fusion-window__btn--minimize"
@@ -227,6 +241,20 @@
       </button>
     </div>
   </div>
+
+  {#if entry.notice !== undefined}
+    <div class="fusion-window__notice" role="status" data-testid="window-notice">
+      <span>{entry.notice}</span>
+      <button
+        type="button"
+        class="fusion-window__notice-close"
+        aria-label={t("FUSION.Window.Close")}
+        onclick={() => windowManager.setNotice(entry.id, undefined)}
+      >
+        <Icon name="x" size={16} />
+      </button>
+    </div>
+  {/if}
 
   <!-- Content slot -->
   {#if !entry.minimized}
@@ -349,6 +377,31 @@
   .fusion-window__btn--close:hover {
     background: var(--fusion-danger-dim);
     color: var(--fusion-danger);
+  }
+
+  /* ---- Notice (e.g. pop-up blocked) ---- */
+  .fusion-window__notice {
+    display: flex;
+    align-items: center;
+    gap: var(--fusion-space-2);
+    padding: var(--fusion-space-1) var(--fusion-space-1) var(--fusion-space-1) var(--fusion-space-3);
+    background: var(--fusion-danger-dim);
+    color: var(--fusion-text);
+    font-size: var(--fusion-text-sm);
+    border-bottom: 1px solid var(--fusion-border);
+    user-select: text;
+  }
+
+  .fusion-window__notice span {
+    flex: 1;
+  }
+
+  .fusion-window__notice-close {
+    display: inline-flex;
+    background: transparent;
+    border: none;
+    color: var(--fusion-text-muted);
+    cursor: pointer;
   }
 
   /* ---- Content ---- */
