@@ -620,3 +620,73 @@ describe("narrow viewport (phone)", () => {
     expect(r.left).toBe(-360);
   });
 });
+
+// ---------------------------------------------------------------------------
+// Pop-out (window detached into its own browser window)
+// ---------------------------------------------------------------------------
+
+describe("pop-out", () => {
+  it("a window is not poppable unless it asks to be", () => {
+    const mgr = freshManager();
+    const plain = mgr.open({ title: "Plain" });
+    const sheet = mgr.open({ title: "Sheet", poppable: true });
+    expect(mgr.windows.get(plain.id)?.poppable).toBe(false);
+    expect(mgr.windows.get(sheet.id)?.poppable).toBe(true);
+    expect(mgr.windows.get(sheet.id)?.poppedOut).toBe(false);
+  });
+
+  it("popOut marks a poppable window as detached and popIn brings it back", () => {
+    const mgr = freshManager();
+    const h = mgr.open({ title: "Sheet", poppable: true });
+    mgr.popOut(h.id);
+    expect(mgr.windows.get(h.id)?.poppedOut).toBe(true);
+    mgr.popIn(h.id);
+    expect(mgr.windows.get(h.id)?.poppedOut).toBe(false);
+  });
+
+  it("popOut ignores a window that is not poppable", () => {
+    const mgr = freshManager();
+    const h = mgr.open({ title: "Plain" });
+    mgr.popOut(h.id);
+    expect(mgr.windows.get(h.id)?.poppedOut).toBe(false);
+  });
+
+  it("popping out clears a pending notice and restores a minimized window", () => {
+    const mgr = freshManager();
+    const h = mgr.open({ title: "Sheet", poppable: true });
+    mgr.minimize(h.id);
+    mgr.setNotice(h.id, "blocked");
+    expect(mgr.windows.get(h.id)?.notice).toBe("blocked");
+    mgr.popOut(h.id);
+    const e = mgr.windows.get(h.id);
+    expect(e?.notice).toBeUndefined();
+    expect(e?.minimized).toBe(false);
+  });
+
+  it("setNotice with undefined removes the notice", () => {
+    const mgr = freshManager();
+    const h = mgr.open({ title: "Sheet", poppable: true });
+    mgr.setNotice(h.id, "blocked");
+    mgr.setNotice(h.id, undefined);
+    expect(mgr.windows.get(h.id)?.notice).toBeUndefined();
+  });
+
+  it("re-opening a popped-out singleton keeps the same detached window (no duplicate)", () => {
+    const mgr = freshManager();
+    const a = mgr.open({ title: "Sheet", singletonKey: "sheet:1", poppable: true });
+    mgr.popOut(a.id);
+    const b = mgr.open({ title: "Sheet", singletonKey: "sheet:1", poppable: true });
+    expect(b.id).toBe(a.id);
+    expect(mgr.windows.size).toBe(1);
+    expect(mgr.windows.get(a.id)?.poppedOut).toBe(true);
+  });
+
+  it("the popped-out state is never persisted: a reopened window starts inside", () => {
+    const mgr = freshManager();
+    const a = mgr.open({ title: "Sheet", singletonKey: "sheet:2", poppable: true });
+    mgr.popOut(a.id);
+    mgr.close(a.id);
+    const b = mgr.open({ title: "Sheet", singletonKey: "sheet:2", poppable: true });
+    expect(mgr.windows.get(b.id)?.poppedOut).toBe(false);
+  });
+});

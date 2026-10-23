@@ -12,6 +12,7 @@ VTT (virtual tabletop) web próprio, inspirado no comportamento do Foundry VTT, 
 
 - `specs/` — especificações completas (índice em `specs/README.md`). Implementação segue as specs.
 - `docs/research/` — pesquisa que fundamenta as specs (21 docs sobre Foundry, PF2e, SF2e, Etmos, licenças, bibliotecas).
+- `CONTRIBUTING.md` — guia de colaboração (setup, fluxo de branch/PR, gates). Este repo é **público**: nada de segredo, dado de mundo real ou material com copyright em commit.
 
 ## Branches
 
@@ -19,17 +20,20 @@ VTT (virtual tabletop) web próprio, inspirado no comportamento do Foundry VTT, 
 
 ### Linha geral do projeto — `build/app` e `main`
 
+**Não recebem trabalho de colaborador.**
+
 - **`build/app`** é a branch de integração de uso geral, e é onde vive a onda de mapa/hub/quest board (a partir de 07/08). Não apagar, não mergear nela, não trabalhar nela sem combinar.
 - **`main`** é o espelho publicável, alimentado por `build/app`. Push nela exige instrução literal do Alexandre.
 
-### Linha pessoal do Alexandre — `alfa/app`, `beta/app`, `stable/app`
+### Linha de colaboração — `alfa/app`, `beta/app`, `stable/app`
 
-**Não são o fluxo oficial do projeto e não são de uso geral: só o Alexandre opera nelas.** Estado pré-mapa (sem a onda de mapa/hub) + os fixes do r24 (#67, #70, #74, #75, #91, #92, antecedente-perícias) cherry-pickados.
+Estado pré-mapa (sem a onda de mapa/hub) + os fixes do r24 (#67, #70, #74, #75, #91, #92, antecedente-perícias) cherry-pickados. **É aqui que colaboradores trabalham** (fluxo completo em `CONTRIBUTING.md`).
 
-- **`alfa/app`** — onde o trabalho entra e onde se espera que quebre. Toda branch de trabalho parte dela (`git fetch origin` antes; nunca do checkout local) e volta por PR.
-- **`beta/app`** — onde o Alexandre testa antes de promover: recebe merge de `alfa/app` com a suíte verde.
-- **`stable/app`** — o app pronto para jogo: só recebe merge de `beta/app` depois de validado na mesa. Nunca recebe trabalho direto.
-- Promoção (`alfa→beta`, `beta→stable`) é sempre ato humano; nada de push direto em `beta`/`stable`.
+- **`alfa/app`** — branch de integração dos colaboradores; onde o trabalho entra e onde se espera que quebre. Toda branch de trabalho parte dela (`git fetch origin` antes; nunca do checkout local) e volta por PR **para `alfa/app`**.
+- **`beta/app`** — onde o Alexandre testa antes de promover: recebe merge de `alfa/app` com a suíte verde. **Só o Alexandre opera.**
+- **`stable/app`** — o app pronto para jogo: só recebe merge de `beta/app` depois de validado na mesa. Nunca recebe trabalho direto. **Só o Alexandre opera.**
+- Promoção (`alfa→beta`, `beta→stable`) é exclusiva do Alexandre; ninguém faz push direto em `beta/app` nem em `stable/app`.
+- Mudança que cruza core e satélite (`fusion-systems-2e`): satélite primeiro (PR para a `main` dele), depois PR no core com o bump do pin do submódulo, para `alfa/app`.
 
 ## Stack
 

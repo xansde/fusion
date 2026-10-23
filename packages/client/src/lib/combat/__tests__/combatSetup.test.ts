@@ -465,7 +465,7 @@ describe("escolha da estatística de iniciativa (REQ-CBA-066)", () => {
     expect(byId.get("thievery")).toBe("Ladinagem");
     expect(byId.get("stealth")).toBe("Furtividade");
     expect(byId.get("athletics")).toBe("Atletismo");
-    expect(byId.get("lore-underworld")).toBe("Saber (Underworld)");
+    expect(byId.get("lore-underworld")).toBe("Conhecimento (Underworld)");
   });
 
   it("REQ-CBA-066: o id continua sendo o slug que a fórmula do sistema entende", () => {

@@ -277,7 +277,7 @@ export interface InitiativeStatisticOption {
  * The source is the actor's own derived skills, read the way the sheets read them — and named
  * the way the sheets name them: `skillDisplayName()` resolves through the active system's
  * registered resolver (`skillNameRegistry.ts` — PF2e registers its `skillNamePt()` table at
- * boot), so the drawer and the sheet call a skill by the same word, Lore included ("Saber (…)"),
+ * boot), so the drawer and the sheet call a skill by the same word, Lore included ("Conhecimento (…)"),
  * and an unknown slug (or no system registered yet) degrades to itself instead of disappearing.
  * The ordering follows the label, not the slug: what the reader scans is the label, and in
  * pt-BR the two orders are not the same list.
