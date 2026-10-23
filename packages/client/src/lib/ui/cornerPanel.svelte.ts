@@ -8,7 +8,7 @@
 
 import { closeFogBar } from "../canvas/fog/fogToolState.svelte.js";
 
-export type CornerPanelId = "ruler" | "show" | "fog" | "calibrate";
+export type CornerPanelId = "ruler" | "targets" | "show" | "fog" | "calibrate";
 
 export const cornerPanel: { open: CornerPanelId | null } = $state({ open: null });
 

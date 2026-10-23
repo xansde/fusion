@@ -236,9 +236,20 @@ export function attachTargetingSync(socket: Socket): () => void {
     if (changed) targetingStore.version += 1;
   };
 
+  // The server's live selection is in memory: a restart empties it and replays nothing, so what this client holds
+  // would be a ghost (the bar says "Alvo: X", the attack leaves without a target). Every (re)connect therefore starts
+  // from empty; the replay that follows the connect, if the server kept anything, rebuilds it.
+  const onConnect = () => {
+    if (_targeting.byUser.size === 0) return;
+    _targeting.byUser.clear();
+    targetingStore.version += 1;
+  };
+
   socket.on("op", onOp);
+  socket.on("connect", onConnect);
   return () => {
     socket.off("op", onOp);
+    socket.off("connect", onConnect);
   };
 }
 

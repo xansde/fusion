@@ -37,7 +37,13 @@
   } from "../lib/canvas/sceneLoadingState.svelte.js";
   import SceneLoadingNotice from "./scenes/SceneLoadingNotice.svelte";
   import { activeSceneState } from "../lib/docs/activeScene.svelte.js";
-  import { attachCombatSync, setTargetingViewer } from "../lib/combat/combatStore.svelte.js";
+  import {
+    attachCombatSync,
+    getMyTargets,
+    setMyTargets,
+    setTargetingViewer,
+  } from "../lib/combat/combatStore.svelte.js";
+  import { areaSelectable, areaSelection } from "../lib/combat/targetMode.js";
   import { setCombatBadgeViewer } from "../lib/combat/combatBadge.svelte.js";
   import { attachChatSync, attachChatMessageSync } from "../lib/chat/chatStore.svelte.js";
   import Sidebar from "./sidebar/Sidebar.svelte";
@@ -71,6 +77,7 @@
   import { actorSpeedFt } from "../lib/presence/dragRuler.js";
 import { presenceState } from "../lib/presence/presenceStore.svelte.js";
   import RulerToolButton from "./RulerToolButton.svelte";
+  import TargetToolButton from "./TargetToolButton.svelte";
   import TemplateMenu from "./TemplateMenu.svelte";
   import ShowPlayersButton from "./ShowPlayersButton.svelte";
   import ShowPlayersWindow from "./ShowPlayersWindow.svelte";
@@ -118,7 +125,7 @@ import { presenceState } from "../lib/presence/presenceStore.svelte.js";
     sceneGridSignature,
   } from "../lib/canvas/sceneCoords.js";
   import { captureView, restoreView, type KeptView } from "../lib/canvas/sceneViewKeep.js";
-  import type { SceneDocument } from "@fusion/shared";
+  import { SquareGrid, type SceneDocument } from "@fusion/shared";
   import { t } from "../lib/i18n/i18n.js";
 
   // The seven core tabs enter the drawer through the public registration call, not
@@ -894,6 +901,18 @@ import { presenceState } from "../lib/presence/presenceStore.svelte.js";
     });
   }
 
+  /** Tokens the targets button's area selector may take: every one this seat can see, with its live squares. */
+  function sceneSelectables(sceneId: string, isGmSeat: boolean) {
+    const scene = worldMirror.getDoc<SceneDocument>("Scene", sceneId);
+    const out: Array<{ id: string; i: number; j: number; width: number; height: number }> = [];
+    for (const t of scene?.tokens ?? []) {
+      if (!areaSelectable(t, isGmSeat)) continue;
+      const fp = liveTokenCells(sceneId, t._id);
+      if (fp) out.push({ id: t._id, ...fp });
+    }
+    return out;
+  }
+
   function _createOrchestrator(canvas: FusionCanvas, scene: SceneDocument): SceneOrchestrator {
     const sock = getSocket();
     const currentIsGm = isGm();
@@ -1034,6 +1053,17 @@ import { presenceState } from "../lib/presence/presenceStore.svelte.js";
         getTokenFootprint: (id) => liveTokenCells(scene._id, id),
         isModerator: currentIsGm,
         getTargets: () => sceneTargets(scene._id, rulerGrid),
+        onTargetArea: (template, shift) => {
+          if (!(rulerGrid instanceof SquareGrid)) return;
+          const wanted = areaSelection(
+            template,
+            rulerGrid,
+            sceneSelectables(scene._id, currentIsGm),
+            getMyTargets().map((t) => t.tokenId),
+            shift,
+          );
+          if (sock) void setMyTargets(sock, wanted);
+        },
       });
       // --- Map ping (hold the left button on empty map; GM Shift+hold pulls the camera) ---
       _disposePing = attachPing({
@@ -1137,6 +1167,7 @@ import { presenceState } from "../lib/presence/presenceStore.svelte.js";
   {/if}
 
   <RulerToolButton />
+  <TargetToolButton slot={isGm() ? 5 : 1} />
   <TemplateMenu />
   {#if isGm()}
     <ShowPlayersButton />

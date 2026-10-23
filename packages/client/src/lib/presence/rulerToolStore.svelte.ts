@@ -10,12 +10,25 @@ import {
   DEFAULT_AREA_STYLE,
   normalizeAreaSize,
   normalizeAreaStyle,
+  type AreaKind,
   type AreaStyle,
 } from "@fusion/shared";
 import type { ToolMode } from "./templateTool.js";
 
-export const rulerTool: { mode: ToolMode | null; sizeFt: number; style: AreaStyle } = $state({
+/**
+ * What an area is for: "measure" (the ruler button: draws, Shift pins) or "target" (the targets button: the area is
+ * only a selector, on release it marks the tokens inside as the user's aim and is never pinned or shared).
+ */
+export type ToolPurpose = "measure" | "target";
+
+export const rulerTool: {
+  mode: ToolMode | null;
+  purpose: ToolPurpose;
+  sizeFt: number;
+  style: AreaStyle;
+} = $state({
   mode: null,
+  purpose: "measure",
   sizeFt: 15,
   style: { ...DEFAULT_AREA_STYLE },
 });
@@ -43,11 +56,21 @@ export function closeTemplateMenu(): void {
 
 /** Switch to `mode`; choosing the active mode again switches the tool off. */
 export function selectRulerMode(mode: ToolMode): void {
-  rulerTool.mode = rulerTool.mode === mode ? null : mode;
+  const same = rulerTool.mode === mode && rulerTool.purpose === "measure";
+  rulerTool.purpose = "measure";
+  rulerTool.mode = same ? null : mode;
+}
+
+/** Switch the area selector of the targets button to `mode`; choosing the active one again switches it off. */
+export function selectTargetArea(mode: AreaKind): void {
+  const same = rulerTool.mode === mode && rulerTool.purpose === "target";
+  rulerTool.purpose = "target";
+  rulerTool.mode = same ? null : mode;
 }
 
 export function setRulerTool(mode: ToolMode | null): void {
   rulerTool.mode = mode;
+  rulerTool.purpose = "measure";
 }
 
 /** Set the area size in feet (rounded to steps of 5, clamped to 5..500). */
