@@ -27,9 +27,11 @@
     setNotificationPreference,
     setVolumeChannel,
     type NotificationPreferences,
+    type SheetDisplayPreferences,
     type TokenDisplayPreferences,
     type VolumeChannel,
   } from "../../lib/settings/clientPrefs.js";
+  import { setSheetDisplayPref } from "../../lib/settings/sheetDisplayPrefsStore.svelte.js";
   import { setTokenDisplayPref } from "../../lib/canvas/tokens/tokenDisplayPrefsStore.svelte.js";
   import AvatarOverlayControles from "../avatar/AvatarOverlayControles.svelte";
   import OwnPasswordForm from "./OwnPasswordForm.svelte";
@@ -91,6 +93,10 @@
 
   function handleTokenDisplayToggle(key: keyof TokenDisplayPreferences, checked: boolean): void {
     prefs = setTokenDisplayPref(worldId, userId, key, checked);
+  }
+
+  function handleSheetDisplayToggle(key: keyof SheetDisplayPreferences, checked: boolean): void {
+    prefs = setSheetDisplayPref(worldId, userId, key, checked);
   }
 </script>
 
@@ -197,6 +203,25 @@
   <fieldset class="section">
     <legend class="section__title">{t("FUSION.Avatar.Overlay.Title")}</legend>
     <AvatarOverlayControles />
+  </fieldset>
+
+  <!-- The "i" that explains a derived number on the sheets: hiding it keeps the number clickable. -->
+  <fieldset class="section">
+    <legend class="section__title">{t("FUSION.Settings.Preferences.SheetDisplayTitle")}</legend>
+    <label class="checkbox-row">
+      <input
+        type="checkbox"
+        checked={prefs.sheetDisplay.showBreakdownIcon}
+        onchange={(event) => {
+          handleSheetDisplayToggle(
+            "showBreakdownIcon",
+            (event.currentTarget as HTMLInputElement).checked,
+          );
+        }}
+      />
+      <span>{t("FUSION.Settings.Preferences.SheetDisplay.ShowBreakdownIcon")}</span>
+    </label>
+    <p class="section__hint">{t("FUSION.Settings.Preferences.SheetDisplay.Hint")}</p>
   </fieldset>
 
   <!-- REQ-CFG-090: any seat changes its own password (the only item here that reaches the server). -->

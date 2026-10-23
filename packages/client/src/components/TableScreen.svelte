@@ -71,6 +71,7 @@
   import { TokenLayer } from "../lib/canvas/tokens/TokenLayer.js";
   import { ensureFootprintRegistry } from "../lib/canvas/tokens/footprintRegistry.svelte.js";
   import { initTokenDisplayPrefs } from "../lib/canvas/tokens/tokenDisplayPrefsStore.svelte.js";
+  import { initSheetDisplayPrefs } from "../lib/settings/sheetDisplayPrefsStore.svelte.js";
   import { iniciarPreferenciasDoAvatar } from "../lib/avatar/preferenciasDoAvatar.svelte.js";
   import { attachRuler, type RulerHandle } from "../lib/presence/attachRuler.js";
   import { attachPing } from "../lib/presence/attachPing.js";
@@ -408,6 +409,8 @@ import { presenceState } from "../lib/presence/presenceStore.svelte.js";
       initTokenDisplayPrefs(session.worldInfo?.id ?? "", session.user?.id ?? "");
       // The avatar overlay's size/position/visibility — same client-local contract.
       iniciarPreferenciasDoAvatar(session.worldInfo?.id ?? "", session.user?.id ?? "");
+      // The sheets' "i" toggle — same client-local contract.
+      initSheetDisplayPrefs(session.worldInfo?.id ?? "", session.user?.id ?? "");
     }
 
     // Register PF2e sheets once, after the Svelte runtime is ready (REQ-UIF-018..019). The same
