@@ -3,7 +3,7 @@
  *
  * `combatSetup.ts`'s `initiativeStatisticOptions()` needs to label a skill
  * slug the way the sheet already labels it (Lore included, e.g.
- * "Saber (Underworld)"), but the client core cannot import a system's sheet
+ * "Conhecimento (Underworld)"), but the client core cannot import a system's sheet
  * code (DEC-SEP-02): `systems/pf2e/lib/sheets/pf2e/skillNames.ts` is a
  * satellite territory the core never reaches into directly. This is where a
  * system plugs its own resolver in instead — registered once at boot
