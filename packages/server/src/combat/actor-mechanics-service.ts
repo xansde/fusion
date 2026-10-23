@@ -30,7 +30,7 @@
  *     always ran — a shared helper so the two paths can never drift apart
  *     again).
  *   - B2: reapplication idempotency is now enforced — a non-privileged
- *     caller repeating the same `(messageId, rollIndex, multiplier, actorId)`
+ *     caller repeating the same `(messageId, rollIndex, actorId)` (at any multiplier)
  *     key gets `FORBIDDEN` without reapplying anything (`appliedKeys`,
  *     in-memory per service instance — a live-session guard, not a durable
  *     audit log). Privileged/`"system"` callers are exempt (a GM correcting a
@@ -865,26 +865,17 @@ function applyMechanicsPatch(
 
 // ---------------------------------------------------------------------------
 // Idempotency of reapplication (B2 fix, onda-4 adversarial review) — spec
-// 15's 2026-09-15 emenda to REQ-SYS-142: "o serviço DEVE marcar cada
-// (messageId, rollIndex, multiplier) já aplicado por instância/alvo, e uma
-// segunda aplicação da MESMA chave por usuário sem papel privilegiado DEVE
-// responder FORBIDDEN sem reaplicar". Tracked per (instance-source,
-// multiplier-or-basicSave-degree, target actor) — the finest grain the spec
-// text names ("por instância/alvo") — in an in-memory Set scoped to this
-// service instance (one per world namespace, living for the namespace's
-// whole lifetime): enough to stop a repeated click/resent op in a live
-// session, not a durable audit log surviving a server restart.
+// 15's REQ-SYS-142 (emendas de 2026-09-15 e 2026-10-22): a user without a
+// privileged role applies ONE roll ONCE per target — "Aplicar" then "½"/"×2"
+// (or "Curar" then "Curar ½", or a basic-save degree) on the same target is
+// the same roll replayed, so the key deliberately leaves the multiplier and
+// the basicSave degree out. Privileged/system callers are exempt from the
+// check (a GM correction may reapply at another scale). Tracked in an
+// in-memory Set scoped to this service instance (one per world namespace,
+// living for the namespace's whole lifetime): enough to stop a repeated
+// click/resent op in a live session, not a durable audit log surviving a
+// server restart.
 // ---------------------------------------------------------------------------
-
-/** The non-multiplier, non-basicSave part of the key is fixed per call; this
- * is the part that distinguishes "same roll scaled differently" (a
- * legitimate ×1 then a corrective ×2 from the GM are different keys) from a
- * genuine repeat. */
-function multiplierKeyPart(payload: ActorApplyDamagePayload): string {
-  if (payload.multiplier !== undefined) return `x${String(payload.multiplier)}`;
-  if (payload.basicSave !== undefined) return `save:${payload.basicSave.degree}`;
-  return "x1";
-}
 
 /** One idempotency key per (instance with a source, target) pair — the
  * "por instância/alvo" grain REQ-SYS-142's emenda names. Instances without a
@@ -897,14 +888,11 @@ function idempotencyKeysFor(
   payload: ActorApplyDamagePayload,
   targetActorIds: readonly string[],
 ): string[] {
-  const multiplierPart = multiplierKeyPart(payload);
   const keys: string[] = [];
   for (const instance of payload.instances) {
     if (!instance.source) continue;
     for (const actorId of targetActorIds) {
-      keys.push(
-        `${instance.source.messageId}::${String(instance.source.rollIndex)}::${multiplierPart}::${actorId}`,
-      );
+      keys.push(`${instance.source.messageId}::${String(instance.source.rollIndex)}::${actorId}`);
     }
   }
   return keys;
@@ -1022,7 +1010,8 @@ async function applyDamage(
   }
 
   // B2 fix (idempotency emenda): a non-privileged caller may never reapply
-  // the same (messageId, rollIndex, multiplier) to the same target twice.
+  // the same (messageId, rollIndex) to the same target twice — at any
+  // multiplier or basicSave degree (one roll = one application per target).
   // Checked BEFORE calling the mechanic; privileged/system callers are exempt
   // (a GM correction, or onDamageApplied's own recursive "system" call, must
   // still be able to reapply the same key).
@@ -1031,7 +1020,7 @@ async function applyDamage(
     targets.map((t) => t.actorId),
   );
   if (!privileged && candidateIdempotencyKeys.some((k) => appliedKeys.has(k))) {
-    return forbidden("this (messageId, rollIndex, multiplier) was already applied to this target");
+    return forbidden("this roll (messageId, rollIndex) was already applied to this target");
   }
 
   // basicSave.degree, from a non-privileged caller, MUST match the recorded
