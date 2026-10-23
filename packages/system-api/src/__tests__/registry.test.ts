@@ -62,8 +62,8 @@ describe("SystemRegistry", () => {
   });
 
   it("has returns true for registered, false for unregistered", () => {
-    registry.register(makeModule("etmos"));
-    expect(registry.has("etmos")).toBe(true);
+    registry.register(makeModule("fake-system"));
+    expect(registry.has("fake-system")).toBe(true);
     expect(registry.has("unknown")).toBe(false);
   });
 

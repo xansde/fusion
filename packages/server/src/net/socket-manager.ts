@@ -10,10 +10,17 @@
  * REQ-NET-093: Envelope types from @fusion/shared.
  */
 
+import {
+  buildNoteCreateHandler,
+  buildNoteUpdateHandler,
+  buildNoteDeleteHandler,
+} from "./handlers/note-handlers.js";
 import { Server as SocketIOServer } from "socket.io";
 import type { Namespace, Socket } from "socket.io";
 import type { Server as HttpServer } from "node:http";
 import type { Logger } from "pino";
+import { existsSync } from "node:fs";
+import { guardPath, PathTraversalError } from "../assets/path-guard.js";
 
 import { EnvelopeSchema, PROTOCOL_VERSION, FUSION_VERSION, type Envelope } from "@fusion/shared";
 
@@ -21,12 +28,27 @@ import { verifyAccessToken } from "../auth/crypto.js";
 import { SeqStore } from "./seq-store.js";
 import { OpBuffer } from "./op-buffer.js";
 import { HandlerRegistry } from "./handler-registry.js";
-import { systemPingHandler, buildWhoAmIHandler } from "./handlers/system.js";
+import {
+  systemPingHandler,
+  buildWhoAmIHandler,
+  buildSystemConditionsHandler,
+  buildSystemFootprintHandler,
+  buildSystemVocabularyHandler,
+} from "./handlers/system.js";
+import {
+  buildSettingsDeclarationsHandler,
+  buildSettingsImpactHandler,
+  buildSettingsPermissionsHandler,
+} from "./handlers/settings-handlers.js";
 import {
   buildDocCreateHandler,
   buildDocUpdateHandler,
   buildDocDeleteHandler,
+  broadcastToWorld,
 } from "./handlers/doc-handlers.js";
+import { buildActorSetKnowledgeHandler } from "./handlers/knowledge-handlers.js";
+import { buildFolderDeleteHandler } from "./handlers/folder-handlers.js";
+import { buildActorDeletePreviewHandler } from "./handlers/actor-delete-handlers.js";
 import {
   buildWallCreateHandler,
   buildWallUpdateHandler,
@@ -37,12 +59,6 @@ import {
   buildDoorStateHandler,
   buildTokenMoveHandler,
 } from "./handlers/vision-handlers.js";
-import {
-  buildFogUpdateHandler,
-  buildFogGetHandler,
-  buildFogResetHandler,
-} from "./handlers/fog-handlers.js";
-import { FogStore } from "../fog/index.js";
 import {
   buildCombatCreateHandler,
   buildCombatStartHandler,
@@ -57,55 +73,100 @@ import {
   buildCombatSetHiddenHandler,
   buildCombatReorderHandler,
   buildCombatEndHandler,
+  buildAttackCountPublisher,
 } from "../combat/combat-handlers.js";
 import { InitiativeFormulaRegistry } from "../combat/initiative-registry.js";
 import { registerSystemFormulas } from "../combat/system-formula-adapter.js";
 import { CombatEventBus } from "../combat/combat-event-bus.js";
+import { createActorMechanicsService } from "../combat/actor-mechanics-service.js";
+import { buildApplyDamageHandler } from "../combat/apply-damage-handler.js";
+import { buildApplyConditionHandler } from "../combat/apply-condition-handler.js";
+import { buildEffectApplyHandler } from "./handlers/effect-handlers.js";
+import { buildItemConsumeHandler } from "./handlers/item-handlers.js";
+import { buildItemTransferHandler } from "./handlers/item-transfer-handler.js";
+import {
+  createTurnHookRunner,
+  createStubTurnHookContextServices,
+  createDocumentWriteTurnHookContextServices,
+  createRollTurnHookContextService,
+} from "../combat/turn-hook-runner.js";
+import type { TurnHookContextServices } from "../combat/turn-hook-runner.js";
+import type { TokenMarkSource } from "../chat/roll-resolution.js";
 import { TargetingStore } from "../combat/targeting-store.js";
-import { buildCombatTargetHandler, registerTargetingCleanup } from "../combat/target-handler.js";
+import {
+  buildCombatTargetHandler,
+  registerTargetingCleanup,
+  replayTargetingTo,
+} from "../combat/target-handler.js";
+import {
+  buildMarkSetHandler,
+  buildMarkClearHandler,
+  createTokenMarkSource,
+} from "../combat/mark-handler.js";
+import {
+  buildMountHandler,
+  buildDismountHandler,
+  releaseDismountedRider,
+} from "../combat/mount-handler.js";
+
+import { buildCompanionCommandHandler } from "../combat/companion-command-handler.js";
+import { buildCompanionSetActiveHandler } from "../combat/companion-active-handler.js";
+import { MapCounter, registerMapCounterReset } from "../combat/map-counter.js";
 import {
   buildResyncRequestHandler,
   buildActiveSceneHandler,
+  buildScenePreloadHandler,
   sendJoinSnapshot,
 } from "./handlers/sync-handlers.js";
+import { buildSoundPlayHandler, buildSoundStopHandler } from "./handlers/sound-handlers.js";
 import {
   buildChatSendHandler,
   buildChatHistoryHandler,
+  buildChatSearchHandler,
+  buildChatContextHandler,
+  buildChatInvalidateHandler,
   getRecentChatForUser,
 } from "../chat/index.js";
 import {
-  buildConjuracaoProporHandler,
-  buildConjuracaoArbitrarHandler,
-  buildConjuracaoRolarHandler,
-  buildConjuracaoResolverHandler,
-  buildConjuracaoCancelarHandler,
-  buildContestadoHandler,
-  buildReacaoUsarHandler,
-  registerReacaoResetOnTurnStart,
-  buildProgressaoConfirmarHandler,
-} from "../etmos/index.js";
-import { redactAckResultForNonPrivileged } from "./redaction.js";
-import { DocumentStore } from "../documents/index.js";
+  redactAckResultForNonPrivileged,
+  registerContactKnowledgeSource,
+  getContactKnowledgeSource,
+  contactKnowledgeSourceFromStore,
+} from "./redaction.js";
+import { DocumentStore, WriteMetricsCollector } from "../documents/index.js";
 import type { AuthService } from "../auth/service.js";
 import type { Database as Db } from "better-sqlite3";
 import type { SystemModule } from "@fusion/system-api";
 
 import { isRolePrivileged } from "../documents/ownership.js";
-import { EphemeralRateLimiter, handleEphemeralEnvelope } from "./ephemeral-handlers.js";
+import {
+  EphemeralRateLimiter,
+  handleEphemeralEnvelope,
+  buildPresenceOnlineBroadcast,
+} from "./ephemeral-handlers.js";
+import { UserStore } from "../auth/user-store.js";
 import { RollService } from "../chat/roll-service.js";
 import {
   CompendiumService,
   buildCompendiumListHandler,
   buildCompendiumIndexHandler,
   buildCompendiumSearchHandler,
+  buildCompendiumSearchAllHandler,
   buildCompendiumGetHandler,
   buildCompendiumI18nBySourceRefHandler,
   buildCompendiumImportHandler,
+  buildCompendiumImportToActorHandler,
 } from "../compendium/index.js";
 
 // --------------------------------------------------------------------------
 // Types
 // --------------------------------------------------------------------------
+
+interface RiderDismountedInfo {
+  sceneId: string;
+  riderTokenId: string;
+  userId: string;
+}
 
 export interface WorldNamespaceOptions {
   /** The open world slug (used as namespace id). */
@@ -145,6 +206,18 @@ export interface WorldNamespaceOptions {
    * fallback (e.g. stub system, or system package not loaded).
    */
   systemModule?: SystemModule;
+  /**
+   * The world's assets directory (same value passed as `assetsDir` to
+   * registerAssetRoutes). When provided, sound:play rejects an unknown track
+   * with NOT_FOUND; when omitted, existence is left to the GM's picker.
+   */
+  assetsDir?: string;
+  /**
+   * BHR-F2-05: where the marks on a roll's target come from
+   * (`target:mark:<slug>`). `TokenMark` (BHR-F3-06) plugs its reader in here;
+   * absent = no token carries a mark.
+   */
+  tokenMarkSource?: TokenMarkSource;
 }
 
 /**
@@ -192,6 +265,23 @@ export class SocketManager {
   readonly io: SocketIOServer;
   private readonly logger: Logger;
   private readonly namespaces = new Map<string, Namespace>();
+  /**
+   * T016 write-metrics collector per world. Kept beside `namespaces` (rather
+   * than only inside `registerWorldNamespace`'s closure) because the collector
+   * outlives every individual request: its periodic flush has to be stopped
+   * and its last partial window has to be logged when the world closes, and
+   * neither is reachable from a closure nobody holds.
+   */
+  private readonly writeMetrics = new Map<string, WriteMetricsCollector>();
+  private readonly mapCounters = new Map<string, MapCounter>();
+  /**
+   * Per world: announce documents that were created OUTSIDE a socket op (the character `POST /api/users`
+   * writes through REST). Same seq, op buffer and `broadcastToWorld` funnel as a socket `doc:create`.
+   */
+  private readonly docCreatedBroadcasters = new Map<
+    string,
+    (documentType: string, documents: Record<string, unknown>[]) => void
+  >();
 
   constructor(options: SocketManagerOptions) {
     this.logger = options.logger;
@@ -205,8 +295,20 @@ export class SocketManager {
         methods: ["GET", "POST"],
         credentials: true,
       },
-      // Disable per-message compression for now (see spec Q3)
-      perMessageDeflate: false,
+      // Per-message compression (spec 04 Q3, answered by measurement): a pack
+      // index is megabytes of JSON that gzips to ~26% (feats-core 2645 -> 661 KB),
+      // and sending it raw through the tunnel is what made "carregar o compêndio"
+      // slow and failing on the table's connection. Only payloads above 16 KB are
+      // compressed (token moves, rolls and chat stay untouched), at a low zlib level
+      // (the biggest index costs ~50 ms of CPU), with no context takeover so an idle
+      // connection holds no zlib window.
+      perMessageDeflate: {
+        threshold: 16 * 1024,
+        zlibDeflateOptions: { level: 3 },
+        serverNoContextTakeover: true,
+        clientNoContextTakeover: true,
+        concurrencyLimit: 2,
+      },
       // Reasonable connection limits
       connectTimeout: 10_000,
       pingTimeout: 25_000,
@@ -234,6 +336,8 @@ export class SocketManager {
       compendiumService,
       systemId,
       systemModule,
+      assetsDir,
+      tokenMarkSource,
     } = options;
 
     const namespacePath = `/world/${worldId}`;
@@ -244,18 +348,73 @@ export class SocketManager {
     // Build per-world services
     const seqStore = new SeqStore(db);
     const opBuffer = new OpBuffer(opBufferSize);
-    const store = new DocumentStore({ db, coreVersion: FUSION_VERSION });
+    // T016: one collector per world, wired into the store so EVERY writer —
+    // doc/vision/combat handlers, batched or not — is accounted for at the
+    // single point they all converge on.
+    const writeMetrics = new WriteMetricsCollector({ logger: this.logger, worldId });
+    this.writeMetrics.set(worldId, writeMetrics);
+    const store = new DocumentStore({
+      db,
+      coreVersion: FUSION_VERSION,
+      metrics: writeMetrics,
+      logger: this.logger,
+    });
+    // REQ-CBT-053..055: token targeting (ephemeral; userId server-authoritative).
+    // Constructed here (not next to the combat handlers below) so chat:send
+    // (ALQ-F1-05 / REQ-CBT-056) can also read it for the targetSnapshot photo.
+    const targetingStore = new TargetingStore();
+    // BHR-F3-04: server-side multiple attack penalty counter (chat:send notes, turnStart zeroes).
+    const mapCounter = new MapCounter();
+    this.mapCounters.set(worldId, mapCounter);
     const registry = new HandlerRegistry();
+
+    this.docCreatedBroadcasters.set(worldId, (documentType, documents) => {
+      const envelope: Envelope = {
+        type: "doc:create",
+        seq: seqStore.next(),
+        ts: Date.now(),
+        payload: { documentType, documents },
+      };
+      opBuffer.push(envelope);
+      broadcastToWorld(ns, envelope, documentType);
+    });
+
+    // Spec 39 §5.9 (REQ-CTT-083): bind this namespace to the Actor table its
+    // contact redaction reads from. Registered here, once, so EVERY emission
+    // path that goes through `broadcastToWorld` — present or future, in any
+    // handler module — is covered without having to thread a store handle.
+    registerContactKnowledgeSource(ns, contactKnowledgeSourceFromStore(store));
 
     // REQ-NET-040/071: ephemeral rate limiters shared across all sockets in this namespace
     // cursor: ~20/s max = 50 ms minimum interval
     const cursorRateLimiter = new EphemeralRateLimiter(50);
     // ping: 2/s max = 500 ms minimum interval
     const pingRateLimiter = new EphemeralRateLimiter(500);
+    // REQ-NET-044: token:preview throttled like cursors — a drag is
+    // effectively a cursor carrying a token, same target frequency.
+    const previewRateLimiter = new EphemeralRateLimiter(50);
 
     // REQ-NET-005: track current scene room per socket (socketId → sceneId).
     // Updated by ephemeral-handlers when a cursor event carries a new sceneId.
     const sceneRooms = new Map<string, string>();
+
+    // REQ-NET-043: presence:online roster. `userStore` supplies the account
+    // directory (name/color) for every active user; "online" is read straight
+    // off `ns.sockets` (socket.io's own bookkeeping) instead of a second,
+    // hand-rolled counter that could drift from it — a user with two open
+    // tabs still shows online after closing one.
+    const userStore = new UserStore(db);
+    const broadcastPresenceOnline = (excludeSocketId?: string): void => {
+      const onlineUserIds = new Set<string>();
+      for (const [socketId, connectedSocket] of ns.sockets) {
+        if (socketId === excludeSocketId) continue;
+        onlineUserIds.add((connectedSocket.data as SocketData).userId);
+      }
+      const accounts = userStore
+        .listActive()
+        .map((user) => ({ id: user.id, name: user.name, color: user.color }));
+      ns.emit("ephemeral", buildPresenceOnlineBroadcast(accounts, onlineUserIds));
+    };
 
     const syncDeps = {
       store,
@@ -266,8 +425,16 @@ export class SocketManager {
       logger: this.logger,
       ...(systemId !== undefined ? { systemId } : {}),
       ...(systemModule !== undefined ? { systemModule } : {}),
-      // REQ-CHT-033: supply recent chat for join snapshot
-      getRecentChat: (userId: string, role: number) => getRecentChatForUser(db, userId, role),
+      // REQ-CHT-033: supply recent chat for join snapshot. `store` threaded
+      // through so the targetSnapshot B1 redaction can resolve hidden tokens
+      // (ALQ-F1-05).
+      getRecentChat: (userId: string, role: number) =>
+        getRecentChatForUser(db, userId, role, undefined, store),
+      // BHR-F5-03 x F5-04 x F5-05: the GM moving a mounted rider takes him off the mount; the dismount
+      // side effects (Montado effect, group MAP) live with the mount handler, wired once for both paths.
+      onRiderDismounted: ({ sceneId, riderTokenId, userId }: RiderDismountedInfo): void => {
+        releaseDismountedRider(mountDeps, sceneId, riderTokenId, userId);
+      },
     };
 
     // Register built-in system handlers
@@ -276,23 +443,126 @@ export class SocketManager {
       "system:whoami",
       buildWhoAmIHandler((id) => authService.getUser(id)),
     );
+    // Spec 15 REQ-SYS-043 / spec 39 DEC-CTT-11: the active system's condition
+    // dictionary. The chip's colour, emphasis and tooltip are declared data
+    // (REQ-CTT-031/032/034) and the client cannot import a game system, so the
+    // declaration reaches the drawer through here.
+    registry.register("system:conditions", buildSystemConditionsHandler(systemModule));
+    // Spec 15 REQ-SYS-009 / spec 41-token.md TK041/DEC-TOK-03: the active
+    // system's size→footprint table. A token's occupied cells are derived
+    // from its effective actor's size category, never a field on the token
+    // (REQ-TOK-012/017), and the client cannot import a game system — same
+    // door shape as `system:conditions` above.
+    registry.register("system:footprint", buildSystemFootprintHandler(systemModule));
+    // I1 (revisão adversarial 3): the active system's skill/currency/
+    // spell-tradition vocabulary — same door shape as `system:footprint`
+    // above, for the ficha's per-system config instead of a hand-copied
+    // table (systemSheetConfig.ts).
+    registry.register("system:vocabulary", buildSystemVocabularyHandler(systemModule));
+    // Spec 37 §5.4 (REQ-CFG-030/031, RNF-CFG-02): the Configurações tab's
+    // Mundo section renders purely from what the active system declared —
+    // this is the door that declaration crosses (settings ENGINE already
+    // existed via REQ-SYS-047; this just answers the query).
+    registry.register(
+      "settings:declarations",
+      buildSettingsDeclarationsHandler(systemModule, store),
+    );
+    // REQ-CFG-082: the impact count the Mundo section's disable confirmation
+    // shows — computed on demand (Q-CFG-03), never eagerly.
+    registry.register("settings:impact", buildSettingsImpactHandler(systemModule, store));
+    // Spec 37 §5.5 (REQ-USR-008/009, REQ-CFG-040..042): the Permissões
+    // section's rows — one per configurable Permission, the effective floor
+    // (GM override or default) plus the shipped default so the tab can mark
+    // "alterado" (REQ-CFG-041). Write path stays the generic doc:create/
+    // doc:update of Setting, GAMEMASTER-strict-gated in doc-handlers.ts.
+    registry.register("settings:permissions", buildSettingsPermissionsHandler(store));
 
     // Register M1-B document CRUD handlers
     registry.register("doc:create", buildDocCreateHandler(syncDeps));
     registry.register("doc:update", buildDocUpdateHandler(syncDeps));
     registry.register("doc:delete", buildDocDeleteHandler(syncDeps));
 
+    // Spec 39 §5.8: contact knowledge is a field of the contact's own Actor,
+    // but doc:update refuses the flag path — this is the one way in.
+    registry.register("actor:setKnowledge", buildActorSetKnowledgeHandler(syncDeps));
+
+    // Spec 42 §5.3 (REQ-NPC-022): removing a folder must not remove an actor —
+    // the generic doc:delete path cannot lift subfolders nor release contents,
+    // so folder removal is a composed operation of its own.
+    registry.register("folder:delete", buildFolderDeleteHandler(syncDeps));
+
+    // Spec 42 §5.7 (REQ-NPC-051): the confirmation of a delete must state what
+    // falls with the actor, and two of the three answers are not in the client's
+    // mirror to count — a scene it never received, and knowledge it never gets.
+    registry.register("actor:deletePreview", buildActorDeletePreviewHandler(syncDeps));
+
     // Register M1-B sync handlers
     registry.register("resync:request", buildResyncRequestHandler(syncDeps));
     registry.register("world:activeScene", buildActiveSceneHandler(syncDeps));
+    registry.register("scene:preload", buildScenePreloadHandler(syncDeps));
+
+    // Ambient table track (sound:play / sound:stop). assetExists is wired only
+    // when assetsDir was supplied (see boot.ts).
+    const assetExists = assetsDir
+      ? (name: string): boolean => {
+          try {
+            return existsSync(guardPath(assetsDir, name));
+          } catch (err) {
+            if (err instanceof PathTraversalError) return false;
+            throw err;
+          }
+        }
+      : undefined;
+    const soundDeps = { db, ns, seqStore, opBuffer, ...(assetExists ? { assetExists } : {}) };
+    registry.register("sound:play", buildSoundPlayHandler(soundDeps));
+    registry.register("sound:stop", buildSoundStopHandler(soundDeps));
 
     // Register M1-D chat + roll handlers
-    const chatDeps = { db, ns, seqStore, worldId };
+    // store/targetingStore (ALQ-F1-05 / REQ-CBT-056): chat:send reads the
+    // author's live target selection to freeze `flags.fusion.targetSnapshot`
+    // on every roll message.
+    // BHR-F2-05: the system's roll resolver + `onRollResolved` listeners, the
+    // target-mark source and the hook context (assigned once the turn-hook
+    // services exist, below — only ever read when a roll is resolved).
+    const rollHook: { services?: TurnHookContextServices } = {};
+    const chatDeps = {
+      db,
+      ns,
+      seqStore,
+      worldId,
+      store,
+      targetingStore,
+      ...(systemModule !== undefined ? { systemModule } : {}),
+      // BHR-F3-06: the persisted Prey, unless a caller injected another source.
+      tokenMarkSource: tokenMarkSource ?? createTokenMarkSource(store),
+      rollHookContext: () => ({
+        ...(rollHook.services ?? createStubTurnHookContextServices()),
+        worldTime: { round: 0, turn: 0 },
+      }),
+      logger: this.logger,
+      mapCounter,
+    };
     registry.register("chat:send", buildChatSendHandler(chatDeps));
     registry.register("chat:history", buildChatHistoryHandler(chatDeps));
+    // REQ-CHT-050 / REQ-ACH-012: search is open to every role; the handler
+    // filters with the same visibility predicate chat:history uses.
+    registry.register("chat:search", buildChatSearchHandler(chatDeps));
+    // REQ-CHT-051 / REQ-ACH-013: ±N VISIBLE messages around one message; the
+    // count is per requester, and an invisible neighbour takes no slot.
+    registry.register("chat:context", buildChatContextHandler(chatDeps));
+    // REQ-CHT-005 / REQ-ACH-080..086: moderation of a single message is
+    // invalidation, never deletion — the GM or the author voids it, the log
+    // keeps it, and nothing outside the log is undone.
+    registry.register("chat:invalidate", buildChatInvalidateHandler(chatDeps));
 
     // Register M2-A vision handlers (walls, lights, door state, move collision)
-    const visionDeps = { store, seqStore, opBuffer, ns };
+    const visionDeps = {
+      store,
+      seqStore,
+      opBuffer,
+      ns,
+      onRiderDismounted: syncDeps.onRiderDismounted,
+    };
     registry.register("wall:create", buildWallCreateHandler(visionDeps));
     registry.register("wall:update", buildWallUpdateHandler(visionDeps));
     registry.register("wall:delete", buildWallDeleteHandler(visionDeps));
@@ -300,15 +570,13 @@ export class SocketManager {
     registry.register("light:update", buildLightUpdateHandler(visionDeps));
     registry.register("light:delete", buildLightDeleteHandler(visionDeps));
     registry.register("scene:doorState", buildDoorStateHandler(visionDeps));
+    // Map pins (Scene.notes)
+    const noteDeps = { store, seqStore, opBuffer, ns };
+    registry.register("scene:noteCreate", buildNoteCreateHandler(noteDeps));
+    registry.register("scene:noteUpdate", buildNoteUpdateHandler(noteDeps));
+    registry.register("scene:noteDelete", buildNoteDeleteHandler(noteDeps));
     // Override token:move with collision-aware handler
     registry.register("token:move", buildTokenMoveHandler(visionDeps));
-
-    // Register M2-B fog-of-war handlers
-    const fogStore = new FogStore(db);
-    const fogDeps = { fogStore, ns };
-    registry.register("fog:update", buildFogUpdateHandler(fogDeps));
-    registry.register("fog:get", buildFogGetHandler(fogDeps));
-    registry.register("fog:reset", buildFogResetHandler(fogDeps));
 
     // Register M2-C combat handlers
     const combatRollService = new RollService({ db });
@@ -326,6 +594,62 @@ export class SocketManager {
       );
     }
     const eventBus = new CombatEventBus();
+    registerMapCounterReset(mapCounter, eventBus);
+    // ALQ-F1-08: the real `actor:applyDamage` service — validates, rereads
+    // amount/targets from the persisted roll, calls the active system's
+    // ActorMechanics and publishes the redacted `actor:damageApplied`
+    // summary. Constructed before the turn-hook runner below so its
+    // `applyDamage` can replace that one stub service (`actingAs: "system"`).
+    const actorMechanicsService = createActorMechanicsService({
+      store,
+      db,
+      ns,
+      seqStore,
+      opBuffer,
+      // ALQ-F1-09 / REQ-CBT-056: applyCondition's own live-TargetSelection
+      // gate for a non-privileged caller.
+      targetingStore,
+      worldId,
+      systemModule,
+      logger: this.logger,
+    });
+    // DEC-CBT-09 / ALQ-F1-04: awaited system turn-hook runner, wired
+    // alongside (not instead of) the fire-and-forget CombatEventBus above.
+    // `applyDamage`/`applyCondition` are the REAL service (ALQ-F1-08/F1-09);
+    // `deleteEmbedded`/`chat` are the REAL document-write services (B4 fix,
+    // onda-4 adversarial review — see combat/turn-hook-runner.ts's header);
+    // `updateActor` is real too, and `getSetting` reads the system's world settings.
+    const hookServices: TurnHookContextServices = {
+      ...createStubTurnHookContextServices(),
+      ...createDocumentWriteTurnHookContextServices({
+        store,
+        db,
+        ns,
+        seqStore,
+        opBuffer,
+        worldId,
+        ...(systemModule ? { systemModule } : {}),
+        logger: this.logger,
+      }),
+      // Condition front, stage 3b: hooks roll on the server and the roll lands in the chat.
+      ...createRollTurnHookContextService({
+        db,
+        ns,
+        seqStore,
+        worldId,
+        rollService: combatRollService,
+        store,
+      }),
+      applyDamage: (p) => actorMechanicsService.applyDamage(p, "system"),
+      applyCondition: (p) => actorMechanicsService.applyCondition(p, "system"),
+    };
+    // BHR-F2-05: `onRollResolved` listeners write through the SAME services.
+    rollHook.services = hookServices;
+    const turnHookRunner = createTurnHookRunner({
+      systemModule,
+      services: hookServices,
+      logger: this.logger,
+    });
     const combatDeps = {
       store,
       seqStore,
@@ -333,13 +657,19 @@ export class SocketManager {
       ns,
       formulaRegistry,
       eventBus,
+      turnHookRunner,
       db,
       worldId,
       logger: this.logger,
       ...(systemModule !== undefined ? { systemModule } : {}),
     };
+    // BHR onda-6 I-7: the counter publishes its count on the combat document.
+    mapCounter.setStore(store); // BHR-F5-05: a mounted rider and its mount share one MAP counter
+    mapCounter.setPublisher(buildAttackCountPublisher(combatDeps));
     // Handler names match the EnvelopeTypeSchema literals in packages/shared/src/protocol.ts
     registry.register("combat:create", buildCombatCreateHandler(combatDeps));
+    // L3 I4: Command an Animal is recorded on the combat by the server (valid for the owner's turn).
+    registry.register("companion:command", buildCompanionCommandHandler(combatDeps));
     registry.register("combat:beginCombat", buildCombatStartHandler(combatDeps));
     registry.register("combat:addCombatant", buildCombatAddCombatantHandler(combatDeps));
     registry.register("combat:removeCombatant", buildCombatRemoveCombatantHandler(combatDeps));
@@ -353,18 +683,49 @@ export class SocketManager {
     registry.register("combat:reorder", buildCombatReorderHandler(combatDeps));
     registry.register("combat:endCombat", buildCombatEndHandler(combatDeps));
 
-    // REQ-CBT-053..055: token targeting (ephemeral; userId server-authoritative).
-    const targetingStore = new TargetingStore();
+    // targetingStore constructed earlier (near `store`) so chat:send can use it too.
     const targetDeps = { store, seqStore, ns, targetingStore };
     registry.register("combat:target", buildCombatTargetHandler(targetDeps));
+    // BHR-F3-06 (REQ-BHR-086..090): the Prey persisted on the marking actor —
+    // not part of the targeting store, so it outlives turnEnd.
+    const markDeps = { store, seqStore, opBuffer, ns, targetingStore };
+    registry.register("mark:set", buildMarkSetHandler(markDeps));
+    registry.register("mark:clear", buildMarkClearHandler(markDeps));
+    // BHR-F5-02 (REQ-BHR-174..176): MountState on the two tokens, decided on the server.
+    const mountDeps = {
+      store,
+      seqStore,
+      opBuffer,
+      ns,
+      onMountChanged: (sceneId: string) => {
+        mapCounter.republishScene(sceneId);
+      },
+      ...(compendiumService ? { compendium: compendiumService } : {}),
+      ...(systemModule ? { systemModule } : {}),
+    };
+    registry.register("mount:mount", buildMountHandler(mountDeps));
+    registry.register("mount:dismount", buildDismountHandler(mountDeps));
+    // BHR-F4-10 (REQ-PET-120..121, DC-07): swap the active animal companion, decided on the server.
+    registry.register("companion:setActive", buildCompanionSetActiveHandler(mountDeps));
     // REQ-CBT-055: clear a targeter's targets when their combatant's turn ends.
     registerTargetingCleanup(targetDeps, eventBus);
 
-    // REQ-ETM-023: reset each Etmos combatant's Reação counter at the start
-    // of their own turn. Registered unconditionally (same rationale as the
-    // etmos:conjuracao:* handlers below) — the listener itself no-ops for
-    // non-orador/antagonista combatants, so non-Etmos worlds are unaffected.
-    registerReacaoResetOnTurnStart(eventBus, { store, seqStore, opBuffer, ns });
+    // ALQ-F1-08 / REQ-SYS-142: `actor:applyDamage` — permission, anti-cheat
+    // (montante/alvos relidos da rolagem gravada) and D-04 redaction all live
+    // in `actorMechanicsService`, constructed above.
+    registry.register(
+      "actor:applyDamage",
+      buildApplyDamageHandler({ service: actorMechanicsService }),
+    );
+
+    // ALQ-F1-09 / REQ-SYS-142, REQ-PF2-215, REQ-CBT-056: `actor:applyCondition`
+    // — same permission/target-resolution discipline as `actor:applyDamage`
+    // above (GM: any actor; player: own actor or live TargetSelection), via
+    // the same `actorMechanicsService`.
+    registry.register(
+      "actor:applyCondition",
+      buildApplyConditionHandler({ service: actorMechanicsService }),
+    );
 
     // Register M3-D compendium handlers (REQ-CMP-010..024)
     const compSvc = compendiumService ?? new CompendiumService();
@@ -373,11 +734,28 @@ export class SocketManager {
       db,
       ns,
       logger: this.logger,
+      // Only `compendium:importToActor` writes a document, and it announces it
+      // on the ordinary doc:update channel (REQ-CPD-061).
+      seqStore,
+      opBuffer,
+      // Same pair `syncDeps` carries: the sheet door runs the SAME embedded-Item
+      // validation `doc:create` runs (documents/embedded-item.ts), and the
+      // system-specific half of it needs the world's systemId.
+      ...(systemId !== undefined ? { systemId } : {}),
+      // T016: `compendium:import` is a live session op — it writes rows of
+      // `actors`/`items` through a DocumentStore of its own, holding the very
+      // same IMMEDIATE lock. Without this the busiest minute of the evening
+      // (a GM pulling a dozen creatures mid-combat) would be missing from the
+      // report that exists to find busy minutes.
+      metrics: writeMetrics,
       ...(systemModule !== undefined ? { systemModule } : {}),
     };
     registry.register("compendium:list", buildCompendiumListHandler(compDeps));
     registry.register("compendium:index", buildCompendiumIndexHandler(compDeps));
     registry.register("compendium:search", buildCompendiumSearchHandler(compDeps));
+    // REQ-CPD-030..032 / REQ-CMP-013a: one search over every pack the caller
+    // can see, answered already grouped, counted and truncated by the server.
+    registry.register("compendium:searchAll", buildCompendiumSearchAllHandler(compDeps));
     registry.register("compendium:get", buildCompendiumGetHandler(compDeps));
     // Issue #43: a world document has no `uuid` (importToWorld strips it to keep
     // the world copy EN-pure), so `compendium:get` cannot serve its translation.
@@ -388,41 +766,48 @@ export class SocketManager {
       buildCompendiumI18nBySourceRefHandler(compDeps),
     );
     registry.register("compendium:import", buildCompendiumImportHandler(compDeps));
+    // DEC-CPD-05 / REQ-CPD-061/073: the sheet door. Not gated by role — gated
+    // by OWNER of the destination actor, inside the service.
+    registry.register("compendium:importToActor", buildCompendiumImportToActorHandler(compDeps));
 
-    // Register M5-C Etmos Compositor de Magias handlers (etmos:conjuracao:*).
-    // Only meaningful when the active world system is "etmos" — registered
-    // unconditionally like the other system-agnostic handlers; clients of
-    // non-Etmos worlds simply never emit these envelope types.
-    const conjuracaoDeps = {
-      store,
-      db,
-      ns,
-      seqStore,
-      opBuffer,
-      worldId,
-      ...(systemModule !== undefined ? { systemModule } : {}),
-    };
-    registry.register("etmos:conjuracao:propor", buildConjuracaoProporHandler(conjuracaoDeps));
-    registry.register("etmos:conjuracao:arbitrar", buildConjuracaoArbitrarHandler(conjuracaoDeps));
-    registry.register("etmos:conjuracao:rolar", buildConjuracaoRolarHandler(conjuracaoDeps));
-    registry.register("etmos:conjuracao:resolver", buildConjuracaoResolverHandler(conjuracaoDeps));
-    registry.register("etmos:conjuracao:cancelar", buildConjuracaoCancelarHandler(conjuracaoDeps));
-
-    // REQ-ETM-021/CA-6: Teste Contestado — one-shot two-roll action, same deps
-    // shape (store/db/ns/seqStore/opBuffer/worldId) as the Compositor handlers.
-    registry.register("etmos:teste:contestado", buildContestadoHandler(conjuracaoDeps));
-
-    // REQ-ETM-023: Reação por rodada — spend half (reset half is
-    // registerReacaoResetOnTurnStart above, wired directly to the CombatEventBus).
+    // ALQ-F2-11 / REQ-SYS-143/144: `item:consume` — permission, atomicity
+    // (expectedVersion) and the post-consume hook run all live in
+    // item-handlers.ts; the game-specific plan is whatever the active system
+    // registered via `registrar.registerConsumeItem`.
     registry.register(
-      "etmos:reacao:usar",
-      buildReacaoUsarHandler({ store, db, ns, seqStore, opBuffer, worldId }),
+      "item:consume",
+      buildItemConsumeHandler({
+        store,
+        db,
+        ns,
+        seqStore,
+        opBuffer,
+        worldId,
+        systemModule,
+        targetingStore,
+        compendium: compSvc,
+        actorMechanicsService,
+        logger: this.logger,
+      }),
     );
 
-    // REQ-ETM-035..039/CA-11: Marcos de Crescimento level-up confirmation.
+    // Inventory: give an item to another actor - one atomic write on two actors (item-transfer-handler.ts).
     registry.register(
-      "etmos:progressao:confirmar",
-      buildProgressaoConfirmarHandler({ store, ns, seqStore, opBuffer, worldId }),
+      "item:transfer",
+      buildItemTransferHandler({ store, db, ns, seqStore, opBuffer, worldId }),
+    );
+
+    // BHR-F4-08 (REQ-BHR-102..105): a pack effect onto other actors, permission by link.
+    registry.register(
+      "effect:apply",
+      buildEffectApplyHandler({
+        store,
+        ns,
+        seqStore,
+        opBuffer,
+        compendium: compSvc,
+        ...(systemModule ? { systemModule } : {}),
+      }),
     );
 
     // REQ-NET-003/014: auth middleware runs before connection is accepted
@@ -530,6 +915,9 @@ export class SocketManager {
         void socket.join("gm");
       }
 
+      // REQ-NET-043: tell every client (including this one) who is online now.
+      broadcastPresenceOnline();
+
       // REQ-DST-036/037: greet the client with the server's semantic version
       // and protocol version right after the connection is accepted (auth +
       // capacity checks already passed above). The client already validated
@@ -547,12 +935,21 @@ export class SocketManager {
       const auth = socket.handshake.auth as Record<string, unknown>;
       const lastSeq = typeof auth["lastSeq"] === "number" ? auth["lastSeq"] : undefined;
       sendJoinSnapshot(socket, syncDeps, data.userId, data.role, lastSeq);
+      // L2 defect D5: the live targeting outlives a reload; this socket starts empty, so it is told what is alive.
+      replayTargetingTo(socket, targetingStore);
 
       // Register low-level event handlers
       this._registerSocketHandlers(socket, data, registry, seqStore, ns, {
         cursorRateLimiter,
         pingRateLimiter,
+        previewRateLimiter,
         sceneRooms,
+        assetSecret: secret,
+        store,
+        userIdentity: (id: string) => {
+          const u = userStore.findById(id);
+          return u ? { name: u.name, color: u.color } : undefined;
+        },
       });
 
       socket.on("disconnect", (reason) => {
@@ -563,8 +960,13 @@ export class SocketManager {
         // Evict rate limiter state for this socket to free memory
         cursorRateLimiter.evict(socket.id);
         pingRateLimiter.evict(socket.id);
+        previewRateLimiter.evict(socket.id);
         // Evict scene room tracking for this socket
         sceneRooms.delete(socket.id);
+        // REQ-NET-043: re-broadcast the roster minus this socket — `ns.sockets`
+        // may or may not have dropped it yet at this point in the disconnect
+        // sequence, so it is excluded explicitly rather than relied upon.
+        broadcastPresenceOnline(socket.id);
       });
     });
 
@@ -577,23 +979,58 @@ export class SocketManager {
    * Called on world close.
    */
   async removeWorldNamespace(worldId: string): Promise<void> {
-    const ns = this.namespaces.get(worldId);
-    if (!ns) return;
+    try {
+      const ns = this.namespaces.get(worldId);
+      if (ns) {
+        this.logger.info({ worldId }, "Removing world namespace, disconnecting sockets");
 
-    this.logger.info({ worldId }, "Removing world namespace, disconnecting sockets");
+        // Disconnect all connected sockets gracefully
+        const sockets = await ns.fetchSockets();
+        for (const s of sockets) {
+          s.disconnect(true);
+        }
 
-    // Disconnect all connected sockets gracefully
-    const sockets = await ns.fetchSockets();
-    for (const s of sockets) {
-      s.disconnect(true);
+        // Remove the namespace from the socket.io server
+        ns.removeAllListeners();
+        this.io._nsps.delete(`/world/${worldId}`);
+        this.namespaces.delete(worldId);
+        this.docCreatedBroadcasters.delete(worldId);
+
+        this.logger.info({ worldId }, "World namespace removed");
+      }
+    } finally {
+      // T016 final flush — AFTER the sockets are gone, so the tail of the
+      // session (anything written while they were being disconnected) is in
+      // the report instead of being dropped with the window. It runs even
+      // when the namespace is already absent (a registration that failed
+      // halfway leaves a collector behind) and even when the teardown above
+      // threw: an interval that survives its world keeps the process alive
+      // and the last window is lost either way, so the cleanup cannot be
+      // hostage to the disconnect path succeeding.
+      const metrics = this.writeMetrics.get(worldId);
+      if (metrics) {
+        metrics.flush();
+        metrics.stop();
+        this.writeMetrics.delete(worldId);
+      }
+      this.mapCounters.delete(worldId);
     }
+  }
 
-    // Remove the namespace from the socket.io server
-    ns.removeAllListeners();
-    this.io._nsps.delete(`/world/${worldId}`);
-    this.namespaces.delete(worldId);
+  /** BHR-F3-04: the world's MAP counter (read by the sheet channel and by tests). */
+  mapCounterFor(worldId: string): MapCounter | undefined {
+    return this.mapCounters.get(worldId);
+  }
 
-    this.logger.info({ worldId }, "World namespace removed");
+  /**
+   * The write-metrics collector of a registered world, if any (T016).
+   *
+   * Exposed so the metrics can be read without reaching into the namespace
+   * closure — tests assert on `snapshot()`, and it is the hook a diagnostic
+   * endpoint would use.
+   */
+  writeMetricsFor(worldId: string): WriteMetricsCollector | undefined {
+    return this.writeMetrics.get(worldId);
   }
 
   /**
@@ -613,9 +1050,24 @@ export class SocketManager {
     }
   }
 
+  /**
+   * Announce documents created outside a socket op (e.g. the character born with a new user, #254) to
+   * every client of the world, as a `doc:create`. No-op for a world with no namespace.
+   */
+  broadcastDocCreated(
+    worldId: string,
+    documentType: string,
+    documents: Record<string, unknown>[],
+  ): void {
+    this.docCreatedBroadcasters.get(worldId)?.(documentType, documents);
+  }
+
   /** Close all namespaces and the underlying socket.io server. */
   async close(): Promise<void> {
-    const worldIds = [...this.namespaces.keys()];
+    // Union of both maps: a world whose namespace is already gone can still
+    // hold a live metrics collector (see removeWorldNamespace), and closing
+    // the manager must leave no interval behind.
+    const worldIds = new Set([...this.namespaces.keys(), ...this.writeMetrics.keys()]);
     for (const id of worldIds) {
       await this.removeWorldNamespace(id);
     }
@@ -652,8 +1104,15 @@ export class SocketManager {
     rateLimiters: {
       cursorRateLimiter: EphemeralRateLimiter;
       pingRateLimiter: EphemeralRateLimiter;
+      previewRateLimiter: EphemeralRateLimiter;
       /** REQ-NET-005: shared scene room tracking map for this namespace. */
       sceneRooms: Map<string, string>;
+      /** Display name/colour of a user, stamped server-side on ephemeral broadcasts. */
+      /** World HMAC secret, to sign the image grant of "Show Players". */
+      assetSecret?: Uint8Array;
+      /** The world's documents (pinned areas persist in Scene.templates). */
+      store: DocumentStore;
+      userIdentity: (userId: string) => { name: string; color: string } | undefined;
     },
   ): void {
     const logger = this.logger;
@@ -738,9 +1197,18 @@ export class SocketManager {
           // (GM / ASSISTANT) receive the unredacted result.  redactAckResult*
           // clones before stripping and never mutates the shared object that
           // the live-broadcast / op-buffer paths also reference.
+          //
+          // Spec 39 §5.9: the same net also carries the contact-knowledge rule
+          // (REQ-CTT-081..084) — an ack echoing an Actor back to a player is an
+          // emission path like any other, and must not be the one that escapes
+          // the module.
           const acked = isRolePrivileged(data.role)
             ? result
-            : redactAckResultForNonPrivileged(result);
+            : redactAckResultForNonPrivileged(result, {
+                source: getContactKnowledgeSource(ns),
+                userId: data.userId,
+                role: data.role,
+              });
 
           // REQ-NET-011: echo requestId back in ack (M0-C pendência)
           if (
@@ -796,6 +1264,7 @@ export class SocketManager {
       }
 
       // M1-E: route ephemeral events to presence handlers
+      const identity = rateLimiters.userIdentity(data.userId);
       handleEphemeralEnvelope(
         socket,
         parsed.data as Envelope,
@@ -803,13 +1272,17 @@ export class SocketManager {
           userId: data.userId,
           role: data.role,
           worldId: data.worldId,
+          ...(identity ? { userName: identity.name, userColor: identity.color } : {}),
         },
         {
           ns,
           logger,
           cursorRateLimiter: rateLimiters.cursorRateLimiter,
           pingRateLimiter: rateLimiters.pingRateLimiter,
+          previewRateLimiter: rateLimiters.previewRateLimiter,
           sceneRooms: rateLimiters.sceneRooms,
+          ...(rateLimiters.assetSecret ? { assetSecret: rateLimiters.assetSecret } : {}),
+          store: rateLimiters.store,
         },
       );
     });

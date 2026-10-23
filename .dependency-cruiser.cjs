@@ -17,16 +17,18 @@ module.exports = {
     },
     {
       name: "no-server-from-systems",
-      comment: "systems/* must not import packages/server (REQ-ARQ-005)",
+      comment:
+        "systems/* (core or satellite, F4 DEC-SEP-09) must not import packages/server (REQ-ARQ-005)",
       severity: "error",
-      from: { path: "^systems/" },
+      from: { path: "^(systems/|external/fusion-systems-2e/systems/)" },
       to: { path: "^packages/server" },
     },
     {
       name: "no-client-from-systems",
-      comment: "systems/* must not import packages/client (REQ-ARQ-005)",
+      comment:
+        "systems/* (core or satellite, F4 DEC-SEP-09) must not import packages/client (REQ-ARQ-005)",
       severity: "error",
-      from: { path: "^systems/" },
+      from: { path: "^(systems/|external/fusion-systems-2e/systems/)" },
       to: { path: "^packages/client" },
     },
     {
@@ -61,82 +63,92 @@ module.exports = {
     {
       name: "engine-2e-must-not-import-server",
       comment:
-        "systems/engine-2e must not import packages/server (REQ-ARQ-005)",
+        "external/fusion-systems-2e/systems/engine-2e must not import packages/server (REQ-ARQ-005)",
       severity: "error",
-      from: { path: "^systems/engine-2e" },
+      from: { path: "^external/fusion-systems-2e/systems/engine-2e" },
       to: { path: "^packages/server" },
     },
     {
       name: "engine-2e-must-not-import-client",
       comment:
-        "systems/engine-2e must not import packages/client (REQ-ARQ-005)",
+        "external/fusion-systems-2e/systems/engine-2e must not import packages/client (REQ-ARQ-005)",
       severity: "error",
-      from: { path: "^systems/engine-2e" },
+      from: { path: "^external/fusion-systems-2e/systems/engine-2e" },
       to: { path: "^packages/client" },
     },
     {
       name: "engine-2e-must-not-import-other-systems",
       comment:
-        "systems/engine-2e must not import other systems/* (REQ-ARQ-005)",
+        "external/fusion-systems-2e/systems/engine-2e must not import other systems/* (REQ-ARQ-005)",
       severity: "error",
-      from: { path: "^systems/engine-2e" },
-      to: { path: "^systems/(?!engine-2e)" },
+      from: { path: "^external/fusion-systems-2e/systems/engine-2e" },
+      to: { path: "^external/fusion-systems-2e/systems/(?!engine-2e)" },
     },
     {
       name: "pf2e-must-not-import-server",
       comment:
-        "systems/pf2e must not import packages/server (REQ-ARQ-005)",
+        "external/fusion-systems-2e/systems/pf2e must not import packages/server (REQ-ARQ-005)",
       severity: "error",
-      from: { path: "^systems/pf2e" },
+      from: { path: "^external/fusion-systems-2e/systems/pf2e" },
       to: { path: "^packages/server" },
     },
     {
       name: "pf2e-must-not-import-client",
       comment:
-        "systems/pf2e must not import packages/client (REQ-ARQ-005)",
+        "external/fusion-systems-2e/systems/pf2e must not import packages/client (REQ-ARQ-005)",
       severity: "error",
-      from: { path: "^systems/pf2e" },
+      from: { path: "^external/fusion-systems-2e/systems/pf2e" },
       to: { path: "^packages/client" },
     },
     {
       name: "sf2e-must-not-import-server",
       comment:
-        "systems/sf2e must not import packages/server (REQ-ARQ-005)",
+        "external/fusion-systems-2e/systems/sf2e must not import packages/server (REQ-ARQ-005)",
       severity: "error",
-      from: { path: "^systems/sf2e" },
+      from: { path: "^external/fusion-systems-2e/systems/sf2e" },
       to: { path: "^packages/server" },
     },
     {
       name: "sf2e-must-not-import-client",
       comment:
-        "systems/sf2e must not import packages/client (REQ-ARQ-005)",
+        "external/fusion-systems-2e/systems/sf2e must not import packages/client (REQ-ARQ-005)",
       severity: "error",
-      from: { path: "^systems/sf2e" },
+      from: { path: "^external/fusion-systems-2e/systems/sf2e" },
       to: { path: "^packages/client" },
     },
     {
-      name: "etmos-must-not-import-server",
+      name: "client-core-must-not-import-system-sheets",
       comment:
-        "systems/etmos must not import packages/server (REQ-ARQ-005)",
+        "The core client (packages/client/src) must not import a system's " +
+        "sheet territory directly — only the system's own registered entry " +
+        "point, consumed as the @fusion/sheets-pf2e package. F4, DEC-SEP-09: " +
+        "sheets/pf2e/ now lives in the fusion-systems-2e submodule at " +
+        "external/fusion-systems-2e/sheets/pf2e/ — this is the boundary that " +
+        "used to let F4 extract it there, and now keeps the core from " +
+        "reaching past its published entry point (src/index.ts). __tests__ " +
+        "are exempt (fixtures may reach into a system for assertions, e.g. " +
+        "combatSetup.test.ts seeding the real PF2e skill table).",
       severity: "error",
-      from: { path: "^systems/etmos" },
-      to: { path: "^packages/server" },
+      from: { path: "^packages/client/src/", pathNot: "__tests__" },
+      to: {
+        path: "^external/fusion-systems-2e/sheets/pf2e/(?!src/index\\.ts$)",
+      },
     },
     {
-      name: "etmos-must-not-import-client",
+      name: "client-core-must-not-import-system-packages",
       comment:
-        "systems/etmos must not import packages/client (REQ-ARQ-005)",
+        "The core client must not import a game-system package " +
+        "(@fusion/system-pf2e, @fusion/system-sf2e) directly. F4, " +
+        "DEC-SEP-09: those now live in the fusion-systems-2e submodule at " +
+        "external/fusion-systems-2e/systems/{pf2e,sf2e}/. __tests__ are " +
+        "exempt (e.g. lib/contacts/__tests__/contactsVM.test.ts uses the " +
+        "real system packages as fixtures).",
       severity: "error",
-      from: { path: "^systems/etmos" },
-      to: { path: "^packages/client" },
-    },
-    {
-      name: "etmos-must-not-import-other-systems",
-      comment:
-        "systems/etmos must not import other systems/* — it does not depend on engine-2e/pf2e/sf2e (REQ-ARQ-005)",
-      severity: "error",
-      from: { path: "^systems/etmos" },
-      to: { path: "^systems/(?!etmos)" },
+      from: {
+        path: "^packages/client/src/",
+        pathNot: "__tests__",
+      },
+      to: { path: "^external/fusion-systems-2e/systems/(pf2e|sf2e)/" },
     },
   ],
   options: {

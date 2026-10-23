@@ -16,12 +16,14 @@
    */
 
   import { t } from "../lib/i18n/i18n.js";
+  import FusionMark from "./common/FusionMark.svelte";
+  import Icon from "./common/Icon.svelte";
   import { sessionActions } from "../lib/session.svelte.js";
 
   let copiedStep: 1 | 2 | null = $state(null);
   let checking = $state(false);
 
-  const CREATE_CMD = "fusion world create <slug> --system pf2e|sf2e|etmos";
+  const CREATE_CMD = "fusion world create <slug> --system pf2e|sf2e|pf2e-sf2e";
   const SERVE_CMD = "fusion serve --world <slug>";
 
   async function copy(cmd: string, step: 1 | 2): Promise<void> {
@@ -50,186 +52,174 @@
 <div class="mgmt-shell">
   <div class="mgmt-card">
     <header class="mgmt-card__header">
-      <div class="mgmt-card__logo" aria-hidden="true">&#9889;</div>
+      <FusionMark size={40} />
       <div class="mgmt-card__titles">
         <h1 class="mgmt-card__title">{t("FUSION.Management.Title")}</h1>
         <p class="mgmt-card__subtitle">{t("FUSION.Management.Subtitle")}</p>
       </div>
     </header>
 
-    <section class="mgmt-steps">
-      <h2 class="mgmt-steps__title">{t("FUSION.Management.StepsTitle")}</h2>
+    <section class="mgmt-steps" aria-labelledby="mgmt-steps-title">
+      <h2 id="mgmt-steps-title" class="mgmt-steps__title">{t("FUSION.Management.StepsTitle")}</h2>
 
-      <div class="mgmt-step">
-        <p class="mgmt-step__label">{t("FUSION.Management.Step1Label")}</p>
-        <div class="mgmt-cmd">
-          <code class="mgmt-cmd__text">{CREATE_CMD}</code>
-          <button
-            type="button"
-            class="btn btn--secondary mgmt-cmd__copy"
-            onclick={() => copy(CREATE_CMD, 1)}
-          >
-            {copiedStep === 1 ? t("FUSION.Management.Copied") : t("FUSION.Management.CopyCommand")}
-          </button>
-        </div>
-      </div>
-
-      <div class="mgmt-step">
-        <p class="mgmt-step__label">{t("FUSION.Management.Step2Label")}</p>
-        <div class="mgmt-cmd">
-          <code class="mgmt-cmd__text">{SERVE_CMD}</code>
-          <button
-            type="button"
-            class="btn btn--secondary mgmt-cmd__copy"
-            onclick={() => copy(SERVE_CMD, 2)}
-          >
-            {copiedStep === 2 ? t("FUSION.Management.Copied") : t("FUSION.Management.CopyCommand")}
-          </button>
-        </div>
-      </div>
+      <ol class="mgmt-steps__list">
+        {#each [{ step: 1 as const, label: t("FUSION.Management.Step1Label"), cmd: CREATE_CMD }, { step: 2 as const, label: t("FUSION.Management.Step2Label"), cmd: SERVE_CMD }] as item (item.step)}
+          <li class="mgmt-step">
+            <p class="mgmt-step__label">{item.label}</p>
+            <div class="mgmt-cmd">
+              <code class="mgmt-cmd__text">{item.cmd}</code>
+              <button type="button" class="btn btn--secondary" onclick={() => copy(item.cmd, item.step)}>
+                <Icon name={copiedStep === item.step ? "check" : "copy"} size={18} />
+                <span aria-live="polite"
+                  >{copiedStep === item.step
+                    ? t("FUSION.Management.Copied")
+                    : t("FUSION.Management.CopyCommand")}</span
+                >
+              </button>
+            </div>
+          </li>
+        {/each}
+      </ol>
     </section>
 
     <footer class="mgmt-card__footer">
       <button type="button" class="btn btn--primary btn--wide" onclick={retry} disabled={checking}>
+        <Icon name="refresh-cw" size={18} />
         {t("FUSION.Management.RetryButton")}
       </button>
-      <a class="link-btn" href="/setup">{t("FUSION.Management.SetupLink")}</a>
+      <a class="mgmt-card__link" href="/setup">
+        <Icon name="settings" size={18} />
+        {t("FUSION.Management.SetupLink")}
+      </a>
     </footer>
   </div>
 </div>
 
 <style>
   .mgmt-shell {
-    height: 100%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
+    /* html/body never scroll (the table fills the viewport), so the screen scrolls
+       itself; the card centres with margin: auto, which never clips its top. */
     background-color: var(--fusion-bg);
-    padding: 1rem;
+    color: var(--fusion-text);
+    display: flex;
+    height: 100%;
+    overflow-y: auto;
+    padding: var(--fusion-space-4);
   }
 
   .mgmt-card {
+    margin: auto;
     background: var(--fusion-surface);
     border: 1px solid var(--fusion-border);
     border-radius: var(--fusion-radius-lg);
-    padding: 2rem;
+    padding: var(--fusion-space-8) var(--fusion-space-6);
     width: 100%;
-    max-width: 520px;
+    max-width: 560px;
     display: flex;
     flex-direction: column;
-    gap: 1.5rem;
+    gap: var(--fusion-space-6);
   }
 
-  /* Header */
   .mgmt-card__header {
     display: flex;
     align-items: center;
-    gap: 0.75rem;
-  }
-
-  .mgmt-card__logo {
-    font-size: 2rem;
-    line-height: 1;
-    flex-shrink: 0;
+    gap: var(--fusion-space-4);
+    color: var(--fusion-accent);
   }
 
   .mgmt-card__title {
-    font-size: 1.125rem;
-    font-weight: 700;
+    font-size: var(--fusion-text-xl);
+    font-weight: var(--fusion-weight-bold);
     color: var(--fusion-text);
-    line-height: 1.3;
+    line-height: var(--fusion-leading-tight);
   }
 
   .mgmt-card__subtitle {
-    font-size: 0.8125rem;
-    color: var(--fusion-text-subtle);
-    line-height: 1.4;
-    margin-top: 0.2rem;
+    font-size: var(--fusion-text-sm);
+    color: var(--fusion-text-muted);
+    margin-top: var(--fusion-space-1);
   }
 
-  /* Steps */
   .mgmt-steps {
     display: flex;
     flex-direction: column;
-    gap: 1rem;
+    gap: var(--fusion-space-3);
   }
 
   .mgmt-steps__title {
-    font-size: 0.8125rem;
-    font-weight: 600;
-    text-transform: uppercase;
-    letter-spacing: 0.03em;
-    color: var(--fusion-text-subtle);
+    font-size: var(--fusion-text-lg);
+    font-weight: var(--fusion-weight-bold);
+    color: var(--fusion-text);
+  }
+
+  .mgmt-steps__list {
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: var(--fusion-space-5);
   }
 
   .mgmt-step {
     display: flex;
     flex-direction: column;
-    gap: 0.4rem;
+    gap: var(--fusion-space-2);
   }
 
   .mgmt-step__label {
-    font-size: 0.875rem;
+    font-size: var(--fusion-text-base);
     color: var(--fusion-text);
   }
 
+  /* The command wraps instead of hiding behind a scrollbar (390px phones). */
   .mgmt-cmd {
     display: flex;
+    flex-wrap: wrap;
     align-items: center;
-    gap: 0.5rem;
-    background: var(--fusion-surface-alt);
+    gap: var(--fusion-space-2) var(--fusion-space-3);
+    background: var(--fusion-input-bg);
     border: 1px solid var(--fusion-border);
-    border-radius: var(--fusion-radius-sm);
-    padding: 0.5rem 0.75rem;
+    border-radius: var(--fusion-radius);
+    padding: var(--fusion-space-2) var(--fusion-space-2) var(--fusion-space-2) var(--fusion-space-3);
   }
 
   .mgmt-cmd__text {
-    flex: 1;
+    flex: 1 1 16rem;
+    min-width: 0;
     font-family: var(--fusion-font-mono);
-    font-size: 0.8125rem;
+    font-size: var(--fusion-text-sm);
     color: var(--fusion-text);
-    overflow-x: auto;
-    white-space: nowrap;
+    overflow-wrap: anywhere;
+    white-space: pre-wrap;
   }
 
-  .mgmt-cmd__copy {
-    flex-shrink: 0;
-    padding: 0.3rem 0.7rem;
-    font-size: 0.75rem;
-  }
-
-  /* Footer */
   .mgmt-card__footer {
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 0.75rem;
+    gap: var(--fusion-space-2);
   }
 
-  /* Buttons — same pattern as JoinScreen.svelte / SetupWizard.svelte */
   .btn {
     align-items: center;
     border: 1px solid transparent;
-    border-radius: var(--fusion-radius-sm);
+    border-radius: var(--fusion-radius);
     cursor: pointer;
     display: inline-flex;
-    font-family: var(--fusion-font);
-    font-size: 0.875rem;
-    font-weight: 500;
+    font-size: var(--fusion-text-base);
+    font-weight: var(--fusion-weight-medium);
+    gap: var(--fusion-space-2);
     justify-content: center;
-    padding: 0.55rem 1.25rem;
-    transition: background-color var(--fusion-transition), opacity var(--fusion-transition);
+    min-height: var(--fusion-target);
+    padding: var(--fusion-space-2) var(--fusion-space-4);
+    transition: background-color var(--fusion-transition);
     white-space: nowrap;
-  }
-
-  .btn:disabled {
-    cursor: not-allowed;
-    opacity: 0.6;
   }
 
   .btn--primary {
     background-color: var(--fusion-accent);
-    color: #fff;
+    color: var(--fusion-on-accent);
+    font-weight: var(--fusion-weight-bold);
+    min-height: 44px;
   }
 
   .btn--primary:hover:not(:disabled) {
@@ -238,21 +228,44 @@
 
   .btn--secondary {
     background: var(--fusion-surface-alt);
-    border-color: var(--fusion-border);
+    border-color: var(--fusion-border-strong);
     color: var(--fusion-text);
+  }
+
+  .btn--secondary:hover {
+    border-color: var(--fusion-accent);
+  }
+
+  .btn:disabled {
+    background-color: var(--fusion-surface-alt);
+    border-color: var(--fusion-border);
+    color: var(--fusion-text-muted);
+    cursor: progress;
   }
 
   .btn--wide {
     width: 100%;
   }
 
-  .link-btn {
-    background: none;
-    border: none;
+  .mgmt-card__link {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--fusion-space-2);
+    min-height: var(--fusion-target);
+    padding: 0 var(--fusion-space-2);
     color: var(--fusion-accent);
-    cursor: pointer;
-    font-size: 0.8125rem;
-    padding: 0;
+    font-size: var(--fusion-text-base);
     text-decoration: underline;
+    text-underline-offset: 3px;
+  }
+
+  @media (max-width: 480px) {
+    .mgmt-shell {
+      padding: var(--fusion-space-3);
+    }
+
+    .mgmt-card {
+      padding: var(--fusion-space-6) var(--fusion-space-4);
+    }
   }
 </style>

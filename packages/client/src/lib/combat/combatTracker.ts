@@ -7,6 +7,8 @@
  * Exports:
  *   - TrackerRow: shape of a single row in the tracker UI
  *   - buildTrackerRows(): produce display rows from a CombatDocument
+ *   - buildRotatedQueue(): rotate those rows from the current turn (spec 40 §5.4)
+ *   - moveCombatantInOrder()/moveCombatantBefore(): the two reorder gestures
  *   - controlsState(): derive which GM controls are enabled/disabled
  *   - formatInitiative(): format an initiative value for display
  *   - canPlayerRollInitiative(): derive if a player can roll a given combatant
@@ -15,8 +17,14 @@
  * Spec: 10-combate-e-iniciativa.md §REQ-CBT-040..047
  */
 
-import type { CombatDocument, CombatantDocument, TokenDocument } from "@fusion/shared";
-import { sortCombatants } from "@fusion/shared";
+import type {
+  CombatDocument,
+  CombatantDocument,
+  EffectiveActorBaseInput,
+  TokenDocument,
+} from "@fusion/shared";
+import { resolveEffectiveActor, sortCombatants } from "@fusion/shared";
+import { t } from "../i18n/i18n.js";
 
 // ---------------------------------------------------------------------------
 // TrackerRow
@@ -117,6 +125,197 @@ export function buildTrackerRows(combat: CombatDocument): TrackerRow[] {
     turnIndex: idx,
     trackedResource: resolveTrackedResource(combat, c),
   }));
+}
+
+// ---------------------------------------------------------------------------
+// The queue below the turn head (spec 40 §5.4)
+// ---------------------------------------------------------------------------
+
+/**
+ * Which half of the round an entry belongs to.
+ *
+ * `"upcoming"` still acts this round; `"acted"` already did. The distinction exists
+ * because REQ-CBA-031 forbids dropping the second group: someone who already acted is
+ * still in the encounter, still carries conditions, and is still the person the GM points
+ * at — hiding them to make the list shorter loses the round's shape.
+ */
+export type QueueGroup = "upcoming" | "acted";
+
+/** One participant's place in the rotated queue. */
+export interface QueueEntry {
+  /** The row to draw. */
+  readonly row: TrackerRow;
+  /** Which group the row was sorted into (REQ-CBA-031). */
+  readonly group: QueueGroup;
+  /** Position in the rotated queue, counted across both groups (0-based). */
+  readonly queueIndex: number;
+}
+
+/** The queue the panel draws under the turn head. */
+export interface RotatedQueue {
+  /** Whoever still acts this round, in turn order. */
+  readonly upcoming: readonly QueueEntry[];
+  /** Whoever already acted this round, in turn order — kept, never omitted. */
+  readonly acted: readonly QueueEntry[];
+  /** `upcoming` followed by `acted`; the reading order of the panel. */
+  readonly entries: readonly QueueEntry[];
+  /** Whether a turn was actually in progress, i.e. whether a rotation happened. */
+  readonly rotated: boolean;
+}
+
+/**
+ * Build the queue shown below the turn head (REQ-CBA-030).
+ *
+ * The initiative order is a ring, and the panel enters it at the current turn: what a
+ * player wants to know is how many participants stand between them and their own turn, and
+ * a list that always starts at the highest initiative makes that a counting exercise. So
+ * the order is **rotated from the participant of the turn** — first who still acts this
+ * round, then who already acted (REQ-CBA-030), with the second half kept as its own,
+ * labelled group (REQ-CBA-031).
+ *
+ * The participant of the turn is not in the queue at all: it is the head (REQ-CBA-020),
+ * and REQ-CBA-030 lists "os demais".
+ *
+ * The active participant is resolved by `TrackerRow.isActive` — which `buildTrackerRows`
+ * derives from `activeCombatantId`, not from `turnIndex`, so the rotation is stable under
+ * redaction (a player's array is missing rows the GM's has).
+ *
+ * `canSeeHidden` is the same defense in depth `redactCombatForViewer` applies (REQ-CBA-034,
+ * REQ-CBT-031..033): the server already strips hidden combatants from a non-privileged
+ * payload, and the queue refuses to draw one anyway. Filtering happens **before** the
+ * rotation, so a hidden participant sitting between two visible ones does not leave a gap
+ * or shift the split.
+ *
+ * @param rows         Rows in turn order, from {@link buildTrackerRows}.
+ * @param canSeeHidden Whether the viewer's role may see hidden participants.
+ */
+export function buildRotatedQueue(
+  rows: readonly TrackerRow[],
+  canSeeHidden: boolean,
+): RotatedQueue {
+  const visible = canSeeHidden ? rows : rows.filter((row) => !row.isHidden);
+  const activeIndex = visible.findIndex((row) => row.isActive);
+
+  if (activeIndex === -1) {
+    // No turn in progress (montagem, or an active participant this viewer cannot see):
+    // there is nothing to rotate around, and nobody has acted yet.
+    const entries = visible.map<QueueEntry>((row, index) => ({
+      row,
+      group: "upcoming",
+      queueIndex: index,
+    }));
+    return { upcoming: entries, acted: [], entries, rotated: false };
+  }
+
+  const upcoming = visible.slice(activeIndex + 1).map<QueueEntry>((row, index) => ({
+    row,
+    group: "upcoming",
+    queueIndex: index,
+  }));
+  const acted = visible.slice(0, activeIndex).map<QueueEntry>((row, index) => ({
+    row,
+    group: "acted",
+    queueIndex: upcoming.length + index,
+  }));
+
+  return { upcoming, acted, entries: [...upcoming, ...acted], rotated: true };
+}
+
+/**
+ * How many turns stand between now and this user's next turn (REQ-CBA-074).
+ *
+ * The rotated queue is already the sequence of participants still to come — this round's
+ * remainder first, then whoever acted (who acts again next round) — but it is a list of
+ * ROWS, and REQ-CBA-074 asks for TURNS. The two only coincide when every row still takes
+ * a turn: a defeated participant stays in the queue (REQ-CBA-033) yet the server's advance
+ * walks straight past it while `skipDefeated` is on (DEC-CBT-07, mirrored from
+ * `nextTurnIndex` in `@fusion/shared`). Counting rows would then promise a longer wait
+ * than the encounter actually takes — so the count skips exactly what the advance skips.
+ *
+ * Returns `null` when no participant this user owns will ever get a turn: nobody of theirs
+ * in the queue, or the only ones there are defeated and being skipped. There is no number
+ * to say, and a panel that said "0" or "—" would be inventing an answer. It also returns
+ * `null` when it is the user's OWN turn, because the participant of the turn is the head
+ * and never sits in the queue — "your turn" is said there, in words (REQ-CBA-024), and the
+ * notice this feeds is the other half of REQ-CBA-074.
+ *
+ * Ownership is decided by the caller and handed in as a set of actor ids, resolved by
+ * `ownedActorIdsOf` in `combatBadge.svelte.ts` — the same reading of `ownership` the
+ * server applies when it decides whether the advance is allowed (REQ-CBA-081). This
+ * function never re-derives it, so there is one owner predicate on the client.
+ *
+ * @param queue          The rotated queue, from {@link buildRotatedQueue}.
+ * @param ownedActorIds  Actors this user owns.
+ * @param skipDefeated   The encounter's `skipDefeated`, i.e. whether the server's advance
+ *                       walks past defeated participants.
+ */
+export function turnsUntilOwnTurn(
+  queue: RotatedQueue,
+  ownedActorIds: ReadonlySet<string>,
+  skipDefeated: boolean,
+): number | null {
+  if (!queue.rotated) return null;
+
+  let turns = 0;
+  for (const entry of queue.entries) {
+    // A row the advance never stops on costs no turn — it is drawn, not visited.
+    if (skipDefeated && entry.row.isDefeated) continue;
+    turns += 1;
+    if (entry.row.actorId !== null && ownedActorIds.has(entry.row.actorId)) return turns;
+  }
+  return null;
+}
+
+// ---------------------------------------------------------------------------
+// Reordering the queue (REQ-CBA-035)
+// ---------------------------------------------------------------------------
+
+/**
+ * Move one participant `delta` places in the turn order — the keyboard alternative to
+ * dragging (REQ-CBA-035, REQ-CBA-093).
+ *
+ * Operates on the **underlying** turn order, not on the rotated view: rotation is a way of
+ * reading the ring, while the order sent to the server is the ring itself.
+ *
+ * Returns `null` when nothing would change — unknown id, zero delta, or a move off either
+ * end. A caller that gets `null` must not emit `combat:reorder`: re-sending the order that
+ * is already stored is a write with no reader.
+ */
+export function moveCombatantInOrder(
+  order: readonly string[],
+  id: string,
+  delta: number,
+): string[] | null {
+  const from = order.indexOf(id);
+  if (from === -1 || delta === 0) return null;
+
+  const to = from + delta;
+  if (to < 0 || to >= order.length) return null;
+
+  const next = [...order];
+  next.splice(from, 1);
+  next.splice(to, 0, id);
+  return next;
+}
+
+/**
+ * Move `sourceId` to sit immediately before `targetId` — what dropping one row onto
+ * another means (REQ-CBA-035).
+ *
+ * Returns `null` when the gesture is not a reorder: dropping a row onto itself, or either
+ * id missing from the order.
+ */
+export function moveCombatantBefore(
+  order: readonly string[],
+  sourceId: string,
+  targetId: string,
+): string[] | null {
+  if (sourceId === targetId) return null;
+  if (!order.includes(sourceId) || !order.includes(targetId)) return null;
+
+  const next = order.filter((id) => id !== sourceId);
+  next.splice(next.indexOf(targetId), 0, sourceId);
+  return next;
 }
 
 // ---------------------------------------------------------------------------
@@ -252,6 +451,17 @@ export interface AddableToken {
 }
 
 /**
+ * The minimal actor shape `addableTokens` needs to resolve a token's
+ * effective name/art (RNF-TOK-01) — a generic document from the mirror
+ * (`worldMirror.getByType("Actor")` yields `Record<string, unknown>`, not a
+ * typed `ActorDocument`), defensively narrowed by the caller before it is
+ * handed to `resolveEffectiveActor`. Mirrors the same minimal-shape pattern
+ * `TokenSprite` uses (`TokenSpriteActor`) so this pure module never depends
+ * on a client-only actor type.
+ */
+export type AddableTokenActor = EffectiveActorBaseInput;
+
+/**
  * List the active scene's tokens that are NOT already combatants.
  *
  * BUG D root cause: combat:create + combat:beginCombat both work, and the
@@ -263,25 +473,43 @@ export interface AddableToken {
  * everything; hidden combatants are a combat-level flag set separately via
  * combat:setHidden, not inherited from the token).
  *
- * @param sceneTokens  All tokens embedded in the active scene (GM view — unfiltered).
- * @param combat       Current combat, or null when none exists yet.
+ * Name/art resolution (spec 41, REQ-TOK-060/RNF-TOK-01): since TK020, a
+ * token's own `name`/`img` are nullable and default to "inherit from the
+ * effective actor" — nearly every token created after TK020-025 lands here
+ * with `name: null`. `resolveActor` lets the caller (which HAS mirror access;
+ * this module deliberately does not) hand back the base actor for a given
+ * `actorId`; when provided, the ONE shared function (`resolveEffectiveActor`,
+ * `@fusion/shared`) resolves the token's `actorDelta` over it, same as
+ * `TokenSprite` does for the canvas. Without a `resolveActor` (or when the
+ * actor is not in the mirror yet), the row falls back to an i18n label —
+ * never a hardcoded English string.
+ *
+ * @param sceneTokens   All tokens embedded in the active scene (GM view — unfiltered).
+ * @param combat        Current combat, or null when none exists yet.
+ * @param resolveActor  Look up the base Actor document for a token's `actorId`, or
+ *                       `undefined` when it is not (yet) available.
  */
 export function addableTokens(
   sceneTokens: TokenDocument[],
   combat: CombatDocument | null,
+  resolveActor?: (actorId: string) => AddableTokenActor | undefined,
 ): AddableToken[] {
   const existingTokenIds = new Set(
     (combat?.combatants ?? []).map((c) => c.tokenId).filter((id): id is string => id !== null),
   );
 
   return sceneTokens
-    .filter((t) => !existingTokenIds.has(t._id))
-    .map((t) => ({
-      id: t._id,
-      name: t.name || "Token",
-      img: t.texture,
-      actorId: t.actorId,
-    }));
+    .filter((tok) => !existingTokenIds.has(tok._id))
+    .map((tok) => {
+      const baseActor = resolveActor?.(tok.actorId);
+      const effective = baseActor ? resolveEffectiveActor(tok, baseActor) : undefined;
+      return {
+        id: tok._id,
+        name: tok.name ?? effective?.name ?? t("FUSION.Combat.Setup.UnnamedToken"),
+        img: effective?.img ?? null,
+        actorId: tok.actorId,
+      };
+    });
 }
 
 // ---------------------------------------------------------------------------

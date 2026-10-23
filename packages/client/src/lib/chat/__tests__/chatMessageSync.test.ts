@@ -4,6 +4,10 @@
  * Reproduces the root cause at the pure-logic level: live "op" broadcasts
  * must be handled independently of any component mount/unmount cycle, and
  * switching tabs must NOT reset the message store.
+ *
+ * Also covers REQ-ACH-086: invalidation travels as a doc:update of the same
+ * message, and the client that filtered the socket on doc:create alone simply
+ * never saw it.
  */
 
 import { describe, it, expect, vi } from "vitest";
@@ -13,6 +17,7 @@ import {
   attachChatOpListener,
   extractChatMessageFromEnvelope,
   extractChatMessagesFromEnvelope,
+  extractChatMessageUpdatesFromEnvelope,
   isPubliclyVisibleRoll,
   type OpEmitter,
 } from "../chatMessageSync.js";
@@ -182,7 +187,11 @@ describe("createChatOpHandler — live message sync independent of UI mount", ()
   it("calls handleIncomingMessage for an incoming ChatMessage WITHOUT any component mounted", () => {
     const handleIncomingMessage = vi.fn();
     const getRollAnimator = vi.fn(() => null);
-    const handler = createChatOpHandler({ handleIncomingMessage, getRollAnimator });
+    const handler = createChatOpHandler({
+      handleIncomingMessage,
+      applyMessageUpdate: vi.fn(),
+      getRollAnimator,
+    });
 
     const msg = makeTextMessage();
     handler(makeDocCreateEnvelope(msg));
@@ -194,7 +203,11 @@ describe("createChatOpHandler — live message sync independent of UI mount", ()
     const handleIncomingMessage = vi.fn();
     const animator = vi.fn();
     const getRollAnimator = vi.fn(() => animator);
-    const handler = createChatOpHandler({ handleIncomingMessage, getRollAnimator });
+    const handler = createChatOpHandler({
+      handleIncomingMessage,
+      applyMessageUpdate: vi.fn(),
+      getRollAnimator,
+    });
 
     const msg = makeRollMessage();
     handler(makeDocCreateEnvelope(msg));
@@ -205,7 +218,11 @@ describe("createChatOpHandler — live message sync independent of UI mount", ()
   it("does NOT invoke the animator when none is registered (e.g. ChatPanel unmounted)", () => {
     const handleIncomingMessage = vi.fn();
     const getRollAnimator = vi.fn(() => null);
-    const handler = createChatOpHandler({ handleIncomingMessage, getRollAnimator });
+    const handler = createChatOpHandler({
+      handleIncomingMessage,
+      applyMessageUpdate: vi.fn(),
+      getRollAnimator,
+    });
 
     // Should not throw even though no animator is present — message still
     // reaches the store (this is exactly the bug: previously the whole
@@ -214,13 +231,128 @@ describe("createChatOpHandler — live message sync independent of UI mount", ()
     expect(handleIncomingMessage).toHaveBeenCalledOnce();
   });
 
-  it("ignores envelopes that are not ChatMessage doc:create", () => {
+  it("ignores envelopes that carry no ChatMessage at all", () => {
     const handleIncomingMessage = vi.fn();
+    const applyMessageUpdate = vi.fn();
     const getRollAnimator = vi.fn(() => null);
-    const handler = createChatOpHandler({ handleIncomingMessage, getRollAnimator });
+    const handler = createChatOpHandler({
+      handleIncomingMessage,
+      applyMessageUpdate,
+      getRollAnimator,
+    });
 
     handler({ type: "doc:update", ts: Date.now(), payload: {} } as unknown as Envelope);
+    handler({
+      type: "doc:update",
+      ts: Date.now(),
+      payload: { documentType: "Token", documents: [{ _id: "t1" }] },
+    } as unknown as Envelope);
+
     expect(handleIncomingMessage).not.toHaveBeenCalled();
+    expect(applyMessageUpdate).not.toHaveBeenCalled();
+  });
+});
+
+// ---------------------------------------------------------------------------
+// REQ-ACH-086 — an invalidation is an update of the SAME message, and the live
+// log has to take it. Filtering the socket on doc:create alone is what made the
+// voided message stay intact on screen until a reload.
+// ---------------------------------------------------------------------------
+
+/** The shape the server broadcasts for a message that changed (chat-handler.ts). */
+function makeDocUpdateEnvelope(msg: ChatMessage): Envelope {
+  return {
+    type: "doc:update",
+    ts: Date.now(),
+    payload: { documentType: "ChatMessage", documents: [msg] },
+  } as unknown as Envelope;
+}
+
+function voided(msg: ChatMessage, by = "gm-1"): ChatMessage {
+  return { ...msg, invalid: true, invalidatedBy: by, invalidatedAt: 2000 };
+}
+
+describe("REQ-ACH-086 — invalidation reaches the live log as a document update", () => {
+  it("extracts the voided message from a doc:update envelope", () => {
+    const msg = voided(makeTextMessage());
+    expect(extractChatMessageUpdatesFromEnvelope(makeDocUpdateEnvelope(msg))).toEqual([msg]);
+  });
+
+  it("does not confuse an update with a creation (each reader takes only its own)", () => {
+    const created = makeTextMessage({ _id: "created" });
+    const updated = voided(makeTextMessage({ _id: "updated" }));
+
+    expect(extractChatMessagesFromEnvelope(makeDocUpdateEnvelope(updated))).toEqual([]);
+    expect(extractChatMessageUpdatesFromEnvelope(makeDocCreateEnvelope(created))).toEqual([]);
+  });
+
+  it("routes the update to applyMessageUpdate — never as a new message", () => {
+    const handleIncomingMessage = vi.fn();
+    const applyMessageUpdate = vi.fn();
+    const handler = createChatOpHandler({
+      handleIncomingMessage,
+      applyMessageUpdate,
+      getRollAnimator: () => null,
+    });
+
+    const msg = voided(makeTextMessage());
+    handler(makeDocUpdateEnvelope(msg));
+
+    expect(applyMessageUpdate).toHaveBeenCalledExactlyOnceWith(msg);
+    // Inserting it again would duplicate the row and, worse, bump the unread
+    // badge for a message the reader already saw.
+    expect(handleIncomingMessage).not.toHaveBeenCalled();
+  });
+
+  it("does NOT replay the 3D dice of a roll that was just voided", () => {
+    const animator = vi.fn();
+    const handler = createChatOpHandler({
+      handleIncomingMessage: vi.fn(),
+      applyMessageUpdate: vi.fn(),
+      getRollAnimator: () => animator,
+    });
+
+    handler(makeDocUpdateEnvelope(voided(makeRollMessage())));
+
+    expect(animator).not.toHaveBeenCalled();
+  });
+
+  it("carries revalidation the same way (invalid back to false)", () => {
+    const applyMessageUpdate = vi.fn();
+    const handler = createChatOpHandler({
+      handleIncomingMessage: vi.fn(),
+      applyMessageUpdate,
+      getRollAnimator: () => null,
+    });
+
+    // REQ-ACH-084: the record of who invalidated survives the revalidation.
+    const restored: ChatMessage = {
+      ...makeTextMessage(),
+      invalid: false,
+      invalidatedBy: "gm-1",
+      invalidatedAt: 2000,
+    };
+    handler(makeDocUpdateEnvelope(restored));
+
+    expect(applyMessageUpdate).toHaveBeenCalledExactlyOnceWith(restored);
+  });
+
+  it("delivers the update through a socket attached once for the session", () => {
+    const socket = new FakeSocket();
+    const applyMessageUpdate = vi.fn();
+    const detach = attachChatOpListener(socket, {
+      handleIncomingMessage: vi.fn(),
+      applyMessageUpdate,
+      getRollAnimator: () => null,
+    });
+
+    const msg = voided(makeTextMessage());
+    socket.emit(makeDocUpdateEnvelope(msg));
+    expect(applyMessageUpdate).toHaveBeenCalledExactlyOnceWith(msg);
+
+    detach();
+    socket.emit(makeDocUpdateEnvelope(msg));
+    expect(applyMessageUpdate).toHaveBeenCalledOnce();
   });
 });
 
@@ -231,7 +363,11 @@ describe("attachChatOpListener — simulating tab switch does not lose messages"
     const getRollAnimator = vi.fn(() => null);
 
     // Attach ONCE, as TableScreen's onMount would (session-scoped, not tab-scoped).
-    const detach = attachChatOpListener(socket, { handleIncomingMessage, getRollAnimator });
+    const detach = attachChatOpListener(socket, {
+      handleIncomingMessage,
+      applyMessageUpdate: vi.fn(),
+      getRollAnimator,
+    });
 
     // Simulate the user being on another tab (no ChatPanel mounted) and a
     // message arriving — this is exactly the scenario that used to be lost.

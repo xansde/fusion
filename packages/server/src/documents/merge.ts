@@ -197,8 +197,14 @@ export function computeDiff(
   return changed ? diff : null;
 }
 
-/** Simple deep equality check (JSON-safe values only). */
-function deepEqual(a: unknown, b: unknown): boolean {
+/**
+ * Simple deep equality check (JSON-safe values only).
+ *
+ * Exported because `write-metrics.ts` needs exactly this predicate to tell
+ * which ELEMENTS of a resent embedded collection actually changed; a second
+ * implementation of the same rule would be free to drift from this one.
+ */
+export function deepEqual(a: unknown, b: unknown): boolean {
   if (a === b) return true;
   if (a === null || b === null) return false;
   if (typeof a !== typeof b) return false;

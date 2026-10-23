@@ -1,18 +1,22 @@
 /**
- * actorDirectory.test.ts — Unit tests for actor directory logic.
+ * actorDirectory.test.ts — what survived the burial of the Actors directory (G078).
  *
- * REQ-UIF-002, REQ-UIF-044..046: actor list filtering, grouping, drag payload,
- * token-from-actor operation builder.
+ * REQ-UIF-044..046: the drag payload an actor row puts on a drag and the presence
+ * built from it when the drop lands on the canvas.
+ *
+ * The list/filter/group half went with the panel (its tests with it): ownership
+ * filtering is `lib/contacts/contactsVM.ts` and folder grouping is
+ * `lib/npcs/folderTree.ts`, each with its own suite.
  */
 
 import { describe, it, expect } from "vitest";
 import {
-  buildActorDirectory,
   buildActorDragPayload,
   buildTokenFromActorFields,
+  buildActorDropTokenOp,
   type ActorDocument,
 } from "../actorDirectory.js";
-import { OwnershipLevel } from "@fusion/shared";
+import { OwnershipLevel, DocCreatePayloadSchema } from "@fusion/shared";
 
 // ---------------------------------------------------------------------------
 // Fixtures
@@ -74,10 +78,11 @@ describe("buildActorDragPayload()", () => {
     expect(payload.documentType).toBe("Actor");
   });
 
-  it("sets uuid to actor._id", () => {
+  it("sets _id to actor._id — never a uuid (#170)", () => {
     const actor = makeActor("Aaaa0000000000a1", "Valeros");
     const payload = buildActorDragPayload(actor);
-    expect(payload.uuid).toBe("Aaaa0000000000a1");
+    expect(payload._id).toBe("Aaaa0000000000a1");
+    expect(payload).not.toHaveProperty("uuid");
   });
 
   it("sets subtype from actor.type", () => {
@@ -110,18 +115,25 @@ describe("buildActorDragPayload()", () => {
 describe("buildTokenFromActorFields()", () => {
   const payload = buildActorDragPayload(makeActor("Aaaa0000000000a1", "Valeros", "character"));
 
-  it("sets name from payload.name", () => {
+  // REQ-TOK-010, REQ-TOK-012, REQ-TOK-060: the fields a token no longer
+  // carries — no fixed name (it inherits the actor's), no art/footprint of
+  // its own — must not reappear here as the token schema evolves.
+  it("carries no name, texture, width or height — the token inherits those from the actor", () => {
     const fields = buildTokenFromActorFields({
       payload,
       sceneId: "SceneXXXXXXXXXXXX",
-      x: 100,
-      y: 200,
+      x: 0,
+      y: 0,
       gridSize: 100,
     });
-    expect(fields.name).toBe("Valeros");
+    expect(fields).not.toHaveProperty("name");
+    expect(fields).not.toHaveProperty("texture");
+    expect(fields).not.toHaveProperty("width");
+    expect(fields).not.toHaveProperty("height");
+    expect(Object.keys(fields).sort()).toEqual(["actorId", "x", "y"]);
   });
 
-  it("sets actorId from payload.uuid", () => {
+  it("sets actorId from payload._id", () => {
     const fields = buildTokenFromActorFields({
       payload,
       sceneId: "SceneXXXXXXXXXXXX",
@@ -144,6 +156,20 @@ describe("buildTokenFromActorFields()", () => {
     expect(fields.y).toBe(200); // round(248/100)*100
   });
 
+  it("snaps to the calibrated lattice when the scene grid has an offset", () => {
+    const fields = buildTokenFromActorFields({
+      payload,
+      sceneId: "SceneXXXXXXXXXXXX",
+      x: 155,
+      y: 248,
+      gridSize: 100,
+      gridOffsetX: 30,
+      gridOffsetY: 70,
+    });
+    expect(fields.x).toBe(130); // 30 + round((155-30)/100)*100
+    expect(fields.y).toBe(270); // 70 + round((248-70)/100)*100
+  });
+
   it("does not snap when snapToGrid=false", () => {
     const fields = buildTokenFromActorFields({
       payload,
@@ -156,87 +182,59 @@ describe("buildTokenFromActorFields()", () => {
     expect(fields.x).toBe(155);
     expect(fields.y).toBe(248);
   });
-
-  it("uses 1x1 footprint by default", () => {
-    const fields = buildTokenFromActorFields({
-      payload,
-      sceneId: "SceneXXXXXXXXXXXX",
-      x: 0,
-      y: 0,
-      gridSize: 100,
-    });
-    expect(fields.width).toBe(1);
-    expect(fields.height).toBe(1);
-  });
 });
 
 // ---------------------------------------------------------------------------
-// buildActorDirectory
+// buildActorDropTokenOp (ajustes r1 A004 review — REQ-NPC-063, REQ-CPD-062 —
+// composed with the spec-41 token form, TK022-client)
 // ---------------------------------------------------------------------------
 
-describe("buildActorDirectory()", () => {
-  const gmId = "gm00000000000001";
-  const userId = "pl00000000000001";
+describe("buildActorDropTokenOp() — REQ-NPC-063 / REQ-CPD-062: the drop payload the server accepts", () => {
+  const payload = buildActorDragPayload(makeActor("Aaaa0000000000a1", "Valeros", "character"));
+  const opts = {
+    payload,
+    sceneId: "SceneXXXXXXXXXXXX",
+    x: 100,
+    y: 200,
+    gridSize: 100,
+  };
+  const fields = buildTokenFromActorFields(opts);
 
-  it("returns all actors for GM regardless of ownership", () => {
-    const actors = [
-      makeActor("A0000000000000a1", "Public Actor"),
-      makeActor("A0000000000000a2", "Private Actor"), // default NONE ownership
-    ];
-    const dir = buildActorDirectory(actors, gmId, true);
-    expect(dir.total).toBe(2);
+  it("builds a doc:create of Token, embedded under the scene as parent", () => {
+    const op = buildActorDropTokenOp(opts);
+    expect(op.type).toBe("doc:create");
+    expect(op.payload.documentType).toBe("Token");
+    expect(op.payload.data).toEqual([fields]);
+    expect(op.payload.parent).toEqual({ type: "Scene", id: "SceneXXXXXXXXXXXX" });
   });
 
-  it("filters actors by OBSERVER+ ownership for non-GMs", () => {
-    const owned = makeActor("A0000000000000a1", "Mine", "character", userId);
-    const notOwned = makeActor("A0000000000000a2", "Not Mine");
-    const dir = buildActorDirectory([owned, notOwned], userId, false);
-    expect(dir.total).toBe(1);
-    expect(dir.groups[0]!.actors[0]!._id).toBe("A0000000000000a1");
+  it("satisfies DocCreatePayloadSchema — the real wire contract the server parses", () => {
+    const op = buildActorDropTokenOp(opts);
+    const result = DocCreatePayloadSchema.safeParse(op.payload);
+    expect(result.success).toBe(true);
   });
 
-  it("filters by search query (case-insensitive)", () => {
-    const actors = [
-      makeActor("A0000000000000a1", "Valeros"),
-      makeActor("A0000000000000a2", "Seelah"),
-    ];
-    const dir = buildActorDirectory(actors, gmId, true, "vale");
-    expect(dir.total).toBe(1);
-    expect(dir.groups[0]!.actors[0]!.name).toBe("Valeros");
+  it("REQ-TOK-010/012/022: the wire payload carries nothing the server derives or refuses", () => {
+    // §7.2 DERIVED/REFUSED: `validateTokenCreateContract`
+    // (packages/server/src/tokens/tokenValidation.ts) answers VALIDATION_FAILED
+    // to any of these, so a drop that smuggled one in would land nothing at all.
+    const created = buildActorDropTokenOp(opts).payload.data[0] as Record<string, unknown>;
+    for (const derived of ["width", "height", "texture", "img", "ownership", "userId"]) {
+      expect(created).not.toHaveProperty(derived);
+    }
+    expect(created).not.toHaveProperty("actorDelta");
+    expect(created).not.toHaveProperty("name");
+    expect(created).not.toHaveProperty("_id");
+    expect(created["actorId"]).toBe("Aaaa0000000000a1");
   });
 
-  it("returns empty groups when no actors match search", () => {
-    const actors = [makeActor("A0000000000000a1", "Valeros")];
-    const dir = buildActorDirectory(actors, gmId, true, "zzz");
-    expect(dir.total).toBe(0);
-    expect(dir.groups).toHaveLength(0);
-  });
-
-  it("groups actors by folder", () => {
-    const actors = [
-      makeActor("A0000000000000a1", "A in Folder 1", "character", undefined, "fold1"),
-      makeActor("A0000000000000a2", "B in Folder 2", "character", undefined, "fold2"),
-      makeActor("A0000000000000a3", "C no folder"),
-    ];
-    const dir = buildActorDirectory(actors, gmId, true);
-    // 3 groups: fold1, fold2, null (no folder)
-    expect(dir.groups).toHaveLength(3);
-  });
-
-  it("places null-folder actors in a group last", () => {
-    const actors = [
-      makeActor("A0000000000000a1", "In Folder", "character", undefined, "fold1"),
-      makeActor("A0000000000000a2", "No Folder"),
-    ];
-    const dir = buildActorDirectory(actors, gmId, true);
-    const last = dir.groups[dir.groups.length - 1]!;
-    expect(last.folderId).toBeNull();
-  });
-
-  it("sorts actors alphabetically within a group", () => {
-    const actors = [makeActor("A0000000000000a2", "Zebra"), makeActor("A0000000000000a1", "Apple")];
-    const dir = buildActorDirectory(actors, gmId, true);
-    const names = dir.groups[0]!.actors.map((a) => a.name);
-    expect(names).toEqual(["Apple", "Zebra"]);
+  it("REQ-NPC-063/REQ-CPD-062 regression: the OLD payload shape TableScreen.svelte sent — `embedded`/`documents` instead of `data`/`parent` — is rejected by the same schema", () => {
+    const oldShapePayload = {
+      documentType: "Token",
+      embedded: { type: "Token", sceneId: "SceneXXXXXXXXXXXX" },
+      documents: [fields],
+    };
+    const result = DocCreatePayloadSchema.safeParse(oldShapePayload);
+    expect(result.success).toBe(false);
   });
 });

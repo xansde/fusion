@@ -1,43 +1,440 @@
 /**
  * Canonical redaction for non-GM clients.
  *
- * Invariants (specs 04/05/07):
- *   - Hidden tokens must NEVER reach a non-GM socket — by ANY emission path.
+ * Invariants (specs 04/05/07/39/41/44):
+ *   - Hidden tokens must NEVER reach a non-GM socket — by ANY emission path,
+ *     UNLESS the viewer is in that token's `seenBy` exception list
+ *     (spec 41-token.md REQ-TOK-050/051/052, DEC-TOK-08 — TK070).
  *   - Secret doors must appear as plain walls for non-GM clients (CA-16, REQ-VIS-005).
+ *   - The scene LIST itself is privileged: only the scene on air may reach a
+ *     non-GM socket, by ANY emission path (REQ-CEN-071, REQ-CEN-073).
+ *   - A contact the viewer only GLIMPSED carries no name, title or system data —
+ *     except the one thing the map has to draw the token with: the portrait
+ *     (spec 41 DEC-TOK-09) and the size category (spec 17 DEC-PF2-13, REQ-CTT-081
+ *     as amended), which is all of `system` that travels. A contact that is HIDDEN
+ *     is not delivered at all, and the knowledge map itself never reaches a
+ *     non-privileged socket (REQ-CTT-081..084). A token inherits this for free (REQ-TOK-060/061/063,
+ *     TK073): it carries no name field of its own, only the effective actor's
+ *     `name` — which is simply absent from a GLIMPSED actor's payload — so
+ *     "the token shows no name" is a consequence of the Actor redaction
+ *     above, never a second rule written against the Token document.
+ *   - The ATTITUDE of an actor towards the party never reaches a socket without
+ *     a privileged role (REQ-NPC-082): learning that the smith is hostile
+ *     before the scene says so is metagame.
+ *   - The HIT POINTS of an actor never reach a socket that is neither
+ *     privileged nor OWNER (3) of it (spec 41-token.md REQ-TOK-070/071/072,
+ *     DEC-TOK-10 — TK072, `stripActorHp`), on every surface that shows vida,
+ *     which today means every Actor emission (the bar a token draws reads the
+ *     mirror's copy of the effective actor, so a stripped `system.attributes.hp`
+ *     is what makes `TokenSprite`'s bar omit itself for a non-owner, without a
+ *     token-specific rule). An UNLINKED token's own `actorDelta` is a SEPARATE
+ *     cut (REQ-DOC-062, `stripTokenActorDeltaHp`/`redactTokenActorDeltaHp`):
+ *     a delta's `system.attributes.hp` override travels inside the Scene
+ *     document, a different emission funnel from the Actor one the cut above
+ *     lives on. This second cut is fail-closed and BY ROLE, not by ownership
+ *     of the base Actor — tasks.md's Fase 6 header flagged DEC-DOC-12
+ *     (specs/02:292-301, a role-only cut) against DEC-TOK-10 (an
+ *     ownership-only cut) as unreconciled; the resolution recorded there is
+ *     "papel primeiro": REQ-DOC-062's own text already says so ("o corte é
+ *     por papel, não por ownership do Actor base"), and the known cost is
+ *     that even the OWNER of the base Actor (an unlinked familiar posted on
+ *     the map) reads the base actor's hp, never the token's own delta —
+ *     refining that is V2 work, not this cut's job.
+ *   - Ocultar (`hidden`, this module, SERVER) is not the same guarantee as not
+ *     estar enxergando (fog/vision, CLIENT, a future spec — REQ-TOK-053,
+ *     DEC-TOK-08): a hidden token never leaves the server for a socket outside
+ *     `seenBy`, so a leak here is a real information leak; a token outside a
+ *     viewer's vision radius (when vision exists) still arrives on the wire
+ *     and is merely not drawn — the fog protects the screen, never the
+ *     network. Nothing in `docs/design/spec-41-token/` should be read as fog
+ *     "protecting" a position the way this module's redaction does.
+ *   - The result of a blind roll must never reach a non-privileged socket — not
+ *     in `rolls[]`, not in the message text (REQ-ROL-032, REQ-ACH-092).
+ *   - A ChatMessage's `flags.fusion.targetSnapshot` (ALQ-F1-05, REQ-CBT-056)
+ *     answers to the SAME hidden-token cut as the Scene's own `tokens[]`
+ *     (B1 fix): {@link redactChatTargetSnapshotForNonPrivileged} drops any
+ *     entry whose token is hidden from the viewer, on every chat emission
+ *     path — broadcast, history, search, context, the join snapshot, and
+ *     every ack that echoes the message back to its author.
  *
- * There are three emission paths that carry Scene bodies to clients, and all
- * three MUST funnel non-GM Scene documents through both:
- *   {@link stripHiddenTokens}   — removes hidden tokens
- *   {@link redactSecretDoors}   — masks secret doors as plain walls
+ * There are three emission paths that carry document bodies to clients, and all
+ * three MUST funnel non-GM documents through this module:
+ *   - Scene → {@link redactSceneDocsForNonPrivileged}, which composes
+ *       {@link sceneIsOnAir}        — drops every scene that is not on air
+ *       {@link stripHiddenTokens}   — removes hidden tokens
+ *       {@link redactSecretDoors}   — masks secret doors as plain walls
+ *   - Actor → {@link redactActorDocsForViewer}, which composes
+ *       {@link actorIsSubjectToKnowledge} — contacts only, never what you own
+ *       {@link glimpsedContactView}       — the allow-listed glimpsed payload
+ *       {@link stripKnowledgeMap}         — REQ-CTT-084, on EVERY actor
+ *       {@link stripAttitude}             — REQ-NPC-082, on EVERY actor
  *
  * Emission paths:
  *   1. buildSnapshot      (full snapshot on join / seq-out-of-buffer resync)
  *   2. broadcastToWorld   (live per-socket emit of doc:create / doc:update)
  *   3. filterOpsForRole   (delta resync — replay of buffered ops)
+ * plus the dispatcher-level ack net, {@link redactAckResultForNonPrivileged}.
  *
  * This module is the single source of truth so the three paths can never
  * drift out of parity.
+ *
+ * Combat bodies answer to the same discipline (REQ-CBA-082, REQ-CBT-031): a
+ * combatant with `hidden: true` must not reach a non-privileged user by ANY of
+ * the three paths. Two families of envelope carry a Combat:
+ *   - the dedicated `combat:*` ops, redacted by the combat handlers, which call
+ *     {@link stripHiddenCombatantsFromCombat} from here; and
+ *   - the GENERIC document path — a `doc:update` on a Combat, and every
+ *     embedded Combatant create/update/delete, which broadcast the whole parent
+ *     as `{ documentType: "Combat", documents: [combat] }`. Those funnel through
+ *     {@link redactCombatDocsForNonPrivileged}, the Combat counterpart of
+ *     {@link redactSceneDocsForNonPrivileged}.
+ * The ack echoed back to the requester is covered on top of both by
+ * {@link redactAckResultForNonPrivileged}.
+ *
+ * The same rule also governs the INBOUND direction: an op that names a scene id
+ * must not confirm that the scene exists to someone who could never have been
+ * told about it. That predicate is {@link sceneIsInvisibleToRole}.
  */
+
+import {
+  KnowledgeState,
+  readActorSize,
+  resolveUserKnowledge,
+  KNOWLEDGE_FLAG_NAMESPACE,
+  KNOWLEDGE_FLAG_KEY,
+  ATTITUDE_FLAG_NAMESPACE,
+  ATTITUDE_FLAG_KEY,
+  TOKEN_MARKS_FLAG_NAMESPACE,
+  TOKEN_MARKS_FLAG_KEY,
+  isFogCovered,
+  manualFogIsActive,
+} from "@fusion/shared";
+import type {
+  ActorDamageAppliedPayload,
+  ChatMessage,
+  DamageAppliedTarget,
+  Ownership,
+  ManualFogLike,
+  RollTarget,
+} from "@fusion/shared";
+import {
+  OwnershipLevel,
+  UserRole,
+  isRolePrivileged,
+  resolveOwnership,
+} from "../documents/ownership.js";
+import { PLAYER_CHARACTER_SUBTYPES, isNonPlayableActor } from "../documents/knowledge.js";
+import type { DocumentStore } from "../documents/store.js";
+import { damageTypePt } from "../chat/damage-type-pt.js";
+
+// ---------------------------------------------------------------------------
+// Chat target redaction (spec 38 — DEC-ACH-09, REQ-ACH-073 / REQ-ACH-092)
+// ---------------------------------------------------------------------------
+
+/**
+ * Return true when this chat message carries an AC anywhere in its target
+ * portraits — either on the message itself (`targets[]`) or on the target a
+ * roll was graded against (`rolls[].target`). Fast-path guard: when it is false
+ * the message can be forwarded as-is, with no allocation.
+ */
+export function chatMessageHasTargetAc(msg: ChatMessage): boolean {
+  if (msg.targets?.some((t) => t.ac !== undefined)) return true;
+  return msg.rolls?.some((r) => r.target?.ac !== undefined) ?? false;
+}
+
+/** Drop the AC from one portrait, keeping the name (REQ-ACH-073). */
+function targetWithoutAc(target: RollTarget): RollTarget {
+  if (target.ac === undefined) return target;
+  const { ac: _ac, ...rest } = target;
+  return rest;
+}
+
+/**
+ * The chat message a NON-PRIVILEGED viewer may receive: same message, with the
+ * target's AC removed from every portrait it carries.
+ *
+ * REQ-ACH-073 / REQ-ACH-092 / REQ-SEC-020: the degree of success — already
+ * computed on the server — goes to the player; the monster's AC is the Mestre's
+ * to give or withhold. Hiding the number on screen would hide nothing: whoever
+ * reads the socket reads the number.
+ *
+ * Returns the SAME reference when there is nothing to redact, so callers can
+ * cheaply detect "unchanged", and never mutates the original (the broadcast and
+ * op-buffer paths share it).
+ */
+export function redactChatTargetsForNonPrivileged(msg: ChatMessage): ChatMessage {
+  if (!chatMessageHasTargetAc(msg)) return msg;
+
+  const redacted: ChatMessage = { ...msg };
+  if (msg.targets) {
+    redacted.targets = msg.targets.map(targetWithoutAc);
+  }
+  if (msg.rolls) {
+    redacted.rolls = msg.rolls.map((roll) =>
+      roll.target === undefined ? roll : { ...roll, target: targetWithoutAc(roll.target) },
+    );
+  }
+  return redacted;
+}
+
+/**
+ * The text that stands in for a blind roll's result on a non-privileged screen
+ * (REQ-ROL-032). It is the WHOLE body such a viewer gets: the total lives in
+ * `content` as much as in `rolls[]`, so hiding only the dice would hide nothing.
+ */
+export const BLIND_ROLL_CONFIRMATION_CONTENT =
+  "(Você realizou uma rolagem cega — somente o GM pode ver o resultado.)";
+
+/**
+ * The blind-roll body a NON-PRIVILEGED viewer may receive: no roll terms, and no
+ * total in the text either.
+ *
+ * REQ-ROL-032 / REQ-ACH-092: `buildRollMessage` writes the result into
+ * `content` (`"<rótulo>: <total>"`), so a redaction that only dropped `rolls`
+ * would keep handing the number over — in the live broadcast, in the ack of
+ * `chat:send`, in `chat:history`, in `chat:search` and in `chat:context` alike.
+ * Every one of those paths funnels through here, so they cannot drift.
+ *
+ * The caller decides WHO is non-privileged and WHEN the message is blind; this
+ * function only builds the body.
+ */
+export function redactBlindRollForNonPrivileged(msg: ChatMessage): ChatMessage {
+  return {
+    ...msg,
+    rolls: undefined,
+    content: BLIND_ROLL_CONFIRMATION_CONTENT,
+    flags: stripBlindRollResolution(msg.flags),
+  };
+}
+
+/**
+ * BHR-F2-05 (ALQ-F4-09: "blind/privada seguem a redação do resultado"): the
+ * notes the server kept for a roll are FILTERED BY ITS DEGREE, and the
+ * conditional modifiers are part of its total — either one hands the hidden
+ * result over; so are the extra damage dice the server added to a damage roll (`extraDamage`), and the damage
+ * components it recorded (`damage`, #225: what weapon or spell, and whether the hit was critical). A blind roll's
+ * non-privileged body carries none of them.
+ */
+const BLIND_HIDDEN_FUSION_FLAG_KEYS = [
+  "rollNotes",
+  "conditionalModifiers",
+  "extraDamage",
+  "breakdown",
+  "damage",
+] as const;
+
+function stripBlindRollResolution(flags: ChatMessage["flags"]): ChatMessage["flags"] {
+  const fusion = (flags as Record<string, unknown> | undefined)?.["fusion"];
+  if (!fusion || typeof fusion !== "object") return flags;
+  const fusionFlags = fusion as Record<string, unknown>;
+  if (!BLIND_HIDDEN_FUSION_FLAG_KEYS.some((k) => k in fusionFlags)) return flags;
+  const kept: Record<string, unknown> = {};
+  for (const [key, value] of Object.entries(fusionFlags)) {
+    if (!(BLIND_HIDDEN_FUSION_FLAG_KEYS as readonly string[]).includes(key)) kept[key] = value;
+  }
+  return { ...flags, fusion: kept };
+}
+
+/**
+ * Structural counterpart of {@link redactChatTargetsForNonPrivileged}, used by
+ * the dispatcher-level ack safety net where the body is untyped. Applies to
+ * anything shaped like a chat message (a `targets` array and/or a `rolls` array
+ * whose entries carry a `target`).
+ */
+function stripTargetAcStructural(doc: Record<string, unknown>): Record<string, unknown> {
+  if (!docHasTargetAc(doc)) return doc;
+  const result: Record<string, unknown> = { ...doc };
+
+  const targets = doc["targets"];
+  if (Array.isArray(targets)) {
+    result["targets"] = (targets as Record<string, unknown>[]).map(stripAcKey);
+  }
+
+  const rolls = doc["rolls"];
+  if (Array.isArray(rolls)) {
+    result["rolls"] = (rolls as Record<string, unknown>[]).map((roll) => {
+      const target = roll["target"];
+      if (!target || typeof target !== "object") return roll;
+      return { ...roll, target: stripAcKey(target as Record<string, unknown>) };
+    });
+  }
+
+  return result;
+}
+
+function stripAcKey(target: Record<string, unknown>): Record<string, unknown> {
+  if (!("ac" in target)) return target;
+  const { ac: _ac, ...rest } = target;
+  return rest;
+}
+
+/**
+ * Keys of an ack body that carry ChatMessage(s): `chat:send`/`chat:invalidate`
+ * answer with `message`; `chat:history`/`chat:search` with `messages`;
+ * `chat:context` with `target` plus `before`/`after`.
+ */
+const CHAT_ACK_MESSAGE_KEYS = ["message", "target"] as const;
+const CHAT_ACK_MESSAGE_LIST_KEYS = ["messages", "before", "after"] as const;
+
+/**
+ * Strip the target AC out of every ChatMessage an ack body carries. Returns the
+ * SAME body reference when nothing needed redacting, so the caller can tell
+ * "unchanged" without comparing contents.
+ */
+function redactChatBodies(body: Record<string, unknown>): Record<string, unknown> {
+  let out: Record<string, unknown> | null = null;
+
+  for (const key of CHAT_ACK_MESSAGE_KEYS) {
+    const value = body[key];
+    if (!value || typeof value !== "object" || Array.isArray(value)) continue;
+    const redacted = stripTargetAcStructural(value as Record<string, unknown>);
+    if (redacted !== value) {
+      out ??= { ...body };
+      out[key] = redacted;
+    }
+  }
+
+  for (const key of CHAT_ACK_MESSAGE_LIST_KEYS) {
+    const value = body[key];
+    if (!Array.isArray(value)) continue;
+    const list = value as unknown[];
+    if (!list.some((entry) => docHasTargetAc(entry))) continue;
+    out ??= { ...body };
+    out[key] = list.map((entry) =>
+      entry && typeof entry === "object"
+        ? stripTargetAcStructural(entry as Record<string, unknown>)
+        : entry,
+    );
+  }
+
+  return out ?? body;
+}
+
+/** True when the value is an object carrying an `ac` key. */
+function hasAcKey(value: unknown): boolean {
+  return !!value && typeof value === "object" && "ac" in value;
+}
+
+/** Structural "does this doc carry a target AC anywhere?" guard. */
+function docHasTargetAc(doc: unknown): boolean {
+  if (!doc || typeof doc !== "object") return false;
+  const obj = doc as Record<string, unknown>;
+
+  const targets = obj["targets"];
+  if (Array.isArray(targets)) {
+    for (const entry of targets as unknown[]) {
+      if (hasAcKey(entry)) return true;
+    }
+  }
+
+  const rolls = obj["rolls"];
+  if (Array.isArray(rolls)) {
+    for (const entry of rolls as unknown[]) {
+      if (!entry || typeof entry !== "object") continue;
+      if (hasAcKey((entry as Record<string, unknown>)["target"])) return true;
+    }
+  }
+
+  return false;
+}
+
+/**
+ * The hidden+`seenBy` predicate for ONE token (REQ-TOK-050/051/052, spec
+ * 41-token.md, DEC-TOK-08): true when this token must NOT reach `userId`.
+ *
+ * Pulled out of {@link stripHiddenTokens} so a SECOND emission path — the
+ * chat `targetSnapshot` redaction below — can share the exact same rule
+ * instead of writing a second strip/predicate (the module's own standing
+ * invariant: "Hidden tokens must NEVER reach a non-GM socket — by ANY
+ * emission path").
+ *
+ * `userId` is optional so a caller with no per-user identity available (a
+ * defensive/test-only path) still gets the historical, more conservative
+ * behaviour: EVERY hidden token is treated as hidden from it, `seenBy` or
+ * not.
+ */
+export function tokenIsHiddenFromViewer(
+  token: Record<string, unknown>,
+  userId: string | undefined,
+): boolean {
+  if (token["hidden"] !== true) return false;
+  if (userId === undefined) return true;
+  const seenBy = token["seenBy"];
+  return !(Array.isArray(seenBy) && (seenBy as unknown[]).includes(userId));
+}
+
+// ---------------------------------------------------------------------------
+// Manual fog of war (névoa manual) — a token under the fog never reaches a
+// non-privileged viewer, by the same funnels that carry the hidden-token cut.
+// ---------------------------------------------------------------------------
+
+/** The scene's manual fog when it is switched on, otherwise undefined. */
+function sceneManualFog(scene: Record<string, unknown>): ManualFogLike | undefined {
+  const fog = scene["manualFog"];
+  if (!fog || typeof fog !== "object") return undefined;
+  return manualFogIsActive(fog) ? fog : undefined;
+}
+
+/** Grid cell size used to find a token's anchor; same default the client renders with. */
+function sceneGridSize(scene: Record<string, unknown>): number {
+  const grid = scene["grid"];
+  const size =
+    grid && typeof grid === "object" ? (grid as Record<string, unknown>)["size"] : undefined;
+  return typeof size === "number" && size > 0 ? size : 100;
+}
+
+/**
+ * True when the token's anchor — the centre of its first grid cell — is under
+ * the fog. The server does not know a token's footprint (it comes from the
+ * actor's size on the client), so the anchor cell decides: a large creature
+ * whose first cell is revealed stays visible, and the client fog layer still
+ * paints over its covered cells.
+ */
+function tokenIsUnderManualFog(
+  token: Record<string, unknown>,
+  fog: ManualFogLike,
+  gridSize: number,
+): boolean {
+  const x = typeof token["x"] === "number" ? token["x"] : 0;
+  const y = typeof token["y"] === "number" ? token["y"] : 0;
+  return isFogCovered(fog, x + gridSize / 2, y + gridSize / 2);
+}
 
 /**
  * Strip hidden tokens from a single Scene document for non-GM players.
  *
  * Returns a shallow copy of the scene with the `tokens` array filtered to
- * exclude any token whose `hidden` field is `true`.  When the scene has no
- * `tokens` array, or no token is hidden, the original object is returned
+ * exclude any token whose `hidden` field is `true` — UNLESS `userId` is in
+ * that token's `seenBy` exception list (REQ-TOK-050/051/052, spec
+ * 41-token.md, DEC-TOK-08). When the scene has no `tokens` array, or nothing
+ * would be removed for this viewer, the original object is returned
  * unchanged (no allocation) so callers can cheaply detect "nothing redacted"
  * via referential equality.
  *
+ * `userId` is optional so a caller with no per-user identity available (a
+ * defensive/test-only path) still gets the historical, more conservative
+ * behaviour: EVERY hidden token is stripped, `seenBy` or not. Every real
+ * production caller has a userId — see the per-socket loop in
+ * `broadcastToWorld`'s Scene branch (doc-handlers.ts), which mirrors the
+ * Actor branch right below it (REQ-CTT-071's "per user, not per role").
+ *
  * Fine-grained per-actor ownership visibility (e.g. tokens whose actor the
- * player does not own) is deferred to a later milestone; only the `hidden`
- * flag is honoured here.
+ * player does not own) is deferred to a later milestone; only `hidden` +
+ * `seenBy` are honoured here.
  */
-export function stripHiddenTokens(scene: Record<string, unknown>): Record<string, unknown> {
+export function stripHiddenTokens(
+  scene: Record<string, unknown>,
+  userId?: string,
+): Record<string, unknown> {
   const rawTokens = scene["tokens"];
   if (!Array.isArray(rawTokens)) return scene;
 
+  const fog = sceneManualFog(scene);
+  const gridSize = fog ? sceneGridSize(scene) : 0;
   const filtered = (rawTokens as Record<string, unknown>[]).filter(
-    (token) => token["hidden"] !== true,
+    (token) =>
+      !tokenIsHiddenFromViewer(token, userId) &&
+      !(fog && tokenIsUnderManualFog(token, fog, gridSize)),
   );
 
   // Only allocate a new object when something was actually removed.
@@ -45,16 +442,610 @@ export function stripHiddenTokens(scene: Record<string, unknown>): Record<string
   return { ...scene, tokens: filtered };
 }
 
+// ---------------------------------------------------------------------------
+// Chat target-snapshot redaction (B1 fix — ALQ-F1-05, REQ-CBT-056)
+// ---------------------------------------------------------------------------
+//
+// `flags.fusion.targetSnapshot` (chat-handler.ts::attachTargetSnapshot) froze
+// the author's live target selection onto the message so a later
+// ApplyDamage/ApplyCondition can read WHO the roll was aimed at (D-02). That
+// snapshot carries a `tokenId`/`actorId` pair straight from the Scene's own
+// tokens[] — the exact data {@link stripHiddenTokens} exists to keep off a
+// non-GM socket — but it travelled on `flags`, a part of ChatMessage none of
+// the three chat redaction funnels below ever looked at. Fixed here, once,
+// so broadcast, `chat:history`, `chat:search`, `chat:context`, the join
+// snapshot and every chat ack share the SAME cut, per this module's own
+// discipline of never letting an emission path drift out of parity.
+
 /**
- * Return true when any Scene doc in the batch carries at least one hidden
- * token.  Used as a fast-path guard so callers can skip per-socket iteration
- * when there is nothing to redact.
+ * One entry of `flags.fusion.targetSnapshot`. Kept structural here —
+ * mirroring {@link ContactViewer}/{@link ContactKnowledgeSource} above —
+ * rather than importing `combat/target-selection.ts`'s `ResolvedTarget`, so
+ * this module's only coupling to the chat feature is "here is an id, look it
+ * up", never a dependency on the combat feature's own types.
  */
-export function scenePayloadHasHiddenTokens(documents: Record<string, unknown>[]): boolean {
-  for (const doc of documents) {
-    if (sceneDocHasHiddenTokens(doc)) return true;
+export interface TargetSnapshotEntry {
+  tokenId: string;
+  actorId: string | null;
+  sceneId: string;
+}
+
+/**
+ * Where the target-snapshot redaction resolves a `tokenId` back to its token
+ * document, so {@link tokenIsHiddenFromViewer} can be asked about it. An
+ * interface — like {@link ContactKnowledgeSource} — so the redaction stays
+ * testable without a live `DocumentStore`.
+ */
+export interface TokenLookupSource {
+  findToken(tokenId: string): Record<string, unknown> | undefined;
+  /**
+   * The actor a chat message speaks as — what {@link redactChatSpeakerForNonPrivileged} reads to learn whether
+   * the speaker is a contact the viewer does not know yet. `undefined` when the actor is gone or its row cannot be
+   * read, and the cut then takes the speaker for a stranger. Optional, with {@link contacts}: a source built for
+   * tokens alone keeps working, and without them a speaker is left as it was sent.
+   */
+  findActor?(actorId: string): Record<string, unknown> | undefined;
+  /** The world's player characters, to tell what the viewer's characters know (spec 39). */
+  contacts?: ContactKnowledgeSource;
+}
+
+/**
+ * The canonical source: scan every Scene's embedded `tokens[]` (DEC-PER-02 —
+ * there is no dedicated token table). This is the SAME scan
+ * `combat/target-selection.ts::locateToken` runs to resolve a snapshot
+ * entry's `actorId`/`sceneId` in the first place; this module reimplements
+ * it (rather than importing that function) purely to stay free of a
+ * dependency on the combat feature, and because the two scans read a
+ * different field off the token they find (`actorId`/`sceneId` there,
+ * `hidden`/`seenBy` here).
+ */
+export function tokenLookupSourceFromStore(store: DocumentStore): TokenLookupSource {
+  // Nothing is remembered here: this source lives as long as the handler that built it — the whole world — and
+  // a socket hands the server every frame of one chunk in the same task, so a memo of any lifetime would answer
+  // a chat:send with what it read before an actor:setKnowledge that ran a frame earlier. The memo that saves the
+  // re-reads of one pass is {@link lookupSourceForOnePass}, built per broadcast and per page.
+  return {
+    findToken(tokenId: string): Record<string, unknown> | undefined {
+      for (const scene of store.getAll("scenes")) {
+        const tokens = scene["tokens"];
+        if (!Array.isArray(tokens)) continue;
+        for (const token of tokens as Record<string, unknown>[]) {
+          if (token["_id"] !== tokenId) continue;
+          // Under the manual fog a token is, for every viewer-facing cut that asks
+          // `tokenIsHiddenFromViewer`, hidden from everybody (empty `seenBy`).
+          // Privileged callers skip those cuts, so the GM is unaffected.
+          const fog = sceneManualFog(scene);
+          if (fog && tokenIsUnderManualFog(token, fog, sceneGridSize(scene))) {
+            return { ...token, hidden: true, seenBy: [] };
+          }
+          return token;
+        }
+      }
+      return undefined;
+    },
+    findActor(actorId: string): Record<string, unknown> | undefined {
+      try {
+        return store.get("actors", actorId);
+      } catch {
+        // Gone (DocumentNotFoundError) or a row that does not parse: no actor to answer for the speaker either
+        // way, and the speaker cut takes that for a stranger (fail closed).
+        return undefined;
+      }
+    },
+    contacts: contactKnowledgeSourceFromStore(store),
+  };
+}
+
+/**
+ * `source`, remembering what ONE pass re-reads for the chat speaker cut: a broadcast hands the same message to
+ * every socket, a page of history re-reads the same few speakers, and every read of an actor parses a whole
+ * document (a character's is hundreds of kilobytes). Each actor and the list of characters are read once for the
+ * life of the returned object — so build one per pass (one broadcast, one page, one join snapshot) and let it go
+ * with the pass: nothing it remembers may answer for a write made after the pass began. Tokens and the hidden-token
+ * list are not remembered; they pass straight through.
+ */
+export function lookupSourceForOnePass(source: TokenLookupSource): TokenLookupSource;
+export function lookupSourceForOnePass(
+  source: TokenLookupSource | undefined,
+): TokenLookupSource | undefined;
+export function lookupSourceForOnePass(
+  source: TokenLookupSource | undefined,
+): TokenLookupSource | undefined {
+  if (source === undefined) return undefined;
+  const pass: TokenLookupSource = { findToken: (tokenId) => source.findToken(tokenId) };
+  if (source.findActor !== undefined) {
+    const actors = new Map<string, Record<string, unknown> | undefined>();
+    pass.findActor = (actorId) => {
+      if (!actors.has(actorId)) actors.set(actorId, source.findActor?.(actorId));
+      return actors.get(actorId);
+    };
   }
-  return false;
+  const contacts = source.contacts;
+  if (contacts !== undefined) {
+    let characters: readonly CharacterOwnershipRow[] | undefined;
+    const remembered: ContactKnowledgeSource = {
+      listCharacterOwnership: () => (characters ??= contacts.listCharacterOwnership()),
+    };
+    if (contacts.listHiddenTokens !== undefined) {
+      remembered.listHiddenTokens = () => contacts.listHiddenTokens?.() ?? [];
+    }
+    pass.contacts = remembered;
+  }
+  return pass;
+}
+
+/**
+ * The `targetSnapshot` a NON-PRIVILEGED viewer may receive (B1 fix).
+ *
+ * Every entry whose token is hidden from this viewer — the exact hidden +
+ * `seenBy` rule {@link stripHiddenTokens} applies to a Scene's own
+ * `tokens[]` — is dropped. An entry whose token cannot be resolved at all
+ * (deleted since the roll, a foreign id, or no lookup source available) is
+ * ALSO dropped: fail closed, matching this module's stated invariant that a
+ * hidden token must never reach a non-GM socket "by ANY emission path" — an
+ * entry this module cannot prove safe is treated as unsafe, never the
+ * reverse.
+ *
+ * Re-resolves the token's CURRENT state on every call rather than trusting
+ * anything cached at roll time — exactly like every other cut in this
+ * module (a token hidden today was not necessarily hidden when the message
+ * was sent, and vice versa; the funnel always answers with the present).
+ *
+ * Returns the SAME array reference when nothing needed dropping, so callers
+ * can cheaply detect "unchanged" like every other cut in this file.
+ */
+function redactTargetSnapshotEntries(
+  snapshot: readonly TargetSnapshotEntry[],
+  userId: string | undefined,
+  source: TokenLookupSource | undefined,
+): TargetSnapshotEntry[] {
+  const kept = snapshot.filter((entry) => {
+    const token = source?.findToken(entry.tokenId);
+    if (!token) return false;
+    return !tokenIsHiddenFromViewer(token, userId);
+  });
+  return kept.length === snapshot.length ? (snapshot as TargetSnapshotEntry[]) : kept;
+}
+
+/** Namespace/key `flags.fusion.targetSnapshot` is stored under (chat-handler.ts). */
+const CHAT_FUSION_FLAG_NAMESPACE = "fusion";
+const CHAT_TARGET_SNAPSHOT_FLAG_KEY = "targetSnapshot";
+const CHAT_APPLIED_CONDITIONS_FLAG_KEY = "appliedConditions";
+
+/**
+ * The ChatMessage a NON-PRIVILEGED viewer may receive, with
+ * `flags.fusion.targetSnapshot` redacted (B1 fix, REQ-CBT-056) and the token an `action` card names by reference
+ * (`flags.pf2e.abilityCard.targetTokenId`) cut when it is hidden from him (closing review, I-1).
+ *
+ * Composes with {@link redactChatTargetsForNonPrivileged} /
+ * {@link redactBlindRollForNonPrivileged}: together they are everything this
+ * module owns for a non-privileged chat payload. `source` is optional so a
+ * caller with no `DocumentStore` handle (a chat-only harness that never
+ * exercises targeting) degrades to the fail-closed behaviour above — a
+ * present-but-unresolvable snapshot is dropped whole, never forwarded as-is.
+ *
+ * Returns the SAME message reference when there is nothing to strip, so
+ * callers can cheaply detect "unchanged".
+ */
+export function redactChatTargetSnapshotForNonPrivileged(
+  msg: ChatMessage,
+  userId: string | undefined,
+  source: TokenLookupSource | undefined,
+): ChatMessage {
+  return redactAbilityCardTargetForNonPrivileged(
+    redactFusionTargetFlagsForNonPrivileged(msg, userId, source),
+    userId,
+    source,
+  );
+}
+
+/** `flags.fusion.targetSnapshot` and `flags.fusion.appliedConditions`: the tokens a roll message names by id. */
+function redactFusionTargetFlagsForNonPrivileged(
+  msg: ChatMessage,
+  userId: string | undefined,
+  source: TokenLookupSource | undefined,
+): ChatMessage {
+  const flags = msg.flags as Record<string, Record<string, unknown>> | undefined;
+  const fusionFlags = flags?.[CHAT_FUSION_FLAG_NAMESPACE];
+  if (!fusionFlags) return msg;
+
+  const patch: Record<string, unknown> = {};
+
+  const snapshot = fusionFlags[CHAT_TARGET_SNAPSHOT_FLAG_KEY];
+  if (Array.isArray(snapshot) && snapshot.length > 0) {
+    const redacted = redactTargetSnapshotEntries(snapshot as TargetSnapshotEntry[], userId, source);
+    if (redacted !== snapshot) patch[CHAT_TARGET_SNAPSHOT_FLAG_KEY] = redacted;
+  }
+
+  // BHR-F7-05 review (I1): `flags.fusion.appliedConditions` names tokens by id, so the same hidden-token cut applies
+  // (an unresolvable token is dropped too). The key itself stays, empty, so the shape does not leak the cut.
+  const applied = fusionFlags[CHAT_APPLIED_CONDITIONS_FLAG_KEY];
+  if (applied && typeof applied === "object" && !Array.isArray(applied)) {
+    let changed = false;
+    const keptByKey: Record<string, unknown> = {};
+    for (const [key, ids] of Object.entries(applied as Record<string, unknown>)) {
+      if (!Array.isArray(ids)) {
+        keptByKey[key] = ids;
+        continue;
+      }
+      const kept = ids.filter((id) => {
+        if (typeof id !== "string") return false;
+        const token = source?.findToken(id);
+        return token !== undefined && !tokenIsHiddenFromViewer(token, userId);
+      });
+      if (kept.length !== ids.length) changed = true;
+      keptByKey[key] = kept;
+    }
+    if (changed) patch[CHAT_APPLIED_CONDITIONS_FLAG_KEY] = keptByKey;
+  }
+
+  if (Object.keys(patch).length === 0) return msg;
+  return {
+    ...msg,
+    flags: { ...flags, [CHAT_FUSION_FLAG_NAMESPACE]: { ...fusionFlags, ...patch } },
+  };
+}
+
+/** Namespace/key `flags.pf2e.abilityCard` is stored under (chat-handler.ts). */
+const CHAT_PF2E_FLAG_NAMESPACE = "pf2e";
+const CHAT_ABILITY_CARD_FLAG_KEY = "abilityCard";
+
+/**
+ * The card a NON-PRIVILEGED viewer may read, with the reference to the creature an `action` card was used on cut
+ * when that token is hidden from him (closing review, I-1).
+ *
+ * The card names its target by `targetTokenId`/`targetActorId` and never by a name frozen by the sender: the
+ * sender may be the Mestre, who reads every name, and each viewer resolves the name from his own mirror, already
+ * redacted by the Actor and Scene cuts above. That moves the thing to guard from the name to the ids — and a hidden
+ * token's identity must not reach a non-privileged socket by ANY emission path, a card included. The hidden token
+ * loses the whole reference, `targetName` too in case an older sender put one beside it, and the card reads as an
+ * action with no target.
+ *
+ * Like {@link redactChatDamageAppliedForNonPrivileged}, and unlike the snapshot cut, a token that cannot be resolved
+ * keeps its reference: it is a token that is gone, not one this function can prove hidden, and what the viewer's
+ * mirror cannot name reads as an unknown creature anyway. Without a lookup source (a chat-only harness) nothing
+ * looks hidden. Re-resolves the token's CURRENT state on every call, and returns the SAME reference when there is
+ * nothing to cut.
+ */
+function redactAbilityCardTargetForNonPrivileged(
+  msg: ChatMessage,
+  userId: string | undefined,
+  source: TokenLookupSource | undefined,
+): ChatMessage {
+  const flags = msg.flags as Record<string, Record<string, unknown>> | undefined;
+  const pf2eFlags = flags?.[CHAT_PF2E_FLAG_NAMESPACE];
+  const card = pf2eFlags?.[CHAT_ABILITY_CARD_FLAG_KEY];
+  if (!isPlainObject(card)) return msg;
+  const tokenId = card["targetTokenId"];
+  if (typeof tokenId !== "string") return msg;
+  const token = source?.findToken(tokenId);
+  if (token === undefined || !tokenIsHiddenFromViewer(token, userId)) return msg;
+
+  const {
+    targetTokenId: _targetTokenId,
+    targetActorId: _targetActorId,
+    targetName: _targetName,
+    ...rest
+  } = card;
+  return {
+    ...msg,
+    flags: {
+      ...flags,
+      [CHAT_PF2E_FLAG_NAMESPACE]: { ...pf2eFlags, [CHAT_ABILITY_CARD_FLAG_KEY]: rest },
+    },
+  };
+}
+
+// ---------------------------------------------------------------------------
+// Chat speaker redaction (BAR-F4-01 — spec 39, REQ-CTT-081/082)
+//
+// A sheet speaks as the actor it shows, and the server writes the speaker's alias from that actor's REAL name.
+// For a character or a companion that is the table's own business. For a contact (an NPC) it is exactly what
+// the Mestre has not told the players yet: a contact the viewer's characters have only glimpsed carries no name
+// (REQ-CTT-081), and a hidden one is not delivered at all (REQ-CTT-082). The message must not be the way around
+// it, so the alias answers to the SAME rule the actor does — on every chat emission path, because it rides the
+// same chain as the target and the snapshot cuts.
+// ---------------------------------------------------------------------------
+
+/**
+ * What a player reads as the speaker of a message when his characters do not know the contact: the wording the
+ * action cards already use for a creature the viewer's mirror cannot name (`UNKNOWN_TARGET_NAME_PT`).
+ */
+export const UNKNOWN_SPEAKER_ALIAS = "Criatura desconhecida";
+
+/**
+ * The alias the server's own messages are written under (combat, effects, damage lines). They carry the actor they
+ * are ABOUT in `speaker.actorId`, but the alias is not that actor's name: there is no name to hide, so the cut
+ * keeps it and only drops the ids.
+ */
+const SYSTEM_SPEAKER_ALIAS = "Sistema";
+
+/**
+ * The ChatMessage a NON-PRIVILEGED viewer may receive, with the speaker redacted when the message speaks as a
+ * contact the viewer does not know (BAR-F4-01): `alias` becomes {@link UNKNOWN_SPEAKER_ALIAS} and the speaker
+ * loses its actor and token ids. Three things leave the speaker alone:
+ *   - a speaker that is not a contact — a player character, a companion, a chest — answers to `ownership`, not
+ *     to knowledge (REQ-CTT-074), and the table knows its characters;
+ *   - a contact the viewer OWNS (a hireling the Mestre handed over): nobody is a stranger to what they own;
+ *   - a contact the viewer's characters know (the highest state among them, REQ-CTT-071).
+ * Like every cut here it re-resolves the CURRENT state on each call — the Mestre revealing the contact later
+ * changes what the same stored message shows — and it returns the SAME reference when there is nothing to cut.
+ * A viewer with no identity is a stranger to every contact, and an actor that is gone or cannot be read is a
+ * stranger to every viewer (fail closed, both). Without a source that can resolve actors the speaker is left as
+ * sent (a chat-only harness).
+ */
+export function redactChatSpeakerForNonPrivileged(
+  msg: ChatMessage,
+  userId: string | undefined,
+  source: TokenLookupSource | undefined,
+): ChatMessage {
+  const actorId = msg.speaker.actorId;
+  if (actorId === undefined || source?.findActor === undefined) return msg;
+
+  const actor = source.findActor(actorId);
+  // An actor that is gone (deleted since the message was written) or whose row cannot be read leaves nobody to
+  // say the viewer knows it, while the stored alias is still its real name: a stranger, cut (fail closed). Only
+  // an actor that is there answers to the rules below.
+  if (actor !== undefined) {
+    // Not a contact: no knowledge to answer to.
+    if (!isNonPlayableActor(actor)) return msg;
+    const viewer = buildContactViewer(source.contacts, userId ?? "", UserRole.PLAYER);
+    if (!actorIsSubjectToKnowledge(actor, viewer)) return msg;
+    if (resolveUserKnowledge(actor, viewer.ownedCharacterIds) === KnowledgeState.Known) return msg;
+  }
+
+  const { actorId: _actorId, tokenId: _tokenId, ...speaker } = msg.speaker;
+  return {
+    ...msg,
+    speaker:
+      msg.speaker.alias === SYSTEM_SPEAKER_ALIAS
+        ? speaker
+        : { ...speaker, alias: UNKNOWN_SPEAKER_ALIAS },
+  };
+}
+
+// ---------------------------------------------------------------------------
+// actor:damageApplied redaction (ALQ-F1-08 — REQ-CHT-053, D-04)
+//
+// `flags.fusion.damageApplied` (ActorDamageAppliedPayload, @fusion/shared)
+// carries the `actor:applyDamage` summary card. REQ-CHT-053: a non-privileged
+// viewer's line MUST contain only the damage caused (`byType`/`total`) —
+// NEVER `hpBefore`/`hpAfter`/`tempHpAfter`/`deathCondition`, "nem no payload,
+// nem no histórico, nem no snapshot de entrada" (not in the ack, not in
+// history/search/context, not in the live broadcast). The owner of the
+// affected actor is NOT an exception (REQ-CHT-053's own text: "o resumo não é
+// o lugar dela" — they see their hp on the SHEET, never in this card) — the
+// cut is by ROLE ALONE, unlike {@link stripActorHp} (OWNER-or-privileged).
+// ---------------------------------------------------------------------------
+
+/**
+ * The `DamageAppliedTarget` line a NON-PRIVILEGED viewer may receive: the
+ * four privileged-only fields removed, `byType`/`total` untouched.
+ *
+ * Returns the SAME reference when there is nothing to strip, matching every
+ * other cut in this module.
+ */
+export function redactDamageAppliedTargetForNonPrivileged(
+  target: DamageAppliedTarget,
+): DamageAppliedTarget {
+  if (
+    target.hpBefore === undefined &&
+    target.hpAfter === undefined &&
+    target.tempHpAfter === undefined &&
+    target.deathCondition === undefined
+  ) {
+    return target;
+  }
+  const {
+    hpBefore: _hpBefore,
+    hpAfter: _hpAfter,
+    tempHpAfter: _tempHpAfter,
+    deathCondition: _deathCondition,
+    ...rest
+  } = target;
+  return rest;
+}
+
+/**
+ * The `ActorDamageAppliedPayload` a NON-PRIVILEGED viewer may receive —
+ * {@link redactDamageAppliedTargetForNonPrivileged} applied to every target
+ * line. Used for the `actor:applyDamage` ack (REQ-SYS-142: "o ack devolvido a
+ * usuário sem papel privilegiado DEVE seguir a mesma redação do resumo") —
+ * the CALLER's own ack, never a bystander's, so it does NOT drop hidden-token
+ * targets the way {@link redactChatDamageAppliedForNonPrivileged} does for
+ * the broadcast/history copy: that cut needs a per-VIEWER identity and a
+ * token lookup this function is never given (actor-mechanics-service.ts has
+ * neither readily at the ack call site, and the caller already knows which
+ * tokens it named).
+ *
+ * Returns the SAME reference when nothing needed stripping.
+ */
+export function redactDamageAppliedPayloadForNonPrivileged(
+  payload: ActorDamageAppliedPayload,
+): ActorDamageAppliedPayload {
+  const targets = payload.targets.map(redactDamageAppliedTargetForNonPrivileged);
+  const changed = targets.some((t, i) => t !== payload.targets[i]);
+  return changed ? { ...payload, targets } : payload;
+}
+
+/**
+ * Render one target's line of the `actor:damageApplied` summary (REQ-CHT-053:
+ * "uma linha por alvo"). Reads only `name`/`total`/`byType` — never the
+ * privileged-only hp/death fields — so it renders identically for the
+ * privileged and the redacted rendering alike; the actual role cut is which
+ * TARGETS reach this function at all (see
+ * {@link redactChatDamageAppliedForNonPrivileged}), not what this renders.
+ */
+export function formatDamageAppliedLine(target: DamageAppliedTarget): string {
+  // Healing and temporary HP are not damage: the line says what the card says (DamageAppliedCard, "recuperou"/"ganhou").
+  const primary = target.byType[0]?.type;
+  if (primary === "healing") return `${target.name} recuperou ${String(target.total)} de PV`;
+  if (primary === "temp-hp")
+    return `${target.name} ganhou ${String(target.total)} de PV temporário`;
+  return `${target.name} sofreu ${String(target.total)} de dano (${target.byType.map((b) => `${String(b.amount)} de ${damageTypePt(b.type)}`).join(" + ")})`;
+}
+
+/**
+ * The full `content` fallback line for an `actor:damageApplied` summary —
+ * one {@link formatDamageAppliedLine} per target, newline-joined. Shared by
+ * `actor-mechanics-service.ts` (building the FULL content at persist time)
+ * and {@link redactChatDamageAppliedForNonPrivileged} (rebuilding it from the
+ * REDACTED target list below) so the two can never drift into two different
+ * renderings of "a line per target".
+ */
+export function formatDamageAppliedContent(payload: ActorDamageAppliedPayload): string {
+  return payload.targets.map(formatDamageAppliedLine).join("\n");
+}
+
+/** Namespace/key `flags.fusion.damageApplied` is stored under (actor-mechanics-service.ts). */
+const CHAT_DAMAGE_APPLIED_FLAG_KEY = "damageApplied";
+
+/**
+ * Whether `target`'s token must not reach `userId` at all (I1 fix, onda-4
+ * adversarial review) — the `actor:damageApplied` counterpart of
+ * {@link redactTargetSnapshotEntries}'s hidden-token cut, with ONE
+ * deliberate difference: an UNRESOLVABLE token here means "keep", not "drop".
+ *
+ * `targetSnapshot` entries always name a token that was, by construction,
+ * live on a scene at roll time (`combat/target-selection.ts::locateToken`),
+ * so failing to resolve one is anomalous and the fail-closed default (drop)
+ * is correct. A `damageApplied` target's `tokenId` has a DIFFERENT, NORMAL
+ * case producing an id that will never resolve: `selfActorId` on an actor
+ * with no token placed anywhere falls back to the actor's own id
+ * (`actor-mechanics-service.ts`: `target.tokenId ?? target.actorId`) — that
+ * is not a hidden token, it is no token, and treating it as "hidden" would
+ * silently drop every self-heal/self-damage summary line a bystander is
+ * otherwise fully entitled to see. Only a token this function can POSITIVELY
+ * CONFIRM is hidden gets cut.
+ */
+function damageAppliedTargetIsHiddenFromViewer(
+  target: DamageAppliedTarget,
+  userId: string | undefined,
+  source: TokenLookupSource | undefined,
+): boolean {
+  const token = source?.findToken(target.tokenId);
+  if (!token) return false;
+  return tokenIsHiddenFromViewer(token, userId);
+}
+
+/**
+ * The ChatMessage a NON-PRIVILEGED viewer may receive, with
+ * `flags.fusion.damageApplied` redacted (REQ-CHT-053) — the
+ * `actor:damageApplied` counterpart of
+ * {@link redactChatTargetSnapshotForNonPrivileged}, sharing the same
+ * `flags.fusion` namespace and the same "every emission path funnels through
+ * here" discipline (chat-handler.ts wires this into the live broadcast, the
+ * chat:send ack, and history/search/context/join-snapshot's single shared
+ * `redactForViewer`).
+ *
+ * I1 fix (onda-4 adversarial review): a target whose token IS hidden from
+ * THIS viewer (`userId`, `seenBy`-aware, {@link damageAppliedTargetIsHiddenFromViewer})
+ * is dropped from `targets[]` ENTIRELY — not just its hp fields — because
+ * the line also carries the target's name/tokenId/actorId, exactly the
+ * identity `net/redaction.ts`'s own stated invariant says must never reach a
+ * non-GM socket by any emission path. When dropping a target changes the
+ * set, `content` — the plain-text fallback line every viewer's card renders
+ * from — is REBUILT from the same redacted target list
+ * ({@link formatDamageAppliedContent}): unlike every other field this
+ * summary carries, `content` is NOT role-invariant once a hidden token is in
+ * play, so it cannot be left pointing at a name the payload no longer names.
+ *
+ * `source` is optional so a caller with no `DocumentStore`-backed
+ * `TokenLookupSource` (a chat-only harness) degrades to "nothing looks
+ * hidden" (see {@link damageAppliedTargetIsHiddenFromViewer}) rather than
+ * dropping every target — the opposite failure mode from
+ * {@link redactChatTargetSnapshotForNonPrivileged}, and deliberately so (see
+ * that function's own doc comment on the asymmetry).
+ *
+ * Returns the SAME message reference when there is nothing to strip.
+ */
+export function redactChatDamageAppliedForNonPrivileged(
+  msg: ChatMessage,
+  userId: string | undefined,
+  source: TokenLookupSource | undefined,
+): ChatMessage {
+  const flags = msg.flags as Record<string, Record<string, unknown>> | undefined;
+  const fusionFlags = flags?.[CHAT_FUSION_FLAG_NAMESPACE];
+  const damageApplied = fusionFlags?.[CHAT_DAMAGE_APPLIED_FLAG_KEY];
+  if (!damageApplied || typeof damageApplied !== "object") return msg;
+
+  const payload = damageApplied as ActorDamageAppliedPayload;
+  const visibleTargets = payload.targets.filter(
+    (t) => !damageAppliedTargetIsHiddenFromViewer(t, userId, source),
+  );
+  const targetsChanged = visibleTargets.length !== payload.targets.length;
+
+  const redactedTargets = visibleTargets.map(redactDamageAppliedTargetForNonPrivileged);
+  const fieldsChanged = redactedTargets.some((t, i) => t !== visibleTargets[i]);
+
+  if (!targetsChanged && !fieldsChanged) return msg;
+
+  const redactedPayload: ActorDamageAppliedPayload = { ...payload, targets: redactedTargets };
+
+  return {
+    ...msg,
+    // Only rebuilt when a target actually dropped — the hp-only redaction
+    // (fieldsChanged alone) never removes a name from `content`.
+    ...(targetsChanged ? { content: formatDamageAppliedContent(redactedPayload) } : {}),
+    flags: {
+      ...flags,
+      [CHAT_FUSION_FLAG_NAMESPACE]: {
+        ...fusionFlags,
+        [CHAT_DAMAGE_APPLIED_FLAG_KEY]: redactedPayload,
+      },
+    },
+  };
+}
+
+// ---------------------------------------------------------------------------
+// Effect-expiry announcement redaction (BHR-F0-03, I-3 of the wave-2 review)
+//
+// `flags.fusion.effectExpiry` is stamped by the system's expiry hook
+// (pf2e effect-expiry.ts). When the holder's combatant is `hidden` (the same
+// field {@link stripHiddenCombatantsFromCombat} cuts on) the hook adds
+// `hidden: true`; a NON-PRIVILEGED viewer must then learn neither who held
+// the effect nor which effect it was.
+// ---------------------------------------------------------------------------
+
+/**
+ * The ChatMessage a NON-PRIVILEGED viewer may receive for an effect-expiry
+ * announcement: a hidden holder's line is rebuilt as a neutral sentence and
+ * its holder/item ids and speaker actor are removed. Returns the SAME
+ * reference when there is nothing to cut.
+ */
+export function redactChatEffectExpiryForNonPrivileged(msg: ChatMessage): ChatMessage {
+  const flags = msg.flags as Record<string, Record<string, unknown>> | undefined;
+  const fusionFlags = flags?.[CHAT_FUSION_FLAG_NAMESPACE];
+  const expiry = fusionFlags?.["effectExpiry"];
+  const conditionTurn = fusionFlags?.["conditionTurn"];
+  // Two announcers share this cut: the effect-expiry hook and the condition-turn hook (condition front, stage 3b:
+  // Frightened ticking down, the persistent damage verdict, the stun/slow reminder, the dying outcome).
+  const expiryHidden = isPlainObject(expiry) && expiry["hidden"] === true;
+  // `turnAutomation` is the name an earlier build stamped on the same cards: a chat history that already holds
+  // them must stay cut for a non-privileged viewer.
+  const legacyTurnAutomation = fusionFlags?.["turnAutomation"];
+  const conditionTurnHidden =
+    (isPlainObject(conditionTurn) && conditionTurn["hidden"] === true) ||
+    (isPlainObject(legacyTurnAutomation) && legacyTurnAutomation["hidden"] === true);
+  if (!expiryHidden && !conditionTurnHidden) return msg;
+
+  const { actorId: _actorId, ...speaker } = msg.speaker as typeof msg.speaker & {
+    actorId?: string;
+  };
+  const { turnAutomation: _legacyStamp, ...keptFusionFlags } = fusionFlags ?? {};
+  return {
+    ...msg,
+    content: expiryHidden ? "Um efeito terminou." : "Uma condição foi resolvida.",
+    speaker,
+    flags: {
+      ...flags,
+      [CHAT_FUSION_FLAG_NAMESPACE]: {
+        ...keptFusionFlags,
+        ...(expiryHidden ? { effectExpiry: { hidden: true } } : {}),
+        ...(conditionTurnHidden ? { conditionTurn: { hidden: true } } : {}),
+      },
+    },
+  };
 }
 
 // ---------------------------------------------------------------------------
@@ -103,10 +1094,28 @@ export function sceneHasSecretDoors(doc: unknown): boolean {
 }
 
 /**
- * Return true when any Scene doc in the batch carries at least one secret door.
+ * Map pins (Scene.notes) the GM marked as theirs never reach a non-privileged
+ * viewer. FAIL CLOSED: a note is delivered only when it says `gmOnly: false`
+ * explicitly - a missing flag or a malformed entry stays on the GM side.
+ * Returns the original reference when nothing needs cutting.
  */
-export function scenePayloadHasSecretDoors(documents: Record<string, unknown>[]): boolean {
-  return documents.some((d) => sceneHasSecretDoors(d));
+export function redactGmOnlyNotes(scene: Record<string, unknown>): Record<string, unknown> {
+  const notes = scene["notes"];
+  if (!Array.isArray(notes)) return scene;
+  const visible = (notes as unknown[]).filter(noteIsPublic);
+  if (visible.length === notes.length) return scene;
+  return { ...scene, notes: visible };
+}
+
+function noteIsPublic(note: unknown): boolean {
+  return isPlainObject(note) && note["gmOnly"] === false;
+}
+
+/** True when a Scene-shaped doc carries at least one note a player must not receive. */
+export function sceneHasGmOnlyNotes(doc: unknown): boolean {
+  if (!doc || typeof doc !== "object") return false;
+  const notes = (doc as Record<string, unknown>)["notes"];
+  return Array.isArray(notes) && (notes as unknown[]).some((n) => !noteIsPublic(n));
 }
 
 /**
@@ -122,6 +1131,169 @@ function sceneDocHasHiddenTokens(doc: unknown): boolean {
     if (t["hidden"] === true) return true;
   }
   return false;
+}
+
+// ---------------------------------------------------------------------------
+// Scene-list visibility (spec 44 — REQ-CEN-071 / REQ-CEN-072 / REQ-CEN-073)
+// ---------------------------------------------------------------------------
+
+/**
+ * Return true when a Scene document is the one currently on air.
+ *
+ * The `active` field is a mirror of `settings["_meta:activeScene"]` written in
+ * exactly ONE place — the `world:activeScene` handler, which reconciles every
+ * scene against the setting. A client can never write it: `doc:update` refuses
+ * the field outright (`rejectUnwritableField`). So reading it here is reading
+ * server state, not a client-supplied claim.
+ */
+export function sceneIsOnAir(doc: unknown): boolean {
+  if (!doc || typeof doc !== "object") return false;
+  return (doc as Record<string, unknown>)["active"] === true;
+}
+
+/**
+ * True when this requester must be answered as if the scene did not exist.
+ *
+ * REQ-CEN-070 / REQ-CEN-071: a non-privileged user may only ever act inside the
+ * scene that is ON AIR (REQ-CEN-072) — it is the only one they can see, so it is
+ * the only one whose id they can legitimately hold. Every inbound op that takes
+ * a scene id from the client (`doc:*` on an embedded document, `token:move`,
+ * `scene:doorState`) must run this BEFORE it looks at the scene body, and answer
+ * with the same "scene not found" wording it would give for a made-up id.
+ * Anything more specific — a token/wall-level NOT_FOUND, a PERMISSION_DENIED, or
+ * an `ok:true` ack — confirms the scene exists and leaks the off-air roster
+ * (REQ-CEN-073).
+ *
+ * `isRolePrivileged` and {@link sceneIsOnAir} are the only predicates in play:
+ * exactly the pair the outbound emission paths above use.
+ */
+export function sceneIsInvisibleToRole(role: number, sceneDoc: unknown): boolean {
+  if (isRolePrivileged(role)) return false;
+  return !sceneIsOnAir(sceneDoc);
+}
+
+/**
+ * The only Scene bodies a non-privileged viewer may ever receive.
+ *
+ * REQ-CEN-071 / REQ-CEN-073: the scene list is privileged data — the name of a
+ * scene that is not on air must not appear in ANY payload destined to a
+ * non-privileged user, and the refusal must be indistinguishable from the scene
+ * not existing. Hence: silently dropped from the batch, never an error and
+ * never a placeholder.
+ * REQ-CEN-072: the scene that IS on air keeps flowing, carrying the
+ * hidden-token and secret-door redactions this module already owns, so the
+ * player can still render the map.
+ *
+ * May return an EMPTY array. Callers on a live/replay path must still emit the
+ * envelope with those empty `documents` instead of skipping it: the client
+ * mirror gates ops on a contiguous seq and fires its gap detector on a jump,
+ * so a swallowed envelope would trigger a resync loop for every player whenever
+ * the GM edits a scene that is off air.
+ *
+ * `userId` is threaded through to {@link stripHiddenTokens} so a token's
+ * `seenBy` exception (REQ-TOK-050/051) is honoured — omit it only from a
+ * caller with no per-user identity (see that function's own doc comment).
+ */
+export function redactSceneDocsForNonPrivileged(
+  documents: Record<string, unknown>[],
+  userId?: string,
+): Record<string, unknown>[] {
+  const result: Record<string, unknown>[] = [];
+  for (const doc of documents) {
+    if (!sceneIsOnAir(doc)) continue;
+    result.push(
+      redactGmOnlyNotes(redactTokenActorDeltaHp(redactSecretDoors(stripHiddenTokens(doc, userId)))),
+    );
+  }
+  return result;
+}
+
+// ---------------------------------------------------------------------------
+// Unlinked token actorDelta hp redaction (REQ-DOC-062, REQ-TOK-072 — TK072)
+// ---------------------------------------------------------------------------
+
+/**
+ * Remove `system.attributes.hp` from a single Token's OWN `actorDelta`, when
+ * present (REQ-DOC-062, REQ-TOK-072).
+ *
+ * This is a DIFFERENT cut from {@link stripActorHp}: that one strips the base
+ * Actor's own hp, gated by OWNER-or-privileged (TK072's per-viewer rule); this
+ * one strips the Token's `actorDelta` override, unconditionally, for every
+ * caller — the caller (this module's own {@link redactSceneDocsForNonPrivileged}
+ * and the ack path below) only ever invokes it once role has already been
+ * established as non-privileged, so there is no viewer-specific branch here to
+ * get wrong.
+ *
+ * Returns the original reference when there is nothing to strip (no delta, or
+ * a delta whose `system.attributes` carries no `hp`), so callers can cheaply
+ * detect "unchanged".
+ */
+export function stripTokenActorDeltaHp(token: Record<string, unknown>): Record<string, unknown> {
+  const delta = token["actorDelta"];
+  if (!isPlainObject(delta)) return token;
+  const system = delta["system"];
+  if (!isPlainObject(system)) return token;
+  const attributes = system["attributes"];
+  if (!isPlainObject(attributes) || !("hp" in attributes)) return token;
+
+  const nextAttributes: Record<string, unknown> = { ...attributes };
+  Reflect.deleteProperty(nextAttributes, "hp");
+  const nextSystem = { ...system, attributes: nextAttributes };
+  return { ...token, actorDelta: { ...delta, system: nextSystem } };
+}
+
+/**
+ * Scene-level counterpart of {@link stripTokenActorDeltaHp}: apply it to every
+ * token in the scene's `tokens` array.
+ *
+ * Mirrors {@link stripHiddenTokens}'s shape (a Scene-in, Scene-out function
+ * composed inside {@link redactSceneDocsForNonPrivileged} and the ack path) so
+ * the two cuts — hidden tokens and an unlinked token's delta hp — read as
+ * siblings, not as a bolt-on. Returns the original scene reference when no
+ * token needed stripping (zero allocation on the fast path — most scenes have
+ * no unlinked token carrying a delta hp at all).
+ */
+export function redactTokenActorDeltaHp(scene: Record<string, unknown>): Record<string, unknown> {
+  const rawTokens = scene["tokens"];
+  if (!Array.isArray(rawTokens)) return scene;
+
+  const tokens = rawTokens as Record<string, unknown>[];
+  if (!tokens.some((token) => stripTokenActorDeltaHp(token) !== token)) return scene;
+
+  return { ...scene, tokens: tokens.map((token) => stripTokenActorDeltaHp(token)) };
+}
+
+/**
+ * Return true when a scene document contains at least one token whose
+ * `actorDelta.system.attributes` carries an `hp` key. Structural fast-path
+ * guard for the ack path, mirroring {@link sceneDocHasHiddenTokens}.
+ */
+function sceneDocHasTokenActorDeltaHp(doc: unknown): boolean {
+  if (!doc || typeof doc !== "object") return false;
+  const tokens = (doc as Record<string, unknown>)["tokens"];
+  if (!Array.isArray(tokens)) return false;
+  return (tokens as Record<string, unknown>[]).some((t) => {
+    const delta = t["actorDelta"];
+    if (!isPlainObject(delta)) return false;
+    const system = delta["system"];
+    if (!isPlainObject(system)) return false;
+    const attributes = system["attributes"];
+    return isPlainObject(attributes) && "hp" in attributes;
+  });
+}
+
+/**
+ * Return true when a value looks like a whole Scene document.
+ *
+ * Structural, like every other detector in this module: a Scene is the only
+ * document that carries an `active` flag alongside a `tokens` collection
+ * (Actors carry `items`, Combats carry `combatants`). Used by the ack path,
+ * which sees a bare body with no `documentType` to trust.
+ */
+function isSceneShaped(doc: unknown): doc is Record<string, unknown> {
+  if (!doc || typeof doc !== "object") return false;
+  const d = doc as Record<string, unknown>;
+  return typeof d["active"] === "boolean" && Array.isArray(d["tokens"]);
 }
 
 // ---------------------------------------------------------------------------
@@ -164,8 +1336,40 @@ export function stripHiddenCombatantsFromCombat(
 
   const result: Record<string, unknown> = { ...combat };
   if (!nothingRemoved) result["combatants"] = filtered;
-  if (activeIsHidden) result["activeCombatantId"] = null;
+  if (activeIsHidden) {
+    result["activeCombatantId"] = null;
+    // The attack count names the active combatant (onda-6 review I-7).
+    result["attackCount"] = null;
+    // Same for the commanded-companion mark of that turn (L3 I4).
+    result["commandMark"] = null;
+  }
   return result;
+}
+
+/**
+ * The only Combat bodies a non-privileged viewer may ever receive, for a
+ * `documents[]` batch travelling the GENERIC document path.
+ *
+ * REQ-CBA-082 / REQ-CBT-031: a `doc:update` on a Combat — and every embedded
+ * Combatant create/update/delete, which republishes the whole parent Combat —
+ * carries the full combatant roster. Before this, those envelopes took the
+ * cheap namespace-wide emit, so a hidden combatant reached every player the
+ * moment the GM touched the encounter through anything other than a `combat:*`
+ * op. The dedicated handlers were redacted; the generic door beside them was
+ * not, and an unlocked door beside a locked one is an unlocked door.
+ *
+ * Unlike scenes, the Combat document itself is NOT privileged: the encounter is
+ * shared world state that every player must see (REQ-CBT-031..033). Only the
+ * hidden combatants inside it are stripped, and the active pointer masked when
+ * it names one — exactly what {@link stripHiddenCombatantsFromCombat} does.
+ *
+ * Element references are preserved when nothing needed redacting, so callers
+ * can detect "nothing changed" and keep the cheap namespace-wide emit.
+ */
+export function redactCombatDocsForNonPrivileged(
+  documents: readonly Record<string, unknown>[],
+): Record<string, unknown>[] {
+  return documents.map((doc) => stripHiddenCombatantsFromCombat(doc));
 }
 
 /**
@@ -186,6 +1390,589 @@ function combatDocHasHiddenCombatants(obj: unknown): boolean {
 }
 
 // ---------------------------------------------------------------------------
+// Contact knowledge redaction (spec 39 §5.9 — REQ-CTT-080..085)
+// ---------------------------------------------------------------------------
+
+/**
+ * Everything the funnel needs to know about who is receiving a payload.
+ *
+ * `ownedCharacterIds` is the set of player-character Actors this user OWNS —
+ * knowledge is a property of the CHARACTER, never of the user (DEC-CTT-03), so
+ * the user's effective state is the maximum over their characters
+ * (REQ-CTT-071, `resolveUserKnowledge`).
+ */
+export interface ContactViewer {
+  userId: string;
+  role: number;
+  ownedCharacterIds: readonly string[];
+  /**
+   * Whether a token is hidden from THIS viewer (the same hidden + `seenBy` cut
+   * as {@link tokenIsHiddenFromViewer}). Read only by the TokenMark redaction
+   * (REQ-BHR-089); absent means "cannot tell", and the cut then drops every
+   * mark — the conservative side. Set non-enumerable by {@link buildContactViewer}
+   * so it never shows up when a viewer is compared or serialized.
+   */
+  isTokenHidden?: (tokenId: string) => boolean;
+}
+
+/** One player character, reduced to what deciding ownership needs. */
+export interface CharacterOwnershipRow {
+  id: string;
+  ownership: unknown;
+}
+
+/**
+ * Where the funnel reads the world's player characters from.
+ *
+ * An interface rather than a store handle so the redaction rule stays testable
+ * on its own, and so every emission path can share ONE read per broadcast
+ * instead of one read per socket.
+ */
+export interface ContactKnowledgeSource {
+  listCharacterOwnership(): readonly CharacterOwnershipRow[];
+  /**
+   * Every hidden token of the world with its `seenBy` exceptions — what the
+   * TokenMark cut needs to tell which marks sit on a token the viewer must not
+   * know. Optional: a source without it makes the cut drop every mark.
+   */
+  listHiddenTokens?(): readonly HiddenTokenRow[];
+}
+
+/** One hidden token, reduced to what {@link tokenIsHiddenFromViewer} reads. */
+export interface HiddenTokenRow {
+  tokenId: string;
+  seenBy: readonly string[];
+}
+
+/** The canonical source: the world's own Actor table. */
+export function contactKnowledgeSourceFromStore(store: DocumentStore): ContactKnowledgeSource {
+  return {
+    listCharacterOwnership(): readonly CharacterOwnershipRow[] {
+      const rows: CharacterOwnershipRow[] = [];
+      // One indexed read per playable subtype: which subtype is playable is the
+      // system's word, not the engine's (`PLAYER_CHARACTER_SUBTYPES`), so a
+      // future system with a different vocabulary would answer with its own
+      // subtype exactly as a pf2e world answers with its `character`s.
+      for (const subtype of PLAYER_CHARACTER_SUBTYPES) {
+        for (const doc of store.getAll("actors", { type: subtype })) {
+          const id = doc["_id"];
+          if (typeof id === "string") rows.push({ id, ownership: doc["ownership"] });
+        }
+      }
+      return rows;
+    },
+    listHiddenTokens(): readonly HiddenTokenRow[] {
+      const rows: HiddenTokenRow[] = [];
+      for (const scene of store.getAll("scenes")) {
+        const tokens = scene["tokens"];
+        if (!Array.isArray(tokens)) continue;
+        for (const token of tokens as Record<string, unknown>[]) {
+          const id = token["_id"];
+          if (token["hidden"] !== true || typeof id !== "string") continue;
+          const seenBy = token["seenBy"];
+          rows.push({
+            tokenId: id,
+            seenBy: Array.isArray(seenBy)
+              ? (seenBy as unknown[]).filter((u): u is string => typeof u === "string")
+              : [],
+          });
+        }
+      }
+      return rows;
+    },
+  };
+}
+
+/**
+ * Per-namespace registry of the knowledge source.
+ *
+ * `broadcastToWorld` receives a namespace and an envelope and nothing else, and
+ * it is called from a dozen sites across four modules. Threading a store handle
+ * through every one of them would mean a future call site could forget it and
+ * silently open a hole — exactly what REQ-CTT-083 forbids. Registering the
+ * source once per world namespace keeps the rule where the emission is.
+ */
+const contactSources = new WeakMap<object, ContactKnowledgeSource>();
+
+/** Bind a world namespace to the Actor table its sockets read contacts from. */
+export function registerContactKnowledgeSource(
+  namespace: object,
+  source: ContactKnowledgeSource,
+): void {
+  contactSources.set(namespace, source);
+}
+
+/** The source bound to a namespace, when one was registered. */
+export function getContactKnowledgeSource(namespace: object): ContactKnowledgeSource | undefined {
+  return contactSources.get(namespace);
+}
+
+/**
+ * Resolve a viewer.
+ *
+ * With no source the viewer owns no character, and no character means `hidden`
+ * for every contact (`resolveUserKnowledge` on an empty list, REQ-CTT-071) —
+ * the conservative side: a missing source delivers nothing, it never delivers
+ * more than the viewer's characters had earned.
+ */
+export function buildContactViewer(
+  source: ContactKnowledgeSource | undefined,
+  userId: string,
+  role: number,
+): ContactViewer {
+  const ownedCharacterIds: string[] = [];
+  for (const row of source?.listCharacterOwnership() ?? []) {
+    const ownership = isPlainObject(row.ownership)
+      ? (row.ownership as Ownership)
+      : ({ default: OwnershipLevel.NONE } as Ownership);
+    if (resolveOwnership(ownership, userId, role) >= OwnershipLevel.OWNER) {
+      ownedCharacterIds.push(row.id);
+    }
+  }
+  const viewer: ContactViewer = { userId, role, ownedCharacterIds };
+  const listHidden = source?.listHiddenTokens?.bind(source);
+  if (listHidden !== undefined) {
+    // Lazy and memoized: the Scene table is only read when a document that
+    // actually carries a TokenMark reaches this viewer.
+    let hidden: Map<string, readonly string[]> | undefined;
+    Object.defineProperty(viewer, "isTokenHidden", {
+      enumerable: false,
+      value: (tokenId: string): boolean => {
+        hidden ??= new Map(listHidden().map((row) => [row.tokenId, row.seenBy]));
+        const seenBy = hidden.get(tokenId);
+        return seenBy !== undefined && !seenBy.includes(userId);
+      },
+    });
+  }
+  return viewer;
+}
+
+function isPlainObject(value: unknown): value is Record<string, unknown> {
+  return typeof value === "object" && value !== null && !Array.isArray(value);
+}
+
+/**
+ * Whether the knowledge filter has anything to say about this Actor.
+ *
+ * Two carve-outs, both of them required by the model rather than convenient:
+ *
+ *   1. Only a NON-PLAYABLE actor is a contact. Spec 39 splits the panel in two:
+ *      "Na mesa" lists the characters (gated by `ownership`, REQ-CTT-014/020)
+ *      and "Conhecidos" lists the non-players (REQ-CTT-040). The window that
+ *      edits knowledge is contacts × characters — two disjoint sets. Running
+ *      the filter over characters would hide the whole table from every player,
+ *      since a fresh map reads `hidden`; running it over everything ELSE the
+ *      manifests declare would do the same to the chest (`loot`, DEC-NPC-08)
+ *      and to a companion (`familiar`, DEC-CTT-06), neither of which knowledge
+ *      is about. Hence {@link isNonPlayableActor}, an allow-list, rather than
+ *      the complement of "is a character".
+ *   2. Nobody is a stranger to a document they OWN. A player's companion is an
+ *      Actor of type "familiar" whose ownership is forced to the master's
+ *      (r17-P1); knowledge must not take it away from its owner.
+ *
+ * Both are restrictions on the FILTER: an actor that escapes the filter is still
+ * gated by `ownership` exactly as before. An actor that does NOT escape it and is
+ * Known to a viewer with no ownership (below LIMITED) still never gets the ficha:
+ * {@link knownContactView} hands that viewer only name, title, portrait, size and the
+ * monster's conditions
+ * (DEC-CTT-04, REQ-CTT-074 — knowing never grants what ownership denies).
+ */
+export function actorIsSubjectToKnowledge(
+  doc: Record<string, unknown>,
+  viewer: ContactViewer,
+): boolean {
+  if (!isNonPlayableActor(doc)) return false;
+  return ownershipLevelFor(doc, viewer) < OwnershipLevel.OWNER;
+}
+
+function ownershipLevelFor(doc: Record<string, unknown>, viewer: ContactViewer): OwnershipLevel {
+  const ownership = isPlainObject(doc["ownership"])
+    ? (doc["ownership"] as Ownership)
+    : ({ default: OwnershipLevel.NONE } as Ownership);
+  return resolveOwnership(ownership, viewer.userId, viewer.role);
+}
+
+/**
+ * Whether an Actor the knowledge filter has nothing to say about may still reach
+ * this viewer (REQ-CTT-074).
+ *
+ * The knowledge filter is a restriction, never a grant, so escaping it cannot be
+ * what makes a document visible. What escapes it is a player CHARACTER, the chest
+ * (`loot`, DEC-NPC-08), a companion (`familiar`, DEC-CTT-06) and whatever a future
+ * system adds: all of them answer to `ownership` and to nothing else, at the same
+ * LIMITED threshold the join snapshot uses (REQ-NET-024, REQ-NET-096), so the live
+ * broadcast, the replay and the ack echo cannot hand over a document the snapshot
+ * would have withheld.
+ *
+ * #240 (provisional, 21/10/2026): the character used to be always visible here,
+ * which diverged from the snapshot — a character the viewer has no LIMITED
+ * ownership of (REQ-USR-025a: born with `ownership.default = none`) leaked on the
+ * first `doc:update` of its owner. "Na mesa" lists the characters the viewer
+ * reaches through ownership (spec 39, REQ-CTT-014).
+ */
+function actorEscapingKnowledgeIsVisible(
+  doc: Record<string, unknown>,
+  viewer: ContactViewer,
+): boolean {
+  return ownershipLevelFor(doc, viewer) >= OwnershipLevel.LIMITED;
+}
+
+/**
+ * Remove the knowledge map from a document (REQ-CTT-084).
+ *
+ * The map says which characters know this contact and which merely glimpsed it
+ * — i.e. what the OTHER players' characters have learned. It is privileged
+ * data, and it rides on the very document a player is allowed to see, so it has
+ * to come off every Actor a non-privileged socket receives, not only off the
+ * contacts. Returns the original reference when there is nothing to strip.
+ */
+export function stripKnowledgeMap(doc: Record<string, unknown>): Record<string, unknown> {
+  const flags = doc["flags"];
+  if (!isPlainObject(flags)) return doc;
+  const namespace = flags[KNOWLEDGE_FLAG_NAMESPACE];
+  if (!isPlainObject(namespace)) return doc;
+  if (!(KNOWLEDGE_FLAG_KEY in namespace)) return doc;
+
+  const nextNamespace: Record<string, unknown> = { ...namespace };
+  Reflect.deleteProperty(nextNamespace, KNOWLEDGE_FLAG_KEY);
+  return { ...doc, flags: { ...flags, [KNOWLEDGE_FLAG_NAMESPACE]: nextNamespace } };
+}
+
+/**
+ * Remove the attitude from a document (spec 42 §5.10 — REQ-NPC-082).
+ *
+ * The attitude says whether this actor is `enemy`, `neutral` or `ally` towards
+ * the party (REQ-NPC-037). It is the GM's note about a stance the fiction has
+ * not revealed yet, and it rides on the very Actor document a player is allowed
+ * to see — so it comes off EVERY Actor a non-privileged socket receives, not
+ * only off the contacts: a player who owns a companion, or reaches a chest
+ * through `ownership`, travels the same emission paths.
+ *
+ * Returns the original reference when there is nothing to strip, so callers can
+ * cheaply detect "unchanged".
+ */
+export function stripAttitude(doc: Record<string, unknown>): Record<string, unknown> {
+  const flags = doc["flags"];
+  if (!isPlainObject(flags)) return doc;
+  const namespace = flags[ATTITUDE_FLAG_NAMESPACE];
+  if (!isPlainObject(namespace)) return doc;
+  if (!(ATTITUDE_FLAG_KEY in namespace)) return doc;
+
+  const nextNamespace: Record<string, unknown> = { ...namespace };
+  Reflect.deleteProperty(nextNamespace, ATTITUDE_FLAG_KEY);
+  return { ...doc, flags: { ...flags, [ATTITUDE_FLAG_NAMESPACE]: nextNamespace } };
+}
+
+/**
+ * Remove `system.attributes.hp` from a document (spec 41-token.md
+ * REQ-TOK-070..072, DEC-TOK-10 — "vida é do dono").
+ *
+ * `system.attributes.hp` is the canonical path every engine-2e-based system
+ * (pf2e, sf2e — `systems/pf2e/src/derivations/build.ts`,
+ * `systems/pf2e/src/derivations/character.ts`) writes and reads hit points
+ * through; this is the field REQ-TOK-070 means by "pontos de vida". Returns
+ * the original reference when there is nothing to strip, so callers can
+ * cheaply detect "unchanged".
+ */
+export function stripActorHp(doc: Record<string, unknown>): Record<string, unknown> {
+  const system = doc["system"];
+  if (!isPlainObject(system)) return doc;
+  const attributes = system["attributes"];
+  if (!isPlainObject(attributes) || !("hp" in attributes)) return doc;
+
+  const nextAttributes: Record<string, unknown> = { ...attributes };
+  Reflect.deleteProperty(nextAttributes, "hp");
+  return { ...doc, system: { ...system, attributes: nextAttributes } };
+}
+
+/**
+ * Whether `viewer` may see `doc`'s hit points (REQ-TOK-070/071, DEC-TOK-10).
+ *
+ * OWNER (3) of the Actor, or a privileged role — the SAME cut on EVERY
+ * surface that shows vida (REQ-TOK-071: "não deve existir régua diferente
+ * por tela"), because this predicate is the only place that decides it.
+ * `ownershipLevelFor` reads the document's OWN `ownership` map — the same
+ * one every other per-viewer Actor rule in this module reads — so an
+ * unlinked token's `actorDelta` never enters the decision (REQ-TOK-072: the
+ * cut is read from the base `Actor`, never from what the token/delta says).
+ */
+function viewerOwnsActorHp(doc: Record<string, unknown>, viewer: ContactViewer): boolean {
+  if (isRolePrivileged(viewer.role)) return true;
+  return ownershipLevelFor(doc, viewer) >= OwnershipLevel.OWNER;
+}
+
+/**
+ * Everything an Actor document loses on its way to a NON-PRIVILEGED socket,
+ * whatever the emission path and whatever the viewer's knowledge of it:
+ * the knowledge map (REQ-CTT-084), the attitude (REQ-NPC-082) and — when
+ * `viewer` is supplied and is not OWNER — the hit points (REQ-TOK-070..072).
+ *
+ * One function rather than several calls at each site, so a future privileged
+ * field is added in ONE place and cannot reach a path someone forgot to
+ * update. Returns the original reference when nothing was stripped.
+ *
+ * `viewer` is optional so the knowledge-map/attitude behaviour stays callable
+ * without one (a handful of call sites in this module echo an ack whose
+ * writer's identity the caller does not thread through — see
+ * `redactAckResultForNonPrivileged`'s embedded-Item branch, where writing to
+ * the parent Actor already required OWNER, so there is no viewer who could
+ * fail the hp check on that path in the first place). Every real production
+ * caller has a viewer — see `redactActorDocsForViewer` below, the single
+ * funnel REQ-NET-096's four emission paths share.
+ */
+export function stripPrivilegedActorFields(
+  doc: Record<string, unknown>,
+  viewer?: ContactViewer,
+): Record<string, unknown> {
+  let stripped = stripAttitude(stripKnowledgeMap(doc));
+  if (viewer) stripped = stripHiddenTokenMarks(stripped, viewer);
+  if (!viewer || viewerOwnsActorHp(stripped, viewer)) return stripped;
+  return stripActorHp(stripped);
+}
+
+/** True when the Actor carries at least one entry in `flags.fusion.tokenMarks`. */
+export function actorHasTokenMarks(doc: Record<string, unknown>): boolean {
+  const flags = doc["flags"];
+  if (!isPlainObject(flags)) return false;
+  const ns = flags[TOKEN_MARKS_FLAG_NAMESPACE];
+  if (!isPlainObject(ns)) return false;
+  const marks = ns[TOKEN_MARKS_FLAG_KEY];
+  return Array.isArray(marks) && marks.length > 0;
+}
+
+/**
+ * Remove, from `flags.fusion.tokenMarks`, every mark that sits on a token the
+ * viewer must not learn about (REQ-BHR-089): a hidden token the viewer is not in
+ * the `seenBy` of. A privileged viewer keeps everything (`isRolePrivileged`).
+ * A viewer that cannot say which tokens are hidden loses every mark — the
+ * conservative side, like {@link tokenIsHiddenFromViewer} without a user id.
+ * Returns the original reference when nothing was stripped.
+ */
+export function stripHiddenTokenMarks(
+  doc: Record<string, unknown>,
+  viewer: ContactViewer,
+): Record<string, unknown> {
+  if (isRolePrivileged(viewer.role) || !actorHasTokenMarks(doc)) return doc;
+  const flags = doc["flags"] as Record<string, unknown>;
+  const ns = flags[TOKEN_MARKS_FLAG_NAMESPACE] as Record<string, unknown>;
+  const marks = ns[TOKEN_MARKS_FLAG_KEY] as unknown[];
+  const kept = marks.filter((mark) => {
+    if (!isPlainObject(mark)) return false;
+    const tokenId = mark["targetTokenId"];
+    if (typeof tokenId !== "string" || viewer.isTokenHidden === undefined) return false;
+    return !viewer.isTokenHidden(tokenId);
+  });
+  if (kept.length === marks.length) return doc;
+  return {
+    ...doc,
+    flags: { ...flags, [TOKEN_MARKS_FLAG_NAMESPACE]: { ...ns, [TOKEN_MARKS_FLAG_KEY]: kept } },
+  };
+}
+
+/**
+ * The payload of a contact the viewer has only GLIMPSED (REQ-CTT-081).
+ *
+ * An ALLOW-list, deliberately: a deny-list would leak every field a future
+ * milestone adds to Actor, and "no name, no title, no system data — but the
+ * PORTRAIT and the SIZE do travel" is a promise about the whole document, not
+ * about a handful of keys. What survives:
+ *   - `_id`    — the client mirror is keyed by it, and it is already the key
+ *                the GM's ops travel under;
+ *   - `type`   — "an unidentified someone", not who;
+ *   - `_stats` — the mirror gates upserts on `_stats.version`; without it the
+ *                document would look permanently stale and never settle;
+ *   - `img`    — spec 39 DEC-CTT-04 §"Consequência dura", AMENDED by spec
+ *                41-token.md DEC-TOK-09/§12 (2026-08-17, TK003): "o retrato
+ *                (AssetRef) não é redigido: ele sempre viaja no payload do
+ *                contato, porque uma peça no mapa precisa da arte para ser
+ *                desenhada." Before this the token of a glimpsed NPC had no
+ *                art to draw at all — REQ-TOK-010/011/060 and CA-TOK-008
+ *                ("recebe o token e a arte dele, e não recebe o nome")
+ *                require exactly the split this view now makes: identity
+ *                redacted, appearance not. The silhouette a contact CARD
+ *                shows instead of the portrait is that screen's own
+ *                presentation choice, never a second server-side redaction.
+ *   - `system.derived.size` / `system.traits.size` — spec 39 REQ-CTT-081 as amended by
+ *                spec 17 DEC-PF2-13 (decision of the Alexandre, 29/09/2026): the size
+ *                CATEGORY of the creature, and nothing else of `system`. It is the same
+ *                argument as the portrait: what the table sees on the map is not a
+ *                secret — the secret is WHO the creature is, not the space it takes — and
+ *                a token that occupies 1×1 on the players screens and 2×2 on the GM, with
+ *                two Large tokens overlapping for the players, is a defect. It travels in
+ *                the slot the actor keeps it in — a character derived size, an NPC
+ *                `traits.size` — read by the ONE shared reader, so an unlinked token own
+ *                override of `traits.size` still merges over it (REQ-DOC-034). The
+ *                reader shape check bounds the value (a short token, never a sentence);
+ *                it is not a name filter — see `readActorSize`.
+ * `ownership` is dropped on purpose: a glimpsed contact offers no sheet
+ * (REQ-CTT-042), and an absent map resolves to NONE on the client too.
+ *
+ * REQ-CTT-013 falls out of this and is not separate code: a contact with no
+ * name in the payload cannot be found by name in the client's search.
+ */
+export function glimpsedContactView(doc: Record<string, unknown>): Record<string, unknown> {
+  const view: Record<string, unknown> = { _id: doc["_id"] };
+  if (typeof doc["type"] === "string") view["type"] = doc["type"];
+  if (isPlainObject(doc["_stats"])) view["_stats"] = doc["_stats"];
+  // TK003 (spec 41-token.md DEC-TOK-09/§12): the portrait is not redacted —
+  // only `undefined`/absent stays absent, `null` (explicitly "no art") still
+  // travels as `null` rather than being dropped, so the client cannot
+  // mistake "the field was never sent" for "this actor has no art".
+  if ("img" in doc) view["img"] = doc["img"];
+  // REQ-CTT-081 (amended by spec 17): the size category, alone in `system` — nothing else of the ficha —
+  // in the slot the actor keeps it in, so a token own override of `traits.size` still merges over it.
+  const size = readActorSize(doc["system"]);
+  if (size !== undefined) {
+    view["system"] =
+      size.source === "derived"
+        ? { derived: { size: size.category } }
+        : { traits: { size: size.category } };
+  }
+  // An explicit marker so the panel can draw "não identificado" without having
+  // to infer it from an absence (REQ-CTT-041).
+  view["flags"] = { [KNOWLEDGE_FLAG_NAMESPACE]: { glimpsed: true } };
+  return view;
+}
+
+/**
+ * The allow-list of one condition item a viewer who KNOWS a monster may see
+ * (REQ-CTT-027): id, type, name, icon, and of `system` only the `slug` and the
+ * degree (`value`). Everything else of the item — description, rules, references
+ * to the effect or actor that applied it, flags — stays on the server.
+ */
+function knownConditionViews(items: unknown): Record<string, unknown>[] {
+  if (!Array.isArray(items)) return [];
+  const views: Record<string, unknown>[] = [];
+  for (const raw of items) {
+    if (!isPlainObject(raw) || raw["type"] !== "condition") continue;
+    const view: Record<string, unknown> = { type: "condition" };
+    if (typeof raw["_id"] === "string") view["_id"] = raw["_id"];
+    if (typeof raw["name"] === "string") view["name"] = raw["name"];
+    if (typeof raw["img"] === "string") view["img"] = raw["img"];
+    const system = isPlainObject(raw["system"]) ? raw["system"] : {};
+    const slim: Record<string, unknown> = {};
+    if (typeof system["slug"] === "string") slim["slug"] = system["slug"];
+    const value = system["value"];
+    if (typeof value === "number" || value === null) slim["value"] = value;
+    view["system"] = slim;
+    views.push(view);
+  }
+  return views;
+}
+
+/**
+ * What a viewer owes-to-see of a contact that is KNOWN to them but whose
+ * `ownership` they do not reach LIMITED on (DEC-CTT-04: "conhecido: nome, título
+ * e categoria"; REQ-CTT-074: knowing never grants what ownership denies).
+ *
+ * The allow-list of {@link glimpsedContactView} (id, type, stats, portrait, size
+ * category) plus the identity the Known step reveals — `name` and the free title
+ * (`flags.fusion.title`, spec 39 REQ-CTT-023). No items but conditions, no `derived`, nothing
+ * else of `system` (the stat block is what Recall Knowledge earns, not a
+ * side effect of a reload), and no `glimpsed` marker: this contact IS identified.
+ *
+ * The one addition (spec 39 REQ-CTT-086 / DEC-CTT-04, decision of 2026-10-07): the
+ * items of `type: "condition"`, each cut to {@link knownConditionViews}. Other items
+ * (strikes, effects, spells, gear) never travel; `items` is absent when the monster
+ * carries no condition, and the client mirror replaces the document by `_id`, so a
+ * condition removed at the table disappears for whoever knows the monster too.
+ */
+export function knownContactView(doc: Record<string, unknown>): Record<string, unknown> {
+  const view = glimpsedContactView(doc);
+  delete view["flags"];
+  const conditions = knownConditionViews(doc["items"]);
+  if (conditions.length > 0) view["items"] = conditions;
+  if (typeof doc["name"] === "string") view["name"] = doc["name"];
+  const flags = doc["flags"];
+  const ns = isPlainObject(flags) ? flags[KNOWLEDGE_FLAG_NAMESPACE] : undefined;
+  const title = isPlainObject(ns) ? ns["title"] : undefined;
+  if (typeof title === "string") view["flags"] = { [KNOWLEDGE_FLAG_NAMESPACE]: { title } };
+  return view;
+}
+
+/**
+ * What a non-privileged viewer is owed for a batch of Actor documents.
+ *
+ * Two halves, because dropping a document is only half of the delta:
+ *   - `documents` — the bodies that may be delivered;
+ *   - `removedIds` — the ids that were dropped BY THE KNOWLEDGE RULE for this
+ *     viewer, i.e. what the viewer must now forget.
+ *
+ * REQ-CTT-075 is why `removedIds` exists at all: lowering a contact to `hidden`
+ * has to reach the affected user as a removal "sem depender de recarregar a
+ * página". The client mirror is an upsert store — a document simply missing
+ * from a `doc:update` batch leaves the previous copy on screen forever, so
+ * "absent" (REQ-CTT-082) has to travel as an explicit id, on the very same
+ * envelope, or the redaction only holds until the next reload.
+ */
+export interface RedactedActorBatch {
+  documents: Record<string, unknown>[];
+  removedIds: string[];
+}
+
+/**
+ * The only Actor bodies a non-privileged viewer may ever receive.
+ *
+ * REQ-CTT-082: a contact whose effective state is `hidden` is dropped from the
+ * batch — not blanked, not flagged: absent, in snapshot, broadcast and replay
+ * alike.
+ * REQ-CTT-081: a contact that was `glimpsed` is reduced to
+ * {@link glimpsedContactView}.
+ * REQ-CTT-074: a Known contact the viewer has no LIMITED ownership of is reduced
+ * to {@link knownContactView} (name, title, portrait, size and conditions — never the ficha).
+ * REQ-CTT-084: every surviving Actor loses its knowledge map.
+ * REQ-NPC-082: every surviving Actor loses its attitude.
+ * REQ-CTT-074: an Actor the knowledge filter says nothing about — a character, a
+ *              chest, a companion — is gated by `ownership` alone, so escaping
+ *              the filter never turns into a grant.
+ * REQ-CTT-075: every id dropped by the rule above comes back in `removedIds`,
+ * so a live/replay caller can carry the removal in the same envelope.
+ *
+ * `documents` may be EMPTY. Callers on a live/replay path must still emit the
+ * envelope with those empty `documents`: the client mirror gates ops on a
+ * contiguous seq and fires its gap detector on a jump, so a swallowed envelope
+ * would put the player into a resync loop.
+ */
+export function redactActorDocsForViewer(
+  documents: readonly Record<string, unknown>[],
+  viewer: ContactViewer,
+): RedactedActorBatch {
+  const result: Record<string, unknown>[] = [];
+  const removedIds: string[] = [];
+  for (const doc of documents) {
+    if (!actorIsSubjectToKnowledge(doc, viewer)) {
+      // REQ-CTT-074: escaping the knowledge filter is not a grant. What escapes
+      // it answers to `ownership`, at the snapshot's own threshold.
+      if (!actorEscapingKnowledgeIsVisible(doc, viewer)) {
+        const id = doc["_id"];
+        if (typeof id === "string") removedIds.push(id);
+        continue;
+      }
+      result.push(stripPrivilegedActorFields(doc, viewer));
+      continue;
+    }
+    const state = resolveUserKnowledge(doc, viewer.ownedCharacterIds);
+    if (state === KnowledgeState.Hidden) {
+      const id = doc["_id"];
+      if (typeof id === "string") removedIds.push(id);
+      continue;
+    }
+    if (state === KnowledgeState.Glimpsed) {
+      result.push(glimpsedContactView(doc));
+      continue;
+    }
+    // REQ-CTT-074 / DEC-CTT-04: Known is "nome, título e categoria". The ficha travels only to a viewer whose
+    // ownership already reaches LIMITED; below that, knowing never grants what ownership denies.
+    if (ownershipLevelFor(doc, viewer) < OwnershipLevel.LIMITED) {
+      result.push(knownContactView(doc));
+      continue;
+    }
+    result.push(stripPrivilegedActorFields(doc, viewer));
+  }
+  return { documents: result, removedIds };
+}
+
+// ---------------------------------------------------------------------------
 
 /**
  * Redact sensitive data from an op ACK *result* destined for a non-privileged
@@ -201,6 +1988,10 @@ function combatDocHasHiddenCombatants(obj: unknown): boolean {
  * Additionally applies combat redaction:
  *   3. {@link stripHiddenCombatantsFromCombat} — remove hidden combatants (M2-C)
  *
+ * …and the scene-list rule of spec 44:
+ *   4. {@link sceneIsOnAir} — a Scene body that is not on air is dropped from
+ *      `documents[]` and `parent` (REQ-CEN-072 / REQ-CEN-073)
+ *
  * Covered ack `result` shapes (the object under `ack.result`):
  *
  *   1. Primary Scene doc:create / doc:update
@@ -209,6 +2000,9 @@ function combatDocHasHiddenCombatants(obj: unknown): boolean {
  *   3. Embedded embedded update: { documentType: "Scene", documents: FullScene[] }
  *   4. Embedded embedded delete: { documentType, ids, parent: FullScene }
  *   5. Combat create/update ack: { combat: CombatDocument }
+ *   6. Generic doc path on a Combat (REQ-CBA-082)
+ *        { documentType: "Combat", documents: FullCombat[] }
+ *        { documentType: "Combatant", ids, parent: FullCombat }
  *
  * The detector is STRUCTURAL: walks `documents[]`, `parent`, and `combat`
  * and applies redactions to any element that is Scene-shaped (has `tokens` or
@@ -216,8 +2010,22 @@ function combatDocHasHiddenCombatants(obj: unknown): boolean {
  *
  * Cloning discipline: never mutates in place — returns fresh clones only when
  * something actually needs redacting.
+ *
+ * `contactCtx` carries the viewer for the contact-knowledge rule (spec 39). It
+ * is optional so the pure Scene/Combat behaviour stays testable on its own;
+ * when it is absent the Actor branch degrades to stripping the knowledge map
+ * (REQ-CTT-084), which needs no viewer.
  */
-export function redactAckResultForNonPrivileged(result: unknown): unknown {
+export interface AckContactContext {
+  source?: ContactKnowledgeSource | undefined;
+  userId: string;
+  role: number;
+}
+
+export function redactAckResultForNonPrivileged(
+  result: unknown,
+  contactCtx?: AckContactContext,
+): unknown {
   if (!result || typeof result !== "object") return result;
   const ack = result as Record<string, unknown>;
 
@@ -228,46 +2036,177 @@ export function redactAckResultForNonPrivileged(result: unknown): unknown {
   if (!body || typeof body !== "object") return result;
   const bodyObj = body as Record<string, unknown>;
 
-  const documents = bodyObj["documents"];
-  const parent = bodyObj["parent"];
-  const combat = bodyObj["combat"];
+  // Chat acks (chat:send, chat:invalidate, chat:history, chat:search,
+  // chat:context) carry ChatMessages under their own keys. The target's AC must
+  // not ride out on ANY of them (REQ-ACH-073 / REQ-ACH-092) — the chat handler
+  // already redacts each message it emits, and this is the dispatcher-level net
+  // that covers a handler which forgets to.
+  const chatRedactedBody = redactChatBodies(bodyObj);
+
+  const documents = chatRedactedBody["documents"];
+  const parent = chatRedactedBody["parent"];
+  const combat = chatRedactedBody["combat"];
+
+  // REQ-CEN-073: an off-air Scene body must not come back in the ack either —
+  // the ack is a payload destined to a non-privileged user like any other. The
+  // handlers already refuse the ops that could produce one (a scene that is not
+  // on air answers as if it did not exist), so this is the dispatcher-level net
+  // that covers any handler, present or future, that echoes a Scene it loaded.
+  //
+  // REQ-CEN-072: the scene ON AIR is exactly what survives — it is the body the
+  // player's canvas renders.
+  const documentsCarryOffAirScene =
+    Array.isArray(documents) &&
+    (documents as unknown[]).some((d) => isSceneShaped(d) && !sceneIsOnAir(d));
+  const parentIsOffAirScene = isSceneShaped(parent) && !sceneIsOnAir(parent);
+
+  // Spec 39 §5.9: an ack echoes documents straight back to the requester, so it
+  // is an emission path like any other and answers to the same funnel
+  // (REQ-CTT-081..084). Handled before the Scene/Combat branches because the
+  // Actor batch may vanish entirely, and the viewer is resolved lazily so an
+  // ordinary Scene ack never touches the Actor table.
+  if (bodyObj["documentType"] === "Actor" && Array.isArray(documents)) {
+    const viewer = contactCtx
+      ? buildContactViewer(contactCtx.source, contactCtx.userId, contactCtx.role)
+      : { userId: "", role: 0, ownedCharacterIds: [] as readonly string[] };
+    // The ack goes back to the WRITER, who is looking at a result rather than
+    // at a mirror, so only the bodies matter here — `removedIds` is a delta
+    // concept and belongs to the broadcast/replay paths (REQ-CTT-075).
+    const redactedActors = contactCtx
+      ? redactActorDocsForViewer(documents as Record<string, unknown>[], viewer).documents
+      : (documents as Record<string, unknown>[]).map((d) => stripPrivilegedActorFields(d));
+    const changed =
+      redactedActors.length !== documents.length ||
+      redactedActors.some((doc, i) => doc !== documents[i]);
+    // The early return has to carry whatever the chat pass already removed, or an
+    // Actor-shaped ack body that also held messages would leave here unredacted.
+    if (changed || chatRedactedBody !== bodyObj) {
+      return {
+        ...ack,
+        result: { ...chatRedactedBody, documents: changed ? redactedActors : documents },
+      };
+    }
+    return result;
+  }
+
+  // An embedded ack (Item under Actor) carries the parent Actor whole — the
+  // knowledge map (REQ-CTT-084) and the attitude (REQ-NPC-082) have to come off
+  // it too. The parent can never be a contact the viewer merely glimpsed:
+  // writing an embedded document requires OWNER, and OWNER escapes the
+  // knowledge filter by construction.
+  if (isPlainObject(parent)) {
+    let strippedParent = stripPrivilegedActorFields(parent);
+    // REQ-BHR-089: the parent carries the actor's TokenMarks too. Only built
+    // when there are marks, so an ordinary embedded ack never reads the world.
+    if (contactCtx && actorHasTokenMarks(strippedParent)) {
+      strippedParent = stripHiddenTokenMarks(
+        strippedParent,
+        buildContactViewer(contactCtx.source, contactCtx.userId, contactCtx.role),
+      );
+    }
+    if (strippedParent !== parent) {
+      return redactAckResultForNonPrivileged(
+        { ...ack, result: { ...bodyObj, parent: strippedParent } },
+        contactCtx,
+      );
+    }
+  }
 
   const documentsNeedHiddenTokenRedaction =
     Array.isArray(documents) && (documents as unknown[]).some((d) => sceneDocHasHiddenTokens(d));
   const parentNeedsHiddenTokenRedaction = sceneDocHasHiddenTokens(parent);
 
+  // REQ-DOC-062: an unlinked token's own actorDelta hp rides the ack echo
+  // exactly like the other Scene-shaped cuts above — same structural
+  // detector-then-strip shape as the hidden-token pair right above it.
+  const documentsNeedTokenDeltaHpRedaction =
+    Array.isArray(documents) &&
+    (documents as unknown[]).some((d) => sceneDocHasTokenActorDeltaHp(d));
+  const parentNeedsTokenDeltaHpRedaction = sceneDocHasTokenActorDeltaHp(parent);
+
   const documentsNeedSecretDoorRedaction =
     Array.isArray(documents) && (documents as unknown[]).some((d) => sceneHasSecretDoors(d));
   const parentNeedsSecretDoorRedaction = sceneHasSecretDoors(parent);
 
+  // GM-only map pins ride the Scene body exactly like the cuts above.
+  const documentsNeedNoteRedaction =
+    Array.isArray(documents) && (documents as unknown[]).some((d) => sceneHasGmOnlyNotes(d));
+  const parentNeedsNoteRedaction = sceneHasGmOnlyNotes(parent);
+
   // M2-C: redact hidden combatants in combat payloads
   const combatNeedsRedaction = combatDocHasHiddenCombatants(combat);
 
-  const documentsNeedsRedaction =
-    documentsNeedHiddenTokenRedaction || documentsNeedSecretDoorRedaction;
-  const parentNeedsRedaction = parentNeedsHiddenTokenRedaction || parentNeedsSecretDoorRedaction;
+  // REQ-CBA-082: a Combat body also travels the GENERIC document path, where it
+  // lands in `documents[]` (doc:update on a Combat, embedded Combatant update)
+  // or in `parent` (embedded Combatant create/delete) instead of under `combat`.
+  // The detector is structural precisely so those shapes are covered too.
+  const documentsNeedCombatRedaction =
+    Array.isArray(documents) &&
+    (documents as unknown[]).some((d) => combatDocHasHiddenCombatants(d));
+  const parentNeedsCombatRedaction = combatDocHasHiddenCombatants(parent);
 
-  if (!documentsNeedsRedaction && !parentNeedsRedaction && !combatNeedsRedaction) {
+  const documentsNeedsRedaction =
+    documentsNeedHiddenTokenRedaction ||
+    documentsNeedTokenDeltaHpRedaction ||
+    documentsNeedSecretDoorRedaction ||
+    documentsNeedNoteRedaction ||
+    documentsNeedCombatRedaction;
+  const parentNeedsRedaction =
+    parentNeedsHiddenTokenRedaction ||
+    parentNeedsTokenDeltaHpRedaction ||
+    parentNeedsSecretDoorRedaction ||
+    parentNeedsNoteRedaction ||
+    parentNeedsCombatRedaction;
+
+  if (
+    !documentsNeedsRedaction &&
+    !parentNeedsRedaction &&
+    !combatNeedsRedaction &&
+    !documentsCarryOffAirScene &&
+    !parentIsOffAirScene &&
+    chatRedactedBody === bodyObj
+  ) {
     // Nothing to redact — return the original ack untouched.
     return result;
   }
 
   // Build a redacted clone, never mutating the shared original.
-  const newBody: Record<string, unknown> = { ...bodyObj };
+  const newBody: Record<string, unknown> = { ...chatRedactedBody };
 
-  if (documentsNeedsRedaction) {
-    newBody["documents"] = (documents as Record<string, unknown>[]).map((d) => {
-      let redacted = d;
-      if (Array.isArray(d["tokens"])) redacted = stripHiddenTokens(redacted);
-      if (Array.isArray(redacted["walls"])) redacted = redactSecretDoors(redacted);
-      return redacted;
-    });
+  if (documentsNeedsRedaction || documentsCarryOffAirScene) {
+    newBody["documents"] = (documents as Record<string, unknown>[])
+      .filter((d) => !isSceneShaped(d) || sceneIsOnAir(d))
+      .map((d) => {
+        let redacted = d;
+        if (Array.isArray(d["tokens"])) {
+          redacted = redactTokenActorDeltaHp(stripHiddenTokens(redacted, contactCtx?.userId));
+        }
+        if (Array.isArray(redacted["walls"])) redacted = redactSecretDoors(redacted);
+        if (Array.isArray(redacted["notes"])) redacted = redactGmOnlyNotes(redacted);
+        if (Array.isArray(redacted["combatants"])) {
+          redacted = stripHiddenCombatantsFromCombat(redacted);
+        }
+        return redacted;
+      });
   }
 
-  if (parentNeedsRedaction) {
+  if (parentIsOffAirScene) {
+    // Dropped outright, not blanked: the shape a caller sees for a scene it may
+    // not know about is the shape of "there is nothing here".
+    newBody["parent"] = null;
+  } else if (parentNeedsRedaction) {
     let redactedParent = parent as Record<string, unknown>;
-    if (parentNeedsHiddenTokenRedaction) redactedParent = stripHiddenTokens(redactedParent);
+    if (parentNeedsHiddenTokenRedaction) {
+      redactedParent = stripHiddenTokens(redactedParent, contactCtx?.userId);
+    }
+    if (parentNeedsTokenDeltaHpRedaction) {
+      redactedParent = redactTokenActorDeltaHp(redactedParent);
+    }
     if (parentNeedsSecretDoorRedaction) redactedParent = redactSecretDoors(redactedParent);
+    if (parentNeedsNoteRedaction) redactedParent = redactGmOnlyNotes(redactedParent);
+    if (parentNeedsCombatRedaction) {
+      redactedParent = stripHiddenCombatantsFromCombat(redactedParent);
+    }
     newBody["parent"] = redactedParent;
   }
 

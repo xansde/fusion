@@ -9,6 +9,10 @@ import {
   isFormValid,
   defaultSceneFormData,
   listScenes,
+  createScene,
+  updateSceneConfig,
+  updateGridCalibration,
+  preloadSceneForAll,
   type SceneFormData,
 } from "../sceneController.js";
 import { DocumentMirror } from "../../docs/DocumentMirror.js";
@@ -134,6 +138,74 @@ describe("defaultSceneFormData", () => {
 });
 
 // ---------------------------------------------------------------------------
+// Creating and configuring a scene — spec 44 §5.7
+// ---------------------------------------------------------------------------
+
+describe("createScene / updateSceneConfig (spec 44 §5.7)", () => {
+  interface SentOp {
+    type: string;
+    payload: Record<string, unknown>;
+  }
+
+  /** A socket that records what was emitted and acks whatever it is given. */
+  function fakeSocket(sent: SentOp[]): Parameters<typeof createScene>[0] {
+    return {
+      emit(_event: string, envelope: SentOp, ack: (r: unknown) => void): void {
+        sent.push(envelope);
+        ack({ ok: true, result: { documents: [{ _id: "new-scene" }] } });
+      },
+    } as unknown as Parameters<typeof createScene>[0];
+  }
+
+  function form(overrides: Partial<SceneFormData> = {}): SceneFormData {
+    return { ...defaultSceneFormData(), name: "Cripta", ...overrides };
+  }
+
+  it("REQ-CEN-065: creating a scene does not put it on air", async () => {
+    const sent: SentOp[] = [];
+    await createScene(fakeSocket(sent), form());
+
+    // One op, and it is the document creation — nothing activates anything.
+    expect(sent).toHaveLength(1);
+    expect(sent[0]?.type).toBe("doc:create");
+    expect(sent.some((op) => op.type === "world:activeScene")).toBe(false);
+
+    // And the document itself is born off air.
+    const data = (sent[0]?.payload["data"] as Record<string, unknown>[])[0];
+    expect(data?.["active"]).toBe(false);
+  });
+
+  it("REQ-CEN-061: the new scene carries its folder and lands at the end of that group", async () => {
+    const sent: SentOp[] = [];
+    await createScene(fakeSocket(sent), form({ folder: "f-1" }), 7);
+
+    const data = (sent[0]?.payload["data"] as Record<string, unknown>[])[0];
+    expect(data?.["folder"]).toBe("f-1");
+    expect(data?.["sort"]).toBe(7);
+  });
+
+  it("REQ-CEN-061: configuring writes the six fields, and never `active`", async () => {
+    const sent: SentOp[] = [];
+    await updateSceneConfig(
+      fakeSocket(sent),
+      "s-1",
+      form({ folder: "f-2", width: 1200, height: 900, gridSize: 120, backgroundColor: "#123456" }),
+    );
+
+    expect(sent[0]?.type).toBe("doc:update");
+    const updates = sent[0]?.payload["updates"] as { diff: Record<string, unknown> }[];
+    const diff = updates[0]?.diff ?? {};
+    expect(Object.keys(diff).sort()).toEqual(
+      ["background", "backgroundColor", "folder", "grid", "height", "name", "width"].sort(),
+    );
+    // The grid goes as a nested object: the server drops unknown dotted keys.
+    expect(diff["grid"]).toEqual({ size: 120 });
+    // REQ-CEN-042: `active` is refused by the server anyway; it is not even sent.
+    expect(diff["active"]).toBeUndefined();
+  });
+});
+
+// ---------------------------------------------------------------------------
 // BUG B regression — SceneCreateDialog edit-mode initialData fallback
 // ---------------------------------------------------------------------------
 
@@ -247,5 +319,89 @@ describe("listScenes", () => {
     // Calling twice should not error and both should be sorted
     expect(first.map((s) => s.name)).toEqual(["A", "B"]);
     expect(second.map((s) => s.name)).toEqual(["A", "B"]);
+  });
+});
+
+describe("preloadSceneForAll", () => {
+  it("sends ONE scene:preload op and nothing that switches the scene", async () => {
+    const sent: Array<{ type: string; payload: Record<string, unknown> }> = [];
+    const socket = {
+      emit(
+        _e: string,
+        envelope: { type: string; payload: Record<string, unknown> },
+        ack: (r: unknown) => void,
+      ) {
+        sent.push(envelope);
+        ack({ ok: true, result: {} });
+      },
+    } as unknown as Parameters<typeof preloadSceneForAll>[0];
+
+    await preloadSceneForAll(socket, "scene-9");
+
+    expect(sent).toHaveLength(1);
+    expect(sent[0]?.type).toBe("scene:preload");
+    expect(sent[0]?.payload).toEqual({ sceneId: "scene-9" });
+  });
+});
+
+describe("updateGridCalibration", () => {
+  interface SentOp {
+    type: string;
+    payload: {
+      documentType: string;
+      updates: Array<{ _id: string; diff: Record<string, unknown> }>;
+    };
+  }
+  function fakeSocket(sent: SentOp[]): Parameters<typeof updateGridCalibration>[0] {
+    return {
+      emit(_event: string, envelope: SentOp, ack: (r: unknown) => void): void {
+        sent.push(envelope);
+        ack({ ok: true, result: { documents: [{ _id: "s1" }] } });
+      },
+    } as unknown as Parameters<typeof updateGridCalibration>[0];
+  }
+
+  it("writes the whole grid block and the offset in ONE update", async () => {
+    const sent: SentOp[] = [];
+    await updateGridCalibration(fakeSocket(sent), "s1", {
+      size: 132,
+      offsetX: 31,
+      offsetY: 77,
+      distance: 5,
+      units: "ft",
+      color: "#112233",
+      alpha: 0.6,
+    });
+    expect(sent).toHaveLength(1);
+    expect(sent[0]?.type).toBe("doc:update");
+    const upd = sent[0]?.payload.updates[0];
+    expect(upd?._id).toBe("s1");
+    // A complete block: a scene saved without one has nothing to merge into.
+    expect(upd?.diff["grid"]).toEqual({
+      type: "square",
+      size: 132,
+      distance: 5,
+      units: "ft",
+      color: "#112233",
+      alpha: 0.6,
+    });
+    expect(upd?.diff["gridOffsetX"]).toBe(31);
+    expect(upd?.diff["gridOffsetY"]).toBe(77);
+  });
+
+  it("rounds the offset to whole pixels and keeps it inside one cell", async () => {
+    const sent: SentOp[] = [];
+    await updateGridCalibration(fakeSocket(sent), "s1", {
+      size: 73,
+      offsetX: 30.707,
+      offsetY: 72.6,
+      distance: 5,
+      units: "ft",
+      color: "#000000",
+      alpha: 0.4,
+    });
+    const diff = sent[0]?.payload.updates[0]?.diff;
+    expect(diff?.["gridOffsetX"]).toBe(31);
+    expect(diff?.["gridOffsetY"]).toBe(0); // 73 wraps to 0
   });
 });

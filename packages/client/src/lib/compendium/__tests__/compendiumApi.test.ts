@@ -6,14 +6,61 @@
  * caller's Promise hangs until timeout). requireConnectedSocket() must fail
  * FAST with a typed error so the UI can show a visible "not connected"
  * state + retry instead of looping the loading state.
+ *
+ * Also pins the WIRE contract of the two import doors of spec 43 §5.7 —
+ * `compendium:import` (world) and `compendium:importToActor` (sheet):
+ * REQ-CPD-060, REQ-CPD-061, REQ-CPD-073.
+ *
+ * Bugfix A002 (item 13, `docs/design/gaveta-lateral/tasks-ajustes-r1.md`):
+ * getDocument()'s query rejects once its internal timeout elapses even when
+ * the ack NEVER arrives (the class of failure a reconnection mid-load can
+ * produce). Live reproduction (`.claude/skills/tutorial-e2e/roteiros/inv-a002.spec.ts`,
+ * forcing offline→online in the middle of a preview load) did not reproduce
+ * the infinite spinner — socket.io's own reconnection buffer resent the
+ * query and the preview loaded normally. This test pins the one remaining
+ * gap the live repro could not exercise deterministically: an ack that never
+ * arrives at all, of any cause. Without this timeout, `CompendiumPreviewWindow`'s
+ * `load()` would await forever and REQ-CPD-051's "erro com nova tentativa"
+ * would never be reachable.
  */
 
-import { describe, it, expect } from "vitest";
+import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import type { Socket } from "socket.io-client";
-import { requireConnectedSocket, SocketUnavailableError } from "../compendiumApi.js";
+import {
+  getDocument,
+  importToActor,
+  importToWorld,
+  requireConnectedSocket,
+  SocketUnavailableError,
+  findPacksBySlug,
+  searchPacksBySlug,
+} from "../compendiumApi.js";
+import type { PackManifest, PackIndexEntry } from "@fusion/shared";
 
 function fakeSocket(connected: boolean): Socket {
   return { connected, emit: () => undefined } as unknown as Socket;
+}
+
+interface SentOp {
+  /** socket.io event name — `op` for a mutation, `query` for a read. */
+  event: string;
+  type: string;
+  payload: unknown;
+}
+
+/** Socket that records every envelope it is given and acks with `result`. */
+function recordingSocket(sent: SentOp[], result: unknown): Socket {
+  return {
+    connected: true,
+    emit: (
+      event: string,
+      envelope: { type: string; payload: unknown },
+      ack: (a: { ok: boolean; result?: unknown }) => void,
+    ) => {
+      sent.push({ event, type: envelope.type, payload: envelope.payload });
+      ack({ ok: true, result });
+    },
+  } as unknown as Socket;
 }
 
 describe("requireConnectedSocket", () => {
@@ -53,5 +100,186 @@ describe("requireConnectedSocket", () => {
       // expected
     }
     expect(Date.now() - before).toBeLessThan(50);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// getDocument()'s query never hangs forever, even with no ack at all
+// (bugfix A002, REQ-CPD-051)
+// ---------------------------------------------------------------------------
+
+/** A socket whose emit is heard by the transport but whose ack never fires. */
+function socketThatNeverAcks(): Socket {
+  return { connected: true, emit: () => undefined } as unknown as Socket;
+}
+
+describe("getDocument — the preview's query settles even when the ack never arrives", () => {
+  beforeEach(() => {
+    vi.useFakeTimers();
+  });
+
+  afterEach(() => {
+    vi.useRealTimers();
+  });
+
+  it("REQ-CPD-051: rejects once the query's internal timeout elapses, instead of hanging forever", async () => {
+    const promise = getDocument(socketThatNeverAcks(), "Compendium.pf2e.spells-core.Item.s1");
+    const settled = expect(promise).rejects.toThrow(/demorou demais/i);
+
+    // No ack ever fires — advance past every attempt's timeout window (2 x 15 s
+    // plus the backoff between them; the 10 s flat budget became a retry in
+    // compendiumApi.resilience.test.ts).
+    await vi.advanceTimersByTimeAsync(60_000);
+
+    await settled;
+  });
+
+  it("REQ-CPD-051: resolves normally when the ack arrives before the timeout", async () => {
+    const sent: SentOp[] = [];
+    const socket = recordingSocket(sent, { document: { name: "Fireball" } });
+
+    const promise = getDocument(socket, "Compendium.pf2e.spells-core.Item.s1");
+    vi.advanceTimersByTime(1_000);
+
+    await expect(promise).resolves.toEqual({ document: { name: "Fireball" } });
+  });
+});
+
+// ---------------------------------------------------------------------------
+// The two doors of §5.7 on the wire (spec 43, G095)
+// ---------------------------------------------------------------------------
+//
+// The server half of REQ-CPD-073 is pinned by
+// `packages/server/src/__tests__/compendium-import-to-actor.test.ts`, which
+// speaks the wire literals directly. This is the CLIENT half: what the panel
+// actually puts on the socket. Without it the only client-side evidence was a
+// grep of `CompendiumBrowser.svelte`'s source for the local function name —
+// which stays green through a renamed payload field, a wrong op literal, or a
+// mutation sent as a read-only `query`. The envelope is the contract; the
+// function name is not.
+
+describe("the sheet door on the wire (REQ-CPD-061, REQ-CPD-073)", () => {
+  it("REQ-CPD-061: importToActor emits an op named compendium:importToActor", async () => {
+    const sent: SentOp[] = [];
+
+    await importToActor(
+      recordingSocket(sent, { actorId: "actor-1", created: [], failed: [] }),
+      ["Compendium.pf2e.spells-core.Item.s1"],
+      "actor-1",
+    );
+
+    expect(sent).toHaveLength(1);
+    // A mutation rides "op", never the read-only "query" event: sending it as a
+    // query would reach a handler that is not allowed to write anything.
+    expect(sent[0]?.event).toBe("op");
+    expect(sent[0]?.type).toBe("compendium:importToActor");
+  });
+
+  it("REQ-CPD-073: the payload names the destination actor, and carries no role of its own", async () => {
+    const sent: SentOp[] = [];
+
+    await importToActor(
+      recordingSocket(sent, { actorId: "actor-1", created: [], failed: [] }),
+      ["Compendium.pf2e.spells-core.Item.s1", "Compendium.pf2e.feats-core.Item.f1"],
+      "actor-1",
+    );
+
+    // What protects this door is OWNER of the DESTINATION (REQ-CPD-073), so the
+    // destination id is the whole payload's reason to exist. `actorId` is the
+    // field name the server's CompendiumImportToActorPayloadSchema requires —
+    // renaming it here is a silent VALIDATION_FAILED at runtime.
+    expect(sent[0]?.payload).toEqual({
+      uuids: ["Compendium.pf2e.spells-core.Item.s1", "Compendium.pf2e.feats-core.Item.f1"],
+      actorId: "actor-1",
+    });
+    // The client asserts no role and no ownership: the server reads the role off
+    // the socket and the ownership off the destination.
+    const wire = JSON.stringify(sent[0]?.payload);
+    expect(wire).not.toContain("role");
+    expect(wire).not.toContain("ownership");
+  });
+
+  it("REQ-CPD-060/061: the world door and the sheet door are two different calls", async () => {
+    const sent: SentOp[] = [];
+    const socket = recordingSocket(sent, { created: [], failed: [] });
+
+    await importToWorld(socket, ["Compendium.pf2e.spells-core.Item.s1"]);
+    await importToActor(socket, ["Compendium.pf2e.spells-core.Item.s1"], "actor-1");
+
+    // DEC-CPD-05: the sheet door is deliberately NOT a flag on the world call —
+    // they are guarded by different rules, so they are different ops.
+    expect(sent.map((s) => s.type)).toEqual(["compendium:import", "compendium:importToActor"]);
+    // The world call names a folder, never an actor (`folderId` is absent here).
+    expect(sent[0]?.payload).toEqual({ uuids: ["Compendium.pf2e.spells-core.Item.s1"] });
+    expect(JSON.stringify(sent[0]?.payload)).not.toContain("actorId");
+  });
+});
+
+// ---------------------------------------------------------------------------
+// findPacksBySlug / searchPacksBySlug — B4 (revisão adversarial 3)
+// ---------------------------------------------------------------------------
+
+function pack(id: string): PackManifest {
+  return { id, label: id, documentType: "Item" } as PackManifest;
+}
+
+function entry(uuid: string, name: string): PackIndexEntry {
+  return { _id: uuid, uuid, name, img: null, type: null, index: {} } as PackIndexEntry;
+}
+
+describe("findPacksBySlug / searchPacksBySlug (B4 — mundo misto pickers)", () => {
+  it("a pure single-system pack list still resolves to exactly one pack per slug", () => {
+    const packs = [pack("pf2e.classes-core"), pack("pf2e.feats-core")];
+    expect(findPacksBySlug(packs, "classes-core").map((p) => p.id)).toEqual(["pf2e.classes-core"]);
+  });
+
+  it("a trailing-* slug names a family: every pack of the kind, whatever its suffix, in every system", () => {
+    const packs = [
+      pack("pf2e.backgrounds-core"),
+      pack("pf2e.backgrounds-homebrew"),
+      pack("sf2e.backgrounds-core"),
+      pack("pf2e.feats-core"),
+    ];
+    expect(findPacksBySlug(packs, "backgrounds-*").map((p) => p.id)).toEqual([
+      "pf2e.backgrounds-core",
+      "pf2e.backgrounds-homebrew",
+      "sf2e.backgrounds-core",
+    ]);
+  });
+
+  it("a composite world's pack list resolves BOTH systems' packs for the same slug", () => {
+    const packs = [pack("pf2e.classes-core"), pack("sf2e.classes-core"), pack("pf2e.feats-core")];
+    const matches = findPacksBySlug(packs, "classes-core").map((p) => p.id);
+    expect(matches).toEqual(["pf2e.classes-core", "sf2e.classes-core"]);
+  });
+
+  it("searchPacksBySlug merges entries from every matching pack, not just the first", async () => {
+    const packs = [pack("pf2e.classes-core"), pack("sf2e.classes-core")];
+    const socket = {
+      connected: true,
+      emit: (
+        _event: string,
+        envelope: { type: string; payload: { packId: string } },
+        ack: (a: { ok: boolean; result?: unknown }) => void,
+      ) => {
+        const byPack: Record<string, PackIndexEntry[]> = {
+          "pf2e.classes-core": [entry("u-fighter", "Fighter")],
+          "sf2e.classes-core": [entry("u-soldier", "Soldier")],
+        };
+        ack({
+          ok: true,
+          result: { packId: envelope.payload.packId, entries: byPack[envelope.payload.packId] },
+        });
+      },
+    } as unknown as Socket;
+
+    const merged = await searchPacksBySlug(socket, packs, "classes-core");
+    expect(merged.map((e) => e.name).sort()).toEqual(["Fighter", "Soldier"]);
+  });
+
+  it("searchPacksBySlug returns nothing (not an error) when no pack matches the slug", async () => {
+    const socket = { connected: true, emit: () => undefined } as unknown as Socket;
+    const merged = await searchPacksBySlug(socket, [pack("pf2e.feats-core")], "classes-core");
+    expect(merged).toEqual([]);
   });
 });

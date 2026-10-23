@@ -131,10 +131,15 @@ export async function runServe(args: ServeArgs): Promise<void> {
   }
 
   try {
-    const { etmosSystem } = await import("@fusion/system-etmos");
-    registry.register(etmosSystem);
+    // Mundo misto (DEC-SYS-06-bis, spec 15) — composite system, no packs of
+    // its own; serves the real pf2e+sf2e packs side by side (boot.ts).
+    const { pf2eSf2eSystem } = await import("@fusion/system-pf2e-sf2e");
+    registry.register(pf2eSf2eSystem);
   } catch (err) {
-    logger.warn({ err }, "Could not load @fusion/system-etmos — etmos system not available");
+    logger.warn(
+      { err },
+      "Could not load @fusion/system-pf2e-sf2e — pf2e-sf2e system not available",
+    );
   }
 
   logger.info({ systems: registry.list() }, "Systems registered");
@@ -143,7 +148,22 @@ export async function runServe(args: ServeArgs): Promise<void> {
   const worldManager = new WorldManager({
     dataDir: config.dataDir,
     validSystemIds: registry,
+    // Retention has to travel from the loaded config to the only place that
+    // opens a world, or the operator who sets FUSION_GC_SESSION_RETENTION_DAYS=0
+    // to turn collection OFF is ignored and loses the rows anyway (T017).
+    gcOptions: {
+      sessionRetentionDays: config.gcSessionRetentionDays,
+      auditRetentionMonths: config.gcAuditRetentionMonths,
+    },
+    ...(args.forceSchema === true ? { forceSchema: true } : {}),
   });
+
+  if (args.forceSchema === true) {
+    logger.warn(
+      "--force-schema: schema mismatches will not stop a world from opening. " +
+        "Migrations may be skipped or applied to a schema they were not written for.",
+    );
+  }
 
   // Phase 2.7 — open world if --world flag was passed (M0-C)
   const worldSlug: string | undefined = args.world;
@@ -285,6 +305,9 @@ export async function runServe(args: ServeArgs): Promise<void> {
       // REQ-CBT-012: resolve the world's SystemModule (if its package loaded
       // successfully above) so the socket layer can wire initiative formulas.
       const worldSystemModule = registry.tryGet(worldSystemId);
+      // Assets live under <dataDir>/worlds/<worldSlug>/assets/ — shared by the
+      // asset HTTP routes and the socket layer's sound:play NOT_FOUND check.
+      const worldAssetsDir = pathJoin(config.dataDir, "worlds", worldSlug, "assets");
       bootOpts.netContext = {
         worldId: worldSlug,
         db: openWorldDb,
@@ -294,6 +317,7 @@ export async function runServe(args: ServeArgs): Promise<void> {
         // REQ-CMP-006..012: load committed packs for the world's system over
         // the real boot path so compendium content is available in a live session.
         systemId: worldSystemId,
+        assetsDir: worldAssetsDir,
         ...(worldSystemModule !== undefined ? { systemModule: worldSystemModule } : {}),
       };
 
@@ -302,8 +326,12 @@ export async function runServe(args: ServeArgs): Promise<void> {
       // The secret enables short-lived asset query-tokens for PIXI / <img> loading.
       bootOpts.assetContext = {
         authService: authSvc,
-        assetsDir: pathJoin(config.dataDir, "worlds", worldSlug, "assets"),
+        assetsDir: worldAssetsDir,
         secret: authSecret,
+        // Without the handle the upload route has nowhere to record the file
+        // (T021), and the assets table would stay empty forever in the one
+        // place it matters — the running app.
+        db: openWorldDb,
       };
     }
 

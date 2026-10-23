@@ -33,7 +33,7 @@
  *     angles which are deduplicated before the sort.
  *   - Walls outside the scene bounds: will never be intersected by bounded rays.
  *
- * Spec: 07-visao-iluminacao-fog.md §REQ-VIS-020–REQ-VIS-031, D3, D5, D11
+ * Spec: 07-visao-iluminacao-fog.md §REQ-VIS-020–REQ-VIS-030, DEC-VIS-03, DEC-VIS-05, DEC-VIS-11
  * Complexity: O(n log n) — dominated by the angle sort (REQ-VIS-101).
  */
 

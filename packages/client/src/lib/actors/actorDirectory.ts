@@ -1,20 +1,31 @@
 /**
- * actorDirectory.ts — Actor directory logic for the sidebar Actors tab.
+ * actorDirectory.ts — what survived the burial of the legacy Actors directory (G078).
  *
- * REQ-UIF-002 (Actors tab), REQ-UIF-044..046 (drag & drop).
+ * REQ-UIF-044..046 (drag & drop of an actor onto the canvas).
  *
- * Responsibilities:
- *   - Query actors from the DocumentMirror.
- *   - Filter by ownership (players see only their own; GMs see all).
- *   - Group by folder.
- *   - Filter by search query.
- *   - Build DragPayload for dragging an actor to the canvas (creates a Token).
+ * The panel this module was written for is gone: spec 39 took the player-facing
+ * list (Contatos), spec 42 took the authoring of non-playables (NPCs), and the old
+ * directory panel was deleted with them. What is left here is the ONE piece both
+ * of those tabs still consume, and nothing else:
+ *
+ *   - `buildActorDragPayload` — the payload an actor row puts on a drag, read by
+ *     `TableScreen.handleCanvasDrop` (Contatos uses it; the NPCs row builds the
+ *     same shape through `lib/npcs/moveActor.ts`, deliberately the same MIME).
+ *   - `buildTokenFromActorFields` — the pure transformation from that payload to
+ *     the presence created on the scene.
+ *
+ * The list/filter/group half (the builder that returned the grouped list, and the
+ * shapes it returned) went with the panel: ownership filtering is now
+ * `lib/contacts/contactsVM.ts`, and folder grouping is `lib/npcs/folderTree.ts`.
+ * Keeping a second, unused answer for either would be the exact duplication those
+ * two specs removed.
  *
  * This module is a pure TS module (no DOM/Svelte) for Vitest testability.
  */
 
-import type { BaseDocument, OwnershipLevel } from "@fusion/shared";
-import { getUserLevel } from "@fusion/shared";
+import type { BaseDocument } from "@fusion/shared";
+
+import { buildTokenCreateOp, type TokenCreateOp } from "../docs/tokenCreateOp.js";
 
 // ---------------------------------------------------------------------------
 // Actor document type (minimal — full schema is in the system packages)
@@ -43,8 +54,15 @@ export interface ActorDocument extends BaseDocument {
 export interface ActorDragPayload {
   /** Discriminator — allows drop zones to identify this as an actor drag. */
   readonly kind: "actor";
-  /** UUID of the Actor document (nanoid 16-char _id). */
-  readonly uuid: string;
+  /**
+   * The Actor document's `_id` (nanoid 16-char).
+   *
+   * Named `_id`, not `uuid` (#170): this field never carried a UUID — it was
+   * always `actor._id` — and document identity in this codebase is
+   * `flags.fusion.sourceId` (DEC-ATR-11), never `_id` and never an invented
+   * uuid. The old `uuid` name invited exactly that wrong comparison.
+   */
+  readonly _id: string;
   /** documentType always "Actor". */
   readonly documentType: "Actor";
   /** Actor subtype (e.g. "character", "npc"). */
@@ -64,7 +82,7 @@ export interface ActorDragPayload {
 export function buildActorDragPayload(actor: ActorDocument): ActorDragPayload {
   return {
     kind: "actor",
-    uuid: actor._id,
+    _id: actor._id,
     documentType: "Actor",
     subtype: actor.type,
     name: actor.name,
@@ -92,20 +110,24 @@ export interface TokenFromActorOptions {
   gridSize: number;
   /** Whether to snap to grid. Default true. */
   snapToGrid?: boolean;
+  /** Calibrated grid offset in pixels (scene.gridOffsetX/Y). Default 0. */
+  gridOffsetX?: number;
+  gridOffsetY?: number;
 }
 
 /**
  * Token fields to set on doc:create (embedded Token in Scene).
- * Partial — the server fills defaults for unlisted fields.
+ *
+ * TK023 (REQ-TOK-010, REQ-TOK-012, REQ-TOK-060): `name`/`texture`/`width`/
+ * `height` are gone from `TokenDocumentSchema` — a token has no art or
+ * footprint of its own, and a fixed name here would just duplicate (and then
+ * fight) the actor's own name instead of inheriting it (`name: null`).
+ * `actorId` is the only content field; everything else the server defaults.
  */
 export interface TokenCreateFields {
-  name: string;
   actorId: string;
-  texture: string | null;
   x: number;
   y: number;
-  width: number;
-  height: number;
 }
 
 /**
@@ -125,102 +147,36 @@ export function buildTokenFromActorFields(opts: TokenFromActorOptions): TokenCre
   let y = opts.y;
 
   if (snap && gs > 0) {
-    x = Math.round(x / gs) * gs;
-    y = Math.round(y / gs) * gs;
+    const ox = opts.gridOffsetX ?? 0;
+    const oy = opts.gridOffsetY ?? 0;
+    x = Math.round((x - ox) / gs) * gs + ox;
+    y = Math.round((y - oy) / gs) * gs + oy;
   }
 
   return {
-    name: opts.payload.name,
-    actorId: opts.payload.uuid,
-    texture: opts.payload.img,
+    actorId: opts.payload._id,
     x,
     y,
-    width: 1,
-    height: 1,
   };
 }
 
-// ---------------------------------------------------------------------------
-// Actor list filtering and grouping
-// ---------------------------------------------------------------------------
-
 /**
- * Filtered and grouped actor list for display in the sidebar.
- */
-export interface ActorGroup {
-  /** Folder _id or null for actors without a folder. */
-  folderId: string | null;
-  folderName: string;
-  actors: ActorDocument[];
-}
-
-export interface ActorDirectoryState {
-  /** All actor groups ordered by folder name. */
-  groups: ActorGroup[];
-  /** Total actor count visible to this user. */
-  total: number;
-}
-
-/**
- * Filter and group actors for the sidebar directory.
+ * Build the full `doc:create` op (TK022-client) for dropping an actor on the
+ * canvas — the composition `TableScreen.handleCanvasDrop`'s actor branch sends
+ * verbatim, through `sendOp` so the server's ack is AWAITED and a refusal
+ * (VALIDATION_FAILED, PERMISSION_DENIED) reaches the Master instead of being
+ * swallowed by a fire-and-forget `sock.emit` (A004 review, REQ-CPD-060).
  *
- * @param actors      All Actor documents from the DocumentMirror.
- * @param userId      Current user's ID.
- * @param isGm        Whether the current user is GM.
- * @param searchQuery Optional search string to filter by name.
- * @param minLevel    Minimum ownership level for non-GMs. Default OBSERVER (2).
- * @returns           Grouped and filtered actor state.
+ * Exists so the wiring between `buildTokenFromActorFields` (the field
+ * transform) and `buildTokenCreateOp` (the envelope) is itself a pure,
+ * DOM-free function under test — the same shape `token-manager-contract.test.ts`
+ * verifies for `TokenInteractionManager.addToken`, and `buildPlaceChestTokenOp`
+ * (`lib/npcs/npcsFooter.ts`) verifies for the chest. Before this existed, the
+ * only place the two calls were composed was inline in the `.svelte` file,
+ * which a source-text test can confirm is CALLED but never confirm produces a
+ * payload the server would accept (see `tokenCreateOp.ts`'s docstring for the
+ * three call sites that used to get this wrong).
  */
-export function buildActorDirectory(
-  actors: ActorDocument[],
-  userId: string,
-  isGm: boolean,
-  searchQuery = "",
-  minLevel: OwnershipLevel = 2, // OBSERVER
-): ActorDirectoryState {
-  const q = searchQuery.trim().toLowerCase();
-
-  // Filter by permission and search
-  const visible = actors.filter((actor) => {
-    if (!isGm) {
-      const level = getUserLevel(actor.ownership, userId);
-      if (level < minLevel) return false;
-    }
-    if (q && !actor.name.toLowerCase().includes(q)) return false;
-    return true;
-  });
-
-  // Sort by name
-  visible.sort((a, b) => a.name.localeCompare(b.name, "pt-BR"));
-
-  // Group by folder
-  const byFolder = new Map<string | null, ActorDocument[]>();
-  for (const actor of visible) {
-    const folderId = actor.folder ?? null;
-    const existing = byFolder.get(folderId);
-    if (existing) {
-      existing.push(actor);
-    } else {
-      byFolder.set(folderId, [actor]);
-    }
-  }
-
-  // Build groups sorted: null folder last
-  const groups: ActorGroup[] = [];
-  for (const [folderId, groupActors] of byFolder) {
-    groups.push({
-      folderId,
-      folderName: folderId ?? "", // caller resolves folder name via t()
-      actors: groupActors,
-    });
-  }
-
-  // Sort: actors without folder last
-  groups.sort((a, b) => {
-    if (a.folderId === null && b.folderId !== null) return 1;
-    if (a.folderId !== null && b.folderId === null) return -1;
-    return a.folderName.localeCompare(b.folderName, "pt-BR");
-  });
-
-  return { groups, total: visible.length };
+export function buildActorDropTokenOp(opts: TokenFromActorOptions): TokenCreateOp {
+  return buildTokenCreateOp(opts.sceneId, { ...buildTokenFromActorFields(opts) });
 }

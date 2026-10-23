@@ -237,9 +237,13 @@ describe("E2E M1-B — full resync scenario", () => {
     const sceneId = createdDocs[0]?.["_id"] as string;
     expect(typeof sceneId).toBe("string");
 
-    // Wait for client2 to receive the broadcast
+    // Wait for client2 to receive the broadcast. client2 is a PLAYER, so its
+    // copy carries an empty `documents` — the scene is not on air yet
+    // (REQ-CEN-071). The envelope itself still arrives, which is what this test
+    // is about: the seq the player's mirror advances on must stay contiguous.
     const broadcastEnvelope = await broadcastPromise;
     expect(broadcastEnvelope["seq"]).toBe(createAck["seq"]);
+    expect((broadcastEnvelope["payload"] as Record<string, unknown>)["documents"]).toEqual([]);
 
     // -----------------------------------------------------------------------
     // Step 3: GM activates the scene, client2 receives world:activeScene
@@ -250,6 +254,20 @@ describe("E2E M1-B — full resync scenario", () => {
       client2Socket.on("op", (env: Record<string, unknown>) => {
         if (env["type"] === "world:activeScene") {
           resolve(env);
+        }
+      });
+    });
+
+    // Activating a scene also emits a doc:update carrying the scene that went
+    // on air (REQ-CEN-072, body BEFORE the world:activeScene pointer) and, for
+    // any scene that left the air, the T032 version bump. This test measures
+    // "3 ops after the client went away", so the baseline has to be the LAST
+    // op the activation produced — whichever envelope carried the highest seq.
+    const activationDocUpdatePromise = new Promise<Record<string, unknown>>((resolve) => {
+      client2Socket.on("op", (env: Record<string, unknown>) => {
+        if (env["type"] === "doc:update") {
+          const p = env["payload"] as Record<string, unknown> | undefined;
+          if (p?.["documentType"] === "Scene") resolve(env);
         }
       });
     });
@@ -272,8 +290,13 @@ describe("E2E M1-B — full resync scenario", () => {
 
     // Record client2's seq after receiving all broadcasts so far
     // client2LastSeq was from initial snapshot; advance it to account for
-    // the doc:create and world:activeScene ops
-    client2LastSeq = activateAck["seq"] as number;
+    // the doc:create, the doc:update carrying the scene that went on air and
+    // the world:activeScene pointer. The body travels before the pointer
+    // (REQ-CEN-072), so the pointer — whose seq the ack echoes — is the last
+    // op of the activation: that is the baseline for "3 ops after".
+    const activationDocUpdate = await activationDocUpdatePromise;
+    expect(activationDocUpdate["seq"]).toBeLessThan(activateAck["seq"] as number);
+    client2LastSeq = Math.max(activationDocUpdate["seq"] as number, activateAck["seq"] as number);
 
     // -----------------------------------------------------------------------
     // Step 4: Disconnect client2
@@ -458,24 +481,51 @@ describe("E2E M1-B — full resync scenario", () => {
     return tokens;
   }
 
-  /** Build the payload for a hidden token carrying the secret marker values. */
-  function hiddenTokenData(): Record<string, unknown> {
+  /**
+   * Build the payload for a hidden token carrying the secret marker values.
+   *
+   * REQ-TOK-002: `actorId` is a required, resolvable reference — the schema
+   * refuses `null`/absent, so the caller must create an actor first (see
+   * `createSecretActor`) and thread its id through. `texture`/`width`/
+   * `height` are gone from TokenDocumentSchema (REQ-TOK-010, REQ-TOK-012);
+   * they used to be sent here but are dropped from this fixture rather than
+   * silently stripped by the parser.
+   */
+  function hiddenTokenData(actorId: string): Record<string, unknown> {
     return {
       name: SECRET_NAME,
       x: SECRET_X,
       y: SECRET_Y,
       hidden: true,
-      width: 1,
-      height: 1,
       rotation: 0,
       elevation: 0,
       disposition: 0,
-      texture: null,
-      actorId: null,
+      actorId,
       bar1: { attribute: null },
       bar2: { attribute: null },
       flags: {},
     };
+  }
+
+  /**
+   * Create a minimal Actor via doc:create and return its `_id`, so a hidden
+   * token fixture has a resolvable `actorId` to reference (REQ-TOK-002).
+   */
+  async function createSecretActor(socket: ClientSocket, requestId: string): Promise<string> {
+    const ack = await sendOp(
+      socket,
+      "doc:create",
+      { documentType: "Actor", data: [{ name: "Hidden Token Owner", type: "npc" }] },
+      requestId,
+    );
+    if (!ack["ok"]) {
+      throw new Error(`Failed to create actor for hidden-token fixture: ${JSON.stringify(ack)}`);
+    }
+    const docs = (ack["result"] as Record<string, unknown>)["documents"] as Record<
+      string,
+      unknown
+    >[];
+    return docs[0]?.["_id"] as string;
   }
 
   it("hidden token move during player disconnect does NOT leak via delta resync", async () => {
@@ -504,12 +554,14 @@ describe("E2E M1-B — full resync scenario", () => {
       >[]
     )[0]?.["_id"] as string;
 
+    const actorId = await createSecretActor(gmSocket, "hidden-test-actor-001");
+
     const addHiddenTokenAck = await sendOp(
       gmSocket,
       "doc:create",
       {
         documentType: "Token",
-        data: [hiddenTokenData()],
+        data: [hiddenTokenData(actorId)],
         parent: { type: "Scene", id: sceneId },
       },
       "hidden-token-create-001",
@@ -617,13 +669,15 @@ describe("E2E M1-B — full resync scenario", () => {
     player.socket.disconnect();
     await new Promise((r) => setTimeout(r, 100));
 
+    const actorId = await createSecretActor(gmSocket, "created-away-actor-001");
+
     // GM creates a hidden token while the player is away.
     const addHiddenTokenAck = await sendOp(
       gmSocket,
       "doc:create",
       {
         documentType: "Token",
-        data: [hiddenTokenData()],
+        data: [hiddenTokenData(actorId)],
         parent: { type: "Scene", id: sceneId },
       },
       "created-away-token-001",
@@ -686,12 +740,21 @@ describe("E2E M1-B — full resync scenario", () => {
       >[]
     )[0]?.["_id"] as string;
 
+    // Put the scene ON AIR: a Scene body only crosses to a non-privileged
+    // socket while it is the active one (REQ-CEN-071/REQ-CEN-072), on the live
+    // path and on this replay path alike. Off air there would be no Scene op in
+    // the delta to look for the revealed token in.
+    const activateAck = await sendOp(gmSocket, "world:activeScene", { sceneId }, "reveal-activate");
+    expect(activateAck["ok"]).toBe(true);
+
+    const actorId = await createSecretActor(gmSocket, "reveal-actor-001");
+
     const addHiddenTokenAck = await sendOp(
       gmSocket,
       "doc:create",
       {
         documentType: "Token",
-        data: [hiddenTokenData()],
+        data: [hiddenTokenData(actorId)],
         parent: { type: "Scene", id: sceneId },
       },
       "reveal-token-001",
@@ -775,12 +838,14 @@ describe("E2E M1-B — full resync scenario", () => {
       >[]
     )[0]?.["_id"] as string;
 
+    const actorId = await createSecretActor(author, "gm-delta-actor-001");
+
     const addHiddenTokenAck = await sendOp(
       author,
       "doc:create",
       {
         documentType: "Token",
-        data: [hiddenTokenData()],
+        data: [hiddenTokenData(actorId)],
         parent: { type: "Scene", id: sceneId },
       },
       "gm-delta-token-001",

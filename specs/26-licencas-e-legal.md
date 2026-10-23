@@ -8,6 +8,8 @@
   - `docs/research/12b-etmos-fontes-locais.md` — licença do SRD ETMOS (todos os direitos reservados presumido), autoria/créditos da Balde Galáctico, símbolos rúnicos como assets proprietários
   - `docs/research/10-pf2e-sistema-internals.md` — três camadas de licença do `foundryvtt/pf2e` (código Apache-2.0, dados ORC/OGL, arte Paizo proibida), metadados de `publication`, separação regras-puras vs. acoplamento ao Foundry, relação SF2e
 
+> **Emenda (F4, DEC-SEP-09, 2026-08-24) — onde vive.** Packs ORC/OGL e material de licença aberta do PF2e/SF2e vivem no repo satélite `xansde/fusion-systems-2e` (git submodule pinado por tag do core). O Etmos permanece legado, fora da linha alfa (DEC-SEP-04). As obrigações e a matriz de risco desta spec não mudam de conteúdo — mudou só onde os arquivos que ela normatiza moram.
+
 > Esta spec é a **fonte normativa legal** do Fusion. Ela é referenciada por
 > praticamente todas as specs irmãs (notadamente `00-visao-e-escopo.md`,
 > `16-compendiums-e-importacao.md`, `17-sistema-pf2e.md`, `18-sistema-sf2e.md`,
@@ -136,7 +138,7 @@ subsistemas (`16-`, `20-`) devem obedecer.
 
 Cada decisão lista alternativas rejeitadas e o racional.
 
-### D1 — Abordagem clean-room estrita frente ao Foundry VTT
+### DEC-LEG-01 — Abordagem clean-room estrita frente ao Foundry VTT
 
 O Fusion é desenvolvido em clean-room: a equipe pode estudar **documentação
 pública**, **comportamento observável** da interface e o **código Apache-2.0 do
@@ -154,7 +156,7 @@ proprietário do **Foundry core** (a plataforma vendida pela Foundry Gaming LLC)
   Implementar funcionalidade equivalente de forma independente é lícito
   (`docs/research/14-licencas-legal.md` §1.3, §1.5).
 
-### D2 — Marca: "Fusion" autônomo; nunca "Foundry" nem marcas Paizo no produto
+### DEC-LEG-02 — Marca: "Fusion" autônomo; nunca "Foundry" nem marcas Paizo no produto
 
 O produto se chama **Fusion** (ou "Fusion VTT"), nome que não colide com marcas
 identificadas. O binário/executável, títulos de janela, metadados, nomes de
@@ -173,7 +175,7 @@ desenvolvimento, o Foundry pode ser citado como inspiração.
   (`docs/research/14-licencas-legal.md` §4.4, §9). "Fusion" é seguro
   (verificação USPTO pendente — ver Questões em aberto).
 
-### D3 — Mecânicas PF2e/SF2e sob ORC (prioridade ao remaster), com avisos obrigatórios
+### DEC-LEG-03 — Mecânicas PF2e/SF2e sob ORC (prioridade ao remaster), com avisos obrigatórios
 
 O Fusion implementa as mecânicas de PF2e e SF2e como **Licensed Material sob ORC**,
 priorizando **exclusivamente conteúdo do remaster** (Player Core, GM Core, Monster
@@ -199,7 +201,7 @@ Notice** (textos em `## Modelo de dados` / `## API e eventos`).
   reservadas (`docs/research/14-licencas-legal.md` §2). O código do Fusion
   permanece propriedade do projeto.
 
-### D4 — Dados do `foundryvtt/pf2e`: três camadas com tratamento distinto
+### DEC-LEG-04 — Dados do `foundryvtt/pf2e`: três camadas com tratamento distinto
 
 O repositório é tratado em três camadas legais independentes:
 
@@ -220,7 +222,7 @@ O repositório é tratado em três camadas legais independentes:
   `docs/research/10-pf2e-sistema-internals.md` §2; o metadado `publication.license`
   de cada entrada (`"ORC"` / `"OGL"`) deve ser rastreado por pack.
 
-### D5 — Arte proprietária PROIBIDA; pipeline de substituição por assets livres
+### DEC-LEG-05 — Arte proprietária PROIBIDA; pipeline de substituição por assets livres
 
 Nenhuma arte do repositório `pf2e`/Foundry entra no Fusion. Cada referência de
 imagem importada de um pack proprietário é **substituída** por um placeholder de
@@ -237,7 +239,7 @@ substituição é registrada por arquivo.
   (`docs/research/14-licencas-legal.md` §5.4, §8.3). Game-icons.net exige
   atribuição (CC-BY) → deve constar no `NOTICE`.
 
-### D6 — Etmos: presunção de direitos reservados; uso privado OK, distribuição requer autorização
+### DEC-LEG-06 — Etmos: presunção de direitos reservados; uso privado OK, distribuição requer autorização
 
 O SRD do ETMOS (Balde Galáctico, autoria Rafa Reis) **não declara licença aberta**
 → presume-se **"todos os direitos reservados"**. Consequências:
@@ -262,7 +264,7 @@ O SRD do ETMOS (Balde Galáctico, autoria Rafa Reis) **não declara licença abe
   explicitamente negociar permissão ou verificar licença em repositório público
   antes de uso distribuído.
 
-### D7 — Plano de contato com a Balde Galáctico (registrado, com gate)
+### DEC-LEG-07 — Plano de contato com a Balde Galáctico (registrado, com gate)
 
 Registrar formalmente a intenção de contatar a Balde Galáctico para obter
 autorização de distribuição do `systems/etmos`. Até resposta favorável por escrito,
@@ -274,7 +276,7 @@ o item de contato como **tarefa rastreável**, não como bloqueio do uso privado
 - **Racional:** abrir o canal cedo maximiza a chance de uma licença explícita
   (até CC ou permissão escrita), que removeria o gate.
 
-### D8 — Licença do Fusion: privado inicialmente; MIT para a engine se aberto (sem packs de dados)
+### DEC-LEG-08 — Licença do Fusion: privado inicialmente; MIT para a engine se aberto (sem packs de dados)
 
 O Fusion **inicia como software privado** (não publicado) — menor superfície de
 risco. **Se** for aberto no futuro, a recomendação é **MIT para a engine** (código
@@ -294,7 +296,7 @@ são redistribuídos sob MIT.
   arquitetural com implicação legal — `docs/research/14-licencas-legal.md` §11)
   deixa claro que o código não está sob ORC e que os dados têm regime próprio.
 
-### D9 — Separação física conteúdo vs. código (clareza legal por construção)
+### DEC-LEG-09 — Separação física conteúdo vs. código (clareza legal por construção)
 
 Os **dados** licenciados (ORC/OGL) e os de direitos reservados (Etmos) residem em
 **arquivos de pack separados** do código da aplicação (alinhado a
@@ -308,7 +310,7 @@ proprietário do Fusion não está sob ORC e que cada corpo de conteúdo tem seu
 - **Racional:** decisão arquitetural com implicação legal direta
   (`docs/research/14-licencas-legal.md` §11.1, §11.2).
 
-### D10 — Inventário de licenças de dependências + arquivo NOTICE obrigatório
+### DEC-LEG-10 — Inventário de licenças de dependências + arquivo NOTICE obrigatório
 
 Toda dependência de runtime tem sua licença inventariada (campo SPDX); a
 predominância esperada é **MIT**, com a exceção conhecida do **código de referência
@@ -404,6 +406,12 @@ release.
 - **REQ-LEG-014** [MVP] O produto NÃO PODE incluir arte, tokens, ícones de condição,
   ilustrações de itens/spells ou mapas oriundos do repositório `pf2e`/Foundry. Um
   passo de auditoria de assets DEVE detectar e bloquear esses arquivos.
+- **REQ-LEG-026** [MVP] A arte de terceiros do criador de avatar (Liberated Pixel Cup, licença por
+  peça) DEVE constar no `NOTICE` (seção do avatar), o PNG gerado é tratado como obra derivada
+  CC-BY-SA 3.0 e leva a atribuição gravada no arquivo, e o acervo NÃO vai embutido no executável:
+  o release o publica como pasta `avatar/` ao lado dele, com `creditos.json` e `LICENSES.txt`.
+  Decisão provisória de 21/10/2026 (revisar no beta); detalhes e alternativas descartadas em
+  DEC-AVT-08 (spec 35, §6.1).
 
 ### Etmos
 

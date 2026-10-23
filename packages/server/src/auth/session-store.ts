@@ -111,6 +111,19 @@ export class SessionStore {
   }
 
   /**
+   * Revoke every active session of a user EXCEPT the ones in `familyId` (own password change:
+   * the device that changed it stays logged in, REQ-USR-042).
+   */
+  revokeAllForUserExceptFamily(userId: string, familyId: string): void {
+    this.db
+      .prepare(
+        `UPDATE sessions SET revoked_at = ?
+         WHERE user_id = ? AND family_id <> ? AND revoked_at IS NULL`,
+      )
+      .run(Date.now(), userId, familyId);
+  }
+
+  /**
    * Revoke all sessions in a family (reuse detection).
    * Called when a revoked token is presented again (DEC-USR-03).
    */

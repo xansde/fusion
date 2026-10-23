@@ -65,26 +65,12 @@ export class RollError extends Error {
 const MAX_FORMULA_LENGTH = 512;
 
 // ---------------------------------------------------------------------------
-// Audit log schema (server-only — seed never leaves the server)
+// Audit log (server-only — seed never leaves the server)
+//
+// The `roll_audit_log` table is created by migration 005, not here. It used to
+// be built on demand in this file's constructor, which made a world's schema
+// depend on whether a RollService had ever been constructed in it (T007).
 // ---------------------------------------------------------------------------
-
-function ensureAuditTable(db: Db): void {
-  db.exec(`
-    CREATE TABLE IF NOT EXISTS roll_audit_log (
-      roll_id          TEXT    PRIMARY KEY NOT NULL,
-      world_id         TEXT    NOT NULL,
-      user_id          TEXT    NOT NULL,
-      actor_id         TEXT,
-      formula          TEXT    NOT NULL,
-      expanded_formula TEXT    NOT NULL,
-      total            REAL    NOT NULL,
-      seed             INTEGER NOT NULL,
-      created_at       INTEGER NOT NULL
-    );
-    CREATE INDEX IF NOT EXISTS idx_roll_audit_world_user
-      ON roll_audit_log(world_id, user_id, created_at);
-  `);
-}
 
 function persistAudit(
   db: Db,
@@ -499,9 +485,6 @@ export class RollService {
   constructor(options: RollServiceOptions) {
     this.db = options.db;
     this.maxDice = options.maxDicePerRoll ?? MAX_DICE_PER_ROLL;
-
-    // Ensure audit table exists
-    ensureAuditTable(this.db);
 
     // Set up RNG — inject for tests, use native node:crypto in production.
     // REQ-ROL-025: production MUST use crypto-grade RNG.

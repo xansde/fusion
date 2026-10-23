@@ -13,6 +13,20 @@
  *
  * Design: no socket calls inside this store — callers inject the socket
  * so the store is testable without a real connection.
+ *
+ * Spec 38 (`specs/38-aba-chat.md`) §5.1/§5.3 adds two things that live here and
+ * nowhere else, both for the same reason — the drawer keeps only the active tab's
+ * panel mounted (REQ-GAV-017), so anything kept inside `ChatPanel` dies on every
+ * tab switch:
+ *
+ *  - the **unread marker** (REQ-ACH-004/005): opening the tab zeroes the counter
+ *    (REQ-CHT-039) but must not throw away *which* message the counter was about.
+ *    The count alone would land the reader at the end of the log — losing exactly
+ *    the messages the badge promised. So the arrival of the first unread is
+ *    remembered as an anchor, and opening turns counter + anchor into the "N novas"
+ *    divider the log draws above it;
+ *  - the **session scratch** (REQ-ACH-026): unsent draft, log position and the ↑↓
+ *    input history. In memory of the session, never a Document (spec 38 §7).
  */
 
 import type { Socket } from "socket.io-client";
@@ -31,9 +45,28 @@ import {
   type ProvisionalSpeaker,
 } from "./chatOptimistic.js";
 import { attachChatOpListener, type OpEmitter } from "./chatMessageSync.js";
+import { InputHistory } from "./inputHistory.js";
 
 export type { ProvisionalSpeaker } from "./chatOptimistic.js";
 export { isOptimisticallyRenderable, buildProvisionalMessage } from "./chatOptimistic.js";
+
+// ---------------------------------------------------------------------------
+// Unread marker (REQ-ACH-004, REQ-ACH-005)
+// ---------------------------------------------------------------------------
+
+/**
+ * What the log draws as "N novas", and where.
+ *
+ * `firstUnreadId` is the message the divider sits above — a value, not a live
+ * reference: the divider has to keep pointing at the same place while the log
+ * pages, groups and re-renders around it.
+ */
+export interface ChatUnreadMarker {
+  /** `_id` of the first message the reader has not seen. */
+  readonly firstUnreadId: string;
+  /** How many messages the divider announces. Always ≥ 1. */
+  readonly count: number;
+}
 
 // ---------------------------------------------------------------------------
 // Reactive state
@@ -52,6 +85,12 @@ export const chatStore: {
   nextCursor: string | null;
   /** Number of messages received while chat tab is not focused. */
   unreadCount: number;
+  /**
+   * The "N novas" divider, or `null` when there is nothing to point at
+   * (REQ-ACH-004). Survives tab switches; only reaching the end of the log
+   * retires it (REQ-ACH-005).
+   */
+  unreadMarker: ChatUnreadMarker | null;
   /** Error string from last send/load operation, or null. */
   error: string | null;
 } = $state({
@@ -61,8 +100,46 @@ export const chatStore: {
   hasMore: false,
   nextCursor: null,
   unreadCount: 0,
+  unreadMarker: null,
   error: null,
 });
+
+// ---------------------------------------------------------------------------
+// Session scratch — outside the panel component (REQ-ACH-026)
+// ---------------------------------------------------------------------------
+
+/**
+ * What the reader was in the middle of, kept for the whole table session.
+ *
+ * `ChatPanel` is unmounted every time the drawer switches tab (REQ-GAV-017), so
+ * a draft or a scroll offset held in the component is a draft or a scroll offset
+ * that is silently thrown away by a click on another tab. Spec 38 §7 files all
+ * three under "cliente, em memória de sessão": no `localStorage`, no Document.
+ */
+export const chatSession: {
+  /** Text typed into the box and not sent yet. */
+  draft: string;
+  /** Last scroll offset of the log in px; `null` while it was never positioned. */
+  scrollTop: number | null;
+} = $state({
+  draft: "",
+  scrollTop: null,
+});
+
+/**
+ * The ↑↓ history of what was sent (REQ-ACH-026).
+ *
+ * One instance per session, owned here rather than by the input component for
+ * the same reason as `chatSession`.
+ */
+export const chatInputHistory = new InputHistory();
+
+/** Drop the whole session scratch (table teardown, not a tab switch). */
+export function resetChatSession(): void {
+  chatSession.draft = "";
+  chatSession.scrollTop = null;
+  chatInputHistory.clear();
+}
 
 // ---------------------------------------------------------------------------
 // Internal helpers
@@ -82,14 +159,12 @@ function insertMessage(msg: ChatMessage): void {
   chatStore.messages.splice(i, 0, msg);
 }
 
-/** Prepend older messages (from history load) — they arrive newest-first, we reverse. */
+/** Prepend older messages (from history load): they arrive newest-first and go in oldest-first. */
 function prependMessages(msgs: ChatMessage[]): void {
   const sorted = [...msgs].sort((a, b) => a.timestamp - b.timestamp || a._id.localeCompare(b._id));
-  for (const msg of sorted) {
-    if (!chatStore.messages.some((m) => m._id === msg._id)) {
-      chatStore.messages.unshift(msg);
-    }
-  }
+  // Oldest first, in ONE splice: unshifting one by one would reverse the page.
+  const fresh = sorted.filter((msg) => !chatStore.messages.some((m) => m._id === msg._id));
+  chatStore.messages.unshift(...fresh);
 }
 
 // ---------------------------------------------------------------------------
@@ -98,11 +173,72 @@ function prependMessages(msgs: ChatMessage[]): void {
 
 let _chatTabVisible = false;
 
+/**
+ * `_id` of the first message that arrived while the tab was closed and has not
+ * been turned into a divider yet. Kept out of `chatStore` because it is not a
+ * rendering input — the log never reads it; opening the tab is what consumes it.
+ */
+let _pendingAnchorId: string | null = null;
+
+/**
+ * The chat tab became visible, or stopped being visible.
+ *
+ * Opening does the two halves of REQ-ACH-004 in one gesture: it zeroes the badge
+ * (REQ-CHT-039) and, in the same breath, turns what the badge was counting into
+ * the "N novas" divider anchored at the first unread — because after the counter
+ * is gone there is nothing left to reconstruct it from.
+ *
+ * Opening with nothing unread leaves any existing divider exactly as it is. That
+ * is REQ-ACH-005's "trocar de aba ou recolher a gaveta NÃO DEVE recriá-lo": only
+ * reaching the end of the log retires a divider, and only a message received while
+ * away creates one.
+ */
 export function setChatTabVisible(visible: boolean): void {
   _chatTabVisible = visible;
-  if (visible) {
-    chatStore.unreadCount = 0;
+  if (!visible) return;
+
+  const pending = chatStore.unreadCount;
+  if (pending > 0) {
+    // A divider that is still standing keeps its anchor: the reader never got
+    // past it, so the first thing they have not seen is still the same message —
+    // what changed is how much piles up after it.
+    const anchorId = chatStore.unreadMarker?.firstUnreadId ?? _pendingAnchorId;
+    if (anchorId !== null) {
+      chatStore.unreadMarker = {
+        firstUnreadId: anchorId,
+        count: (chatStore.unreadMarker?.count ?? 0) + pending,
+      };
+    }
   }
+
+  _pendingAnchorId = null;
+  chatStore.unreadCount = 0;
+}
+
+/**
+ * Retire the "N novas" divider (REQ-ACH-005).
+ *
+ * Called by the log the moment the reader reaches the end — the one event that
+ * means "you have now seen all of it". Nothing else puts it out: not a tab
+ * switch, not collapsing the drawer, not a new message.
+ */
+export function dismissUnreadMarker(): void {
+  chatStore.unreadMarker = null;
+  _pendingAnchorId = null;
+}
+
+/**
+ * Index of the divider's anchor inside the messages currently loaded, or `-1`.
+ *
+ * RNF-ACH-02: the anchor is looked up in the page pagination already brought in
+ * (DEC-CHT-06 cursor paging) — there is no socket here and no walk back through
+ * history. An anchor that aged out of the loaded window resolves to `-1`, and the
+ * log falls back to its normal position instead of fetching to find it.
+ */
+export function resolveUnreadAnchorIndex(): number {
+  const anchorId = chatStore.unreadMarker?.firstUnreadId;
+  if (anchorId === undefined) return -1;
+  return chatStore.messages.findIndex((m) => m._id === anchorId);
 }
 
 // ---------------------------------------------------------------------------
@@ -112,12 +248,41 @@ export function setChatTabVisible(visible: boolean): void {
 /**
  * Process an incoming ChatMessage document (from doc:create broadcast).
  * Called by the worldSync listener after it receives a ChatMessage.
+ *
+ * REQ-ACH-003: it only counts while the tab is closed. With the tab open the
+ * badge stays dark — the message is already on screen, and a badge for something
+ * the reader is looking at is a badge that means nothing.
  */
 export function handleIncomingMessage(msg: ChatMessage): void {
   insertMessage(msg);
-  if (!_chatTabVisible) {
-    chatStore.unreadCount += 1;
+  if (_chatTabVisible) return;
+
+  chatStore.unreadCount += 1;
+  // First unread of this stretch: remember where the divider will go. A divider
+  // still standing from a previous stretch keeps its own anchor (see
+  // setChatTabVisible), so we do not move it.
+  if (chatStore.unreadMarker === null && _pendingAnchorId === null) {
+    _pendingAnchorId = msg._id;
   }
+}
+
+/**
+ * Apply a server-side change to a message ALREADY in the log — today only
+ * invalidation and revalidation (REQ-ACH-086).
+ *
+ * Replaces the entry at the very same index: REQ-ACH-081 requires the voided
+ * message to stay in the log "na mesma posição", so this must never re-sort,
+ * re-insert or append. It is also not a new message, so the unread counter and
+ * the "N novas" anchor are deliberately left alone (REQ-ACH-003).
+ *
+ * An update for a message that is not in the loaded window (aged out of the
+ * pagination, or never visible to this user) is a no-op — inserting it here
+ * would materialise, out of nowhere, a message this client never received.
+ */
+export function applyMessageUpdate(msg: ChatMessage): void {
+  const index = chatStore.messages.findIndex((m) => m._id === msg._id);
+  if (index === -1) return;
+  chatStore.messages[index] = msg;
 }
 
 // ---------------------------------------------------------------------------
@@ -240,6 +405,52 @@ export async function sendChatMessage(
   });
 }
 
+/**
+ * Invalidate (or, with `invalid: false`, revalidate) one message — REQ-CHT-005,
+ * REQ-ACH-080..086. This is the client's ONLY door to `chat:invalidate` —
+ * ChatMessage.svelte's button (A024) calls it, gated by
+ * `lib/chat/invalidateButton.ts` (REQ-ACH-082/083).
+ *
+ * A write, so it travels on `op` (the same channel `sendChatMessage` uses),
+ * not `query`.
+ *
+ * No optimistic update: the server is the only one that decides whether the
+ * transition is allowed (REQ-ACH-090), and the row updates when its own
+ * `doc:update` broadcast arrives (REQ-ACH-086) — the invalidator is always one
+ * of the eligible recipients of that broadcast (author or GM), and
+ * `attachChatMessageSync`'s `applyMessageUpdate` already replaces the message
+ * in place. Reconciling a second, local-only path here would only risk
+ * disagreeing with the one the server actually enacted.
+ */
+export async function sendChatInvalidate(
+  socket: Socket,
+  worldId: string,
+  id: string,
+  invalid: boolean,
+): Promise<void> {
+  chatStore.error = null;
+  return new Promise<void>((resolve, reject) => {
+    socket.emit(
+      "op",
+      {
+        type: "chat:invalidate",
+        payload: { worldId, _id: id, invalid },
+        requestId: _reqId(),
+        ts: Date.now(),
+      },
+      (ack: { ok: boolean; message?: string; code?: string }) => {
+        if (ack.ok) {
+          resolve();
+        } else {
+          const msg = ack.message ?? "Invalidate failed";
+          chatStore.error = msg;
+          reject(new Error(msg));
+        }
+      },
+    );
+  });
+}
+
 // ---------------------------------------------------------------------------
 // Internal socket helper
 // ---------------------------------------------------------------------------
@@ -295,6 +506,10 @@ export function attachChatSync(socket: Socket, worldId: string): () => void {
     chatStore.nextCursor = null;
     chatStore.unreadCount = 0;
     chatStore.error = null;
+    dismissUnreadMarker();
+    // The draft, the log position and the ↑↓ history are session scratch
+    // (REQ-ACH-026): they outlive a tab switch, not the table itself.
+    resetChatSession();
   };
 }
 
@@ -325,6 +540,7 @@ export function setRollAnimator(fn: ((roll: RollResultData) => void) | null): vo
 export function attachChatMessageSync(socket: OpEmitter): () => void {
   return attachChatOpListener(socket, {
     handleIncomingMessage,
+    applyMessageUpdate,
     getRollAnimator: () => _rollAnimator,
   });
 }

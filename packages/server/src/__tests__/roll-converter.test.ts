@@ -22,7 +22,7 @@ import { tmpdir } from "node:os";
 import type { Database as Db } from "better-sqlite3";
 import { NumberGenerator } from "@dice-roller/rpg-dice-roller";
 
-import { openDatabase } from "../db/index.js";
+import { openDatabase, applyMigrations } from "../db/index.js";
 import type { FusionDatabase } from "../db/index.js";
 import { RollService, RollError } from "../chat/roll-service.js";
 import type { DiceResult, RollTermResult } from "@fusion/shared";
@@ -78,7 +78,11 @@ describe("RollService term converter (FIX-1) and dice-count guard (FIX-2)", () =
       `fusion-roll-conv-${String(Date.now())}-${Math.random().toString(36).slice(2)}`,
     );
     mkdirSync(dataDir, { recursive: true });
-    fusionDb = openDatabase({ path: join(dataDir, "world.db"), skipIntegrityCheck: true });
+    const dbPath = join(dataDir, "world.db");
+    fusionDb = openDatabase({ path: dbPath, skipIntegrityCheck: true });
+    // The audit table comes from migration 005 now; RollService no longer
+    // creates it on the side (T007).
+    applyMigrations(fusionDb.raw, dbPath);
     db = fusionDb.raw;
     // Snapshot the global engine BEFORE any RollService mutates it (FIX-4).
     originalEngine = getGlobalEngine();

@@ -36,6 +36,13 @@ export type ServeArgs = {
    */
   noOpen?: boolean;
   /**
+   * When true, open a world whose schema diverges from this build's migrations
+   * instead of refusing (D6 escape hatch — see db/migrations.ts's schema
+   * guard). Last resort: migrations may then be skipped, or applied against a
+   * schema they were not written for.
+   */
+  forceSchema?: boolean;
+  /**
    * True when `fusion serve` was reached because NO command was given at all
    * (bare `fusion`/double-clicked exe) rather than an explicit `fusion
    * serve`. Never set by the user — synthesized by parseArgs so runServe can
@@ -179,6 +186,7 @@ export function parseArgs(argv: string[]): ParsedArgs {
     const world = consumeOption(args, "--world");
     const tunnel = consumeFlag(args, "--tunnel");
     const noOpen = consumeFlag(args, "--no-open");
+    const forceSchema = consumeFlag(args, "--force-schema");
 
     if (consumeFlag(args, "--help") || consumeFlag(args, "-h")) {
       return { command: "help", topic: "serve" };
@@ -202,6 +210,7 @@ export function parseArgs(argv: string[]): ParsedArgs {
     if (world !== undefined) result.world = world;
     if (tunnel) result.tunnel = true;
     if (noOpen) result.noOpen = true;
+    if (forceSchema) result.forceSchema = true;
     return result;
   }
 

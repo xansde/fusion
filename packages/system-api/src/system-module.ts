@@ -20,10 +20,17 @@ import {
   type SystemCombatConfig,
   type InitiativeCompareFn,
   type InitiativeFormulaRegistrationInput,
+  type TurnHookFn,
+  type RoundHookFn,
+  type CombatEndHookFn,
+  type DamageAppliedHookFn,
+  type RegisteredTurnHook,
+  type TurnHookRegistrations,
   isInitiativeFormulaRegistrationObject,
 } from "./combat.js";
+import type { ActorMechanics } from "./actor-mechanics.js";
 import { DeriveStepRegistry, type DeriveStep } from "./derive.js";
-import type { StackingTable } from "./effects.js";
+import type { RollResolvedHookFn, RollResolverDefinition, StackingTable } from "./effects.js";
 import {
   type SystemSheetSpec,
   type ConditionDefinition,
@@ -37,6 +44,8 @@ import {
   type RollDataDefinition,
   type DegreeOfSuccessDefinition,
   type EffectsMaterializerDefinition,
+  type ConsumeItemDefinition,
+  type ConsumeHookFn,
 } from "./registries.js";
 
 // ---------------------------------------------------------------------------
@@ -70,6 +79,14 @@ export interface SystemDataModel {
 // SystemRegistrar
 // ---------------------------------------------------------------------------
 
+/**
+ * One event's id+priority hook registry, keyed by id. `order` is a
+ * monotonically increasing registration counter used ONLY to tie-break equal
+ * priorities (REQ-SYS-139: "no empate, na ordem de registro") — never
+ * exposed on the built SystemModule.
+ */
+type HookMap<Fn> = Map<string, { priority: number; fn: Fn; order: number }>;
+
 /** Internal accumulator filled during defineSystem build callback. */
 interface RegistrarAccumulator {
   models: SystemDataModel[];
@@ -79,6 +96,24 @@ interface RegistrarAccumulator {
   combatHooks: CombatSystemHooks | null;
   deriveSteps: DeriveStepRegistry;
   extended: ExtendedAccumulator;
+  // ─── DEC-SYS-11 turn hooks (ALQ-F1-02) ──────────────────────────────────
+  onTurnStart: HookMap<TurnHookFn>;
+  onTurnEnd: HookMap<TurnHookFn>;
+  onRoundStart: HookMap<RoundHookFn>;
+  onRoundEnd: HookMap<RoundHookFn>;
+  onCombatEnd: HookMap<CombatEndHookFn>;
+  /** Onda 2, finding B5 — same registry discipline, REQ-SYS-142 step 5. */
+  onDamageApplied: HookMap<DamageAppliedHookFn>;
+  /** REQ-SYS-142: at most one per system. */
+  actorMechanics: ActorMechanics | null;
+  /** REQ-SYS-144 (ALQ-F2-11): same registry discipline as onDamageApplied. */
+  onConsumed: HookMap<ConsumeHookFn>;
+  /** REQ-SYS-143 (ALQ-F2-11): at most one per system. */
+  consumeItem: ConsumeItemDefinition | null;
+  /** BHR-F2-05 (ALQ-F4-09): at most one per system. */
+  rollResolver: RollResolverDefinition | null;
+  /** REQ-BHR-070: same registry discipline as onDamageApplied. */
+  onRollResolved: HookMap<RollResolvedHookFn>;
 }
 
 /**
@@ -97,8 +132,9 @@ interface RegistrarAccumulator {
  *   - `setting(def)` — register a setting (REQ-SYS-047).
  *   - `stackingRules(table)` — declare modifier stacking rules (REQ-SYS-085).
  *
- * New in M5-A (foundation for Etmos — aditive, retrocompatible):
- *   - `rollData(def)` — register a roll-data builder (E1, REQ-ETM-015).
+ * New in M5-A (aditive, retrocompatible — lets a non-2e-family system plug
+ * into the same registries without depending on engine-2e):
+ *   - `rollData(def)` — register a roll-data builder (E1).
  *   - `degreeOfSuccess(def)` — register a degree-of-success comparator (E2).
  *   - `effectsMaterializer(def)` — register an EffectSource materializer (E4).
  *   - `registerInitiativeFormula` (in CombatRegistrar) now also accepts an
@@ -211,11 +247,11 @@ export interface SystemRegistrar extends CombatRegistrar {
    * Register a degree-of-success comparator.
    *
    * The `degree` returned by `compute()` is a system-defined string (each
-   * system owns its own set — e.g. Etmos registers "success"/"failure").
-   * This is a NEW, independent, aditive surface: PF2e/SF2e are NOT required
-   * to migrate to it and keep resolving degree-of-success via their existing
-   * pipeline (the engine-2e `calculateDegreeOfSuccess` helper called from
-   * their actions) — see M5-A E2.
+   * system owns its own set — e.g. a simpler "success"/"failure" pair for a
+   * non-2e-family system). This is a NEW, independent, aditive surface:
+   * PF2e/SF2e are NOT required to migrate to it and keep resolving
+   * degree-of-success via their existing pipeline (the engine-2e
+   * `calculateDegreeOfSuccess` helper called from their actions) — see M5-A E2.
    *
    * Calling this twice with the same `id` is a programming error and MUST
    * throw.
@@ -238,6 +274,48 @@ export interface SystemRegistrar extends CombatRegistrar {
    * programming error and MUST throw.
    */
   effectsMaterializer(def: EffectsMaterializerDefinition): void;
+
+  /**
+   * Register this system's ActorMechanics — the pure rule behind
+   * `actor:applyDamage`/`actor:applyCondition` (DEC-SYS-12, REQ-SYS-142).
+   *
+   * At most once per system: calling this twice is a programming error and
+   * MUST throw. `onTurnStart`/`onTurnEnd`/`onRoundStart`/`onRoundEnd`/
+   * `onCombatEnd`/`onDamageApplied` (DEC-SYS-11) are inherited from
+   * CombatRegistrar via TurnHookRegistrar — same registrar object, same
+   * id+priority discipline.
+   */
+  registerActorMechanics(mechanics: ActorMechanics): void;
+
+  /**
+   * Register this system's ConsumeItem rule — the pure plan behind
+   * `item:consume` (REQ-SYS-143, plan §2.6, ALQ-F2-11). At most once per
+   * system: calling this twice is a programming error and MUST throw.
+   */
+  registerConsumeItem(def: ConsumeItemDefinition): void;
+
+  /**
+   * Register a post-consume hook (REQ-SYS-144, ALQ-F2-11) — the single
+   * extension point after `item:consume` persists and before it broadcasts.
+   * Accepts MULTIPLE callbacks, same id+priority discipline as the turn
+   * hooks above: duplicate `id` MUST throw.
+   */
+  registerConsumeHook(id: string, fn: ConsumeHookFn, opts?: { priority?: number }): void;
+
+  /**
+   * Register this system's roll resolver (BHR-F2-05, plan of the Alquimista
+   * §2.8): the pure rule the server calls, with the re-derived actor and the
+   * roll's target, to settle the conditional modifiers and the notes of a roll
+   * (DF-17, REQ-BHR-051). At most once per system: a second call MUST throw.
+   */
+  registerRollResolver(def: RollResolverDefinition): void;
+
+  /**
+   * Register a callback for every resolved roll (`registrar.onRollResolved(id,
+   * fn)`, REQ-BHR-053/070). Same id+priority discipline as the turn hooks:
+   * duplicate `id` MUST throw; run in series, priority descending.
+   */
+  onRollResolved(id: string, fn: RollResolvedHookFn, opts?: { priority?: number }): void;
 }
 
 // ---------------------------------------------------------------------------
@@ -257,6 +335,33 @@ export interface SystemModule {
    * Spec: 10-combate-e-iniciativa.md §system API.
    */
   readonly combat: SystemCombatConfig;
+
+  /**
+   * This system's ActorMechanics (DEC-SYS-12, REQ-SYS-142), or null when the
+   * system registered none — `actor:applyDamage`/`applyCondition` then
+   * resolve to `NOT_SUPPORTED` without writing anything.
+   */
+  readonly actorMechanics: ActorMechanics | null;
+
+  /**
+   * This system's ConsumeItem rule (REQ-SYS-143, ALQ-F2-11), or null when the
+   * system registered none — `item:consume` then resolves to `NOT_SUPPORTED`
+   * without writing anything.
+   */
+  readonly consumeItem: ConsumeItemDefinition | null;
+
+  /** Sorted post-consume hook registrations (REQ-SYS-144, ALQ-F2-11). */
+  readonly onConsumed: ReadonlyArray<RegisteredTurnHook<ConsumeHookFn>>;
+
+  /**
+   * This system's roll resolver (BHR-F2-05), or null when it registered none —
+   * a roll then carries its context and the server rolls the client's formula
+   * as is, with no conditional modifier and no note.
+   */
+  readonly rollResolver: RollResolverDefinition | null;
+
+  /** Sorted `onRollResolved` registrations (REQ-BHR-053/070). */
+  readonly onRollResolved: ReadonlyArray<RegisteredTurnHook<RollResolvedHookFn>>;
 
   /**
    * Derivation step registry.
@@ -303,6 +408,46 @@ function rollDataOverlaps(
 }
 
 // ---------------------------------------------------------------------------
+// Turn-hook accumulator helpers (DEC-SYS-11, REQ-SYS-138/139/141)
+// ---------------------------------------------------------------------------
+
+/**
+ * Register one turn-hook entry into a per-event HookMap.
+ *
+ * Throws on a duplicate `id` WITHIN this event (REQ-SYS-138) — the same `id`
+ * registered for a DIFFERENT event is fine, since each event has its own map.
+ */
+function registerHook<Fn>(
+  map: HookMap<Fn>,
+  systemId: string,
+  eventName: string,
+  id: string,
+  fn: Fn,
+  opts: { priority?: number } | undefined,
+  nextOrder: () => number,
+): void {
+  if (id.length === 0) {
+    throw new Error(`[defineSystem] ${eventName} for "${systemId}": id must be a non-empty string`);
+  }
+  if (map.has(id)) {
+    throw new Error(
+      `[defineSystem] system "${systemId}" registered duplicate "${eventName}" hook id "${id}"`,
+    );
+  }
+  map.set(id, { priority: opts?.priority ?? 0, fn, order: nextOrder() });
+}
+
+/**
+ * Freeze a HookMap into the sorted, inspectable form exposed on SystemModule
+ * (REQ-SYS-139: priority descending, ties broken by registration order).
+ */
+function sortHookMap<Fn>(map: HookMap<Fn>): ReadonlyArray<RegisteredTurnHook<Fn>> {
+  return [...map.entries()]
+    .sort(([, a], [, b]) => b.priority - a.priority || a.order - b.order)
+    .map(([id, entry]) => ({ id, priority: entry.priority, fn: entry.fn }));
+}
+
+// ---------------------------------------------------------------------------
 // defineSystem
 // ---------------------------------------------------------------------------
 
@@ -335,7 +480,25 @@ export function defineSystem(
     combatHooks: null,
     deriveSteps: new DeriveStepRegistry(),
     extended: emptyExtendedAccumulator(),
+    onTurnStart: new Map(),
+    onTurnEnd: new Map(),
+    onRoundStart: new Map(),
+    onRoundEnd: new Map(),
+    onCombatEnd: new Map(),
+    onDamageApplied: new Map(),
+    actorMechanics: null,
+    onConsumed: new Map(),
+    consumeItem: null,
+    rollResolver: null,
+    onRollResolved: new Map(),
   };
+
+  // Monotonic counter shared by every turn-hook event — only used to
+  // tie-break equal priorities WITHIN one event's own map (REQ-SYS-139), so a
+  // single shared counter is equivalent to (and simpler than) six separate
+  // per-event counters.
+  let hookOrder = 0;
+  const nextHookOrder = (): number => hookOrder++;
 
   const registrar: SystemRegistrar = {
     defineModel<S extends ZodType>(spec: SystemDataModelSpec<S>): void {
@@ -400,7 +563,10 @@ export function defineSystem(
         default: def.default,
         label: def.label,
         hint: def.hint,
+        optionLabels: def.optionLabels,
         requiresReload: def.requiresReload,
+        requiresConfirmOnDisable: def.requiresConfirmOnDisable,
+        countAffectedActors: def.countAffectedActors?.bind(def),
         onChange:
           def.onChange !== undefined
             ? (value: unknown) => {
@@ -479,6 +645,118 @@ export function defineSystem(
         );
       }
       acc.combatHooks = hooks;
+
+      // REQ-SYS-141: registerCombatHooks is an ADAPTER — each present
+      // function becomes one entry in the corresponding DEC-SYS-11 registry
+      // with id "legacy" and priority 0. CombatSystemHooks has no
+      // roundEnd/combatEnd equivalent, so only these three are adapted. The
+      // wrapper drops the new TurnHookContext argument: the legacy signature
+      // never had one.
+      //
+      // Called via `hooks.turnStart?.(...)` (never extracted to a bare local)
+      // so @typescript-eslint/unbound-method has nothing to flag — same
+      // "call through the object, don't detach the method" convention as
+      // registries.ts's `def.onChange?.(value)`.
+      if (hooks.turnStart) {
+        registerHook<TurnHookFn>(
+          acc.onTurnStart,
+          manifest.id,
+          "onTurnStart",
+          "legacy",
+          (e) => hooks.turnStart?.(e.combatant, e.combat),
+          { priority: 0 },
+          nextHookOrder,
+        );
+      }
+      if (hooks.turnEnd) {
+        registerHook<TurnHookFn>(
+          acc.onTurnEnd,
+          manifest.id,
+          "onTurnEnd",
+          "legacy",
+          (e) => hooks.turnEnd?.(e.combatant, e.combat),
+          { priority: 0 },
+          nextHookOrder,
+        );
+      }
+      if (hooks.roundStart) {
+        registerHook<RoundHookFn>(
+          acc.onRoundStart,
+          manifest.id,
+          "onRoundStart",
+          "legacy",
+          (e) => hooks.roundStart?.(e.combat),
+          { priority: 0 },
+          nextHookOrder,
+        );
+      }
+    },
+
+    onTurnStart(id: string, fn: TurnHookFn, opts?: { priority?: number }): void {
+      registerHook(acc.onTurnStart, manifest.id, "onTurnStart", id, fn, opts, nextHookOrder);
+    },
+
+    onTurnEnd(id: string, fn: TurnHookFn, opts?: { priority?: number }): void {
+      registerHook(acc.onTurnEnd, manifest.id, "onTurnEnd", id, fn, opts, nextHookOrder);
+    },
+
+    onRoundStart(id: string, fn: RoundHookFn, opts?: { priority?: number }): void {
+      registerHook(acc.onRoundStart, manifest.id, "onRoundStart", id, fn, opts, nextHookOrder);
+    },
+
+    onRoundEnd(id: string, fn: RoundHookFn, opts?: { priority?: number }): void {
+      registerHook(acc.onRoundEnd, manifest.id, "onRoundEnd", id, fn, opts, nextHookOrder);
+    },
+
+    onCombatEnd(id: string, fn: CombatEndHookFn, opts?: { priority?: number }): void {
+      registerHook(acc.onCombatEnd, manifest.id, "onCombatEnd", id, fn, opts, nextHookOrder);
+    },
+
+    onDamageApplied(id: string, fn: DamageAppliedHookFn, opts?: { priority?: number }): void {
+      registerHook(
+        acc.onDamageApplied,
+        manifest.id,
+        "onDamageApplied",
+        id,
+        fn,
+        opts,
+        nextHookOrder,
+      );
+    },
+
+    registerActorMechanics(mechanics: ActorMechanics): void {
+      if (acc.actorMechanics !== null) {
+        throw new Error(
+          `[defineSystem] system "${manifest.id}" called registerActorMechanics more than once`,
+        );
+      }
+      acc.actorMechanics = mechanics;
+    },
+
+    registerConsumeItem(def: ConsumeItemDefinition): void {
+      if (acc.consumeItem !== null) {
+        throw new Error(
+          `[defineSystem] system "${manifest.id}" called registerConsumeItem more than once`,
+        );
+      }
+      acc.consumeItem = def;
+    },
+
+    registerConsumeHook(id: string, fn: ConsumeHookFn, opts?: { priority?: number }): void {
+      registerHook(acc.onConsumed, manifest.id, "registerConsumeHook", id, fn, opts, nextHookOrder);
+    },
+
+    registerRollResolver(def: RollResolverDefinition): void {
+      if (acc.rollResolver !== null) {
+        throw new Error(
+          `[defineSystem] system "${manifest.id}" called registerRollResolver more than once`,
+        );
+      }
+      acc.rollResolver = def;
+    },
+
+    onRollResolved(id: string, fn: RollResolvedHookFn, opts?: { priority?: number }): void {
+      registerHook(acc.onRollResolved, manifest.id, "onRollResolved", id, fn, opts, nextHookOrder);
     },
   };
 
@@ -489,10 +767,20 @@ export function defineSystem(
     modelsMap.set(modelKey(model.documentType, model.subtype), model);
   }
 
+  const turnHooks: TurnHookRegistrations = {
+    onTurnStart: sortHookMap(acc.onTurnStart),
+    onTurnEnd: sortHookMap(acc.onTurnEnd),
+    onRoundStart: sortHookMap(acc.onRoundStart),
+    onRoundEnd: sortHookMap(acc.onRoundEnd),
+    onCombatEnd: sortHookMap(acc.onCombatEnd),
+    onDamageApplied: sortHookMap(acc.onDamageApplied),
+  };
+
   const combat: SystemCombatConfig = {
     initiativeFormulas: acc.initiativeFormulas,
     initiativeCompares: acc.initiativeCompares,
     hooks: acc.combatHooks,
+    turnHooks,
   };
 
   const registries: ExtendedSystemRegistries = {
@@ -511,6 +799,11 @@ export function defineSystem(
     manifest: validManifest,
     models: modelsMap,
     combat,
+    actorMechanics: acc.actorMechanics,
+    consumeItem: acc.consumeItem,
+    onConsumed: sortHookMap(acc.onConsumed),
+    rollResolver: acc.rollResolver,
+    onRollResolved: sortHookMap(acc.onRollResolved),
     deriveSteps: acc.deriveSteps,
     registries,
   };

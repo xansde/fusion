@@ -64,13 +64,15 @@ import { DOCUMENT_NAMES_PT } from "./documentNamesPt.js";
 
 /**
  * The 16 canonical PF2e skills, EN → pt-BR. Deliberately a local copy rather
- * than importing `packages/client/src/lib/sheets/pf2e/skillNames.ts`: that
- * module lives in the sheets/pf2e "territory" (see its own header comment on
- * avoiding cross-territory edits) while this one lives in compendium/,
- * mirroring documentDetails.ts's existing SAVE_LABELS_PT pattern of a small
- * local map rather than a cross-module import for a handful of fixed terms.
+ * than importing `packages/client/src/systems/pf2e/lib/sheets/pf2e/skillNames.ts`:
+ * since F3 (DEC-SEP-02) that module lives in the `systems/pf2e/` satellite
+ * territory the core (compendium/ included) must never import outside the
+ * one registered entry point (`systems/pf2e/index.ts`) — the dependency-cruiser
+ * rule `client-core-must-not-import-system-sheets` enforces it. This mirrors
+ * documentDetails.ts's existing SAVE_LABELS_PT pattern of a small local map
+ * rather than a cross-module import for a handful of fixed terms.
  */
-const SKILL_NAMES_PT: Readonly<Record<string, string>> = Object.freeze({
+export const SKILL_NAMES_PT: Readonly<Record<string, string>> = Object.freeze({
   acrobatics: "Acrobacia",
   arcana: "Arcanismo",
   athletics: "Atletismo",
@@ -136,14 +138,14 @@ const RANK_SUBJECT_VOCAB_PT: Readonly<Record<string, string>> = Object.freeze({
   "a skill used to recall knowledge": "uma perícia usada para Recordar Conhecimento",
   "a recall knowledge skill": "uma perícia de Recordar Conhecimento",
   "a decipher writing skill": "uma perícia de Decifrar Escrita",
-  "a lore skill": "uma perícia de Saber",
+  "a lore skill": "uma perícia de Conhecimento",
   "at least one skill": "pelo menos uma perícia",
   "your deity's favoured weapon": "a arma favorita da sua divindade",
   "your deity's favored weapon": "a arma favorita da sua divindade",
   "clan daggers": "adagas de clã",
   "the weapon you chose for unconventional weaponry":
     "a arma escolhida em Armamento Não Convencional",
-  "lore about a specific terrain": "Saber sobre um terreno específico",
+  "lore about a specific terrain": "Conhecimento sobre um terreno específico",
 });
 
 /**
@@ -204,6 +206,10 @@ const CURATED_PREREQUISITE_PT: Readonly<Record<string, string>> = Object.freeze(
   "curriculum spells": "magias de currículo",
   "assurance in that skill": "Garantia na mesma perícia",
   "medium size": "tamanho Médio",
+  // Core #288 (spec 31, DEC-BC-05): the sheet marks a feat whose only requirement is a size, so the mark
+  // has to read in pt-BR too. Scurry! (Tiny size) and Enlarged Chassis (Medium or Small size).
+  "tiny size": "tamanho Minúsculo",
+  "medium or small size": "tamanho Médio ou Pequeno",
   "mature animal companion": "companheiro animal maduro",
   "courageous anthem": "hino corajoso",
   "touch of the void": "toque do vazio",
@@ -348,7 +354,7 @@ function resolveRankSubjectItem(raw: string): string | null {
   const trimmed = raw.trim();
   if (isSkillWord(trimmed)) return SKILL_NAMES_PT[trimmed.toLowerCase()] ?? null;
   const lore = loreMatch(trimmed);
-  if (lore !== null) return lore ? `Saber (${lore})` : "Saber";
+  if (lore !== null) return lore ? `Conhecimento (${lore})` : "Conhecimento";
   if (isPerception(trimmed)) return "Percepção";
   const save = savesMatch(trimmed);
   if (save) return `salvaguardas de ${save}`;

@@ -18,11 +18,15 @@ export default defineConfig({
   resolve: {
     alias: {
       "@fusion/shared": resolve(__dirname, "../shared/src/index.ts"),
-      "@fusion/system-etmos": resolve(__dirname, "../../systems/etmos/src/index.ts"),
+      $lib: resolve(__dirname, "src/lib"),
     },
   },
   test: {
     name: "client",
+    // threads, not forks: the root config (vitest.config.ts) makes forks
+    // workers reusable across files for the server; this project's mocks and
+    // module state need a fresh worker per file, which threads still give.
+    pool: "threads",
     environment: "node",
     include: ["src/**/__tests__/**/*.test.ts"],
     // FIX-7: socket.test.ts and worldSync.test.ts exercise real socket.io

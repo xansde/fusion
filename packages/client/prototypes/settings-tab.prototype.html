@@ -1,0 +1,704 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<!-- Atualizado para a linguagem visual de 22/10/2026 (lane ui-gaveta). Fonte dos tokens: packages/client/src/styles/base.css. -->
+<title>PROTOTYPE — Aba Configurações (versão final da spec 37)</title>
+<!--
+  PROTOTYPE — throwaway. Estado FINAL da aba Configurações depois do grill de
+  2026-08-15. Não é mais um comparador de variantes: é a tela decidida, para
+  validação. A spec correspondente é specs/37-configuracoes.md.
+
+  CHASSI (spec 36): variante C aprovada — abas físicas à esquerda da gaveta,
+  movendo junto; sem chevron e sem X (recolher = clicar no ícone ativo,
+  DEC-GAV-03); sem atalhos (DEC-GAV-05); 300px + 44px (DEC-GAV-04).
+  Configurações no grupo "all", ancorada no RODAPÉ do trilho (DEC-GAV-09).
+
+  A ABA (spec 37):
+   · índice e seção, com chevron para voltar (SVG, nunca caractere), sem ícones
+     de seção no índice (DEC-CFG-04);
+   · nada abre janela flutuante; tudo em uma coluna (REQ-CFG-013);
+   · jogador vê UMA entrada: Minhas preferências (DEC-CFG-05);
+   · Minhas preferências é 100% local e sem idioma (DEC-CFG-06). DECISÃO DE 22/10/2026
+     (emenda a DEC-CFG-06): ganhou a seção "Tema" no topo, com três rádios — Escuro,
+     Claro (experimental), Seguir o sistema. Vale só para este navegador. Aqui os
+     rádios aplicam o tema de verdade, junto com o botão "Tema:" do canto;
+   · Mundo renderiza só o que o sistema declarou (DEC-CFG-07) — troque o sistema
+     no rodapé para ver o estado vazio;
+   · arquétipo livre e multiclasse por nível são settings de MUNDO (DEC-CFG-08),
+     e desligar pede confirmação com a contagem (DEC-CFG-09);
+   · permissões: uma linha por permissão, nunca matriz (REQ-CFG-040);
+   · Mods só para o GM, e existe mesmo vazia (DEC-CFG-01/REQ-CFG-060);
+   · nenhum papel "Assistente" — extinto pela issue #133.
+
+  Não é código de produção; não importar nada daqui sem reescrever.
+-->
+<style>
+/* ===== BLOCO DE TOKENS (copiar integral para o <style> de cada protótipo) ===== */
+@font-face{font-family:"Atkinson Hyperlegible Next";font-style:normal;font-display:swap;font-weight:200 800;src:url("../src/styles/fonts/atkinson-hyperlegible-next-latin-wght-normal.woff2") format("woff2")}
+@font-face{font-family:"Atkinson Hyperlegible Mono";font-style:normal;font-display:swap;font-weight:200 800;src:url("../src/styles/fonts/atkinson-hyperlegible-mono-latin-wght-normal.woff2") format("woff2")}
+:root {
+  color-scheme: dark;
+
+  /* Surfaces: warm charcoal, three flat steps. */
+  --fusion-bg: #141311;
+  --fusion-surface: #1c1b18;
+  --fusion-surface-alt: #25231f;
+  --fusion-input-bg: #11100e;
+  --fusion-border: #3b3830;
+  --fusion-border-strong: #575245;
+
+  /* Text: off-white, never #fff. Muted and subtle stay AA on every surface. */
+  --fusion-text: #ebe5d6;
+  --fusion-text-muted: #b8b09e;
+  --fusion-text-subtle: #9a927f;
+
+  /* The one accent — brass. Interactive and "selected" only, never decoration. */
+  --fusion-accent: #d6a24a;
+  --fusion-accent-hover: #e4b765;
+  --fusion-accent-dim: rgba(214, 162, 74, 0.16);
+  --fusion-on-accent: #1a1408;
+
+  /* Semantic */
+  --fusion-success: #7cc395;
+  --fusion-warning: #e8925a;
+  --fusion-danger: #ec7468;
+  --fusion-info: #7fb2dc;
+  --fusion-magic: #b9a0ea;
+
+  /* Semantic washes — subtle tinted fills for badges / states */
+  --fusion-success-dim: rgba(124, 195, 149, 0.15);
+  --fusion-warning-dim: rgba(232, 146, 90, 0.15);
+  --fusion-danger-dim: rgba(236, 116, 104, 0.15);
+  --fusion-info-dim: rgba(127, 178, 220, 0.15);
+  --fusion-magic-dim: rgba(185, 160, 234, 0.15);
+
+  /* Chat system card (A022, spec 38, DEC-ACH-02/03 + REQ-ACH-025): a card's left border is
+     this fixed blue regardless of sender, so "this is a system card" reads apart from
+     "this is <someone>'s message". Not derived from the accent/semantic tones on purpose —
+     those already carry meaning in chat (crit, fumble, blind). */
+  --fusion-chat-sys: #6fa6cc;
+
+  /* Focus ring: its own colour, never the accent, so focus never reads as "selected". */
+  --fusion-focus: #9ccaff;
+
+  /* Elevation: one soft shadow, for floating windows, popovers and menus only. */
+  --fusion-shadow-modal: 0 12px 32px rgba(0, 0, 0, 0.45);
+  --fusion-shadow-popover: 0 6px 18px rgba(0, 0, 0, 0.35);
+
+  /* Proficiency (TEML — Destreinado, Treinado, Expert, Mestre, Lendário). */
+  --fusion-prof-u: var(--fusion-text-subtle);
+  --fusion-prof-t: var(--fusion-info);
+  --fusion-prof-e: var(--fusion-success);
+  --fusion-prof-m: var(--fusion-accent);
+  --fusion-prof-l: var(--fusion-magic);
+
+  --fusion-prof-u-bg: rgba(154, 146, 127, 0.14);
+  --fusion-prof-t-bg: var(--fusion-info-dim);
+  --fusion-prof-e-bg: var(--fusion-success-dim);
+  --fusion-prof-m-bg: var(--fusion-accent-dim);
+  --fusion-prof-l-bg: var(--fusion-magic-dim);
+
+  --fusion-prof-u-border: var(--fusion-border);
+  --fusion-prof-t-border: rgba(127, 178, 220, 0.45);
+  --fusion-prof-e-border: rgba(124, 195, 149, 0.45);
+  --fusion-prof-m-border: rgba(214, 162, 74, 0.45);
+  --fusion-prof-l-border: rgba(185, 160, 234, 0.45);
+
+  /* Typography. rem sizes (the reader's browser zoom wins); nothing below xs. */
+  --fusion-font:
+    "Atkinson Hyperlegible Next", system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial,
+    sans-serif;
+  --fusion-font-mono:
+    "Atkinson Hyperlegible Mono", ui-monospace, "Cascadia Code", "Source Code Pro", Menlo, Consolas,
+    monospace;
+  --fusion-text-xs: 0.8125rem; /* 13px — captions, badges: the floor */
+  --fusion-text-sm: 0.875rem; /* 14px — dense lists, secondary text */
+  --fusion-text-base: 0.9375rem; /* 15px — body */
+  --fusion-text-md: 1rem; /* 16px — reading text (journal, descriptions) */
+  --fusion-text-lg: 1.125rem; /* 18px — section titles */
+  --fusion-text-xl: 1.375rem; /* 22px — window / sheet titles */
+  --fusion-text-2xl: 1.75rem; /* 28px — the big number of a stat or a roll */
+  --fusion-leading: 1.5;
+  --fusion-leading-tight: 1.25;
+  --fusion-tracking: 0.012em;
+  --fusion-word-spacing: 0.06em;
+  --fusion-weight-regular: 400;
+  --fusion-weight-medium: 500;
+  --fusion-weight-bold: 700;
+  /* Readable line length for prose. */
+  --fusion-measure: 68ch;
+
+  /* Spacing (4px grid) */
+  --fusion-space-1: 4px;
+  --fusion-space-2: 8px;
+  --fusion-space-3: 12px;
+  --fusion-space-4: 16px;
+  --fusion-space-5: 20px;
+  --fusion-space-6: 24px;
+  --fusion-space-8: 32px;
+
+  /* Radii: small and few. Pills only for counters. */
+  --fusion-radius-sm: 3px;
+  --fusion-radius: 6px;
+  --fusion-radius-lg: 8px;
+  --fusion-radius-pill: 999px;
+
+  /* Touch target floor (mouse and finger). */
+  --fusion-target: 40px;
+
+  /* Motion */
+  --fusion-transition: 150ms ease;
+
+  /* Layout.
+     The side drawer is one fixed width for every tab (REQ-GAV-012, DEC-GAV-04):
+     300px of panel plus a 44px rail, and no user resize — a tab that needs more
+     room opens a floating window instead of stretching the drawer. */
+  --fusion-sidebar-width: 300px;
+  --fusion-sidebar-rail-width: 44px;
+  --fusion-header-height: 48px;
+
+  /* Layer scale (spec 11 REQ-UIF-008; spec 53 §2.7 — BAR-F1-03).
+     The z-index of the shell's layers, declared in one place so nobody hard-codes a number:
+
+       canvas
+       < scene notice               60  literal in ScenePrepareNotice.svelte
+       < action bar                 70  --fusion-z-actionbar
+       < side drawer                90  literal in Sidebar.svelte
+       < header                    100  literal in TableScreen.svelte
+       < floating windows         101+  counted up by the window manager, inside the host
+       < window host               200  --fusion-z-windows
+       < tooltip, popover          400  --fusion-z-tooltip
+       < context menu              410  --fusion-z-menu
+
+     Tooltip, popover and menu are portaled to <body> (lib/ui/floatingLayer.ts), so these
+     numbers are compared with the window host's own: the host is a stacking context at
+     200, and a layer rendered *inside* a window could never rise above it.
+     They also clear the in-page modals that still use literals (token dialogs 200/201, file
+     picker 300/301), so a tooltip or menu opened from inside one stays visible. REQ-UIF-008
+     wants modals above menus and tooltips; that is for the day modals get tokens of their own
+     (above 410) — a native <dialog> is already above everything, in the top layer. */
+  --fusion-z-actionbar: 70;
+  --fusion-z-windows: 200;
+  --fusion-z-tooltip: 400;
+  --fusion-z-menu: 410;
+
+  /* Combat turn head (spec 40, DEC-CBA-02 / REQ-CBA-021).
+     The head of the turn is one fixed height for every participant — a new condition, a
+     long name or a health bar must never move the advance control, which is anchored to
+     the footer strip below (RNF-CBA-03). Mirrored in TS by TURN_HEAD_HEIGHT_REM /
+     TURN_HEAD_FOOTER_HEIGHT_REM in lib/combat/turnHead.svelte.ts. */
+  --fusion-combat-turn-head-height: 6.5rem;
+  --fusion-combat-turn-head-footer-height: 2.25rem;
+
+  /* Condition tone (DEC-CTT-11, REQ-SYS-043 / REQ-CTT-031).
+     The colour of a condition chip says what the condition does to whoever carries it,
+     never how grave it is: green helps, red hinders, purple is a situation (detection,
+     attitude, control). Aliases rather than raw colours so the combat tab (REQ-CBA-050)
+     and the contacts tab paint the same three tones. The `-dim` fills are the emphasis of
+     a critical condition (REQ-CTT-032) — emphasis on the tone it already has, never a
+     fourth colour. */
+  --fusion-condition-benefit: var(--fusion-success);
+  --fusion-condition-harm: var(--fusion-danger);
+  --fusion-condition-special: var(--fusion-magic);
+  --fusion-condition-benefit-dim: var(--fusion-success-dim);
+  --fusion-condition-harm-dim: var(--fusion-danger-dim);
+  --fusion-condition-special-dim: var(--fusion-magic-dim);
+
+  /* The "no ar" head of the Cenas tab is one fixed height for every state
+     (REQ-CEN-010/013): a long scene name, a missing background image or the
+     environment row must never move the controls the GM presses all session. */
+  --fusion-scene-head-height: 132px;
+}
+
+:root[data-theme="light"] {
+  color-scheme: light;
+
+  --fusion-bg: #efe9dc;
+  --fusion-surface: #f9f6ef;
+  --fusion-surface-alt: #f1ebdf;
+  --fusion-input-bg: #fffdf8;
+  --fusion-border: #d3c9b5;
+  --fusion-border-strong: #b0a48c;
+
+  --fusion-text: #29251f;
+  --fusion-text-muted: #554e42;
+  --fusion-text-subtle: #6e665a;
+
+  --fusion-accent: #8a5a12;
+  --fusion-accent-hover: #6f480c;
+  --fusion-accent-dim: rgba(138, 90, 18, 0.12);
+  --fusion-on-accent: #fffaf0;
+
+  --fusion-success: #2e7448;
+  --fusion-warning: #a14f12;
+  --fusion-danger: #b0352b;
+  --fusion-info: #23628f;
+  --fusion-magic: #6a46b0;
+  --fusion-success-dim: rgba(46, 116, 72, 0.12);
+  --fusion-warning-dim: rgba(161, 79, 18, 0.12);
+  --fusion-danger-dim: rgba(176, 53, 43, 0.12);
+  --fusion-info-dim: rgba(35, 98, 143, 0.12);
+  --fusion-magic-dim: rgba(106, 70, 176, 0.12);
+
+  --fusion-chat-sys: #2d6f99;
+  --fusion-focus: #1d5fa8;
+
+  --fusion-shadow-modal: 0 12px 32px rgba(60, 45, 20, 0.22);
+  --fusion-shadow-popover: 0 6px 18px rgba(60, 45, 20, 0.18);
+
+  --fusion-prof-u-bg: rgba(110, 102, 90, 0.1);
+  --fusion-prof-t-border: rgba(35, 98, 143, 0.4);
+  --fusion-prof-e-border: rgba(46, 116, 72, 0.4);
+  --fusion-prof-m-border: rgba(138, 90, 18, 0.4);
+  --fusion-prof-l-border: rgba(106, 70, 176, 0.4);
+}
+
+/* reset + base do protótipo (sem overflow:hidden; o protótipo rola) */
+*,*::before,*::after{box-sizing:border-box}
+html,body{margin:0;min-height:100%}
+body{background:var(--fusion-bg);color:var(--fusion-text);font-family:var(--fusion-font);font-size:var(--fusion-text-base);line-height:var(--fusion-leading);letter-spacing:var(--fusion-tracking);word-spacing:var(--fusion-word-spacing);font-variant-numeric:tabular-nums;text-align:left;-webkit-font-smoothing:antialiased}
+button,input,select,textarea{font-family:inherit;font-size:inherit;letter-spacing:inherit;word-spacing:inherit;color:inherit}
+h1,h2,h3,h4,h5,h6{font-weight:var(--fusion-weight-bold);line-height:var(--fusion-leading-tight);color:var(--fusion-text);margin:0}
+:focus-visible{outline:2px solid var(--fusion-focus);outline-offset:2px}
+@media (prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:.01ms!important;transition-duration:.01ms!important}}
+.svg-i{width:1em;height:1em;flex:none;fill:none;stroke:currentColor;stroke-width:1.75;stroke-linecap:round;stroke-linejoin:round}
+.theme-toggle{position:fixed;top:8px;right:8px;z-index:9999;min-height:var(--fusion-target);padding:0 var(--fusion-space-3);background:var(--fusion-surface-alt);color:var(--fusion-text);border:1px solid var(--fusion-border-strong);border-radius:var(--fusion-radius);font-size:var(--fusion-text-sm);cursor:pointer}
+/* ===== fim do bloco de tokens ===== */
+
+
+  html,body{height:100%;overflow:hidden}
+
+  /* ---------- App shell (mock) ---------- */
+  .header{height:var(--fusion-header-height);display:flex;align-items:center;gap:var(--fusion-space-3);padding:0 9rem 0 var(--fusion-space-3);background:var(--fusion-surface);border-bottom:1px solid var(--fusion-border);position:relative;z-index:200;font-size:var(--fusion-text-sm)}
+  .header .bolt{color:var(--fusion-warning);display:grid;place-items:center;font-size:var(--fusion-text-lg)}
+  .header .world{font-weight:var(--fusion-weight-bold)}
+  .header .pill{display:inline-flex;align-items:center;gap:var(--fusion-space-1);background:var(--fusion-accent-dim);border:1px solid var(--fusion-accent);color:var(--fusion-accent);border-radius:var(--fusion-radius-sm);padding:0 var(--fusion-space-2);font-size:var(--fusion-text-xs);font-weight:var(--fusion-weight-bold);min-height:24px}
+  .header .spacer{flex:1}
+  .header .status{color:var(--fusion-text-muted);font-size:var(--fusion-text-xs);display:flex;align-items:center;gap:var(--fusion-space-1)}
+  .header .dot{width:8px;height:8px;border-radius:50%;background:var(--fusion-success)}
+  .header .who{display:inline-flex;align-items:center;gap:var(--fusion-space-1);background:var(--fusion-surface-alt);border:1px solid var(--fusion-border);border-radius:var(--fusion-radius-sm);padding:0 var(--fusion-space-2);min-height:28px;font-size:var(--fusion-text-xs)}
+  .header .who .dot{background:var(--fusion-danger)}
+  .header .who.player .dot{background:var(--fusion-success)}
+  .header .who .role{color:var(--fusion-text-muted)}
+  .header .btn{background:var(--fusion-surface-alt);border:1px solid var(--fusion-border);color:var(--fusion-text);border-radius:var(--fusion-radius-sm);padding:0 var(--fusion-space-3);min-height:var(--fusion-target);font-size:var(--fusion-text-sm);cursor:pointer}
+  .stage{position:absolute;top:var(--fusion-header-height);left:0;right:0;bottom:0;background:var(--fusion-bg);display:grid;place-items:center}
+  .stage .art{width:44vh;height:44vh;border-radius:var(--fusion-radius);background:var(--fusion-info-dim);border:1px solid var(--fusion-info);display:grid;place-items:center}
+  .stage .art .house{width:60%;height:60%;background:var(--fusion-text);clip-path:polygon(50% 0,100% 40%,88% 40%,88% 100%,12% 100%,12% 40%,0 40%);display:grid;place-items:center}
+  .stage .art .star{font-size:9vh;color:var(--fusion-warning);margin-top:22%;display:grid}
+
+  /* ---------- Chassi C (spec 36) ---------- */
+  .tabbtn{position:relative;display:grid;place-items:center;background:none;border:0;color:var(--fusion-text-muted);cursor:pointer;padding:0;min-width:var(--fusion-target);min-height:var(--fusion-target);font-size:20px;transition:color var(--fusion-transition),background var(--fusion-transition)}
+  .tabbtn:hover{color:var(--fusion-text)}
+  .tabbtn .badge{position:absolute;top:2px;right:2px;min-width:18px;height:18px;padding:0 var(--fusion-space-1);border-radius:var(--fusion-radius-pill);background:var(--fusion-danger);color:var(--fusion-bg);font-size:var(--fusion-text-xs);font-weight:var(--fusion-weight-bold);display:grid;place-items:center;line-height:1}
+  .tabbtn .badge.combat{background:var(--fusion-warning-dim);border:1px solid var(--fusion-warning);color:var(--fusion-warning)}
+  .tabbtn .badge .svg-i{width:12px;height:12px}
+  .tabbtn .tip{position:absolute;right:calc(100% + 10px);top:50%;transform:translateY(-50%);background:var(--fusion-surface-alt);border:1px solid var(--fusion-border-strong);color:var(--fusion-text);padding:var(--fusion-space-1) var(--fusion-space-2);border-radius:var(--fusion-radius-sm);font-size:var(--fusion-text-xs);white-space:nowrap;opacity:0;pointer-events:none;transition:opacity var(--fusion-transition);box-shadow:var(--fusion-shadow-popover);z-index:5}
+  .tabbtn:hover .tip,.tabbtn:focus-visible .tip{opacity:1}
+  .sidebar{position:absolute;top:var(--fusion-header-height);right:0;bottom:0;display:flex;z-index:90}
+  .tabs{width:var(--fusion-sidebar-rail-width);display:flex;flex-direction:column;padding:10px 0;gap:3px;align-items:flex-end}
+  .tabs .tabbtn{width:var(--fusion-sidebar-rail-width);height:44px;border:1px solid var(--fusion-border);border-right:0;border-radius:var(--fusion-radius) 0 0 var(--fusion-radius);background:var(--fusion-surface-alt);color:var(--fusion-text-muted)}
+  .tabs .tabbtn:hover{color:var(--fusion-text)}
+  .tabs .tabbtn.is-active{background:var(--fusion-surface);color:var(--fusion-accent);border-color:var(--fusion-accent);z-index:2;font-size:22px}
+  .is-open .tabs .tabbtn.is-active{margin-right:-1px;width:calc(var(--fusion-sidebar-rail-width) + 1px);border-right:1px solid var(--fusion-surface)}
+  .tabs .grp{display:flex;flex-direction:column;gap:3px;align-items:flex-end}
+  .tabs .grp.gm{margin-top:14px;position:relative}
+  .tabs .grp.gm::before{content:"";position:absolute;top:-8px;right:6px;width:28px;height:1px;background:var(--fusion-border)}
+  .tabs .grp.gm .tabbtn{border-color:var(--fusion-danger-dim)}
+  .tabs .grp.gm .tabbtn.is-active{border-color:var(--fusion-accent)}
+  .tabs .foot{margin-top:auto;position:relative;display:flex;flex-direction:column;gap:3px;align-items:flex-end}
+  .tabs .foot::before{content:"";position:absolute;top:-8px;right:6px;width:28px;height:1px;background:var(--fusion-border)}
+  .panel{width:var(--fusion-sidebar-width);background:var(--fusion-surface);border-left:1px solid var(--fusion-accent);display:none;flex-direction:column}
+  .is-open .panel{display:flex}
+  .panel-head{display:flex;align-items:center;gap:var(--fusion-space-1);min-height:var(--fusion-target);padding:var(--fusion-space-2) var(--fusion-space-3);border-bottom:1px solid var(--fusion-accent-dim);font-size:var(--fusion-text-md);font-weight:var(--fusion-weight-bold);color:var(--fusion-text)}
+  .panel-head .back{display:grid;place-items:center;min-width:var(--fusion-target);min-height:var(--fusion-target);margin-left:calc(var(--fusion-space-2) * -1);background:none;border:0;color:var(--fusion-accent);cursor:pointer;font-size:20px;padding:0;border-radius:var(--fusion-radius-sm)}
+  .panel-body{flex:1;overflow:auto;padding:var(--fusion-space-3);color:var(--fusion-text-muted);font-size:var(--fusion-text-base)}
+  .panel-body::-webkit-scrollbar{width:8px}
+  .panel-body::-webkit-scrollbar-thumb{background:var(--fusion-surface-alt);border-radius:var(--fusion-radius)}
+
+  /* ---------- Conteúdo mock das outras abas ---------- */
+  .row{display:flex;align-items:center;gap:var(--fusion-space-2);min-height:var(--fusion-target);padding:var(--fusion-space-1) var(--fusion-space-2);border-radius:var(--fusion-radius-sm)}
+  .row:hover{background:var(--fusion-surface-alt)}
+  .row .name{color:var(--fusion-text);flex:1;min-width:0}
+  .row .sub{color:var(--fusion-text-subtle);font-size:var(--fusion-text-xs);margin-left:auto}
+  .row .lead{display:grid;place-items:center;font-size:18px;color:var(--fusion-text-muted);flex:none}
+  .st-on{width:10px;height:10px;border-radius:50%;background:var(--fusion-success);flex:none;margin:0 5px}
+  .empty{text-align:center;padding:var(--fusion-space-6) 0 var(--fusion-space-3);color:var(--fusion-text-muted);margin:0}
+  .msg{padding:var(--fusion-space-1) var(--fusion-space-2);border-left:2px solid var(--fusion-border);margin-bottom:var(--fusion-space-2)}
+  .msg b{color:var(--fusion-text)}
+  .msg .time{font-size:var(--fusion-text-xs)}
+  .btnp{background:var(--fusion-accent);color:var(--fusion-on-accent);border:0;border-radius:var(--fusion-radius-sm);padding:0 var(--fusion-space-3);min-height:var(--fusion-target);font-size:var(--fusion-text-sm);font-weight:var(--fusion-weight-bold);cursor:pointer}
+  .btnp:hover{background:var(--fusion-accent-hover)}
+  .btns{background:var(--fusion-surface-alt);color:var(--fusion-text);border:1px solid var(--fusion-border);border-radius:var(--fusion-radius-sm);padding:0 var(--fusion-space-3);min-height:var(--fusion-target);font-size:var(--fusion-text-sm);cursor:pointer}
+  .btnd{background:var(--fusion-danger);color:var(--fusion-bg);border:0;border-radius:var(--fusion-radius-sm);padding:0 var(--fusion-space-3);min-height:var(--fusion-target);font-size:var(--fusion-text-sm);font-weight:var(--fusion-weight-bold);cursor:pointer}
+  .btnp[disabled]{opacity:.45;cursor:not-allowed}
+  .actions{display:flex;gap:var(--fusion-space-2);justify-content:center;flex-wrap:wrap;margin-top:var(--fusion-space-3)}
+
+  /* ---------- Índice (DEC-CFG-04: sem ícone de seção; só o chevron de avançar) ---------- */
+  .idx{display:flex;align-items:center;gap:var(--fusion-space-3);width:100%;min-height:48px;background:none;border:0;border-bottom:1px solid var(--fusion-border);color:var(--fusion-text);font:inherit;padding:var(--fusion-space-2) var(--fusion-space-1);cursor:pointer;text-align:left}
+  .idx:hover{background:var(--fusion-surface-alt)}
+  .idx .txt{flex:1}
+  .idx .txt small{display:block;color:var(--fusion-text-subtle);font-size:var(--fusion-text-xs);font-weight:var(--fusion-weight-regular);margin-top:2px;line-height:var(--fusion-leading)}
+  .idx .go{color:var(--fusion-text-subtle);font-size:18px;display:grid}
+
+  /* ---------- Seções e controles ---------- */
+  .sec{padding:var(--fusion-space-4) 0;border-top:1px solid var(--fusion-border);border-left:0;border-right:0;border-bottom:0;margin:0;min-width:0}
+  .sec:first-child{border-top:0;padding-top:0}
+  .sec-title{font-size:var(--fusion-text-md);font-weight:var(--fusion-weight-bold);color:var(--fusion-text);margin:0 0 var(--fusion-space-2);padding:0}
+  .sec-hint{color:var(--fusion-text-subtle);font-size:var(--fusion-text-xs);line-height:var(--fusion-leading);margin:0 0 var(--fusion-space-2)}
+  .set{display:flex;align-items:center;gap:var(--fusion-space-2);min-height:var(--fusion-target);padding:var(--fusion-space-1) 0;border-bottom:1px solid var(--fusion-border)}
+  .set:last-child{border-bottom:0}
+  .set .lbl{color:var(--fusion-text);flex:1;min-width:0}
+  .set .lbl small{display:block;color:var(--fusion-text-subtle);font-size:var(--fusion-text-xs);font-weight:var(--fusion-weight-regular);margin-top:2px;line-height:var(--fusion-leading)}
+  .set .ctl{flex:0 0 auto;display:flex;align-items:center;gap:var(--fusion-space-1)}
+  .radio{display:flex;align-items:center;gap:var(--fusion-space-3);min-height:var(--fusion-target);padding:0 var(--fusion-space-1);color:var(--fusion-text);cursor:pointer;border-radius:var(--fusion-radius-sm)}
+  .radio:hover{background:var(--fusion-surface-alt)}
+  .radio input{width:20px;height:20px;margin:0;accent-color:var(--fusion-accent);flex:none;cursor:pointer}
+  .toggle{width:52px;min-height:var(--fusion-target);background:none;position:relative;border:0;cursor:pointer;padding:0;flex:0 0 auto}
+  .toggle::before{content:"";position:absolute;top:50%;left:50%;width:36px;height:20px;margin:-10px 0 0 -18px;border-radius:var(--fusion-radius-pill);background:var(--fusion-border-strong);transition:background var(--fusion-transition)}
+  .toggle::after{content:"";position:absolute;top:50%;left:50%;width:14px;height:14px;margin:-7px 0 0 -15px;border-radius:50%;background:var(--fusion-text);transition:margin var(--fusion-transition)}
+  .toggle.on::before{background:var(--fusion-accent)}
+  .toggle.on::after{margin-left:1px;background:var(--fusion-on-accent)}
+  select{background:var(--fusion-input-bg);border:1px solid var(--fusion-border-strong);color:var(--fusion-text);border-radius:var(--fusion-radius-sm);padding:0 var(--fusion-space-2);min-height:var(--fusion-target);font-size:var(--fusion-text-sm)}
+  input[type=range]{width:104px;min-height:var(--fusion-target);accent-color:var(--fusion-accent)}
+  code{font-family:var(--fusion-font-mono);font-size:var(--fusion-text-xs)}
+  .chip{font-size:var(--fusion-text-xs);border-radius:var(--fusion-radius-sm);padding:0 var(--fusion-space-1);border:1px solid;white-space:nowrap;margin-left:var(--fusion-space-1)}
+  .chip.sys{color:var(--fusion-info);border-color:var(--fusion-info)}
+  .chip.mod{color:var(--fusion-accent);border-color:var(--fusion-accent)}
+  .vazio{border:1px dashed var(--fusion-border-strong);border-radius:var(--fusion-radius);padding:var(--fusion-space-4);text-align:center;color:var(--fusion-text-subtle);font-size:var(--fusion-text-sm);line-height:var(--fusion-leading)}
+  .vazio .btnp{margin-top:var(--fusion-space-3)}
+
+  /* confirmação inline — nunca janela (REQ-CFG-013) */
+  .confirm{border-left:3px solid var(--fusion-danger);background:var(--fusion-danger-dim);padding:var(--fusion-space-3);margin:var(--fusion-space-2) 0;color:var(--fusion-text);font-size:var(--fusion-text-sm);line-height:var(--fusion-leading)}
+  .confirm .acts{display:flex;gap:var(--fusion-space-2);margin-top:var(--fusion-space-3)}
+
+  /* usuários */
+  .user{display:flex;align-items:center;gap:var(--fusion-space-2);min-height:var(--fusion-target);padding:var(--fusion-space-2) 0;border-bottom:1px solid var(--fusion-border)}
+  .user:last-child{border-bottom:0}
+  .ava{width:28px;height:28px;border-radius:50%;display:grid;place-items:center;font-size:var(--fusion-text-xs);font-weight:var(--fusion-weight-bold);color:var(--fusion-bg);flex:0 0 auto}
+  .user .info{flex:1;min-width:0}
+  .user .info b{color:var(--fusion-text);font-weight:var(--fusion-weight-bold);display:block;font-size:var(--fusion-text-sm)}
+  .user .info span{color:var(--fusion-text-subtle);font-size:var(--fusion-text-xs);display:inline-flex;align-items:center;gap:var(--fusion-space-1)}
+  .user .on,.user .off{width:8px;height:8px;border-radius:50%;display:inline-block}
+  .user .on{background:var(--fusion-success)}
+  .user .off{background:var(--fusion-text-subtle)}
+  .user .acts{display:flex}
+  .iconbtn{display:grid;place-items:center;min-width:var(--fusion-target);min-height:var(--fusion-target);background:none;border:0;color:var(--fusion-text-muted);cursor:pointer;font-size:18px;padding:0;border-radius:var(--fusion-radius-sm)}
+  .iconbtn:hover{color:var(--fusion-text);background:var(--fusion-surface-alt)}
+  .mod{display:flex;align-items:center;gap:var(--fusion-space-2);min-height:var(--fusion-target);padding:var(--fusion-space-2) 0;border-bottom:1px solid var(--fusion-border)}
+  .mod:last-child{border-bottom:0}
+  .mod .info{flex:1;min-width:0}
+  .mod .info b{color:var(--fusion-text);font-weight:var(--fusion-weight-bold);display:block;font-size:var(--fusion-text-sm)}
+  .mod .info span{color:var(--fusion-text-subtle);font-size:var(--fusion-text-xs)}
+
+  /* ---------- Switcher (não faz parte do design) ---------- */
+  .switcher{position:fixed;left:50%;bottom:var(--fusion-space-4);transform:translateX(-50%);z-index:9999;display:flex;align-items:center;gap:var(--fusion-space-2);background:var(--fusion-surface-alt);color:var(--fusion-text);border:1px solid var(--fusion-border-strong);border-radius:var(--fusion-radius-lg);padding:var(--fusion-space-1) var(--fusion-space-2);box-shadow:var(--fusion-shadow-popover);font-size:var(--fusion-text-sm)}
+  .switcher button{border:1px solid var(--fusion-border);background:var(--fusion-surface);color:var(--fusion-text);min-height:var(--fusion-target);padding:0 var(--fusion-space-3);border-radius:var(--fusion-radius);cursor:pointer;font-size:var(--fusion-text-xs);font-weight:var(--fusion-weight-bold)}
+  .switcher .lbl{padding:0 var(--fusion-space-2);color:var(--fusion-text-muted);font-size:var(--fusion-text-xs);max-width:230px}
+</style>
+</head>
+<body>
+<button type="button" class="theme-toggle" id="theme-toggle" aria-label="Alternar tema">Tema: escuro</button>
+<script>
+  (function () {
+    var b = document.getElementById("theme-toggle");
+    function paint() { b.textContent = "Tema: " + (document.documentElement.dataset.theme === "light" ? "claro" : "escuro"); }
+    b.addEventListener("click", function () {
+      document.documentElement.dataset.theme = document.documentElement.dataset.theme === "light" ? "dark" : "light";
+      paint();
+    });
+    paint();
+  })();
+</script>
+
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <symbol id="i-zap" viewBox="0 0 24 24"><path d="M15.914 4a1.5 1.5 0 00-2.474-1.561l-9 9A1.5 1.5 0 005.5 14h4.002a.5.5 0 01.471.666L8.086 20a1.5 1.5 0 002.475 1.56l9-9A1.5 1.5 0 0018.5 10h-3.997a.5.5 0 01-.472-.667z"/></symbol>
+  <symbol id="i-map" viewBox="0 0 24 24"><path d="M14.106 5.553a2 2 0 0 0 1.788 0l3.659-1.83A1 1 0 0 1 21 4.619v12.764a1 1 0 0 1-.553.894l-4.553 2.277a2 2 0 0 1-1.788 0l-4.212-2.106a2 2 0 0 0-1.788 0l-3.659 1.83A1 1 0 0 1 3 19.381V6.618a1 1 0 0 1 .553-.894l4.553-2.277a2 2 0 0 1 1.788 0z"/><path d="M15 5.764v15"/><path d="M9 3.236v15"/></symbol>
+  <symbol id="i-star" viewBox="0 0 24 24"><path d="M11.525 2.295a.53.53 0 0 1 .95 0l2.31 4.679a2.123 2.123 0 0 0 1.595 1.16l5.166.756a.53.53 0 0 1 .294.904l-3.736 3.638a2.123 2.123 0 0 0-.611 1.878l.882 5.14a.53.53 0 0 1-.771.56l-4.618-2.428a2.122 2.122 0 0 0-1.973 0L6.396 21.01a.53.53 0 0 1-.77-.56l.881-5.139a2.122 2.122 0 0 0-.611-1.879L2.16 9.795a.53.53 0 0 1 .294-.906l5.165-.755a2.122 2.122 0 0 0 1.597-1.16z"/></symbol>
+  <symbol id="i-message-square" viewBox="0 0 24 24"><path d="M22 17a2 2 0 0 1-2 2H6.828a2 2 0 0 0-1.414.586l-2.202 2.202A.71.71 0 0 1 2 21.286V5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2z"/></symbol>
+  <symbol id="i-users" viewBox="0 0 24 24"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><path d="M16 3.128a4 4 0 0 1 0 7.744"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><circle cx="9" cy="7" r="4"/></symbol>
+  <symbol id="i-swords" viewBox="0 0 24 24"><path d="m13 19 6-6"/><path d="M14.5 17.5 3.586 6.586A2 2 0 013 5.172V3h2.172a2 2 0 011.414.586L17.5 14.5"/><path d="m14.828 6.172 2.586-2.586A2 2 0 0118.828 3H21v2.172a2 2 0 01-.586 1.414l-2.586 2.586"/><path d="m16 16 4 4"/><path d="m19 21 2-2"/><path d="m5 14 4 4"/><path d="m5 21-2-2"/><path d="M7.5 16.5 4 20"/></symbol>
+  <symbol id="i-library" viewBox="0 0 24 24"><path d="m16 6 4 14"/><path d="M12 6v14"/><path d="M8 8v12"/><path d="M4 4v16"/></symbol>
+  <symbol id="i-ghost" viewBox="0 0 24 24"><path d="M15 10v1"/><path d="M7.528 20.472a1.6 1.6 0 012.277 0l1.057 1.056a1.6 1.6 0 002.276 0l1.057-1.056a1.6 1.6 0 012.277 0l1.114 1.114a1.4 1.4 0 002.414-1V10a8 8 0 00-16 0v10.586a1.4 1.4 0 002.414 1z"/><path d="M9 10v1"/></symbol>
+  <symbol id="i-image" viewBox="0 0 24 24"><rect width="18" height="18" x="3" y="3" rx="2" ry="2"/><circle cx="9" cy="9" r="2"/><path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21"/></symbol>
+  <symbol id="i-settings" viewBox="0 0 24 24"><path d="M9.671 4.136a2.34 2.34 0 0 1 4.659 0 2.34 2.34 0 0 0 3.319 1.915 2.34 2.34 0 0 1 2.33 4.033 2.34 2.34 0 0 0 0 3.831 2.34 2.34 0 0 1-2.33 4.033 2.34 2.34 0 0 0-3.319 1.915 2.34 2.34 0 0 1-4.659 0 2.34 2.34 0 0 0-3.32-1.915 2.34 2.34 0 0 1-2.33-4.033 2.34 2.34 0 0 0 0-3.831A2.34 2.34 0 0 1 6.35 6.051a2.34 2.34 0 0 0 3.319-1.915"/><circle cx="12" cy="12" r="3"/></symbol>
+  <symbol id="i-skull" viewBox="0 0 24 24"><path d="m12.5 17-.5-1-.5 1h1z"/><path d="M15 22a1 1 0 0 0 1-1v-1a2 2 0 0 0 1.56-3.25 8 8 0 1 0-11.12 0A2 2 0 0 0 8 20v1a1 1 0 0 0 1 1z"/><circle cx="15" cy="12" r="1"/><circle cx="9" cy="12" r="1"/></symbol>
+  <symbol id="i-paw-print" viewBox="0 0 24 24"><circle cx="11" cy="4" r="2"/><circle cx="18" cy="8" r="2"/><circle cx="20" cy="16" r="2"/><path d="M9 10a5 5 0 0 1 5 5v3.5a3.5 3.5 0 0 1-6.84 1.045Q6.52 17.48 4.46 16.84A3.5 3.5 0 0 1 5.5 10Z"/></symbol>
+  <symbol id="i-user" viewBox="0 0 24 24"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></symbol>
+  <symbol id="i-square-pen" viewBox="0 0 24 24"><path d="M12 3H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.375 2.625a1 1 0 0 1 3 3l-9.013 9.014a2 2 0 0 1-.853.505l-2.873.84a.5.5 0 0 1-.62-.62l.84-2.873a2 2 0 0 1 .506-.852z"/></symbol>
+  <symbol id="i-key-round" viewBox="0 0 24 24"><path d="M2.586 17.414A2 2 0 0 0 2 18.828V21a1 1 0 0 0 1 1h3a1 1 0 0 0 1-1v-1a1 1 0 0 1 1-1h1a1 1 0 0 0 1-1v-1a1 1 0 0 1 1-1h.172a2 2 0 0 0 1.414-.586l.814-.814a6.5 6.5 0 1 0-4-4z"/><circle cx="16.5" cy="7.5" r=".5" fill="currentColor"/></symbol>
+  <symbol id="i-log-out" viewBox="0 0 24 24"><path d="m16 17 5-5-5-5"/><path d="M21 12H9"/><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/></symbol>
+  <symbol id="i-chevron-right" viewBox="0 0 24 24"><path d="m9 18 6-6-6-6"/></symbol>
+  <symbol id="i-chevron-left" viewBox="0 0 24 24"><path d="m15 18-6-6 6-6"/></symbol>
+  <symbol id="i-action-filled" viewBox="0 0 24 24"><polygon points="12 3 21 12 12 21 3 12" fill="currentColor"/></symbol>
+  <symbol id="i-action-free" viewBox="0 0 24 24"><polygon points="12 3 21 12 12 21 3 12" fill="none"/></symbol>
+</svg>
+
+<div class="header">
+  <span class="bolt"><svg class="svg-i" aria-hidden="true"><use href="#i-zap"/></svg></span><span class="world">teste_xande</span><span class="pill"><svg class="svg-i" aria-hidden="true"><use href="#i-map"/></svg>aha</span>
+  <span class="spacer"></span>
+  <span class="status"><span class="dot"></span>Conectado <span>2ms</span></span>
+  <span class="who" id="who"></span>
+  <button class="btn">Sair</button>
+</div>
+<div class="stage"><div class="art"><div class="house"><div class="star"><svg class="svg-i" aria-hidden="true"><use href="#i-star"/></svg></div></div></div></div>
+
+<div id="root"></div>
+
+<div class="switcher">
+  <button id="role">papel</button>
+  <button id="sys">sistema</button>
+  <button id="mods">mods</button>
+  <span class="lbl" id="lbl"></span>
+</div>
+
+<script>
+/* ================= chassi ================= */
+const ic = (n) => `<svg class="svg-i" aria-hidden="true"><use href="#i-${n}"/></svg>`;
+const ICONS = {
+  chat:      ic('message-square'),
+  contacts:  ic('users'),
+  combat:    ic('swords'),
+  compendium:ic('library'),
+  npcs:      ic('ghost'),
+  scenes:    ic('image'),
+  settings:  ic('settings'),
+};
+const TABS = [
+  {id:'chat',      label:'Chat',          group:'all', badge:'3'},
+  {id:'contacts',  label:'Contatos',      group:'all'},
+  {id:'combat',    label:'Combate',       group:'all', badge:ic('swords'), badgeCls:'combat', badgeLabel:'combate em andamento'},
+  {id:'compendium',label:'Compêndio',     group:'all'},
+  {id:'npcs',      label:'NPCs',          group:'gm'},
+  {id:'scenes',    label:'Cenas',         group:'gm'},
+  {id:'settings',  label:'Configurações', group:'all', foot:true},   /* DEC-GAV-09 */
+];
+const TITLE = {chat:'Chat',contacts:'Contatos',combat:'Combate',compendium:'Compêndio',npcs:'NPCs',scenes:'Cenas',settings:'Configurações'};
+const OTHER = {
+  chat: `<div class="msg"><b>Gamemaster</b> · <span class="time">21:04</span><br>Vocês entram na sala do trono…</div>
+    <div class="msg"><b>Fofurinha</b> · <span class="time">21:05</span><br>Rolo Percepção — <b>1d20+7 = 19</b></div>`,
+  contacts: `<div class="row"><span class="lead">${ic('user')}</span><span class="name">Fofurinha</span><span class="sub">Druida 5</span></div>
+    <div class="row"><span class="lead">${ic('user')}</span><span class="name">Tobias</span><span class="sub">Guerreiro 5</span></div>`,
+  combat: `<p class="empty">Nenhum combate ativo.</p><div class="actions"><button class="btnp">Criar combate</button></div>`,
+  compendium: `<div class="row"><span class="name">Talentos</span><span class="sub">1.812</span></div>
+    <div class="row"><span class="name">Magias</span><span class="sub">1.024</span></div>`,
+  npcs: `<div class="row"><span class="lead">${ic('skull')}</span><span class="name">Goblin Guerreiro</span><span class="sub">NPC</span></div>`,
+  scenes: `<div class="row"><span class="st-on"></span><span class="name">Fortaleza</span><span class="sub">ativa</span></div>`,
+};
+
+/* ================= tema (decisão de 22/10/2026: Minhas preferências, seção Tema) ================= */
+const THEME_OPTS = [
+  {v:'dark',   label:'Escuro'},
+  {v:'light',  label:'Claro (experimental)'},
+  {v:'system', label:'Seguir o sistema'},
+];
+const mq = window.matchMedia ? window.matchMedia('(prefers-color-scheme: light)') : null;
+let themePref = document.documentElement.dataset.theme === 'light' ? 'light' : 'dark';
+let selfChange = false;
+function resolveTheme(){ return themePref==='system' ? (mq && mq.matches ? 'light' : 'dark') : themePref; }
+function applyTheme(){
+  selfChange = true;
+  document.documentElement.dataset.theme = resolveTheme();
+  const b = document.getElementById('theme-toggle');
+  if(b) b.textContent = 'Tema: ' + (resolveTheme()==='light' ? 'claro' : 'escuro');
+}
+/* o botão "Tema:" do canto muda o tema por fora: a preferência acompanha */
+new MutationObserver(()=>{
+  if(selfChange){ selfChange=false; return; }
+  themePref = document.documentElement.dataset.theme === 'light' ? 'light' : 'dark';
+  if(active==='settings' && sec==='prefs') render();
+}).observe(document.documentElement,{attributes:true,attributeFilter:['data-theme']});
+if(mq && mq.addEventListener) mq.addEventListener('change',()=>{ if(themePref==='system') applyTheme(); });
+
+/* ================= estado mock ================= */
+const params = new URLSearchParams(location.search);
+let role   = params.get('role')==='player' ? 'player' : 'gm';
+let system = params.get('sys')==='sf2e' ? 'sf2e' : 'pf2e';
+let modsOn = params.get('mods')==='1';
+let active='settings', open=true, sec=null, confirming=null;
+
+/* settings de mundo DECLARADAS pelo sistema (REQ-SYS-047) — a aba não as conhece */
+const DECLARED = {
+  pf2e:[
+    {key:'pf2e.variantRules.freeArchetype', label:'Arquétipo livre', hint:'Um talento de arquétipo extra em todo nível par', on:true,  affected:3},
+    {key:'pf2e.variantRules.classLevels',   label:'Multiclasse por nível', hint:'Divide os níveis entre classes, sem dedicação', on:false, affected:1},
+  ],
+  sf2e:[],
+};
+const PERMS = [
+  {n:'Criar tokens',            r:'Jogador'},
+  {n:'Usar a régua',            r:'Jogador'},
+  {n:'Enviar arquivo',          r:'Mestre'},
+  {n:'Criar macros',            r:'Jogador'},
+  {n:'Ver nome de todo token',  r:'Mestre'},
+];
+const USERS = [
+  {n:'Gamemaster', r:'Mestre',  c:'var(--fusion-danger)',  on:true,  me:true},
+  {n:'Fofurinha',  r:'Jogador', c:'var(--fusion-magic)',   on:true},
+  {n:'Tobias',     r:'Jogador', c:'var(--fusion-success)', on:false},
+];
+const MODS = [
+  {name:'Canvas de mesa',     desc:'Tokens, grid, régua, ping', on:true,  v:'1.0'},
+  {name:'Visão e iluminação', desc:'Paredes, fog, luzes',       on:true,  v:'1.0'},
+  {name:'Minimapa tático',    desc:'Miniatura da cena ativa',   on:false, v:'0.3'},
+  {name:'Mapa de região',     desc:'Mapa do mundo com pinos',   on:true,  v:'0.6'},
+];
+
+const sw = (on, label, extra='') => `<button type="button" role="switch" aria-checked="${on}" aria-label="${label}" class="toggle ${on?'on':''}" ${extra}></button>`;
+
+/* ================= seções ================= */
+function secPrefs(){
+  const mod = modsOn ? `<div class="set"><span class="lbl">Zoom com a roda do mouse<span class="chip mod">mod Canvas</span><small>Some quando o mod é desligado</small></span><span class="ctl">${sw(true,'Zoom com a roda do mouse')}</span></div>` : '';
+  return `
+  <fieldset class="sec">
+    <legend class="sec-title">Tema</legend>
+    ${THEME_OPTS.map(o=>`<label class="radio"><input type="radio" name="theme" value="${o.v}" ${themePref===o.v?'checked':''}><span>${o.label}</span></label>`).join('')}
+    <p class="sec-hint" style="margin:var(--fusion-space-2) 0 0">Vale só para este navegador. O tema claro ainda está sendo ajustado em algumas telas.</p>
+  </fieldset>
+  <section class="sec">
+    <h3 class="sec-title">Volume</h3>
+    <p class="sec-hint">Ficam só neste aparelho — nada é enviado ao servidor.</p>
+    <div class="set"><span class="lbl">Música<small>canal <code>music</code></small></span><span class="ctl"><input type="range" value="45" aria-label="Volume da música"></span></div>
+    <div class="set"><span class="lbl">Ambiente<small>canal <code>environment</code></small></span><span class="ctl"><input type="range" value="60" aria-label="Volume do ambiente"></span></div>
+    <div class="set"><span class="lbl">Interface<small>canal <code>interface</code> — rolagens, chat</small></span><span class="ctl"><input type="range" value="80" aria-label="Volume da interface"></span></div>
+  </section>
+  <section class="sec">
+    <h3 class="sec-title">Avisos</h3>
+    <div class="set"><span class="lbl">Som ao receber mensagem</span><span class="ctl">${sw(true,'Som ao receber mensagem')}</span></div>
+    <div class="set"><span class="lbl">Avisar quando for meu turno</span><span class="ctl">${sw(true,'Avisar quando for meu turno')}</span></div>
+    ${mod}
+  </section>`;
+}
+function secWorld(){
+  const list = DECLARED[system];
+  if(!list.length){
+    return `<div class="vazio">O sistema ativo (<b>${system==='sf2e'?'SF2e':'PF2e'}</b>) não tem regras configuráveis.</div>`;
+  }
+  return `<p class="sec-hint">Valem para todos nesta mesa. Vêm declaradas pelo sistema — a aba não conhece nenhuma delas.</p>
+  ${list.map((s,i)=>{
+    const conf = confirming===i ? `<div class="confirm" role="alert"><b>${s.affected} personagem${s.affected>1?'s têm':' tem'} escolhas que dependem de "${s.label}".</b><br>Desligar deixa essas escolhas ilegítimas até alguém refazer a build.<div class="acts"><button class="btnd" data-confirm="${i}">Desligar mesmo assim</button><button class="btns" data-cancel="1">Cancelar</button></div></div>` : '';
+    return `<div class="set"><span class="lbl">${s.label}<span class="chip sys">PF2e</span><small>${s.hint}</small></span>
+      <span class="ctl">${sw(s.on, s.label, `data-world="${i}"`)}</span></div>${conf}`;
+  }).join('')}`;
+}
+function secPerms(){
+  return `<p class="sec-hint">Papel mínimo para cada ação. Uma linha por permissão — nunca uma matriz.</p>
+  ${PERMS.map(p=>`<div class="set"><span class="lbl">${p.n}</span><span class="ctl"><select aria-label="Papel mínimo: ${p.n}"><option ${p.r==='Jogador'?'selected':''}>Jogador</option><option ${p.r==='Mestre'?'selected':''}>Mestre</option></select></span></div>`).join('')}`;
+}
+function secUsers(){
+  const act = (icon,label)=>`<button class="iconbtn" title="${label}" aria-label="${label}">${ic(icon)}</button>`;
+  return `${USERS.map(u=>`<div class="user"><span class="ava" style="background:${u.c}">${u.n[0]}</span>
+    <span class="info"><b>${u.n}${u.me?' · você':''}</b><span><span class="${u.on?'on':'off'}"></span>${u.r}</span></span>
+    <span class="acts">${act('square-pen','Editar usuário')}${act('key-round','Resetar senha')}${u.on&&!u.me?act('log-out','Desconectar'):''}</span></div>`).join('')}
+  <div class="actions"><button class="btnp">Novo usuário</button></div>`;
+}
+function secMods(){
+  if(!modsOn){
+    return `<div class="vazio">Nenhum mod instalado neste mundo.<br>Mods acrescentam painéis, camadas e regras opcionais.
+      <br><button class="btnp" disabled title="Carga dinâmica é [V2] — REQ-ESC-012">Instalar mod (V2)</button></div>`;
+  }
+  return `<p class="sec-hint">Ligar ou desligar vale para este mundo.</p>
+  ${MODS.map(m=>`<div class="mod"><span class="info"><b>${m.name}</b><span>${m.desc} · v${m.v}</span></span>${sw(m.on, m.name)}</div>`).join('')}
+  <div class="actions"><button class="btnp" disabled>Instalar mod (V2)</button></div>`;
+}
+
+function sections(){
+  const all=[
+    {id:'prefs', title:'Minhas preferências', hint:'Tema, som e avisos, só neste aparelho', body:secPrefs},
+    {id:'world', title:'Mundo',              hint:'Regras que valem para a mesa',    body:secWorld, gm:true},
+    {id:'perms', title:'Permissões',         hint:'O que cada papel pode fazer',     body:secPerms, gm:true},
+    {id:'users', title:'Usuários',           hint:'Contas da mesa',                  body:secUsers, gm:true},
+    {id:'mods',  title:'Mods',               hint: modsOn?'4 instalados':'nenhum instalado', body:secMods, gm:true},
+  ];
+  return all.filter(s=>!s.gm || role==='gm');
+}
+
+/* ================= render ================= */
+function tabButton(t){
+  const badge = t.badge && (active!==t.id || !open) ? `<span class="badge ${t.badgeCls||''}" ${t.badgeLabel?`role="img" aria-label="${t.badgeLabel}"`:''}>${t.badge}</span>` : '';
+  return `<button class="tabbtn ${active===t.id&&open?'is-active':''}" data-tab="${t.id}" aria-label="${t.label}" title="${t.label}">
+    ${ICONS[t.id]}${badge}<span class="tip" aria-hidden="true">${t.label}</span></button>`;
+}
+function settingsBody(){
+  const secs=sections();
+  const cur=secs.find(s=>s.id===sec);
+  if(!cur) return `<div class="panel-body">${secs.map(s=>`<button class="idx" data-sec="${s.id}"><span class="txt">${s.title}<small>${s.hint}</small></span><span class="go">${ic('chevron-right')}</span></button>`).join('')}</div>`;
+  return `<div class="panel-body">${cur.body()}</div>`;
+}
+function render(){
+  const isGm = role==='gm';
+  if(!isGm && ['npcs','scenes'].includes(active)) active='chat';
+  if(!isGm && ['world','perms','users','mods'].includes(sec)) sec=null;
+  const all=TABS.filter(t=>t.group==='all'&&!t.foot), gms=TABS.filter(t=>t.group==='gm'&&isGm), foot=TABS.filter(t=>t.foot);
+  const secs=sections(), cur=secs.find(s=>s.id===sec);
+  const head = (active==='settings'&&cur)
+    ? `<div class="panel-head"><button class="back" data-back title="Voltar ao índice" aria-label="Voltar ao índice">${ic('chevron-left')}</button><span>${cur.title}</span></div>`
+    : `<div class="panel-head"><span>${TITLE[active]}</span></div>`;
+  const bodyHtml = active==='settings' ? settingsBody() : `<div class="panel-body">${OTHER[active]}</div>`;
+
+  document.getElementById('root').innerHTML=`
+    <div class="${open?'is-open':''}"><aside class="sidebar">
+      <nav class="tabs">
+        <div class="grp">${all.map(tabButton).join('')}</div>
+        ${gms.length?`<div class="grp gm">${gms.map(tabButton).join('')}</div>`:''}
+        <div class="foot">${foot.map(tabButton).join('')}</div>
+      </nav>
+      <div class="panel">${head}${bodyHtml}</div>
+    </aside></div>`;
+
+  const who=document.getElementById('who');
+  who.className = isGm?'who':'who player';
+  who.innerHTML = isGm ? '<span class="dot"></span>Gamemaster · <span class="role">Mestre</span>'
+                       : '<span class="dot"></span>Fofurinha · <span class="role">Jogador</span>';
+
+  const root=document.getElementById('root');
+  root.querySelectorAll('[data-tab]').forEach(b=>b.onclick=()=>{
+    const id=b.dataset.tab;
+    if(open&&active===id){open=false;} else {active=id;open=true;}
+    if(id!=='settings') sec=null;
+    confirming=null; render();
+    const nb=root.querySelector('[data-tab="'+id+'"]'); if(nb) nb.focus();
+  });
+  root.querySelectorAll('[data-sec]').forEach(b=>b.onclick=()=>{sec=b.dataset.sec;confirming=null;render();});
+  root.querySelectorAll('[data-back]').forEach(b=>b.onclick=()=>{sec=null;confirming=null;render();});
+  root.querySelectorAll('[data-world]').forEach(b=>b.onclick=()=>{
+    const i=+b.dataset.world, s=DECLARED[system][i];
+    if(s.on){ confirming=i; }      /* desligar pede confirmação (DEC-CFG-09) */
+    else { s.on=true; confirming=null; }   /* ligar aplica na hora */
+    render();
+  });
+  root.querySelectorAll('[data-confirm]').forEach(b=>b.onclick=()=>{DECLARED[system][+b.dataset.confirm].on=false;confirming=null;render();});
+  root.querySelectorAll('[data-cancel]').forEach(b=>b.onclick=()=>{confirming=null;render();});
+  root.querySelectorAll('.toggle:not([data-world])').forEach(b=>b.onclick=()=>{
+    const on=b.classList.toggle('on'); b.setAttribute('aria-checked', String(on));
+  });
+  root.querySelectorAll('input[name="theme"]').forEach(r=>r.onchange=()=>{
+    themePref=r.value; applyTheme(); render();
+    const nr=root.querySelector('input[name="theme"][value="'+r.value+'"]'); if(nr) nr.focus();
+  });
+
+  document.getElementById('role').textContent = isGm?'ver como jogador':'ver como GM';
+  document.getElementById('sys').textContent  = system==='pf2e'?'sistema: PF2e':'sistema: SF2e';
+  document.getElementById('mods').textContent = modsOn?'mods: instalados':'mods: nenhum';
+  document.getElementById('lbl').textContent  = isGm
+    ? 'GM: 5 seções · troque o sistema para ver o estado vazio de Mundo'
+    : 'Jogador: uma entrada só, e nada de mods';
+
+  const u=new URL(location);
+  u.searchParams.set('role',role); u.searchParams.set('sys',system); u.searchParams.set('mods',modsOn?'1':'0');
+  history.replaceState(null,'',u);
+}
+document.getElementById('role').onclick=()=>{role=role==='gm'?'player':'gm';sec=null;confirming=null;render();};
+document.getElementById('sys').onclick =()=>{system=system==='pf2e'?'sf2e':'pf2e';confirming=null;render();};
+document.getElementById('mods').onclick=()=>{modsOn=!modsOn;render();};
+document.addEventListener('keydown',e=>{
+  if(['INPUT','TEXTAREA','SELECT'].includes(document.activeElement.tagName)) return;
+  if(e.key==='p'||e.key==='P'){role=role==='gm'?'player':'gm';sec=null;confirming=null;render();}
+  if(e.key==='s'||e.key==='S'){system=system==='pf2e'?'sf2e':'pf2e';confirming=null;render();}
+  if(e.key==='m'||e.key==='M'){modsOn=!modsOn;render();}
+});
+render();
+</script>
+</body>
+</html>

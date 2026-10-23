@@ -41,6 +41,15 @@ import { registerAuthRoutes } from "../auth/routes.js";
 import { SocketManager } from "../net/socket-manager.js";
 import { CompendiumService, computeActionCost } from "../compendium/index.js";
 import { PROTOCOL_VERSION } from "@fusion/shared";
+import { UserRole } from "../documents/ownership.js";
+
+/**
+ * Viewer role used by the service-level calls below. These synthetic packs
+ * declare no `audience`, so `PackManifestSchema` resolves them to `"all"` and
+ * every role sees them (REQ-CMP-004a); the pack-audience gate itself is proved
+ * in compendium-audience.test.ts.
+ */
+const GM_VIEWER = UserRole.GAMEMASTER;
 
 // ---------------------------------------------------------------------------
 // Fixtures — minimal pack data for testing
@@ -316,7 +325,7 @@ describe("CompendiumService — unit", () => {
     const svc = new CompendiumService();
     svc.discoverPacks(packsDir);
 
-    const packs = svc.listPacks();
+    const packs = svc.listPacks(GM_VIEWER);
     expect(packs).toHaveLength(1);
     expect(packs[0].id).toBe(PACK_ID);
     expect(packs[0].documentCount).toBe(3);
@@ -331,10 +340,10 @@ describe("CompendiumService — unit", () => {
     const svc = new CompendiumService();
     svc.discoverPacks(packsDir);
 
-    const pf2e = svc.listPacks({ systemId: "pf2e" });
+    const pf2e = svc.listPacks(GM_VIEWER, { systemId: "pf2e" });
     expect(pf2e).toHaveLength(1);
 
-    const sf2e = svc.listPacks({ systemId: "sf2e" });
+    const sf2e = svc.listPacks(GM_VIEWER, { systemId: "sf2e" });
     expect(sf2e).toHaveLength(0);
 
     rmSync(packsDir, { recursive: true, force: true });
@@ -347,7 +356,7 @@ describe("CompendiumService — unit", () => {
     const svc = new CompendiumService();
     svc.discoverPacks(packsDir);
 
-    const idx = svc.getPackIndex(PACK_ID);
+    const idx = svc.getPackIndex(GM_VIEWER, PACK_ID);
     expect(idx).not.toBeNull();
     expect(idx!.entries).toHaveLength(3);
     expect(idx!.entries[0]._id).toBe("item001");
@@ -368,7 +377,7 @@ describe("CompendiumService — unit", () => {
     const svc = new CompendiumService();
     svc.discoverPacks(packsDir);
 
-    const idx = svc.getPackIndex(PACK_ID);
+    const idx = svc.getPackIndex(GM_VIEWER, PACK_ID);
     expect(idx).not.toBeNull();
     expect(idx!.entries).toHaveLength(3);
     // Check that indexFields were extracted
@@ -385,7 +394,7 @@ describe("CompendiumService — unit", () => {
     const svc = new CompendiumService();
     svc.discoverPacks(packsDir);
 
-    const results = svc.searchPack(PACK_ID, { packId: PACK_ID, text: "fire" });
+    const results = svc.searchPack(GM_VIEWER, PACK_ID, { packId: PACK_ID, text: "fire" });
     expect(results).not.toBeNull();
     expect(results!.map((e) => e._id)).toEqual(["item002"]);
 
@@ -399,7 +408,7 @@ describe("CompendiumService — unit", () => {
     const svc = new CompendiumService();
     svc.discoverPacks(packsDir);
 
-    const results = svc.searchPack(PACK_ID, {
+    const results = svc.searchPack(GM_VIEWER, PACK_ID, {
       packId: PACK_ID,
       filters: { "system.traits.value": { contains: "fire" } },
     });
@@ -416,7 +425,7 @@ describe("CompendiumService — unit", () => {
     svc.discoverPacks(packsDir);
 
     const uuid = `Compendium.${PACK_ID}.Item.item001`;
-    const doc = svc.getDocument(uuid);
+    const doc = svc.getDocument(GM_VIEWER, uuid);
     expect(doc).not.toBeNull();
     expect(doc!["name"]).toBe("Longsword");
     expect(doc!["type"]).toBe("weapon");
@@ -431,7 +440,7 @@ describe("CompendiumService — unit", () => {
     const svc = new CompendiumService();
     svc.discoverPacks(packsDir);
 
-    const doc = svc.getDocument(`Compendium.${PACK_ID}.Item.nonexistent`);
+    const doc = svc.getDocument(GM_VIEWER, `Compendium.${PACK_ID}.Item.nonexistent`);
     expect(doc).toBeNull();
 
     rmSync(packsDir, { recursive: true, force: true });
@@ -439,7 +448,7 @@ describe("CompendiumService — unit", () => {
 
   it("getDocument returns null for invalid UUID format", () => {
     const svc = new CompendiumService();
-    expect(svc.getDocument("Actor.abc123")).toBeNull();
+    expect(svc.getDocument(GM_VIEWER, "Actor.abc123")).toBeNull();
   });
 
   it("discoverPacks is tolerant of missing/corrupt packs", () => {
@@ -451,7 +460,7 @@ describe("CompendiumService — unit", () => {
     const svc = new CompendiumService();
     // Should not throw
     expect(() => svc.discoverPacks(packsDir)).not.toThrow();
-    expect(svc.listPacks()).toHaveLength(0);
+    expect(svc.listPacks(GM_VIEWER)).toHaveLength(0);
 
     rmSync(packsDir, { recursive: true, force: true });
   });
@@ -578,7 +587,7 @@ describe("getPackIndex — action-cost enrichment", () => {
     const svc = new CompendiumService();
     svc.discoverPacks(packsDir);
 
-    const idx = svc.getPackIndex(ACTION_PACK_ID);
+    const idx = svc.getPackIndex(GM_VIEWER, ACTION_PACK_ID);
     expect(idx).not.toBeNull();
     const byId = new Map(idx!.entries.map((e) => [e._id, e]));
 
@@ -600,7 +609,7 @@ describe("getPackIndex — action-cost enrichment", () => {
     const svc = new CompendiumService();
     svc.discoverPacks(packsDir);
 
-    const idx = svc.getPackIndex(PACK_ID);
+    const idx = svc.getPackIndex(GM_VIEWER, PACK_ID);
     expect(idx).not.toBeNull();
     for (const e of idx!.entries) {
       expect("actionCost" in e.index).toBe(false);

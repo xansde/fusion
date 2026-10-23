@@ -1,0 +1,488 @@
+/**
+ * worldSettingsSection.test.ts — G102 (Fase 9 — Aba Configurações), Seção
+ * Mundo: pure render/write logic (spec 37 §5.4).
+ *
+ * `controlForRow` and `buildSettingWriteOp` never branch on a setting's
+ * `key` or on any system id — only on `row.kind`/`row.id`. What this file
+ * proves is exactly that: a row from a system these functions have NEVER
+ * seen before (`"fake-system"`, never `pf2e`) renders and writes correctly,
+ * with zero lines changed in `worldSettingsSection.ts` to make it happen
+ * (RNF-CFG-02) — and the tab's code carries no knowledge of what that
+ * setting even is (REQ-CFG-031).
+ */
+
+import { describe, expect, it, vi } from "vitest";
+
+import {
+  buildSettingWriteOp,
+  controlForRow,
+  createSettingWriter,
+  type SettingWriteOp,
+  toggleListOption,
+  needsDisableConfirm,
+  resolveBooleanWrite,
+  type WorldSettingRow,
+} from "../worldSettingsSection.js";
+
+// ---------------------------------------------------------------------------
+// A fake system's brand-new declaration — never referenced by name anywhere
+// in worldSettingsSection.ts.
+// ---------------------------------------------------------------------------
+
+const NEW_TOGGLE: WorldSettingRow = {
+  id: null,
+  key: "fake-system:neverSeenBeforeToggle",
+  kind: "boolean",
+  label: "Nunca visto antes",
+  value: false,
+};
+
+const NEW_ENUM: WorldSettingRow = {
+  id: "setting-enum-1",
+  key: "fake-system:verbosityLevel",
+  kind: "enum",
+  options: ["quiet", "loud"],
+  label: "Verbosidade",
+  value: "quiet",
+};
+
+const NEW_NUMBER: WorldSettingRow = {
+  id: "setting-number-1",
+  key: "fake-system:maxRetries",
+  kind: "number",
+  label: "Máximo de tentativas",
+  value: 3,
+};
+
+describe("controlForRow — REQ-CFG-030: boolean → alternador, enum → seleção, número → campo", () => {
+  it("a boolean row from an unseen system draws a toggle at its current value", () => {
+    expect(controlForRow(NEW_TOGGLE)).toEqual({ kind: "boolean", checked: false });
+    expect(controlForRow({ ...NEW_TOGGLE, value: true })).toEqual({
+      kind: "boolean",
+      checked: true,
+    });
+  });
+
+  it("an enum row from an unseen system draws a selection with its declared options", () => {
+    expect(controlForRow(NEW_ENUM)).toEqual({
+      kind: "enum",
+      value: "quiet",
+      options: ["quiet", "loud"],
+    });
+  });
+
+  it("a number row from an unseen system draws a numeric field", () => {
+    expect(controlForRow(NEW_NUMBER)).toEqual({ kind: "number", value: 3 });
+  });
+
+  it("REQ-CFG-031/RNF-CFG-02: nothing here reads row.key — only row.kind decides the control", () => {
+    // Same kind, wildly different key/label — must still produce the exact same
+    // control shape. If this function ever grew a per-key branch, one of these
+    // two would start to differ.
+    const anyBooleanA: WorldSettingRow = {
+      id: null,
+      key: "system-a:whateverSettingOne",
+      kind: "boolean",
+      label: "Qualquer coisa",
+      value: true,
+    };
+    const anyBooleanB: WorldSettingRow = {
+      id: "id-2",
+      key: "totally-different-system:anotherSetting",
+      kind: "boolean",
+      label: "Outra coisa",
+      value: true,
+    };
+
+    expect(controlForRow(anyBooleanA)).toEqual(controlForRow(anyBooleanB));
+  });
+
+  it("a missing/malformed value falls back to a safe default per kind instead of throwing", () => {
+    expect(controlForRow({ ...NEW_ENUM, value: undefined }).kind === "enum").toBe(true);
+    expect(controlForRow({ ...NEW_NUMBER, value: "not-a-number" })).toEqual({
+      kind: "number",
+      value: 0,
+    });
+  });
+});
+
+describe("buildSettingWriteOp — REQ-CFG-071: writes go through Setting, doc:create/doc:update", () => {
+  it("a row never written before (id === null) creates a Setting document", () => {
+    const op = buildSettingWriteOp(NEW_TOGGLE, true);
+
+    expect(op).toEqual({
+      type: "doc:create",
+      payload: {
+        documentType: "Setting",
+        data: [{ key: "fake-system:neverSeenBeforeToggle", value: true }],
+      },
+    });
+  });
+
+  it("a row with an existing Setting document updates it in place by _id", () => {
+    const op = buildSettingWriteOp(NEW_ENUM, "loud");
+
+    expect(op).toEqual({
+      type: "doc:update",
+      payload: {
+        documentType: "Setting",
+        updates: [{ _id: "setting-enum-1", diff: { value: "loud" } }],
+      },
+    });
+  });
+
+  it("a row from an already-persisted setting (variant-rule-shaped or not) writes the same generic doc:update op — no bespoke shape for any particular key", () => {
+    // Nothing distinguishes a variant-rule row's write from any other boolean
+    // row's write — same op shape, same generic path this describe block
+    // already covers (REQ-CFG-071). This does NOT prove the spec's
+    // re-derivation-and-propagation requirement for world settings (see
+    // specs/37-configuracoes.md §5.4, "Efeitos"): that is server-side
+    // behavior with no test here, and no production trigger wired yet either
+    // — buildSettingWriteOp only builds the op, it never sends it. Only cite
+    // that requirement's id once a test observes a derived actor changing
+    // and the write reaching a second client's socket (G103 scope) — do not
+    // reintroduce the literal id in this file before that exists, or
+    // spec-lint's citation scan will count it as covered again.
+    const op = buildSettingWriteOp({ ...NEW_TOGGLE, id: "setting-abc" }, false);
+    expect(op.type).toBe("doc:update");
+    expect(op.payload["documentType"]).toBe("Setting");
+  });
+});
+
+// ---------------------------------------------------------------------------
+// needsDisableConfirm — REQ-CFG-032/082, DEC-CFG-09: "ligar nunca confirma";
+// desligar confirma SÓ quando o sistema declarou requiresConfirmOnDisable.
+//
+// The two rows below are shaped exactly like PF2e's free-archetype/multiclass
+// variant rules would be declared (REQ-CFG-032, REQ-MCL-001/004) — including
+// the "pf2e:" namespace prefix — but `needsDisableConfirm` never reads `key`,
+// so this file still carries zero PF2e-specific knowledge (REQ-CFG-031): a
+// row from ANY system with the same shape decides identically (last test).
+// ---------------------------------------------------------------------------
+
+const FREE_ARCHETYPE_ON: WorldSettingRow = {
+  id: "setting-fa-1",
+  key: "pf2e:freeArchetype",
+  kind: "boolean",
+  label: "Arquétipo Livre",
+  requiresConfirmOnDisable: true,
+  value: true,
+};
+
+describe("needsDisableConfirm — REQ-CFG-082: desligar confirma, ligar nunca confirma", () => {
+  it("turning a requiresConfirmOnDisable row OFF (true -> false) needs confirmation", () => {
+    expect(needsDisableConfirm(FREE_ARCHETYPE_ON, false)).toBe(true);
+  });
+
+  it("REQ-CFG-082/DEC-CFG-09: turning the SAME row ON never needs confirmation, even starting from off", () => {
+    const off: WorldSettingRow = { ...FREE_ARCHETYPE_ON, value: false };
+    expect(needsDisableConfirm(off, true)).toBe(false);
+  });
+
+  it("a boolean row without requiresConfirmOnDisable never confirms on disable", () => {
+    const { requiresConfirmOnDisable: _drop, ...rest } = FREE_ARCHETYPE_ON;
+    const plain: WorldSettingRow = rest;
+    expect(needsDisableConfirm(plain, false)).toBe(false);
+  });
+
+  it("a requiresConfirmOnDisable row that is ALREADY off does not confirm a false->false write (no actual disable happening)", () => {
+    const off: WorldSettingRow = { ...FREE_ARCHETYPE_ON, value: false };
+    expect(needsDisableConfirm(off, false)).toBe(false);
+  });
+
+  it("requiresConfirmOnDisable is meaningless outside a boolean row — enum/number rows never confirm", () => {
+    expect(needsDisableConfirm({ ...NEW_ENUM, requiresConfirmOnDisable: true }, "quiet")).toBe(
+      false,
+    );
+    expect(needsDisableConfirm({ ...NEW_NUMBER, requiresConfirmOnDisable: true }, 0)).toBe(false);
+  });
+
+  it("REQ-CFG-031: identical shape from an unrelated system's key decides identically — nothing here branches on `key`", () => {
+    const fromAnotherSystem: WorldSettingRow = {
+      ...FREE_ARCHETYPE_ON,
+      key: "totally-different-system:someOtherToggle",
+      label: "Qualquer coisa",
+    };
+    expect(needsDisableConfirm(fromAnotherSystem, false)).toBe(
+      needsDisableConfirm(FREE_ARCHETYPE_ON, false),
+    );
+  });
+});
+
+// ---------------------------------------------------------------------------
+// resolveBooleanWrite — REQ-CFG-082/083: the confirm/impact-query orchestration
+// WorldSection.svelte's `handleBooleanChange` wires real `confirm`/socket
+// functions into. Every `deps` function here is a spy, so what is proved is
+// the ORCHESTRATION — which deps get called, with what, and what the caller
+// is told to do — never the DOM or the network.
+// ---------------------------------------------------------------------------
+
+describe("resolveBooleanWrite — REQ-CFG-082: gate a boolean row's write on confirmation", () => {
+  it("turning a row ON never asks the server or confirms — commits straight away", async () => {
+    const off: WorldSettingRow = { ...FREE_ARCHETYPE_ON, value: false };
+    const queryImpact = vi.fn();
+    const confirmDisable = vi.fn();
+
+    const shouldCommit = await resolveBooleanWrite(off, true, {
+      queryImpact,
+      confirmDisable,
+      formatConfirmMessage: (count) => String(count),
+    });
+
+    expect(shouldCommit).toBe(true);
+    expect(queryImpact).not.toHaveBeenCalled();
+    expect(confirmDisable).not.toHaveBeenCalled();
+  });
+
+  it("a row without requiresConfirmOnDisable commits straight away, even turning OFF", async () => {
+    const { requiresConfirmOnDisable: _drop, ...rest } = FREE_ARCHETYPE_ON;
+    const plain: WorldSettingRow = rest;
+    const queryImpact = vi.fn();
+    const confirmDisable = vi.fn();
+
+    const shouldCommit = await resolveBooleanWrite(plain, false, {
+      queryImpact,
+      confirmDisable,
+      formatConfirmMessage: (count) => String(count),
+    });
+
+    expect(shouldCommit).toBe(true);
+    expect(queryImpact).not.toHaveBeenCalled();
+    expect(confirmDisable).not.toHaveBeenCalled();
+  });
+
+  it("REQ-CFG-082: turning a requiresConfirmOnDisable row OFF asks the impact count and confirms with it", async () => {
+    const queryImpact = vi.fn().mockResolvedValue({ count: 3 });
+    const confirmDisable = vi.fn().mockReturnValue(true);
+    const formatConfirmMessage = vi.fn((count: number) => `${count} personagens afetados`);
+
+    const shouldCommit = await resolveBooleanWrite(FREE_ARCHETYPE_ON, false, {
+      queryImpact,
+      confirmDisable,
+      formatConfirmMessage,
+    });
+
+    expect(queryImpact).toHaveBeenCalledWith("pf2e:freeArchetype");
+    expect(formatConfirmMessage).toHaveBeenCalledWith(3);
+    expect(confirmDisable).toHaveBeenCalledWith("3 personagens afetados");
+    expect(shouldCommit).toBe(true);
+  });
+
+  it("cancelling the confirm dialog says not to commit", async () => {
+    const queryImpact = vi.fn().mockResolvedValue({ count: 1 });
+    const confirmDisable = vi.fn().mockReturnValue(false);
+
+    const shouldCommit = await resolveBooleanWrite(FREE_ARCHETYPE_ON, false, {
+      queryImpact,
+      confirmDisable,
+      formatConfirmMessage: (count) => String(count),
+    });
+
+    expect(shouldCommit).toBe(false);
+  });
+
+  it("an impact query that rejects is not treated as zero impact — it still confirms, with count 0 as the floor", async () => {
+    const queryImpact = vi.fn().mockRejectedValue(new Error("timed out"));
+    const confirmDisable = vi.fn().mockReturnValue(true);
+    const formatConfirmMessage = vi.fn((count: number) => `count=${count}`);
+
+    const shouldCommit = await resolveBooleanWrite(FREE_ARCHETYPE_ON, false, {
+      queryImpact,
+      confirmDisable,
+      formatConfirmMessage,
+    });
+
+    expect(formatConfirmMessage).toHaveBeenCalledWith(0);
+    expect(confirmDisable).toHaveBeenCalledWith("count=0");
+    expect(shouldCommit).toBe(true);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// HJ-09 (#434): a list drawn from a closed set — "perícias treinadas pela
+// campanha". Same genericity bar: the tab knows nothing about skills.
+// ---------------------------------------------------------------------------
+
+const NEW_LIST: WorldSettingRow = {
+  id: "setting-list-1",
+  key: "fake-system:favouriteColours",
+  kind: "enumList",
+  options: ["red", "green", "blue"],
+  optionLabels: { red: "Vermelho", blue: "Azul" },
+  label: "Cores",
+  value: ["blue", "red", "not-an-option"],
+};
+
+describe("controlForRow — REQ-CFG-037: enumList row (HJ-09)", () => {
+  it("draws every declared option, labelled by optionLabels (falling back to the value), in declared order", () => {
+    expect(controlForRow(NEW_LIST)).toEqual({
+      kind: "enumList",
+      selected: ["red", "blue"],
+      options: [
+        { value: "red", label: "Vermelho" },
+        { value: "green", label: "green" },
+        { value: "blue", label: "Azul" },
+      ],
+    });
+  });
+
+  it("a non-array value draws nothing selected, never throws", () => {
+    expect(controlForRow({ ...NEW_LIST, value: "red" })).toMatchObject({ selected: [] });
+    expect(controlForRow({ ...NEW_LIST, value: undefined })).toMatchObject({ selected: [] });
+  });
+});
+
+describe("toggleListOption — enumList writes keep the declared order", () => {
+  it("ticking adds the option at its declared position, not at the end", () => {
+    expect(toggleListOption(NEW_LIST, ["blue"], "red", true)).toEqual(["red", "blue"]);
+  });
+
+  it("unticking removes only that option", () => {
+    expect(toggleListOption(NEW_LIST, ["red", "blue"], "red", false)).toEqual(["blue"]);
+  });
+
+  it("the write is the generic Setting op carrying the whole list", () => {
+    expect(buildSettingWriteOp(NEW_LIST, ["green"])).toEqual({
+      type: "doc:update",
+      payload: {
+        documentType: "Setting",
+        updates: [{ _id: "setting-list-1", diff: { value: ["green"] } }],
+      },
+    });
+  });
+});
+
+// ---------------------------------------------------------------------------
+// HJ-RH (revisão adversarial, achado M2): writes to one key are serialized.
+//
+// Source of the scenario: plano "Huo Jinwu jogável" HJ-09 / D4 — the GM ticks
+// two skills of `pf2e:campaign.trainedSkills` (an enumList) in quick
+// succession, before the first ack. Expected stored value is the declared-order
+// list with BOTH skills, written through a single `doc:create`.
+// ---------------------------------------------------------------------------
+
+interface Deferred {
+  readonly op: SettingWriteOp;
+  resolve: (result: { documents?: Array<{ _id: string }> }) => void;
+  reject: (err: unknown) => void;
+}
+
+function harness(initial: WorldSettingRow) {
+  const rows = new Map<string, WorldSettingRow>([[initial.key, initial]]);
+  const sent: Deferred[] = [];
+  const writer = createSettingWriter({
+    getRow: (key) => rows.get(key),
+    send: (op) =>
+      new Promise((resolve, reject) => {
+        sent.push({ op, resolve, reject });
+      }),
+    apply: (key, id, value) => {
+      const row = rows.get(key);
+      if (row) rows.set(key, { ...row, id, value });
+    },
+  });
+  return { rows, sent, writer };
+}
+
+/** Let queued microtasks (the writer's await chain) run. */
+const flush = (): Promise<void> => new Promise((r) => setTimeout(r, 0));
+
+const SKILLS: WorldSettingRow = {
+  id: null,
+  key: "fake-system:campaign.trainedSkills",
+  kind: "enumList",
+  options: ["arcana", "nature", "occultism"],
+  label: "Perícias da campanha",
+  value: [],
+};
+
+describe("createSettingWriter — HJ-RH M2: dois cliques antes do ack não se perdem", () => {
+  it("occultism then arcana before the first ack writes both, through ONE doc:create", async () => {
+    const { rows, sent, writer } = harness(SKILLS);
+    const toggle = (option: string) =>
+      writer.write(SKILLS.key, (row) => {
+        const current = controlForRow(row);
+        return toggleListOption(
+          row,
+          current.kind === "enumList" ? current.selected : [],
+          option,
+          true,
+        );
+      });
+
+    const first = toggle("occultism");
+    const second = toggle("arcana"); // clicked before the first ack
+    await flush();
+
+    // Only the first op is on the wire; the second waits for its ack.
+    expect(sent).toHaveLength(1);
+    expect(sent[0]?.op).toEqual({
+      type: "doc:create",
+      payload: { documentType: "Setting", data: [{ key: SKILLS.key, value: ["occultism"] }] },
+    });
+
+    sent[0]?.resolve({ documents: [{ _id: "setting-new-1" }] });
+    await flush();
+
+    // The second write now sees the accepted id and value: update, whole list.
+    expect(sent).toHaveLength(2);
+    expect(sent[1]?.op).toEqual({
+      type: "doc:update",
+      payload: {
+        documentType: "Setting",
+        updates: [{ _id: "setting-new-1", diff: { value: ["arcana", "occultism"] } }],
+      },
+    });
+    sent[1]?.resolve({});
+    await expect(first).resolves.toEqual({ ok: true });
+    await expect(second).resolves.toEqual({ ok: true });
+
+    expect(rows.get(SKILLS.key)).toMatchObject({
+      id: "setting-new-1",
+      value: ["arcana", "occultism"],
+    });
+    expect(sent.filter((d) => d.op.type === "doc:create")).toHaveLength(1);
+  });
+
+  it("a refused first write does not block the second, which builds on the accepted value", async () => {
+    const { rows, sent, writer } = harness({ ...SKILLS, id: "s1", value: ["nature"] });
+    const add = (option: string) =>
+      writer.write(SKILLS.key, (row) => toggleListOption(row, row.value as string[], option, true));
+
+    const first = add("occultism");
+    const second = add("arcana");
+    await flush();
+    sent[0]?.reject(new Error("forbidden"));
+    await flush();
+
+    await expect(first).resolves.toMatchObject({ ok: false });
+    expect(sent).toHaveLength(2);
+    expect(sent[1]?.op.payload).toMatchObject({
+      updates: [{ _id: "s1", diff: { value: ["arcana", "nature"] } }],
+    });
+    sent[1]?.resolve({});
+    await expect(second).resolves.toEqual({ ok: true });
+    expect(rows.get(SKILLS.key)?.value).toEqual(["arcana", "nature"]);
+  });
+
+  it("writes to different keys are not serialized against each other", async () => {
+    const sent: Deferred[] = [];
+    const other: WorldSettingRow = { ...NEW_NUMBER, key: "fake-system:other" };
+    const rows = new Map<string, WorldSettingRow>([
+      [SKILLS.key, SKILLS],
+      [other.key, other],
+    ]);
+    const writer = createSettingWriter({
+      getRow: (key) => rows.get(key),
+      send: (op) =>
+        new Promise((resolve, reject) => {
+          sent.push({ op, resolve, reject });
+        }),
+      apply: () => undefined,
+    });
+    void writer.write(SKILLS.key, () => ["arcana"]);
+    void writer.write(other.key, () => 7);
+    await flush();
+    expect(sent).toHaveLength(2);
+  });
+});

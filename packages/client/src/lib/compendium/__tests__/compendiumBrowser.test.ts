@@ -20,6 +20,7 @@ import {
   buildSearchQuery,
   buildCompendiumDragPayload,
   sortEntries,
+  sortAggregatedResult,
   buildDocumentPreview,
   highlightMatch,
   fallbackIcon,
@@ -27,6 +28,7 @@ import {
   entryDisplayName,
   entrySecondaryName,
 } from "../compendiumBrowser.js";
+import type { AggregatedSearchResult } from "../compendiumBrowser.js";
 
 // ---------------------------------------------------------------------------
 // Fixtures
@@ -44,6 +46,8 @@ function makeManifest(
       attribution: "Test",
       reservedNotice: "",
     },
+    // Parsed manifests always carry a resolved audience (REQ-CMP-004a).
+    audience: "all",
     source: { repo: null, version: null, importerVersion: "0.1.0" },
     documentCount: 0,
     generatedAt: "2026-01-01T00:00:00.000Z",
@@ -278,6 +282,143 @@ describe("sortEntries", () => {
     sortEntries(entries, "level", false);
     expect(entries).toEqual(original);
   });
+
+  it("REQ-CPD-038/REQ-CPD-040: under pt-BR locale, sorts by the DISPLAYED (namePt) name, not the raw EN name (DEC-CPD-06)", () => {
+    // EN `name` is in the REVERSE order of `namePt` — a sort by the raw EN
+    // field would come out "Eagle, Owl, Spider" (wrong: that is not what the
+    // line shows), while a sort by the displayed name must read "Águia,
+    // Coruja, Aranha" — the fix from the Ajustes r1 review of A040.
+    const translated: PackIndexEntry[] = [
+      makeEntry({ _id: "t1", name: "Eagle", namePt: "Águia" }),
+      makeEntry({ _id: "t2", name: "Owl", namePt: "Coruja" }),
+      makeEntry({ _id: "t3", name: "Spider", namePt: "Aranha" }),
+    ];
+
+    const sorted = sortEntries(translated, "name", true, "pt-BR");
+
+    expect(sorted.map((e) => e.namePt)).toEqual(["Águia", "Aranha", "Coruja"]);
+  });
+
+  it("REQ-CPD-040: under en locale (no pt-BR overlay shown), sorts by the raw EN name", () => {
+    const translated: PackIndexEntry[] = [
+      makeEntry({ _id: "t1", name: "Eagle", namePt: "Águia" }),
+      makeEntry({ _id: "t2", name: "Owl", namePt: "Coruja" }),
+      makeEntry({ _id: "t3", name: "Spider", namePt: "Aranha" }),
+    ];
+
+    const sorted = sortEntries(translated, "name", true, "en");
+
+    expect(sorted.map((e) => e.name)).toEqual(["Eagle", "Owl", "Spider"]);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// sortAggregatedResult (REQ-CPD-038 — A040 flagged sorting as pack-only; the
+// whole-collection result had no way to reorder its lines)
+// ---------------------------------------------------------------------------
+
+describe("sortAggregatedResult (REQ-CPD-038)", () => {
+  /** One aggregated line: an entry plus the pack it came from. */
+  function aggLine(entry: PackIndexEntry, documentType: string) {
+    return { entry, packId: "pf2e.test", packLabel: "Teste", documentType };
+  }
+
+  function twoGroupAnswer(): AggregatedSearchResult {
+    return {
+      groups: [
+        {
+          documentType: "Actor",
+          total: 2,
+          lines: [
+            aggLine(makeEntry({ _id: "a1", name: "Zebra", type: "npc" }), "Actor"),
+            aggLine(makeEntry({ _id: "a2", name: "Alpha", type: "hazard" }), "Actor"),
+          ],
+          omitted: 0,
+          packs: [],
+        },
+        {
+          documentType: "Item",
+          total: 2,
+          lines: [
+            aggLine(makeEntry({ _id: "i1", name: "Mango", type: "weapon" }), "Item"),
+            aggLine(makeEntry({ _id: "i2", name: "Apple", type: "armor" }), "Item"),
+          ],
+          omitted: 0,
+          packs: [],
+        },
+      ],
+    };
+  }
+
+  it("REQ-CPD-038: sorts the lines INSIDE each group by name, groups untouched", () => {
+    const sorted = sortAggregatedResult(twoGroupAnswer(), "name", true);
+
+    expect(sorted.groups.map((g) => g.documentType)).toEqual(["Actor", "Item"]);
+    expect(sorted.groups[0]?.lines.map((l) => l.entry.name)).toEqual(["Alpha", "Zebra"]);
+    expect(sorted.groups[1]?.lines.map((l) => l.entry.name)).toEqual(["Apple", "Mango"]);
+  });
+
+  it("REQ-CPD-038: sorts by name descending", () => {
+    const sorted = sortAggregatedResult(twoGroupAnswer(), "name", false);
+
+    expect(sorted.groups[0]?.lines.map((l) => l.entry.name)).toEqual(["Zebra", "Alpha"]);
+  });
+
+  it("REQ-CPD-038: sorts by type (subtype), the other chip the toolbar offers", () => {
+    const sorted = sortAggregatedResult(twoGroupAnswer(), "type", true);
+
+    expect(sorted.groups[0]?.lines.map((l) => l.entry.type)).toEqual(["hazard", "npc"]);
+    expect(sorted.groups[1]?.lines.map((l) => l.entry.type)).toEqual(["armor", "weapon"]);
+  });
+
+  it("REQ-CPD-038 must not disturb REQ-CPD-031: a group's total/omitted/packs survive a sort untouched", () => {
+    const original = twoGroupAnswer();
+    const answer: AggregatedSearchResult = {
+      groups: [{ ...original.groups[0]!, total: 30, omitted: 28 }, original.groups[1]!],
+    };
+
+    const sorted = sortAggregatedResult(answer, "name", true);
+
+    expect(sorted.groups[0]?.total).toBe(30);
+    expect(sorted.groups[0]?.omitted).toBe(28);
+  });
+
+  it("REQ-CPD-038/REQ-CPD-040: under pt-BR locale, sorts the group's lines by the DISPLAYED (namePt) name, not the raw EN name (DEC-CPD-06)", () => {
+    // Same bug as sortEntries, on the aggregated (whole-collection) body:
+    // the "Nome" chip must reorder by what the line actually shows.
+    const answer: AggregatedSearchResult = {
+      groups: [
+        {
+          documentType: "Actor",
+          total: 3,
+          lines: [
+            aggLine(makeEntry({ _id: "t1", name: "Eagle", namePt: "Águia" }), "Actor"),
+            aggLine(makeEntry({ _id: "t2", name: "Owl", namePt: "Coruja" }), "Actor"),
+            aggLine(makeEntry({ _id: "t3", name: "Spider", namePt: "Aranha" }), "Actor"),
+          ],
+          omitted: 0,
+          packs: [],
+        },
+      ],
+    };
+
+    const sorted = sortAggregatedResult(answer, "name", true, "pt-BR");
+
+    expect(sorted.groups[0]?.lines.map((l) => l.entry.namePt)).toEqual([
+      "Águia",
+      "Aranha",
+      "Coruja",
+    ]);
+  });
+
+  it("does not mutate the input result", () => {
+    const answer = twoGroupAnswer();
+    const originalOrder = answer.groups[0]!.lines.map((l) => l.entry.name);
+
+    sortAggregatedResult(answer, "name", true);
+
+    expect(answer.groups[0]!.lines.map((l) => l.entry.name)).toEqual(originalOrder);
+  });
 });
 
 // ---------------------------------------------------------------------------
@@ -298,9 +439,19 @@ describe("buildDocumentPreview", () => {
     };
     const preview = buildDocumentPreview(doc);
     expect(preview.name).toBe("Goblin");
-    expect(preview.fields.find((f) => f.label === "HP")?.value).toBe("6");
-    expect(preview.fields.find((f) => f.label === "CA")?.value).toBe("14");
-    expect(preview.fields.find((f) => f.label === "Traits")?.value).toContain("goblin");
+    expect(
+      preview.fields.find((f) => f.labelKey === "FUSION.Compendium.Field.system.attributes.hp.max")
+        ?.value,
+    ).toBe("6");
+    expect(
+      preview.fields.find(
+        (f) => f.labelKey === "FUSION.Compendium.Field.system.attributes.ac.value",
+      )?.value,
+    ).toBe("14");
+    expect(
+      preview.fields.find((f) => f.labelKey === "FUSION.Compendium.Field.system.traits.value")
+        ?.value,
+    ).toContain("goblin");
   });
 
   it("extracts level for spells", () => {
@@ -315,8 +466,14 @@ describe("buildDocumentPreview", () => {
       },
     };
     const preview = buildDocumentPreview(doc);
-    expect(preview.fields.find((f) => f.label === "Nível")?.value).toBe("3");
-    expect(preview.fields.find((f) => f.label === "Tradições")?.value).toContain("arcane");
+    expect(
+      preview.fields.find((f) => f.labelKey === "FUSION.Compendium.Field.system.level.value")
+        ?.value,
+    ).toBe("3");
+    expect(
+      preview.fields.find((f) => f.labelKey === "FUSION.Compendium.Field.system.traditions.value")
+        ?.value,
+    ).toContain("arcane");
   });
 
   it("extracts damage for weapons", () => {
@@ -330,7 +487,9 @@ describe("buildDocumentPreview", () => {
       },
     };
     const preview = buildDocumentPreview(doc);
-    expect(preview.fields.find((f) => f.label === "Dano")?.value).toContain("1d8");
+    expect(
+      preview.fields.find((f) => f.labelKey === "FUSION.Compendium.Field.system.damage")?.value,
+    ).toContain("1d8");
   });
 
   it("extracts readable fields from system.rules[] (e.g. Blinded condition)", () => {
@@ -349,12 +508,17 @@ describe("buildDocumentPreview", () => {
     expect(
       preview.fields.some(
         (f) =>
-          f.label === "Modificador" && f.value.includes("perception") && f.value.includes("-4"),
+          f.labelKey === "FUSION.Compendium.Preview.Rule.Modifier" &&
+          f.value.includes("perception") &&
+          f.value.includes("-4"),
       ),
     ).toBe(true);
-    expect(preview.fields.some((f) => f.label === "Imunidade" && f.value.includes("visual"))).toBe(
-      true,
-    );
+    expect(
+      preview.fields.some(
+        (f) =>
+          f.labelKey === "FUSION.Compendium.Preview.Rule.Immunity" && f.value.includes("visual"),
+      ),
+    ).toBe(true);
   });
 
   it("falls back to a generic label for unmapped rule kinds", () => {
@@ -397,7 +561,7 @@ describe("fallbackIcon", () => {
   });
 
   it("returns a generic icon for unknown documentType", () => {
-    expect(fallbackIcon("Whatever", null)).toBe("❓");
+    expect(fallbackIcon("Whatever", null)).toBe("circle-question-mark");
   });
 });
 
@@ -511,11 +675,13 @@ describe("buildDocumentPreview — unique field keys (each_key_duplicate fix)", 
     const preview = buildDocumentPreview(confusedDoc, "pt-BR");
     // The two roll-options and grant-item collapse to the generic "Regra"
     // label — the collision that used to break keying.
-    const regraCount = preview.fields.filter((f) => f.label === "Regra").length;
+    const regraCount = preview.fields.filter(
+      (f) => f.labelKey === "FUSION.Compendium.Preview.Rule.Generic",
+    ).length;
     expect(regraCount).toBeGreaterThanOrEqual(2);
     // Every field still carries a label and a key.
     for (const f of preview.fields) {
-      expect(f.label.length).toBeGreaterThan(0);
+      expect(f.fallbackLabel.length).toBeGreaterThan(0);
       expect(f.key.length).toBeGreaterThan(0);
     }
   });

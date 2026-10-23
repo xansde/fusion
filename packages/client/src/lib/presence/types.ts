@@ -1,3 +1,4 @@
+import type { AreaTemplate } from "@fusion/shared";
 /**
  * Presence types — shared between the store and canvas layer.
  *
@@ -42,11 +43,29 @@ export interface MapPing {
   startedAtMs: number;
   /** Duration of the ping animation in ms. */
   durationMs: number;
+  /** The token the ping was held on, if any. */
+  tokenId?: string;
 }
 
 // ---------------------------------------------------------------------------
 // Ruler
 // ---------------------------------------------------------------------------
+
+/** A user's live (being aimed) area template. */
+export interface RemoteTemplate {
+  userId: string;
+  userName?: string;
+  template: AreaTemplate;
+}
+
+/** A template pinned on a scene until someone removes it. */
+export interface PinnedTemplate {
+  id: string;
+  sceneId: string;
+  userId: string;
+  userName?: string;
+  template: AreaTemplate;
+}
 
 export interface RulerState {
   /** User ID whose ruler is shown. */
@@ -55,6 +74,26 @@ export interface RulerState {
   userName?: string;
   /** Ordered waypoints in scene coordinates. */
   waypoints: ReadonlyArray<{ x: number; y: number }>;
+}
+
+// ---------------------------------------------------------------------------
+// Token drag preview (REQ-NET-044)
+// ---------------------------------------------------------------------------
+
+/**
+ * The most recent `token:preview` broadcast for a token being dragged by
+ * ANOTHER user — REQ-NET-044. Keyed by `tokenId` in the store (one preview
+ * per token, not per user, since only one user may hold OWNER-gated drag
+ * control of a given token at a time — REQ-TOK-032).
+ */
+export interface RemoteTokenPreview {
+  tokenId: string;
+  sceneId: string;
+  userId: string;
+  x: number;
+  y: number;
+  /** When this preview was received (Date.now()) — used to prune stale ones. */
+  receivedAtMs: number;
 }
 
 // ---------------------------------------------------------------------------

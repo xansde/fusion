@@ -130,7 +130,7 @@ async function main(): Promise<void> {
   await ensureClientDistExtracted({ dataDir, version: FUSION_VERSION });
   process.env["FUSION_SEA_CLIENT_DIST"] = clientDistRuntimeDir(dataDir, FUSION_VERSION);
 
-  // 3b. Extract the embedded game-system compendium packs (pf2e/sf2e/etmos)
+  // 3b. Extract the embedded game-system compendium packs (pf2e/sf2e)
   //    so compendium/service.ts's resolveSystemPacksDir finds a real
   //    packsRoot inside the SEA — see that function's doc comment
   //    (B3-FIXES MÉDIA B). Same env-var handoff pattern as step 3 above.

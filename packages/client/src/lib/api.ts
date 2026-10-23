@@ -138,12 +138,53 @@ async function rawFetch<T>(path: string, init: RequestInit = {}): Promise<T> {
  * On success, updates the in-memory token.
  * On failure, throws so the caller can treat the session as expired.
  */
-async function refreshAccessToken(): Promise<void> {
-  const result = await rawFetch<{ ok: true; accessToken: string; user: UserPublic }>(
-    "/api/auth/refresh",
-    { method: "POST" },
-  );
-  _accessToken = result.accessToken;
+/**
+ * The refresh in flight, if any. The refresh cookie ROTATES, so two overlapping
+ * refreshes would present the same (already spent) cookie twice and the server
+ * would read the second as token reuse. Everyone who needs a refresh while one is
+ * running awaits that one.
+ */
+let _refreshInFlight: Promise<void> | null = null;
+
+function refreshAccessToken(): Promise<void> {
+  _refreshInFlight ??= (async () => {
+    try {
+      const result = await rawFetch<{ ok: true; accessToken: string; user: UserPublic }>(
+        "/api/auth/refresh",
+        { method: "POST" },
+      );
+      _accessToken = result.accessToken;
+    } finally {
+      _refreshInFlight = null;
+    }
+  })();
+  return _refreshInFlight;
+}
+
+/**
+ * How early before `exp` a token already counts as dead. It has to cover the
+ * request it is about to authorize (a grant mint, then the image GET behind it).
+ */
+const TOKEN_EXPIRY_MARGIN_MS = 60_000;
+
+/**
+ * Read the `exp` claim (epoch ms) out of a JWT without verifying it — the server
+ * verifies; this only decides whether asking is worth a round trip. `null` for
+ * anything that is not a JWT with a numeric `exp`: such a token is treated as
+ * live, so an unexpected shape can never turn into a refresh loop.
+ */
+function jwtExpiryMs(token: string): number | null {
+  const part = token.split(".")[1];
+  if (part === undefined) return null;
+  try {
+    const b64 = part.replace(/-/g, "+").replace(/_/g, "/");
+    const claims = JSON.parse(atob(b64.padEnd(Math.ceil(b64.length / 4) * 4, "="))) as {
+      exp?: unknown;
+    };
+    return typeof claims.exp === "number" ? claims.exp * 1000 : null;
+  } catch {
+    return null;
+  }
 }
 
 /**
@@ -200,6 +241,38 @@ export const fusionApi = {
    * Intended for the SocketManager handshake — do NOT persist this value.
    */
   getToken(): string | null {
+    return _accessToken;
+  },
+
+  /**
+   * The access token, refreshed first if it is expired or about to be.
+   *
+   * `getToken()` is a snapshot: the JWT lives 15 min and nothing renews it in the
+   * background, so a client that only listens to the socket (a player watching the
+   * GM) holds a dead token by the time the GM changes scene. Raw `fetch` callers
+   * that bypass `apiFetch` — the asset grant/token mints behind every scene
+   * background and token art — must use this instead, or their 401 is swallowed
+   * and the new scene paints as an empty canvas until the player presses F5.
+   *
+   * Resolves `null` when there is no session, or when the refresh cookie itself
+   * was refused (the session is then over: same outcome as `apiFetch`). A network
+   * failure keeps the stale token — a blip must not log anyone out.
+   */
+  async getFreshToken(): Promise<string | null> {
+    const current = _accessToken;
+    if (current === null) return null;
+    const expiresAt = jwtExpiryMs(current);
+    if (expiresAt === null || expiresAt - Date.now() > TOKEN_EXPIRY_MARGIN_MS) return current;
+    try {
+      await refreshAccessToken();
+    } catch (err) {
+      if (err instanceof ApiError && err.httpStatus === 401) {
+        _accessToken = null;
+        _onSessionExpired?.();
+        return null;
+      }
+      return current;
+    }
     return _accessToken;
   },
 

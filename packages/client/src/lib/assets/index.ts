@@ -2,13 +2,41 @@
  * assets/index.ts — public API of the client assets module.
  */
 
-export { listAssets, uploadAsset, deleteAsset, assetUrl } from "./assetApi.js";
+export {
+  listAssets,
+  uploadAsset,
+  deleteAsset,
+  assetUrl,
+  assetNameFromPath,
+  fetchAssetToken,
+  resolveAssetUrl,
+  resolveBrowseAssetUrl,
+  needsAssetQueryToken,
+  listIconGallery,
+  iconGalleryUrl,
+  deleteIconAsset,
+  setAssetCategory,
+} from "./assetApi.js";
 export type {
   AssetEntry,
+  AssetQueryToken,
   UploadResult,
   UploadProgress,
   UploadProgressCallback,
+  UploadPurpose,
+  UploadOptions,
+  IconGallery,
 } from "./assetApi.js";
+
+export {
+  assetGrantsFor,
+  assetGrantsCovering,
+  invalidateAssetGrants,
+  clearAssetGrantCache,
+  peekAssetGrants,
+  GRANTABLE_ASSET_TABLES,
+} from "./assetGrants.svelte.js";
+export type { AssetDocRef, AssetDocTable, AssetGrantBundle } from "./assetGrants.svelte.js";
 
 export {
   validateFileForUpload,
@@ -17,9 +45,13 @@ export {
   formatBytes,
   isImageExtension,
   MAX_UPLOAD_BYTES,
+  MAX_BYTES_BY_KIND,
   ALLOWED_EXTENSIONS,
+  acceptAttrFor,
+  formatsLabelFor,
+  maxBytesFor,
 } from "./clientValidation.js";
-export type { ValidationResult } from "./clientValidation.js";
+export type { ValidationResult, AssetKind } from "./clientValidation.js";
 
 export {
   createUploadState,

@@ -1,15 +1,22 @@
 <script lang="ts">
   /**
-   * SceneCreateDialog.svelte — modal dialog for creating or editing a Scene.
+   * SceneCreateDialog.svelte — the body of the CREATE and the CONFIGURE windows
+   * (spec 44 §5.7, REQ-CEN-060 and REQ-CEN-061).
+   *
+   * It used to paint its own backdrop and its own modal element, which made it a second
+   * window system living beside `lib/windows/window-manager.ts`. It is now mounted as
+   * the content of a real window (`lib/scenes/sceneWindows.ts`), so the frame — title
+   * bar, close, drag, resize, z-order — belongs to `Window.svelte` and this file is a
+   * form and nothing else (DEC-CEN-09).
    *
    * Props:
    *   mode   "create" | "edit"
    *   scene  SceneDocument — populated in edit mode, ignored in create mode.
-   *   onClose() — called when the dialog is dismissed (cancel or success).
-   *   onSubmit(data) — called after successful op; parent re-fetches the list.
+   *   onClose() — closes the window (the opener passes the manager's closer).
+   *   onSuccess() — same, after a successful write.
    *   socket  Socket instance for sendOp.
    *
-   * Logic lives in sceneController.ts — this component is intentionally thin.
+   * The rules live in sceneController.ts — this component is intentionally thin.
    */
 
   import type { Socket } from "socket.io-client";
@@ -24,9 +31,11 @@
     type SceneFormData,
     type SceneFormErrors,
   } from "../../lib/scenes/sceneController.js";
-  import { fusionApi } from "../../lib/api.js";
-  import FilePicker from "../assets/FilePicker.svelte";
+  import { sceneListState } from "../../lib/scenes/scenesState.svelte.js";
+  import { nextSortInFolder, SCENE_SHELF_KEYS } from "../../lib/scenes/sceneShelf.js";
+  import FilePicker from "$lib/components/assets/FilePicker.svelte";
   import { t } from "../../lib/i18n/i18n.js";
+  import Icon from "../common/Icon.svelte";
 
   // ---- Props ----
 
@@ -53,15 +62,20 @@
   // grid default (or arrived via a partial diff) — reading scene.grid.size
   // unguarded threw "Cannot read properties of undefined (reading 'size')"
   // and silently aborted the whole dialog (crash during $state init, before
-  // <dialog> ever rendered). Fall back to defaultSceneFormData().gridSize,
+  // the form ever rendered). Fall back to defaultSceneFormData().gridSize,
   // the same canonical default (100) the schema itself defaults to.
+  // The form is seeded ONCE from the document the window was opened with — a form the
+  // server could rewrite under the GM's fingers is worse than a stale one.
+  // svelte-ignore state_referenced_locally
   const initialData: SceneFormData =
     mode === "edit" && scene
       ? {
           name: scene.name,
+          folder: scene.folder ?? null,
           width: scene.width,
           height: scene.height,
           gridSize: scene.grid?.size ?? defaultSceneFormData().gridSize,
+          backgroundColor: scene.backgroundColor || defaultSceneFormData().backgroundColor,
           background: scene.background ?? "",
         }
       : defaultSceneFormData();
@@ -70,6 +84,15 @@
   let errors = $state<SceneFormErrors>({});
   let submitting = $state(false);
   let serverError = $state<string | null>(null);
+
+  /**
+   * REQ-CEN-061: filing a scene is configuration, so the folder is a field here and
+   * not a drag in the drawer. The options are the world's folders as the mirror knows
+   * them — the tab does not manage folders (DEC-CEN-05).
+   */
+  const folderOptions = $derived(
+    [...sceneListState.folders].sort((a, b) => a.name.localeCompare(b.name)),
+  );
 
   // ---- Handlers ----
 
@@ -89,7 +112,14 @@
 
     try {
       if (mode === "create") {
-        await createScene(socket, formData);
+        // REQ-CEN-031: a new scene lands at the end of the folder it was filed in.
+        // REQ-CEN-065: and nowhere near the air — `createScene` writes `active: false`
+        // and this path emits nothing else.
+        await createScene(
+          socket,
+          formData,
+          nextSortInFolder(sceneListState.scenes, formData.folder),
+        );
       } else if (scene) {
         await updateSceneConfig(socket, scene._id, formData);
       }
@@ -105,244 +135,215 @@
     }
   }
 
-  function handleKeydown(e: KeyboardEvent): void {
-    if (e.key === "Escape") onClose();
-  }
 </script>
 
-<!-- svelte-ignore a11y_no_noninteractive_element_interactions -->
-<!-- Backdrop -->
-<div
-  class="dialog-backdrop"
-  role="presentation"
-  onclick={onClose}
-  onkeydown={handleKeydown}
-></div>
+<form class="scene-form" onsubmit={handleSubmit} novalidate>
+  <!-- Name -->
+  <div class="field" class:field--error={!!errors.name}>
+    <label class="field__label" for="scene-name">{t("FUSION.Scene.Dialog.Name")}</label>
+    <input
+      id="scene-name"
+      class="field__input"
+      type="text"
+      bind:value={formData.name}
+      oninput={handleInput}
+      placeholder={t("FUSION.Scene.Dialog.NamePlaceholder")}
+      maxlength="128"
+      autocomplete="off"
+      disabled={submitting}
+      required
+    />
+    {#if errors.name}
+      <span class="field__error" role="alert">{errors.name}</span>
+    {/if}
+  </div>
 
-<!-- Dialog -->
-<dialog
-  class="scene-dialog"
-  open
-  aria-label={mode === "create" ? t("FUSION.Scene.Dialog.Create.Title") : t("FUSION.Scene.Dialog.Edit.Title")}
-  onkeydown={handleKeydown}
->
-  <header class="dialog__header">
-    <h2 class="dialog__title">{mode === "create" ? t("FUSION.Scene.Dialog.Create.Title") : t("FUSION.Scene.Dialog.Edit.Title")}</h2>
-    <button class="dialog__close btn btn--icon" onclick={onClose} aria-label={t("FUSION.Dialog.Close")}>
-      &#x2715;
-    </button>
-  </header>
+  <!-- Folder (REQ-CEN-061) -->
+  <div class="field">
+    <label class="field__label" for="scene-folder">{t("FUSION.Scene.Dialog.Folder")}</label>
+    <select
+      id="scene-folder"
+      class="field__input"
+      bind:value={formData.folder}
+      onchange={handleInput}
+      disabled={submitting}
+    >
+      <option value={null}>{t(SCENE_SHELF_KEYS.noFolder)}</option>
+      {#each folderOptions as folder (folder._id)}
+        <option value={folder._id}>{folder.name}</option>
+      {/each}
+    </select>
+  </div>
 
-  <form class="dialog__body" onsubmit={handleSubmit} novalidate>
-    <!-- Name -->
-    <div class="field" class:field--error={!!errors.name}>
-      <label class="field__label" for="scene-name">{t("FUSION.Scene.Dialog.Name")}</label>
+  <!-- Dimensions row -->
+  <div class="field-row">
+    <div class="field" class:field--error={!!errors.width}>
+      <label class="field__label" for="scene-width">{t("FUSION.Scene.Dialog.Width")}</label>
       <input
-        id="scene-name"
-        class="field__input"
-        type="text"
-        bind:value={formData.name}
-        oninput={handleInput}
-        placeholder={t("FUSION.Scene.Dialog.NamePlaceholder")}
-        maxlength="128"
-        autocomplete="off"
-        disabled={submitting}
-        required
-      />
-      {#if errors.name}
-        <span class="field__error" role="alert">{errors.name}</span>
-      {/if}
-    </div>
-
-    <!-- Dimensions row -->
-    <div class="field-row">
-      <div class="field" class:field--error={!!errors.width}>
-        <label class="field__label" for="scene-width">{t("FUSION.Scene.Dialog.Width")}</label>
-        <input
-          id="scene-width"
-          class="field__input"
-          type="number"
-          bind:value={formData.width}
-          oninput={handleInput}
-          min="100"
-          max="20000"
-          step="1"
-          disabled={submitting}
-        />
-        {#if errors.width}
-          <span class="field__error" role="alert">{errors.width}</span>
-        {/if}
-      </div>
-
-      <div class="field" class:field--error={!!errors.height}>
-        <label class="field__label" for="scene-height">{t("FUSION.Scene.Dialog.Height")}</label>
-        <input
-          id="scene-height"
-          class="field__input"
-          type="number"
-          bind:value={formData.height}
-          oninput={handleInput}
-          min="100"
-          max="20000"
-          step="1"
-          disabled={submitting}
-        />
-        {#if errors.height}
-          <span class="field__error" role="alert">{errors.height}</span>
-        {/if}
-      </div>
-    </div>
-
-    <!-- Grid size -->
-    <div class="field" class:field--error={!!errors.gridSize}>
-      <label class="field__label" for="scene-grid">{t("FUSION.Scene.Dialog.GridSize")}</label>
-      <input
-        id="scene-grid"
+        id="scene-width"
         class="field__input"
         type="number"
-        bind:value={formData.gridSize}
+        bind:value={formData.width}
         oninput={handleInput}
-        min="50"
-        max="500"
+        min="100"
+        max="20000"
         step="1"
         disabled={submitting}
       />
-      {#if errors.gridSize}
-        <span class="field__error" role="alert">{errors.gridSize}</span>
+      {#if errors.width}
+        <span class="field__error" role="alert">{errors.width}</span>
       {/if}
     </div>
 
-    <!-- Background -->
-    <div class="field" class:field--error={!!errors.background}>
-      <label class="field__label" for="scene-bg">
-        {t("FUSION.Scene.Dialog.Background")} <span class="field__optional">{t("FUSION.Scene.Dialog.BackgroundOptional")}</span>
-      </label>
-      <div class="field__asset-row">
-        <input
-          id="scene-bg"
-          class="field__input field__input--grow"
-          type="text"
-          bind:value={formData.background}
-          oninput={handleInput}
-          placeholder={t("FUSION.Scene.Dialog.BackgroundPlaceholder")}
-          disabled={submitting}
-        />
-        <button
-          type="button"
-          class="btn btn--ghost btn--sm"
-          onclick={() => { showFilePicker = true; }}
-          disabled={submitting}
-          aria-label={t("FUSION.Scene.Dialog.BrowseAssets")}
-          title={t("FUSION.Scene.Dialog.BrowseAssets")}
-        >
-          &#128247;
-        </button>
-      </div>
-      {#if errors.background}
-        <span class="field__error" role="alert">{errors.background}</span>
+    <div class="field" class:field--error={!!errors.height}>
+      <label class="field__label" for="scene-height">{t("FUSION.Scene.Dialog.Height")}</label>
+      <input
+        id="scene-height"
+        class="field__input"
+        type="number"
+        bind:value={formData.height}
+        oninput={handleInput}
+        min="100"
+        max="20000"
+        step="1"
+        disabled={submitting}
+      />
+      {#if errors.height}
+        <span class="field__error" role="alert">{errors.height}</span>
       {/if}
     </div>
+  </div>
 
-    {#if serverError}
-      <div class="server-error" role="alert">{serverError}</div>
+  <!-- Grid size -->
+  <div class="field" class:field--error={!!errors.gridSize}>
+    <label class="field__label" for="scene-grid">{t("FUSION.Scene.Dialog.GridSize")}</label>
+    <input
+      id="scene-grid"
+      class="field__input"
+      type="number"
+      bind:value={formData.gridSize}
+      oninput={handleInput}
+      min="50"
+      max="500"
+      step="1"
+      disabled={submitting}
+    />
+    {#if errors.gridSize}
+      <span class="field__error" role="alert">{errors.gridSize}</span>
     {/if}
+  </div>
 
-    <footer class="dialog__footer">
-      <button type="button" class="btn btn--ghost" onclick={onClose} disabled={submitting}>
-        {t("FUSION.Scene.Dialog.Cancel")}
-      </button>
+  <!-- Fill colour — "preenchimento" (REQ-CEN-061) -->
+  <div class="field" class:field--error={!!errors.backgroundColor}>
+    <label class="field__label" for="scene-fill">
+      {t("FUSION.Scene.Dialog.Fill")}
+      <span class="field__optional">{t("FUSION.Scene.Dialog.FillHint")}</span>
+    </label>
+    <div class="field__asset-row">
+      <input
+        id="scene-fill"
+        class="field__swatch"
+        type="color"
+        bind:value={formData.backgroundColor}
+        oninput={handleInput}
+        disabled={submitting}
+      />
+      <input
+        class="field__input field__input--grow"
+        type="text"
+        bind:value={formData.backgroundColor}
+        oninput={handleInput}
+        aria-label={t("FUSION.Scene.Dialog.Fill")}
+        maxlength="7"
+        autocomplete="off"
+        disabled={submitting}
+      />
+    </div>
+    {#if errors.backgroundColor}
+      <span class="field__error" role="alert">{errors.backgroundColor}</span>
+    {/if}
+  </div>
+
+  <!-- Background -->
+  <div class="field" class:field--error={!!errors.background}>
+    <label class="field__label" for="scene-bg">
+      {t("FUSION.Scene.Dialog.Background")}
+      <span class="field__optional">{t("FUSION.Scene.Dialog.BackgroundOptional")}</span>
+    </label>
+    <div class="field__asset-row">
+      <input
+        id="scene-bg"
+        class="field__input field__input--grow"
+        type="text"
+        bind:value={formData.background}
+        oninput={handleInput}
+        placeholder={t("FUSION.Scene.Dialog.BackgroundPlaceholder")}
+        disabled={submitting}
+      />
       <button
-        type="submit"
-        class="btn btn--primary"
-        disabled={submitting || !isFormValid(validateSceneForm(formData))}
+        type="button"
+        class="btn btn--ghost btn--sm"
+        onclick={() => {
+          showFilePicker = true;
+        }}
+        disabled={submitting}
+        aria-label={t("FUSION.Scene.Dialog.BrowseAssets")}
+        title={t("FUSION.Scene.Dialog.BrowseAssets")}
       >
-        {submitting ? t("FUSION.Scene.Dialog.Saving") : mode === "create" ? t("FUSION.Scene.Dialog.Create") : t("FUSION.Scene.Dialog.Save")}
+        <Icon name="image" size={18} />
       </button>
-    </footer>
-  </form>
-</dialog>
+    </div>
+    {#if errors.background}
+      <span class="field__error" role="alert">{errors.background}</span>
+    {/if}
+  </div>
 
-<!-- FilePicker modal — rendered outside the dialog so z-index layers correctly -->
+  {#if serverError}
+    <div class="server-error" role="alert">{serverError}</div>
+  {/if}
+
+  <footer class="dialog__footer">
+    <button type="button" class="btn btn--ghost" onclick={onClose} disabled={submitting}>
+      {t("FUSION.Scene.Dialog.Cancel")}
+    </button>
+    <button
+      type="submit"
+      class="btn btn--primary"
+      disabled={submitting || !isFormValid(validateSceneForm(formData))}
+    >
+      {submitting
+        ? t("FUSION.Scene.Dialog.Saving")
+        : mode === "create"
+          ? t("FUSION.Scene.Dialog.Create")
+          : t("FUSION.Scene.Dialog.Save")}
+    </button>
+  </footer>
+</form>
+
+<!-- FilePicker modal — rendered outside the form so z-index layers correctly -->
 {#if showFilePicker}
-  {@const tok = fusionApi.getToken() ?? ""}
   <FilePicker
-    token={tok}
+    category="maps"
     onSelect={(path) => {
       formData.background = path;
       errors = validateSceneForm(formData);
       showFilePicker = false;
     }}
-    onClose={() => { showFilePicker = false; }}
+    onClose={() => {
+      showFilePicker = false;
+    }}
   />
 {/if}
 
 <style>
-  .dialog-backdrop {
-    position: fixed;
-    inset: 0;
-    background: rgba(0, 0, 0, 0.55);
-    z-index: 200;
-  }
-
-  .scene-dialog {
-    position: fixed;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    z-index: 201;
-
-    background: var(--fusion-surface);
-    border: 1px solid var(--fusion-border);
-    border-radius: var(--fusion-radius-lg);
-    box-shadow: 0 24px 64px rgba(0, 0, 0, 0.6);
+  /* The window owns the frame (Window.svelte) — this is only the form inside it. */
+  .scene-form {
     color: var(--fusion-text);
-    font-family: var(--fusion-font);
-    padding: 0;
-    width: min(440px, 92vw);
-    max-height: 90dvh;
-    overflow-y: auto;
-  }
-
-  /* Reset browser dialog defaults */
-  .scene-dialog::backdrop {
-    background: transparent;
-  }
-
-  .dialog__header {
-    align-items: center;
-    border-bottom: 1px solid var(--fusion-border);
-    display: flex;
-    gap: 0.5rem;
-    justify-content: space-between;
-    padding: 1rem 1.25rem;
-  }
-
-  .dialog__title {
-    font-size: 1rem;
-    font-weight: 600;
-    margin: 0;
-  }
-
-  .dialog__close {
-    background: transparent;
-    border: none;
-    color: var(--fusion-text-muted);
-    cursor: pointer;
-    font-size: 1.1rem;
-    padding: 0.25rem;
-    line-height: 1;
-    transition: color var(--fusion-transition);
-  }
-
-  .dialog__close:hover {
-    color: var(--fusion-text);
-  }
-
-  .dialog__body {
     display: flex;
     flex-direction: column;
+    font-family: var(--fusion-font);
     gap: 1rem;
-    padding: 1.25rem;
+    padding: 1rem 1.1rem;
   }
 
   /* Field layout */
@@ -360,7 +361,7 @@
 
   .field__label {
     color: var(--fusion-text-muted);
-    font-size: 0.8125rem;
+    font-size: var(--fusion-text-xs);
     font-weight: 500;
   }
 
@@ -381,20 +382,37 @@
   }
 
   .field__input {
+    min-height: var(--fusion-target);
     background: var(--fusion-surface-alt);
     border: 1px solid var(--fusion-border);
     border-radius: var(--fusion-radius-sm);
     color: var(--fusion-text);
     font-family: var(--fusion-font);
-    font-size: 0.875rem;
+    font-size: var(--fusion-text-sm);
     padding: 0.45rem 0.6rem;
     transition: border-color var(--fusion-transition);
     width: 100%;
   }
 
-  .field__input:focus {
+  .field__swatch {
+    background: var(--fusion-surface-alt);
+    border: 1px solid var(--fusion-border);
+    border-radius: var(--fusion-radius-sm);
+    flex-shrink: 0;
+    height: var(--fusion-target);
+    padding: 0.15rem;
+    width: 3rem;
+  }
+
+  .field__input:focus,
+  .field__swatch:focus {
     border-color: var(--fusion-accent);
-    outline: none;
+  }
+
+  .field__input:focus-visible,
+  .field__swatch:focus-visible {
+    outline: 2px solid var(--fusion-focus);
+    outline-offset: 1px;
   }
 
   .field__input:disabled {
@@ -408,15 +426,15 @@
 
   .field__error {
     color: var(--fusion-danger);
-    font-size: 0.75rem;
+    font-size: var(--fusion-text-xs);
   }
 
   .server-error {
-    background: rgba(255, 92, 92, 0.12);
+    background: var(--fusion-danger-dim);
     border: 1px solid var(--fusion-danger);
     border-radius: var(--fusion-radius-sm);
     color: var(--fusion-danger);
-    font-size: 0.8125rem;
+    font-size: var(--fusion-text-xs);
     padding: 0.6rem 0.75rem;
   }
 
@@ -425,22 +443,25 @@
     display: flex;
     gap: 0.5rem;
     justify-content: flex-end;
-    padding: 1rem 1.25rem;
+    padding-top: 0.9rem;
   }
 
   /* Buttons (inline — avoids deep import of global .btn) */
   .btn {
+    min-height: var(--fusion-target);
     align-items: center;
     border: 1px solid transparent;
     border-radius: var(--fusion-radius-sm);
     cursor: pointer;
     display: inline-flex;
     font-family: var(--fusion-font);
-    font-size: 0.875rem;
+    font-size: var(--fusion-text-sm);
     font-weight: 500;
     justify-content: center;
     padding: 0.45rem 1rem;
-    transition: background-color var(--fusion-transition), opacity var(--fusion-transition);
+    transition:
+      background-color var(--fusion-transition),
+      opacity var(--fusion-transition);
     white-space: nowrap;
   }
 
@@ -449,9 +470,14 @@
     opacity: 0.45;
   }
 
+  .btn:focus-visible {
+    outline: 2px solid var(--fusion-focus);
+    outline-offset: 2px;
+  }
+
   .btn--primary {
     background: var(--fusion-accent);
-    color: #fff;
+    color: var(--fusion-on-accent);
   }
 
   .btn--primary:hover:not(:disabled) {
@@ -469,7 +495,8 @@
     color: var(--fusion-text);
   }
 
-  .btn--icon {
-    padding: 0.25rem 0.4rem;
+  .btn--sm {
+    min-width: var(--fusion-target);
+    padding: 0.3rem 0.75rem;
   }
 </style>

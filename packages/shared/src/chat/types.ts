@@ -27,6 +27,33 @@ export const RollModeSchema = z.enum(["public", "gmroll", "blindroll", "selfroll
 export type RollMode = z.infer<typeof RollModeSchema>;
 
 // ---------------------------------------------------------------------------
+// RollTarget — REQ-ACH-070..074 (spec 38 §5.8, DEC-ACH-09)
+// ---------------------------------------------------------------------------
+
+/**
+ * A PORTRAIT of the target a roll was graded against — never a live reference
+ * to a token (REQ-ACH-072). The log has to keep telling the truth after the
+ * token dies, leaves the scene or is renamed, so only the values that were true
+ * at the instant of the roll are stored: the name shown, and the AC used.
+ *
+ * `ac` is PRIVILEGED data (REQ-ACH-073 / REQ-ACH-092 / REQ-SEC-020): the payload
+ * delivered to a user without a privileged role carries the name and the degree
+ * of success, and NOT the number. That is why the field is optional — a redacted
+ * message must still parse as a valid message on the client.
+ *
+ * The server never accepts an AC from the wire: `chat:send` takes a reference to
+ * a token/actor and resolves the number itself (see `ChatTargetRefSchema`).
+ */
+export const RollTargetSchema = z.object({
+  /** Display name at the instant of the roll (token name, or the actor's). */
+  name: z.string().min(1).max(200),
+  /** AC used to grade the roll. Absent in every non-privileged payload. */
+  ac: z.number().int().min(-50).max(100).optional(),
+});
+
+export type RollTarget = z.infer<typeof RollTargetSchema>;
+
+// ---------------------------------------------------------------------------
 // RollResultData — REQ-ROL-028..030
 // ---------------------------------------------------------------------------
 
@@ -99,6 +126,14 @@ export const RollResultDataSchema = z.object({
    * D7 (spec 08): this is a generic string, not a fixed enum.
    */
   degreeOfSuccess: z.string().optional(),
+  /**
+   * Portrait of the target this attack roll was graded against (REQ-ACH-070 /
+   * REQ-ACH-072). Present ONLY when the server could both resolve the target's
+   * AC and grade the roll: without a target there is no degree of success
+   * (REQ-ACH-071), and a degree without an AC would be a guess presented as a
+   * rule. The `ac` inside is stripped for non-privileged viewers (REQ-ACH-073).
+   */
+  target: RollTargetSchema.optional(),
 });
 
 export type RollResultData = z.infer<typeof RollResultDataSchema>;
@@ -175,9 +210,9 @@ export type SpellSaveType = z.infer<typeof SpellSaveTypeSchema>;
 /**
  * Structured payload for an interactive spell-cast chat card (r17-P2).
  *
- * Stored under `flags.pf2e.spellCast` of a ChatMessage (mirroring the Etmos
- * ConjuracaoCard's `flags.etmos.conjuracao` pattern — NOT a declarative
- * `message.card`/CardData). Rendered by <SpellCastCard>, which shows:
+ * Stored under `flags.pf2e.spellCast` of a ChatMessage (a system-namespaced
+ * flag pattern — NOT a declarative `message.card`/CardData). Rendered by
+ * <SpellCastCard>, which shows:
  *   - "Fazer teste de resistência" when {saveType + dcValue} are present — any
  *     player may click; the TARGET rolls the save with THEIR actor.
  *   - "Rolar dano" when {damageFormula} is present — visible only to the caster's
@@ -233,8 +268,10 @@ export type SpellCastCard = z.infer<typeof SpellCastCardSchema>;
  *     save + damage) OR an attack impulse (Elemental Blast → attack + damage).
  *     DC comes from the caster's derived class DC.
  *   - `strike`  — a weapon strike (r20-X1): attack + damage (+ crit). No DC.
+ *   - `action`  — a sheet action that rolls nothing itself (BHR-F3-08, Hunt Prey): the card
+ *     names the target and carries the effect the click applied (REQ-CHT-061). No DC.
  */
-export const AbilityKindSchema = z.enum(["spell", "impulse", "strike"]);
+export const AbilityKindSchema = z.enum(["spell", "impulse", "strike", "action"]);
 export type AbilityKind = z.infer<typeof AbilityKindSchema>;
 
 /**
@@ -289,10 +326,36 @@ export const AbilityCardSchema = z.object({
   damageFormula: z.string().max(200).optional(),
   /** Critical damage formula (strike only) — the "Rolar dano crítico" button. */
   critDamageFormula: z.string().max(200).optional(),
+  /**
+   * The statistic the card's (non-critical) damage roll names (ui-chat, 22/10/2026), e.g.
+   * `strikeDamage:<id>`: the damage button sends it as `flags.fusion.statistic` so the server can explain
+   * the flat part of the damage on the roll card. A DESCRIPTION, never a number (see FusionStatisticRef).
+   */
+  damageStatistic: z.string().min(1).max(160).optional(),
   /** Damage type (e.g. "fire", "electricity"). */
   damageType: z.string().max(40).optional(),
   /** Traits (display only). */
   traits: z.array(z.string().max(40)).max(30).optional(),
+  /**
+   * Name of the creature the action was used on (display only; `action` cards, BHR-F3-08).
+   *
+   * NOT for a creature that stands on a scene: a name frozen by the sender is the name the SENDER may read, and the
+   * Mestre reads every one. Such a card names its target by reference ({@link targetTokenId}) and each viewer
+   * resolves the name from his own mirror. What stays here is a name nobody has to be shielded from: the owner's own
+   * companion on the Command an Animal card. The server drops it from a card that also carries a reference.
+   */
+  targetName: z.string().max(200).optional(),
+  /**
+   * The token the action was used on, BY REFERENCE (closing review I-1). The card shows each viewer the name that
+   * viewer's own mirror gives that token — the token's own label, else the actor's name if the viewer may read it,
+   * else "criatura desconhecida" — the way the strike card resolves its `targetSnapshot`. A hidden token's reference
+   * is cut from the card of a viewer who may not see it (`net/redaction.ts`).
+   */
+  targetTokenId: z.string().min(1).max(120).optional(),
+  /** The actor behind {@link targetTokenId}, when the sender's context knew it (the viewer resolves the name through it). */
+  targetActorId: z.string().min(1).max(120).optional(),
+  /** The effect the action applied, shown INSIDE the card, never as a second message (REQ-CHT-061). */
+  embeddedEffect: z.object({ name: z.string().min(1).max(200) }).optional(),
 });
 
 export type AbilityCard = z.infer<typeof AbilityCardSchema>;
@@ -349,13 +412,197 @@ export const SaveCheckContextSchema = z.object({
 export type SaveCheckContext = z.infer<typeof SaveCheckContextSchema>;
 
 /**
- * Discriminated union of check contexts a `chat:send` may carry (r17.1). Only
- * `save` exists today; `kind` keeps the shape open for attack/skill checks
- * without a breaking change.
+ * Context of a strike / attack roll (BHR-F3-03, importing GUE-F1-03 and
+ * D-G02; REQ-BHR-083). It says WHY the roll is an attack, so the server grades
+ * it against the AC it reads from the database (REQ-ACH-070) and the card knows
+ * which damage button fits the degree. It carries no AC: a number a client sent
+ * would never be used. `payload.target` stays the path that resolves the
+ * target; when it is absent `targetTokenId` resolves it, and when both are
+ * present and differ the roll is not graded (REQ-ACH-071).
  */
-export const CheckContextSchema = z.discriminatedUnion("kind", [SaveCheckContextSchema]);
+export const AttackCheckContextSchema = z.object({
+  kind: z.literal("attack"),
+  /**
+   * Token aimed at; the AC comes from the database, NEVER from the payload.
+   * Absent for a strike thrown without a target: the server still counts it for
+   * the MAP (every attack counts, onda-6 review I-7) but grades nothing.
+   */
+  targetTokenId: z.string().min(1).max(120).optional(),
+  /** MAP index applied to this strike — audit only, it does not enter the math. */
+  mapIndex: z.union([z.literal(0), z.literal(1), z.literal(2)]),
+  /** Agile weapon: the MAP penalty is -4/-8 instead of -5/-10. */
+  agile: z.boolean().optional(),
+});
+
+export type AttackCheckContext = z.infer<typeof AttackCheckContextSchema>;
+
+/**
+ * The defence of the target a skill check is rolled against (BHR-F6-01).
+ * `level` (BHR-F3-09): Recall Knowledge about a creature, graded against the
+ * creature-level DC adjusted by rarity, which the server reads from the target.
+ */
+export const SkillCheckDefenseSchema = z.enum([
+  "fortitude",
+  "reflex",
+  "will",
+  "ac",
+  "perception",
+  "level",
+]);
+
+export type SkillCheckDefense = z.infer<typeof SkillCheckDefenseSchema>;
+
+/**
+ * Context of a skill check rolled against ANOTHER creature's DC — Athletics
+ * maneuvers, Recall Knowledge against the quarry (BHR-F6-01, importing
+ * GUE-F5-05; REQ-BHR-201). Like {@link AttackCheckContextSchema} it carries no
+ * number: the server reads the DC of the `against` defence from the target's
+ * database row (`system.derived.saves.<n>.dc` / `perception.dc` / the AC) and
+ * ignores any DC the client sent. `maneuver` names an Athletics maneuver
+ * (`grapple`, `shove`, `trip`...): a maneuver is an attack-trait action, so it
+ * counts for the MAP; a plain check (Recall Knowledge) leaves it out.
+ */
+export const SkillCheckContextSchema = z.object({
+  kind: z.literal("skill"),
+  /** Token aimed at; the DC comes from the database, NEVER from the payload. */
+  targetTokenId: z.string().min(1).max(120),
+  /** Which defence of the target the roll is graded against. */
+  against: SkillCheckDefenseSchema,
+  /** Athletics maneuver this check carries, when it is one. */
+  maneuver: z.string().min(1).max(40).optional(),
+});
+
+export type SkillCheckContext = z.infer<typeof SkillCheckContextSchema>;
+
+/**
+ * Discriminated union of check contexts a `chat:send` may carry (r17.1):
+ * `save` (graded against a DC), `attack` (BHR-F3-03, graded against the
+ * target's AC) and `skill` (BHR-F6-01, graded against a defence of the target).
+ */
+export const CheckContextSchema = z.discriminatedUnion("kind", [
+  SaveCheckContextSchema,
+  AttackCheckContextSchema,
+  SkillCheckContextSchema,
+]);
 
 export type CheckContext = z.infer<typeof CheckContextSchema>;
+
+/**
+ * The context of a roll the client describes when it fires one from a sheet
+ * (plan of the Alquimista §2.8, ALQ-F4-09; spec 52 REQ-BHR-069): WHO rolls
+ * (`actorId`), WITH WHAT (`itemId`), ON WHICH statistics (`selectors`, e.g.
+ * `attack-roll`, `stealth`, `reflex`) and the options that describe the roll
+ * (`action:strike`...). Recorded on the message as
+ * `flags.fusion.rollContext`.
+ *
+ * It is a DESCRIPTION, never a number: the server re-derives the actor and
+ * settles every conditional modifier and note itself (DF-16/DF-17). Of the
+ * options the client sends, only `action:*` is kept; every other one (`target:*`,
+ * `origin:*`, `feat:*`, `effect:*`...) is the server's to write and is dropped
+ * before resolution.
+ */
+export const FusionRollContextSchema = z.object({
+  actorId: z.string().min(1).max(120),
+  itemId: z.string().min(1).max(120).optional(),
+  selectors: z.array(z.string().min(1).max(120)).min(1).max(16),
+  options: z.array(z.string().min(1).max(160)).max(128),
+});
+
+export type FusionRollContext = z.infer<typeof FusionRollContextSchema>;
+
+/**
+ * One roll note the server resolved for a roll (plan §2.8 `ResolvedRollNote`),
+ * stored on `flags.fusion.rollNotes`. `outcome` lists the degrees of success the
+ * note belongs to (absent = every outcome); the server keeps only the notes whose
+ * outcome matches the degree it graded. `slug` is the note's own key (the sheet
+ * keys its pt-BR text by it); `title`/`text` may be empty when the pack carries
+ * no readable text of its own.
+ */
+export interface ResolvedRollNote {
+  selector: string;
+  title: string;
+  text: string;
+  outcome?: string[];
+  sourceItemId: string;
+  slug?: string;
+}
+
+/**
+ * One conditional modifier the server settled for a roll (`flags.fusion.
+ * conditionalModifiers`): a modifier that is not in the sheet's base number
+ * because its predicate needs the roll's context (a target, an attacker).
+ */
+export interface ResolvedRollModifier {
+  slug: string;
+  label: string;
+  type: string;
+  value: number;
+  sourceItemId?: string;
+}
+
+/**
+ * The statistic a sheet roll is made with (ui-fundacao, 22/10/2026): `key` names it in the system's
+ * own terms (`skill:athletics`, `perception`, `save:will`, `strike:<id>`...). A DESCRIPTION, never a
+ * number: the server re-derives the actor, asks the system for the parts of that statistic and
+ * records them as `flags.fusion.breakdown` only when they add up to the flat part of the formula.
+ */
+export const FusionStatisticRefSchema = z.object({
+  actorId: z.string().min(1).max(120),
+  key: z.string().min(1).max(160),
+});
+
+export type FusionStatisticRef = z.infer<typeof FusionStatisticRefSchema>;
+
+/**
+ * One part of the number a roll was made with (`flags.fusion.breakdown.parts`): the attribute, the
+ * proficiency, an item, a status... `label` is already the system's reading text; `applied: false`
+ * is a part that did not stack (a better bonus of the same type won) and does not count.
+ */
+export interface RollBreakdownPart {
+  label: string;
+  type: string;
+  value: number;
+  applied: boolean;
+}
+
+/** `flags.fusion.breakdown`, written by the server only (the client cannot send it). */
+export interface RollBreakdownFlag {
+  statistic: string;
+  parts: RollBreakdownPart[];
+}
+
+/**
+ * One damage component of a damage roll (#225, REQ-SYS-166): what the damage IS — its type, its
+ * category, the traits and materials that IWR exceptions read — as the SYSTEM derived it from the
+ * item, strike or spell the roll was made with. Never a number: the amount is the roll's total.
+ */
+export interface RollDamageComponent {
+  type: string;
+  category?: "persistent" | "splash" | "precision";
+  traits?: string[];
+  materials?: string[];
+}
+
+/** What a damage roll was made with (display and audit only): `strike`, `spell`, `impulse`... */
+export interface RollDamageSource {
+  kind: string;
+  label: string;
+  itemId?: string;
+}
+
+/**
+ * `flags.fusion.damage` (#225, REQ-SYS-166), written by the server only (`ChatSendFlagsSchema` strips
+ * it from a client payload): the damage components of the message's roll (`rolls[0]`), derived by the
+ * system at roll time. `actor:applyDamage` rereads them for a non-privileged caller instead of trusting
+ * the payload's `type`/`category`/`traits`/`materials`. The first component is the primary one: a roll
+ * is ONE pool, so its whole total goes to the component the apply selects. `critical` is set when the
+ * server itself graded the Strike this damage nests under as a critical success.
+ */
+export interface RollDamageFlag {
+  source: RollDamageSource;
+  components: RollDamageComponent[];
+  critical?: boolean;
+}
 
 /**
  * Flags a client may attach to a chat:send payload (r17-P2 / r17.1 / r18-N1).
@@ -389,6 +636,18 @@ export const ChatSendFlagsSchema = z.object({
    * dangling parent is dropped, never a hard failure).
    */
   parentMessageId: z.string().min(1).max(120).optional(),
+  /**
+   * Core-namespaced flags (BHR-F2-05). Only `rollContext` and `statistic` are read; any other key
+   * (a forged `rollNotes`, a pre-computed bonus) is stripped by this schema and
+   * never reaches the stored message (DF-17).
+   */
+  fusion: z
+    .object({
+      rollContext: FusionRollContextSchema.optional(),
+      /** The statistic of a sheet roll, for the card's decomposition (ui-fundacao). */
+      statistic: FusionStatisticRefSchema.optional(),
+    })
+    .optional(),
 });
 
 export type ChatSendFlags = z.infer<typeof ChatSendFlagsSchema>;
@@ -450,6 +709,32 @@ export const ChatMessageSchema = BaseDocumentSchema.extend({
    * REQ-CHT-004 / D-CHT-02 / REQ-ROL-031.
    */
   blind: z.boolean().default(false),
+  /**
+   * Marked as void, but kept in the log at the same position (REQ-CHT-005,
+   * REQ-ACH-081). Absent on every message written before invalidation existed,
+   * which reads exactly the same as `false` — nothing was ever deleted.
+   */
+  invalid: z.boolean().optional(),
+  /**
+   * User ID of whoever performed the LAST invalidation. It is what decides who
+   * may revalidate (REQ-ACH-083: the GM always, the author only what he himself
+   * invalidated) and it SURVIVES revalidation as the record of that operation
+   * (REQ-ACH-084).
+   */
+  invalidatedBy: z.string().optional(),
+  /** Unix ms of the last invalidation — survives revalidation (REQ-ACH-084). */
+  invalidatedAt: z.number().int().nonnegative().optional(),
+  /**
+   * Portraits of the targets this message names (REQ-ACH-072, spec 38 §7: the
+   * target is written on the ChatMessage itself). An attack carries exactly one;
+   * a spell with a saving throw MAY carry several (REQ-ACH-074). Absent when the
+   * message names no target — and then no degree of success is shown for it
+   * (REQ-ACH-071).
+   *
+   * Same redaction as `rolls[].target`: the `ac` of each portrait is stripped
+   * from every payload delivered to a non-privileged viewer (REQ-ACH-073).
+   */
+  targets: z.array(RollTargetSchema).max(20).optional(),
   /** Roll results for type === 'roll'. REQ-CHT-018. */
   rolls: z.array(RollResultDataSchema).optional(),
   /** Declarative card for type === 'system'. REQ-CHT-024. */

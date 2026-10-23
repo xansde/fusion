@@ -7,6 +7,7 @@
 import { describe, it, expect } from "vitest";
 import {
   parseChatCommand,
+  type ChatCommandParseError,
   extractInlineRolls,
   type ParsedRollCommand,
   type ParsedWhisperCommand,
@@ -97,10 +98,71 @@ describe("parseChatCommand — whisper commands", () => {
     expect(result.targets).toEqual(["players"]);
   });
 
-  it("malformed whisper (no brackets) falls through to text", () => {
-    const result = parseChatCommand("/w Alice hello");
-    // No brackets → falls through as plain text
-    expect(result.kind).toBe("text");
+  it("without brackets and without known names, the first word is the target (never public text)", () => {
+    // A whisper that fell through to text was posted to the whole table.
+    const result = parseChatCommand("/w Alice hello") as ParsedWhisperCommand;
+    expect(result.kind).toBe("whisper");
+    expect(result.targets).toEqual(["Alice"]);
+    expect(result.message).toBe("hello");
+  });
+
+  it('a quoted target may hold spaces: /w "Nome Composto" msg', () => {
+    const result = parseChatCommand('/w "Huo Jinwu" vem cá') as ParsedWhisperCommand;
+    expect(result.kind).toBe("whisper");
+    expect(result.targets).toEqual(["Huo Jinwu"]);
+    expect(result.message).toBe("vem cá");
+  });
+
+  it("a compound name without quotes matches the longest known name at the start", () => {
+    const knownNames = ["Huo", "Huo Jinwu", "Tormentor Maximus Eternus", "Gamemaster"];
+    const a = parseChatCommand("/w Tormentor Maximus Eternus olha isso", {
+      knownNames,
+    }) as ParsedWhisperCommand;
+    expect(a.kind).toBe("whisper");
+    expect(a.targets).toEqual(["Tormentor Maximus Eternus"]);
+    expect(a.message).toBe("olha isso");
+
+    const b = parseChatCommand("/w huo jinwu psiu", { knownNames }) as ParsedWhisperCommand;
+    expect(b.targets).toEqual(["Huo Jinwu"]);
+    expect(b.message).toBe("psiu");
+
+    // Only a whole-word match counts: "Huo Jinwuzinho" is not "Huo Jinwu".
+    const c = parseChatCommand("/w Huo Jinwuzinho oi", { knownNames }) as ParsedWhisperCommand;
+    expect(c.targets).toEqual(["Huo"]);
+    expect(c.message).toBe("Jinwuzinho oi");
+  });
+
+  it("gm and players keywords still work without brackets", () => {
+    const result = parseChatCommand("/w gm segredo", {
+      knownNames: ["Gamemaster"],
+    }) as ParsedWhisperCommand;
+    expect(result.targets).toEqual(["gm"]);
+    expect(result.message).toBe("segredo");
+  });
+
+  it("an unknown first word is still the target, so the server can refuse it by name", () => {
+    const result = parseChatCommand("/w Ninguém oi", {
+      knownNames: ["Huo Jinwu"],
+    }) as ParsedWhisperCommand;
+    expect(result.kind).toBe("whisper");
+    expect(result.targets).toEqual(["Ninguém"]);
+  });
+
+  it("a malformed whisper is a parse error, never public text", () => {
+    const cases: ReadonlyArray<readonly [string, ChatCommandParseError]> = [
+      ["/w", "whisper-missing-target"],
+      ["/w   ", "whisper-missing-target"],
+      ["/whisper", "whisper-missing-target"],
+      ["/w [] psiu", "whisper-missing-target"],
+      ['/w "" psiu', "whisper-missing-target"],
+      ["/w [Huo psiu", "whisper-unclosed-bracket"],
+      ['/w "Huo Jinwu psiu', "whisper-unclosed-quote"],
+      ['/WHISPER "Huo Jinwu psiu', "whisper-unclosed-quote"],
+    ];
+    for (const [input, error] of cases) {
+      const result = parseChatCommand(input, { knownNames: ["Huo Jinwu"] });
+      expect(result, input).toEqual({ kind: "invalid", command: "whisper", error });
+    }
   });
 
   it("trims whitespace around target names", () => {

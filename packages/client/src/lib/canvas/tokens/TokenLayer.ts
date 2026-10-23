@@ -4,12 +4,22 @@
  * Spec: 06-canvas-e-renderizacao.md §REQ-CNV-025..033, §REQ-CNV-037, §D5, §D8
  * Spec: 05-usuarios-e-permissoes.md — hidden tokens; GM sees all
  * Spec: 04-rede-e-sincronizacao.md §REQ-NET-050/051/052 — optimistic move
- * Spec: 07-visao-iluminacao-fog.md §REQ-VIS-080 — token visibility filter
+ *
+ * DEC-SEP-05 (F2, 2026-08-23): the vision-based visibility filter that used to
+ * live here (`setVisionPolygons`/`_applyVisionFilter`, REQ-VIS-080) was removed
+ * with the rest of the fog/vision pipeline — see `docs/design/separacao-repos/
+ * design.md`. Every non-hidden token is now visible to every role; hidden
+ * tokens keep the separate (and unrelated) GM-only redaction below.
  *
  * Responsibilities:
  *   - Subscribe to DocumentMirror "Token" (embedded in active SceneDocument).
  *   - For each TokenDocument in the active scene: create, update, or destroy
  *     a TokenSprite.
+ *   - Subscribe to DocumentMirror "Actor": a sprite's art/name come from the
+ *     base Actor (TK023 / RNF-TOK-01), not from the token itself, so an
+ *     Actor edited (or created after its token, e.g. compendium drop) must
+ *     also re-reconcile the active scene's tokens — otherwise art/name
+ *     freeze after the first draw.
  *   - Hidden tokens: visible (semi-transparent) to GM; invisible to players
  *     (server already filters them from snapshots — but hidden flag may arrive
  *     via update op, so we guard here too).
@@ -18,10 +28,6 @@
  *   - Optimistic move API: TokenLayer.applyLocalMove() snaps a sprite
  *     immediately and marks it so the next mirror reconcile skips animation.
  *   - Rollback API: TokenLayer.rollbackMove() reverts a sprite to a given pos.
- *   - Vision filter (M2-B): setVisionPolygons() feeds the current vision rings
- *     so tokens outside the current vision polygon are hidden for players.
- *     REQ-VIS-080: tokens in explored-but-not-visible areas are NOT visible.
- *     GM always sees all tokens regardless of vision.
  *
  * This class does NOT own the PIXI ticker — it receives deltaMs from the
  * FusionCanvas ticker callback. The sceneLoader (or TableScreen) wires this up.
@@ -30,8 +36,6 @@
  *   const layer = new TokenLayer(container, mirror, sceneId, gridSize, isGm);
  *   // In ticker:
  *   layer.tick(ticker.deltaMS, camera.scale);
- *   // On vision update (M2-B):
- *   layer.setVisionPolygons(visionResult.visionPolygons, fogEnabled);
  *   // On local drag confirm:
  *   layer.applyLocalMove(tokenId, newX, newY);
  *   // On rollback (ack rejected):
@@ -41,41 +45,14 @@
  */
 
 import type { Container } from "pixi.js";
+import { readMountState } from "@fusion/shared";
 import type { TokenDocument, SceneDocument } from "@fusion/shared";
 import type { DocumentMirror } from "../../docs/DocumentMirror.js";
+import type { ActorDocument } from "../../actors/actorDirectory.js";
 import { TokenSprite } from "./TokenSprite.js";
-import type { VisionPolygonResult } from "../vision/vision-state.js";
-
-// ---------------------------------------------------------------------------
-// Helpers
-// ---------------------------------------------------------------------------
-
-/**
- * Test whether a point (px, py) is inside any of the given vision polygons.
- * Uses ray-casting algorithm on each polygon's vertices.
- * Returns true if the point is in at least one polygon.
- * Called client-side only for the token visibility filter.
- */
-function pointInAnyPolygon(px: number, py: number, polygons: VisionPolygonResult[]): boolean {
-  for (const vp of polygons) {
-    const verts = vp.polygon.vertices;
-    const n = verts.length;
-    if (n < 3) continue;
-    let inside = false;
-    let j = n - 1;
-    for (let i = 0; i < n; i++) {
-      const vi = verts[i];
-      const vj = verts[j];
-      j = i;
-      if (!vi || !vj) continue;
-      if (vi.y > py !== vj.y > py && px < ((vj.x - vi.x) * (py - vi.y)) / (vj.y - vi.y) + vi.x) {
-        inside = !inside;
-      }
-    }
-    if (inside) return true;
-  }
-  return false;
-}
+import { mountedStackPlacement } from "./token-interaction.js";
+import { tokenDisplayPrefs } from "./tokenDisplayPrefsStore.svelte.js";
+import { footprintRegistry } from "./footprintRegistry.svelte.js";
 
 // ---------------------------------------------------------------------------
 // TokenLayer
@@ -85,8 +62,31 @@ export class TokenLayer {
   /** The PIXI container this layer manages. Pass the "tokens" layer. */
   private _container: Container;
 
-  /** Mirror subscription unsubscribe fn. */
+  /**
+   * The world mirror. Stored (not just read once in the constructor) so it
+   * can be handed to each `TokenSprite` — TK023 (REQ-CNV-091): a sprite reads
+   * its effective actor from the mirror by `token.actorId`, it no longer
+   * carries its own art.
+   */
+  private _mirror: DocumentMirror;
+
+  /** Mirror subscription unsubscribe fn (Scene collection). */
   private _unsubscribe: (() => void) | null = null;
+
+  /**
+   * Mirror subscription unsubscribe fn (Actor collection).
+   *
+   * TK023 (RNF-TOK-01) made every sprite resolve its art/name from the base
+   * Actor document via `resolveEffectiveActor`, but that resolution only
+   * re-runs when the sprite's own TokenDocument changes (`update()`). An
+   * Actor edited on its own (art swap, rename) — or an Actor arriving in the
+   * mirror AFTER its token (compendium drop: Actor doc:create, then the
+   * token's doc:create) — never touched the Scene document, so no sprite
+   * ever re-read it. Subscribing to "Actor" here closes that gap: any Actor
+   * change re-reconciles the active scene's tokens, which re-resolves every
+   * sprite's effective actor and redraws art/nameplate accordingly.
+   */
+  private _unsubscribeActor: (() => void) | null = null;
 
   /** Active sprites, keyed by token _id. */
   private _sprites: Map<string, TokenSprite> = new Map();
@@ -104,17 +104,29 @@ export class TokenLayer {
   private _lastZoom = 1;
 
   /**
-   * Current vision polygons for the player (set via setVisionPolygons).
-   * Used to filter token visibility: tokens outside vision are hidden for players.
-   * REQ-VIS-080: explored-but-not-visible area hides tokens.
+   * The display-preferences object last applied to every sprite (for LOD) —
+   * TK080/REQ-TOK-074: `tokenDisplayPrefsStore.svelte.ts` hands out a NEW
+   * object every time the user toggles a preference, so a reference
+   * inequality here is exactly "the preference changed since last tick",
+   * with no extra event wiring needed from the Configurações drawer.
    */
-  private _visionPolygons: VisionPolygonResult[] = [];
+  private _lastDisplayPrefs = tokenDisplayPrefs.current;
 
   /**
-   * Whether fog/token-vision is active for this user.
-   * When false (GM or fog disabled), all tokens are visible.
+   * The size→footprint table last reconciled against (R5).
+   *
+   * `footprintRegistry` is filled by the `system:footprint` ack (TK041), which
+   * is ASYNCHRONOUS: the canvas mounts, sprites reconcile against an empty
+   * table — `footprintOf` fails open to 1×1 (REQ-TOK-012, DEC-TOK-03) — and
+   * the answer lands a round-trip later. `_reconcileTokens` only runs on a
+   * Scene or Actor mirror change, so before this field a "grande" creature
+   * stayed 1×1 until some unrelated broadcast touched the scene; #194's
+   * `_loadedSceneId` guard removed the scene reload that used to hide it.
+   * Same mechanism as `_lastDisplayPrefs` above: the registry publishes a NEW
+   * Map whenever the table changes, so a reference inequality in `tick()` is
+   * exactly "the table changed since last frame".
    */
-  private _fogActive = false;
+  private _lastFootprintTable = footprintRegistry.sizeToFootprint;
 
   constructor(
     container: Container,
@@ -124,10 +136,10 @@ export class TokenLayer {
     isGm: boolean,
   ) {
     this._container = container;
+    this._mirror = mirror;
     this._sceneId = sceneId;
     this._gridSize = gridSize;
     this._isGm = isGm;
-    this._fogActive = !isGm;
 
     // Subscribe to Scene collection changes; tokens are embedded in Scene.
     this._unsubscribe = mirror.subscribe<SceneDocument>("Scene", (scenes) => {
@@ -137,6 +149,17 @@ export class TokenLayer {
       } else {
         // Scene was deleted or no longer active — clear everything
         this._clearAll();
+      }
+    });
+
+    // Subscribe to Actor collection changes — an Actor edited (or created)
+    // on its own never touches the Scene document, so without this the
+    // sprite's art/name freeze after the first draw (see _unsubscribeActor
+    // doc comment above).
+    this._unsubscribeActor = mirror.subscribe<ActorDocument>("Actor", () => {
+      const activeScene = this._mirror.getDoc<SceneDocument>("Scene", this._sceneId);
+      if (activeScene) {
+        this._reconcileTokens(activeScene.tokens);
       }
     });
 
@@ -157,13 +180,28 @@ export class TokenLayer {
    * @param zoom     Current camera zoom scale (for LOD updates).
    */
   tick(deltaMs: number, zoom: number): void {
+    // R5: the size→footprint table can land after the sprites were first
+    // drawn (see `_lastFootprintTable`). Re-reconcile the active scene once,
+    // on the first frame after it changes — `TokenSprite.update` re-derives
+    // the footprint and repaints when it differs (REQ-TOK-012/017).
+    const footprintTable = footprintRegistry.sizeToFootprint;
+    if (footprintTable !== this._lastFootprintTable) {
+      this._lastFootprintTable = footprintTable;
+      const scene = this._mirror.getDoc<SceneDocument>("Scene", this._sceneId);
+      if (scene) this._reconcileTokens(scene.tokens);
+    }
+
     for (const sprite of this._sprites.values()) {
       sprite.tick(deltaMs);
     }
 
-    // Update LOD only when zoom changes by a non-trivial amount
-    if (Math.abs(zoom - this._lastZoom) > 0.01) {
+    // Update LOD when zoom changes by a non-trivial amount, OR when the
+    // user's display preferences changed (TK080) — either one can move the
+    // effective (zoom AND preference) visibility TokenSprite.updateLod computes.
+    const prefsChanged = tokenDisplayPrefs.current !== this._lastDisplayPrefs;
+    if (Math.abs(zoom - this._lastZoom) > 0.01 || prefsChanged) {
       this._lastZoom = zoom;
+      this._lastDisplayPrefs = tokenDisplayPrefs.current;
       for (const sprite of this._sprites.values()) {
         sprite.updateLod(zoom);
       }
@@ -224,30 +262,6 @@ export class TokenLayer {
   }
 
   // ---------------------------------------------------------------------------
-  // Public — vision filter update (M2-B)
-  // ---------------------------------------------------------------------------
-
-  /**
-   * Update the current vision polygons and fog active state.
-   *
-   * Called after each VisionStateComputer.compute() to apply the token
-   * visibility filter: tokens outside the current vision polygon are
-   * hidden for non-GM players (REQ-VIS-080).
-   *
-   * The fog overlay (LightingRenderer) already hides the terrain in unexplored /
-   * explored-but-not-visible areas; this filter hides TOKENS in those areas
-   * so they don't bleed through the fog overlay.
-   *
-   * @param polygons - Current vision polygons from VisionStateResult.
-   * @param fogEnabled - Whether fog/token-vision is active.
-   */
-  setVisionPolygons(polygons: VisionPolygonResult[], fogEnabled: boolean): void {
-    this._visionPolygons = polygons;
-    this._fogActive = !this._isGm && fogEnabled;
-    this._applyVisionFilter();
-  }
-
-  // ---------------------------------------------------------------------------
   // Public — scene/grid update
   // ---------------------------------------------------------------------------
 
@@ -271,6 +285,8 @@ export class TokenLayer {
   destroy(): void {
     this._unsubscribe?.();
     this._unsubscribe = null;
+    this._unsubscribeActor?.();
+    this._unsubscribeActor = null;
     this._clearAll();
   }
 
@@ -302,7 +318,10 @@ export class TokenLayer {
         existing.update(token, this._gridSize);
       } else {
         // Create new sprite
-        const sprite = new TokenSprite(token, this._gridSize, this._isGm);
+        // TK023 (REQ-CNV-091): the sprite is handed the mirror so it can
+        // resolve its own effective actor (art/name) by `token.actorId` —
+        // a token no longer carries a `texture` of its own.
+        const sprite = new TokenSprite(token, this._gridSize, this._isGm, this._mirror);
         sprite.updateLod(this._lastZoom);
         this._sprites.set(token._id, sprite);
         this._container.addChild(sprite.container);
@@ -317,9 +336,38 @@ export class TokenLayer {
       }
     }
 
-    // After reconciliation, apply vision filter to ensure new sprites are
-    // correctly hidden/shown based on current vision state.
-    this._applyVisionFilter();
+    this._stackRiders(tokens);
+  }
+
+  /**
+   * BHR-F5-03 (REQ-CNV-107): a mounted rider is drawn stacked, half size, in the upper-right corner of
+   * his mount, above it; an unmounted one goes back to his own square. The stored position never
+   * changes (the server keeps the rider beside the mount); only what is drawn does.
+   */
+  private _stackRiders(tokens: TokenDocument[]): void {
+    const byId = new Map(tokens.map((t) => [t._id, t]));
+    for (const token of tokens) {
+      const sprite = this._sprites.get(token._id);
+      if (!sprite) continue;
+      const mountId = readMountState(token).mountTokenId;
+      const mount = mountId === undefined ? undefined : byId.get(mountId);
+      const mountSprite = mountId === undefined ? undefined : this._sprites.get(mountId);
+      // A rider whose mount is not drawn (stale flag, hidden from this viewer) stays in his square.
+      if (!mount || !mountSprite || readMountState(mount).riderTokenId !== token._id) {
+        sprite.setMountStack(null);
+        continue;
+      }
+      sprite.setMountStack(
+        mountedStackPlacement(
+          { x: mount.x, y: mount.y },
+          mountSprite.pixelSize,
+          { x: token.x, y: token.y },
+          sprite.pixelSize,
+        ),
+      );
+      // Last child draws on top: the rider sits above his mount.
+      this._container.addChild(sprite.container);
+    }
   }
 
   private _clearAll(): void {
@@ -327,42 +375,5 @@ export class TokenLayer {
       sprite.destroy();
     }
     this._sprites.clear();
-  }
-
-  // ---------------------------------------------------------------------------
-  // Private — vision filter
-  // ---------------------------------------------------------------------------
-
-  /**
-   * Apply the vision-based visibility filter to all active sprites.
-   *
-   * REQ-VIS-080: tokens outside the current vision polygon are invisible
-   * to non-GM players, even in explored areas.
-   *
-   * Only affects non-GM players when fog is active. GM and disabled fog
-   * always show all tokens.
-   */
-  private _applyVisionFilter(): void {
-    if (this._isGm || !this._fogActive) {
-      // Restore all sprites to visible
-      for (const sprite of this._sprites.values()) {
-        sprite.container.visible = true;
-      }
-      return;
-    }
-
-    // No vision polygons → player has no tokens with vision → see nothing
-    if (this._visionPolygons.length === 0) {
-      for (const sprite of this._sprites.values()) {
-        sprite.container.visible = false;
-      }
-      return;
-    }
-
-    for (const sprite of this._sprites.values()) {
-      const pos = sprite.container;
-      const visible = pointInAnyPolygon(pos.x, pos.y, this._visionPolygons);
-      sprite.container.visible = visible;
-    }
   }
 }

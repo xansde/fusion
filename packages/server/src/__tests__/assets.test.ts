@@ -11,7 +11,8 @@
  */
 
 import { describe, it, expect, beforeEach, afterEach } from "vitest";
-import { mkdirSync, rmSync, existsSync } from "node:fs";
+import { mkdirSync, rmSync, existsSync, readdirSync, readFileSync, writeFileSync } from "node:fs";
+import { createHash } from "node:crypto";
 import { join } from "node:path";
 import { tmpdir } from "node:os";
 import Fastify from "fastify";
@@ -25,6 +26,7 @@ import { Role } from "../auth/user-store.js";
 import { loadOrCreateSecret } from "../auth/crypto.js";
 import { registerAuthRoutes } from "../auth/routes.js";
 import { registerAssetRoutes } from "../assets/routes.js";
+import { isActionBarIconPath } from "@fusion/shared";
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -698,10 +700,15 @@ describe("POST /api/assets/token + GET /assets/* with query-token", () => {
   });
 
   it("returns 401 when query-token is expired", async () => {
-    // Build an expired token by back-dating exp by 10 minutes
-    const { issueAssetToken } = await import("../assets/asset-token.js");
+    // Build an expired token by back-dating exp by 10 minutes.
+    //
+    // T025: this has to use the CURRENT signer (`issueBrowseGrant`), not the
+    // superseded `issueAssetToken`. A token in the old format is rejected for
+    // being unrecognisable, which would make this test pass without ever
+    // exercising the expiry check it is named after.
+    const { issueBrowseGrant } = await import("../assets/asset-grant.js");
     const pastMs = Date.now() - 10 * 60 * 1000;
-    const { token, exp } = issueAssetToken(ctx.gmUserId, ctx.secret, pastMs);
+    const { token, exp } = issueBrowseGrant(ctx.gmUserId, ctx.secret, pastMs);
 
     const resp = await ctx.fastify.inject({
       method: "GET",
@@ -723,5 +730,542 @@ describe("POST /api/assets/token + GET /assets/* with query-token", () => {
       url: `/assets/any.png?at=deadbeef00000000deadbeef00000000&ae=${String(exp)}&au=${ctx.gmUserId}`,
     });
     expect(resp.statusCode).toBe(401);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// BAR-F3-05 — the icon upload ("Trocar ícone…"), open to every player
+// (REQ-BAR-075..078, REQ-BAR-081, REQ-BAR-103; REQ-AST-011 and REQ-SEC-043/044 as amended)
+// ---------------------------------------------------------------------------
+
+const ICON_AREA = "actionbar-icons";
+
+async function uploadIcon(
+  fastify: FastifyInstance,
+  token: string,
+  fileBuffer: Buffer,
+  filename: string,
+  extraFields: Record<string, string> = {},
+  query = "?purpose=icon",
+) {
+  const form = new FormData();
+  for (const [key, value] of Object.entries(extraFields)) form.append(key, value);
+  form.append("file", fileBuffer, { filename, contentType: "image/png" });
+  return fastify.inject({
+    method: "POST",
+    url: `/api/assets/upload${query}`,
+    headers: { ...form.getHeaders(), authorization: `Bearer ${token}` },
+    payload: form.getBuffer(),
+  });
+}
+
+/** A distinct valid PNG per `n`: PNG magic bytes + a unique tail, so each one gets its own digest. */
+function distinctPng(n: number): Buffer {
+  return Buffer.concat([PNG_BYTES, Buffer.from(`icone-${String(n)}`, "utf8")]);
+}
+
+/** Names directly inside the assets dir (files and folders). */
+function topLevelNames(): string[] {
+  return readdirSync(ctx.assetsDir).sort();
+}
+
+describe("POST /api/assets/upload?purpose=icon — open to every player (REQ-BAR-075)", () => {
+  it("a PLAYER uploads an image as an icon; the server puts it in the icon area", async () => {
+    const resp = await uploadIcon(ctx.fastify, ctx.playerToken, PNG_BYTES, "Hanabi.png");
+    expect(resp.statusCode).toBe(201);
+    const body = resp.json<{ ok: boolean; path: string; deduplicated: boolean; purpose: string }>();
+    expect(body.ok).toBe(true);
+    expect(body.deduplicated).toBe(false);
+    expect(body.purpose).toBe("icon");
+    expect(body.path).toMatch(/^actionbar-icons\/hanabi-[0-9a-f]{8}\.png$/);
+    expect(existsSync(join(ctx.assetsDir, ...body.path.split("/")))).toBe(true);
+    // Nothing landed at the top level: the area is the only thing there.
+    expect(topLevelNames()).toEqual([ICON_AREA]);
+  });
+
+  it("without the icon purpose a PLAYER is still refused (REQ-AST-011 preserved, REQ-BAR-103)", async () => {
+    const plain = await uploadIcon(ctx.fastify, ctx.playerToken, PNG_BYTES, "x.png", {}, "");
+    expect(plain.statusCode).toBe(403);
+    expect(plain.json<{ code: string }>().code).toBe("PERMISSION_DENIED");
+    // A purpose sent as a multipart FIELD is not a declaration the server reads.
+    const field = await uploadIcon(
+      ctx.fastify,
+      ctx.playerToken,
+      PNG_BYTES,
+      "x.png",
+      { purpose: "icon" },
+      "",
+    );
+    expect(field.statusCode).toBe(403);
+    expect(topLevelNames()).toEqual([]);
+  });
+
+  it("an unknown or repeated purpose is a 400 for everyone, not a fallback", async () => {
+    for (const query of [
+      "?purpose=map",
+      "?purpose=",
+      "?purpose=ICON",
+      "?purpose=icon&purpose=icon",
+    ]) {
+      for (const token of [ctx.playerToken, ctx.gmToken]) {
+        const resp = await uploadIcon(ctx.fastify, token, PNG_BYTES, "x.png", {}, query);
+        expect(resp.statusCode, query).toBe(400);
+        expect(resp.json<{ code: string }>().code, query).toBe("VALIDATION_FAILED");
+      }
+    }
+    expect(topLevelNames()).toEqual([]);
+  });
+
+  it("the client never chooses the folder or the path (REQ-BAR-076)", async () => {
+    const attempts: Array<{ filename: string; fields: Record<string, string> }> = [
+      { filename: "../../evil.png", fields: {} },
+      { filename: "..\\..\\evil.png", fields: {} },
+      { filename: "maps/secret.png", fields: {} },
+      { filename: "C:\\Windows\\evil.png", fields: {} },
+      { filename: "x.png", fields: { path: "maps", scope: "world", folder: "../.." } },
+    ];
+    let n = 0;
+    for (const attempt of attempts) {
+      const resp = await uploadIcon(
+        ctx.fastify,
+        ctx.playerToken,
+        distinctPng(n++),
+        attempt.filename,
+        attempt.fields,
+      );
+      expect(resp.statusCode, attempt.filename).toBe(201);
+      const path = resp.json<{ path: string }>().path;
+      expect(path, attempt.filename).toMatch(/^actionbar-icons\/[a-z0-9._-]+-[0-9a-f]{8}\.png$/);
+    }
+    expect(topLevelNames()).toEqual([ICON_AREA]);
+    expect(readdirSync(join(ctx.assetsDir, ICON_AREA))).toHaveLength(attempts.length);
+  });
+
+  it("the type and size checks are the same pipeline: forged type 415, oversize 413", async () => {
+    const forged = await uploadIcon(ctx.fastify, ctx.playerToken, EXE_AS_JPEG, "evil.png");
+    expect(forged.statusCode).toBe(415);
+    const oversized = Buffer.concat([PNG_BYTES, Buffer.alloc(1024 * 1024 + 1, 0xaa)]);
+    const big = await uploadIcon(ctx.fastify, ctx.playerToken, oversized, "big.png");
+    expect(big.statusCode).toBe(413);
+    expect(existsSync(join(ctx.assetsDir, ICON_AREA))).toBe(false);
+  });
+
+  it("an SVG icon is sanitised exactly like any other SVG upload", async () => {
+    const resp = await uploadIcon(ctx.fastify, ctx.playerToken, SVG_WITH_SCRIPT, "icone.svg");
+    expect(resp.statusCode).toBe(201);
+    const path = resp.json<{ path: string }>().path;
+    const stored = readFileSync(join(ctx.assetsDir, ...path.split("/")), "utf8");
+    expect(stored).not.toContain("<script");
+  });
+
+  it("a dotted name that starts like a Windows device still yields a USABLE icon", async () => {
+    // Adversarial review round 2: the slug keeps dots, so "aux.ataque.png" became
+    // `aux.ataque-<hash>.png` — stored, but refused by the icon-name rule (the part before the first
+    // dot is a device name), so it could be set nowhere and the gallery never showed it.
+    const originals = ["aux.ataque.png", "con.v2.png", "Com1.Icone.png", "nul.png"];
+    for (const [index, original] of originals.entries()) {
+      const resp = await uploadIcon(
+        ctx.fastify,
+        ctx.playerToken,
+        distinctPng(910 + index),
+        original,
+      );
+      expect(resp.statusCode, original).toBe(201);
+      const path = resp.json<{ path: string }>().path;
+      const stem = path.slice(path.indexOf("/") + 1, path.lastIndexOf("."));
+      expect(stem, original).not.toContain(".");
+      expect(isActionBarIconPath(`/assets/${path}`), path).toBe(true);
+    }
+    const gallery = await ctx.fastify.inject({
+      method: "GET",
+      url: "/api/assets/icons",
+      headers: { authorization: `Bearer ${ctx.playerToken}` },
+    });
+    expect(gallery.json<{ assets: unknown[] }>().assets).toHaveLength(4);
+  });
+
+  it("the dedup recognises a twin whatever the case of its name (a file the GM dropped by hand)", async () => {
+    const bytes = distinctPng(904);
+    const digest = createHash("sha256").update(bytes).digest("hex");
+    const iconDir = join(ctx.assetsDir, ICON_AREA);
+    mkdirSync(iconDir, { recursive: true });
+    const twin = `CAIXA-${digest.slice(0, 8).toUpperCase()}.PNG`;
+    writeFileSync(join(iconDir, twin), bytes);
+
+    const resp = await uploadIcon(ctx.fastify, ctx.playerToken, bytes, "caixa.png");
+    expect(resp.statusCode).toBe(200);
+    const body = resp.json<{ path: string; deduplicated: boolean }>();
+    expect(body.deduplicated).toBe(true);
+    expect(body.path).toBe(`${ICON_AREA}/${twin}`);
+  });
+
+  it("a 16-hex icon keeps the long cache of a content-addressed name", async () => {
+    const bytes = distinctPng(905);
+    const hash = createHash("sha256").update(bytes).digest("hex");
+    const iconDir = join(ctx.assetsDir, ICON_AREA);
+    mkdirSync(iconDir, { recursive: true });
+    writeFileSync(join(iconDir, `longo-${hash.slice(0, 8)}.png`), distinctPng(906));
+    const resp = await uploadIcon(ctx.fastify, ctx.playerToken, bytes, "longo.png");
+    const path = resp.json<{ path: string }>().path;
+    expect(path).toBe(`${ICON_AREA}/longo-${hash.slice(0, 16)}.png`);
+    const served = await ctx.fastify.inject({
+      method: "GET",
+      url: `/assets/${path}`,
+      headers: { authorization: `Bearer ${ctx.gmToken}` },
+    });
+    expect(served.statusCode).toBe(200);
+    expect(served.headers["cache-control"]).toContain("immutable");
+  });
+
+  it("an SVG is served sandboxed, so a sanitiser miss still runs no script (REQ-SEC-035)", async () => {
+    // Opening SVG upload to every player widens who can feed the sanitiser. REQ-SEC-035 allows
+    // "sanitizados OU servidos com cabeçalho que impeça execução" — this is the second half, on top
+    // of the first, for any SVG the route serves (an <img> never runs SVG script anyway; this is
+    // for the SVG opened as a document).
+    const upload = await uploadIcon(ctx.fastify, ctx.playerToken, SVG_CLEAN, "icone.svg");
+    const path = upload.json<{ path: string }>().path;
+    const svg = await ctx.fastify.inject({
+      method: "GET",
+      url: `/assets/${path}`,
+      headers: { authorization: `Bearer ${ctx.gmToken}` },
+    });
+    expect(svg.statusCode).toBe(200);
+    const csp = String(svg.headers["content-security-policy"] ?? "");
+    expect(csp).toContain("sandbox");
+    expect(csp).toContain("default-src 'none'");
+
+    const png = await uploadIcon(ctx.fastify, ctx.playerToken, PNG_BYTES, "icone.png");
+    const pngResp = await ctx.fastify.inject({
+      method: "GET",
+      url: `/assets/${png.json<{ path: string }>().path}`,
+      headers: { authorization: `Bearer ${ctx.gmToken}` },
+    });
+    expect(pngResp.statusCode).toBe(200);
+    expect(pngResp.headers["content-security-policy"]).toBeUndefined();
+  });
+
+  it("a player's icons are never refused for how many he sent (REQ-BAR-077: no per-user quota)", async () => {
+    // A finite test cannot prove that no quota exists at any count; it pins that a burst well past
+    // anything a table would send in a session goes through, and the spec 21 amendment records that
+    // the server implements no per-user quota at all.
+    const burst = 40;
+    for (let i = 0; i < burst; i++) {
+      const resp = await uploadIcon(
+        ctx.fastify,
+        ctx.playerToken,
+        distinctPng(100 + i),
+        `icone-${String(i)}.png`,
+      );
+      expect(resp.statusCode, String(i)).toBe(201);
+    }
+    expect(readdirSync(join(ctx.assetsDir, ICON_AREA))).toHaveLength(burst);
+  });
+});
+
+describe("the icon upload never reveals a file the gallery hides (Q-BAR-05, REQ-BAR-079)", () => {
+  it("same bytes as a GM handout: a NEW icon is written, and the answer names only it", async () => {
+    const handout = await uploadFile(
+      ctx.fastify,
+      ctx.gmToken,
+      PNG_BYTES,
+      "spoiler-chefe-final.png",
+      "image/png",
+    );
+    expect(handout.statusCode).toBe(201);
+    const handoutName = handout.json<{ path: string }>().path;
+
+    const icon = await uploadIcon(ctx.fastify, ctx.playerToken, PNG_BYTES, "meu-icone.png");
+    expect(icon.statusCode).toBe(201);
+    const body = icon.json<{ path: string; deduplicated: boolean }>();
+    expect(body.deduplicated).toBe(false);
+    expect(body.path).toMatch(/^actionbar-icons\/meu-icone-[0-9a-f]{8}\.png$/);
+    expect(icon.body).not.toContain("spoiler");
+    expect(icon.body).not.toContain(handoutName);
+
+    // The handout is untouched at the top level and still outside the gallery.
+    expect(existsSync(join(ctx.assetsDir, handoutName))).toBe(true);
+    const gallery = await ctx.fastify.inject({
+      method: "GET",
+      url: "/api/assets/icons",
+      headers: { authorization: `Bearer ${ctx.playerToken}` },
+    });
+    expect(gallery.body).not.toContain("spoiler");
+  });
+
+  it("same bytes as an existing ICON: deduplicated to that icon, which the gallery already shows", async () => {
+    const first = await uploadIcon(ctx.fastify, ctx.trustedToken, PNG_BYTES, "primeiro.png");
+    expect(first.statusCode).toBe(201);
+    const again = await uploadIcon(ctx.fastify, ctx.playerToken, PNG_BYTES, "outro-nome.png");
+    expect(again.statusCode).toBe(200);
+    const body = again.json<{ path: string; deduplicated: boolean }>();
+    expect(body.deduplicated).toBe(true);
+    expect(body.path).toBe(first.json<{ path: string }>().path);
+  });
+
+  it("a file NAMED after another image's hash does not capture that image's upload (dedup poisoning)", async () => {
+    // Adversarial review, finding 1: the dedup matched `-<8 hex>` anywhere in a name, and the
+    // slug keeps whatever the uploader typed. P1 sends bytes X named `troll-<hash8 of Y>.png`; when
+    // P2 later sends Y, the server answered "deduplicated" with P1's file — P2's icon became X, and
+    // nobody could ever store Y again.
+    const bytesY = distinctPng(901);
+    const hashY = createHash("sha256").update(bytesY).digest("hex").slice(0, 8);
+    const trap = await uploadIcon(
+      ctx.fastify,
+      ctx.playerToken,
+      distinctPng(900),
+      `troll-${hashY}.png`,
+    );
+    expect(trap.statusCode).toBe(201);
+    const trapPath = trap.json<{ path: string }>().path;
+
+    const honest = await uploadIcon(ctx.fastify, ctx.trustedToken, bytesY, "honesto.png");
+    expect(honest.statusCode).toBe(201);
+    const body = honest.json<{ path: string; deduplicated: boolean }>();
+    expect(body.deduplicated).toBe(false);
+    expect(body.path).not.toBe(trapPath);
+    expect(readFileSync(join(ctx.assetsDir, ...body.path.split("/"))).equals(bytesY)).toBe(true);
+  });
+
+  it("an 8-hex name collision never overwrites an icon: the newcomer gets a longer name", async () => {
+    // Same slug, same 8-hex prefix, different bytes (a crafted collision costs ~2^32 hashes). The
+    // dedup must not hand back the other file, and the write must not land on top of it.
+    const bytesY = distinctPng(902);
+    const hashY = createHash("sha256").update(bytesY).digest("hex");
+    const iconDir = join(ctx.assetsDir, ICON_AREA);
+    mkdirSync(iconDir, { recursive: true });
+    const occupied = join(iconDir, `colide-${hashY.slice(0, 8)}.png`);
+    const original = distinctPng(903);
+    writeFileSync(occupied, original);
+
+    const resp = await uploadIcon(ctx.fastify, ctx.playerToken, bytesY, "colide.png");
+    expect(resp.statusCode).toBe(201);
+    const body = resp.json<{ path: string; deduplicated: boolean }>();
+    expect(body.deduplicated).toBe(false);
+    expect(body.path).toBe(`${ICON_AREA}/colide-${hashY.slice(0, 16)}.png`);
+    expect(readFileSync(occupied).equals(original)).toBe(true);
+    expect(readFileSync(join(ctx.assetsDir, ...body.path.split("/"))).equals(bytesY)).toBe(true);
+  });
+
+  it("no client route turns an existing asset into an icon (REQ-BAR-103)", async () => {
+    // The only writer into the icon area is the icon upload itself. Pin the asset route table, so a
+    // "mark as icon", "move" or "copy" route cannot appear without this test being rewritten on
+    // purpose. Captured by an onRoute hook on a fresh instance with every option on (the shared
+    // ctx has no database, so it would not even mount the grant route).
+    const fastify = Fastify({ logger: false }) as unknown as FastifyInstance;
+    const routes: string[] = [];
+    fastify.addHook("onRoute", (route) => {
+      const methods = Array.isArray(route.method) ? route.method : [route.method];
+      for (const method of methods) if (method !== "HEAD") routes.push(`${method} ${route.url}`);
+    });
+    const dbPath = join(ctx.dataDir, "inventario.db");
+    const db = openDatabase({ path: dbPath, skipIntegrityCheck: true });
+    applyMigrations(db.raw, dbPath);
+    try {
+      registerAssetRoutes(fastify, {
+        authService: new AuthService(db.raw, ctx.secret, "inventario"),
+        assetsDir: join(ctx.dataDir, "inventario"),
+        secret: ctx.secret,
+        db: db.raw,
+      });
+      await fastify.ready();
+    } finally {
+      await fastify.close();
+      db.close();
+    }
+    expect(routes.sort()).toEqual(
+      [
+        "DELETE /api/assets/:name",
+        "DELETE /api/assets/icons/:name",
+        "GET /api/assets",
+        "GET /api/assets/icons",
+        "GET /assets/*",
+        // The GM moves an asset between picker tabs; never into the icon area (tested).
+        "PATCH /api/assets/category",
+        // Signs only the ambient track the GM is playing; reads nothing from the body.
+        "POST /api/assets/ambient-grant",
+        "POST /api/assets/grant",
+        "POST /api/assets/token",
+        "POST /api/assets/upload",
+      ].sort(),
+    );
+  });
+});
+
+describe("DELETE /api/assets/icons/:name — only the GM deletes from the gallery (REQ-BAR-081)", () => {
+  async function anIcon(): Promise<string> {
+    const resp = await uploadIcon(ctx.fastify, ctx.playerToken, PNG_BYTES, "apagavel.png");
+    return resp.json<{ path: string }>().path;
+  }
+  const leafOf = (path: string): string => path.slice(`${ICON_AREA}/`.length);
+
+  it("a PLAYER cannot delete an icon, not even his own, by either route", async () => {
+    const path = await anIcon();
+    for (const url of [
+      `/api/assets/icons/${encodeURIComponent(leafOf(path))}`,
+      `/api/assets/${encodeURIComponent(path)}`,
+      `/api/assets/${encodeURIComponent(leafOf(path))}`,
+    ]) {
+      const del = await ctx.fastify.inject({
+        method: "DELETE",
+        url,
+        headers: { authorization: `Bearer ${ctx.playerToken}` },
+      });
+      expect(del.statusCode, url).toBe(403);
+    }
+    expect(existsSync(join(ctx.assetsDir, ...path.split("/")))).toBe(true);
+  });
+
+  it("TRUSTED cannot delete an icon either", async () => {
+    const path = await anIcon();
+    const del = await ctx.fastify.inject({
+      method: "DELETE",
+      url: `/api/assets/icons/${encodeURIComponent(leafOf(path))}`,
+      headers: { authorization: `Bearer ${ctx.trustedToken}` },
+    });
+    expect(del.statusCode).toBe(403);
+  });
+
+  it("the GM deletes an icon, and it leaves the gallery", async () => {
+    const path = await anIcon();
+    const del = await ctx.fastify.inject({
+      method: "DELETE",
+      url: `/api/assets/icons/${encodeURIComponent(leafOf(path))}`,
+      headers: { authorization: `Bearer ${ctx.gmToken}` },
+    });
+    expect(del.statusCode).toBe(200);
+    expect(existsSync(join(ctx.assetsDir, ...path.split("/")))).toBe(false);
+    const gallery = await ctx.fastify.inject({
+      method: "GET",
+      url: "/api/assets/icons",
+      headers: { authorization: `Bearer ${ctx.gmToken}` },
+    });
+    expect(gallery.json<{ assets: unknown[] }>().assets).toEqual([]);
+  });
+
+  it("the GM's icon delete cannot leave the area: traversal 400, unknown 404", async () => {
+    await uploadFile(ctx.fastify, ctx.gmToken, PNG_BYTES, "mapa.png", "image/png");
+    const mapName = readdirSync(ctx.assetsDir).find((f) => f.startsWith("mapa-")) ?? "";
+    for (const name of ["..%2F" + mapName, "%2e%2e%2f" + mapName, "..", "a%5Cb.png"]) {
+      const del = await ctx.fastify.inject({
+        method: "DELETE",
+        url: `/api/assets/icons/${name}`,
+        headers: { authorization: `Bearer ${ctx.gmToken}` },
+      });
+      expect([400, 404], name).toContain(del.statusCode);
+    }
+    expect(existsSync(join(ctx.assetsDir, mapName))).toBe(true);
+    const missing = await ctx.fastify.inject({
+      method: "DELETE",
+      url: "/api/assets/icons/nao-existe-00000000.png",
+      headers: { authorization: `Bearer ${ctx.gmToken}` },
+    });
+    expect(missing.statusCode).toBe(404);
+  });
+});
+
+describe("the icon mark lives in the asset registry (REQ-BAR-078)", () => {
+  it("an icon upload registers its row under the icon area, with the uploader", async () => {
+    const dataDir = makeTempDir();
+    tempDirs.push(dataDir);
+    const assetsDir = join(dataDir, "assets");
+    const dbPath = join(dataDir, "world.db");
+    const secret = loadOrCreateSecret(dataDir);
+    const db = openDatabase({ path: dbPath, skipIntegrityCheck: true });
+    applyMigrations(db.raw, dbPath);
+    const authService = new AuthService(db.raw, secret, "registry-world");
+    await authService.bootstrapGm();
+    const { user: player } = await authService.createUser({
+      name: "Jogador",
+      role: Role.PLAYER,
+      password: "p-pass",
+    });
+    const fastify = Fastify({ logger: false }) as unknown as FastifyInstance;
+    await fastify.register(fastifyCookie);
+    registerAuthRoutes(fastify, {
+      authService,
+      worldInfo: { id: "registry-world", title: "R", systemId: "stub" },
+    });
+    registerAssetRoutes(fastify, { authService, assetsDir, secret, db: db.raw });
+    await fastify.ready();
+    try {
+      const login = await fastify.inject({
+        method: "POST",
+        url: "/api/auth/login",
+        payload: { userId: player.id, password: "p-pass" },
+      });
+      const token = login.json<{ accessToken: string }>().accessToken;
+      const resp = await uploadIcon(fastify, token, PNG_BYTES, "marca.png");
+      expect(resp.statusCode).toBe(201);
+      const path = resp.json<{ path: string }>().path;
+
+      const { getAssetRecord, isIconAssetName, listIconAssetRecords } =
+        await import("../assets/asset-store.js");
+      const row = getAssetRecord(db.raw, path);
+      expect(row?.uploadedBy).toBe(player.id);
+      expect(isIconAssetName(path)).toBe(true);
+      expect(listIconAssetRecords(db.raw).map((r) => r.name)).toEqual([path]);
+    } finally {
+      await fastify.close();
+      db.close();
+    }
+  });
+});
+
+// ---------------------------------------------------------------------------
+// ?purpose=avatar — the avatar creator's "Usar como token / retrato", open to every player
+// ---------------------------------------------------------------------------
+
+describe("POST /api/assets/upload?purpose=avatar — a player publishes his own avatar art", () => {
+  it("a PLAYER uploads a PNG; it lands in the library under the tokens tab", async () => {
+    const resp = await uploadIcon(
+      ctx.fastify,
+      ctx.playerToken,
+      PNG_BYTES,
+      "avatar-token.png",
+      {},
+      "?purpose=avatar",
+    );
+    expect(resp.statusCode).toBe(201);
+    const { path } = resp.json<{ path: string }>();
+    expect(path).toMatch(/^avatar-token-[0-9a-f]{8}\.png$/);
+    expect(existsSync(join(ctx.assetsDir, path))).toBe(true);
+  });
+
+  it("refuses anything that is not a PNG, even from the GM", async () => {
+    for (const token of [ctx.playerToken, ctx.gmToken]) {
+      const resp = await ctx.fastify.inject({
+        method: "POST",
+        url: "/api/assets/upload?purpose=avatar",
+        ...(() => {
+          const form = new FormData();
+          form.append("file", JPEG_BYTES, { filename: "x.jpg", contentType: "image/jpeg" });
+          return {
+            headers: { ...form.getHeaders(), authorization: `Bearer ${token}` },
+            payload: form.getBuffer(),
+          };
+        })(),
+      });
+      expect(resp.statusCode).toBe(415);
+    }
+    expect(topLevelNames()).toEqual([]);
+  });
+
+  it("caps the size well under the generic limit", async () => {
+    const big = Buffer.concat([PNG_BYTES, Buffer.alloc(600 * 1024, 0xaa)]);
+    const resp = await uploadIcon(
+      ctx.fastify,
+      ctx.playerToken,
+      big,
+      "big.png",
+      {},
+      "?purpose=avatar",
+    );
+    expect(resp.statusCode).toBe(413);
+    expect(topLevelNames()).toEqual([]);
+  });
+
+  it("is not a way around the generic rule: no purpose, a PLAYER is still refused", async () => {
+    const resp = await uploadIcon(ctx.fastify, ctx.playerToken, PNG_BYTES, "x.png", {}, "");
+    expect(resp.statusCode).toBe(403);
   });
 });

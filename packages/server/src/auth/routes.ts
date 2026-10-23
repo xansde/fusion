@@ -13,6 +13,7 @@
  *   POST  /api/users                (GM only)
  *   PATCH /api/users/:id            (GM only)
  *   POST  /api/users/:id/reset-password (GM only)
+ *   POST  /api/users/me/password    (any authenticated user — own password)
  *   DELETE /api/users/:id           (GM only — soft delete, active=false)
  *   POST  /api/users/:id/kick       (GM only)
  *
@@ -83,6 +84,17 @@ const ResetPasswordBodySchema = z.object({
   removePassword: z.boolean().optional(),
 });
 
+/**
+ * Own password change (REQ-USR-040, REQ-CFG-090). The new password has a floor of 8 characters (provisional
+ * decision of 2026-10-21: the specs set no policy; the reset path keeps accepting any non-empty password
+ * because the GM chooses it for someone else). `currentPassword` is optional on the wire because a user with
+ * no password has none to give; the service demands it whenever one exists.
+ */
+const ChangeOwnPasswordBodySchema = z.object({
+  currentPassword: z.string().max(1024).optional(),
+  newPassword: z.string().min(8).max(1024),
+});
+
 // ---------------------------------------------------------------------------
 // Auth context added to Fastify request via decorator
 // ---------------------------------------------------------------------------
@@ -124,6 +136,14 @@ export interface RegisterAuthRoutesOptions {
    * When trustProxy=true this should typically also be true.
    */
   secureCookies?: boolean;
+  /**
+   * Told about the blank character `POST /api/users` created for a PLAYER/TRUSTED user (REQ-USR-025). The
+   * REST path writes it straight to the store, so without this nothing reaches the sockets already
+   * connected and the Mestre's "Na mesa" stays stale until a reload (#254). Boot wires it to the world's
+   * `doc:create` broadcast. A throwing hook never fails the creation: the user and the character already
+   * exist, and a reload (or the next resync) shows the character anyway.
+   */
+  onCharacterCreated?: (actor: Record<string, unknown>) => void;
 }
 
 /**
@@ -133,7 +153,13 @@ export function registerAuthRoutes(
   fastify: FastifyInstance,
   options: RegisterAuthRoutesOptions,
 ): void {
-  const { authService, worldInfo, trustProxy = false, secureCookies = false } = options;
+  const {
+    authService,
+    worldInfo,
+    trustProxy = false,
+    secureCookies = false,
+    onCharacterCreated,
+  } = options;
   const cookieOptions = buildCookieOptions(secureCookies);
 
   // --------------------------------------------------------------------------
@@ -362,7 +388,14 @@ export function registerAuthRoutes(
         };
         if (body.color !== undefined) createParams.color = body.color;
         if (body.password !== undefined) createParams.password = body.password;
-        const { user } = await authService.createUser(createParams);
+        const { user, character } = await authService.createUser(createParams);
+        if (character && onCharacterCreated) {
+          try {
+            onCharacterCreated(character);
+          } catch (hookErr) {
+            request.log.warn({ err: hookErr }, "onCharacterCreated hook failed");
+          }
+        }
         return await reply.code(201).send({ ok: true, user });
       } catch (err) {
         if (err instanceof AuthError && err.code === "NAME_TAKEN") {
@@ -443,6 +476,60 @@ export function registerAuthRoutes(
       } catch (err) {
         if (err instanceof AuthError && err.code === "USER_NOT_FOUND") {
           return reply.code(404).send({ ok: false, code: err.code, message: err.message });
+        }
+        throw err;
+      }
+    },
+  );
+
+  // --------------------------------------------------------------------------
+  // POST /api/users/me/password (any authenticated user, REQ-USR-040..042)
+  // --------------------------------------------------------------------------
+
+  fastify.post(
+    "/api/users/me/password",
+    {
+      preHandler: requireAuth,
+    },
+    async (request, reply) => {
+      const user = request.authUser;
+      if (!user) return reply.code(401).send({ ok: false, code: "UNAUTHORIZED" });
+
+      const body = parseBody(ChangeOwnPasswordBodySchema, request.body, reply);
+      if (!body) return;
+
+      const rawRefresh =
+        typeof request.cookies[REFRESH_COOKIE] === "string"
+          ? request.cookies[REFRESH_COOKIE]
+          : undefined;
+
+      try {
+        const params: Parameters<AuthService["changeOwnPassword"]>[0] = {
+          userId: user.id,
+          newPassword: body.newPassword,
+          ip: clientIp(request),
+        };
+        if (body.currentPassword !== undefined) params.currentPassword = body.currentPassword;
+        if (rawRefresh !== undefined) params.currentRefreshToken = rawRefresh;
+        await authService.changeOwnPassword(params);
+        return await reply.send({ ok: true });
+      } catch (err) {
+        if (err instanceof AuthError) {
+          if (err.code === "LOCKED_OUT") {
+            const retryAfterSec = err.retryAfter
+              ? Math.ceil((err.retryAfter.getTime() - Date.now()) / 1000)
+              : 900;
+            void reply.header("Retry-After", String(retryAfterSec));
+            return reply.code(429).send({ ok: false, code: err.code, message: err.message });
+          }
+          if (err.code === "INVALID_CREDENTIALS") {
+            return reply
+              .code(401)
+              .send({ ok: false, code: "INVALID_CREDENTIALS", message: "Invalid credentials." });
+          }
+          if (err.code === "USER_NOT_FOUND") {
+            return reply.code(401).send({ ok: false, code: "UNAUTHORIZED", message: err.message });
+          }
         }
         throw err;
       }

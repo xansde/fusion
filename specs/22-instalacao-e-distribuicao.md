@@ -151,17 +151,34 @@ O objetivo primário do MVP é que um GM não-técnico consiga: baixar um único
 
 **Decisão:**
 
-- Porta padrão: **33000** (porta própria do Fusion — ver `01-arquitetura-geral.md` D7 e REQ-ARQ-022).
+- Porta padrão: **33000** (porta própria do Fusion — ver `01-arquitetura-geral.md` DEC-ARQ-07 e REQ-ARQ-022).
 - UPnP: **desabilitado por padrão** no MVP; habilitável via configuração (risco de segurança em redes corporativas).
 - Cloudflare Tunnel (`cloudflared`) integrado como opção "Compartilhar pela internet" — zero config para o GM.
 - URL de convite LAN detectada automaticamente + exibida com QR code.
 
 **Alternativas rejeitadas:**
 
-- _30000_: é a porta default do Foundry VTT. Reusá-la causaria conflito de porta para quem roda os dois apps na mesma máquina e confundiria diagnósticos de rede (ver `01-arquitetura-geral.md` D7).
+- _30000_: é a porta default do Foundry VTT. Reusá-la causaria conflito de porta para quem roda os dois apps na mesma máquina e confundiria diagnósticos de rede (ver `01-arquitetura-geral.md` DEC-ARQ-07).
 - UPnP habilitado por padrão: o Foundry usa essa abordagem, mas o risco de segurança em redes corporativas/educacionais supera a conveniência.
 - ngrok: requer conta; menos privacidade do que Cloudflare Tunnel.
 - Relay TURN próprio: requer infraestrutura; fora do escopo.
+
+---
+
+### DEC-DST-08: Teto do artefato de release elevado de 150 para 180 MB (2026-09-28)
+
+**Decisão:** REQ-DST-046 passa de "não deve exceder 150 MB" para "não deve exceder 180 MB" por plataforma.
+
+**Contexto:** o catálogo de conteúdo do vendor pf2e/sf2e (`Projects/fusion/catalogo` no vault) levantou ~5.800 itens `ausente` (talentos, heranças, habilidades de classe, casas, traços) ainda não importados. Medido numa worktree limpa de `origin/alfa/app` (pin `5c364d5`), o artefato de release estava em 129,8 MB — headroom de 20,2 MB sob o teto de 150 MB. A projeção de custo dessas ~5.800 importações (talento ≈2,5 KB, herança ≈2,7 KB, habilidade de classe ≈4,5 KB, casa ≈6,5 KB, traço ≈2 KB) ficava em 14,7–17 MB, deixando apenas 3–5 MB de folga — abaixo do critério de ≥15 MB adotado para não travar as importações do bloco A–D uma a uma.
+
+**Alternativas consideradas:**
+
+- Só comprimir os packs (ponto 0.9, PR #286): reduziu o artefato para 93,5 MB (brotli em `pack-native.mjs`/`native-loader.ts`), mas sozinho não resolve — o headroom cresce, mas o teto original não reflete o orçamento real de conteúdo que o Fusion pretende cobrir (packs completos de PF2e remaster + SF2e).
+- Elevar o teto sem comprimir: teria exigido um teto ainda maior para a mesma folga, sem o ganho estrutural da compressão (que também acelera o boot em cache-hit).
+
+**Decisão final:** as duas medidas juntas — 0.9 (compressão) e 0.10 (teto 180 MB) — dão headroom de 180 − 93,5 ≈ **86,5 MB** depois da compressão, cobrindo com folga a projeção de 14,7–17 MB das pendências atuais e deixando espaço para o bloco E (motor) e crescimento futuro do vendor.
+
+**Racional:** 180 MB continua abaixo do Electron de referência (~180 MB, DEC-DST-01) e do observado em apps de mesa comparáveis; a compressão do ponto 0.9 já reduziu o artefato para bem menos que isso, então o teto elevado é folga de orçamento, não uma regressão de tamanho real.
 
 ---
 
@@ -350,7 +367,7 @@ Os dois planos são paralelos: um GM pode ter a Admin Key sem ter um User de mun
 
 ## Requisitos Não-Funcionais
 
-**REQ-DST-046** [MVP] O tamanho do executável headless (sidecar + assets cliente embutidos) não deve exceder 150 MB por plataforma.
+**REQ-DST-046** [MVP] O tamanho do executável headless (sidecar + assets cliente embutidos) não deve exceder 180 MB por plataforma. (Teto elevado de 150 para 180 MB — decisão do Alexandre, 2026-09-28, ver DEC-DST-08: com a compressão dos packs do ponto 0.9, o artefato caiu para 93,5 MB, mas o orçamento projetado para importar as pendências do catálogo pf2e/sf2e [talentos, heranças, habilidades de classe, casas, traços] não fechava com folga de ≥15 MB sob o teto antigo.)
 
 **REQ-DST-047** [MVP] O tempo de inicialização do servidor (primeira resposta HTTP na porta configurada) deve ser inferior a 5 segundos em hardware recomendado.
 
@@ -377,7 +394,7 @@ interface FusionConfig {
   dataVersion: number; // versão do schema do data directory; incrementada em migrações
 
   // Rede
-  port: number; // padrão: 33000 (ver 01-arquitetura-geral.md D7 e REQ-ARQ-022)
+  port: number; // padrão: 33000 (ver 01-arquitetura-geral.md DEC-ARQ-07 e REQ-ARQ-022)
   hostname: string; // padrão: "0.0.0.0" (ouve em todas as interfaces)
   routePrefix: string; // padrão: "" (raiz); ex.: "/fusion" para reverse proxy
   proxySSL: boolean; // true se atrás de reverse proxy com SSL

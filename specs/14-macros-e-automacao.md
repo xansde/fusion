@@ -20,7 +20,7 @@ Especificar o sistema de macros, hotbar do usuário, ações rápidas data-drive
 ### Inclui
 
 - Macro de chat (texto + inline rolls) com execução via hotbar e chat command — **[MVP]**
-- Hotbar por usuário: 10 slots × 5 páginas, drag-and-drop de macros/itens/ações — **[MVP]**
+- ~~Hotbar por usuário: 10 slots × 5 páginas, drag-and-drop de macros/itens/ações — **[MVP]**~~ _(substituída pela barra de ações, spec 53; ver a emenda em "Hotbar")_
 - Ações rápidas data-driven registradas pela System API (ex.: roll Strike, aplicar dano, toggle condição) — **[MVP]**
 - Game time básico: relógio de jogo, avanço manual pelo GM, eventos de tempo para sistemas — **[MVP parcial]**
 - Calendário simples por mundo (configuração de nome do calendário, períodos de tempo) — **[V2]**
@@ -42,11 +42,11 @@ Especificar o sistema de macros, hotbar do usuário, ações rápidas data-drive
 
 **Macro** — documento persistido no mundo que encapsula uma ação reutilizável. Dois tipos: `chat` e `script`.
 
-**Chat Macro** — produz uma mensagem de chat com suporte a texto livre, markdown leve sanitizado (mesma allowlist de `09-chat-e-mensagens.md` REQ-CHT-030) e inline rolls (ex.: `[[1d20+5]]`). Executável por qualquer usuário com permissão de leitura. Para UI rica em macros, usar o `CardData` declarativo de `09-chat-e-mensagens.md` D-CHT-03 — não HTML arbitrário.
+**Chat Macro** — produz uma mensagem de chat com suporte a texto livre, markdown leve sanitizado (mesma allowlist de `09-chat-e-mensagens.md` REQ-CHT-030) e inline rolls (ex.: `[[1d20+5]]`). Executável por qualquer usuário com permissão de leitura. Para UI rica em macros, usar o `CardData` declarativo de `09-chat-e-mensagens.md` DEC-CHT-03 — não HTML arbitrário.
 
 **Script Macro** — executa código TypeScript/JavaScript em sandbox isolada. Disponível apenas para o GM. Recebe contexto serializado (actor, token, targets, scene) e retorna comandos estruturados para o servidor executar.
 
-**Hotbar** — barra de ação persistida por usuário, com 10 slots visíveis e 5 páginas (50 slots totais). Cada slot referencia uma macro, uma ação rápida, ou um item utilizável.
+**Hotbar** — barra de ação persistida por usuário, com 10 slots visíveis e 5 páginas (50 slots totais). Cada slot referencia uma macro, uma ação rápida, ou um item utilizável. _(Aposentada: substituída pela barra de ações da spec 53.)_
 
 **QuickAction** — ação rápida data-driven registrada pela System API. Declarativa: descreve o que fazer (ex.: `roll:strike`, `apply:damage`, `toggle:condition`) sem código JS arbitrário. É o mecanismo recomendado para automações de sistemas.
 
@@ -134,13 +134,17 @@ Especificar o sistema de macros, hotbar do usuário, ações rápidas data-drive
 
 - _Hotbar configurável em número de slots:_ complexidade de UI desnecessária para MVP; pode ser adicionado em V2.
 
+> **Substituída pela spec 53** (`53-barra-de-acoes.md`, DEC-BAR-04 e DEC-BAR-07, 2026-10-11): a barra
+> de ações tem 12 slots de Favoritos (teclas 1–9, 0, − e =) e abas por categoria, sem páginas, e
+> segue o personagem, não o usuário. Esta decisão permanece aqui como histórico.
+
 ---
 
 ## Requisitos Funcionais
 
 ### Macros de Chat
 
-**REQ-MAC-001** [MVP] O sistema deve suportar macros do tipo `chat` que, ao serem executadas, postam uma mensagem no chat do mundo ativo. O conteúdo da mensagem deve aceitar texto livre, markdown leve sanitizado (mesma allowlist de `09-chat-e-mensagens.md` REQ-CHT-030 — bold, italic, código inline, links http/https, listas) e inline roll expressions no formato `[[fórmula]]`. HTML arbitrário é proibido; macros que precisarem de UI rica devem usar o `CardData` declarativo (ver `09-chat-e-mensagens.md` D-CHT-03).
+**REQ-MAC-001** [MVP] O sistema deve suportar macros do tipo `chat` que, ao serem executadas, postam uma mensagem no chat do mundo ativo. O conteúdo da mensagem deve aceitar texto livre, markdown leve sanitizado (mesma allowlist de `09-chat-e-mensagens.md` REQ-CHT-030 — bold, italic, código inline, links http/https, listas) e inline roll expressions no formato `[[fórmula]]`. HTML arbitrário é proibido; macros que precisarem de UI rica devem usar o `CardData` declarativo (ver `09-chat-e-mensagens.md` DEC-CHT-03).
 
 **REQ-MAC-002** [MVP] Ao executar uma macro de chat, inline rolls presentes no conteúdo devem ser avaliados pelo motor de rolagens do servidor (ver `08-motor-de-rolagens.md`) e o resultado deve ser incorporado à mensagem antes do envio ao chat.
 
@@ -171,19 +175,43 @@ Especificar o sistema de macros, hotbar do usuário, ações rápidas data-drive
 
 ### Hotbar
 
-**REQ-MAC-012** [MVP] Cada usuário deve ter uma hotbar pessoal com 5 páginas de 10 slots cada (50 slots totais). A hotbar deve ser persistida no servidor associada ao `UserId`.
+> **APOSENTADOS** — REQ-MAC-012 a REQ-MAC-018. **Emenda obrigada pela spec 53**
+> (`53-barra-de-acoes.md`, DEC-BAR-04, REQ-BAR-102 e §12, 2026-10-11): a hotbar por
+> usuário (5 páginas de 10 slots de macro) é substituída pela **barra de ações**, contextual ao
+> personagem. Os ids permanecem definidos aqui, aposentados, e a tag muda de `[MVP]` para `[V2]`
+> (`CONVENCOES.md` §2). A macro e a QuickAction voltam depois como `kind` de entrada da barra, a
+> cargo desta spec. O que cada requisito virou:
+>
+> - REQ-MAC-012: a barra segue o personagem, com os favoritos no ator (REQ-BAR-061, REQ-BAR-062).
+> - REQ-MAC-013: as entradas vêm do provedor do sistema (REQ-BAR-012); macro e QuickAction
+>   voltam como `kind`.
+> - REQ-MAC-014: o arrastar é interno à barra (REQ-BAR-047).
+> - REQ-MAC-015: teclas 1–9, 0, − e = e guard (REQ-BAR-048, REQ-BAR-049).
+> - REQ-MAC-016: sem páginas; abas por categoria (REQ-BAR-026).
+> - REQ-MAC-017: menu de contexto da entrada (REQ-BAR-045).
+> - REQ-MAC-018: o Mestre vê os favoritos no ator (REQ-BAR-061).
+>
+> Os tipos `HotbarSlotContent` e `HotbarState` e os endpoints `GET` e `PUT /api/hotbar` ficam sem
+> consumidor. As menções à hotbar em REQ-MAC-005 (a) e (b), REQ-MAC-021, REQ-MAC-024,
+> REQ-MAC-028, REQ-MAC-NF-003, CA-MAC-01, CA-MAC-03 e CA-MAC-10 não têm onde se cumprir até a
+> macro e a QuickAction voltarem como `kind`: as tags delas não mudam nesta passagem, o destino
+> delas é desta spec, e a spec 53 o registra em Q-BAR-09. As macros seguem executáveis por
+> `/macro` e pelo botão Executar (REQ-MAC-005 (c) e (d)). A questão 2 de "Questões em Aberto" é
+> respondida por REQ-BAR-066; a questão 9 perde o objeto, porque a barra não tem páginas.
 
-**REQ-MAC-013** [MVP] Slots da hotbar devem aceitar três tipos de conteúdo: (a) referência a `Macro` (por `macroId`); (b) referência a uma `QuickAction` registrada pela system API; (c) referência a um `Item` utilizável do actor do usuário.
+**REQ-MAC-012** [V2] ~~Cada usuário deve ter uma hotbar pessoal com 5 páginas de 10 slots cada (50 slots totais). A hotbar deve ser persistida no servidor associada ao `UserId`.~~
 
-**REQ-MAC-014** [MVP] O usuário deve poder arrastar documentos do tipo Macro, Item, ou QuickAction da UI para um slot da hotbar. Arrastar para um slot ocupado deve substituir o conteúdo após confirmação.
+**REQ-MAC-013** [V2] ~~Slots da hotbar devem aceitar três tipos de conteúdo: (a) referência a `Macro` (por `macroId`); (b) referência a uma `QuickAction` registrada pela system API; (c) referência a um `Item` utilizável do actor do usuário.~~
 
-**REQ-MAC-015** [MVP] As teclas 1–9 e 0 do teclado devem executar os slots 1–10 da página ativa da hotbar, respectivamente. Este atalho só deve estar ativo quando nenhum campo de texto estiver em foco.
+**REQ-MAC-014** [V2] ~~O usuário deve poder arrastar documentos do tipo Macro, Item, ou QuickAction da UI para um slot da hotbar. Arrastar para um slot ocupado deve substituir o conteúdo após confirmação.~~
 
-**REQ-MAC-016** [MVP] O usuário deve poder navegar entre páginas da hotbar clicando em indicadores de página na UI (5 indicadores). A página ativa deve ser preservada entre recarregamentos de sessão.
+**REQ-MAC-015** [V2] ~~As teclas 1–9 e 0 do teclado devem executar os slots 1–10 da página ativa da hotbar, respectivamente. Este atalho só deve estar ativo quando nenhum campo de texto estiver em foco.~~
 
-**REQ-MAC-017** [MVP] Clicar com o botão direito em um slot da hotbar deve abrir um menu contextual com as opções: "Editar macro", "Remover do slot", "Executar".
+**REQ-MAC-016** [V2] ~~O usuário deve poder navegar entre páginas da hotbar clicando em indicadores de página na UI (5 indicadores). A página ativa deve ser preservada entre recarregamentos de sessão.~~
 
-**REQ-MAC-018** [MVP] O GM deve poder visualizar e editar a hotbar de qualquer usuário fazendo login com aquele usuário ou via painel de administração (ver `05-usuarios-e-permissoes.md`).
+**REQ-MAC-017** [V2] ~~Clicar com o botão direito em um slot da hotbar deve abrir um menu contextual com as opções: "Editar macro", "Remover do slot", "Executar".~~
+
+**REQ-MAC-018** [V2] ~~O GM deve poder visualizar e editar a hotbar de qualquer usuário fazendo login com aquele usuário ou via painel de administração (ver `05-usuarios-e-permissoes.md`).~~
 
 ### Ações Rápidas (QuickActions)
 

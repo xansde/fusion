@@ -1,0 +1,566 @@
+<script lang="ts">
+  /**
+   * CompendiumPreviewWindow.svelte — the preview of one compendium document
+   * (spec 43 §5.6), mounted by `WindowHost` inside a floating window.
+   *
+   * It is a WINDOW and not a blade inside the drawer (DEC-CPD-03,
+   * REQ-CPD-050): the list it was opened from stays exactly where it was, and
+   * two of these can sit side by side while the reader compares two creatures
+   * (REQ-CPD-054). Nothing here knows about the drawer — closing the drawer
+   * therefore cannot close this, because no lifetime links them.
+   *
+   * The document is loaded on demand, once, when the window mounts
+   * (REQ-CPD-051, REQ-CMP-015): the index line that opened it carries no prose
+   * and no full system data (DEC-CMP-02). The three states are drawn honestly —
+   * loading, failed with another try, and loaded — and a failure never closes
+   * the window nor touches the list behind it.
+   *
+   * The socket is resolved live at load time rather than captured when the
+   * window opened: a reconnection while the window stays open would otherwise
+   * leave the retry button talking to a dead socket.
+   *
+   * The license block (REQ-CPD-052, DEC-CPD-07) is always drawn — the pack's
+   * license, and the document's own only when it says something different. It
+   * is the reason this project is clean-room, so "no space" is never a reason
+   * to drop it: it is a block of its own, above the fold of the body, and it
+   * wraps instead of truncating.
+   *
+   * Bringing the entry over (REQ-CPD-053) is offered here under the same rule
+   * as on the line that opened the window — the caller passes the permission it
+   * already resolved, and this window never widens it.
+   */
+
+  import type { PackLicense } from "@fusion/shared";
+  import {
+    buildPreviewLicense,
+    hasLicenseOverride,
+    previewError,
+    previewReady,
+    shouldResetToLoading,
+    PREVIEW_LOADING,
+    type PreviewLoadState,
+  } from "../../lib/compendium/previewWindow.js";
+  import { buildDocumentPreview, isKnownPlaceholderImg } from "../../lib/compendium/compendiumBrowser.js";
+  import { sanitizeDescriptionToText } from "../../lib/compendium/documentDetails.js";
+  import { resolveFieldLabel } from "../../lib/compendium/resultLine.js";
+  import {
+    getDocument,
+    importToActor,
+    importToWorld,
+    requireConnectedSocket,
+  } from "../../lib/compendium/compendiumApi.js";
+  import { getSocket } from "../../lib/session.svelte.js";
+  import { i18n, t } from "../../lib/i18n/i18n.js";
+  import Icon from "../common/Icon.svelte";
+  import CostGlyphs from "../common/CostGlyphs.svelte";
+
+  interface Props {
+    /** Compendium uuid of the document to show — the window's identity. */
+    uuid: string;
+    /** Name the line showed, used until the document itself arrives. */
+    name: string;
+    /** Document type of the entry, for the fallback glyph. */
+    documentType?: string;
+    /** Pack the entry belongs to. */
+    packId?: string;
+    /** Pack label, when the caller knew it. */
+    packLabel?: string | null;
+    /** The pack's license block (REQ-CPD-052). */
+    packLicense?: PackLicense | null;
+    /** Whether this reader may bring the entry into the WORLD (REQ-CPD-053). */
+    canImport?: boolean;
+    /**
+     * The sheet the line would have brought it into, when that is the
+     * destination in force (DEC-CPD-05, REQ-CPD-061). Inherited from the panel:
+     * the window resolves no ownership of its own, so its offer can never
+     * disagree with the line's (REQ-CPD-053).
+     */
+    sheetTarget?: { actorId: string; name: string } | null;
+    /**
+     * State the window starts in. Defaults to `loading`, which is what makes it
+     * fetch on mount; a caller that already holds the document may hand it over
+     * instead of paying for a second round trip.
+     */
+    initialState?: PreviewLoadState;
+  }
+
+  const {
+    uuid,
+    name,
+    packLabel = null,
+    packLicense = null,
+    canImport = false,
+    sheetTarget = null,
+    initialState = PREVIEW_LOADING,
+  }: Props = $props();
+
+  // Deliberately the INITIAL value only: after mount the window owns its state.
+  // svelte-ignore state_referenced_locally
+  let loadState = $state<PreviewLoadState>(initialState);
+  let importing = $state(false);
+  let importMessage = $state<string | null>(null);
+  let importFailed = $state(false);
+  let imgBroken = $state(false);
+
+  /** Loaded document, or null while loading/failed. */
+  const document = $derived(loadState.status === "ready" ? loadState.document : null);
+
+  const preview = $derived(document ? buildDocumentPreview(document, i18n.locale) : null);
+
+  /**
+   * ALQ-F2-19: `preview.description` is the vendor's description HTML
+   * VERBATIM (compendiumBrowser.ts's own doc comment claims "the browser
+   * preview does not render prose HTML", but until now nothing enforced
+   * that — `{preview.description}` interpolated the raw markup as text, so
+   * Svelte's escaping showed the literal `<p>`/`<em>` tags and `@UUID[...]`
+   * enricher syntax on screen instead of hiding them.
+   *
+   * Fixed by converting to clean, paragraph-preserving TEXT rather than
+   * sanitizing-and-rendering HTML: `sanitizeDescriptionHtml` (also in
+   * documentDetails.ts) would need `{@html ...}` to have any visible effect,
+   * which is a second injection surface this window has no reason to open.
+   * `sanitizeDescriptionToText` strips every tag unconditionally (no
+   * allow-list branch — see its doc comment) and returns plain strings that
+   * ordinary `{...}` interpolation escapes like any other text, so nothing
+   * executable can survive even if a future vendor payload slipped past the
+   * tag-strip regex. Paragraphs are joined with a blank line rather than
+   * rendered as separate elements: `.compendium-preview__description`
+   * already sets `white-space: pre-wrap` for exactly this shape.
+   */
+  const descriptionText = $derived.by(() => {
+    if (!preview) return null;
+    const paragraphs = sanitizeDescriptionToText(preview.description, i18n.locale);
+    return paragraphs.length > 0 ? paragraphs.join("\n\n") : null;
+  });
+
+  /** The loaded name once it arrives, the line's name until then. */
+  const displayName = $derived(preview?.name ?? name);
+
+  /**
+   * The license is built whether or not the document arrived: the pack half is
+   * known from the moment the window opens, so a failed load still shows under
+   * what terms the entry is published.
+   */
+  const license = $derived(buildPreviewLicense(packLicense, document));
+
+  const showImage = $derived(
+    preview !== null && preview.img !== null && !isKnownPlaceholderImg(preview.img) && !imgBroken,
+  );
+
+  // REQ-CPD-051: loaded on demand, once, when the window mounts.
+  $effect(() => {
+    if (loadState.status === "loading") void load();
+  });
+
+  // Bugfix A003 (retry path): `retry()` calls `load()` directly while
+  // `loadState.status === "error"`, so the reset a few lines below DOES run
+  // and writes `loadState` back to `PREVIEW_LOADING` — a real "error" →
+  // "loading" change, which reschedules the mount `$effect`. That effect then
+  // reads the new "loading" status and calls `load()` a SECOND time while
+  // THIS call is still awaiting `getDocument()`: two `compendium:get`
+  // requests race, and whichever resolves last silently decides the window's
+  // final state (content vs. the error block) — non-deterministic, and it
+  // contradicts REQ-CPD-051's "a failure is recoverable" (recovery is meant
+  // to be one load, not a race). `loadInFlight` closes the gap: it is set
+  // BEFORE the reassignment that can retrigger the effect, so the effect's
+  // re-entrant call sees it already true and returns without a second fetch.
+  let loadInFlight = false;
+
+  async function load(): Promise<void> {
+    if (loadInFlight) return;
+    loadInFlight = true;
+    try {
+      // Bugfix A003: do NOT reassign `loadState` when it already reads
+      // "loading" — the mount `$effect` below calls `load()` BECAUSE
+      // `loadState.status === "loading"`, and writing it again (even to a
+      // value describing the same status) is what turned that effect into an
+      // infinite self-retriggering loop (`effect_update_depth_exceeded`, see
+      // `shouldResetToLoading`'s doc comment). The retry button still gets a
+      // real "error" → "loading" transition drawn.
+      if (shouldResetToLoading(loadState)) {
+        loadState = PREVIEW_LOADING;
+      }
+      imgBroken = false;
+      const socket = requireConnectedSocket(getSocket());
+      const result = await getDocument(socket, uuid);
+      loadState = previewReady(result.document);
+    } catch (err) {
+      loadState = previewError(err, t("FUSION.Compendium.Preview.Failed"));
+    } finally {
+      loadInFlight = false;
+    }
+  }
+
+  /** REQ-CPD-051: a failure is recoverable, and recovering never closes anything. */
+  function retry(): void {
+    void load();
+  }
+
+  /**
+   * REQ-CPD-053: the same action the line offers, under the same permission —
+   * including WHICH of the two doors of §5.7 it is. The world door is the
+   * privileged one (REQ-CPD-060); the sheet door is the destination's owner's
+   * (REQ-CPD-061), and both are re-checked by the server on arrival.
+   */
+  async function bringOver(): Promise<void> {
+    if (importing) return;
+    if (!canImport && !sheetTarget) return;
+    importing = true;
+    importMessage = null;
+    importFailed = false;
+    try {
+      const socket = requireConnectedSocket(getSocket());
+      if (sheetTarget && !canImport) {
+        await importToActor(socket, [uuid], sheetTarget.actorId);
+        importMessage = t("FUSION.Compendium.Import.ToSheetDone", {
+          name: displayName,
+          sheet: sheetTarget.name,
+        });
+      } else {
+        await importToWorld(socket, [uuid]);
+        importMessage = t("FUSION.Compendium.Preview.Imported", { name: displayName });
+      }
+    } catch (err) {
+      importFailed = true;
+      importMessage =
+        err instanceof Error && err.message.length > 0
+          ? err.message
+          : t("FUSION.Compendium.Preview.ImportFailed");
+    } finally {
+      importing = false;
+    }
+  }
+</script>
+
+<div class="compendium-preview">
+  {#if loadState.status === "loading"}
+    <p class="compendium-preview__status" role="status">
+      {t("FUSION.Compendium.Preview.Loading")}
+    </p>
+  {:else if loadState.status === "error"}
+    <div class="compendium-preview__error" role="alert">
+      <p class="compendium-preview__error-msg">{t("FUSION.Compendium.Preview.Failed")}</p>
+      <p class="compendium-preview__error-detail">{loadState.message}</p>
+      <button class="compendium-preview__retry" type="button" onclick={retry}>
+        {t("FUSION.Compendium.Retry")}
+      </button>
+    </div>
+  {:else if preview !== null}
+    <div class="compendium-preview__head">
+      <span class="compendium-preview__figure">
+        {#if showImage && preview.img !== null}
+          <img
+            class="compendium-preview__img"
+            src={preview.img}
+            alt=""
+            aria-hidden="true"
+            onerror={() => {
+              imgBroken = true;
+            }}
+          />
+        {:else}
+          <span class="compendium-preview__icon" aria-hidden="true"><Icon name="file-text" size={28} /></span>
+        {/if}
+      </span>
+      <div class="compendium-preview__titles">
+        <h2 class="compendium-preview__name">{preview.name}</h2>
+        {#if preview.nameSecondary !== null}
+          <!-- The original name, so the reader can check the book (DEC-CPD-06). -->
+          <span class="compendium-preview__name-original">{preview.nameSecondary}</span>
+        {/if}
+        <span class="compendium-preview__meta">
+          {#if packLabel !== null}
+            <span class="compendium-preview__pack">{packLabel}</span>
+          {/if}
+          {#if preview.type !== null}
+            <span class="compendium-preview__type">{preview.type}</span>
+          {/if}
+        </span>
+      </div>
+    </div>
+
+    {#if descriptionText !== null}
+      <p class="compendium-preview__description">{descriptionText}</p>
+    {/if}
+
+    {#if preview.fields.length > 0}
+      <dl class="compendium-preview__fields">
+        {#each preview.fields as field (field.key)}
+          <div class="compendium-preview__field">
+            <dt class="compendium-preview__field-label">{resolveFieldLabel(field, t)}</dt>
+            <dd class="compendium-preview__field-value" title={field.value}>
+              {#if /[◆◇⟳↺]/u.test(field.value)}<CostGlyphs glyphs={field.value} size={14} />{:else}{field.value}{/if}
+            </dd>
+          </div>
+        {/each}
+      </dl>
+    {/if}
+  {/if}
+
+  <!--
+    REQ-CPD-052 / DEC-CPD-07: drawn in every state, including the failed one —
+    the terms under which the entry is published do not depend on the document
+    having arrived.
+  -->
+  <section class="compendium-preview__license" aria-label={t("FUSION.Compendium.Preview.License")}>
+    <h3 class="compendium-preview__license-title">{t("FUSION.Compendium.Preview.License")}</h3>
+    <p class="compendium-preview__license-line">
+      <span class="compendium-preview__license-label">
+        {t("FUSION.Compendium.Preview.LicensePack")}
+      </span>
+      <span class="compendium-preview__license-value">
+        {license.packLicense ?? t("FUSION.Compendium.Preview.LicenseUnknown")}
+      </span>
+    </p>
+    {#if hasLicenseOverride(license)}
+      <p class="compendium-preview__license-line compendium-preview__license-line--override">
+        <span class="compendium-preview__license-label">
+          {t("FUSION.Compendium.Preview.LicenseDocument")}
+        </span>
+        <span class="compendium-preview__license-value">
+          {license.documentLicense ?? license.documentTitle}
+        </span>
+        {#if license.documentLicense !== null && license.documentTitle !== null}
+          <span class="compendium-preview__license-value">{license.documentTitle}</span>
+        {/if}
+      </p>
+    {/if}
+    {#if license.attribution.length > 0}
+      <p class="compendium-preview__license-attribution">{license.attribution}</p>
+    {/if}
+    {#if license.reservedNotice.length > 0}
+      <p class="compendium-preview__license-reserved">{license.reservedNotice}</p>
+    {/if}
+    {#if license.source !== null}
+      <p class="compendium-preview__license-source">{license.source}</p>
+    {/if}
+  </section>
+
+  {#if canImport || sheetTarget}
+    <!-- REQ-CPD-053: same action as the line, same permission, no widening. -->
+    <div class="compendium-preview__actions">
+      <button
+        class="compendium-preview__import"
+        type="button"
+        disabled={importing}
+        onclick={() => void bringOver()}
+      >
+        {canImport
+          ? t("FUSION.Compendium.Line.ImportShort")
+          : t("FUSION.Compendium.Line.ImportToSheetShort")}
+      </button>
+    </div>
+  {/if}
+
+  {#if importMessage !== null}
+    <p
+      class="compendium-preview__import-msg"
+      class:compendium-preview__import-msg--failed={importFailed}
+      role={importFailed ? "alert" : "status"}
+    >
+      {importMessage}
+    </p>
+  {/if}
+</div>
+
+<style>
+  /*
+   * The window owns its size (the window manager sets it), so this body only
+   * fills what it is given and scrolls its own overflow — the drawer is not
+   * involved in any of it (REQ-GAV-012).
+   */
+  .compendium-preview {
+    display: flex;
+    flex-direction: column;
+    gap: var(--fusion-space-3);
+    height: 100%;
+    overflow-y: auto;
+    padding: var(--fusion-space-3);
+    font-size: var(--fusion-text-base);
+    color: var(--fusion-text);
+  }
+
+  .compendium-preview__status,
+  .compendium-preview__error-msg,
+  .compendium-preview__error-detail {
+    margin: 0;
+  }
+
+  .compendium-preview__error {
+    display: flex;
+    flex-direction: column;
+    gap: var(--fusion-space-2);
+    color: var(--fusion-danger);
+  }
+
+  .compendium-preview__error-detail {
+    color: var(--fusion-text-muted);
+    font-size: var(--fusion-text-sm);
+    overflow-wrap: anywhere;
+  }
+
+  .compendium-preview__retry {
+    align-self: flex-start;
+    background: var(--fusion-surface-alt);
+    border: 1px solid var(--fusion-border);
+    border-radius: var(--fusion-radius-sm);
+    color: var(--fusion-text);
+    cursor: pointer;
+    font: inherit;
+    min-height: var(--fusion-target);
+    padding: 0 var(--fusion-space-3);
+  }
+
+  .compendium-preview__head {
+    display: flex;
+    gap: 0.5rem;
+    align-items: flex-start;
+  }
+
+  .compendium-preview__figure {
+    flex: 0 0 auto;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    height: 2.6rem;
+    width: 2.6rem;
+    background: var(--fusion-surface-alt);
+    border-radius: var(--fusion-radius-sm);
+    color: var(--fusion-text-subtle);
+  }
+
+  .compendium-preview__img {
+    height: 100%;
+    width: 100%;
+    object-fit: contain;
+  }
+
+  .compendium-preview__icon {
+    display: inline-flex;
+  }
+
+  .compendium-preview__titles {
+    min-width: 0;
+  }
+
+  .compendium-preview__name {
+    font-size: var(--fusion-text-lg);
+    font-weight: 500;
+    overflow-wrap: anywhere;
+    margin: 0;
+  }
+
+  .compendium-preview__name-original {
+    color: var(--fusion-text-muted);
+    display: block;
+    font-size: var(--fusion-text-xs);
+  }
+
+  .compendium-preview__meta {
+    color: var(--fusion-text-subtle);
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--fusion-space-2);
+    font-size: var(--fusion-text-xs);
+  }
+
+  .compendium-preview__description {
+    margin: 0;
+    white-space: pre-wrap;
+  }
+
+  .compendium-preview__fields {
+    display: flex;
+    flex-direction: column;
+    gap: var(--fusion-space-1);
+    margin: 0;
+  }
+
+  .compendium-preview__field {
+    display: flex;
+    gap: var(--fusion-space-2);
+  }
+
+  .compendium-preview__field-value {
+    display: inline-flex;
+    align-items: center;
+  }
+
+  .compendium-preview__field-label {
+    color: var(--fusion-text-subtle);
+  }
+
+  .compendium-preview__field-value {
+    margin: 0;
+  }
+
+  /*
+   * The license never truncates (DEC-CPD-07): it wraps and breaks long words
+   * instead. No `text-overflow`, no `nowrap` — losing the end of a reserved
+   * material notice is exactly the failure this project cannot afford.
+   */
+  .compendium-preview__license {
+    border-top: 1px solid var(--fusion-border);
+    display: flex;
+    flex-direction: column;
+    gap: var(--fusion-space-1);
+    padding-top: var(--fusion-space-3);
+    font-size: var(--fusion-text-xs);
+    overflow-wrap: anywhere;
+    white-space: normal;
+  }
+
+  .compendium-preview__license-title {
+    color: var(--fusion-text-subtle);
+    font-size: var(--fusion-text-xs);
+    font-weight: 600;
+    margin: 0;
+  }
+
+  .compendium-preview__license-line,
+  .compendium-preview__license-attribution,
+  .compendium-preview__license-reserved,
+  .compendium-preview__license-source {
+    margin: 0;
+    overflow-wrap: anywhere;
+  }
+
+  .compendium-preview__license-label {
+    color: var(--fusion-text-subtle);
+  }
+
+  .compendium-preview__license-value {
+    color: var(--fusion-text);
+  }
+
+  .compendium-preview__actions {
+    display: flex;
+    gap: var(--fusion-space-2);
+  }
+
+  .compendium-preview__import {
+    background: var(--fusion-accent);
+    border: none;
+    border-radius: var(--fusion-radius-sm);
+    color: var(--fusion-on-accent);
+    cursor: pointer;
+    font: inherit;
+    min-height: var(--fusion-target);
+    padding: 0 var(--fusion-space-4);
+  }
+
+  .compendium-preview__import:disabled {
+    cursor: default;
+    opacity: 0.6;
+  }
+
+  .compendium-preview__import-msg {
+    color: var(--fusion-success);
+    margin: 0;
+    font-size: var(--fusion-text-sm);
+  }
+
+  .compendium-preview__import-msg--failed {
+    color: var(--fusion-danger);
+  }
+</style>

@@ -7,6 +7,8 @@
   - `docs/research/08-foundry-ui-aplicacoes.md`
   - `docs/research/94-accessibility-mobile-tablet.md`
 
+> **Emenda (F4, DEC-SEP-09, 2026-08-24) — onde vive.** A ficha do sistema PF2e (componentes Svelte + VMs, REQ-UIF-018/019) vive no repo satélite `xansde/fusion-systems-2e` (pacote `@fusion/sheets-pf2e`), consumido pelo core como git submodule pinado por tag. O core mantém o framework — `windowManager`, `sheetRegistry`, ficha genérica fallback — e resolve a ficha registrada pelo pacote do sistema. Ver `docs/design/separacao-repos/design.md`, DEC-SEP-02/09.
+
 > **Aviso clean-room.** Esta spec descreve o framework de UI do Fusion, próprio,
 > construído em Svelte 5 (Runes). Onde menciona o Foundry VTT (ApplicationV2,
 > Sidebar, SceneControls, DialogV2, ProseMirror etc.), refere-se apenas a
@@ -322,7 +324,7 @@ dados do usuário autenticado.
   (client-side) e a spec 23 (server-side) sem duplicar donos do mesmo dado.
   `ClientUIPreferences` cobre apenas geometria e estado de layout local;
   keybindings e qualidade gráfica pertencem ao modelo de usuário de `05`/`23`.
-  Reconcilia DEC-UIF-10 com DECISÃO-A11-07 e REQ-A11-021 de
+  Reconcilia DEC-UIF-10 com DEC-A11-07 e REQ-A11-021 de
   `ver 23-acessibilidade-e-dispositivos.md`.
 
 ---
@@ -341,11 +343,23 @@ chat, combat tracker).
   esquerda; a **sidebar** ancorada à direita; a **player list** no canto inferior
   esquerdo; a **hotbar** centralizada na parte inferior; e a área de
   **notifications** (toasts).
+
+  > **Emenda obrigada pela spec 53** (`53-barra-de-acoes.md`, DEC-BAR-04, DEC-BAR-09,
+  > REQ-BAR-022 e §12, 2026-10-11): a **hotbar** deixa de ser região fixa do shell. No
+  > lugar dela entra a **barra de ações**, centralizada na parte inferior da **área livre** do
+  > canvas (entre a borda esquerda e a gaveta), abaixo das janelas e da gaveta na escala de z
+  > (REQ-UIF-008). _(A redação acima substitui "a **hotbar** centralizada na parte inferior";
+  > as demais regiões não mudam.)_
+
 - **REQ-UIF-002** [MVP] A **sidebar** deve conter um conjunto de **tabs** e ser
   colapsável/expansível, com o estado (expandida/colapsada) persistido por usuário
   (DEC-UIF-10). As tabs do MVP são: Chat, Combat, Scenes, Actors, Items, Journal,
   Compendium, Settings. As tabs Tables, Cards e Playlists são **[V2]** no shell,
   mas o slot de registro de tab deve existir desde o MVP.
+  > **Concretizado pela spec 36** (`36-gaveta-lateral.md`, DEC-GAV-01/07, 2026-08-15):
+  > a lista efetiva do MVP passa a ser Chat, Contatos, Combate, Compêndio (todos) +
+  > NPCs, Cenas, Configurações (GM); Items e Journal ficam como slot sem aba no MVP.
+  > O "slot de registro" é `registerSidebarTab` (REQ-GAV-030).
 - **REQ-UIF-003** [MVP] Os **scene controls** (toolbar esquerda) devem expor uma
   coluna de "controls" (cada um ativa uma layer do canvas — ver
   `06-canvas-e-renderizacao.md`) e, para o control ativo, sua lista de "tools".
@@ -355,14 +369,44 @@ chat, combat tracker).
   **filtrados por role/permissão** do usuário (ver `05-usuarios-e-permissoes.md`):
   layers exclusivas de GM (Walls, Lighting, Sound) não aparecem para players sem a
   capacidade correspondente.
-- **REQ-UIF-005** [MVP] A **scene navigation** (topo) deve listar as cenas
-  marcadas como visíveis na navegação, indicar a cena ativa e a cena que o usuário
-  está vendo, e permitir trocar de cena com um clique. Deve ser colapsável.
-- **REQ-UIF-006** [MVP] A **hotbar** deve exibir uma página de **10 slots**
+- **REQ-UIF-005** [MVP] A **scene navigation** (topo) DEVE listar as cenas marcadas
+  como visíveis na navegação e indicar a **cena no ar** (a cena ativa do mundo). Ela
+  NÃO DEVE oferecer cena diferente por usuário: no MVP, quem não está preparando
+  renderiza sempre a cena no ar. Trocar de cena a partir dela DEVE ser um de dois
+  gestos, ambos restritos a papel privilegiado — (a) **pôr no ar**, global, executado
+  pelo evento dedicado de cena ativa (REQ-CNV-070, REQ-CEN-040, REQ-CEN-041), ou
+  (b) **preparo local**, que troca apenas o canvas de quem prepara, não altera a cena
+  no ar e não é gravado no servidor (REQ-CNV-070a, REQ-CEN-050, REQ-CEN-051). A
+  navegação DEVE distinguir "a cena que o usuário está vendo" da cena no ar apenas
+  enquanto houver preparo em curso; para todo usuário sem papel privilegiado as duas
+  DEVEM coincidir sempre, e o clique NÃO DEVE trocar a cena renderizada. Deve ser
+  colapsável.
+
+  > **Emenda obrigada pela spec 44** (`44-aba-cenas.md`, DEC-CEN-02, DEC-CEN-03 e §12,
+  > 2026-08-16): a redação anterior mandava a navegação "indicar a cena ativa e a cena
+  > que o usuário está vendo, e permitir trocar de cena com um clique", sem restrição de
+  > papel — o que é navegação divergente por usuário, exatamente a alternativa que a
+  > DEC-CEN-03 recusa no MVP (exigiria cena na presença, que `05-usuarios-e-permissoes.md`
+  > não carrega; reabre em Q-CEN-05). _(A redação acima substitui a metade de "trocar de
+  > cena com um clique" e a de "a cena que o usuário está vendo"; listar as cenas visíveis
+  > na navegação, indicar a cena ativa e ser colapsável permanecem inalterados.)_
+
+- **REQ-UIF-006** [V2] ~~A **hotbar** deve exibir uma página de **10 slots**
   numerados; clicar (ou tecla `1`–`0`) executa a macro do slot; deve suportar
   **5 páginas** navegáveis e arrastar macros entre slots. Right-click em um slot
   abre context menu (editar/limpar). Conteúdo e execução de macros: ver
-  `14-macros-e-automacao.md`.
+  `14-macros-e-automacao.md`.~~
+
+  > **APOSENTADO** — **Emenda obrigada pela spec 53** (`53-barra-de-acoes.md`, DEC-BAR-04,
+  > REQ-BAR-102 e §12, 2026-10-11): a hotbar por usuário é substituída pela **barra de
+  > ações**, contextual ao personagem: Favoritos de 12 slots (teclas 1–9, 0, − e =) mais abas
+  > por categoria (REQ-BAR-048, REQ-BAR-062). O id permanece definido aqui, aposentado, para que
+  > nenhuma citação resolva para o vazio, e a tag muda de `[MVP]` para `[V2]` (`CONVENCOES.md`
+  > §2). As menções que sobram à hotbar nesta spec — o conceito de Shell, o fluxo (d) de
+  > REQ-UIF-046 (macro/Document → hotbar) e `hotbarPage` em `ClientUIPreferences` — leem-se como
+  > a barra de ações: a barra não tem páginas, o arrastar é interno a ela
+  > (REQ-BAR-047) e a macro volta depois como `kind` de entrada (spec 14).
+
 - **REQ-UIF-007** [MVP] A **player list** deve listar os usuários conectados com
   nome e cor, indicar quem está online/offline e quem é GM, e abrir (right-click)
   a configuração do usuário (própria para players; qualquer uma para GM — gating
@@ -453,6 +497,15 @@ subtype, component, options)` para associar um componente Svelte a um par
   compatíveis (ex.: soltar um Item em uma sheet de Actor cria o embedded Item),
   usando o framework de drag & drop (REQ-UIF-046) e validando permissão/tipo antes
   de aceitar.
+
+> **Onde vive (emenda F3, 2026-08-23).** A ficha de cada sistema é um pacote
+> registrado via `sheetRegistry` (REQ-UIF-018/019); o core mantém só o
+> framework (window manager, `sheetRegistry`, sheet default genérica). A ficha
+> PF2e vive em `packages/client/src/systems/pf2e/`, atrás de um entry point
+> único (`systems/pf2e/index.ts`) — o core nunca importa o restante daquele
+> diretório diretamente (regra `client-core-must-not-import-system-sheets` no
+> `.dependency-cruiser.cjs`). Ver `docs/design/separacao-repos/design.md`
+> (DEC-SEP-02/03, fase F3/F4).
 
 ### Componentes base — Dialogs
 
@@ -897,6 +950,9 @@ relevantes à UI.
 - `ver 21-seguranca.md` — sanitização de rich text e segurança de upload.
 - `ver 23-acessibilidade-e-dispositivos.md` — detalhamento de WCAG, gestos touch,
   player mode, PWA, safe areas, teclado virtual; esta spec define o mínimo e aponta.
+- `ver 44-aba-cenas.md` — painel de cenas da gaveta; pôr no ar (global, papel
+  privilegiado) vs. preparo local, que delimitam o que a scene navigation pode fazer
+  (REQ-UIF-005); diálogos de cena como janelas do window manager (DEC-CEN-09).
 
 ---
 
@@ -969,7 +1025,7 @@ relevantes à UI.
   (localStorage vs. IndexedDB). A escolha concreta fica em
   `ver 23-acessibilidade-e-dispositivos.md`. Preferências portáveis
   (keybindings, tema, locale, qualidade gráfica) são persistidas server-side
-  por `userId` conforme DECISÃO-A11-07 e REQ-A11-021 de `23` — não há dois
+  por `userId` conforme DEC-A11-07 e REQ-A11-021 de `23` — não há dois
   donos: `ClientUIPreferences` cobre apenas dados de dispositivo local.
 
 ---

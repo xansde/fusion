@@ -192,6 +192,22 @@ function sendOp(
   });
 }
 
+/**
+ * Create a minimal Actor via doc:create and return its `_id`. A Token no
+ * longer accepts a missing/null `actorId` (REQ-TOK-002), so every embedded
+ * Token created in this file needs a resolvable actor to reference.
+ */
+async function createActor(socket: ClientSocket, name: string): Promise<string> {
+  const ack = await sendOp(socket, "doc:create", {
+    documentType: "Actor",
+    data: [{ name, type: "npc", system: {}, ownership: { default: 0 } }],
+  });
+  if (!ack["ok"]) {
+    throw new Error(`Failed to create actor "${name}": ${JSON.stringify(ack)}`);
+  }
+  return (ack["result"] as { documents: Array<{ _id: string }> }).documents[0]!._id;
+}
+
 // ---------------------------------------------------------------------------
 // Test: doc:create broadcast
 // ---------------------------------------------------------------------------
@@ -227,10 +243,15 @@ describe("M1-B — doc:create broadcast", () => {
     await teardown(ctx);
   });
 
-  it("GM creates a Scene → player receives broadcast with seq", async () => {
-    // Set up listener on player before GM sends
+  // The listener used to sit on the PLAYER socket and assert the scene name
+  // arrived there — which is precisely the leak REQ-CEN-071/REQ-CEN-073 forbid
+  // (see scene-list-redaction.test.ts, which now asserts the opposite). What
+  // this test is actually about — the broadcast carrying the ack's seq — is
+  // unchanged; it just has to be observed on a socket entitled to the body.
+  it("GM creates a Scene → privileged socket receives broadcast with seq", async () => {
+    // Set up listener on the GM before GM sends
     const broadcastPromise = new Promise<Record<string, unknown>>((resolve) => {
-      playerSocket.on("op", (envelope: Record<string, unknown>) => {
+      gmSocket.on("op", (envelope: Record<string, unknown>) => {
         if (
           (envelope as Record<string, unknown>)["type"] === "doc:create" &&
           ((envelope as Record<string, unknown>)["payload"] as Record<string, unknown>)[
@@ -361,7 +382,11 @@ describe("M1-B — permission enforcement", () => {
       updates: [{ _id: sceneId, diff: { name: "Hacked Room" } }],
     });
     expect(updateAck["ok"]).toBe(false);
-    expect(updateAck["code"]).toBe("PERMISSION_DENIED");
+    // REQ-CEN-070/REQ-CEN-071: the refusal is worded as inexistence, not as a
+    // denial — PERMISSION_DENIED would confirm the scene is there, and the
+    // existence of a scene the campaign has not shown is itself privileged.
+    // The refusal is what changed; that the player cannot write is unchanged.
+    expect(updateAck["code"]).toBe("NOT_FOUND");
   });
 
   it("player2 cannot update token owned by player1 (different actor ownership)", async () => {
@@ -408,6 +433,13 @@ describe("M1-B — permission enforcement", () => {
     >;
     const tokens = updatedParent["tokens"] as Record<string, unknown>[];
     const tokenId = tokens[0]?.["_id"] as string;
+
+    // The scene goes ON AIR before the player op: a scene that is not on air
+    // does not exist for a non-privileged socket (REQ-CEN-071/REQ-CEN-072), so
+    // off air the answer would be "no such parent" and this test would never
+    // reach the ownership rule it exists to prove.
+    const airAck = await sendOp(gmSocket, "world:activeScene", { sceneId });
+    expect(airAck["ok"]).toBe(true);
 
     // Player2 tries to update that token
     const p2UpdateAck = await sendOp(player2Socket, "doc:update", {
@@ -822,11 +854,12 @@ describe("M1-B — embedded token CRUD", () => {
     const sceneId = (
       (sceneAck["result"] as Record<string, unknown>)["documents"] as Record<string, unknown>[]
     )[0]?.["_id"] as string;
+    const goblinActorId = await createActor(gmSocket, "Goblin Actor");
 
     // Create token inside scene
     const tokenAck = await sendOp(gmSocket, "doc:create", {
       documentType: "Token",
-      data: [{ name: "Goblin", x: 200, y: 300 }],
+      data: [{ name: "Goblin", actorId: goblinActorId, x: 200, y: 300 }],
       parent: { type: "Scene", id: sceneId },
     });
 
@@ -850,10 +883,11 @@ describe("M1-B — embedded token CRUD", () => {
     const sceneId = (
       (sceneAck["result"] as Record<string, unknown>)["documents"] as Record<string, unknown>[]
     )[0]?.["_id"] as string;
+    const orcActorId = await createActor(gmSocket, "Orc Actor");
 
     const tokenAck = await sendOp(gmSocket, "doc:create", {
       documentType: "Token",
-      data: [{ name: "Orc", x: 100, y: 100 }],
+      data: [{ name: "Orc", actorId: orcActorId, x: 100, y: 100 }],
       parent: { type: "Scene", id: sceneId },
     });
     const parent = (tokenAck["result"] as Record<string, unknown>)["parent"] as Record<
@@ -885,10 +919,11 @@ describe("M1-B — embedded token CRUD", () => {
     const sceneId = (
       (sceneAck["result"] as Record<string, unknown>)["documents"] as Record<string, unknown>[]
     )[0]?.["_id"] as string;
+    const doomedActorId = await createActor(gmSocket, "Doomed Token Actor");
 
     const tokenAck = await sendOp(gmSocket, "doc:create", {
       documentType: "Token",
-      data: [{ name: "Doomed Token", x: 0, y: 0 }],
+      data: [{ name: "Doomed Token", actorId: doomedActorId, x: 0, y: 0 }],
       parent: { type: "Scene", id: sceneId },
     });
     const tokenParent = (tokenAck["result"] as Record<string, unknown>)["parent"] as Record<
@@ -1027,9 +1062,10 @@ describe("M1-C — ack hidden-token redaction", () => {
     const ownedTokenId = ownedTokens.find((t) => t["actorId"] === actorId)?.["_id"] as string;
 
     // GM-only hidden token with the secret markers.
+    const hiddenActorId = await createActor(gmSocket, "Ghost Actor");
     const hiddenAck = await sendOp(gmSocket, "doc:create", {
       documentType: "Token",
-      data: [{ name: HIDDEN_NAME, x: HIDDEN_X, y: HIDDEN_Y, hidden: true }],
+      data: [{ name: HIDDEN_NAME, actorId: hiddenActorId, x: HIDDEN_X, y: HIDDEN_Y, hidden: true }],
       parent: { type: "Scene", id: sceneId },
     });
     expect(hiddenAck["ok"]).toBe(true);
@@ -1037,6 +1073,13 @@ describe("M1-C — ack hidden-token redaction", () => {
       (hiddenAck["result"] as Record<string, unknown>)["parent"] as Record<string, unknown>
     )["tokens"] as Record<string, unknown>[];
     const hiddenTokenId = allTokens.find((t) => t["hidden"] === true)?.["_id"] as string;
+
+    // The scene goes ON AIR: it is the only scene a non-privileged socket may
+    // act in at all (REQ-CEN-071/REQ-CEN-072). Off air, the player's move would
+    // be answered as "no such parent" and the hidden-token rule under test here
+    // would never be exercised.
+    const airAck = await sendOp(gmSocket, "world:activeScene", { sceneId });
+    expect(airAck["ok"]).toBe(true);
 
     expect(typeof ownedTokenId).toBe("string");
     expect(typeof hiddenTokenId).toBe("string");
@@ -1276,18 +1319,19 @@ describe("M1-B — embedded token _id collision prevention", () => {
     )[0]?.["_id"] as string;
 
     const SAME_ID = "aaaaaaaaaaaaaaaa";
+    const collisionActorId = await createActor(gmSocket, "Collision Token Actor");
 
     // Create first token with a specific _id supplied by client
     const tok1Ack = await sendOp(gmSocket, "doc:create", {
       documentType: "Token",
-      data: [{ _id: SAME_ID, name: "Token A", x: 0, y: 0 }],
+      data: [{ _id: SAME_ID, name: "Token A", actorId: collisionActorId, x: 0, y: 0 }],
       parent: { type: "Scene", id: sceneId },
     });
     expect(tok1Ack["ok"]).toBe(true);
     // Create second token with the SAME _id — server must assign a different one
     const tok2Ack = await sendOp(gmSocket, "doc:create", {
       documentType: "Token",
-      data: [{ _id: SAME_ID, name: "Token B", x: 100, y: 100 }],
+      data: [{ _id: SAME_ID, name: "Token B", actorId: collisionActorId, x: 100, y: 100 }],
       parent: { type: "Scene", id: sceneId },
     });
     expect(tok2Ack["ok"]).toBe(true);
@@ -1311,12 +1355,13 @@ describe("M1-B — embedded token _id collision prevention", () => {
     )[0]?.["_id"] as string;
 
     // Send 3 tokens in one batch, all with the same _id
+    const batchActorId = await createActor(gmSocket, "Batch Token Actor");
     const batchAck = await sendOp(gmSocket, "doc:create", {
       documentType: "Token",
       data: [
-        { _id: "bbbbbbbbbbbbbbbb", name: "T1", x: 0, y: 0 },
-        { _id: "bbbbbbbbbbbbbbbb", name: "T2", x: 1, y: 0 },
-        { _id: "bbbbbbbbbbbbbbbb", name: "T3", x: 2, y: 0 },
+        { _id: "bbbbbbbbbbbbbbbb", name: "T1", actorId: batchActorId, x: 0, y: 0 },
+        { _id: "bbbbbbbbbbbbbbbb", name: "T2", actorId: batchActorId, x: 1, y: 0 },
+        { _id: "bbbbbbbbbbbbbbbb", name: "T3", actorId: batchActorId, x: 2, y: 0 },
       ],
       parent: { type: "Scene", id: sceneId },
     });
@@ -1718,16 +1763,18 @@ describe("FIX-4 — hidden tokens stripped from player snapshot but visible to G
     )[0]?.["_id"] as string;
 
     // GM adds a visible token (hidden=false) and a hidden token (hidden=true)
+    const visibleActorId = await createActor(gmSocket, "Visible Token Actor");
     const visibleTokenAck = await sendOp(gmSocket, "doc:create", {
       documentType: "Token",
-      data: [{ name: "Visible Token", x: 0, y: 0, hidden: false }],
+      data: [{ name: "Visible Token", actorId: visibleActorId, x: 0, y: 0, hidden: false }],
       parent: { type: "Scene", id: sceneId },
     });
     expect(visibleTokenAck["ok"]).toBe(true);
 
+    const hiddenActorId = await createActor(gmSocket, "Hidden Token Actor");
     const hiddenTokenAck = await sendOp(gmSocket, "doc:create", {
       documentType: "Token",
-      data: [{ name: "Hidden Token", x: 100, y: 100, hidden: true }],
+      data: [{ name: "Hidden Token", actorId: hiddenActorId, x: 100, y: 100, hidden: true }],
       parent: { type: "Scene", id: sceneId },
     });
     expect(hiddenTokenAck["ok"]).toBe(true);
@@ -1914,6 +1961,13 @@ describe("FIX-5 — embedded token: _id strip and actorId protection", () => {
       unknown
     >;
     tokenId = (parent["tokens"] as Record<string, unknown>[])[0]?.["_id"] as string;
+
+    // …and puts the scene ON AIR. A non-privileged socket may only act inside
+    // the scene on air (REQ-CEN-071/REQ-CEN-072); off air, every player op
+    // below would be answered as "no such parent" before reaching the field
+    // rules this block is about.
+    const airAck = await sendOp(gmSocket, "world:activeScene", { sceneId });
+    expect(airAck["ok"]).toBe(true);
   });
 
   afterEach(async () => {
@@ -2082,6 +2136,14 @@ describe("M1-C — live broadcast: hidden token filtering per socket", () => {
     sceneId = (
       (sceneAck["result"] as Record<string, unknown>)["documents"] as Record<string, unknown>[]
     )[0]?.["_id"] as string;
+
+    // The scene has to be ON AIR for a player to receive its body at all: only
+    // the active scene crosses to a non-privileged socket (REQ-CEN-071,
+    // REQ-CEN-072). Off air, every assertion below would be measuring the
+    // scene-list boundary instead of the hidden-token redaction it is about.
+    const activateAck = await sendOp(gmSocket, "world:activeScene", { sceneId });
+    expect(activateAck["ok"]).toBe(true);
+
     // Drain initial broadcast events
     await new Promise((r) => setTimeout(r, 80));
   });
@@ -2097,9 +2159,10 @@ describe("M1-C — live broadcast: hidden token filtering per socket", () => {
     const playerScenePromise = waitForSceneUpdate(playerSocket, sceneId);
     const gmScenePromise = waitForSceneUpdate(gmSocket, sceneId);
 
+    const hiddenGhostActorId = await createActor(gmSocket, "Hidden Ghost Actor");
     const tokenAck = await sendOp(gmSocket, "doc:create", {
       documentType: "Token",
-      data: [{ name: "Hidden Ghost", x: 50, y: 50, hidden: true }],
+      data: [{ name: "Hidden Ghost", actorId: hiddenGhostActorId, x: 50, y: 50, hidden: true }],
       parent: { type: "Scene", id: sceneId },
     });
     expect(tokenAck["ok"]).toBe(true);
@@ -2120,9 +2183,10 @@ describe("M1-C — live broadcast: hidden token filtering per socket", () => {
 
   it("GM moves hidden token → player does NOT receive position update for that token", async () => {
     // First, create a hidden token (GM only op)
+    const lurkerActorId = await createActor(gmSocket, "Lurker Actor");
     const tokenAck = await sendOp(gmSocket, "doc:create", {
       documentType: "Token",
-      data: [{ name: "Lurker", x: 0, y: 0, hidden: true }],
+      data: [{ name: "Lurker", actorId: lurkerActorId, x: 0, y: 0, hidden: true }],
       parent: { type: "Scene", id: sceneId },
     });
     expect(tokenAck["ok"]).toBe(true);
@@ -2169,9 +2233,10 @@ describe("M1-C — live broadcast: hidden token filtering per socket", () => {
 
   it("GM toggles hidden→visible → player now receives the token (create-like)", async () => {
     // Create hidden token
+    const spiritActorId = await createActor(gmSocket, "Appearing Spirit Actor");
     const tokenAck = await sendOp(gmSocket, "doc:create", {
       documentType: "Token",
-      data: [{ name: "Appearing Spirit", x: 200, y: 200, hidden: true }],
+      data: [{ name: "Appearing Spirit", actorId: spiritActorId, x: 200, y: 200, hidden: true }],
       parent: { type: "Scene", id: sceneId },
     });
     expect(tokenAck["ok"]).toBe(true);
@@ -2221,9 +2286,10 @@ describe("M1-C — live broadcast: hidden token filtering per socket", () => {
 
   it("GM toggles visible→hidden → player's Scene update no longer contains the token (delete-like)", async () => {
     // Create visible token first
+    const vanishingActorId = await createActor(gmSocket, "Vanishing Hero Actor");
     const tokenAck = await sendOp(gmSocket, "doc:create", {
       documentType: "Token",
-      data: [{ name: "Vanishing Hero", x: 100, y: 100, hidden: false }],
+      data: [{ name: "Vanishing Hero", actorId: vanishingActorId, x: 100, y: 100, hidden: false }],
       parent: { type: "Scene", id: sceneId },
     });
     expect(tokenAck["ok"]).toBe(true);
@@ -2272,9 +2338,12 @@ describe("M1-C — live broadcast: hidden token filtering per socket", () => {
 
   it("snapshot still strips hidden tokens from player after live ops (FIX-4 re-validation)", async () => {
     // Create a hidden token
+    const persistentActorId = await createActor(gmSocket, "Persistent Ghost Actor");
     const tokenAck = await sendOp(gmSocket, "doc:create", {
       documentType: "Token",
-      data: [{ name: "Persistent Ghost", x: 300, y: 300, hidden: true }],
+      data: [
+        { name: "Persistent Ghost", actorId: persistentActorId, x: 300, y: 300, hidden: true },
+      ],
       parent: { type: "Scene", id: sceneId },
     });
     expect(tokenAck["ok"]).toBe(true);

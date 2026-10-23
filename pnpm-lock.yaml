@@ -29,6 +29,9 @@ importers:
       prettier:
         specifier: ^3.5.3
         version: 3.8.4
+      resedit:
+        specifier: 3.0.2
+        version: 3.0.2
       typescript:
         specifier: ^5.8.3
         version: 5.9.3
@@ -39,6 +42,132 @@ importers:
         specifier: ^3.2.2
         version: 3.2.6(@types/node@22.19.21)
 
+  external/fusion-systems-2e/sheets/pf2e:
+    dependencies:
+      '@fusion/shared':
+        specifier: workspace:*
+        version: link:../../../../packages/shared
+    devDependencies:
+      '@fusion/engine-2e':
+        specifier: workspace:*
+        version: link:../../systems/engine-2e
+      '@fusion/system-api':
+        specifier: workspace:*
+        version: link:../../../../packages/system-api
+      '@fusion/system-pf2e':
+        specifier: workspace:*
+        version: link:../../systems/pf2e
+      '@fusion/system-pf2e-sf2e':
+        specifier: workspace:*
+        version: link:../../systems/pf2e-sf2e
+      '@fusion/system-sf2e':
+        specifier: workspace:*
+        version: link:../../systems/sf2e
+      '@sveltejs/vite-plugin-svelte':
+        specifier: ^5.0.0
+        version: 5.1.1(svelte@5.56.3(@typescript-eslint/types@8.61.0))(vite@6.4.3(@types/node@22.19.21))
+      socket.io-client:
+        specifier: ^4.8.3
+        version: 4.8.3
+      svelte:
+        specifier: ^5.0.0
+        version: 5.56.3(@typescript-eslint/types@8.61.0)
+      vitest:
+        specifier: ^3.2.2
+        version: 3.2.6(@types/node@22.19.21)
+
+  external/fusion-systems-2e/systems/engine-2e:
+    dependencies:
+      '@fusion/shared':
+        specifier: workspace:*
+        version: link:../../../../packages/shared
+      '@fusion/system-api':
+        specifier: workspace:*
+        version: link:../../../../packages/system-api
+      zod:
+        specifier: ^3.24.2
+        version: 3.25.76
+    devDependencies:
+      vitest:
+        specifier: ^3.2.2
+        version: 3.2.6(@types/node@22.19.21)
+
+  external/fusion-systems-2e/systems/pf2e:
+    dependencies:
+      '@fusion/engine-2e':
+        specifier: workspace:*
+        version: link:../engine-2e
+      '@fusion/shared':
+        specifier: workspace:*
+        version: link:../../../../packages/shared
+      '@fusion/system-api':
+        specifier: workspace:*
+        version: link:../../../../packages/system-api
+      zod:
+        specifier: ^3.24.2
+        version: 3.25.76
+    devDependencies:
+      vitest:
+        specifier: ^3.2.2
+        version: 3.2.6(@types/node@22.19.21)
+
+  external/fusion-systems-2e/systems/pf2e-sf2e:
+    dependencies:
+      '@fusion/engine-2e':
+        specifier: workspace:*
+        version: link:../engine-2e
+      '@fusion/shared':
+        specifier: workspace:*
+        version: link:../../../../packages/shared
+      '@fusion/system-api':
+        specifier: workspace:*
+        version: link:../../../../packages/system-api
+      '@fusion/system-pf2e':
+        specifier: workspace:*
+        version: link:../pf2e
+      '@fusion/system-sf2e':
+        specifier: workspace:*
+        version: link:../sf2e
+      zod:
+        specifier: ^3.24.2
+        version: 3.25.76
+    devDependencies:
+      vitest:
+        specifier: ^3.2.2
+        version: 3.2.6(@types/node@22.19.21)
+
+  external/fusion-systems-2e/systems/sf2e:
+    dependencies:
+      '@fusion/engine-2e':
+        specifier: workspace:*
+        version: link:../engine-2e
+      '@fusion/shared':
+        specifier: workspace:*
+        version: link:../../../../packages/shared
+      '@fusion/system-api':
+        specifier: workspace:*
+        version: link:../../../../packages/system-api
+      '@fusion/system-pf2e':
+        specifier: workspace:*
+        version: link:../pf2e
+      zod:
+        specifier: ^3.24.2
+        version: 3.25.76
+    devDependencies:
+      vitest:
+        specifier: ^3.2.2
+        version: 3.2.6(@types/node@22.19.21)
+
+  external/fusion-systems-2e/tools/importer-pf2e: {}
+
+  external/fusion-systems-2e/tools/translate-packs:
+    dependencies:
+      '@fusion/shared':
+        specifier: workspace:*
+        version: link:../../../../packages/shared
+
+  external/fusion-systems-2e/tools/vault-catalog: {}
+
   packages/client:
     dependencies:
       '@3d-dice/dice-box':
@@ -47,9 +176,9 @@ importers:
       '@fusion/shared':
         specifier: workspace:*
         version: link:../shared
-      '@fusion/system-etmos':
+      '@fusion/sheets-pf2e':
         specifier: workspace:*
-        version: link:../../systems/etmos
+        version: link:../../external/fusion-systems-2e/sheets/pf2e
       '@tiptap/core':
         specifier: ^3.27.1
         version: 3.27.1(@tiptap/pm@3.27.1)
@@ -65,6 +194,9 @@ importers:
       '@tiptap/starter-kit':
         specifier: ^3.27.1
         version: 3.27.1
+      howler:
+        specifier: ^2.2.4
+        version: 2.2.4
       pixi.js:
         specifier: ^8.19.0
         version: 8.19.0
@@ -77,10 +209,22 @@ importers:
       svelte:
         specifier: ^5.0.0
         version: 5.56.3(@typescript-eslint/types@8.61.0)
+      waybuilder-avatar:
+        specifier: github:igoresramos/waybuilder-avatar#b071c8fd10e79f5cc09af897cff9c9753f4dd790
+        version: https://codeload.github.com/igoresramos/waybuilder-avatar/tar.gz/b071c8fd10e79f5cc09af897cff9c9753f4dd790
     devDependencies:
+      '@fusion/system-pf2e':
+        specifier: workspace:*
+        version: link:../../external/fusion-systems-2e/systems/pf2e
+      '@fusion/system-sf2e':
+        specifier: workspace:*
+        version: link:../../external/fusion-systems-2e/systems/sf2e
       '@sveltejs/vite-plugin-svelte':
         specifier: ^5.0.0
         version: 5.1.1(svelte@5.56.3(@typescript-eslint/types@8.61.0))(vite@6.4.3(@types/node@22.19.21))
+      '@types/howler':
+        specifier: ^2.2.13
+        version: 2.2.13
       svelte-check:
         specifier: ^4.0.0
         version: 4.6.0(picomatch@4.0.4)(svelte@5.56.3(@typescript-eslint/types@8.61.0))(typescript@5.9.3)
@@ -104,22 +248,22 @@ importers:
         version: 10.0.0
       '@fusion/engine-2e':
         specifier: workspace:*
-        version: link:../../systems/engine-2e
+        version: link:../../external/fusion-systems-2e/systems/engine-2e
       '@fusion/shared':
         specifier: workspace:*
         version: link:../shared
       '@fusion/system-api':
         specifier: workspace:*
         version: link:../system-api
-      '@fusion/system-etmos':
-        specifier: workspace:*
-        version: link:../../systems/etmos
       '@fusion/system-pf2e':
         specifier: workspace:*
-        version: link:../../systems/pf2e
+        version: link:../../external/fusion-systems-2e/systems/pf2e
+      '@fusion/system-pf2e-sf2e':
+        specifier: workspace:*
+        version: link:../../external/fusion-systems-2e/systems/pf2e-sf2e
       '@fusion/system-sf2e':
         specifier: workspace:*
-        version: link:../../systems/sf2e
+        version: link:../../external/fusion-systems-2e/systems/sf2e
       '@fusion/system-stub':
         specifier: workspace:*
         version: link:../../systems/stub
@@ -211,76 +355,6 @@ importers:
         specifier: ^3.2.2
         version: 3.2.6(@types/node@22.19.21)
 
-  systems/engine-2e:
-    dependencies:
-      '@fusion/shared':
-        specifier: workspace:*
-        version: link:../../packages/shared
-      '@fusion/system-api':
-        specifier: workspace:*
-        version: link:../../packages/system-api
-    devDependencies:
-      vitest:
-        specifier: ^3.2.2
-        version: 3.2.6(@types/node@22.19.21)
-
-  systems/etmos:
-    dependencies:
-      '@fusion/shared':
-        specifier: workspace:*
-        version: link:../../packages/shared
-      '@fusion/system-api':
-        specifier: workspace:*
-        version: link:../../packages/system-api
-      zod:
-        specifier: ^3.24.2
-        version: 3.25.76
-    devDependencies:
-      vitest:
-        specifier: ^3.2.2
-        version: 3.2.6(@types/node@22.19.21)
-
-  systems/pf2e:
-    dependencies:
-      '@fusion/engine-2e':
-        specifier: workspace:*
-        version: link:../engine-2e
-      '@fusion/shared':
-        specifier: workspace:*
-        version: link:../../packages/shared
-      '@fusion/system-api':
-        specifier: workspace:*
-        version: link:../../packages/system-api
-      zod:
-        specifier: ^3.24.2
-        version: 3.25.76
-    devDependencies:
-      vitest:
-        specifier: ^3.2.2
-        version: 3.2.6(@types/node@22.19.21)
-
-  systems/sf2e:
-    dependencies:
-      '@fusion/engine-2e':
-        specifier: workspace:*
-        version: link:../engine-2e
-      '@fusion/shared':
-        specifier: workspace:*
-        version: link:../../packages/shared
-      '@fusion/system-api':
-        specifier: workspace:*
-        version: link:../../packages/system-api
-      '@fusion/system-pf2e':
-        specifier: workspace:*
-        version: link:../pf2e
-      zod:
-        specifier: ^3.24.2
-        version: 3.25.76
-    devDependencies:
-      vitest:
-        specifier: ^3.2.2
-        version: 3.2.6(@types/node@22.19.21)
-
   systems/stub:
     dependencies:
       '@fusion/system-api':
@@ -304,7 +378,24 @@ importers:
         specifier: ^3.2.2
         version: 3.2.6(@types/node@22.19.21)
 
-  tools/importer-pf2e: {}
+  tools/mesa-cli:
+    dependencies:
+      '@fusion/shared':
+        specifier: workspace:*
+        version: link:../../packages/shared
+      socket.io-client:
+        specifier: ^4.8.3
+        version: 4.8.3
+    devDependencies:
+      '@fusion/system-api':
+        specifier: workspace:*
+        version: link:../../packages/system-api
+      '@fusion/system-pf2e':
+        specifier: workspace:*
+        version: link:../../external/fusion-systems-2e/systems/pf2e
+      vitest:
+        specifier: ^3.2.2
+        version: 3.2.6(@types/node@22.19.21)
 
   tools/release:
     dependencies:
@@ -319,7 +410,11 @@ importers:
         specifier: ^3.2.2
         version: 3.2.6(@types/node@22.19.21)
 
-  tools/translate-packs: {}
+  tools/spec-lint:
+    devDependencies:
+      vitest:
+        specifier: ^3.2.2
+        version: 3.2.6(@types/node@22.19.21)
 
 packages:
 
@@ -1236,6 +1331,9 @@ packages:
     resolution: {integrity: sha512-tfmcyHn1Pp9YHAO5r40+UuZUPAZbUEgqTel3EuEKpmF9hPkXgR4l41853raliXnb4gwyPNoQOfvgGGlHN5WSog==}
     deprecated: This is a stub types definition. form-data provides its own type definitions, so you do not need this installed.
 
+  '@types/howler@2.2.13':
+    resolution: {integrity: sha512-40+EBjqIHHrC4VShlz/7i0lBUsE3QkgzZinQQji74Hd8sBkJZUBaT7LWFLK6rcabsDOOQpoMbEJvtaFQwxOu/g==}
+
   '@types/json-schema@7.0.15':
     resolution: {integrity: sha512-5+fP8P8MFNC+AyZCDxrB2pkZFPGzqQWUzpSeuuVLvm8VMcorNYavBqoFcxK8bQz4Qsbn4oUEEem4wDLfcysGHA==}
 
@@ -1357,6 +1455,7 @@ packages:
   '@xmldom/xmldom@0.8.13':
     resolution: {integrity: sha512-KRYzxepc14G/CEpEGc3Yn+JKaAeT63smlDr+vjB8jRfgTBBI9wRj/nkQEO+ucV8p8I9bfKLWp37uHgFrbntPvw==}
     engines: {node: '>=10.0.0'}
+    deprecated: this version has critical issues, please update to the latest version
 
   abstract-logging@2.0.1:
     resolution: {integrity: sha512-2BjRTZxTPvheOvGbBslFSYOUkr+SjPtOnrLP33f+VIWLzezQpZcqVg7ja3L4dBXmzzgwT+a029jRx5PCi3JuiA==}
@@ -1727,6 +1826,7 @@ packages:
   eslint@9.39.4:
     resolution: {integrity: sha512-XoMjdBOwe/esVgEvLmNsD3IRHkm7fbKIUGvrleloJXUZgDHig2IPWNniv+GwjyJXzuNqVjlr5+4yVUZjycJwfQ==}
     engines: {node: ^18.18.0 || ^20.9.0 || >=21.1.0}
+    deprecated: This version is no longer supported. Please see https://eslint.org/version-support for other options.
     hasBin: true
     peerDependencies:
       jiti: '*'
@@ -1915,6 +2015,9 @@ packages:
   hasown@2.0.4:
     resolution: {integrity: sha512-T2UbfbBEF32wiepXIsMlTW9+dDYC6wMh/t/vYA4tuOMKqWz/n3vr1NFSxQiyP+zk2mXsoMA/i/7qV6LKut1t1A==}
     engines: {node: '>= 0.4'}
+
+  howler@2.2.4:
+    resolution: {integrity: sha512-iARIBPgcQrwtEr+tALF+rapJ8qSc+Set2GJQl7xT1MQzWaVkFebdJhR3alVlSiUf5U7nAANKuj3aWpwerocD5w==}
 
   html-escaper@2.0.2:
     resolution: {integrity: sha512-H2iMtd0I4Mt5eYiapRdIDjp+XzelXQ0tFE4JS7YFwFevXXMmOp9myNrUvCg0D6ws8iqkRPBfKHgbwig1SmlLfg==}
@@ -2249,6 +2352,10 @@ packages:
     resolution: {integrity: sha512-//nshmD55c46FuFw26xV/xFAaB5HF9Xdap7HJBBnrKdAd6/GxDBaNA1870O79+9ueg61cZLSVc+OaFlfmObYVQ==}
     engines: {node: '>= 14.16'}
 
+  pe-library@2.0.1:
+    resolution: {integrity: sha512-/qjYFqNSlq59B5DI36am++5/3gMgh02QnzpYigrwrW6s+QpU0mHf09/iA4wjTu21UUxodyV7ZCetV5MiDhaN/A==}
+    engines: {node: '>=20'}
+
   picocolors@1.1.1:
     resolution: {integrity: sha512-xceH2snhtb5M9liqDsmEw56le376mTZkEX/jEb/RxNFyegNul7eNslCXP9FDj/Lcu0X8KEyMceP2ntpaHrDEVA==}
 
@@ -2385,6 +2492,10 @@ packages:
   require-from-string@2.0.2:
     resolution: {integrity: sha512-Xf0nWe6RseziFMu+Ap9biiUbmplq6S9/p+7w7YXP/JBHhrUDDUhwa+vANyubuqfZWTveU//DYVGsDG7RKL/vEw==}
     engines: {node: '>=0.10.0'}
+
+  resedit@3.0.2:
+    resolution: {integrity: sha512-FnqVDJYX4etlEnz2AaJYE1c1FTcgrsHiI2U4DXRxO4CIzbGP7r0jml9uZIMlvzCom2pbBLZjIhF26wj92y1cVQ==}
+    engines: {node: '>=20'}
 
   resolve-from@4.0.0:
     resolution: {integrity: sha512-pb/MYmXstAkysRFx8piNI1tGFNQIFA3vkE3Gq4EuA1dF6gHp/+vgZqsCGJapvy8N3Q+4o7FwvquPJcnZ7RYy4g==}
@@ -2754,6 +2865,10 @@ packages:
     resolution: {integrity: sha512-uG9qtQYoHqAsnT711nG5iZc/8M5inSmkGCOp7pFaytKG2aTfIca7p//CjiVzAE4P7hzaYuCozMjNNaLgmhbK5g==}
     engines: {node: ^18||>=20}
     hasBin: true
+
+  waybuilder-avatar@https://codeload.github.com/igoresramos/waybuilder-avatar/tar.gz/b071c8fd10e79f5cc09af897cff9c9753f4dd790:
+    resolution: {gitHosted: true, integrity: sha512-G/fjG4aHN7seDMar1Ut8CmkIJ0gc91YQm+vc2W2ObZjLLyVFL5qOE5QqDQlKAXtfX4Nzjw2QLwXNqBUqH9gAtg==, tarball: https://codeload.github.com/igoresramos/waybuilder-avatar/tar.gz/b071c8fd10e79f5cc09af897cff9c9753f4dd790}
+    version: 0.3.0
 
   which@2.0.2:
     resolution: {integrity: sha512-BLI3Tl1TW3Pvl70l3yq3Y64i+awpwXqsGBYWkkqMtnbXgrMD+yj7rhW0kuEDxzJaYXGjEW5ogapKNMEKNMjibA==}
@@ -3514,6 +3629,8 @@ snapshots:
   '@types/form-data@2.5.2':
     dependencies:
       form-data: 4.0.5
+
+  '@types/howler@2.2.13': {}
 
   '@types/json-schema@7.0.15': {}
 
@@ -4323,6 +4440,8 @@ snapshots:
     dependencies:
       function-bind: 1.1.2
 
+  howler@2.2.4: {}
+
   html-escaper@2.0.2: {}
 
   htmlparser2@10.1.0:
@@ -4608,6 +4727,8 @@ snapshots:
 
   pathval@2.0.1: {}
 
+  pe-library@2.0.1: {}
+
   picocolors@1.1.1: {}
 
   picomatch@4.0.4: {}
@@ -4794,6 +4915,10 @@ snapshots:
   regexp-tree@0.1.27: {}
 
   require-from-string@2.0.2: {}
+
+  resedit@3.0.2:
+    dependencies:
+      pe-library: 2.0.1
 
   resolve-from@4.0.0: {}
 
@@ -5208,6 +5333,8 @@ snapshots:
   w3c-keyname@2.2.8: {}
 
   watskeburt@4.2.3: {}
+
+  waybuilder-avatar@https://codeload.github.com/igoresramos/waybuilder-avatar/tar.gz/b071c8fd10e79f5cc09af897cff9c9753f4dd790: {}
 
   which@2.0.2:
     dependencies:

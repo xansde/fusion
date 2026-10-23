@@ -1,0 +1,1098 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<!-- Atualizado para a linguagem visual de 22/10/2026 (lane ui-gaveta). Fonte dos tokens: packages/client/src/styles/base.css. -->
+<title>Protótipo — Aba Compêndio (grill rodada 1: três variantes)</title>
+<!--
+  Protótipo — descartável. Rodada 1 do grill da aba Compêndio. Não é código de
+  produção; não importar nada daqui.
+
+  ============================================================================
+  O PONTO DE PARTIDA É DIFERENTE DAS OUTRAS ABAS
+  ============================================================================
+  Chat, Contatos, Combate e NPCs nasceram de tela em branco. Compêndio NÃO:
+  `CompendiumBrowser.svelte` já existe, funciona e faz o essencial —
+  packs agrupados por tipo > índice do pack > busca/filtro/ordenação >
+  preview sob demanda > importar (só GM) > arrastar para canvas/ficha.
+  Ele cumpre REQ-CMP-012..018 e REQ-CMP-021.
+
+  Então esta rodada não pergunta "como seria a aba". Pergunta:
+  **o que quebra quando esse painel entra numa gaveta de 300px, com o PF2e
+  inteiro dentro dele, e com um jogador do outro lado da tela?**
+
+  ============================================================================
+  O QUE JÁ VEM DECIDIDO (tratei como não-negociável — confira)
+  ============================================================================
+   · GRUPO "TODOS" (DEC-GAV-01): Compêndio não é aba de Mestre. O jogador tem
+     o ícone dele, na mesma posição do trilho do Mestre.
+   · LARGURA FIXA 300+44 (DEC-GAV-04): o que não couber abre JANELA, não
+     estica a gaveta. Hoje o preview abre DENTRO do painel e come a lista.
+   · PACK É A UNIDADE DE LICENÇA (DEC-CMP-03): `pack.json.license`, com
+     override por documento. Licença não é enfeite: é o motivo do projeto ser
+     clean-room. Ela tem que caber em 300px.
+   · ÍNDICE LEVE (DEC-CMP-02): a lista mostra só `_id/name/img/type` +
+     indexFields; documento completo só no preview (REQ-CMP-015).
+   · IMPORTAR CLONA COM `_id` NOVO (REQ-CMP-021) e ator solto no canvas
+     importa ANTES de virar presença no mapa (REQ-CMP-018).
+   · PAINEL É DESMONTADO AO TROCAR DE ABA (REQ-GAV-017): busca digitada e
+     pack aberto morrem, a menos que esta spec diga onde eles moram.
+
+  ============================================================================
+  AS TRÊS VARIANTES — cada uma aposta em uma coisa diferente
+  ============================================================================
+  A · ESTANTE  — o painel de hoje, feito para 300px. Grupos por tipo de
+                 documento, packs colapsáveis com contagem e selo de licença;
+                 entrar no pack dá busca + filtros + ordenação. Aposta: o
+                 Mestre pensa por FONTE ("está no Monster Core"), e a fonte é
+                 o que a licença obriga a mostrar.
+                 Custo: para achar uma coisa você precisa saber onde ela mora.
+
+  B · BUSCA    — a aba É um campo de busca que atravessa todos os packs. O
+                 resultado vem agrupado por tipo, com facetas em chip (nível,
+                 traço, raridade, fonte). Pack deixa de ser lugar e vira
+                 filtro. Sem busca, a aba mostra fixados e recentes.
+                 Aposta: ninguém navega um acervo de 12 mil documentos —
+                 todo mundo digita.
+                 Custo: exige busca cross-pack no servidor, que a 16 não tem
+                 (REQ-CMP-013 é busca DENTRO do pack). É requisito novo.
+
+  C · BALCÃO   — organiza por DESTINO, não por tipo: "Mapa" (o que você
+                 arrasta para a cena), "Ficha" (o que você dá a alguém),
+                 "Mesa" (o que você lê e mostra). Cada balcão traz o gesto
+                 certo já engatilhado.
+                 Aposta: durante o jogo o compêndio é almoxarifado, não
+                 biblioteca — a pergunta é "para onde isso vai".
+                 Custo: destino é opinião NOSSA; o sistema declara
+                 `documentType`, não destino. E o balcão "Mapa" simplesmente
+                 não existe para o jogador — o que resolve a Q2 de graça, ou
+                 esconde a decisão debaixo do tapete.
+
+  ============================================================================
+  O QUE O PROTÓTIPO PÕE NA MESA DE PROPÓSITO (é aqui que quero seu feedback)
+  ============================================================================
+   Q1 — PREVIEW FORA DA GAVETA. Aqui o preview abre em JANELA sobre o mapa
+        (DEC-GAV-04), e não como lâmina dentro do painel como é hoje. Ganha
+        espaço para stat block e licença; perde o "olhar rápido sem sair da
+        lista". Clique no ícone de olho de qualquer resultado.
+
+   Q2 — O JOGADOR VÊ O BESTIÁRIO? Hoje o servidor libera listar/buscar/prever
+        a QUALQUER papel; só importar é `isRolePrivileged`. Ou seja: o jogador
+        pode abrir a ficha do dragão que ele vai enfrentar hoje à noite, com
+        CA, resistências e reações. Ninguém decidiu isso — é o default de quem
+        implementou. Ligue "papel: jogador" nas três variantes.
+        Proposta do protótipo: packs têm PLATEIA (`audience: all | gm`), e
+        bestiário/perigos nascem `gm`. É decisão de produto, não de código.
+
+   Q3 — IMPORTAR VS. USAR. O jogador arrasta "Bola de Fogo" do pack para a
+        própria ficha. Isso importa a magia para o mundo (REQ-CMP-021 clona)
+        — e importar é privilégio de Mestre. Então o jogador pode ou não pode?
+        Aqui ele PODE, e o servidor importa em nome dele (o alvo é a ficha
+        dele, não o mundo). Se isso te incomodar, é o feedback que eu quero.
+
+   Q4 — BUSCA CROSS-PACK. A variante B só existe se o servidor souber buscar
+        em todos os packs de uma vez. Isso não está na 16. Vale o custo?
+        (12.000+ documentos, REQ-CMP-049 dá 1,5s só para indexar UM pack.)
+
+   Q5 — DOIS NOMES. O overlay pt-BR já existe em produção e não está em spec
+        nenhuma. Aqui a lista mostra o nome pt-BR grande e o inglês pequeno,
+        e a busca casa com os dois ("fireball" acha "Bola de Fogo").
+        Formalizar isso é trabalho desta spec ou emenda na 16?
+
+   Q6 — O QUE SOBREVIVE À TROCA DE ABA. REQ-GAV-017 desmonta o painel. Você
+        digita "goblin", vai no Chat responder uma pergunta, volta — e perdeu.
+        Aqui a busca e o pack aberto sobrevivem (moram fora do componente,
+        no aparelho, como as categorias da DEC-CTT-08). Sobrevivem por
+        sessão ou para sempre?
+
+   Q7 — JÁ ESTÁ NO MUNDO. O selo "no mundo" marca o que já foi importado.
+        Ele evita import duplicado — mas o documento importado NÃO acompanha
+        o pack quando o pack é atualizado (Q-CMP-07 da 16). O selo mente com
+        o tempo. Mostrar assim mesmo, ou não mostrar?
+
+   Q8 — BADGE. Proposta: NENHUM em repouso — compêndio não tem "novidade".
+        Ponto de estado só enquanto uma importação em lote está correndo
+        (ligue "importando"). Concorda, ou nem isso?
+
+  ATUALIZAÇÃO 22/10/2026: grupo como cabeçalho de seção (com contador de pacotes), pack como linha plana com
+  divisor e nome inteiro, selo "só o Mestre", custo de ação com losangos SVG (cheio/contorno/seta de reação).
+-->
+<style>
+/* ===== BLOCO DE TOKENS (copiar integral para o <style> de cada protótipo) ===== */
+@font-face{font-family:"Atkinson Hyperlegible Next";font-style:normal;font-display:swap;font-weight:200 800;src:url("../src/styles/fonts/atkinson-hyperlegible-next-latin-wght-normal.woff2") format("woff2")}
+@font-face{font-family:"Atkinson Hyperlegible Mono";font-style:normal;font-display:swap;font-weight:200 800;src:url("../src/styles/fonts/atkinson-hyperlegible-mono-latin-wght-normal.woff2") format("woff2")}
+:root {
+  color-scheme: dark;
+
+  /* Surfaces: warm charcoal, three flat steps. */
+  --fusion-bg: #141311;
+  --fusion-surface: #1c1b18;
+  --fusion-surface-alt: #25231f;
+  --fusion-input-bg: #11100e;
+  --fusion-border: #3b3830;
+  --fusion-border-strong: #575245;
+
+  /* Text: off-white, never #fff. Muted and subtle stay AA on every surface. */
+  --fusion-text: #ebe5d6;
+  --fusion-text-muted: #b8b09e;
+  --fusion-text-subtle: #9a927f;
+
+  /* The one accent — brass. Interactive and "selected" only, never decoration. */
+  --fusion-accent: #d6a24a;
+  --fusion-accent-hover: #e4b765;
+  --fusion-accent-dim: rgba(214, 162, 74, 0.16);
+  --fusion-on-accent: #1a1408;
+
+  /* Semantic */
+  --fusion-success: #7cc395;
+  --fusion-warning: #e8925a;
+  --fusion-danger: #ec7468;
+  --fusion-info: #7fb2dc;
+  --fusion-magic: #b9a0ea;
+
+  /* Semantic washes — subtle tinted fills for badges / states */
+  --fusion-success-dim: rgba(124, 195, 149, 0.15);
+  --fusion-warning-dim: rgba(232, 146, 90, 0.15);
+  --fusion-danger-dim: rgba(236, 116, 104, 0.15);
+  --fusion-info-dim: rgba(127, 178, 220, 0.15);
+  --fusion-magic-dim: rgba(185, 160, 234, 0.15);
+
+  /* Chat system card (A022, spec 38, DEC-ACH-02/03 + REQ-ACH-025): a card's left border is
+     this fixed blue regardless of sender, so "this is a system card" reads apart from
+     "this is <someone>'s message". Not derived from the accent/semantic tones on purpose —
+     those already carry meaning in chat (crit, fumble, blind). */
+  --fusion-chat-sys: #6fa6cc;
+
+  /* Focus ring: its own colour, never the accent, so focus never reads as "selected". */
+  --fusion-focus: #9ccaff;
+
+  /* Elevation: one soft shadow, for floating windows, popovers and menus only. */
+  --fusion-shadow-modal: 0 12px 32px rgba(0, 0, 0, 0.45);
+  --fusion-shadow-popover: 0 6px 18px rgba(0, 0, 0, 0.35);
+
+  /* Proficiency (TEML — Destreinado, Treinado, Expert, Mestre, Lendário). */
+  --fusion-prof-u: var(--fusion-text-subtle);
+  --fusion-prof-t: var(--fusion-info);
+  --fusion-prof-e: var(--fusion-success);
+  --fusion-prof-m: var(--fusion-accent);
+  --fusion-prof-l: var(--fusion-magic);
+
+  --fusion-prof-u-bg: rgba(154, 146, 127, 0.14);
+  --fusion-prof-t-bg: var(--fusion-info-dim);
+  --fusion-prof-e-bg: var(--fusion-success-dim);
+  --fusion-prof-m-bg: var(--fusion-accent-dim);
+  --fusion-prof-l-bg: var(--fusion-magic-dim);
+
+  --fusion-prof-u-border: var(--fusion-border);
+  --fusion-prof-t-border: rgba(127, 178, 220, 0.45);
+  --fusion-prof-e-border: rgba(124, 195, 149, 0.45);
+  --fusion-prof-m-border: rgba(214, 162, 74, 0.45);
+  --fusion-prof-l-border: rgba(185, 160, 234, 0.45);
+
+  /* Typography. rem sizes (the reader's browser zoom wins); nothing below xs. */
+  --fusion-font:
+    "Atkinson Hyperlegible Next", system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial,
+    sans-serif;
+  --fusion-font-mono:
+    "Atkinson Hyperlegible Mono", ui-monospace, "Cascadia Code", "Source Code Pro", Menlo, Consolas,
+    monospace;
+  --fusion-text-xs: 0.8125rem; /* 13px — captions, badges: the floor */
+  --fusion-text-sm: 0.875rem; /* 14px — dense lists, secondary text */
+  --fusion-text-base: 0.9375rem; /* 15px — body */
+  --fusion-text-md: 1rem; /* 16px — reading text (journal, descriptions) */
+  --fusion-text-lg: 1.125rem; /* 18px — section titles */
+  --fusion-text-xl: 1.375rem; /* 22px — window / sheet titles */
+  --fusion-text-2xl: 1.75rem; /* 28px — the big number of a stat or a roll */
+  --fusion-leading: 1.5;
+  --fusion-leading-tight: 1.25;
+  --fusion-tracking: 0.012em;
+  --fusion-word-spacing: 0.06em;
+  --fusion-weight-regular: 400;
+  --fusion-weight-medium: 500;
+  --fusion-weight-bold: 700;
+  /* Readable line length for prose. */
+  --fusion-measure: 68ch;
+
+  /* Spacing (4px grid) */
+  --fusion-space-1: 4px;
+  --fusion-space-2: 8px;
+  --fusion-space-3: 12px;
+  --fusion-space-4: 16px;
+  --fusion-space-5: 20px;
+  --fusion-space-6: 24px;
+  --fusion-space-8: 32px;
+
+  /* Radii: small and few. Pills only for counters. */
+  --fusion-radius-sm: 3px;
+  --fusion-radius: 6px;
+  --fusion-radius-lg: 8px;
+  --fusion-radius-pill: 999px;
+
+  /* Touch target floor (mouse and finger). */
+  --fusion-target: 40px;
+
+  /* Motion */
+  --fusion-transition: 150ms ease;
+
+  /* Layout.
+     The side drawer is one fixed width for every tab (REQ-GAV-012, DEC-GAV-04):
+     300px of panel plus a 44px rail, and no user resize — a tab that needs more
+     room opens a floating window instead of stretching the drawer. */
+  --fusion-sidebar-width: 300px;
+  --fusion-sidebar-rail-width: 44px;
+  --fusion-header-height: 48px;
+
+  /* Layer scale (spec 11 REQ-UIF-008; spec 53 §2.7 — BAR-F1-03).
+     The z-index of the shell's layers, declared in one place so nobody hard-codes a number:
+
+       canvas
+       < scene notice               60  literal in ScenePrepareNotice.svelte
+       < action bar                 70  --fusion-z-actionbar
+       < side drawer                90  literal in Sidebar.svelte
+       < header                    100  literal in TableScreen.svelte
+       < floating windows         101+  counted up by the window manager, inside the host
+       < window host               200  --fusion-z-windows
+       < tooltip, popover          400  --fusion-z-tooltip
+       < context menu              410  --fusion-z-menu
+
+     Tooltip, popover and menu are portaled to <body> (lib/ui/floatingLayer.ts), so these
+     numbers are compared with the window host's own: the host is a stacking context at
+     200, and a layer rendered *inside* a window could never rise above it.
+     They also clear the in-page modals that still use literals (token dialogs 200/201, file
+     picker 300/301), so a tooltip or menu opened from inside one stays visible. REQ-UIF-008
+     wants modals above menus and tooltips; that is for the day modals get tokens of their own
+     (above 410) — a native <dialog> is already above everything, in the top layer. */
+  --fusion-z-actionbar: 70;
+  --fusion-z-windows: 200;
+  --fusion-z-tooltip: 400;
+  --fusion-z-menu: 410;
+
+  /* Combat turn head (spec 40, DEC-CBA-02 / REQ-CBA-021).
+     The head of the turn is one fixed height for every participant — a new condition, a
+     long name or a health bar must never move the advance control, which is anchored to
+     the footer strip below (RNF-CBA-03). Mirrored in TS by TURN_HEAD_HEIGHT_REM /
+     TURN_HEAD_FOOTER_HEIGHT_REM in lib/combat/turnHead.svelte.ts. */
+  --fusion-combat-turn-head-height: 6.5rem;
+  --fusion-combat-turn-head-footer-height: 2.25rem;
+
+  /* Condition tone (DEC-CTT-11, REQ-SYS-043 / REQ-CTT-031).
+     The colour of a condition chip says what the condition does to whoever carries it,
+     never how grave it is: green helps, red hinders, purple is a situation (detection,
+     attitude, control). Aliases rather than raw colours so the combat tab (REQ-CBA-050)
+     and the contacts tab paint the same three tones. The `-dim` fills are the emphasis of
+     a critical condition (REQ-CTT-032) — emphasis on the tone it already has, never a
+     fourth colour. */
+  --fusion-condition-benefit: var(--fusion-success);
+  --fusion-condition-harm: var(--fusion-danger);
+  --fusion-condition-special: var(--fusion-magic);
+  --fusion-condition-benefit-dim: var(--fusion-success-dim);
+  --fusion-condition-harm-dim: var(--fusion-danger-dim);
+  --fusion-condition-special-dim: var(--fusion-magic-dim);
+
+  /* The "no ar" head of the Cenas tab is one fixed height for every state
+     (REQ-CEN-010/013): a long scene name, a missing background image or the
+     environment row must never move the controls the GM presses all session. */
+  --fusion-scene-head-height: 132px;
+}
+
+:root[data-theme="light"] {
+  color-scheme: light;
+
+  --fusion-bg: #efe9dc;
+  --fusion-surface: #f9f6ef;
+  --fusion-surface-alt: #f1ebdf;
+  --fusion-input-bg: #fffdf8;
+  --fusion-border: #d3c9b5;
+  --fusion-border-strong: #b0a48c;
+
+  --fusion-text: #29251f;
+  --fusion-text-muted: #554e42;
+  --fusion-text-subtle: #6e665a;
+
+  --fusion-accent: #8a5a12;
+  --fusion-accent-hover: #6f480c;
+  --fusion-accent-dim: rgba(138, 90, 18, 0.12);
+  --fusion-on-accent: #fffaf0;
+
+  --fusion-success: #2e7448;
+  --fusion-warning: #a14f12;
+  --fusion-danger: #b0352b;
+  --fusion-info: #23628f;
+  --fusion-magic: #6a46b0;
+  --fusion-success-dim: rgba(46, 116, 72, 0.12);
+  --fusion-warning-dim: rgba(161, 79, 18, 0.12);
+  --fusion-danger-dim: rgba(176, 53, 43, 0.12);
+  --fusion-info-dim: rgba(35, 98, 143, 0.12);
+  --fusion-magic-dim: rgba(106, 70, 176, 0.12);
+
+  --fusion-chat-sys: #2d6f99;
+  --fusion-focus: #1d5fa8;
+
+  --fusion-shadow-modal: 0 12px 32px rgba(60, 45, 20, 0.22);
+  --fusion-shadow-popover: 0 6px 18px rgba(60, 45, 20, 0.18);
+
+  --fusion-prof-u-bg: rgba(110, 102, 90, 0.1);
+  --fusion-prof-t-border: rgba(35, 98, 143, 0.4);
+  --fusion-prof-e-border: rgba(46, 116, 72, 0.4);
+  --fusion-prof-m-border: rgba(138, 90, 18, 0.4);
+  --fusion-prof-l-border: rgba(106, 70, 176, 0.4);
+}
+
+/* reset + base do protótipo (sem overflow:hidden; o protótipo rola) */
+*,*::before,*::after{box-sizing:border-box}
+html,body{margin:0;min-height:100%}
+body{background:var(--fusion-bg);color:var(--fusion-text);font-family:var(--fusion-font);font-size:var(--fusion-text-base);line-height:var(--fusion-leading);letter-spacing:var(--fusion-tracking);word-spacing:var(--fusion-word-spacing);font-variant-numeric:tabular-nums;text-align:left;-webkit-font-smoothing:antialiased}
+button,input,select,textarea{font-family:inherit;font-size:inherit;letter-spacing:inherit;word-spacing:inherit;color:inherit}
+h1,h2,h3,h4,h5,h6{font-weight:var(--fusion-weight-bold);line-height:var(--fusion-leading-tight);color:var(--fusion-text);margin:0}
+:focus-visible{outline:2px solid var(--fusion-focus);outline-offset:2px}
+@media (prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:.01ms!important;transition-duration:.01ms!important}}
+.svg-i{width:1em;height:1em;flex:none;fill:none;stroke:currentColor;stroke-width:1.75;stroke-linecap:round;stroke-linejoin:round}
+.theme-toggle{position:fixed;top:8px;right:8px;z-index:9999;min-height:var(--fusion-target);padding:0 var(--fusion-space-3);background:var(--fusion-surface-alt);color:var(--fusion-text);border:1px solid var(--fusion-border-strong);border-radius:var(--fusion-radius);font-size:var(--fusion-text-sm);cursor:pointer}
+/* ===== fim do bloco de tokens ===== */
+
+
+/* ===== CSS local do protótipo (só var(--fusion-*)) ===== */
+:root{--header:var(--fusion-header-height);--panel-w:var(--fusion-sidebar-width);--rail-w:var(--fusion-sidebar-rail-width)}
+html,body{height:100%;overflow:hidden}
+button{cursor:pointer}
+.grow{flex:1}
+.muted{color:var(--fusion-text-muted)}
+
+/* ---------- App shell (mock) ---------- */
+.header{height:var(--header);display:flex;align-items:center;gap:var(--fusion-space-3);padding:0 var(--fusion-space-3);background:var(--fusion-surface);border-bottom:1px solid var(--fusion-border);position:relative;z-index:200}
+.header .bolt{color:var(--fusion-accent);display:inline-flex;font-size:var(--fusion-text-lg)}
+.header .world{font-weight:var(--fusion-weight-bold)}
+.header .scene{display:inline-flex;align-items:center;gap:var(--fusion-space-1);color:var(--fusion-text-muted);font-size:var(--fusion-text-sm)}
+.header .spacer{flex:1}
+.header .status{color:var(--fusion-text-muted);font-size:var(--fusion-text-sm);display:flex;align-items:center;gap:var(--fusion-space-2)}
+.dot{width:8px;height:8px;border-radius:var(--fusion-radius-pill);background:var(--fusion-success);display:inline-block;flex:none}
+.header .who{font-size:var(--fusion-text-sm);display:inline-flex;align-items:center;gap:var(--fusion-space-2)}
+.header .who .pt{background:var(--fusion-danger)}
+.header .who.player .pt{background:var(--fusion-success)}
+.header .btn{min-height:var(--fusion-target);padding:0 var(--fusion-space-3);background:var(--fusion-surface-alt);border:1px solid var(--fusion-border);color:var(--fusion-text);border-radius:var(--fusion-radius);font-size:var(--fusion-text-sm)}
+.theme-toggle{left:50%;right:auto;top:4px;transform:translateX(-50%)}
+.stage{position:absolute;top:var(--header);left:0;right:0;bottom:0;background:var(--fusion-bg);display:grid;place-items:center;overflow:hidden}
+.stage .art{width:44vh;height:44vh;border-radius:var(--fusion-radius);background:var(--fusion-surface-alt);border:1px solid var(--fusion-border);display:grid;place-items:center}
+.stage .art .house{width:60%;height:60%;background:var(--fusion-text-subtle);clip-path:polygon(50% 0,100% 40%,88% 40%,88% 100%,12% 100%,12% 40%,0 40%);display:grid;place-items:center}
+.stage .art .star{margin-top:22%;color:var(--fusion-accent);display:grid}
+.stage .art .star .svg-i{width:9vh;height:9vh}
+.drop{position:absolute;left:50%;bottom:8%;transform:translateX(-50%);border:1px dashed var(--fusion-border-strong);border-radius:var(--fusion-radius);padding:var(--fusion-space-2) var(--fusion-space-4);color:var(--fusion-text-muted);font-size:var(--fusion-text-sm);text-align:center;background:var(--fusion-surface)}
+.drop.hot{border-color:var(--fusion-accent);color:var(--fusion-text);background:var(--fusion-accent-dim)}
+.drop b{color:var(--fusion-text)}
+
+/* ---------- Chassi C (spec 36) ---------- */
+.tabbtn{position:relative;display:grid;place-items:center;background:none;border:0;color:var(--fusion-text-muted);padding:0;font-size:var(--fusion-text-xl);transition:color var(--fusion-transition),background var(--fusion-transition)}
+.tabbtn:hover{color:var(--fusion-text)}
+.tabbtn .badge{position:absolute;top:2px;right:2px;min-width:18px;height:18px;padding:0 var(--fusion-space-1);border-radius:var(--fusion-radius-pill);background:var(--fusion-danger);color:var(--fusion-bg);font-size:var(--fusion-text-xs);font-weight:var(--fusion-weight-bold);display:grid;place-items:center;line-height:1}
+.tabbtn .badge.dot{min-width:10px;width:10px;height:10px;padding:0;background:var(--fusion-accent)}
+
+.shell{position:absolute;top:var(--header);right:0;bottom:0;display:flex;z-index:90}
+.tabs{width:var(--rail-w);display:flex;flex-direction:column;padding-top:10px;gap:var(--fusion-space-1);align-items:flex-end}
+.tabs .tabbtn{width:44px;min-height:var(--fusion-target);height:44px;border:1px solid var(--fusion-border);border-right:0;border-radius:var(--fusion-radius) 0 0 var(--fusion-radius);background:var(--fusion-surface-alt)}
+.tabs .tabbtn.is-active{background:var(--fusion-surface);color:var(--fusion-accent-hover);border-color:var(--fusion-accent);z-index:2}
+.tabs .grp{display:flex;flex-direction:column;gap:var(--fusion-space-1);align-items:flex-end}
+.tabs .grp.gm{margin-top:14px;position:relative}
+.tabs .grp.gm::before{content:"";position:absolute;top:-8px;right:6px;width:28px;height:1px;background:var(--fusion-border)}
+.tabs .grp.gm .tabbtn{border-color:var(--fusion-border-strong)}
+.tabs .foot{margin-top:auto;margin-bottom:10px;position:relative;display:flex;flex-direction:column;gap:var(--fusion-space-1);align-items:flex-end}
+.tabs .foot::before{content:"";position:absolute;top:-8px;right:6px;width:28px;height:1px;background:var(--fusion-border)}
+.panel{width:var(--panel-w);background:var(--fusion-surface);border-left:1px solid var(--fusion-border-strong);display:none;flex-direction:column;overflow:hidden}
+.is-open .panel{display:flex}
+
+/* ---------- Painel ---------- */
+.phead{display:flex;align-items:center;gap:var(--fusion-space-1);padding:0 var(--fusion-space-2) 0 var(--fusion-space-3);min-height:48px;border-bottom:1px solid var(--fusion-border);flex-shrink:0}
+.phead .ttl{font-size:var(--fusion-text-md);font-weight:var(--fusion-weight-bold);color:var(--fusion-text)}
+.pbody{flex:1;overflow:auto;padding-bottom:var(--fusion-space-3)}
+
+.b{display:inline-flex;align-items:center;justify-content:center;gap:var(--fusion-space-1);min-height:var(--fusion-target);background:var(--fusion-surface-alt);color:var(--fusion-text);border:1px solid var(--fusion-border);border-radius:var(--fusion-radius-sm);padding:0 var(--fusion-space-3);font-size:var(--fusion-text-sm)}
+.b:hover{border-color:var(--fusion-accent)}
+.b.p{background:var(--fusion-accent);border-color:var(--fusion-accent);color:var(--fusion-on-accent);font-weight:var(--fusion-weight-bold)}
+.b.g{background:transparent;color:var(--fusion-text-muted)}
+.b:disabled{opacity:.5;cursor:not-allowed}
+.ib{background:none;border:1px solid transparent;border-radius:var(--fusion-radius-sm);color:var(--fusion-text-muted);min-width:var(--fusion-target);min-height:var(--fusion-target);display:grid;place-items:center;padding:0;font-size:var(--fusion-text-lg)}
+.ib:hover{background:var(--fusion-surface-alt);color:var(--fusion-text)}
+
+/* ---------- Busca e filtros ---------- */
+.srch{display:flex;align-items:center;gap:var(--fusion-space-2);padding:var(--fusion-space-2);border-bottom:1px solid var(--fusion-border);flex-shrink:0}
+.srch input{flex:1;min-width:0;min-height:var(--fusion-target);background:var(--fusion-input-bg);border:1px solid var(--fusion-border);border-radius:var(--fusion-radius-sm);color:var(--fusion-text);font-size:var(--fusion-text-sm);padding:0 var(--fusion-space-2)}
+.srch input:focus{border-color:var(--fusion-accent)}
+.srch .scope{font-size:var(--fusion-text-xs);color:var(--fusion-text-subtle);max-width:90px}
+.facets{display:flex;gap:var(--fusion-space-1);flex-wrap:wrap;padding:var(--fusion-space-2);border-bottom:1px solid var(--fusion-border);flex-shrink:0}
+.fc{display:inline-flex;align-items:center;gap:var(--fusion-space-1);min-height:var(--fusion-target);font-size:var(--fusion-text-xs);border:1px solid var(--fusion-border);border-radius:var(--fusion-radius);padding:0 var(--fusion-space-3);color:var(--fusion-text-muted);background:var(--fusion-surface-alt)}
+.fc:hover{border-color:var(--fusion-accent);color:var(--fusion-text)}
+.fc.on{background:var(--fusion-accent-dim);border-color:var(--fusion-accent);color:var(--fusion-text);font-weight:var(--fusion-weight-bold)}
+.counter{font-size:var(--fusion-text-xs);color:var(--fusion-text-subtle);padding:var(--fusion-space-1) var(--fusion-space-3);display:flex;align-items:center;gap:var(--fusion-space-1)}
+.counter b{color:var(--fusion-text-muted)}
+
+/* ---------- Seções: grupo é cabeçalho de seção ---------- */
+.secl{display:flex;align-items:center;gap:var(--fusion-space-2);width:100%;min-height:var(--fusion-target);padding:var(--fusion-space-2) var(--fusion-space-3);background:none;border:0;border-bottom:1px solid var(--fusion-border);color:var(--fusion-text);font-size:var(--fusion-text-md);font-weight:var(--fusion-weight-bold);text-align:left}
+button.secl:hover{background:var(--fusion-surface-alt)}
+.secl .caret{color:var(--fusion-text-muted);font-size:var(--fusion-text-md);display:inline-flex}
+.secl .cnt{margin-left:auto;font-size:var(--fusion-text-xs);font-weight:var(--fusion-weight-regular);color:var(--fusion-text-muted)}
+
+/* ---------- Linha de pack (variante A): plana, com divisor ---------- */
+.pk{display:flex;align-items:center;gap:var(--fusion-space-2);width:100%;min-height:56px;padding:var(--fusion-space-2) var(--fusion-space-2) var(--fusion-space-2) var(--fusion-space-3);background:none;border:0;border-bottom:1px solid var(--fusion-border);color:var(--fusion-text);text-align:left}
+.pk:hover{background:var(--fusion-surface-alt)}
+.pk .por,.en .por{width:32px;height:32px;flex:none;border-radius:var(--fusion-radius-sm);background:var(--fusion-surface-alt);display:grid;place-items:center;font-size:var(--fusion-text-lg);color:var(--fusion-text-muted)}
+.pk .mid{flex:1;min-width:0;display:block}
+.pk .nm{display:block;font-size:var(--fusion-text-sm);overflow-wrap:anywhere}
+.pk .sub{display:block;font-size:var(--fusion-text-xs);color:var(--fusion-text-muted)}
+.pk .aud{display:inline-flex;align-items:center;gap:var(--fusion-space-1);font-size:var(--fusion-text-xs);color:var(--fusion-warning)}
+.pk .go{color:var(--fusion-text-subtle);font-size:var(--fusion-text-md);display:inline-flex}
+
+/* ---------- Linha de entrada ---------- */
+.en{display:flex;align-items:center;gap:var(--fusion-space-2);padding:var(--fusion-space-2) var(--fusion-space-3);border-left:3px solid transparent;border-bottom:1px solid var(--fusion-border);position:relative;cursor:grab;min-height:56px}
+.en:hover{background:var(--fusion-surface-alt)}
+.en.drag{opacity:.5}
+.en .mid{flex:1;min-width:0}
+.en .nm{font-size:var(--fusion-text-sm);color:var(--fusion-text);overflow-wrap:anywhere}
+.en .nm mark,.mk{background:var(--fusion-accent-dim);color:var(--fusion-text);border-radius:var(--fusion-radius-sm)}
+.en .en2,.win .en2{font-size:var(--fusion-text-xs);color:var(--fusion-text-subtle)}
+.en .meta{font-size:var(--fusion-text-xs);color:var(--fusion-text-muted)}
+.en .rt{display:flex;flex-direction:column;align-items:flex-end;gap:2px;flex:none;font-size:var(--fusion-text-xs);color:var(--fusion-text-muted)}
+.en .lv{font-family:var(--fusion-font-mono)}
+.en .acts{position:absolute;right:var(--fusion-space-1);top:50%;transform:translateY(-50%);display:flex;background:var(--fusion-surface-alt);border-radius:var(--fusion-radius);opacity:0;transition:opacity var(--fusion-transition)}
+.en:hover .acts,.en:focus-within .acts{opacity:1}
+.en .acts .ib:hover{background:var(--fusion-border)}
+.en.inworld{border-left-color:var(--fusion-success)}
+.rar.rare{color:var(--fusion-accent-hover)}
+.rar.uncommon{color:var(--fusion-warning)}
+.inw{display:inline-flex;align-items:center;gap:var(--fusion-space-1);color:var(--fusion-success)}
+
+/* custo de ação: losangos SVG */
+.cost{display:inline-flex;align-items:center;gap:2px;color:var(--fusion-text-muted);font-size:var(--fusion-text-sm)}
+.cost .ctx{margin-left:var(--fusion-space-1);font-size:var(--fusion-text-xs)}
+
+@media (hover:none){
+  .en{padding-right:calc(var(--fusion-target) * 3 + var(--fusion-space-3))}
+  .en .acts{opacity:1}
+}
+
+/* ---------- Balcões (variante C) ---------- */
+.seg{display:flex;padding:var(--fusion-space-2) var(--fusion-space-2) 0;flex-shrink:0}
+.seg button{flex:1;min-height:var(--fusion-target);background:var(--fusion-surface-alt);border:1px solid var(--fusion-border);color:var(--fusion-text-muted);font-size:var(--fusion-text-sm)}
+.seg button:first-child{border-radius:var(--fusion-radius-sm) 0 0 var(--fusion-radius-sm)}
+.seg button:last-child{border-radius:0 var(--fusion-radius-sm) var(--fusion-radius-sm) 0}
+.seg button+button{border-left:0}
+.seg button.on{background:var(--fusion-accent-dim);border-color:var(--fusion-accent);color:var(--fusion-text);font-weight:var(--fusion-weight-bold)}
+.gest{font-size:var(--fusion-text-xs);color:var(--fusion-text-muted);padding:var(--fusion-space-2) var(--fusion-space-3)}
+.gest b{color:var(--fusion-text)}
+.to{display:flex;align-items:center;gap:var(--fusion-space-2);padding:var(--fusion-space-1) var(--fusion-space-2);border-bottom:1px solid var(--fusion-border);font-size:var(--fusion-text-sm);color:var(--fusion-text-muted);flex-shrink:0}
+.to select{min-height:var(--fusion-target);background:var(--fusion-input-bg);border:1px solid var(--fusion-border);color:var(--fusion-text);font-size:var(--fusion-text-sm);border-radius:var(--fusion-radius-sm);padding:0 var(--fusion-space-2)}
+
+/* ---------- Estados ---------- */
+.empty{text-align:center;padding:var(--fusion-space-6) var(--fusion-space-4) var(--fusion-space-3);color:var(--fusion-text-muted);font-size:var(--fusion-text-sm)}
+.empty.tight{padding:var(--fusion-space-3)}
+.empty .hint{font-size:var(--fusion-text-xs);color:var(--fusion-text-subtle);margin-top:var(--fusion-space-2)}
+.crumb{display:flex;align-items:center;flex-wrap:wrap;gap:var(--fusion-space-1) var(--fusion-space-2);padding:0 var(--fusion-space-2);border-bottom:1px solid var(--fusion-border);font-size:var(--fusion-text-sm);color:var(--fusion-text-muted);flex-shrink:0}
+.crumb .back{display:inline-flex;align-items:center;gap:var(--fusion-space-1);min-height:var(--fusion-target);background:none;border:0;color:var(--fusion-accent-hover);font-size:var(--fusion-text-sm);padding:0 var(--fusion-space-1)}
+.crumb b{color:var(--fusion-text)}
+.more{font-size:var(--fusion-text-xs);color:var(--fusion-text-subtle);text-align:center;padding:var(--fusion-space-3)}
+.bar-imp{background:var(--fusion-accent-dim);border-bottom:1px solid var(--fusion-accent);color:var(--fusion-text);font-size:var(--fusion-text-xs);padding:var(--fusion-space-2) var(--fusion-space-3);display:flex;align-items:center;gap:var(--fusion-space-2);flex-shrink:0}
+.bar-imp .prog{flex:1;height:4px;background:var(--fusion-surface-alt);border-radius:var(--fusion-radius-sm);overflow:hidden}
+.bar-imp .prog i{display:block;height:100%;width:38%;background:var(--fusion-accent)}
+
+/* ---------- Janela flutuante (preview) ---------- */
+.win{position:fixed;z-index:var(--fusion-z-windows);background:var(--fusion-surface);border:1px solid var(--fusion-border-strong);border-radius:var(--fusion-radius);box-shadow:var(--fusion-shadow-modal);width:420px;max-width:calc(100vw - 32px);max-height:74vh;display:flex;flex-direction:column;overflow:hidden}
+.win .wh{display:flex;align-items:center;gap:var(--fusion-space-1);padding:0 var(--fusion-space-1) 0 var(--fusion-space-3);background:var(--fusion-surface-alt);border-bottom:1px solid var(--fusion-border);cursor:move}
+.win .wh .t{font-size:var(--fusion-text-base);font-weight:var(--fusion-weight-bold);flex:1;min-width:0;overflow-wrap:anywhere;padding:var(--fusion-space-2) 0}
+.win .wb{padding:var(--fusion-space-3) var(--fusion-space-4);overflow:auto;font-size:var(--fusion-text-sm)}
+.win .hero{display:flex;gap:var(--fusion-space-3);align-items:flex-start;margin-bottom:var(--fusion-space-2)}
+.win .hero .por{width:56px;height:56px;border-radius:var(--fusion-radius);background:var(--fusion-surface-alt);display:grid;place-items:center;font-size:var(--fusion-text-2xl);color:var(--fusion-text-muted);flex-shrink:0}
+.win .hero h3{font-size:var(--fusion-text-lg)}
+.win .kv{display:grid;grid-template-columns:auto 1fr;gap:var(--fusion-space-1) var(--fusion-space-3);font-size:var(--fusion-text-sm);margin:var(--fusion-space-2) 0}
+.win .kv dt{color:var(--fusion-text-subtle)}
+.win .kv dd{margin:0}
+.win .txt{color:var(--fusion-text-muted);font-size:var(--fusion-text-sm);border-top:1px solid var(--fusion-border);padding-top:var(--fusion-space-2);margin-top:var(--fusion-space-2)}
+.win .foot{display:flex;gap:var(--fusion-space-2);padding:var(--fusion-space-2) var(--fusion-space-3);border-top:1px solid var(--fusion-border);background:var(--fusion-surface-alt);flex-wrap:wrap;align-items:center}
+.win .licbox{font-size:var(--fusion-text-xs);color:var(--fusion-text-subtle);border-top:1px solid var(--fusion-border);padding-top:var(--fusion-space-2);margin-top:var(--fusion-space-3)}
+.win .licbox b{color:var(--fusion-text-muted)}
+
+/* ---------- Alternador + legenda (fora do design) ---------- */
+.switcher{position:fixed;left:var(--fusion-space-4);top:calc(var(--header) + var(--fusion-space-2));z-index:9999;display:flex;flex-wrap:wrap;align-items:center;gap:var(--fusion-space-2);background:var(--fusion-surface-alt);border:1px solid var(--fusion-border-strong);border-radius:var(--fusion-radius-lg);padding:var(--fusion-space-2);box-shadow:var(--fusion-shadow-popover);max-width:calc(100vw - 400px)}
+.switcher button{min-height:var(--fusion-target);padding:0 var(--fusion-space-3);background:var(--fusion-surface);color:var(--fusion-text);border:1px solid var(--fusion-border);border-radius:var(--fusion-radius);font-size:var(--fusion-text-sm)}
+.switcher button:hover{border-color:var(--fusion-accent)}
+.legend{position:fixed;left:var(--fusion-space-4);bottom:var(--fusion-space-4);z-index:9999;background:var(--fusion-surface-alt);color:var(--fusion-text);border:1px solid var(--fusion-border-strong);border-radius:var(--fusion-radius-lg);padding:var(--fusion-space-3);box-shadow:var(--fusion-shadow-popover);font-size:var(--fusion-text-xs);max-width:430px;max-height:calc(100vh - 220px);overflow:auto}
+.legend h4{margin:0 0 var(--fusion-space-2);font-size:var(--fusion-text-sm)}
+.legend table{border-collapse:collapse}
+.legend td{padding:2px var(--fusion-space-1);vertical-align:top}
+.legend td:first-child{color:var(--fusion-text-muted);white-space:nowrap}
+.legend .q{margin-top:var(--fusion-space-2);padding-top:var(--fusion-space-2);border-top:1px solid var(--fusion-border);color:var(--fusion-text-muted)}
+.legend .q.dec{color:var(--fusion-text)}
+</style>
+</head>
+<body>
+<button type="button" class="theme-toggle" id="theme-toggle" aria-label="Alternar tema">Tema: escuro</button>
+<script>
+  (function () {
+    var b = document.getElementById("theme-toggle");
+    function paint() { b.textContent = "Tema: " + (document.documentElement.dataset.theme === "light" ? "claro" : "escuro"); }
+    b.addEventListener("click", function () {
+      document.documentElement.dataset.theme = document.documentElement.dataset.theme === "light" ? "dark" : "light";
+      paint();
+    });
+    paint();
+  })();
+</script>
+
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+<symbol id="i-arrow-right" viewBox="0 0 24 24"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></symbol>
+<symbol id="i-arrow-up" viewBox="0 0 24 24"><path d="m5 12 7-7 7 7"/><path d="M12 19V5"/></symbol>
+<symbol id="i-book" viewBox="0 0 24 24"><path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H19a1 1 0 0 1 1 1v18a1 1 0 0 1-1 1H6.5a1 1 0 0 1 0-5H20"/></symbol>
+<symbol id="i-book-open" viewBox="0 0 24 24"><path d="M12 5v16"/><path d="M20.001 19A2 2 0 0022 17V5a2 2 0 00-1.999-2L16 3.002A5 5 0 0012 5a5 5 0 00-4-2H4a2 2 0 00-2 2v12a2 2 0 001.999 2H8a5 5 0 014 2 5 5 0 014-2z"/></symbol>
+<symbol id="i-check" viewBox="0 0 24 24"><path d="M20 6 9 17l-5-5"/></symbol>
+<symbol id="i-chevron-down" viewBox="0 0 24 24"><path d="m6 9 6 6 6-6"/></symbol>
+<symbol id="i-chevron-left" viewBox="0 0 24 24"><path d="m15 18-6-6 6-6"/></symbol>
+<symbol id="i-chevron-right" viewBox="0 0 24 24"><path d="m9 18 6-6-6-6"/></symbol>
+<symbol id="i-circle-dot" viewBox="0 0 24 24"><circle cx="12" cy="12" r="1"/><circle cx="12" cy="12" r="10"/></symbol>
+<symbol id="i-clipboard-list" viewBox="0 0 24 24"><rect width="8" height="4" x="8" y="2" rx="1" ry="1"/><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><path d="M12 11h4"/><path d="M12 16h4"/><path d="M8 11h.01"/><path d="M8 16h.01"/></symbol>
+<symbol id="i-coins" viewBox="0 0 24 24"><path d="M13.744 17.736a6 6 0 1 1-7.48-7.48"/><path d="M15 6h1v4"/><path d="m6.134 14.768.866-.5 2 3.464"/><circle cx="16" cy="8" r="6"/></symbol>
+<symbol id="i-dices" viewBox="0 0 24 24"><rect width="12" height="12" x="2" y="10" rx="2" ry="2"/><path d="m17.92 14 3.5-3.5a2.24 2.24 0 0 0 0-3l-5-4.92a2.24 2.24 0 0 0-3 0L10 6"/><path d="M6 18h.01"/><path d="M10 14h.01"/><path d="M15 6h.01"/><path d="M18 9h.01"/></symbol>
+<symbol id="i-download" viewBox="0 0 24 24"><path d="M12 15V3"/><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="m7 10 5 5 5-5"/></symbol>
+<symbol id="i-ellipsis" viewBox="0 0 24 24"><circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/><circle cx="5" cy="12" r="1"/></symbol>
+<symbol id="i-eye" viewBox="0 0 24 24"><path d="M2.062 12.348a1 1 0 0 1 0-.696 10.75 10.75 0 0 1 19.876 0 1 1 0 0 1 0 .696 10.75 10.75 0 0 1-19.876 0"/><circle cx="12" cy="12" r="3"/></symbol>
+<symbol id="i-feather" viewBox="0 0 24 24"><path d="M14.086 18.412A2 2 0 0112.67 19H5v-7.672a2 2 0 01.586-1.414L11.75 3.75a6 6 0 118.49 8.49z"/><path d="M16 8 2 22"/><path d="M17.488 15H9"/></symbol>
+<symbol id="i-flame" viewBox="0 0 24 24"><path d="M12 3q1 4 4 6.5t3 5.5a1 1 0 0 1-14 0 5 5 0 0 1 1-3 1 1 0 0 0 5 0c0-2-1.5-3-1.5-5q0-2 2.5-4"/></symbol>
+<symbol id="i-flask-conical" viewBox="0 0 24 24"><path d="M14 2v6a2 2 0 0 0 .245.96l5.51 10.08A2 2 0 0 1 18 22H6a2 2 0 0 1-1.755-2.96l5.51-10.08A2 2 0 0 0 10 8V2"/><path d="M6.453 15h11.094"/><path d="M8.5 2h7"/></symbol>
+<symbol id="i-gem" viewBox="0 0 24 24"><path d="M10.5 3 8 9l4 13 4-13-2.5-6"/><path d="M17 3a2 2 0 0 1 1.6.8l3 4a2 2 0 0 1 .013 2.382l-7.99 10.986a2 2 0 0 1-3.247 0l-7.99-10.986A2 2 0 0 1 2.4 7.8l2.998-3.997A2 2 0 0 1 7 3z"/><path d="M2 9h20"/></symbol>
+<symbol id="i-ghost" viewBox="0 0 24 24"><path d="M15 10v1"/><path d="M7.528 20.472a1.6 1.6 0 012.277 0l1.057 1.056a1.6 1.6 0 002.276 0l1.057-1.056a1.6 1.6 0 012.277 0l1.114 1.114a1.4 1.4 0 002.414-1V10a8 8 0 00-16 0v10.586a1.4 1.4 0 002.414 1z"/><path d="M9 10v1"/></symbol>
+<symbol id="i-hand" viewBox="0 0 24 24"><path d="M18 11V6a2 2 0 0 0-2-2a2 2 0 0 0-2 2"/><path d="M14 10V4a2 2 0 0 0-2-2a2 2 0 0 0-2 2v2"/><path d="M10 10.5V6a2 2 0 0 0-2-2a2 2 0 0 0-2 2v8"/><path d="M18 8a2 2 0 1 1 4 0v6a8 8 0 0 1-8 8h-2c-2.8 0-4.5-.86-5.99-2.34l-3.6-3.6a2 2 0 0 1 2.83-2.82L7 15"/></symbol>
+<symbol id="i-heart-pulse" viewBox="0 0 24 24"><path d="M2 9.5a5.5 5.5 0 0 1 9.591-3.676.56.56 0 0 0 .818 0A5.49 5.49 0 0 1 22 9.5c0 2.29-1.5 4-3 5.5l-5.492 5.313a2 2 0 0 1-3 .019L5 15c-1.5-1.5-3-3.2-3-5.5"/><path d="M3.22 13H9.5l.5-1 2 4.5 2-7 1.5 3.5h5.27"/></symbol>
+<symbol id="i-house" viewBox="0 0 24 24"><path d="M15 21v-8a1 1 0 0 0-1-1h-4a1 1 0 0 0-1 1v8"/><path d="M3 10a2 2 0 0 1 .709-1.528l7-6a2 2 0 0 1 2.582 0l7 6A2 2 0 0 1 21 10v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></symbol>
+<symbol id="i-image" viewBox="0 0 24 24"><rect width="18" height="18" x="3" y="3" rx="2" ry="2"/><circle cx="9" cy="9" r="2"/><path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21"/></symbol>
+<symbol id="i-lock" viewBox="0 0 24 24"><rect width="18" height="11" x="3" y="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></symbol>
+<symbol id="i-map" viewBox="0 0 24 24"><path d="M14.106 5.553a2 2 0 0 0 1.788 0l3.659-1.83A1 1 0 0 1 21 4.619v12.764a1 1 0 0 1-.553.894l-4.553 2.277a2 2 0 0 1-1.788 0l-4.212-2.106a2 2 0 0 0-1.788 0l-3.659 1.83A1 1 0 0 1 3 19.381V6.618a1 1 0 0 1 .553-.894l4.553-2.277a2 2 0 0 1 1.788 0z"/><path d="M15 5.764v15"/><path d="M9 3.236v15"/></symbol>
+<symbol id="i-message-square" viewBox="0 0 24 24"><path d="M22 17a2 2 0 0 1-2 2H6.828a2 2 0 0 0-1.414.586l-2.202 2.202A.71.71 0 0 1 2 21.286V5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2z"/></symbol>
+<symbol id="i-paw-print" viewBox="0 0 24 24"><circle cx="11" cy="4" r="2"/><circle cx="18" cy="8" r="2"/><circle cx="20" cy="16" r="2"/><path d="M9 10a5 5 0 0 1 5 5v3.5a3.5 3.5 0 0 1-6.84 1.045Q6.52 17.48 4.46 16.84A3.5 3.5 0 0 1 5.5 10Z"/></symbol>
+<symbol id="i-pin" viewBox="0 0 24 24"><path d="M12 17v5"/><path d="M9 10.76a2 2 0 0 1-1.11 1.79l-1.78.9A2 2 0 0 0 5 15.24V16a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-.76a2 2 0 0 0-1.11-1.79l-1.78-.9A2 2 0 0 1 15 10.76V7a1 1 0 0 1 1-1 2 2 0 0 0 0-4H8a2 2 0 0 0 0 4 1 1 0 0 1 1 1z"/></symbol>
+<symbol id="i-rotate-ccw" viewBox="0 0 24 24"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></symbol>
+<symbol id="i-scroll" viewBox="0 0 24 24"><path d="M19 17V5a2 2 0 0 0-2-2H4"/><path d="M8 21h12a2 2 0 0 0 2-2v-1a1 1 0 0 0-1-1H11a1 1 0 0 0-1 1v1a2 2 0 1 1-4 0V5a2 2 0 1 0-4 0v2a1 1 0 0 0 1 1h3"/></symbol>
+<symbol id="i-settings" viewBox="0 0 24 24"><path d="M9.671 4.136a2.34 2.34 0 0 1 4.659 0 2.34 2.34 0 0 0 3.319 1.915 2.34 2.34 0 0 1 2.33 4.033 2.34 2.34 0 0 0 0 3.831 2.34 2.34 0 0 1-2.33 4.033 2.34 2.34 0 0 0-3.319 1.915 2.34 2.34 0 0 1-4.659 0 2.34 2.34 0 0 0-3.32-1.915 2.34 2.34 0 0 1-2.33-4.033 2.34 2.34 0 0 0 0-3.831A2.34 2.34 0 0 1 6.35 6.051a2.34 2.34 0 0 0 3.319-1.915"/><circle cx="12" cy="12" r="3"/></symbol>
+<symbol id="i-shield" viewBox="0 0 24 24"><path d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z"/></symbol>
+<symbol id="i-skull" viewBox="0 0 24 24"><path d="m12.5 17-.5-1-.5 1h1z"/><path d="M15 22a1 1 0 0 0 1-1v-1a2 2 0 0 0 1.56-3.25 8 8 0 1 0-11.12 0A2 2 0 0 0 8 20v1a1 1 0 0 0 1 1z"/><circle cx="15" cy="12" r="1"/><circle cx="9" cy="12" r="1"/></symbol>
+<symbol id="i-sparkles" viewBox="0 0 24 24"><path d="M11.017 2.814a1 1 0 0 1 1.966 0l1.051 5.558a2 2 0 0 0 1.594 1.594l5.558 1.051a1 1 0 0 1 0 1.966l-5.558 1.051a2 2 0 0 0-1.594 1.594l-1.051 5.558a1 1 0 0 1-1.966 0l-1.051-5.558a2 2 0 0 0-1.594-1.594l-5.558-1.051a1 1 0 0 1 0-1.966l5.558-1.051a2 2 0 0 0 1.594-1.594z"/><path d="M20 2v4"/><path d="M22 4h-4"/><circle cx="4" cy="20" r="2"/></symbol>
+<symbol id="i-star" viewBox="0 0 24 24"><path d="M11.525 2.295a.53.53 0 0 1 .95 0l2.31 4.679a2.123 2.123 0 0 0 1.595 1.16l5.166.756a.53.53 0 0 1 .294.904l-3.736 3.638a2.123 2.123 0 0 0-.611 1.878l.882 5.14a.53.53 0 0 1-.771.56l-4.618-2.428a2.122 2.122 0 0 0-1.973 0L6.396 21.01a.53.53 0 0 1-.77-.56l.881-5.139a2.122 2.122 0 0 0-.611-1.879L2.16 9.795a.53.53 0 0 1 .294-.906l5.165-.755a2.122 2.122 0 0 0 1.597-1.16z"/></symbol>
+<symbol id="i-sword" viewBox="0 0 24 24"><path d="m11 19-6-6"/><path d="m5 21-2-2"/><path d="m8 16-4 4"/><path d="M9.5 17.5 20.414 6.586A2 2 0 0021 5.172V3h-2.172a2 2 0 00-1.414.586L6.5 14.5"/></symbol>
+<symbol id="i-swords" viewBox="0 0 24 24"><path d="m13 19 6-6"/><path d="M14.5 17.5 3.586 6.586A2 2 0 013 5.172V3h2.172a2 2 0 011.414.586L17.5 14.5"/><path d="m14.828 6.172 2.586-2.586A2 2 0 0118.828 3H21v2.172a2 2 0 01-.586 1.414l-2.586 2.586"/><path d="m16 16 4 4"/><path d="m19 21 2-2"/><path d="m5 14 4 4"/><path d="m5 21-2-2"/><path d="M7.5 16.5 4 20"/></symbol>
+<symbol id="i-triangle-alert" viewBox="0 0 24 24"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3"/><path d="M12 9v4"/><path d="M12 17h.01"/></symbol>
+<symbol id="i-undo-2" viewBox="0 0 24 24"><path d="M9 14 4 9l5-5"/><path d="M4 9h10.5a5.5 5.5 0 0 1 5.5 5.5a5.5 5.5 0 0 1-5.5 5.5H11"/></symbol>
+<symbol id="i-user" viewBox="0 0 24 24"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></symbol>
+<symbol id="i-users" viewBox="0 0 24 24"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><path d="M16 3.128a4 4 0 0 1 0 7.744"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><circle cx="9" cy="7" r="4"/></symbol>
+<symbol id="i-wand-sparkles" viewBox="0 0 24 24"><path d="m21.64 3.64-1.28-1.28a1.21 1.21 0 0 0-1.72 0L2.36 18.64a1.21 1.21 0 0 0 0 1.72l1.28 1.28a1.2 1.2 0 0 0 1.72 0L21.64 5.36a1.2 1.2 0 0 0 0-1.72"/><path d="m14 7 3 3"/><path d="M5 6v4"/><path d="M19 14v4"/><path d="M10 2v2"/><path d="M7 8H3"/><path d="M21 16h-4"/><path d="M11 3H9"/></symbol>
+<symbol id="i-x" viewBox="0 0 24 24"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></symbol>
+<symbol id="i-zap" viewBox="0 0 24 24"><path d="M15.914 4a1.5 1.5 0 00-2.474-1.561l-9 9A1.5 1.5 0 005.5 14h4.002a.5.5 0 01.471.666L8.086 20a1.5 1.5 0 002.475 1.56l9-9A1.5 1.5 0 0018.5 10h-3.997a.5.5 0 01-.472-.667z"/></symbol>
+<symbol id="i-action-filled" viewBox="0 0 24 24"><polygon points="12 2.5 21.5 12 12 21.5 2.5 12" fill="currentColor"/></symbol>
+<symbol id="i-action-free" viewBox="0 0 24 24"><polygon points="12 2.5 21.5 12 12 21.5 2.5 12" fill="none"/></symbol>
+</svg>
+
+<div class="header">
+  <span class="bolt"><svg class="svg-i" aria-hidden="true"><use href="#i-zap"/></svg></span><span class="world">teste_xande</span>
+  <span class="scene"><svg class="svg-i" aria-hidden="true"><use href="#i-map"/></svg>Fortaleza</span>
+  <span class="spacer"></span>
+  <span class="status"><span class="dot"></span>Conectado, 2 ms</span>
+  <span class="who" id="who"></span>
+  <button class="btn">Sair</button>
+</div>
+
+<div class="stage">
+  <div class="art"><div class="house"><div class="star"><svg class="svg-i" aria-hidden="true"><use href="#i-star"/></svg></div></div></div>
+  <div class="drop" id="dropzone">arraste um resultado para cá<br/><b id="droplbl">ator de pack: importa primeiro, depois vira presença (REQ-CMP-018)</b></div>
+</div>
+
+<div id="root"></div>
+<div id="float"></div>
+
+<div class="switcher">
+  <button id="variant">variante</button>
+  <button id="role">papel</button>
+  <button id="big">acervo</button>
+  <button id="imp">importando</button>
+</div>
+<div class="legend" id="legend"></div>
+
+<script>
+/* ===================== ícones (sprite Lucide no topo do body) ===================== */
+const ic = (n)=> '<svg class="svg-i" aria-hidden="true"><use href="#i-'+n+'"/></svg>';
+const plural = (n,a,b)=> n+' '+(n===1?a:b);
+const fmt = (n)=> n.toLocaleString('pt-BR');
+
+/* ===================== chassi (spec 36) ===================== */
+const TABS = [
+  {id:'chat',label:'Chat',group:'all',icon:'message-square'},
+  {id:'contacts',label:'Contatos',group:'all',icon:'users'},
+  {id:'combat',label:'Combate',group:'all',icon:'swords'},
+  {id:'compendium',label:'Compêndio',group:'all',icon:'book-open'},
+  {id:'npcs',label:'NPCs',group:'gm',icon:'shield'},
+  {id:'scenes',label:'Cenas',group:'gm',icon:'image'},
+  {id:'settings',label:'Configurações',group:'all',foot:true,icon:'settings'},
+];
+const TITLE = {chat:'Chat',contacts:'Contatos',combat:'Combate',compendium:'Compêndio',npcs:'NPCs',scenes:'Cenas',settings:'Configurações'};
+const OTHER = {
+  chat:'<div class="empty">o painel do Chat é a spec 38</div>',
+  contacts:'<div class="empty">o painel de Contatos é a spec 39</div>',
+  combat:'<div class="empty">o painel de Combate é a spec 40</div>',
+  npcs:'<div class="empty">o diretório de NPCs é a spec 42 (em grill)</div>',
+  scenes:'<div class="empty">a lista de Cenas é a spec-filha irmã desta</div>',
+  settings:'<div class="empty">o painel de Configurações é a spec 37</div>',
+};
+
+/* ===================== acervo mock (números reais do PF2e) =====================
+   `aud` é a PROPOSTA da Q2: plateia do pack. `gm` some do trilho do jogador.
+   `dest` é a PROPOSTA da variante C: para onde a coisa vai.
+   `ic` é o nome do ícone Lucide do sprite.                                  */
+const PACKS = [
+  {id:'monster-core', label:'Monster Core',        type:'Criaturas', dest:'map',   n:441,  lic:'ORC',  aud:'gm',  ic:'flame'},
+  {id:'npc-core',     label:'NPC Core',            type:'Criaturas', dest:'map',   n:328,  lic:'ORC',  aud:'gm',  ic:'user'},
+  {id:'bestiary-2',   label:'Bestiário 2 (conteúdo legado da edição anterior)',type:'Criaturas', dest:'map', n:355, lic:'OGL', aud:'gm', ic:'paw-print'},
+  {id:'hazards',      label:'Perigos',             type:'Criaturas', dest:'map',   n:212,  lic:'ORC',  aud:'gm',  ic:'triangle-alert'},
+  {id:'equipment',    label:'Equipamento',         type:'Itens',     dest:'sheet', n:5203, lic:'ORC',  aud:'all', ic:'sword'},
+  {id:'spells',       label:'Magias',              type:'Itens',     dest:'sheet', n:1478, lic:'ORC',  aud:'all', ic:'sparkles'},
+  {id:'feats',        label:'Talentos',            type:'Itens',     dest:'sheet', n:4126, lic:'ORC',  aud:'all', ic:'star'},
+  {id:'ancestries',   label:'Ancestralidades',     type:'Itens',     dest:'sheet', n:17,   lic:'ORC',  aud:'all', ic:'users'},
+  {id:'heritages',    label:'Heranças',            type:'Itens',     dest:'sheet', n:107,  lic:'ORC',  aud:'all', ic:'feather'},
+  {id:'backgrounds',  label:'Antecedentes',        type:'Itens',     dest:'sheet', n:243,  lic:'ORC',  aud:'all', ic:'scroll'},
+  {id:'classes',      label:'Classes',             type:'Itens',     dest:'sheet', n:12,   lic:'ORC',  aud:'all', ic:'book'},
+  {id:'actions',      label:'Ações',               type:'Itens',     dest:'sheet', n:124,  lic:'ORC',  aud:'all', ic:'arrow-right'},
+  {id:'conditions',   label:'Condições',           type:'Regras',    dest:'table', n:42,   lic:'ORC',  aud:'all', ic:'circle-dot'},
+  {id:'glossary',     label:'Glossário de regras', type:'Regras',    dest:'table', n:318,  lic:'ORC',  aud:'all', ic:'book-open'},
+  {id:'tables',       label:'Tabelas de rolagem',  type:'Regras',    dest:'table', n:66,   lic:'ORC',  aud:'all', ic:'dices'},
+  {id:'world-npcs',   label:'Elenco de teste_xande',type:'Criaturas',dest:'map',   n:12,   lic:'mundo',aud:'gm',  ic:'house'},
+  {id:'world-loot',   label:'Tesouros da campanha',type:'Itens',     dest:'sheet', n:23,   lic:'mundo',aud:'all', ic:'coins'},
+];
+const P = (id) => PACKS.find(p=>p.id===id);
+const licLabel = (p)=> p.lic==='mundo' ? 'do mundo' : p.lic;
+
+/* entradas: nome pt-BR + nome original (Q5). `w` = já importado no mundo (Q7).
+   `ac` = custo de ação: 1|2|3 ações, 'free' (livre), 'react' (reação), 'var' (1 a 3). */
+const ENTRIES = [
+  {id:'e1', nm:'Goblin Guerreiro',  en:'Goblin Warrior',   pk:'monster-core', lv:-1, ic:'ghost', tr:['goblin','humanoide'], w:true},
+  {id:'e2', nm:'Goblin Comando',    en:'Goblin Commando',  pk:'monster-core', lv:1,  ic:'ghost', tr:['goblin','humanoide']},
+  {id:'e3', nm:'Cão-goblin',        en:'Goblin Dog',       pk:'monster-core', lv:1,  ic:'paw-print', tr:['animal']},
+  {id:'e4', nm:'Xamã Goblin',       en:'Goblin Pyro',      pk:'monster-core', lv:1,  ic:'wand-sparkles', tr:['goblin','conjurador']},
+  {id:'e5', nm:'Dragão Vermelho Jovem', en:'Young Red Dragon', pk:'monster-core', lv:10, ic:'flame', tr:['dragão','fogo'], rar:'uncommon'},
+  {id:'e6', nm:'Lobo Atroz',        en:'Dire Wolf',        pk:'monster-core', lv:3,  ic:'paw-print', tr:['animal']},
+  {id:'e7', nm:'Esqueleto Guarda',  en:'Skeleton Guard',   pk:'monster-core', lv:-1, ic:'skull', tr:['morto-vivo'], w:true},
+  {id:'e8', nm:'Bandido',           en:'Bandit',           pk:'npc-core',     lv:1,  ic:'sword', tr:['humano']},
+  {id:'e9', nm:'Guarda da Cidade',  en:'Town Guard',       pk:'npc-core',     lv:1,  ic:'shield', tr:['humano'], w:true},
+  {id:'e10',nm:'Fosso Camuflado',   en:'Hidden Pit',       pk:'hazards',      lv:1,  ic:'triangle-alert', tr:['mecânico']},
+  {id:'e11',nm:'Bola de Fogo',      en:'Fireball',         pk:'spells',       lv:3,  ic:'flame', tr:['fogo','evocação'], ac:2},
+  {id:'e12',nm:'Curar',             en:'Heal',             pk:'spells',       lv:1,  ic:'heart-pulse', tr:['vitalidade'], w:true, ac:'var'},
+  {id:'e13',nm:'Escudo',            en:'Shield',           pk:'spells',       lv:1,  ic:'shield', tr:['truque'], ac:1},
+  {id:'e14',nm:'Mão de Fogo',       en:'Burning Hands',    pk:'spells',       lv:1,  ic:'flame', tr:['fogo'], ac:2},
+  {id:'e15',nm:'Espada Longa',      en:'Longsword',        pk:'equipment',    lv:0,  ic:'sword', tr:['arma','versátil']},
+  {id:'e16',nm:'Espada Longa +1',   en:'+1 Longsword',     pk:'equipment',    lv:2,  ic:'sword', tr:['mágico'], w:true},
+  {id:'e17',nm:'Poção de Cura Menor',en:'Minor Healing Potion',pk:'equipment',lv:1, ic:'flask-conical', tr:['consumível']},
+  {id:'e18',nm:'Bomba de Fogo Alquímica',en:'Lesser Alchemist’s Fire',pk:'equipment',lv:1,ic:'flame',tr:['alquímico','fogo']},
+  {id:'e19',nm:'Ataque Poderoso',   en:'Power Attack',     pk:'feats',        lv:1,  ic:'star', tr:['guerreiro','fluxo'], ac:1},
+  {id:'e20',nm:'Sopro de Fogo',     en:'Breath Fire',      pk:'feats',        lv:1,  ic:'star', tr:['kobold','fogo'], ac:2},
+  {id:'e26',nm:'Ataque Oportuno',   en:'Attack of Opportunity',pk:'feats',    lv:1,  ic:'star', tr:['guerreiro'], ac:'react'},
+  {id:'e27',nm:'Soltar',            en:'Release',          pk:'actions',      lv:null,ic:'hand', tr:['manipular'], ac:'free'},
+  {id:'e28',nm:'Golpear',           en:'Strike',           pk:'actions',      lv:null,ic:'swords', tr:['ataque'], ac:1},
+  {id:'e21',nm:'Amedrontado',       en:'Frightened',       pk:'conditions',   lv:null,ic:'circle-dot',tr:['condição']},
+  {id:'e22',nm:'Fogo persistente',  en:'Persistent Fire',  pk:'glossary',     lv:null,ic:'book-open',tr:['dano']},
+  {id:'e23',nm:'Tesouro do Covil',  en:'Lair Treasure',    pk:'tables',       lv:null,ic:'dices',tr:['tabela']},
+  {id:'e24',nm:'Mestre Aldric',     en:null,               pk:'world-npcs',   lv:6,  ic:'user', tr:['humano','elenco'], w:true},
+  {id:'e25',nm:'Chama do Farol',    en:null,               pk:'world-loot',   lv:5,  ic:'gem', tr:['mágico','único'], rar:'rare', w:true},
+];
+const TXT = {
+  e1:'Goblins guerreiros são a espinha dorsal de qualquer bando: barulhentos, rápidos e mais perigosos em grupo do que sozinhos.',
+  e5:'Dragões vermelhos jovens já são vaidosos e cruéis o bastante para cobrar tributo de aldeias inteiras.',
+  e11:'Uma esfera de chamas explode no ponto escolhido, causando dano de fogo em área.',
+  e15:'Arma marcial versátil de corte; a mais comum entre soldados e mercenários.',
+  e24:'O velho ferreiro que conhece a fortaleza desde antes do cerco. Documento do mundo, não de pack.',
+};
+
+/* ===================== estado ===================== */
+const url = new URL(location);
+let variant = (url.searchParams.get('v')||'A').toUpperCase();
+let role    = url.searchParams.get('role')==='player' ? 'player' : 'gm';
+let big     = url.searchParams.get('big')!=='0';      /* acervo PF2e completo */
+let importing = url.searchParams.get('imp')==='1';
+let active='compendium', open=true;
+let q='';                       /* busca (sobrevive à troca de aba — Q6) */
+let openPack=null;              /* variante A: pack aberto */
+let collapsed={};               /* variante A: grupos recolhidos */
+let facet={type:null, lvl:null, rar:null, src:null};
+let counter='map';              /* variante C: balcão */
+let win=null;                   /* janela de preview (Q1) */
+let winPos={x:null,y:null};
+let target='Fofurinha';         /* variante C: para quem vai o item */
+
+const isGm = ()=> role==='gm';
+/* Q2: pack com plateia `gm` não existe para o jogador */
+const packs = ()=> PACKS.filter(p=> (isGm()||p.aud==='all') && (big || p.lic==='mundo'));
+const packOk = (id)=> packs().some(p=>p.id===id);
+
+const norm = (s)=> (s||'').normalize('NFD').replace(/[̀-ͯ]/g,'').toLowerCase();
+function hits(){
+  const t = norm(q);
+  let list = ENTRIES.filter(e=>packOk(e.pk));
+  if(t) list = list.filter(e=> norm(e.nm).includes(t) || norm(e.en).includes(t) || e.tr.some(x=>norm(x).includes(t)));
+  if(facet.type) list = list.filter(e=> P(e.pk).type===facet.type);
+  if(facet.src)  list = list.filter(e=> e.pk===facet.src);
+  if(facet.rar)  list = list.filter(e=> e.rar===facet.rar);
+  if(facet.lvl==='low')  list = list.filter(e=> e.lv!==null && e.lv<=3);
+  if(facet.lvl==='high') list = list.filter(e=> e.lv!==null && e.lv>3);
+  return list;
+}
+/* o mock tem poucas linhas; o acervo tem 12 mil. O contador mente a verdade. */
+const REAL = ()=> packs().reduce((a,p)=>a+p.n,0);
+function scaled(shown){
+  if(!q && !facet.type && !facet.src) return REAL();
+  return Math.max(shown, Math.round(shown * (big?37:1)));
+}
+
+/* ===================== peças ===================== */
+function tabButton(t){
+  const gm = t.group==='gm';
+  let badge='';
+  if(t.id==='chat') badge='<span class="badge" aria-label="3 mensagens novas">3</span>';
+  if(t.id==='compendium' && importing) badge='<span class="badge dot" aria-label="importação em andamento"></span>';
+  const lb = t.label+(gm?' (só o Mestre)':'');
+  return '<button class="tabbtn '+(active===t.id&&open?'is-active':'')+'" data-tab="'+t.id+'" aria-label="'+lb+'" title="'+lb+'">'
+    + ic(t.icon) + badge + '</button>';
+}
+function mark(s){
+  if(!q) return s;
+  const i = norm(s).indexOf(norm(q));
+  if(i<0) return s;
+  return s.slice(0,i)+'<mark>'+s.slice(i,i+q.length)+'</mark>'+s.slice(i+q.length);
+}
+function lvlOf(e){ return e.lv===null? '' : (e.lv<0? 'Nv −1' : 'Nv '+e.lv); }
+
+/* custo de ação desenhado: losango cheio por ação; contorno = ação livre; rotate-ccw = reação */
+function costHtml(e, withText){
+  if(!e.ac) return '';
+  const D = (id)=> '<svg class="svg-i" aria-hidden="true"><use href="#'+id+'"/></svg>';
+  let g, txt, vis='';
+  if(e.ac==='free'){ g=D('i-action-free'); txt='ação livre'; }
+  else if(e.ac==='react'){ g=ic('rotate-ccw'); txt='reação'; }
+  else if(e.ac==='var'){ g=D('i-action-filled'); txt='1 a 3 ações'; vis=withText?txt:'1 a 3'; }
+  else { g=D('i-action-filled').repeat(e.ac); txt=e.ac+(e.ac===1?' ação':' ações'); }
+  if(!vis && withText) vis=txt;
+  return '<span class="cost" role="img" aria-label="'+txt+'" title="'+txt+'">'+g+(vis?'<span class="ctx">'+vis+'</span>':'')+'</span>';
+}
+
+function entryRow(e, opts){
+  opts = opts||{};
+  const p = P(e.pk);
+  const canImport = isGm();
+  const acts = '<div class="acts">'
+    + '<button class="ib" data-prev="'+e.id+'" title="Pré-visualizar (abre janela)" aria-label="Pré-visualizar '+e.nm+' em janela">'+ic('eye')+'</button>'
+    + (canImport ? '<button class="ib" data-imp="'+e.id+'" title="Importar para o mundo" aria-label="Importar '+e.nm+' para o mundo">'+ic('download')+'</button>' : '')
+    + (p.dest==='sheet' ? '<button class="ib" data-sheet="'+e.id+'" title="Mandar para uma ficha" aria-label="Mandar '+e.nm+' para uma ficha">'+ic('clipboard-list')+'</button>' : '')
+    + '</div>';
+  const parts=[];
+  if(e.w) parts.push('<span class="inw" title="já importado neste mundo">'+ic('check')+'no mundo</span>');
+  if(opts.src) parts.push(p.label);
+  if(e.rar) parts.push('<span class="rar '+e.rar+'">'+(e.rar==='rare'?'raro':'incomum')+'</span>');
+  parts.push(e.tr.slice(0,2).join(', '));
+  return '<div class="en'+(e.w?' inworld':'')+'" draggable="true" data-en="'+e.id+'">'
+    + '<div class="por">'+ic(e.ic)+'</div>'
+    + '<div class="mid">'
+    +   '<div class="nm">'+mark(e.nm)+'</div>'
+    +   (e.en?'<div class="en2">'+mark(e.en)+'</div>':'')
+    +   '<div class="meta">'+parts.join(' · ')+'</div>'
+    + '</div>'
+    + '<div class="rt">'+(e.lv!==null?'<span class="lv">'+lvlOf(e)+'</span>':'')+costHtml(e,false)+'</div>'
+    + acts + '</div>';
+}
+
+function searchBar(scope){
+  return '<div class="srch">'
+    + '<input id="q" type="search" placeholder="Buscar…" aria-label="Buscar" value="'+q.replace(/"/g,'&quot;')+'" />'
+    + '<span class="scope">'+scope+'</span></div>';
+}
+function facetBar(){
+  const f=[];
+  const chip=(k,v,lb)=>'<button class="fc'+(facet[k]===v?' on':'')+'" data-f="'+k+'" data-v="'+v+'" aria-pressed="'+(facet[k]===v)+'">'+lb+(facet[k]===v?ic('x'):'')+'</button>';
+  f.push(chip('type','Criaturas','Criaturas'));
+  f.push(chip('type','Itens','Itens'));
+  f.push(chip('type','Regras','Regras'));
+  f.push(chip('lvl','low','Nível 3 ou menos'));
+  f.push(chip('lvl','high','Nível acima de 3'));
+  f.push(chip('rar','rare','Raro'));
+  if(facet.src) f.push('<button class="fc on" data-f="src" data-v="'+facet.src+'" aria-pressed="true">Fonte: '+P(facet.src).label+ic('x')+'</button>');
+  return '<div class="facets">'+f.join('')+'</div>';
+}
+function impBar(){
+  return importing ? '<div class="bar-imp">'+ic('download')+'Importando 38/100<span class="prog"><i></i></span></div>' : '';
+}
+
+/* ================= variante A — estante ================= */
+function bodyA(){
+  if(openPack){
+    const p = P(openPack);
+    const list = hits().filter(e=>e.pk===openPack);
+    return '<div class="crumb"><button class="back" data-back="1">'+ic('chevron-left')+'Compêndios</button> <b>'+p.label+'</b>'
+      +   ' <span>'+licLabel(p)+'</span></div>'
+      + searchBar('neste pack')
+      + facetBar()
+      + '<div class="counter"><b>'+fmt(scaled(list.length))+'</b> de '+fmt(p.n)+'<span class="grow"></span>'
+      +   '<button class="b g" data-sort="1" title="Ordenar por nome, de A a Z" aria-label="Ordenar por nome, de A a Z">'+ic('arrow-up')+'Nome</button></div>'
+      + '<div>'+ (list.length? list.map(e=>entryRow(e,{})).join('') : '<div class="empty">Nenhum resultado.<div class="hint">A busca vale só dentro deste pack — é assim que a REQ-CMP-013 é hoje.</div></div>')
+      + (list.length&&big?'<div class="more">rolando: mais '+fmt(p.n-list.length)+' entradas</div>':'') + '</div>';
+  }
+  const groups = ['Criaturas','Itens','Regras'];
+  let out = searchBar('nomes de pack');
+  out += groups.map(function(g){
+    const ps = packs().filter(p=>p.type===g && (!q || norm(p.label).includes(norm(q))));
+    if(!ps.length) return '';
+    const col = collapsed[g];
+    return '<button class="secl" data-col="'+g+'" aria-expanded="'+(!col)+'"><span class="caret">'+ic(col?'chevron-right':'chevron-down')+'</span>'+g
+      + '<span class="cnt">'+plural(ps.length,'pacote','pacotes')+'</span></button>'
+      + (col?'':ps.map(function(p){
+          return '<button class="pk" data-pk="'+p.id+'"><span class="por">'+ic(p.ic)+'</span>'
+            + '<span class="mid"><span class="nm">'+p.label+'</span>'
+            + '<span class="sub">'+plural(p.n,'documento','documentos').replace(/^\d+/,fmt(p.n))+' · '+licLabel(p)+'</span>'
+            + (p.aud==='gm'?'<span class="aud">'+ic('lock')+'só o Mestre</span>':'')+'</span>'
+            + '<span class="go">'+ic('chevron-right')+'</span></button>';
+        }).join(''));
+  }).join('');
+  return out;
+}
+
+/* ================= variante B — busca ================= */
+function bodyB(){
+  const list = hits();
+  let out = searchBar('todo o acervo') + facetBar();
+  if(!q && !facet.type && !facet.src && !facet.rar && !facet.lvl){
+    const fav = ENTRIES.filter(e=>['e11','e1','e17'].includes(e.id) && packOk(e.pk));
+    const rec = ENTRIES.filter(e=>['e5','e15','e21'].includes(e.id) && packOk(e.pk));
+    out += '<div class="counter"><b>'+fmt(REAL())+'</b> documentos em '+plural(packs().length,'compêndio','compêndios')+'</div>'
+      + '<div class="secl">Fixados<span class="cnt">'+fav.length+'</span></div>'
+      + (fav.length?fav.map(e=>entryRow(e,{src:true})).join(''):'<div class="empty tight">nada fixado ainda</div>')
+      + '<div class="secl">Recentes<span class="cnt">'+rec.length+'</span></div>'
+      + rec.map(e=>entryRow(e,{src:true})).join('')
+      + '<div class="more">a aba abre em branco de propósito: <b>digite</b>. Pack aqui é filtro, não lugar.</div>';
+    return out;
+  }
+  const byType = {};
+  list.forEach(function(e){ const t=P(e.pk).type; (byType[t]=byType[t]||[]).push(e); });
+  const keys = Object.keys(byType);
+  out += '<div class="counter"><b>'+fmt(scaled(list.length))+'</b> resultados<span class="grow"></span>'
+    + (q?'<span>busca casa pt-BR e original</span>':'')+'</div>';
+  if(!keys.length) return out + '<div class="empty">Nada encontrado.<div class="hint">A busca varre todos os compêndios que você pode ver'
+    + (isGm()?'':' — o bestiário não está entre eles (Q2)')+'.</div></div>';
+  out += keys.map(function(t){
+    return '<div class="secl">'+t+'<span class="cnt">'+byType[t].length+'</span></div>'
+      + byType[t].map(e=>entryRow(e,{src:true})).join('');
+  }).join('');
+  return out;
+}
+
+/* ================= variante C — balcão ================= */
+const COUNTERS = {
+  map:  {lb:'Mapa',  dest:'map',   gest:'<b>Arraste para a cena.</b> Ator de pack é importado antes de virar presença (REQ-CMP-018).'},
+  sheet:{lb:'Ficha', dest:'sheet', gest:'<b>Escolha para quem</b> e solte na ficha, ou use o ícone de prancheta.'},
+  table:{lb:'Mesa',  dest:'table', gest:'<b>Abrir</b> mostra o texto; <b>mostrar</b> joga o verbete no chat para todos.'},
+};
+function bodyC(){
+  const avail = Object.keys(COUNTERS).filter(k=> k!=='map' || isGm());
+  if(!avail.includes(counter)) counter = avail[0];
+  const c = COUNTERS[counter];
+  const list = hits().filter(e=>P(e.pk).dest===c.dest);
+  let out = '<div class="seg">'+avail.map(k=>'<button class="'+(counter===k?'on':'')+'" data-cnt="'+k+'">'+COUNTERS[k].lb+'</button>').join('')+'</div>'
+    + searchBar('neste balcão');
+  if(counter==='sheet') out += '<div class="to">para <select id="tgt" aria-label="Destino do item"><option>Fofurinha</option><option>Tobias</option>'
+    + (isGm()?'<option>Goblin Guerreiro (cena)</option>':'')+'</select></div>';
+  out += '<div class="gest">'+c.gest+'</div>';
+  out += '<div class="counter"><b>'+fmt(scaled(list.length))+'</b> disponíveis<span class="grow"></span>'
+    + '<span>'+plural(packs().filter(p=>p.dest===c.dest).length,'compêndio','compêndios')+'</span></div>';
+  out += list.length? list.map(e=>entryRow(e,{src:true})).join('')
+    : '<div class="empty">Nada neste balcão.<div class="hint">Balcão é opinião nossa: o sistema declara <b>documentType</b>, não destino (Q da variante C).</div></div>';
+  return out;
+}
+
+/* ================= janela de preview (Q1) ================= */
+function winHtml(){
+  if(!win) return '';
+  const e = ENTRIES.find(x=>x.id===win); if(!e) return '';
+  const p = P(e.pk);
+  const x = winPos.x!==null?winPos.x:(window.innerWidth-420-380);
+  const y = winPos.y!==null?winPos.y:120;
+  const kv = [];
+  if(e.lv!==null) kv.push(['Nível', e.lv<0?'−1':e.lv]);
+  if(e.ac) kv.push(['Custo', costHtml(e,true)]);
+  kv.push(['Tipo', p.type]);
+  kv.push(['Traços', e.tr.join(', ')+(e.rar?' · '+(e.rar==='rare'?'raro':'incomum'):'')]);
+  kv.push(['Fonte', p.label]);
+  return '<div class="win" role="dialog" aria-label="Pré-visualização de '+e.nm+'" style="left:'+x+'px;top:'+y+'px">'
+    + '<div class="wh" data-drag="1"><span class="t">'+e.nm+'</span>'
+    +   '<button class="ib" data-pin="1" title="Fixar janela" aria-label="Fixar janela">'+ic('pin')+'</button>'
+    +   '<button class="ib" data-close="1" title="Fechar" aria-label="Fechar">'+ic('x')+'</button></div>'
+    + '<div class="wb">'
+    +   '<div class="hero"><div class="por">'+ic(e.ic)+'</div><div><h3>'+e.nm+'</h3>'
+    +     (e.en?'<div class="en2">'+e.en+'</div>':'')+'</div></div>'
+    +   '<dl class="kv">'+kv.map(k=>'<dt>'+k[0]+'</dt><dd>'+k[1]+'</dd>').join('')+'</dl>'
+    +   '<div class="txt">'+(TXT[e.id]||'Resumo do documento carregado sob demanda (REQ-CMP-015): o índice não traz isto.')+'</div>'
+    +   '<div class="licbox"><b>'+licLabel(p)+'</b> — licença do pack (DEC-CMP-03). '
+    +     (p.lic==='OGL'?'Conteúdo legado sob OGL 1.0a; ':'')
+    +     'nomes de produto e arte da editora não são redistribuídos (regra clean-room do projeto).</div>'
+    + '</div>'
+    + '<div class="foot">'
+    +   (isGm()?'<button class="b p" data-imp="'+e.id+'">Importar para o mundo</button>':'')
+    +   (p.dest==='sheet'?'<button class="b" data-sheet="'+e.id+'">Mandar para a ficha de '+target+'</button>':'')
+    +   (p.dest==='table'?'<button class="b">Mostrar no chat</button>':'')
+    +   '<span class="grow"></span>'
+    +   (e.w?'<span class="inw">'+ic('check')+'já no mundo</span>':'')
+    + '</div></div>';
+}
+
+/* ================= painel ================= */
+function panelCompendium(){
+  const head = '<div class="phead"><span class="ttl">Compêndio</span><span class="grow"></span>'
+    + (variant==='A'&&openPack?'<button class="ib" data-back="1" title="Voltar aos compêndios" aria-label="Voltar aos compêndios">'+ic('undo-2')+'</button>':'')
+    + (isGm()?'<button class="ib" title="Importar em lote [V2]" aria-label="Importar em lote">'+ic('download')+'</button>':'')
+    + '<button class="ib" title="Ordenar e opções" aria-label="Ordenar e opções">'+ic('ellipsis')+'</button></div>';
+  const body = variant==='A'?bodyA():variant==='B'?bodyB():bodyC();
+  return head + impBar() + '<div class="pbody">'+body+'</div>';
+}
+function panel(){
+  const inner = active==='compendium'
+    ? panelCompendium()
+    : '<div class="phead"><span class="ttl">'+TITLE[active]+'</span></div><div class="pbody">'+OTHER[active]+'</div>';
+  return '<div class="panel">'+inner+'</div>';
+}
+
+/* ===================== render ===================== */
+function render(){
+  const all = TABS.filter(t=>t.group==='all'&&!t.foot);
+  const gms = TABS.filter(t=>t.group==='gm'&&isGm());
+  const foot= TABS.filter(t=>t.foot);
+  document.getElementById('root').innerHTML =
+    '<div class="'+(open?'is-open':'')+'"><aside class="shell">'
+    + '<nav class="tabs"><div class="grp">'+all.map(tabButton).join('')+'</div>'
+    + '<div class="grp gm">'+gms.map(tabButton).join('')+'</div>'
+    + '<div class="foot">'+foot.map(tabButton).join('')+'</div></nav>'
+    + panel() + '</aside></div>';
+  document.getElementById('float').innerHTML = winHtml();
+
+  const who = document.getElementById('who');
+  who.className = 'who '+(isGm()?'':'player');
+  who.innerHTML = isGm() ? '<span class="dot pt"></span>Gamemaster · <span class="muted">Mestre</span>'
+                         : '<span class="dot pt"></span>Alexandre · <span class="muted">Jogador (Fofurinha)</span>';
+  wire(); chrome();
+  const u = new URL(location);
+  u.searchParams.set('v',variant); u.searchParams.set('role',role);
+  u.searchParams.set('big',big?'1':'0'); u.searchParams.set('imp',importing?'1':'0');
+  history.replaceState(null,'',u);
+}
+
+function wire(){
+  const root = document.getElementById('root'), float = document.getElementById('float');
+  const on = (scope,sel,fn)=> scope.querySelectorAll(sel).forEach(el=>{ el.onclick=(ev)=>{ ev.stopPropagation(); fn(el,ev); }; });
+
+  on(root,'[data-tab]', el=>{ const id=el.dataset.tab; if(open&&active===id){open=false;} else {active=id;open=true;} render(); });
+  on(root,'[data-pk]',  el=>{ openPack=el.dataset.pk; q=''; render(); });
+  on(root,'[data-back]',()=>{ openPack=null; q=''; render(); });
+  on(root,'[data-col]', el=>{ const g=el.dataset.col; collapsed[g]=!collapsed[g]; render(); });
+  on(root,'[data-cnt]', el=>{ counter=el.dataset.cnt; render(); });
+  on(root,'[data-f]',   el=>{ const k=el.dataset.f, v=el.dataset.v; facet[k] = facet[k]===v?null:v; render(); });
+  [root,float].forEach(s=>{
+    on(s,'[data-prev]', el=>{ win=el.dataset.prev; render(); });
+    on(s,'[data-imp]',  el=>{ const e=ENTRIES.find(x=>x.id===el.dataset.imp); if(e){ e.w=true; } render(); });
+    on(s,'[data-sheet]',el=>{ const e=ENTRIES.find(x=>x.id===el.dataset.sheet); if(e){ e.w=true; } flash('Enviado à ficha de '+target+': '+e.nm+(isGm()?'':' (importado em nome do jogador — Q3)')); render(); });
+  });
+  on(float,'[data-close]',()=>{ win=null; render(); });
+
+  const qi = root.querySelector('#q');
+  if(qi){ qi.oninput = (e)=>{ q=e.target.value; const pos=e.target.selectionStart; render();
+      const n=document.getElementById('q'); if(n){ n.focus(); n.setSelectionRange(pos,pos); } }; }
+  const tg = root.querySelector('#tgt');
+  if(tg){ tg.onchange = (e)=>{ target=e.target.value; render(); }; }
+
+  /* arrastar para o mapa */
+  const dz = document.getElementById('dropzone');
+  root.querySelectorAll('[data-en]').forEach(el=>{
+    el.ondragstart = (ev)=>{ const e=ENTRIES.find(x=>x.id===el.dataset.en); ev.dataTransfer.setData('text/plain', e.id);
+      el.classList.add('drag'); dz.classList.add('hot');
+      document.getElementById('droplbl').textContent = P(e.pk).dest==='map'
+        ? e.nm+': importa e vira presença na cena (REQ-CMP-018)'
+        : e.nm+': solte numa ficha — no mapa isso não é presença'; };
+    el.ondragend = ()=>{ el.classList.remove('drag'); dz.classList.remove('hot'); };
+  });
+  dz.ondragover = (ev)=>ev.preventDefault();
+  dz.ondrop = (ev)=>{ ev.preventDefault(); const e=ENTRIES.find(x=>x.id===ev.dataTransfer.getData('text/plain'));
+    if(e){ e.w=true; flash(P(e.pk).dest==='map' ? e.nm+' importado e posto na cena' : e.nm+' não vira presença: é item'); }
+    dz.classList.remove('hot'); render(); };
+
+  /* arrastar a janela */
+  const wh = float.querySelector('[data-drag]');
+  if(wh) wh.onmousedown = (ev)=>{
+    if(ev.target.closest('button')) return;
+    const w = float.querySelector('.win'), r = w.getBoundingClientRect();
+    const dx = ev.clientX-r.left, dy = ev.clientY-r.top;
+    const mv = (e2)=>{ winPos.x = e2.clientX-dx; winPos.y = e2.clientY-dy; w.style.left=winPos.x+'px'; w.style.top=winPos.y+'px'; };
+    const up = ()=>{ document.removeEventListener('mousemove',mv); document.removeEventListener('mouseup',up); };
+    document.addEventListener('mousemove',mv); document.addEventListener('mouseup',up);
+  };
+}
+function flash(msg){
+  const lbl = document.getElementById('droplbl');
+  lbl.textContent = msg;
+  setTimeout(()=>{ const l=document.getElementById('droplbl'); if(l) l.textContent='ator de pack: importa primeiro, depois vira presença (REQ-CMP-018)'; }, 2600);
+}
+
+/* ===================== alternador / legenda ===================== */
+const VAR_LB = {A:'A · estante (packs)', B:'B · busca (tudo)', C:'C · balcão (destino)'};
+const VAR_NOTE = {
+  A:`<tr><td>aposta</td><td>o <b>pack é o lugar</b>: grupos por tipo, packs colapsáveis com contagem e licença;
+      entrar no pack dá busca e filtros. É o <b>painel de hoje</b> feito para 300px.</td></tr>
+     <tr><td>custo</td><td>para achar algo você precisa saber onde mora. Ligue o acervo completo e conte quantos cliques
+      até "Bola de Fogo".</td></tr>`,
+  B:`<tr><td>aposta</td><td>ninguém navega 12 mil documentos: <b>a aba é a busca</b>. Resultado agrupado por tipo,
+      pack vira faceta, e a tela em repouso mostra fixados/recentes.</td></tr>
+     <tr><td>custo</td><td>exige <b>busca cross-pack no servidor</b>, que a 16 não tem (REQ-CMP-013 é dentro do pack).
+      Requisito novo, e caro (Q4).</td></tr>`,
+  C:`<tr><td>aposta</td><td>organiza por <b>destino</b> — Mapa, Ficha, Mesa — e já engatilha o gesto certo
+      (arrastar, mandar para quem, mostrar no chat).</td></tr>
+     <tr><td>custo</td><td>destino é <b>opinião nossa</b>: o sistema declara documentType. E some com o balcão Mapa
+      para o jogador, o que resolve a Q2 sem discutir a Q2.</td></tr>`,
+};
+function chrome(){
+  document.getElementById('variant').textContent = VAR_LB[variant];
+  document.getElementById('role').textContent = isGm()?'papel: Mestre':'papel: jogador';
+  document.getElementById('big').textContent = big?'acervo: PF2e completo':'acervo: só o mundo';
+  document.getElementById('imp').textContent = importing?'importando: sim':'importando: não';
+  document.getElementById('legend').innerHTML =
+    '<h4>Aba Compêndio — rodada 1 · variante '+VAR_LB[variant]+'</h4><table>'
+    + VAR_NOTE[variant]
+    + '<tr><td>o que muda</td><td>o painel <b>já existe</b> (CompendiumBrowser). A rodada testa o que quebra em 300px,'
+    + ' com o PF2e inteiro e com um <b>jogador</b> do outro lado.</td></tr>'
+    + '<tr><td>preview</td><td>abre em <b>janela</b> sobre o mapa (DEC-GAV-04), não como lâmina que come a lista'
+    + ' — é a <b>Q1</b>. Arraste a janela pelo título.</td></tr>'
+    + '<tr><td>plateia</td><td>proposta da <b>Q2</b>: pack tem plateia. '
+    + 'Bestiário e perigos nascem <b>só para o Mestre</b> (selo com cadeado) — troque o papel e veja o acervo encolher.</td></tr>'
+    + '<tr><td>dois nomes</td><td>pt-BR grande, original pequeno; a busca casa os dois ("fireball" acha Bola de Fogo) — <b>Q5</b>.</td></tr>'
+    + '</table>'
+    + '<div class="q dec"><b>decidido nesta rodada:</b> o grupo (Criaturas, Itens, Regras) é cabeçalho de seção com contador de pacotes;'
+    + ' o pack é linha plana com divisor, nome inteiro (quebra em até 2 linhas), meta "N documentos · licença" e selo "só o Mestre";'
+    + ' o custo de ação é desenhado com losangos (cheio por ação, contorno para ação livre, seta circular para reação).'
+    + ' Veja o custo em "Bola de Fogo", "Ataque Oportuno" e "Soltar".</div>'
+    + '<div class="q"><b>experimente:</b> busque <b>fogo</b> nas três variantes · abra o olho em "Dragão Vermelho Jovem" e leia a caixa de licença ·'
+    + ' arraste "Bola de Fogo" para o mapa (não vira presença) e "Goblin Guerreiro" (vira) ·'
+    + ' troque para <b>jogador</b> e repita a busca.</div>'
+    + '<div class="q"><b>em aberto:</b> Q3 jogador importa em nome próprio? · Q4 busca cross-pack vale o custo? ·'
+    + ' Q6 busca sobrevive à troca de aba? · Q7 selo "no mundo" mente quando o pack muda · Q8 badge só durante import.</div>'
+    + '<div class="q">teclas: <b>1/2/3</b> variante · <b>p</b> papel · <b>a</b> acervo · <b>i</b> importando · <b>Esc</b> fecha janela</div>';
+}
+document.getElementById('variant').onclick = ()=>{ variant = variant==='A'?'B':variant==='B'?'C':'A'; openPack=null; win=null; render(); };
+document.getElementById('role').onclick = ()=>{ role = isGm()?'player':'gm'; if(openPack&&!packOk(openPack)) openPack=null; if(win){ const e=ENTRIES.find(x=>x.id===win); if(e&&!packOk(e.pk)) win=null; } render(); };
+document.getElementById('big').onclick = ()=>{ big=!big; openPack=null; render(); };
+document.getElementById('imp').onclick = ()=>{ importing=!importing; render(); };
+document.addEventListener('keydown', (e)=>{
+  if(['INPUT','TEXTAREA','SELECT'].includes(document.activeElement.tagName)) return;
+  if(e.key==='1'){variant='A';openPack=null;win=null;render();}
+  else if(e.key==='2'){variant='B';win=null;render();}
+  else if(e.key==='3'){variant='C';win=null;render();}
+  else if(e.key==='p') document.getElementById('role').click();
+  else if(e.key==='a') document.getElementById('big').click();
+  else if(e.key==='i') document.getElementById('imp').click();
+  else if(e.key==='Escape'&&win){ win=null; render(); }
+});
+render();
+</script>
+</body>
+</html>

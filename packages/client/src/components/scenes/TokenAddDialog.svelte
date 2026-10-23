@@ -4,159 +4,142 @@
    *
    * Props:
    *   sceneId   string        — ID of the target scene.
+   *   scene     SceneDimensionsInput — width/height/padding, to pick a sane default
+   *                              position (see below).
    *   onClose   () => void    — called when the dialog is dismissed.
    *   onSuccess () => void    — called after the token is created.
    *   socket    Socket        — for sendOp.
    *
-   * The texture field uses FilePicker (world assets) OR an external URL.
-   * Logic (form validation, sendOp) lives in tokenController.ts (pure TS).
+   * TK022-client (REQ-TOK-002, REQ-TOK-010, REQ-TOK-012, REQ-TOK-020, REQ-TOK-024,
+   * DEC-TOK-04): a token has no `texture`/`width`/`height` of its own, and `actorId` is
+   * required — a piece with no actor is not a representable state. This dialog picks
+   * that actor from the world's own list (`worldMirror`, searchable by name); with none
+   * selected, "Add Token" stays disabled with a legible reason (CA-TOK-003). `name`
+   * remains a free-text override: blank, it is left off the payload and the token
+   * inherits the actor's own name (REQ-TOK-060). `hidden` is the other overridable
+   * field this dialog exposes (REQ-TOK-024), for the piece that enters an ambush
+   * already out of sight. The pure logic (filtering, validation, the `doc:create` op)
+   * lives in `lib/scenes/tokenAddDialogVM.ts` so it is testable without a DOM.
+   *
+   * Defect 1 (Fase 1 e2e): "X"/"Y" below ARE ordinary scene coordinates (REQ-CNV-011 —
+   * same system `Token.x`/`y` already store, no conversion needed: see
+   * `lib/canvas/sceneCoords.ts`'s docstring). The bug was the STARTING value: a raw
+   * `(0, 0)` default sits in the scene's padding margin (REQ-CNV-066 — staging space
+   * outside the main map, not the map itself), so a token created without the GM
+   * touching these fields landed invisibly off to the side. `defaultTokenPosition`
+   * starts the fields at the middle of the visible map instead — still a plain,
+   * freely-overwritable scene coordinate.
    */
 
   import type { Socket } from "socket.io-client";
+  import { untrack } from "svelte";
+  import ActorPortrait from "../../lib/components/common/ActorPortrait.svelte";
   import { sendOp } from "../../lib/docs/sendOp.js";
-  import { createDocumentId } from "@fusion/shared";
-  import { fusionApi } from "../../lib/api.js";
-  import { session } from "../../lib/session.svelte.js";
-  import { resolveAssetUrl } from "../../lib/assets/assetApi.js";
-  import FilePicker from "../assets/FilePicker.svelte";
+  import { worldMirror } from "../../lib/docs/worldSync.js";
+  import { t } from "../../lib/i18n/i18n.js";
+  import Icon from "../common/Icon.svelte";
+  import type { SceneDimensionsInput } from "../../lib/canvas/sceneCoords.js";
+  import {
+    buildCreateTokenOp,
+    defaultTokenPosition,
+    filterTokenActorOptions,
+    isTokenAddFormValid,
+    toTokenActorOptions,
+    validateTokenAddForm,
+    type MinimalActorDoc,
+    type TokenActorOption,
+    type TokenAddFormData,
+    type TokenAddFormErrors,
+  } from "../../lib/scenes/tokenAddDialogVM.js";
 
   // ---- Props ----
 
   const {
     sceneId,
+    scene,
     onClose,
     onSuccess,
     socket,
   }: {
     sceneId: string;
+    scene: SceneDimensionsInput;
     onClose: () => void;
     onSuccess: () => void;
     socket: Socket;
   } = $props();
 
-  // ---- Form state ----
+  // ---- Actor list (REQ-TOK-002: picking one is mandatory) ----
 
-  interface TokenFormData {
-    name: string;
-    texture: string;
-    x: number;
-    y: number;
-    width: number;
-    height: number;
-  }
-
-  let formData = $state<TokenFormData>({
-    name: "New Token",
-    texture: "",
-    x: 0,
-    y: 0,
-    width: 1,
-    height: 1,
-  });
-
-  interface TokenFormErrors {
-    name?: string;
-    texture?: string;
-    x?: string;
-    y?: string;
-    width?: string;
-    height?: string;
-  }
-
-  let errors = $state<TokenFormErrors>({});
-  let submitting = $state(false);
-  let serverError = $state<string | null>(null);
-  let showFilePicker = $state(false);
-
-  // BUG A FIX: formData.texture is stored as a clean "/assets/<name>" path
-  // (see resolveAssetUrl()'s doc comment) — the <img> preview below needs a
-  // freshly-minted query token to actually load it, otherwise the server's
-  // static route 401s. External URLs pass through resolveAssetUrl() unchanged.
-  let previewUrl = $state<string | null>(null);
+  let actors = $state<TokenActorOption[]>(
+    toTokenActorOptions(worldMirror.getByType<MinimalActorDoc>("Actor")),
+  );
 
   $effect(() => {
-    const raw = formData.texture.trim();
-    if (!raw) {
-      previewUrl = null;
-      return;
-    }
-    const accessToken = fusionApi.getToken();
-    const userId = session.user?.id;
-    if (!accessToken || !userId) {
-      previewUrl = raw;
-      return;
-    }
-    let cancelled = false;
-    void resolveAssetUrl(raw, accessToken, userId).then((url) => {
-      if (!cancelled) previewUrl = url;
+    const unsubscribe = worldMirror.subscribe<MinimalActorDoc>("Actor", (docs) => {
+      actors = toTokenActorOptions(docs);
     });
-    return () => { cancelled = true; };
+    actors = toTokenActorOptions(worldMirror.getByType<MinimalActorDoc>("Actor"));
+    return unsubscribe;
   });
 
-  // ---- Validation ----
+  let actorQuery = $state("");
+  const filteredActors = $derived(filterTokenActorOptions(actors, actorQuery));
 
-  function validate(data: TokenFormData): TokenFormErrors {
-    const errs: TokenFormErrors = {};
-    if (!data.name.trim()) errs.name = "Name is required.";
-    else if (data.name.trim().length > 128) errs.name = "Name must be 128 chars or fewer.";
-    if (!Number.isInteger(data.width) || data.width < 1) errs.width = "Width must be at least 1.";
-    if (!Number.isInteger(data.height) || data.height < 1) errs.height = "Height must be at least 1.";
-    return errs;
-  }
+  // ---- Form state ----
 
-  function isValid(errs: TokenFormErrors): boolean {
-    return Object.keys(errs).length === 0;
-  }
+  // `untrack`: the starting position is read from `scene` ONCE, when the dialog opens —
+  // not recomputed every time the scene document changes underneath an open dialog,
+  // which would silently move whatever the GM already typed.
+  let formData = $state<TokenAddFormData>({
+    actorId: "",
+    name: "",
+    ...untrack(() => defaultTokenPosition(scene)),
+    hidden: false,
+  });
+
+  const selectedActor = $derived(actors.find((a) => a.id === formData.actorId) ?? null);
+
+  // Validated eagerly (not just on mount): `render()` from `svelte/server` — the
+  // component-test instrument this repo uses for first-paint assertions — never runs
+  // lifecycle hooks, so an `onMount`-only validation would leave `errors` empty on
+  // every SSR string and mask CA-TOK-003's "legible reason" in the very test meant to
+  // prove it. Computing it here also removes the one-tick flash of an unlabeled
+  // required field a real mount used to have before `onMount` fired.
+  let errors = $state<TokenAddFormErrors>(validateTokenAddForm(formData));
+  let submitting = $state(false);
+  let serverError = $state<string | null>(null);
 
   // ---- Handlers ----
 
   function handleInput(): void {
-    errors = validate(formData);
+    errors = validateTokenAddForm(formData);
     serverError = null;
+  }
+
+  function selectActor(id: string): void {
+    formData.actorId = id;
+    actorQuery = "";
+    handleInput();
+  }
+
+  function clearActor(): void {
+    formData.actorId = "";
+    handleInput();
   }
 
   async function handleSubmit(e: Event): Promise<void> {
     e.preventDefault();
-    errors = validate(formData);
-    if (!isValid(errors)) return;
+    errors = validateTokenAddForm(formData);
+    if (!isTokenAddFormValid(errors)) return;
 
     submitting = true;
     serverError = null;
 
     try {
-      await sendOp(socket, {
-        type: "doc:update",
-        payload: {
-          documentType: "Scene",
-          updates: [
-            {
-              _id: sceneId,
-              diff: {
-                tokens: {
-                  $push: {
-                    _id: createDocumentId(),
-                    name: formData.name.trim(),
-                    texture: formData.texture.trim() || null,
-                    x: formData.x,
-                    y: formData.y,
-                    width: formData.width,
-                    height: formData.height,
-                    rotation: 0,
-                    hidden: false,
-                    disposition: 0,
-                    elevation: 0,
-                    bar1: { attribute: null },
-                    bar2: { attribute: null },
-                  },
-                },
-              },
-            },
-          ],
-        },
-      });
+      await sendOp(socket, buildCreateTokenOp(sceneId, formData));
       onSuccess();
     } catch (err) {
-      serverError = err instanceof Error ? err.message : "An unexpected error occurred.";
+      serverError = err instanceof Error ? err.message : t("FUSION.Scenes.TokenAdd.UnexpectedError");
     } finally {
       submitting = false;
     }
@@ -180,83 +163,112 @@
 <dialog
   class="token-dialog"
   open
-  aria-label="Add token"
+  aria-label={t("FUSION.Scenes.TokenAdd.Title")}
   onkeydown={handleKeydown}
 >
   <header class="dialog__header">
-    <h2 class="dialog__title">Add Token</h2>
-    <button class="dialog__close btn btn--icon" onclick={onClose} aria-label="Close dialog">
-      &#x2715;
+    <h2 class="dialog__title">{t("FUSION.Scenes.TokenAdd.Title")}</h2>
+    <button
+      class="dialog__close btn btn--icon"
+      onclick={onClose}
+      aria-label={t("FUSION.Dialog.Close")}
+      title={t("FUSION.Dialog.Close")}
+    >
+      <Icon name="x" size={18} />
     </button>
   </header>
 
   <form class="dialog__body" onsubmit={handleSubmit} novalidate>
-    <!-- Name -->
+    <!-- Actor (REQ-TOK-002, DEC-TOK-04: required — CA-TOK-003) -->
+    <div class="field" class:field--error={!!errors.actorId}>
+      <label class="field__label" for="token-actor-search">
+        {t("FUSION.Scenes.TokenAdd.ActorLabel")}
+      </label>
+
+      {#if selectedActor}
+        <div class="actor-selected">
+          <ActorPortrait
+            img={selectedActor.img}
+            docRef={{ table: "actors", id: selectedActor.id }}
+            name={selectedActor.name}
+            size={28}
+          />
+          <span class="actor-selected__name">{selectedActor.name}</span>
+          <button
+            type="button"
+            class="btn btn--ghost btn--sm"
+            onclick={clearActor}
+            disabled={submitting}
+          >
+            {t("FUSION.Scenes.TokenAdd.ActorChange")}
+          </button>
+        </div>
+      {:else}
+        <input
+          id="token-actor-search"
+          class="field__input"
+          type="text"
+          bind:value={actorQuery}
+          placeholder={t("FUSION.Scenes.TokenAdd.ActorSearchPlaceholder")}
+          autocomplete="off"
+          disabled={submitting}
+        />
+        <ul class="actor-list" role="listbox" aria-label={t("FUSION.Scenes.TokenAdd.ActorLabel")}>
+          {#each filteredActors as actor (actor.id)}
+            <li>
+              <button
+                type="button"
+                class="actor-option"
+                role="option"
+                aria-selected="false"
+                onclick={() => selectActor(actor.id)}
+                disabled={submitting}
+              >
+                <ActorPortrait
+                  img={actor.img}
+                  docRef={{ table: "actors", id: actor.id }}
+                  name={actor.name}
+                  size={24}
+                />
+                <span class="actor-option__name">{actor.name}</span>
+              </button>
+            </li>
+          {:else}
+            <li class="actor-list__empty">{t("FUSION.Scenes.TokenAdd.ActorNoResults")}</li>
+          {/each}
+        </ul>
+      {/if}
+
+      {#if errors.actorId}
+        <span class="field__error" role="alert">{t(errors.actorId)}</span>
+      {/if}
+    </div>
+
+    <!-- Name (optional override — blank inherits the actor's own, REQ-TOK-060) -->
     <div class="field" class:field--error={!!errors.name}>
-      <label class="field__label" for="token-name">Name</label>
+      <label class="field__label" for="token-name">
+        {t("FUSION.Scenes.TokenAdd.NameLabel")}
+        <span class="field__optional">{t("FUSION.Scenes.TokenAdd.NameOptional")}</span>
+      </label>
       <input
         id="token-name"
         class="field__input"
         type="text"
         bind:value={formData.name}
         oninput={handleInput}
-        placeholder="Goblin Warrior"
         maxlength="128"
         autocomplete="off"
         disabled={submitting}
-        required
       />
       {#if errors.name}
-        <span class="field__error" role="alert">{errors.name}</span>
-      {/if}
-    </div>
-
-    <!-- Texture / art -->
-    <div class="field" class:field--error={!!errors.texture}>
-      <label class="field__label" for="token-texture">
-        Texture <span class="field__optional">(optional)</span>
-      </label>
-      <div class="field__asset-row">
-        <input
-          id="token-texture"
-          class="field__input field__input--grow"
-          type="text"
-          bind:value={formData.texture}
-          oninput={handleInput}
-          placeholder="https://… or pick from assets"
-          disabled={submitting}
-        />
-        <button
-          type="button"
-          class="btn btn--ghost btn--sm"
-          onclick={() => { showFilePicker = true; }}
-          disabled={submitting}
-          aria-label="Browse assets"
-          title="Browse world assets"
-        >
-          &#128247;
-        </button>
-      </div>
-      {#if previewUrl && !submitting}
-        <div class="field__preview">
-          <img
-            class="field__preview-img"
-            src={previewUrl}
-            alt="Token texture preview"
-            loading="lazy"
-            onerror={(e) => { (e.target as HTMLImageElement).style.display = "none"; }}
-          />
-        </div>
-      {/if}
-      {#if errors.texture}
-        <span class="field__error" role="alert">{errors.texture}</span>
+        <span class="field__error" role="alert">{t(errors.name)}</span>
       {/if}
     </div>
 
     <!-- Position row -->
     <div class="field-row">
-      <div class="field" class:field--error={!!errors.x}>
-        <label class="field__label" for="token-x">X (px)</label>
+      <div class="field">
+        <label class="field__label" for="token-x">{t("FUSION.Scenes.TokenAdd.XLabel")}</label>
         <input
           id="token-x"
           class="field__input"
@@ -268,8 +280,8 @@
           disabled={submitting}
         />
       </div>
-      <div class="field" class:field--error={!!errors.y}>
-        <label class="field__label" for="token-y">Y (px)</label>
+      <div class="field">
+        <label class="field__label" for="token-y">{t("FUSION.Scenes.TokenAdd.YLabel")}</label>
         <input
           id="token-y"
           class="field__input"
@@ -283,43 +295,16 @@
       </div>
     </div>
 
-    <!-- Size row -->
-    <div class="field-row">
-      <div class="field" class:field--error={!!errors.width}>
-        <label class="field__label" for="token-w">Width (cells)</label>
-        <input
-          id="token-w"
-          class="field__input"
-          type="number"
-          bind:value={formData.width}
-          oninput={handleInput}
-          min="1"
-          max="10"
-          step="1"
-          disabled={submitting}
-        />
-        {#if errors.width}
-          <span class="field__error" role="alert">{errors.width}</span>
-        {/if}
-      </div>
-      <div class="field" class:field--error={!!errors.height}>
-        <label class="field__label" for="token-h">Height (cells)</label>
-        <input
-          id="token-h"
-          class="field__input"
-          type="number"
-          bind:value={formData.height}
-          oninput={handleInput}
-          min="1"
-          max="10"
-          step="1"
-          disabled={submitting}
-        />
-        {#if errors.height}
-          <span class="field__error" role="alert">{errors.height}</span>
-        {/if}
-      </div>
-    </div>
+    <!-- Hidden (REQ-TOK-024: overridable at creation) -->
+    <label class="checkbox-row">
+      <input
+        type="checkbox"
+        bind:checked={formData.hidden}
+        onchange={handleInput}
+        disabled={submitting}
+      />
+      <span>{t("FUSION.Scenes.TokenAdd.HiddenLabel")}</span>
+    </label>
 
     {#if serverError}
       <div class="server-error" role="alert">{serverError}</div>
@@ -327,38 +312,24 @@
 
     <footer class="dialog__footer">
       <button type="button" class="btn btn--ghost" onclick={onClose} disabled={submitting}>
-        Cancel
+        {t("FUSION.Dialog.Cancel")}
       </button>
       <button
         type="submit"
         class="btn btn--primary"
-        disabled={submitting || !isValid(validate(formData))}
+        disabled={submitting || !isTokenAddFormValid(validateTokenAddForm(formData))}
       >
-        {submitting ? "Adding…" : "Add Token"}
+        {submitting ? t("FUSION.Scenes.TokenAdd.Submitting") : t("FUSION.Scenes.TokenAdd.Submit")}
       </button>
     </footer>
   </form>
 </dialog>
 
-<!-- FilePicker rendered outside dialog -->
-{#if showFilePicker}
-  {@const tok = fusionApi.getToken() ?? ""}
-  <FilePicker
-    token={tok}
-    onSelect={(path) => {
-      formData.texture = path;
-      errors = validate(formData);
-      showFilePicker = false;
-    }}
-    onClose={() => { showFilePicker = false; }}
-  />
-{/if}
-
 <style>
   .dialog-backdrop {
     position: fixed;
     inset: 0;
-    background: rgba(0, 0, 0, 0.55);
+    background: color-mix(in srgb, var(--fusion-bg) 72%, transparent);
     z-index: 200;
   }
 
@@ -371,7 +342,7 @@
     background: var(--fusion-surface);
     border: 1px solid var(--fusion-border);
     border-radius: var(--fusion-radius-lg);
-    box-shadow: 0 24px 64px rgba(0, 0, 0, 0.6);
+    box-shadow: var(--fusion-shadow-modal);
     color: var(--fusion-text);
     font-family: var(--fusion-font);
     padding: 0;
@@ -394,7 +365,7 @@
   }
 
   .dialog__title {
-    font-size: 1rem;
+    font-size: var(--fusion-text-md);
     font-weight: 600;
     margin: 0;
   }
@@ -403,10 +374,14 @@
     background: transparent;
     border: none;
     color: var(--fusion-text-muted);
+    align-items: center;
+    border-radius: var(--fusion-radius-sm);
     cursor: pointer;
-    font-size: 1.1rem;
-    padding: 0.25rem;
-    line-height: 1;
+    display: inline-flex;
+    justify-content: center;
+    min-height: var(--fusion-target);
+    min-width: var(--fusion-target);
+    padding: 0;
     transition: color var(--fusion-transition);
   }
 
@@ -435,7 +410,7 @@
 
   .field__label {
     color: var(--fusion-text-muted);
-    font-size: 0.8125rem;
+    font-size: var(--fusion-text-xs);
     font-weight: 500;
   }
 
@@ -444,24 +419,14 @@
     font-weight: 400;
   }
 
-  .field__asset-row {
-    display: flex;
-    gap: 0.4rem;
-    align-items: stretch;
-  }
-
-  .field__input--grow {
-    flex: 1;
-    min-width: 0;
-  }
-
   .field__input {
+    min-height: var(--fusion-target);
     background: var(--fusion-surface-alt);
     border: 1px solid var(--fusion-border);
     border-radius: var(--fusion-radius-sm);
     color: var(--fusion-text);
     font-family: var(--fusion-font);
-    font-size: 0.875rem;
+    font-size: var(--fusion-text-sm);
     padding: 0.45rem 0.6rem;
     transition: border-color var(--fusion-transition);
     width: 100%;
@@ -469,7 +434,6 @@
 
   .field__input:focus {
     border-color: var(--fusion-accent);
-    outline: none;
   }
 
   .field__input:disabled {
@@ -483,34 +447,82 @@
 
   .field__error {
     color: var(--fusion-danger);
-    font-size: 0.75rem;
+    font-size: var(--fusion-text-xs);
   }
 
-  /* Inline preview of the selected texture URL */
-  .field__preview {
-    background: var(--fusion-bg);
+  .actor-list {
+    background: var(--fusion-surface-alt);
     border: 1px solid var(--fusion-border);
     border-radius: var(--fusion-radius-sm);
-    height: 80px;
-    overflow: hidden;
     display: flex;
-    align-items: center;
-    justify-content: center;
+    flex-direction: column;
+    list-style: none;
+    margin: 0.3rem 0 0;
+    max-height: 12rem;
+    overflow-y: auto;
+    padding: 0.25rem;
   }
 
-  .field__preview-img {
-    display: block;
-    max-height: 78px;
-    max-width: 100%;
-    object-fit: contain;
+  .actor-list__empty {
+    color: var(--fusion-text-subtle);
+    font-size: var(--fusion-text-xs);
+    padding: 0.5rem;
+  }
+
+  .actor-option {
+    align-items: center;
+    background: transparent;
+    border: none;
+    border-radius: var(--fusion-radius-sm);
+    color: var(--fusion-text);
+    cursor: pointer;
+    display: flex;
+    font-family: var(--fusion-font);
+    font-size: var(--fusion-text-sm);
+    gap: 0.5rem;
+    padding: 0.4rem 0.5rem;
+    text-align: left;
+    width: 100%;
+  }
+
+  .actor-option:hover:not(:disabled) {
+    background: var(--fusion-surface);
+  }
+
+  .actor-option:disabled {
+    cursor: not-allowed;
+    opacity: 0.5;
+  }
+
+  .actor-selected {
+    align-items: center;
+    background: var(--fusion-surface-alt);
+    border: 1px solid var(--fusion-border);
+    border-radius: var(--fusion-radius-sm);
+    display: flex;
+    gap: 0.5rem;
+    padding: 0.4rem 0.6rem;
+  }
+
+  .actor-selected__name {
+    flex: 1;
+    font-size: var(--fusion-text-sm);
+  }
+
+  .checkbox-row {
+    align-items: center;
+    cursor: pointer;
+    display: flex;
+    font-size: var(--fusion-text-sm);
+    gap: 0.5rem;
   }
 
   .server-error {
-    background: rgba(255, 92, 92, 0.12);
+    background: var(--fusion-danger-dim);
     border: 1px solid var(--fusion-danger);
     border-radius: var(--fusion-radius-sm);
     color: var(--fusion-danger);
-    font-size: 0.8125rem;
+    font-size: var(--fusion-text-xs);
     padding: 0.6rem 0.75rem;
   }
 
@@ -523,13 +535,14 @@
   }
 
   .btn {
+    min-height: var(--fusion-target);
     align-items: center;
     border: 1px solid transparent;
     border-radius: var(--fusion-radius-sm);
     cursor: pointer;
     display: inline-flex;
     font-family: var(--fusion-font);
-    font-size: 0.875rem;
+    font-size: var(--fusion-text-sm);
     font-weight: 500;
     justify-content: center;
     padding: 0.45rem 1rem;
@@ -544,7 +557,7 @@
 
   .btn--primary {
     background: var(--fusion-accent);
-    color: #fff;
+    color: var(--fusion-on-accent);
   }
 
   .btn--primary:hover:not(:disabled) {
@@ -563,8 +576,8 @@
   }
 
   .btn--sm {
-    font-size: 0.8125rem;
-    padding: 0.3rem 0.75rem;
+    font-size: var(--fusion-text-xs);
+    padding: 0.3rem 0.6rem;
   }
 
   .btn--icon {

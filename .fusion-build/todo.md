@@ -57,3 +57,39 @@ do motor que existe, mais uma camada de ligar/desligar na ficha.
 
 **Pré-requisito:** spec própria antes de implementar. Sem ela, cada estado vira
 um caso especial escrito à mão e a dívida se multiplica por classe.
+
+---
+
+## A3 — Ator nasce junto: jogador ganha personagem, NPC nasce com ficha 🆕 PEDIDO DO DONO — 2026-08-23
+
+**Origem:** pedido do dono em 2026-08-23, no meio da sessão do Elfo Ancião:
+*"Quando criar um jogador, deve criar simultaneamente um personagem para aquele
+jogador. Pode ser uma ficha crua. Ao criar um NPC, também quero que eles crie
+com ficha crua."*
+
+**Estado apurado (não é campo aberto — metade já existe):**
+
+| Metade | Onde está | Situação |
+| --- | --- | --- |
+| jogador → personagem | `specs/05-usuarios-e-permissoes.md` REQ-USR-025/025a-d; `specs/37-configuracoes.md` REQ-CFG-051/051a | **especificado E implementado** no servidor — `AuthService.createUser` cria o `character` na MESMA transação, com `ownership.default = none`, o novo usuário como `OWNER` e `flags.fusion.playerId` de volta para o usuário |
+| NPC → ficha crua | `specs/42-aba-npcs.md` REQ-NPC-040..047 (criação "do zero" pede subtipo e nome) | a spec cria o **ator**; que ele nasça com **ficha** utilizável não está escrito em lugar nenhum |
+
+**O que falta descobrir antes de mexer em código** — a metade do jogador já está
+pronta no servidor, então se o dono viu isso NÃO acontecer, o defeito está em
+outro lugar:
+
+1. A tela de criação de usuário (aba Configurações) chama `POST /api/users`, ou
+   grava o usuário por outro caminho que pula a criação do ator?
+2. O mundo `teste_xande` tem o usuário `Tobias` (PLAYER) com um ator `Tobias`
+   que é dele por `ownership` mas **não tem `flags.fusion.playerId`** — foi
+   criado antes desta implementação, ou por um caminho que não é o
+   `createUser`. Vale confirmar qual dos dois antes de concluir qualquer coisa.
+3. "Ficha crua" para NPC: o ator `npc` criado do zero abre ficha hoje? Se abre
+   vazia, o pedido já está atendido e vira só verificação; se não abre, o que
+   falta é a ficha de não-jogável — que a própria `42` §10 declara como **spec
+   futura, sem dona**.
+
+**Por que não foi feito junto:** o pedido chegou no meio de outra entrega
+(DEC-MC-01) e a resposta certa depende do item 1 acima — implementar antes de
+saber se o caminho já existe é o jeito de ganhar um segundo caminho de criação
+fazendo a mesma coisa.

@@ -248,6 +248,16 @@ fusion-data/                 → raiz do data dir (ver 03-persistencia-e-mundos.
 
 **REQ-AST-011** [MVP] Somente usuários com permissão `STORAGE_UPLOAD` (role `ASSISTANT` ou superior por padrão) DEVEM poder fazer upload. O servidor DEVE verificar a permissão via JWT antes de aceitar o multipart.
 
+> **Emenda (2026-10-11, obrigada por `specs/53-barra-de-acoes.md` §12, DEC-BAR-03):** o **envio de
+> imagem** deixa de exigir `STORAGE_UPLOAD`: todo usuário autenticado, inclusive o jogador, pode
+> enviar imagem (REQ-BAR-075), o que permite escolher o ícone de uma entrada da barra de ações. A
+> validação de tipo e tamanho (REQ-AST-007, REQ-AST-008) vale igual para todos; apagar continua
+> sendo `STORAGE_DELETE`, só do GM (REQ-AST-029); e o envio de quem não tem `STORAGE_UPLOAD` não
+> tem cota por usuário (REQ-BAR-077), de modo que a questão 1 de "Questões em Aberto" não se aplica
+> a ele. O destino desse envio é decidido pelo servidor, nunca pelo cliente (REQ-BAR-076), e o envio
+> feito pelo gesto de trocar ícone fica **marcado como ícone** no registro de assets (REQ-BAR-078,
+> REQ-BAR-103). _(A redação acima continua valendo para os demais tipos de arquivo.)_
+
 **REQ-AST-012** [MVP] Usuários com role `TRUSTED` PODEM fazer upload somente se a pasta de destino tiver sido marcada pelo GM como `upload_allowed: true` na tabela de metadados de pasta. Por padrão, nenhuma pasta tem esse atributo. Isso permite, por exemplo, liberar uma pasta de avatares de personagem para jogadores.
 
 **REQ-AST-013** [V2] O servidor DEVE suportar upload via URL remota (fetch server-side): o cliente envia `{ url: "https://..." }` e o servidor baixa, valida e armazena o arquivo, deduplicando da mesma forma.
@@ -296,6 +306,18 @@ fusion-data/                 → raiz do data dir (ver 03-persistencia-e-mundos.
 - `STORAGE_UPLOAD`: fazer upload de arquivos — padrão `ASSISTANT` (role ≥ 3)
 - `STORAGE_DELETE`: deletar arquivos — padrão `GAMEMASTER` (role = 4)
 
+> **Emenda (2026-10-11, obrigada por `specs/53-barra-de-acoes.md` §12, DEC-BAR-03):**
+> `STORAGE_BROWSE` continua a regra do Asset Browser. Quem não a tem — o jogador — ganha uma
+> **listagem restrita** que devolve só os assets marcados como ícone, a galeria compartilhada de
+> ícones (REQ-BAR-079): mapas, retratos e handouts do GM seguem fora da lista do jogador,
+> porque o nome do arquivo pode ser spoiler. Carregar a imagem de ícone obedece ao grant de leitura
+> do servidor (REQ-BAR-080). REQ-SEC-043 e REQ-SEC-044 (spec 21) recebem a exceção
+> correspondente quando a BAR-F3-05 for entregue (`53` §12). _Entregue em 2026-10-11 pela
+> BAR-F3-05:_ os ícones vivem na área reservada `actionbar-icons/` do acervo do mundo, e estar nela
+> é a marca de ícone; o envio é `POST /api/assets/upload?purpose=icon`, a galeria é
+> `GET /api/assets/icons`, que devolve com cada ícone o grant de leitura dele, e o GM apaga por
+> `DELETE /api/assets/icons/:name`.
+
 **REQ-AST-030** [MVP] O GM DEVE poder marcar pastas individuais como `upload_allowed` para estender o direito de upload a usuários com role `TRUSTED` naquela pasta específica. A marcação é feita via endpoint `PATCH /api/storage/folder` e persiste em `asset_meta` (registro de tipo `folder`).
 
 **REQ-AST-031** [MVP] O servidor DEVE verificar permissões em todos os endpoints de storage no lado do servidor, nunca confiar apenas em validações do cliente.
@@ -326,7 +348,13 @@ fusion-data/                 → raiz do data dir (ver 03-persistencia-e-mundos.
 
 ### Integração com Documents
 
-**REQ-AST-043** [MVP] Campos de path de asset em Documents (ex.: `Actor.img`, `Scene.background.src`, `Token.texture.src`) DEVEM armazenar `AssetRef` — string que é um path relativo a `fusion-data/` (ex.: `assets/tokens/goblin.webp` ou `worlds/the-lost-mine/assets/maps/dungeon01.webp`) ou uma URL absoluta iniciando com `https://`.
+**REQ-AST-043** [MVP] Campos de path de asset em Documents (ex.: `Actor.img`, `Scene.background.src`) DEVEM armazenar `AssetRef` — string que é um path relativo a `fusion-data/` (ex.: `assets/tokens/goblin.webp` ou `worlds/the-lost-mine/assets/maps/dungeon01.webp`) ou uma URL absoluta iniciando com `https://`.
+
+> **Emenda (2026-08-17, obrigada por `specs/41-token.md` §12, DEC-TOK-02):** o `AssetRef` de arte
+> de criatura vive **só** no `Actor` (`Actor.img`), nunca no token — o `TokenDocument` NÃO possui
+> campo de arte/textura/imagem (REQ-TOK-010); a arte exibida em cada peça é sempre a do ator
+> efetivo, lida a cada render. O exemplo `Token.texture.src`, que citava um campo que a `41`
+> eliminou, saiu da lista acima.
 
 **REQ-AST-044** [MVP] Ao renderizar um `AssetRef` local, o cliente DEVE construir a URL completa concatenando o host com o path do AssetRef (ex.: `http(s)://<host>/assets/<digest>/<slug>` para assets compartilhados) usando o mapeamento `path → digest` obtido de `asset_meta`. Se o digest não for conhecido pelo cliente (cache miss), o cliente solicita ao servidor via `GET /api/storage/meta?path=...`.
 
@@ -338,7 +366,7 @@ fusion-data/                 → raiz do data dir (ver 03-persistencia-e-mundos.
 
 ### Catálogo de Placeholders Livres (bundle do Fusion)
 
-> Esta seção atende à dependência declarada pela `16-compendiums-e-importacao.md` (REQ-CMP-031, D8, lista de dependências), que designa a spec 20 como dona do catálogo de ícones livres empacotados e do formato `placeholders.map`. O **placeholder de asset faltante** (REQ-AST-047) e o **catálogo de placeholders temáticos** são conceitos distintos: o primeiro é um fallback de runtime para assets corrompidos/faltantes; o segundo é um conjunto de ícones pré-embutidos para substituição legal durante importação de dados do PF2e/SF2e.
+> Esta seção atende à dependência declarada pela `16-compendiums-e-importacao.md` (REQ-CMP-031, DEC-CMP-08, lista de dependências), que designa a spec 20 como dona do catálogo de ícones livres empacotados e do formato `placeholders.map`. O **placeholder de asset faltante** (REQ-AST-047) e o **catálogo de placeholders temáticos** são conceitos distintos: o primeiro é um fallback de runtime para assets corrompidos/faltantes; o segundo é um conjunto de ícones pré-embutidos para substituição legal durante importação de dados do PF2e/SF2e.
 
 **REQ-AST-048** [MVP] O Fusion DEVE incluir no bundle do cliente (pasta `packages/client/src/assets/placeholders/`) um conjunto de ícones livres de direitos autorais, organizados como catálogo de placeholders para uso pelo importer (`tools/importer-pf2e`). Esta spec é dona do **armazenamento e serving** do catálogo; o **manifesto dos placeholders faltantes/necessários** é gerado pelo importer da spec 16 (`ver 16-compendiums-e-importacao.md` REQ-CMP-033) e orienta a curadoria deste catálogo:
 

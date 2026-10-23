@@ -3,7 +3,12 @@
  */
 
 import { describe, it, expect } from "vitest";
-import { ScrollStateManager, type ScrollStateCallbacks } from "../scrollState.js";
+import {
+  ScrollStateManager,
+  lastMessageStamp,
+  logPositionToKeep,
+  type ScrollStateCallbacks,
+} from "../scrollState.js";
 
 function makeCallbacks(): {
   callbacks: ScrollStateCallbacks;
@@ -101,5 +106,79 @@ describe("ScrollStateManager", () => {
     sm.forceScrollToBottom();
     expect(sm.pinned).toBe(true);
     expect(result.state.scrollCalls).toBeGreaterThan(0);
+  });
+
+  // REQ-ACH-081: an invalidated message stays in the log at the same
+  // position, with a distinct presentation — it does not re-append, so the
+  // log's length never changes. A pinned reader must still see the true end
+  // once that row grows a line (see also `lastMessageStamp` below).
+  describe("onLastMessageResized", () => {
+    it("re-scrolls to bottom when pinned, without touching the pending count", () => {
+      const result = makeCallbacks();
+      const sm = new ScrollStateManager(result.callbacks);
+      expect(sm.pinned).toBe(true);
+      sm.onLastMessageResized();
+      expect(result.state.scrollCalls).toBe(1);
+      expect(sm.pendingCount).toBe(0);
+      // No indicator flip either — an in-place edit is not a "new message".
+      expect(result.indicatorCalls).toEqual([]);
+    });
+
+    it("does nothing when not pinned (REQ-ACH-006 governs arrivals, not edits)", () => {
+      const result = makeCallbacks();
+      const sm = new ScrollStateManager(result.callbacks);
+      sm.onScroll(0, 1000, 300); // unpin
+      const scrollBefore = result.state.scrollCalls;
+      sm.onLastMessageResized();
+      expect(result.state.scrollCalls).toBe(scrollBefore);
+      expect(sm.pendingCount).toBe(0);
+    });
+  });
+});
+
+describe("lastMessageStamp", () => {
+  it("returns null for an empty log", () => {
+    expect(lastMessageStamp([])).toBeNull();
+  });
+
+  it("changes when the last message's invalid flag toggles, id staying the same", () => {
+    const before = lastMessageStamp([{ _id: "m1", invalid: false }]);
+    const after = lastMessageStamp([{ _id: "m1", invalid: true }]);
+    expect(before).not.toBe(after);
+  });
+
+  it("is stable across renders when nothing about the last message changed", () => {
+    const a = lastMessageStamp([
+      { _id: "m1", invalid: false },
+      { _id: "m2", invalid: false },
+    ]);
+    const b = lastMessageStamp([
+      { _id: "m1", invalid: false },
+      { _id: "m2", invalid: false },
+    ]);
+    expect(a).toBe(b);
+  });
+
+  it("treats an absent invalid flag the same as false (never-invalidated messages)", () => {
+    const withoutFlag = lastMessageStamp([{ _id: "m1" }]);
+    const withFalseFlag = lastMessageStamp([{ _id: "m1", invalid: false }]);
+    expect(withoutFlag).toBe(withFalseFlag);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// Where the log reopens (REQ-ACH-026) — fechamento 22/10/2026
+// ---------------------------------------------------------------------------
+
+describe("logPositionToKeep — o que a sessão guarda da posição do log (REQ-ACH-026)", () => {
+  // Ao vivo: trocar de aba e voltar abria o log no topo do histórico (scrollTop 0), escondendo o que acabara de
+  // chegar. A posição era lida no onDestroy, com o elemento já fora do documento (scrollTop 0); agora é guardada a
+  // cada rolagem, e quem estava no fim volta para o fim.
+  it("quem estava no fim do log volta para o fim (nada guardado)", () => {
+    expect(logPositionToKeep(7432, true)).toBeNull();
+  });
+
+  it("quem tinha rolado para cima volta exatamente para onde estava", () => {
+    expect(logPositionToKeep(512, false)).toBe(512);
   });
 });

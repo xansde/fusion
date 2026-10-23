@@ -537,3 +537,156 @@ describe("Cascade positioning", () => {
     expect(unique.size).toBe(6);
   });
 });
+
+// ---------------------------------------------------------------------------
+// Narrow screens (phone): the window never sits outside the viewport
+// ---------------------------------------------------------------------------
+
+describe("narrow viewport (phone)", () => {
+  const PHONE: ViewportSize = { width: 390, height: 780 };
+
+  function insideViewport(g: { top: number; left: number; width: number; height: number }): void {
+    expect(g.left).toBeGreaterThanOrEqual(0);
+    expect(g.top).toBeGreaterThanOrEqual(0);
+    expect(g.left + g.width).toBeLessThanOrEqual(PHONE.width);
+    expect(g.top + g.height).toBeLessThanOrEqual(PHONE.height);
+  }
+
+  it("a sheet-sized window is shrunk to the screen and pinned to its left edge", () => {
+    const r = clampToViewport({ top: 80, left: 80, width: 640, height: 480 }, PHONE);
+    expect(r.width).toBe(PHONE.width);
+    expect(r.left).toBe(0);
+    insideViewport(r);
+  });
+
+  it("a minimum width larger than the screen does not push the window out", () => {
+    const r = clampToViewport({ top: 0, left: 0, width: 300, height: 300 }, PHONE, 40, 620, 100);
+    expect(r.width).toBe(PHONE.width);
+    insideViewport(r);
+  });
+
+  it("left and top cannot go negative or past the far edges", () => {
+    const a = clampToViewport({ top: -40, left: -300, width: 300, height: 300 }, PHONE);
+    expect(a.left).toBe(0);
+    expect(a.top).toBe(0);
+    const b = clampToViewport({ top: 900, left: 900, width: 300, height: 300 }, PHONE);
+    insideViewport(b);
+  });
+
+  it("open() with the default cascade position lands fully on screen", () => {
+    localStorageMock.clear();
+    const mgr = new WindowManager();
+    mgr.viewport = PHONE;
+    for (let i = 0; i < 5; i += 1) {
+      const h = mgr.open({ title: `W${String(i)}`, position: { width: 640, height: 480 } });
+      insideViewport(mgr.windows.get(h.id)!);
+    }
+  });
+
+  it("a saved position from a big screen comes back inside the phone screen", () => {
+    localStorageMock.clear();
+    const big = new WindowManager();
+    big.viewport = { width: 2560, height: 1440 };
+    const h = big.open({ title: "Sheet", singletonKey: "persist:phone" });
+    big.setPosition(h.id, { top: 900, left: 1800, width: 700, height: 500 });
+    big.close(h.id);
+
+    const phone = new WindowManager();
+    phone.viewport = PHONE;
+    const h2 = phone.open({ title: "Sheet", singletonKey: "persist:phone" });
+    insideViewport(phone.windows.get(h2.id)!);
+  });
+
+  it("dragging or resizing on a phone keeps the window inside", () => {
+    localStorageMock.clear();
+    const mgr = new WindowManager();
+    mgr.viewport = PHONE;
+    const h = mgr.open({ title: "A", position: { width: 300, height: 300 } });
+    mgr.setPosition(h.id, { left: 5000, top: 5000 });
+    insideViewport(mgr.windows.get(h.id)!);
+    mgr.setPosition(h.id, { left: -5000, top: -5000, width: 2000, height: 2000 });
+    insideViewport(mgr.windows.get(h.id)!);
+  });
+
+  it("rotating or shrinking to a phone re-fits every open window", () => {
+    const mgr = freshManager();
+    mgr.open({ title: "A", position: { width: 640, height: 480, top: 300, left: 600 } });
+    mgr.onViewportResize(PHONE);
+    for (const w of mgr.windows.values()) insideViewport(w);
+  });
+
+  it("a desktop viewport keeps letting a window hang partly off the edge", () => {
+    const r = clampToViewport({ top: 100, left: -500, width: 400, height: 300 }, VP);
+    expect(r.left).toBe(-360);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// Pop-out (window detached into its own browser window)
+// ---------------------------------------------------------------------------
+
+describe("pop-out", () => {
+  it("a window is not poppable unless it asks to be", () => {
+    const mgr = freshManager();
+    const plain = mgr.open({ title: "Plain" });
+    const sheet = mgr.open({ title: "Sheet", poppable: true });
+    expect(mgr.windows.get(plain.id)?.poppable).toBe(false);
+    expect(mgr.windows.get(sheet.id)?.poppable).toBe(true);
+    expect(mgr.windows.get(sheet.id)?.poppedOut).toBe(false);
+  });
+
+  it("popOut marks a poppable window as detached and popIn brings it back", () => {
+    const mgr = freshManager();
+    const h = mgr.open({ title: "Sheet", poppable: true });
+    mgr.popOut(h.id);
+    expect(mgr.windows.get(h.id)?.poppedOut).toBe(true);
+    mgr.popIn(h.id);
+    expect(mgr.windows.get(h.id)?.poppedOut).toBe(false);
+  });
+
+  it("popOut ignores a window that is not poppable", () => {
+    const mgr = freshManager();
+    const h = mgr.open({ title: "Plain" });
+    mgr.popOut(h.id);
+    expect(mgr.windows.get(h.id)?.poppedOut).toBe(false);
+  });
+
+  it("popping out clears a pending notice and restores a minimized window", () => {
+    const mgr = freshManager();
+    const h = mgr.open({ title: "Sheet", poppable: true });
+    mgr.minimize(h.id);
+    mgr.setNotice(h.id, "blocked");
+    expect(mgr.windows.get(h.id)?.notice).toBe("blocked");
+    mgr.popOut(h.id);
+    const e = mgr.windows.get(h.id);
+    expect(e?.notice).toBeUndefined();
+    expect(e?.minimized).toBe(false);
+  });
+
+  it("setNotice with undefined removes the notice", () => {
+    const mgr = freshManager();
+    const h = mgr.open({ title: "Sheet", poppable: true });
+    mgr.setNotice(h.id, "blocked");
+    mgr.setNotice(h.id, undefined);
+    expect(mgr.windows.get(h.id)?.notice).toBeUndefined();
+  });
+
+  it("re-opening a popped-out singleton keeps the same detached window (no duplicate)", () => {
+    const mgr = freshManager();
+    const a = mgr.open({ title: "Sheet", singletonKey: "sheet:1", poppable: true });
+    mgr.popOut(a.id);
+    const b = mgr.open({ title: "Sheet", singletonKey: "sheet:1", poppable: true });
+    expect(b.id).toBe(a.id);
+    expect(mgr.windows.size).toBe(1);
+    expect(mgr.windows.get(a.id)?.poppedOut).toBe(true);
+  });
+
+  it("the popped-out state is never persisted: a reopened window starts inside", () => {
+    const mgr = freshManager();
+    const a = mgr.open({ title: "Sheet", singletonKey: "sheet:2", poppable: true });
+    mgr.popOut(a.id);
+    mgr.close(a.id);
+    const b = mgr.open({ title: "Sheet", singletonKey: "sheet:2", poppable: true });
+    expect(mgr.windows.get(b.id)?.poppedOut).toBe(false);
+  });
+});

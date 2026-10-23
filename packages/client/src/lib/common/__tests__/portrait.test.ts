@@ -17,6 +17,11 @@ describe("portraitInitials", () => {
     expect(portraitInitials("Bigodes")).toBe("BI");
   });
 
+  it("skips punctuation: an acronym-like name still gets two letters", () => {
+    expect(portraitInitials("C.L.A.U.D.E.")).toBe("CL");
+    expect(portraitInitials("(Huo) Jinwu")).toBe("HJ");
+  });
+
   it("returns first-of-first + first-of-last for a two-word name", () => {
     expect(portraitInitials("Tobias Grimwald")).toBe("TG");
   });
@@ -88,5 +93,19 @@ describe("isPortraitPlaceholder", () => {
     expect(isPortraitPlaceholder("/assets/finn-a3b4c5d6.webp")).toBe(false);
     expect(isPortraitPlaceholder("https://example.com/portrait.png")).toBe(false);
     expect(isPortraitPlaceholder("data:image/png;base64,AAAA")).toBe(false);
+  });
+});
+
+describe("PORTRAIT_PALETTE — white initials meet WCAG AA (ui-acabamento)", () => {
+  const luminance = (hex: string): number => {
+    const [r, g, b] = [1, 3, 5]
+      .map((i) => parseInt(hex.slice(i, i + 2), 16) / 255)
+      .map((v) => (v <= 0.03928 ? v / 12.92 : ((v + 0.055) / 1.055) ** 2.4));
+    return 0.2126 * r! + 0.7152 * g! + 0.0722 * b!;
+  };
+
+  it.each([...PORTRAIT_PALETTE])("%s carries white text at 4.5:1 or more", (color) => {
+    // axe-core measured the teal at 4.11:1 on the Contatos card — small initials need 4.5:1.
+    expect((1 + 0.05) / (luminance(color) + 0.05)).toBeGreaterThanOrEqual(4.5);
   });
 });

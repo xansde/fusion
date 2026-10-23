@@ -1,0 +1,656 @@
+/**
+ * Roll resolution on the server — BHR-F2-05 (imports ALQ-F4-09).
+ *
+ * Spec 52 REQ-BHR-051..053, REQ-BHR-069/070; plan of the Alquimista §2.8
+ * ("RuleElementRegistry e RollNotes"); DF-16/DF-17: the roll's CONTEXT travels
+ * in the op (`flags.fusion.rollContext`), and the notes, the degree and the
+ * conditional modifiers are resolved HERE, never on the client.
+ *
+ * Steps, as `chat-handler.ts` drives them for a `/r` command that carries a
+ * `rollContext`:
+ *
+ *   1. `prepareRollResolution` — BEFORE the dice: validates that the roller may
+ *      speak for `rollContext.actorId` (OWNER, or a privileged role), keeps only the
+ *      `action:*` options the client sent (every other option is the server's to
+ *      write), RE-DERIVES the actor from the stored row (a stale
+ *      `system.derived` is never what a bonus is read from), gathers the options
+ *      of the roll's single target (its marks from the `TokenMarkSource`, its
+ *      conditions from its own row) and asks the system's resolver for the
+ *      conditional modifiers and notes. The modifiers' stacked total is then
+ *      appended to the client's formula, so the server's roll — total, terms
+ *      and degree — already counts them.
+ *   2. `finalizeRollResolution` — AFTER grading: keeps only the notes whose
+ *      `outcome` matches the graded degree and writes `flags.fusion.rollContext`,
+ *      `flags.fusion.rollNotes` and `flags.fusion.conditionalModifiers`.
+ *   3. `runRollResolvedHooks` — after the message is persisted and before it is
+ *      broadcast: the system's `onRollResolved` callbacks, ONCE per roll, in
+ *      series, each error-isolated (REQ-SYS-139 discipline).
+ *
+ * THE TARGET. The roll's target is the ONE the chat handler resolved from
+ * `payload.target` — the same that grades the roll and feeds the MAP (B1): with
+ * exactly one entry, that token is the target; with none, the resolver is told
+ * there is no target and a `target:`-predicated modifier stays unresolved (an absent option is false, so `not target:x` would otherwise pass
+ * — the warning of BHR-F2-02). `origin` (the attacker, when the roller defends)
+ * has no source yet: it is always `null` until a defence roll carries its
+ * attacker.
+ *
+ * THE MARKS. `TokenMark` (BHR-F3-06) does not exist yet. The marks a target
+ * carries come from an injectable `TokenMarkSource`; the default source knows
+ * none. BHR-F3-06 plugs its reader (`getMarksOn`) in through
+ * `WorldNamespaceOptions.tokenMarkSource`.
+ */
+
+import type { Logger } from "pino";
+import { extractFlavor } from "@fusion/shared";
+import type {
+  ChatMessage,
+  FusionRollContext,
+  FusionStatisticRef,
+  ResolvedRollModifier,
+  ResolvedRollNote,
+  RollBreakdownFlag,
+  RollBreakdownPart,
+  RollDamageComponent,
+  RollDamageFlag,
+} from "@fusion/shared";
+import type {
+  ResolvedExtraDamage,
+  RollDamageAnswer,
+  RollDamageInput,
+  RollResolutionParty,
+  RollTargetSnapshotEntry,
+  SystemModule,
+  TurnHookContext,
+} from "@fusion/system-api";
+
+import type { DocumentStore } from "../documents/store.js";
+import { isRolePrivileged, testOwnership, OwnershipLevel } from "../documents/ownership.js";
+import type { Ownership, UserRole } from "../documents/ownership.js";
+import { runActorDerivation } from "../net/derive-runner.js";
+import { resolveWorldVariantRules } from "../documents/world-variant-rules.js";
+import { createStubTurnHookContextServices } from "../combat/turn-hook-runner.js";
+import { activeCompanionMasterId } from "../combat/companion-active-handler.js";
+
+// ---------------------------------------------------------------------------
+// Injectable sources
+// ---------------------------------------------------------------------------
+
+/**
+ * Where the marks on a roll's target come from (`target:mark:<slug>`). Answers
+ * the slugs of the marks the ROLLER placed on that token (or, once BHR-F3-06 and
+ * the CompanionLink land, its owner's — DC-08). BHR-F3-06 provides the real one.
+ */
+export interface TokenMarkSource {
+  marksOn(query: {
+    rollerActorId: string;
+    targetTokenId: string;
+    targetActorId: string | null;
+  }): readonly string[];
+}
+
+/** The default until `TokenMark` exists: no token carries a mark. */
+export const NO_TOKEN_MARKS: TokenMarkSource = { marksOn: () => [] };
+
+// ---------------------------------------------------------------------------
+// Flag keys — flags.fusion.*
+// ---------------------------------------------------------------------------
+
+const FUSION_FLAG_NAMESPACE = "fusion" as const;
+export const ROLL_CONTEXT_FLAG_KEY = "rollContext" as const;
+export const ROLL_NOTES_FLAG_KEY = "rollNotes" as const;
+export const CONDITIONAL_MODIFIERS_FLAG_KEY = "conditionalModifiers" as const;
+export const ROLL_BREAKDOWN_FLAG_KEY = "breakdown" as const;
+/** `flags.fusion.damage` — the damage components of a damage roll, server-written (#225, REQ-SYS-166). */
+export const ROLL_DAMAGE_FLAG_KEY = "damage" as const;
+
+/**
+ * The only options the client may DESCRIBE a roll with (I2, DF-17). Everything
+ * else — `target:`/`origin:`, `feat:`, `effect:`, `item:`, switches... — is the
+ * server's to write, derived from the re-derived actor and the resolved target.
+ */
+const CLIENT_OPTION_PREFIXES = ["action:"] as const;
+
+// ---------------------------------------------------------------------------
+// Types
+// ---------------------------------------------------------------------------
+
+export interface RollResolutionDeps {
+  store?: DocumentStore;
+  systemModule?: SystemModule;
+  tokenMarkSource?: TokenMarkSource;
+  logger?: Pick<Logger, "error">;
+}
+
+export interface PreparedRollResolution {
+  rollContext: FusionRollContext;
+  modifiers: readonly ResolvedRollModifier[];
+  /** Stacked sum of `modifiers` — appended to the client's formula. */
+  total: number;
+  notes: readonly ResolvedRollNote[];
+  /**
+   * The options of the roll's single target, as the SERVER resolved them for the resolver
+   * (`mark:<slug>`, `condition:<slug>`): the same list, handed to `onRollResolved` so an
+   * `after-roll` predicate over `target:*` judges the very target the roll was graded against.
+   */
+  targetOptions: readonly string[];
+  /**
+   * Extra damage dice the roller's effects earn (BHR-F4-09). NOT folded into `total`: the server gates them
+   * (the Strike hit, the companion's reach) in `settleExtraDamage` before they join the formula.
+   */
+  extraDamage: readonly ResolvedExtraDamage[];
+}
+
+// ---------------------------------------------------------------------------
+// 1. Before the dice
+// ---------------------------------------------------------------------------
+
+/**
+ * Resolve the roll's context, or `null` when there is nothing to resolve: no
+ * `rollContext` in the payload, no store/system to resolve with, or an actor
+ * the roller may not speak for (a forged `actorId` buys nothing — the roll
+ * goes out as a plain roll of the client's formula, without a context).
+ */
+export function prepareRollResolution(
+  deps: RollResolutionDeps,
+  rawContext: FusionRollContext | undefined,
+  roller: { userId: string; role: UserRole },
+  snapshot: readonly RollTargetSnapshotEntry[],
+): PreparedRollResolution | null {
+  if (rawContext === undefined) return null;
+  const { store, systemModule } = deps;
+  if (!store || !systemModule) return null;
+
+  const actor = readActor(store, rawContext.actorId);
+  if (actor === null) return null;
+  if (!mayRollFor(actor, roller)) return null;
+
+  const rollContext: FusionRollContext = {
+    ...rawContext,
+    options: rawContext.options.filter((o) =>
+      CLIENT_OPTION_PREFIXES.some((prefix) => o.startsWith(prefix)),
+    ),
+  };
+
+  const resolver = systemModule.rollResolver;
+  if (!resolver) {
+    return { rollContext, modifiers: [], total: 0, notes: [], targetOptions: [], extraDamage: [] };
+  }
+
+  // The resolver is system code: a throw must not take the roll down with it.
+  // The roll then goes out as it did before this task — the client's formula,
+  // no context, no hook (an `after-roll` effect must not be consumed by a roll
+  // whose bonus was never counted).
+  let resolution: ReturnType<typeof resolver.resolve>;
+  let targetOptions: readonly string[] = [];
+  try {
+    const derived = rederive(actor, store, systemModule);
+    const target =
+      snapshot.length === 1 && snapshot[0] !== undefined
+        ? targetParty(
+            store,
+            deps.tokenMarkSource ?? NO_TOKEN_MARKS,
+            rollContext.actorId,
+            snapshot[0],
+          )
+        : null;
+    // An ACTIVE animal companion rolls with its owner at hand (DC-08): the system decides what is shared.
+    const masterId = activeCompanionMasterId(actor);
+    const master = masterId === undefined ? null : readActor(store, masterId);
+    resolution = resolver.resolve({
+      actor: derived,
+      rollContext,
+      target,
+      origin: null,
+      companions: companionsOf(store, rollContext.actorId),
+      masterActor: master === null ? null : rederive(master, store, systemModule),
+    });
+    targetOptions = target?.options ?? [];
+  } catch (err) {
+    deps.logger?.error(
+      { err, systemId: systemModule.manifest.id, actorId: rollContext.actorId },
+      "[roll-resolution] roll resolver threw — roll delivered without its context",
+    );
+    return null;
+  }
+  return {
+    rollContext,
+    modifiers: resolution.modifiers,
+    total: Number.isFinite(resolution.total) ? Math.trunc(resolution.total) : 0,
+    notes: resolution.notes,
+    targetOptions,
+    extraDamage: resolution.extraDamage ?? [],
+  };
+}
+
+/**
+ * The formula the server rolls: the client's, with the server-settled
+ * conditional total appended before the flavor (`1d20+5 # Golpe` → `1d20+5 + 2`,
+ * flavor `Golpe`). Unchanged when there is nothing to add. On a critical hit of a
+ * Strike's damage the total is doubled (`(1d6+4)*2 + 4`).
+ */
+export function conditionalRollFormula(
+  commandFormula: string,
+  prepared: PreparedRollResolution | null,
+  options: { criticalHit?: boolean } = {},
+): { formula: string; flavor?: string } {
+  if (prepared === null || prepared.total === 0) return { formula: commandFormula };
+  const { formula, flavor } = extractFlavor(commandFormula);
+  // PF2e remaster: on a critical hit ALL the damage of the Strike doubles, the conditional modifiers included
+  // (`options.criticalHit`: the server proved the attack under the same card was a critical hit).
+  const total = options.criticalHit === true ? prepared.total * 2 : prepared.total;
+  const appended = total > 0 ? `${formula} + ${String(total)}` : `${formula} - ${String(-total)}`;
+  return flavor !== undefined ? { formula: appended, flavor } : { formula: appended };
+}
+
+// ---------------------------------------------------------------------------
+// 2. After grading
+// ---------------------------------------------------------------------------
+
+/** Write the resolved context, notes (filtered by `degree`) and modifiers onto the message. */
+export function finalizeRollResolution(
+  msg: ChatMessage,
+  prepared: PreparedRollResolution,
+  degree: string | null,
+): void {
+  const notes = prepared.notes.filter((note) => {
+    if (note.outcome === undefined || note.outcome.length === 0) return true;
+    return degree !== null && note.outcome.includes(degree);
+  });
+  const fusion = msg.flags[FUSION_FLAG_NAMESPACE] ?? {};
+  msg.flags = {
+    ...msg.flags,
+    [FUSION_FLAG_NAMESPACE]: {
+      ...fusion,
+      [ROLL_CONTEXT_FLAG_KEY]: prepared.rollContext,
+      [ROLL_NOTES_FLAG_KEY]: notes.map((n) => ({ ...n })),
+      [CONDITIONAL_MODIFIERS_FLAG_KEY]: prepared.modifiers.map((m) => ({ ...m })),
+    },
+  };
+}
+
+// ---------------------------------------------------------------------------
+// 3. onRollResolved
+// ---------------------------------------------------------------------------
+
+/**
+ * Run the system's `onRollResolved` callbacks ONCE for this roll (REQ-BHR-053),
+ * in series, priority order, each one error-isolated: a throwing listener is
+ * logged and the roll still goes out.
+ */
+export async function runRollResolvedHooks(
+  systemModule: SystemModule | undefined,
+  event: {
+    message: ChatMessage;
+    rollContext: FusionRollContext;
+    degree: string | null;
+    targets: readonly RollTargetSnapshotEntry[];
+    targetOptions?: readonly string[];
+  },
+  hookContext: (() => TurnHookContext) | undefined,
+  logger?: Pick<Logger, "error">,
+): Promise<void> {
+  const hooks = systemModule?.onRollResolved;
+  if (!hooks || hooks.length === 0) return;
+  const ctx = hookContext ? hookContext() : stubHookContext();
+  // Each listener gets its own copy: a listener that mutated the event must not
+  // change the message about to be broadcast.
+  const systemId = systemModule.manifest.id;
+  for (const hook of hooks) {
+    try {
+      await hook.fn(structuredClone(event), ctx);
+    } catch (err) {
+      logger?.error(
+        { err, systemId, hookId: hook.id },
+        `[roll-resolution] "onRollResolved" hook "${hook.id}" (system "${systemId}") threw/rejected — isolated`,
+      );
+    }
+  }
+}
+
+// ---------------------------------------------------------------------------
+// 4. The card's decomposition (ui-fundacao, 22/10/2026)
+// ---------------------------------------------------------------------------
+
+/**
+ * The flat part of the client's formula: the sum of its number terms, dice left out
+ * (`1d20+12 # Ofício` → 12, `1d8+4-1` → 3, `2d6` → 0). `null` when the formula has a term this
+ * reading does not understand (parentheses, functions, a die pool): no decomposition is better
+ * than a wrong one.
+ */
+export function formulaFlatPart(commandFormula: string): number | null {
+  const { formula } = extractFlavor(commandFormula);
+  const compact = formula.replace(/\s+/g, "");
+  if (compact === "" || !/^[+-]?(\d+d\d+|\d+)([+-](\d+d\d+|\d+))*$/i.test(compact)) return null;
+  let flat = 0;
+  for (const match of compact.matchAll(/([+-]?)(\d+d\d+|\d+)/gi)) {
+    const term = match[2] ?? "";
+    if (/d/i.test(term)) continue;
+    flat += (match[1] === "-" ? -1 : 1) * Number(term);
+  }
+  return flat;
+}
+
+/**
+ * Ask the system for the parts of the statistic a sheet roll was made with, on the server's own
+ * re-derivation of the actor, and keep them only when they explain the roll: the roller may roll
+ * for that actor and the applied parts add up to the flat part of the client's formula. Anything
+ * else — no resolver, a throw, a forged key, a number that does not match — is `null`: the card
+ * then shows the formula as before, never a decomposition the server did not check.
+ */
+export function resolveRollBreakdown(
+  deps: RollResolutionDeps,
+  ref: FusionStatisticRef | undefined,
+  roller: { userId: string; role: UserRole },
+  commandFormula: string,
+): RollBreakdownFlag | null {
+  if (ref === undefined) return null;
+  const { store, systemModule } = deps;
+  const resolver = systemModule?.rollResolver;
+  if (!store || !systemModule || !resolver?.breakdown) return null;
+  const actor = readActor(store, ref.actorId);
+  if (actor === null || !mayRollFor(actor, roller)) return null;
+  const flat = formulaFlatPart(commandFormula);
+  if (flat === null) return null;
+  let parts: readonly RollBreakdownPart[] | null;
+  try {
+    parts = resolver.breakdown({
+      actor: rederive(actor, store, systemModule),
+      statistic: ref.key,
+    });
+  } catch (err) {
+    deps.logger?.error(
+      { err, systemId: systemModule.manifest.id, actorId: ref.actorId, statistic: ref.key },
+      "[roll-resolution] roll breakdown threw — roll delivered without its decomposition",
+    );
+    return null;
+  }
+  if (!parts || parts.length === 0) return null;
+  const applied = parts.filter((p) => p.applied).reduce((sum, p) => sum + p.value, 0);
+  if (applied !== flat) return null;
+  return {
+    statistic: ref.key,
+    parts: parts.map((p) => ({ label: p.label, type: p.type, value: p.value, applied: p.applied })),
+  };
+}
+
+/** Write the checked decomposition onto the message (`flags.fusion.breakdown`). */
+export function attachRollBreakdown(msg: ChatMessage, breakdown: RollBreakdownFlag | null): void {
+  if (breakdown === null) return;
+  const fusion = msg.flags[FUSION_FLAG_NAMESPACE] ?? {};
+  msg.flags = {
+    ...msg.flags,
+    [FUSION_FLAG_NAMESPACE]: { ...fusion, [ROLL_BREAKDOWN_FLAG_KEY]: breakdown },
+  };
+}
+
+// ---------------------------------------------------------------------------
+// 4. Damage components (#225, REQ-SYS-166)
+// ---------------------------------------------------------------------------
+
+/** The ability card a damage roll nests under, as the server stored it (`flags.pf2e.abilityCard`). */
+export interface StoredDamageCard {
+  readonly kind: string;
+  readonly casterActorId: string;
+  readonly name: string;
+  readonly nameEn?: string;
+  readonly rank?: number;
+  readonly damageType?: string;
+  readonly damageStatistic?: string;
+}
+
+/** What a damage roll was made with, as the chat handler read it from the payload and the stored parent. */
+export interface RollDamageRef {
+  /** The roll's speaker actor (already checked: the roller may act as it). */
+  readonly speakerActorId: string | undefined;
+  /** `flags.fusion.statistic` of the roll payload. */
+  readonly statistic: FusionStatisticRef | undefined;
+  /** The stored card the roll nests under, if any. */
+  readonly card: StoredDamageCard | undefined;
+  /** The server itself graded the Strike this damage nests under as a critical success. */
+  readonly criticalHit: boolean;
+  /** The formula the client asked to roll (`command.formula`, flavor included), before anything the server appends. */
+  readonly formula: string;
+}
+
+const DAMAGE_CATEGORIES: ReadonlySet<string> = new Set(["persistent", "splash", "precision"]);
+
+function stringList(raw: unknown): string[] | undefined {
+  if (!Array.isArray(raw)) return undefined;
+  const list = raw.filter((v): v is string => typeof v === "string" && v.length > 0);
+  return list.length > 0 ? list : undefined;
+}
+
+/**
+ * A damage formula as the comparison of REQ-SYS-167 reads it: the flavor (`# Dano`) left out, no whitespace,
+ * lower case. `1d8 + 4 # Dano` and `1d8+4` are the same roll; `2d8+4` and `1d8+1d8+4` are not.
+ */
+export function canonicalDamageFormula(commandFormula: string): string {
+  return extractFlavor(commandFormula).formula.replace(/\s+/g, "").toLowerCase();
+}
+
+/** The formulas the system vouched for (REQ-SYS-167), canonical; `null` when it named none. */
+function vouchedFormulas(
+  raw: unknown,
+): { normal: ReadonlySet<string>; critical: ReadonlySet<string> } | null {
+  if (!raw || typeof raw !== "object") return null;
+  const formulas = (raw as { formulas?: unknown }).formulas;
+  if (!formulas || typeof formulas !== "object") return null;
+  const read = (list: unknown): Set<string> =>
+    new Set(
+      (Array.isArray(list) ? (list as unknown[]) : [])
+        .filter((f): f is string => typeof f === "string" && f.trim() !== "")
+        .map(canonicalDamageFormula),
+    );
+  const rec = formulas as { normal?: unknown; critical?: unknown };
+  const normal = read(rec.normal);
+  const critical = read(rec.critical);
+  return normal.size > 0 || critical.size > 0 ? { normal, critical } : null;
+}
+
+/** The system's answer, kept to the shape the flag promises (system code is trusted, not its typing). */
+function sanitizeDamageFlag(raw: unknown): RollDamageFlag | null {
+  if (!raw || typeof raw !== "object") return null;
+  const rec = raw as Record<string, unknown>;
+  const source = rec["source"] as Record<string, unknown> | undefined;
+  if (!source || typeof source["kind"] !== "string" || typeof source["label"] !== "string") {
+    return null;
+  }
+  const components: RollDamageComponent[] = [];
+  for (const entry of Array.isArray(rec["components"]) ? (rec["components"] as unknown[]) : []) {
+    if (!entry || typeof entry !== "object") continue;
+    const c = entry as Record<string, unknown>;
+    if (typeof c["type"] !== "string" || c["type"].length === 0) continue;
+    const category = c["category"];
+    const traits = stringList(c["traits"]);
+    const materials = stringList(c["materials"]);
+    components.push({
+      type: c["type"],
+      ...(typeof category === "string" && DAMAGE_CATEGORIES.has(category)
+        ? { category: category as RollDamageComponent["category"] & string }
+        : {}),
+      ...(traits !== undefined ? { traits } : {}),
+      ...(materials !== undefined ? { materials } : {}),
+    });
+  }
+  if (components.length === 0) return null;
+  return {
+    source: {
+      kind: source["kind"],
+      label: source["label"],
+      ...(typeof source["itemId"] === "string" ? { itemId: source["itemId"] } : {}),
+    },
+    components,
+  };
+}
+
+/**
+ * The damage components of a roll (#225, REQ-SYS-166): the SYSTEM derives them from what the roll was made
+ * with — the statistic the roll names, or the card it nests under — for the roll's own speaker actor, re-derived
+ * by the server. A statistic or card of ANOTHER actor describes nothing (a player cannot borrow another actor's
+ * weapon). `null` = nothing proven: the roll carries no components and only a privileged caller can apply it.
+ *
+ * REQ-SYS-167: for a non-privileged roller the AMOUNT is proven too — the client's formula must be one the
+ * system derived for that source (`RollDamageAnswer.formulas`); a critical one only when the server graded the
+ * Strike as a critical hit. Any other formula is still rolled (a free roll is allowed) but records nothing, so
+ * the player cannot apply it. The GM stays free: his roll records the components whatever its formula.
+ */
+export function resolveRollDamage(
+  deps: RollResolutionDeps,
+  ref: RollDamageRef,
+  roller: { userId: string; role: UserRole },
+): RollDamageFlag | null {
+  const actorId = ref.speakerActorId;
+  if (actorId === undefined) return null;
+  const { store, systemModule } = deps;
+  const resolver = systemModule?.rollResolver;
+  if (!store || !systemModule || !resolver?.damageComponents) return null;
+  const card = ref.card?.casterActorId === actorId ? ref.card : undefined;
+  const statistic = ref.statistic?.actorId === actorId ? ref.statistic.key : card?.damageStatistic;
+  if (statistic === undefined && card === undefined) return null;
+  const actor = readActor(store, actorId);
+  if (actor === null || !mayRollFor(actor, roller)) return null;
+  const input: RollDamageInput = {
+    actor: rederive(actor, store, systemModule),
+    ...(statistic !== undefined ? { statistic } : {}),
+    ...(card !== undefined
+      ? {
+          card: {
+            kind: card.kind,
+            name: card.name,
+            ...(card.nameEn !== undefined ? { nameEn: card.nameEn } : {}),
+            ...(card.rank !== undefined ? { rank: card.rank } : {}),
+            ...(card.damageType !== undefined ? { damageType: card.damageType } : {}),
+          },
+        }
+      : {}),
+  };
+  let answer: RollDamageAnswer | null;
+  try {
+    answer = resolver.damageComponents(input);
+  } catch (err) {
+    deps.logger?.error(
+      { err, systemId: systemModule.manifest.id, actorId, statistic },
+      "[roll-resolution] damage components threw — roll delivered without recorded components",
+    );
+    return null;
+  }
+  const flag = sanitizeDamageFlag(answer);
+  if (flag === null) return null;
+  if (isRolePrivileged(roller.role)) return ref.criticalHit ? { ...flag, critical: true } : flag;
+  const vouched = vouchedFormulas(answer);
+  if (vouched === null) return null;
+  const rolled = canonicalDamageFormula(ref.formula);
+  if (ref.criticalHit && vouched.critical.has(rolled)) return { ...flag, critical: true };
+  return vouched.normal.has(rolled) ? flag : null;
+}
+
+/** Write the server-derived components onto the message (`flags.fusion.damage`). */
+export function attachRollDamage(msg: ChatMessage, damage: RollDamageFlag | null): void {
+  if (damage === null) return;
+  const fusion = msg.flags[FUSION_FLAG_NAMESPACE] ?? {};
+  msg.flags = {
+    ...msg.flags,
+    [FUSION_FLAG_NAMESPACE]: { ...fusion, [ROLL_DAMAGE_FLAG_KEY]: damage },
+  };
+}
+
+function stubHookContext(): TurnHookContext {
+  return { ...createStubTurnHookContextServices(), worldTime: { round: 0, turn: 0 } };
+}
+
+// ---------------------------------------------------------------------------
+// Helpers
+// ---------------------------------------------------------------------------
+
+function readActor(store: DocumentStore, actorId: string): Record<string, unknown> | null {
+  try {
+    return store.get("actors", actorId);
+  } catch {
+    return null;
+  }
+}
+
+/** The animal companions whose master is `masterActorId` (`system.masterActorId`), active or not. */
+function companionsOf(store: DocumentStore, masterActorId: string): Record<string, unknown>[] {
+  const found: Record<string, unknown>[] = [];
+  for (const actor of store.getAll("actors")) {
+    const system = actor["system"];
+    if (typeof system !== "object" || system === null) continue;
+    const sys = system as Record<string, unknown>;
+    if (sys["companionKind"] === "animalCompanion" && sys["masterActorId"] === masterActorId) {
+      found.push(actor);
+    }
+  }
+  return found;
+}
+
+function mayRollFor(
+  actor: Record<string, unknown>,
+  roller: { userId: string; role: UserRole },
+): boolean {
+  if (isRolePrivileged(roller.role)) return true;
+  const ownership = (actor["ownership"] ?? {}) as Ownership;
+  return testOwnership(ownership, roller.userId, roller.role, OwnershipLevel.OWNER);
+}
+
+/**
+ * The actor as the system sees it right now: `system` deep-cloned (the derive
+ * steps write sibling cache fields — see derive-runner.ts) and re-derived. A
+ * derivation failure falls back to the stored row, like `recomputeDerivedIfNeeded`.
+ */
+function rederive(
+  actor: Record<string, unknown>,
+  store: DocumentStore,
+  systemModule: SystemModule,
+): Record<string, unknown> {
+  const sys = actor["system"];
+  const working: Record<string, unknown> = {
+    ...actor,
+    system:
+      sys && typeof sys === "object" && !Array.isArray(sys)
+        ? structuredClone(sys as Record<string, unknown>)
+        : {},
+  };
+  try {
+    runActorDerivation(working, systemModule, resolveWorldVariantRules(store, systemModule));
+    return working;
+  } catch {
+    return actor;
+  }
+}
+
+/** The target's own options, unprefixed: `mark:<slug>` and `condition:<slug>` (+ `condition:<slug>:<value>`). */
+function targetParty(
+  store: DocumentStore,
+  marks: TokenMarkSource,
+  rollerActorId: string,
+  entry: RollTargetSnapshotEntry,
+): RollResolutionParty {
+  const options: string[] = [];
+  // No token (the roll named an actor directly) = nothing a mark could sit on.
+  const markSlugs =
+    entry.tokenId.length === 0
+      ? []
+      : marks.marksOn({
+          rollerActorId,
+          targetTokenId: entry.tokenId,
+          targetActorId: entry.actorId,
+        });
+  for (const slug of markSlugs) {
+    options.push(`mark:${slug}`);
+  }
+  const targetActor = entry.actorId !== null ? readActor(store, entry.actorId) : null;
+  const items = targetActor?.["items"];
+  if (Array.isArray(items)) {
+    for (const raw of items as Record<string, unknown>[]) {
+      if (raw["type"] !== "condition") continue;
+      const system = raw["system"] as Record<string, unknown> | undefined;
+      const slug = system?.["slug"];
+      if (typeof slug !== "string" || slug.length === 0) continue;
+      options.push(`condition:${slug}`);
+      const value = system?.["value"];
+      if (typeof value === "number") options.push(`condition:${slug}:${String(value)}`);
+    }
+  }
+  return { tokenId: entry.tokenId, actorId: entry.actorId, options };
+}

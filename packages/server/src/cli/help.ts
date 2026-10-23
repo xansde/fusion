@@ -2,6 +2,9 @@
  * Help text for the fusion CLI.
  */
 
+import { printChatArchiveHelp } from "./commands/chat.js";
+import { printWorldRestoreHelp } from "./commands/worlds.js";
+import { printAssetsReconcileHelp, printAssetsGcHelp } from "./commands/assets.js";
 import { FUSION_VERSION } from "@fusion/shared";
 
 const VERSION = FUSION_VERSION;
@@ -17,8 +20,15 @@ COMMANDS
   world list             List all worlds in the data directory
   world create <slug>    Create a new world
   world backup <slug>    Create a manual backup of a world
+  world restore <slug>   Restore a world's database (and assets) from a backup
+                         (destructive; needs --confirm-restore)
   user add <world> <name>
                          Add a user to a world
+  chat archive <world>   Export a date range of chat to a file, then remove it
+  assets reconcile <world>
+                         Report referenced/orphaned/broken assets (safe; no deletes)
+  assets gc <world>      Delete orphaned assets found by reconcile
+                         (destructive; needs --confirm-delete-count)
 
 OPTIONS
   --help, -h             Show help
@@ -45,6 +55,10 @@ OPTIONS
                          exposed at GET /admin/network.
   --no-open              Do not auto-open the setup wizard in the default
                          browser on first run (see AUTO-OPEN below).
+  --force-schema         Open the world even if its database schema does not
+                         match this build's migrations. Last resort: the
+                         server normally refuses, because applying migrations
+                         to an unexpected schema can damage the world.
   --help, -h             Show this help
 
 AUTO-OPEN
@@ -70,6 +84,8 @@ SUBCOMMANDS
   list                   List all worlds
   create <slug>          Create a new world
   backup <slug>          Create a manual backup
+  restore <slug>         Restore a world's database (and assets) from a backup
+                         (destructive; needs --confirm-restore)
 
 Run 'fusion world <subcommand> --help' for more details.
 `;
@@ -179,11 +195,25 @@ export function printHelp(topic: string | undefined): void {
     case "world backup":
       process.stdout.write(USAGE_WORLD_BACKUP);
       break;
+    case "world restore":
+      printWorldRestoreHelp();
+      break;
     case "user":
       process.stdout.write(USAGE_USER);
       break;
     case "user add":
       process.stdout.write(USAGE_USER_ADD);
+      break;
+    case "chat":
+    case "chat archive":
+      printChatArchiveHelp();
+      break;
+    case "assets":
+    case "assets reconcile":
+      printAssetsReconcileHelp();
+      break;
+    case "assets gc":
+      printAssetsGcHelp();
       break;
     case "version":
       process.stdout.write(`${VERSION}\n`);

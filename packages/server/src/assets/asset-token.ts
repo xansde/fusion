@@ -1,6 +1,22 @@
 /**
  * Short-lived asset serving tokens.
  *
+ * ---------------------------------------------------------------------------
+ * SUPERSEDED BY assets/asset-grant.ts (T025) — DO NOT USE FOR AUTHORISATION
+ * ---------------------------------------------------------------------------
+ *
+ * {@link issueAssetToken} / {@link verifyAssetToken} are no longer wired into
+ * any route. `POST /api/assets/token` now issues a BROWSE-scope grant and
+ * `GET /assets/*` verifies grants, both through `asset-grant.ts`, because the
+ * `userId:exp` preimage below is a separator-join: a part containing `:` is
+ * indistinguishable from two parts, and it carries no scope tag, so it could
+ * not be told apart from a name-bound credential once one existed.
+ *
+ * What still lives here is {@link ASSET_TOKEN_TTL_MS}, which `asset-grant.ts`
+ * imports as the single definition of the 5-minute lifetime. The two functions
+ * are kept only so an in-flight branch that imports them still compiles; new
+ * code must not call them.
+ *
  * PIXI Assets.load() and <img> tags make native browser GETs without the
  * Authorization header (the access token lives in JS memory, not cookies).
  * To avoid requiring a fetch-proxy workaround on the client side, we issue

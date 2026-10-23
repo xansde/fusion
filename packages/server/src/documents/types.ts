@@ -30,6 +30,10 @@ import {
   WallDocumentSchema,
   AmbientLightDocumentSchema,
   CombatDocumentSchema,
+  FolderDocumentSchema,
+  GridConfigSchema,
+  InitialViewSchema,
+  ManualFogSchema,
 } from "@fusion/shared";
 import type { DocumentTable } from "@fusion/shared";
 
@@ -119,16 +123,59 @@ export const SceneSchema = BaseDocumentSchema.extend({
   padding: z.number().nonnegative().default(0.25),
   background: z.string().nullable().optional(),
   backgroundColor: z.string().default("#999999"),
+  /**
+   * Grid config (REQ-CNV-067). Optional so scenes saved without one keep the
+   * client default; a partial grid (e.g. a size-only patch from the scene
+   * dialog) is completed with the shared defaults before validation.
+   */
+  grid: z
+    .preprocess(
+      (g) =>
+        g !== null && typeof g === "object"
+          ? {
+              type: "square",
+              size: 100,
+              distance: 5,
+              units: "ft",
+              color: "#000000",
+              alpha: 0.2,
+              ...g,
+            }
+          : g,
+      GridConfigSchema,
+    )
+    .optional(),
+  /**
+   * Grid origin relative to the map image (grid calibration). MUST be declared
+   * here: SceneSchema parses every write and drops undeclared keys. Null/absent
+   * = aligned to the map corner.
+   */
+  gridOffsetX: z.number().finite().nullable().optional(),
+  gridOffsetY: z.number().finite().nullable().optional(),
   /** Token vision enabled (spec 07 REQ-VIS-085). */
   tokenVision: z.boolean().default(false),
   /** Fog of war enabled (spec 07 REQ-VIS-085). */
   fogEnabled: z.boolean().default(false),
+  /**
+   * Manual fog of war. MUST be declared here: SceneSchema is what the store
+   * parses every write with, and Zod drops any key it does not declare (the
+   * same trap that ate `grid` and `initialView`). Absent = off.
+   */
+  manualFog: ManualFogSchema.optional(),
   /** Darkness level 0–1 (spec 07 REQ-VIS-044). */
   darkness: z.number().min(0).max(1).default(0),
   /** Global illumination flag (spec 07 REQ-VIS-044). */
   globalLight: z.boolean().default(true),
   /** Darkness threshold above which GI is suppressed (spec 07 REQ-VIS-044). */
   globalLightThreshold: z.number().min(0).max(1).default(0.5),
+  /**
+   * Initial camera position/zoom, applied when the scene goes on air
+   * (REQ-CNV-068, REQ-CEN-046). Null = fit the scene to the viewport.
+   * Declared in the canonical model (`@fusion/shared` SceneDocumentSchema) but
+   * missing here, so every write silently dropped it and the client had nothing
+   * to apply. Same shape as the shared schema — one definition, imported.
+   */
+  initialView: InitialViewSchema.default(null),
   // Embedded collections stored as JSON arrays
   tokens: z.array(z.record(z.string(), z.unknown())).default(() => []),
   /** Walls with typed schema (spec 07 M2-A). */
@@ -244,15 +291,13 @@ export const UserSchema = BaseDocumentSchema.extend({
 
 /**
  * Folder — organizes other documents.
+ *
+ * The shape is the canonical one from `@fusion/shared` (spec 42 / REQ-NPC-020
+ * gave the client a real folder tree, so the client needs the same definition).
+ * Re-exported rather than re-declared: two copies of a document schema drift,
+ * and the one that drifts silently is always the one nobody validates against.
  */
-export const FolderSchema = BaseDocumentSchema.extend({
-  name: z.string().min(1),
-  type: z.string(),
-  parentId: z.string().nullable().optional(),
-  sort: z.number().int().default(0),
-  sorting: z.enum(["a", "m"]).default("m"),
-  color: z.string().nullable().optional(),
-});
+export const FolderSchema = FolderDocumentSchema;
 
 /**
  * Setting — key-value store for world/user settings.

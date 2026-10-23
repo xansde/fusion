@@ -35,25 +35,53 @@ import {
   PackI18nOverlaySchema,
   PackMechanicsOverlaySchema,
   searchPackIndex,
+  matchesFilters,
+  normalizeSearchText,
   buildPackDocUuid,
   parsePackDocUuid,
+  COMPENDIUM_SEARCH_ALL_LIMIT_PER_GROUP,
+  isSheetImportableDocumentType,
+  OwnershipLevel,
 } from "@fusion/shared";
 import type {
   PackManifest,
   PackIndex,
   PackIndexEntry,
   CompendiumSearchPayload,
+  CompendiumSearchAllPayload,
+  CompendiumSearchAllResult,
+  CompendiumSearchAllEntry,
+  CompendiumSearchAllGroup,
+  CompendiumSearchAllPackTally,
   CompendiumImportResult,
+  CompendiumImportToActorResult,
+  Ownership,
   DocumentTable,
   DocI18n,
   DocMechanics,
 } from "@fusion/shared";
 import { DocumentStore } from "../documents/store.js";
-import { isRolePrivileged } from "../documents/ownership.js";
+import type { WriteMetricsCollector } from "../documents/write-metrics.js";
+import { isRolePrivileged, resolveOwnership } from "../documents/ownership.js";
+import {
+  validateEmbeddedItemForSystem,
+  augmentationSlotLimitViolation,
+} from "../documents/embedded-item.js";
+import { recomputeDerivedIfNeeded } from "../documents/derive.js";
+import { stripInvalidActionBarFlags } from "../documents/action-bar-flags.js";
+import type { AugmentationLikeItem } from "@fusion/system-sf2e";
 import type { Database as Db } from "better-sqlite3";
 import { createDocumentId } from "@fusion/shared";
 import type { SystemModule } from "@fusion/system-api";
 import { runActorDerivation } from "../net/derive-runner.js";
+import { resolveWorldVariantRules } from "../documents/world-variant-rules.js";
+import {
+  buildDedupIndex,
+  parseDocKey,
+  buildDocKey,
+  type DedupResult,
+  type DedupPackInput,
+} from "./dedup.js";
 
 // ---------------------------------------------------------------------------
 // Internal types
@@ -89,6 +117,34 @@ interface LoadedPack {
   _mechanics: Map<string, DocMechanics> | null;
 }
 
+/**
+ * One pre-normalized row of the cross-pack search index consumed by
+ * {@link CompendiumService.searchAllPacks}. Built once, cached for the
+ * service's lifetime, and filtered per VIEWER at query time — the row itself
+ * is audience-agnostic on purpose (see `_getSearchAllRows`).
+ */
+interface SearchAllRow {
+  packId: string;
+  packLabel: string;
+  documentType: string;
+  entry: PackIndexEntry;
+  /** `normalizeSearchText(entry.name)` — precomputed so a keystroke does not
+   * re-normalize ~12k names (RNF-CPD-01). */
+  nameNorm: string;
+  /** `normalizeSearchText(entry.namePt)`, or null when untranslated. */
+  namePtNorm: string | null;
+}
+
+/**
+ * What `importToActor` gives its caller: the wire result (spec 43 §5.7) plus
+ * the persisted destination actor, which the handler needs in order to
+ * broadcast the `doc:update` and which has no business on the wire twice.
+ * `null` when nothing was written.
+ */
+export interface ImportToActorOutcome extends CompendiumImportToActorResult {
+  actor: Record<string, unknown> | null;
+}
+
 // ---------------------------------------------------------------------------
 // CompendiumService
 // ---------------------------------------------------------------------------
@@ -104,6 +160,33 @@ export class CompendiumService {
    * `_getSourceRefIndex`).
    */
   private _sourceRefIndex: Map<string, { packId: string; docId: string }> | null = null;
+  /**
+   * Same entries as {@link _sourceRefIndex} but keyed by origin system too
+   * (`"<systemId>\0<packName>\0<sourceId>"`), so a reference that carries its
+   * `systemId` resolves the right side of a cross-system sourceId collision (#264).
+   */
+  private _sourceRefBySystem: Map<string, { packId: string; docId: string }> | null = null;
+
+  /**
+   * Cross-pack search index for {@link searchAllPacks}: every entry of every
+   * loaded pack, with its origin and its normalized names precomputed. `null`
+   * = not yet built (built lazily on the first aggregated search, then cached
+   * for the service's lifetime — same shape as `_sourceRefIndex`).
+   */
+  private _searchAllRows: SearchAllRow[] | null = null;
+
+  /**
+   * Cross-system dedup index (mundo misto, DEC-SF2-07-bis) — `null` = not yet
+   * built. Built lazily on first access (`_ensureDedupIndex`), from every
+   * pack loaded so far, and cached for the service's lifetime (same
+   * lazy-build-and-cache shape as `_sourceRefIndex`/`_searchAllRows`). A
+   * single-systemId service (any world that is not `pf2e-sf2e`) always
+   * resolves to an empty result — see `buildDedupIndex`.
+   */
+  private _dedupIndex: DedupResult | null = null;
+
+  /** Parsed documents per pack id, for {@link getSourceDocumentForSync}. */
+  private readonly _docsByPackId = new Map<string, Map<string, Record<string, unknown>>>();
 
   constructor(logger?: Logger) {
     this.logger = logger ?? null;
@@ -162,6 +245,18 @@ export class CompendiumService {
           continue;
         }
 
+        // REQ-CMP-058: a packId already registered (from a root discovered
+        // earlier — e.g. the official root, discovered before the private
+        // one, see DEC-CMP-11) is never overwritten. Log and skip instead of
+        // letting a private/misnamed pack silently replace an official one.
+        if (this.packs.has(manifest.id)) {
+          this.logger?.warn(
+            { packId: manifest.id, packDir },
+            "Pack id already registered — skipping duplicate (collision with a pack discovered earlier)",
+          );
+          continue;
+        }
+
         const indexPath = join(packDir, "index.json");
         const i18nPtBRPath = join(packDir, "i18n.pt-BR.json");
         const mechanicsPath = join(packDir, "mechanics.json");
@@ -196,17 +291,84 @@ export class CompendiumService {
   }
 
   // ---------------------------------------------------------------------------
+  // Audience gate (REQ-CMP-004a/010a, REQ-CPD-070/071/074) — private on
+  // purpose: the gate is reached only THROUGH a read, so no caller can ask
+  // "does this hidden pack exist?" without also asking for its content.
+  // ---------------------------------------------------------------------------
+
+  /**
+   * Resolve a pack for a viewer, or `null` when it does not exist FOR THAT
+   * VIEWER. Every read path below funnels through this so an invisible pack
+   * takes exactly the same code path — and produces exactly the same ack — as
+   * a packId that was never published (REQ-CPD-071, REQ-CMP-010a).
+   *
+   * `null` therefore means "unknown OR hidden from this role" — the two are
+   * deliberately the same answer (REQ-SEC-020: refusal must be
+   * indistinguishable from non-existence). There is no public predicate that
+   * separates them, and adding one would hand a caller the very distinction
+   * this method exists to erase.
+   *
+   * The viewer's role comes FIRST here, as in every public read below
+   * (`listPacks`, `getPackIndex`, `searchPack`, `getDocument`,
+   * `getI18nBySourceRef`) — one argument order for the whole audience-aware
+   * surface, so a new read path cannot silently swap role and packId.
+   */
+  private _packFor(packId: string, viewerRole: number): LoadedPack | null {
+    const loaded = this.packs.get(packId);
+    if (!loaded) return null;
+    return this._isPackVisible(loaded, viewerRole) ? loaded : null;
+  }
+
+  /**
+   * The ONE place the pack audience is evaluated (REQ-CPD-074: the decision
+   * lives on the server, never only in the UI). A pack whose manifest declares
+   * `audience: "gm"` exists only for roles satisfying `isRolePrivileged`
+   * (documents/ownership.ts — the single role predicate, never duplicated).
+   *
+   * `manifest.audience` is ALWAYS resolved by `PackManifestSchema` (it defaults
+   * to `"all"` on parse), so a pack.json without the field is visible to
+   * everyone — REQ-CMP-004a: an old pack stays valid and stays public.
+   */
+  private _isPackVisible(loaded: LoadedPack, viewerRole: number): boolean {
+    if (loaded.manifest.audience !== "gm") return true;
+    return isRolePrivileged(viewerRole);
+  }
+
+  // ---------------------------------------------------------------------------
   // Public API
   // ---------------------------------------------------------------------------
 
   /**
-   * List all registered pack manifests.
+   * List the pack manifests visible to `viewerRole`.
    * REQ-CMP-012: filter by systemId and/or documentType.
+   * REQ-CMP-010a / REQ-CPD-071: a `gm` pack is not listed to a non-privileged
+   * viewer — it is simply absent, as if it did not exist.
+   *
+   * `filter.systemId` accepts an ARRAY too (B4, revisão adversarial 3): a
+   * composite world's caller (`buildCompendiumListHandler`) resolves the
+   * active composite's `sourceSystemIds` and passes the whole list here, so
+   * a mundo misto `pf2e-sf2e` world lists BOTH the pf2e and the sf2e packs
+   * — every pack in this service is still loaded under its OWN systemId
+   * ("pf2e"/"sf2e"), never "pf2e-sf2e" (no pack is ever re-tagged), so a
+   * bare single-string filter for the composite id would always return
+   * zero packs (this was B4's actual bug: the ficha's `listPacks({systemId:
+   * "pf2e-sf2e"})` silently returned nothing).
    */
-  listPacks(filter?: { systemId?: string; documentType?: string }): PackManifest[] {
+  listPacks(
+    viewerRole: number,
+    filter?: { systemId?: string | string[]; documentType?: string },
+  ): PackManifest[] {
+    const systemIds =
+      filter?.systemId === undefined
+        ? undefined
+        : Array.isArray(filter.systemId)
+          ? filter.systemId
+          : [filter.systemId];
     const packs: PackManifest[] = [];
-    for (const { manifest } of this.packs.values()) {
-      if (filter?.systemId !== undefined && manifest.systemId !== filter.systemId) continue;
+    for (const loaded of this.packs.values()) {
+      if (!this._isPackVisible(loaded, viewerRole)) continue;
+      const { manifest } = loaded;
+      if (systemIds !== undefined && !systemIds.includes(manifest.systemId)) continue;
       if (filter?.documentType !== undefined && manifest.documentType !== filter.documentType)
         continue;
       packs.push(manifest);
@@ -215,47 +377,223 @@ export class CompendiumService {
   }
 
   /**
-   * Get the index for a pack.
+   * Get the index for a pack, as seen by `viewerRole`.
    * Lazy-builds from documents.json or index.json on first call.
-   * REQ-CMP-007, REQ-CMP-049.
+   * REQ-CMP-007, REQ-CMP-049; audience gate per REQ-CMP-010a / REQ-CPD-071.
    */
-  getPackIndex(packId: string): PackIndex | null {
-    const loaded = this.packs.get(packId);
+  getPackIndex(viewerRole: number, packId: string): PackIndex | null {
+    const loaded = this._packFor(packId, viewerRole);
     if (!loaded) return null;
-
-    if (!loaded._index) {
-      // Build the base (EN) index, then enrich: (1) the compact per-entry
-      // `index.actionCost` (r20-X2) derived from the full documents, then
-      // (2) overlay pt-BR names when a translation overlay exists. Enrichment
-      // is applied ONCE here and cached in `_index`, so subsequent
-      // index/search calls reuse the enriched entries.
-      const base = this._buildIndex(loaded);
-      const withCost = this._applyActionCostToIndex(loaded, base);
-      loaded._index = this._applyI18nToIndex(loaded, withCost);
-    }
-
-    return { packId, entries: loaded._index };
+    return { packId, entries: this._ensureIndex(loaded) };
   }
 
   /**
-   * Search/filter a pack's index.
-   * REQ-CMP-013, REQ-CMP-014.
+   * Build-once/cache the enriched index of an ALREADY-RESOLVED pack. Callers
+   * must have passed the audience gate themselves (`_packFor`) or be
+   * cross-pack internals that apply the gate on the way out
+   * (`_getSearchAllRows`) — this method deliberately takes a `LoadedPack`, not
+   * a packId, so it cannot be reached with a viewer-supplied identifier.
+   *
+   * Build the base (EN) index, then enrich: (1) the compact per-entry
+   * `index.actionCost` (r20-X2) derived from the full documents, then (2)
+   * overlay pt-BR names when a translation overlay exists. Enrichment is
+   * applied ONCE and cached in `_index`, so subsequent index/search calls
+   * reuse the enriched entries.
    */
-  searchPack(packId: string, query: CompendiumSearchPayload): PackIndexEntry[] | null {
-    const packIndex = this.getPackIndex(packId);
+  private _ensureIndex(loaded: LoadedPack): PackIndexEntry[] {
+    if (!loaded._index) {
+      const base = this._buildIndex(loaded);
+      const withCost = this._applyActionCostToIndex(loaded, base);
+      const withI18n = this._applyI18nToIndex(loaded, withCost);
+      loaded._index = this._applyDedupToIndex(loaded, withI18n);
+    }
+    return loaded._index;
+  }
+
+  /**
+   * Cross-system dedup pass over an already-built index (mundo misto,
+   * DEC-SF2-07-bis): drops entries that are the LOSING duplicate of a fused
+   * pair (they never appear in `compendium:index`/`compendium:search`/
+   * `compendium:searchAll` — REQ from the task: "o mesmo item não pode
+   * aparecer duplicado no mundo misto"), and stamps the WINNING entry of a
+   * fused pair with `index.mergedFromSystems` so the origin stays visible
+   * ("itens diferentes com o mesmo nome aparecem os dois, com a origem
+   * visível" — already true for non-fused homonyms via each entry's own
+   * `packId`, carried by `CompendiumSearchAllEntry`/pack-scoped reads).
+   * A no-op for a single-systemId service (`_ensureDedupIndex` returns an
+   * empty result), so `base` is returned unchanged — same array reference,
+   * no behavior change for a pure pf2e/sf2e world.
+   */
+  private _applyDedupToIndex(loaded: LoadedPack, base: PackIndexEntry[]): PackIndexEntry[] {
+    const dedup = this._ensureDedupIndex();
+    if (dedup.hidden.size === 0) return base;
+
+    const packId = loaded.manifest.id;
+    const out: PackIndexEntry[] = [];
+    for (const entry of base) {
+      const key = buildDocKey(packId, entry._id);
+      if (dedup.hidden.has(key)) continue;
+      const merged = dedup.mergedFromSystems.get(key);
+      if (!merged) {
+        out.push(entry);
+        continue;
+      }
+      out.push({
+        ...entry,
+        index: { ...entry.index, mergedFromSystems: merged },
+      });
+    }
+    return out;
+  }
+
+  /**
+   * Search/filter a pack's index, as seen by `viewerRole`.
+   * REQ-CMP-013, REQ-CMP-014; audience gate per REQ-CMP-010a / REQ-CPD-071 —
+   * a `gm` pack yields `null` (unknown pack) instead of entries.
+   */
+  searchPack(
+    viewerRole: number,
+    packId: string,
+    query: CompendiumSearchPayload,
+  ): PackIndexEntry[] | null {
+    const packIndex = this.getPackIndex(viewerRole, packId);
     if (!packIndex) return null;
     return searchPackIndex(packIndex.entries, query);
   }
 
   /**
-   * Get the full document for a Compendium UUID.
-   * REQ-CMP-009, REQ-CMP-050.
+   * Search EVERY pack visible to `viewerRole` in one call, answering with a
+   * result that is already grouped, already counted and already truncated.
+   * REQ-CPD-030..032 (spec 43), REQ-CMP-013a/013b (spec 16), RNF-CPD-01.
+   *
+   * WHY THE SERVER OWNS THIS (DEC-CPD-02): the alternative — the client
+   * downloading every pack index and running N searches — is exactly what
+   * DEC-CMP-02 (lazy index) forbids: the committed pf2e acervo is ~4.2k
+   * documents across 14 packs today and ~12k when the full subset lands, and
+   * REQ-CMP-049 already budgets 1.5 s just to index ONE big pack. So the index
+   * is built here, once, lazily (`_getSearchAllRows`), and cached for the
+   * service's lifetime; a keystroke then costs one pass over pre-normalized
+   * strings, which is what makes RNF-CPD-01's 300 ms budget reachable.
+   *
+   * AUDIENCE (REQ-CPD-071, REQ-CMP-010a): `viewerRole` comes from the
+   * authenticated socket, never from the payload, and is applied by the single
+   * `_isPackVisible` predicate — a `gm` pack contributes NOTHING here: no
+   * entry, no group, no count, and it is not even part of `packsSearched`. A
+   * player searching "goblin" therefore cannot tell, from any field of this
+   * result, that a bestiary exists.
+   *
+   * GROUPING (REQ-CPD-031): by `PackManifest.documentType`, because that is
+   * the axis the spec names ("agrupado por tipo de documento"), with every row
+   * carrying `packId`/`packLabel` so it names its own source, and a per-group
+   * `packs` tally so a truncated group can offer opening a specific pack in
+   * its own scope (REQ-CPD-032).
+   *
+   * ORDER: truncation forces a choice the spec does not make, so entries are
+   * ranked by how well they matched (exact name → prefix → substring) and then
+   * alphabetically — dropping the tail of an alphabetical list would hide
+   * "Fireball" behind "Blazing Fireball" for the query "fireball".
    */
-  getDocument(uuid: string): Record<string, unknown> | null {
-    const parsed = parsePackDocUuid(uuid);
-    if (!parsed) return null;
+  searchAllPacks(viewerRole: number, query: CompendiumSearchAllPayload): CompendiumSearchAllResult {
+    const limitPerGroup = query.limitPerGroup ?? COMPENDIUM_SEARCH_ALL_LIMIT_PER_GROUP;
+    const textNorm = normalizeSearchText((query.text ?? "").trim());
 
-    const loaded = this.packs.get(parsed.packId);
+    // Audience first: the set of packs this viewer can see (REQ-CPD-071).
+    const visiblePacks = new Set<string>();
+    for (const [packId, loaded] of this.packs) {
+      if (this._isPackVisible(loaded, viewerRole)) visiblePacks.add(packId);
+    }
+
+    interface Bucket {
+      documentType: string;
+      matches: Array<{ row: SearchAllRow; rank: number; sortKey: string }>;
+      byPack: Map<string, CompendiumSearchAllPackTally>;
+    }
+    const buckets = new Map<string, Bucket>();
+    let totalMatched = 0;
+
+    for (const row of this._getSearchAllRows()) {
+      if (!visiblePacks.has(row.packId)) continue;
+      if (textNorm && !rowMatchesText(row, textNorm)) continue;
+      if (query.filters && !matchesFilters(row.entry, query.filters)) continue;
+
+      let bucket = buckets.get(row.documentType);
+      if (!bucket) {
+        bucket = { documentType: row.documentType, matches: [], byPack: new Map() };
+        buckets.set(row.documentType, bucket);
+      }
+      bucket.matches.push({
+        row,
+        rank: matchRank(row, textNorm),
+        sortKey: row.namePtNorm ?? row.nameNorm,
+      });
+
+      const tally = bucket.byPack.get(row.packId);
+      if (tally) {
+        tally.matched++;
+      } else {
+        bucket.byPack.set(row.packId, {
+          packId: row.packId,
+          label: row.packLabel,
+          matched: 1,
+        });
+      }
+      totalMatched++;
+    }
+
+    const groups: CompendiumSearchAllGroup[] = [];
+    for (const bucket of buckets.values()) {
+      bucket.matches.sort((a, b) => {
+        if (a.rank !== b.rank) return a.rank - b.rank;
+        if (a.sortKey !== b.sortKey) return a.sortKey < b.sortKey ? -1 : 1;
+        return a.row.entry.uuid < b.row.entry.uuid ? -1 : 1;
+      });
+
+      const entries: CompendiumSearchAllEntry[] = bucket.matches
+        .slice(0, limitPerGroup)
+        .map(({ row }) => ({ ...row.entry, packId: row.packId, packLabel: row.packLabel }));
+
+      const packs: CompendiumSearchAllPackTally[] = [...bucket.byPack.values()].sort((a, b) =>
+        a.matched !== b.matched ? b.matched - a.matched : a.packId < b.packId ? -1 : 1,
+      );
+
+      groups.push({
+        documentType: bucket.documentType,
+        total: bucket.matches.length,
+        entries,
+        truncated: bucket.matches.length > entries.length,
+        omitted: bucket.matches.length - entries.length,
+        packs,
+      });
+    }
+
+    groups.sort((a, b) =>
+      a.total !== b.total ? b.total - a.total : a.documentType < b.documentType ? -1 : 1,
+    );
+
+    return { groups, totalMatched, limitPerGroup, packsSearched: visiblePacks.size };
+  }
+
+  /**
+   * Get the full document for a Compendium UUID, as seen by `viewerRole`.
+   * REQ-CMP-009, REQ-CMP-050.
+   *
+   * A uuid that names a `gm` pack resolves to `null` for a non-privileged
+   * viewer — the SAME answer a made-up uuid gets, so knowing the uuid teaches
+   * nothing about whether the document exists (REQ-CPD-071, REQ-SEC-020).
+   */
+  getDocument(viewerRole: number, uuid: string): Record<string, unknown> | null {
+    const parsedUuid = parsePackDocUuid(uuid);
+    if (!parsedUuid) return null;
+
+    // Mundo misto dedup (DEC-SF2-07-bis): a uuid naming the LOSING duplicate
+    // of a fused pair (e.g. a grant-item reference baked into an sf2e class
+    // that points at the sf2e copy of a reprinted feat) transparently
+    // resolves to the surviving canonical document — every reader of this
+    // method (grantMaterializer via compendium:get, importToWorld,
+    // importToActor) gets the same one document, never the hidden one.
+    const parsed = this._resolveDedupAlias(parsedUuid.packId, parsedUuid.docId);
+
+    const loaded = this._packFor(parsed.packId, viewerRole);
     if (!loaded) return null;
 
     try {
@@ -331,27 +669,115 @@ export class CompendiumService {
    * whose `sourceHash` no longer matches the live EN doc is treated exactly
    * like "no translation" here too (falls through to `null` → EN fallback).
    *
-   * @returns the localized pt-BR fields, or `null` when no loaded pack has a
-   *   doc matching that `(packName, sourceId)` pair, or the overlay entry for
-   *   it is missing/stale.
+   * AUDIENCE GATE (REQ-CMP-010a, REQ-CPD-071): this is a document read like
+   * `getDocument`, so it obeys the same pack audience — a ref resolving into a
+   * `gm` pack yields `null` for a non-privileged viewer, which is already this
+   * method's normal "no translation" answer. Without this gate the overlay
+   * would be a side door leaking creature names out of a hidden bestiary.
+   *
+   * @returns the localized pt-BR fields, or `null` when no pack VISIBLE TO THE
+   *   VIEWER has a doc matching that `(packName, sourceId)` pair, or the
+   *   overlay entry for it is missing/stale.
    */
-  getI18nBySourceRef(ref: { packName: string; sourceId: string }): DocI18n | null {
-    const index = this._getSourceRefIndex();
-    const hit = index.get(buildSourceRefKey(ref.packName, ref.sourceId));
+  getI18nBySourceRef(
+    viewerRole: number,
+    ref: { packName: string; sourceId: string; systemId?: string | undefined },
+  ): DocI18n | null {
+    const hit = this._resolveSourceRef(ref);
     if (!hit) return null;
 
-    const loaded = this.packs.get(hit.packId);
-    if (!loaded) return null; // defensive — pack was loaded when the index was built
+    const loaded = this._packFor(hit.packId, viewerRole);
+    if (!loaded) return null; // unknown, or hidden from this role — same answer
 
     return this._getI18nPtBR(loaded).get(hit.docId) ?? null;
   }
 
   /**
+   * Get the full document for a `(packName, sourceId)` origin reference —
+   * the SAME reverse index {@link getI18nBySourceRef} uses, but returning the
+   * raw pack document instead of only its pt-BR overlay.
+   *
+   * ALQ-F2-11 (plan §2.6, REQ-PF2-225): an item's `system.fusion.effectRefs`
+   * names Effect documents by `flags.fusion.sourceId` — the vendor-origin id
+   * (DF-06 identity discipline: "identidade de documento = sourceId, nunca o
+   * nome"), which is NOT the pack-local `_id` `getDocument`'s UUID resolves.
+   * This is the lookup that closes that gap: `item:consume`'s core service
+   * uses it to copy the Effect's `system` onto the actor with origin/start
+   * (never a live reference).
+   *
+   * Same audience gate as `getDocument`/`getI18nBySourceRef`: a ref resolving
+   * into a pack hidden from `viewerRole` answers `null`, identical to an
+   * unresolvable ref — knowing a sourceId teaches nothing about a hidden
+   * pack's contents (REQ-CPD-071, REQ-SEC-020).
+   */
+  getDocumentBySourceRef(
+    viewerRole: number,
+    ref: { packName: string; sourceId: string; systemId?: string | undefined },
+  ): Record<string, unknown> | null {
+    const hit = this._resolveSourceRef(ref);
+    if (!hit) return null;
+
+    const loaded = this._packFor(hit.packId, viewerRole);
+    if (!loaded) return null;
+
+    try {
+      const docs = JSON.parse(readFileSync(loaded.docsPath, "utf8")) as unknown[];
+      const doc = docs.find(
+        (d) =>
+          typeof d === "object" &&
+          d !== null &&
+          (d as Record<string, unknown>)["_id"] === hit.docId,
+      );
+      return doc === undefined ? null : (doc as Record<string, unknown>);
+    } catch (err) {
+      this.logger?.warn({ err, ref }, "Failed to read document from pack by source ref");
+      return null;
+    }
+  }
+
+  /**
+   * Pack document for a `(packName, sourceId)` origin reference, for SERVER-SIDE
+   * callers that are not answering a viewer (REQ-CMP-056: the boot-time sync of
+   * rules into embedded items). Same reverse index as
+   * {@link getDocumentBySourceRef}, but the parsed `documents.json` of each pack
+   * is kept per pack, so syncing N items costs one parse per pack instead of N.
+   *
+   * No audience gate on purpose: the result never reaches a client, it only
+   * decides which rules an item the actor ALREADY owns should carry.
+   */
+  getSourceDocumentForSync(ref: {
+    packName: string;
+    sourceId: string;
+  }): Record<string, unknown> | null {
+    const hit = this._getSourceRefIndex().get(buildSourceRefKey(ref.packName, ref.sourceId));
+    if (!hit) return null;
+    const loaded = this.packs.get(hit.packId);
+    if (!loaded) return null;
+
+    let byId = this._docsByPackId.get(hit.packId);
+    if (!byId) {
+      byId = new Map();
+      try {
+        const docs = JSON.parse(readFileSync(loaded.docsPath, "utf8")) as unknown[];
+        for (const d of docs) {
+          const id = (d as Record<string, unknown> | null)?.["_id"];
+          if (typeof id === "string") byId.set(id, d as Record<string, unknown>);
+        }
+      } catch (err) {
+        this.logger?.warn({ err, packId: hit.packId }, "Failed to read pack documents for sync");
+      }
+      this._docsByPackId.set(hit.packId, byId);
+    }
+    return byId.get(hit.docId) ?? null;
+  }
+
+  /**
    * Import one or more pack documents into the world (actors or items table).
-   * REQ-CMP-021..024.
+   * REQ-CMP-021..024, REQ-CMP-055.
    *
    * - Clones the document data (new _id for world copy).
-   * - Preserves system + flags.fusion.*.
+   * - Preserves system + flags.fusion.* (+ snapshots the pt-BR overlay's name/
+   *   description into flags.fusion.i18n["pt-BR"], REQ-CMP-055).
    * - Inserts via DocumentStore.
    * - GM-only operation.
    *
@@ -391,29 +817,52 @@ export class CompendiumService {
        */
       systemModule?: SystemModule;
       logger?: Logger;
+      /**
+       * The world's write-metrics collector (T016). An import is a live
+       * session op writing full document rows under the same IMMEDIATE lock
+       * as everything else, so its writes belong in the world's report —
+       * this store is a SECOND instance of the funnel and would be blind
+       * without it. Optional: a service-level caller with no world attached
+       * simply goes unobserved.
+       */
+      metrics?: WriteMetricsCollector;
     },
-  ): CompendiumImportResult {
+  ): CompendiumImportResult & {
+    /** The documents as persisted, for the handler to announce on the document channel; never sent in the ack. */
+    createdDocs: Array<{ documentType: string; doc: Record<string, unknown> }>;
+  } {
     if (!isRolePrivileged(options.role)) {
       throw new PermissionDeniedError("Only GM/ASSISTANT can import from compendiums");
     }
 
-    const store = new DocumentStore({ db: options.db });
+    const store = new DocumentStore({
+      db: options.db,
+      ...(options.metrics !== undefined ? { metrics: options.metrics } : {}),
+    });
     const created: string[] = [];
+    const createdDocs: Array<{ documentType: string; doc: Record<string, unknown> }> = [];
     const failed: Array<{ uuid: string; reason: string }> = [];
 
     for (const uuid of uuids) {
       try {
-        const doc = this.getDocument(uuid);
+        // Read as the importer's own role: privileged by the guard above, so a
+        // `gm` pack is legitimately readable here (REQ-CPD-073).
+        const doc = this.getDocument(options.role, uuid);
         if (!doc) {
           failed.push({ uuid, reason: "Document not found in compendium" });
           continue;
         }
 
-        const parsed = parsePackDocUuid(uuid);
-        if (!packed(parsed)) {
+        const parsedUuid = parsePackDocUuid(uuid);
+        if (!packed(parsedUuid)) {
           failed.push({ uuid, reason: "Invalid UUID" });
           continue;
         }
+        // Resolve through the dedup alias (mundo misto) — getDocument()
+        // above already served the CANONICAL document; the manifest/table
+        // lookup below must agree with it, not with the hidden pack the
+        // caller's uuid literally named.
+        const parsed = this._resolveDedupAlias(parsedUuid.packId, parsedUuid.docId);
 
         // Determine target table by documentType
         const manifest = this.packs.get(parsed.packId)?.manifest;
@@ -448,9 +897,41 @@ export class CompendiumService {
         // above `getDocument`). `uuid` is stripped and cannot be used for
         // that lookup — `getDocument(uuid)`'s overlay attachment only ever
         // applied to the PACK-side copy, never the world copy.
+        //
+        // REQ-CMP-055 (A041, spec decision 2026-08-17): a SECOND, more direct
+        // path also exists — before the `i18n` projection above is deleted,
+        // its `ptBR.name` (and `ptBR.description`, when present) is
+        // SNAPSHOTTED into `flags.fusion.i18n["pt-BR"]`, below. This keeps
+        // `name` EN-pure (issue #43 is not reverted — the world document is
+        // still a snapshot, not a live view of the pack overlay) while giving
+        // every display surface a label to resolve without a second socket
+        // round-trip. `displayName()`
+        // (packages/client/src/lib/docs/displayName.ts) is the single reader
+        // of this flag; do not add a second name-resolution mechanism
+        // elsewhere (rule #14 of the A041 task).
+        //
+        // Shared with `importToActor` below via `snapshotPtBRLabel` — REQ-CMP-055
+        // requires "toda superfície" to resolve through one mechanism, and that
+        // only holds if BOTH import surfaces (world and sheet) snapshot the same
+        // way before stripping `i18n` (code review, ajustes r1 Fase 4, 2026-08-17).
+        snapshotPtBRLabel(worldDoc);
+        stampOriginSystemId(worldDoc, manifest.systemId);
+
         delete worldDoc["uuid"];
         delete worldDoc["i18n"];
         delete worldDoc["mechanics"];
+
+        // BAR-F3-05 (tasks.md §2.5: the bar is validated on update AND on create/import): an
+        // Actor whose `flags.fusion.actionBar` the schema refuses comes in without it.
+        if (manifest.documentType === "Actor") {
+          const barProblem = stripInvalidActionBarFlags(worldDoc);
+          if (barProblem !== null) {
+            options.logger?.warn(
+              { uuid, problem: barProblem },
+              "Dropped an invalid flags.fusion.actionBar from an imported Actor",
+            );
+          }
+        }
 
         // Derive on import (audit issue 3) — Actor documents only.
         //
@@ -463,7 +944,13 @@ export class CompendiumService {
         // WHOLE worldDoc, exactly as mutated, is what gets persisted below.
         if (manifest.documentType === "Actor" && options.systemModule) {
           try {
-            runActorDerivation(worldDoc, options.systemModule);
+            // #274 (DEC-MCL-09): overlay the world's variant-rule Settings, as every other
+            // runActorDerivation call site does (derive.ts, sync-handlers, combat-handlers).
+            runActorDerivation(
+              worldDoc,
+              options.systemModule,
+              resolveWorldVariantRules(store, options.systemModule),
+            );
           } catch (deriveErr) {
             options.logger?.warn(
               { err: deriveErr, uuid },
@@ -481,6 +968,7 @@ export class CompendiumService {
           const id = first["_id"];
           if (typeof id === "string") {
             created.push(id);
+            createdDocs.push({ documentType: manifest.documentType, doc: first });
           }
         }
       } catch (err) {
@@ -490,7 +978,243 @@ export class CompendiumService {
       }
     }
 
-    return { created, failed };
+    return { created, failed, createdDocs };
+  }
+
+  /**
+   * Bring pack document(s) into ONE actor's sheet (spec 43 §5.7, DEC-CPD-05).
+   * REQ-CPD-061, REQ-CPD-073.
+   *
+   * THE PREDICATE IS THE DESTINATION, NOT THE CALLER. `importToWorld` above
+   * asks `isRolePrivileged` because the world is the Game Master's; a sheet is
+   * its owner's, so what is checked here is `OWNER` of the DESTINATION actor
+   * (REQ-DOC-027/028) through the same `resolveOwnership` every write path
+   * uses — never a second predicate of this module's own. A Game Master passes
+   * that check because `resolveOwnership` already answers OWNER for a
+   * privileged role, so there is no role branch here at all.
+   *
+   * THE AUDIENCE GATE STILL APPLIES. The pack document is read with the
+   * CALLER's role (`getDocument(role, uuid)`), so a player asking for a uuid
+   * inside a `gm` pack gets the very same "not found" a nonexistent uuid gets
+   * (REQ-CPD-071) — bringing to one's own sheet is not a side door into the
+   * bestiary.
+   *
+   * ONLY ITEMS. A sheet holds embedded Items; asking to embed an Actor or a
+   * Scene fails per-uuid as a validation problem, not a permission one
+   * (REQ-CPD-061, `isSheetImportableDocumentType`).
+   *
+   * TWICE IS TWICE (REQ-CPD-064): bringing the same entry again is never
+   * refused for being a repeat. Each accepted uuid becomes a NEW embedded item
+   * with a fresh `_id`, exactly like `importToWorld` clones a new world
+   * document each call.
+   *
+   * THE SAME SERVER RULES AS THE SHEET PICKER. DEC-CPD-05 lets a plain player
+   * through this door because it is the same gesture `doc:create` with
+   * `parent={type:"Actor"}` already performs — so the two rules that path
+   * imposes on an embedded Item impose themselves here too, from the SHARED
+   * `documents/embedded-item.ts`: the system's data model for the item's
+   * `type`/`system` (REQ-SYS-011), and SF2e's augmentation slot limit
+   * (REQ-SF2-024, CA-SF2-05 — the one rule that does consult what the actor
+   * already carries, and the reason a repeat can still fail: the limit, never
+   * the repetition). Either failure is a per-uuid `failed` entry, so one bad
+   * entry never sinks the batch.
+   *
+   * The write is ONE `store.update` of the parent actor at the end, mirroring
+   * `handleEmbeddedCreate` in doc-handlers.ts: a partial batch never leaves
+   * half the items persisted and half lost — either the whole surviving set is
+   * written or nothing is (REQ-CPD-065's server-side half).
+   *
+   * @returns the destination id, the embedded ids created, and one entry per
+   *   uuid that could not be brought (with the reason).
+   * @throws {DocumentNotFoundError} when the destination actor does not exist.
+   * @throws {PermissionDeniedError} when the caller is not OWNER of it.
+   */
+  importToActor(
+    uuids: string[],
+    options: {
+      db: Db;
+      actorId: string;
+      userId: string;
+      role: number;
+      /**
+       * The WORLD's game system id. Needed by the same cross-item business
+       * rules `doc:create` applies to an embedded Item — today SF2e's
+       * augmentation slot limit (REQ-SF2-024). Absent = no system-specific
+       * gate, exactly as on the doc:create path.
+       */
+      systemId?: string;
+      /** Same role as importToWorld's: derives `system.derived` after the write. */
+      systemModule?: SystemModule;
+      logger?: Logger;
+    },
+  ): ImportToActorOutcome {
+    const store = new DocumentStore({ db: options.db });
+
+    // Throws DocumentNotFoundError — the handler maps it to NOT_FOUND.
+    const actor = store.get("actors", options.actorId);
+
+    const rawOwnership = actor["ownership"];
+    const ownership: Ownership =
+      rawOwnership && typeof rawOwnership === "object" && !Array.isArray(rawOwnership)
+        ? (rawOwnership as Ownership)
+        : { default: OwnershipLevel.NONE };
+
+    if (resolveOwnership(ownership, options.userId, options.role) < OwnershipLevel.OWNER) {
+      throw new PermissionDeniedError(`No OWNER access to destination actor ${options.actorId}`);
+    }
+
+    const created: string[] = [];
+    const failed: Array<{ uuid: string; reason: string }> = [];
+
+    const rawItems = actor["items"];
+    const existing = Array.isArray(rawItems) ? (rawItems as Record<string, unknown>[]) : [];
+    const usedIds = new Set<string>();
+    for (const item of existing) {
+      const id = item["_id"];
+      if (typeof id === "string") usedIds.add(id);
+    }
+
+    const addition: Record<string, unknown>[] = [];
+
+    for (const uuid of uuids) {
+      try {
+        // Read as the CALLER's role: a `gm` pack answers "not found" here.
+        const doc = this.getDocument(options.role, uuid);
+        if (!doc) {
+          failed.push({ uuid, reason: "Document not found in compendium" });
+          continue;
+        }
+
+        const parsedUuid = parsePackDocUuid(uuid);
+        if (!packed(parsedUuid)) {
+          failed.push({ uuid, reason: "Invalid UUID" });
+          continue;
+        }
+        // Same dedup-alias resolution as importToWorld above.
+        const parsed = this._resolveDedupAlias(parsedUuid.packId, parsedUuid.docId);
+
+        const manifest = this.packs.get(parsed.packId)?.manifest;
+        if (!manifest) {
+          failed.push({ uuid, reason: "Pack not found" });
+          continue;
+        }
+
+        if (!isSheetImportableDocumentType(manifest.documentType)) {
+          failed.push({
+            uuid,
+            reason: `Document type ${manifest.documentType} cannot be brought to a sheet`,
+          });
+          continue;
+        }
+
+        let embeddedId = createDocumentId();
+        while (usedIds.has(embeddedId)) embeddedId = createDocumentId();
+        usedIds.add(embeddedId);
+
+        const embedded: Record<string, unknown> = { ...doc, _id: embeddedId };
+        // Same EN-pure strip importToWorld does: `uuid`/`i18n`/`mechanics` are
+        // pack-side projections, and `flags.fusion.{packName,sourceId}` — kept —
+        // is what points the copy back at its origin (issue #43, DEC-CPD-12).
+        //
+        // REQ-CMP-055 (code review, ajustes r1 Fase 4, 2026-08-17): before the
+        // `i18n` projection is stripped, snapshot it into
+        // `flags.fusion.i18n["pt-BR"]` — the SAME mechanism `importToWorld`
+        // uses (`snapshotPtBRLabel`). Without this, "trazer para a ficha"
+        // (REQ-CPD-061) delivered the item EN-forever, the exact defect
+        // REQ-CMP-055 was written to close, while the sheet's OWN picker
+        // (`doc:create` with an embedded Item, characterSheetVM.addSpellToEntry)
+        // keeps the pack-side `i18n.ptBR` bag on the item verbatim — a second,
+        // pre-existing name-resolution mechanism `displayName()` does not read.
+        // That second mechanism is a real, separate defect (see openQuestions)
+        // and is NOT fixed here.
+        snapshotPtBRLabel(embedded);
+        stampOriginSystemId(embedded, manifest.systemId);
+        delete embedded["uuid"];
+        delete embedded["i18n"];
+        delete embedded["mechanics"];
+
+        // THE SAME SERVER RULES `doc:create` APPLIES TO AN EMBEDDED ITEM.
+        // DEC-CPD-05 opens this door to a plain PLAYER (the predicate is OWNER
+        // of the destination, not the role) precisely because it is the same
+        // gesture the sheet picker already performs — "proibir na aba criaria
+        // duas regras para o mesmo gesto". A door that skipped these checks
+        // would be the cheapest way around them: both predicates therefore
+        // come from documents/embedded-item.ts, shared with
+        // handleEmbeddedCreate, never re-implemented here.
+        //
+        // Order mirrors that handler: the cross-item business rule first
+        // (counted against `existing` PLUS everything accepted earlier in THIS
+        // batch), then the per-item shape. A uuid failing either is a `failed`
+        // entry, not an exception — one bad entry never sinks the batch.
+        const augViolation = augmentationSlotLimitViolation(
+          {
+            systemId: options.systemId,
+            sourceSystemIds: options.systemModule?.manifest.sourceSystemIds,
+          },
+          [...existing, ...addition] as AugmentationLikeItem[],
+          embedded,
+        );
+        if (augViolation !== null) {
+          failed.push({ uuid, reason: augViolation });
+          continue;
+        }
+
+        const validation = validateEmbeddedItemForSystem(options.systemModule, embedded);
+        if (!validation.ok) {
+          failed.push({ uuid, reason: validation.message });
+          continue;
+        }
+
+        // `validation.doc` — the model-parsed `system` (defaults applied,
+        // unknown keys handled by the model's own schema), not the raw pack
+        // subtree. Same value handleEmbeddedCreate pushes.
+        addition.push(validation.doc);
+        created.push(embeddedId);
+      } catch (err) {
+        const reason = err instanceof Error ? err.message : String(err);
+        failed.push({ uuid, reason });
+        this.logger?.warn({ err, uuid }, "Failed to bring document to actor sheet");
+      }
+    }
+
+    if (addition.length === 0) {
+      return { actorId: options.actorId, created: [], failed, actor: null };
+    }
+
+    let updated = store.update(
+      "actors",
+      options.actorId,
+      { items: [...existing, ...addition] },
+      { userId: options.userId },
+    );
+
+    if (!updated) {
+      return {
+        actorId: options.actorId,
+        created: [],
+        failed: uuids.map((uuid) => ({ uuid, reason: "Failed to update destination actor" })),
+        actor: null,
+      };
+    }
+
+    // New items change AC/saves/spell slots — derive before the caller
+    // broadcasts, same reason doc-handlers.ts recomputes after an embedded
+    // create. `recomputeDerivedIfNeeded` is that recompute, shared: it derives
+    // over a CLONE and persists only `system.derived` (several DeriveSteps
+    // also write cache fields outside `derived` that must never be persisted),
+    // it PRUNES the keys the recompute stopped producing (r24 S2 — otherwise
+    // `system.derived` only ever grows), and it swallows a derivation failure
+    // so a malformed document never undoes a write already committed.
+    const deriveDeps: {
+      store: DocumentStore;
+      systemModule?: SystemModule;
+      logger?: Logger;
+    } = { store };
+    if (options.systemModule !== undefined) deriveDeps.systemModule = options.systemModule;
+    if (options.logger !== undefined) deriveDeps.logger = options.logger;
+    updated = recomputeDerivedIfNeeded(deriveDeps, "Actor", updated, { userId: options.userId });
+
+    return { actorId: options.actorId, created, failed, actor: updated };
   }
 
   // ---------------------------------------------------------------------------
@@ -676,13 +1400,78 @@ export class CompendiumService {
    * packs (14 packs, 4236 docs total): ~176ms cold. Tolerant of a missing/
    * corrupt documents.json for any one pack — that pack is just skipped
    * (matches the discovery philosophy, REQ-CMP-006).
+   *
+   * I5 (revisão adversarial 3) — `(packName, sourceId)` is NOT a
+   * cross-system-safe identity: `flags.fusion.packName` is the unprefixed
+   * VENDOR pack key ("ancestries", "equipment", ...), reused verbatim by
+   * both the pf2e and the sf2e importer, and 36 documents across the two
+   * systems share the SAME `sourceId` while being genuinely different
+   * content (e.g. pf2e's Ratfolk ancestry and sf2e's Ysoki ancestry both
+   * carry vendor sourceId `P6PcVnCkh4XMdefw` under `packName: "ancestries"`
+   * — see `.fusion-build/sf2e-nivel3/mundo-misto/dedup.md`). In a
+   * single-system service this never collides (only one systemId is ever
+   * loaded); in the pf2e+sf2e composite it would, and the OLD code picked
+   * whichever pack happened to load first — an accident of `this.packs`
+   * Map insertion order, not a rule. Two changes close that:
+   *   1. Packs are walked in a DETERMINISTIC order (pf2e before any other
+   *      systemId, then packId) so a collision always resolves the same
+   *      way, run to run — never insertion-order roulette.
+   *   2. A doc the DEDUP index (`_ensureDedupIndex`) already marked
+   *      `hidden` (the LOSING duplicate of a cross-system mechanics fuse,
+   *      `buildDedupIndex`) is skipped here too — indexing it would let a
+   *      stale/superseded overlay entry win a collision it has no business
+   *      winning.
+   * #264: a reference that carries `systemId` (stamped on `flags.fusion` at import,
+   * REQ-CMP-059) resolves its own side via {@link _resolveSourceRef}. The gap below remains only
+   * for references WITHOUT it (world documents imported before the stamp existed).
+   * KNOWN REMAINING GAP: for the Ratfolk/Ysoki shape — same `sourceId`,
+   * same generic `packName`, but DIFFERENT content that dedup correctly
+   * keeps as two separate, unfused documents (not a losing/winning pair) —
+   * `getI18nBySourceRef`'s caller only ever has `{packName, sourceId}` (no
+   * systemId), so on a genuine collision like this it deterministically
+   * resolves to the pf2e side. The sf2e side (Ysoki) still resolves
+   * correctly through every GAMEPLAY path that carries a real uuid/docId
+   * (`compendium:get`, imports, grants — proven by
+   * `dedup-real-packs.test.ts`'s Ratfolk/Ysoki case); only the i18n OVERLAY
+   * lookup by bare origin ref is affected, and only for a world document
+   * whose flags.fusion strips systemId. Fixing that fully needs the world
+   * document (or the protocol payload) to carry its origin systemId, which
+   * is a client-facing protocol change — tracked as a follow-up, not done
+   * here (see conserto-core.md).
    */
+  /**
+   * Resolve an origin reference. With `systemId`, the entry of THAT system wins; when it has none
+   * (or no `systemId` was given) the system-agnostic index answers, pf2e first (I5).
+   */
+  private _resolveSourceRef(ref: {
+    packName: string;
+    sourceId: string;
+    systemId?: string | undefined;
+  }): { packId: string; docId: string } | undefined {
+    const index = this._getSourceRefIndex();
+    const key = buildSourceRefKey(ref.packName, ref.sourceId);
+    if (ref.systemId !== undefined) {
+      const own = this._sourceRefBySystem?.get(`${ref.systemId}\0${key}`);
+      if (own) return own;
+    }
+    return index.get(key);
+  }
+
   private _getSourceRefIndex(): Map<string, { packId: string; docId: string }> {
     if (this._sourceRefIndex) return this._sourceRefIndex;
 
+    const dedup = this._ensureDedupIndex();
     const index = new Map<string, { packId: string; docId: string }>();
+    const bySystem = new Map<string, { packId: string; docId: string }>();
 
-    for (const [packId, loaded] of this.packs) {
+    const sortedPacks = [...this.packs.entries()].sort(([packIdA, a], [packIdB, b]) => {
+      const pa = a.manifest.systemId === "pf2e" ? 0 : 1;
+      const pb = b.manifest.systemId === "pf2e" ? 0 : 1;
+      if (pa !== pb) return pa - pb;
+      return packIdA < packIdB ? -1 : packIdA > packIdB ? 1 : 0;
+    });
+
+    for (const [packId, loaded] of sortedPacks) {
       let docs: unknown[];
       try {
         docs = JSON.parse(readFileSync(loaded.docsPath, "utf8")) as unknown[];
@@ -699,6 +1488,7 @@ export class CompendiumService {
         const doc = raw as Record<string, unknown>;
         const docId = doc["_id"];
         if (typeof docId !== "string") continue;
+        if (dedup.hidden.has(buildDocKey(packId, docId))) continue;
 
         const flags = doc["flags"];
         if (typeof flags !== "object" || flags === null) continue;
@@ -709,17 +1499,27 @@ export class CompendiumService {
         if (typeof packName !== "string" || typeof sourceId !== "string") continue;
 
         const key = buildSourceRefKey(packName, sourceId);
+        const systemKey = `${loaded.manifest.systemId}\0${key}`;
+        if (!bySystem.has(systemKey)) bySystem.set(systemKey, { packId, docId });
         const existing = index.get(key);
-        if (existing !== undefined) {
-          // Should never happen — REQ-CMP-041 states fusionId derivation is
-          // collision-free cross-pack, and (packName, sourceId) is exactly
-          // its input. Keep the FIRST match and log loudly so a real
-          // regression is visible instead of silently picking a doc at
-          // random.
-          this.logger?.warn(
-            { packName, sourceId, existing, duplicate: { packId, docId } },
-            "Duplicate origin reference across packs while building source-ref index — keeping first match",
-          );
+        if (existing) {
+          // A same-system duplicate (never expected, REQ-CMP-041) OR a
+          // genuine cross-system sourceId collision that dedup did NOT fuse
+          // (different mechanics — the Ratfolk/Ysoki shape, see docstring
+          // above). Either way: deterministic pf2e-first order (sortedPacks)
+          // means the FIRST writer here is always the same one across runs,
+          // so "keep first" is now a rule, not an accident. Logged so a
+          // same-system duplicate (the actually-unexpected case) stays
+          // visible.
+          if (
+            loaded.manifest.systemId ===
+            (this.packs.get(existing.packId)?.manifest.systemId ?? null)
+          ) {
+            this.logger?.warn(
+              { packName, sourceId, existing, duplicate: { packId, docId } },
+              "Duplicate origin reference within the same system while building source-ref index — keeping first match",
+            );
+          }
           continue;
         }
         index.set(key, { packId, docId });
@@ -727,7 +1527,123 @@ export class CompendiumService {
     }
 
     this._sourceRefIndex = index;
+    this._sourceRefBySystem = bySystem;
     return index;
+  }
+
+  // ---------------------------------------------------------------------------
+  // Private helpers — cross-system dedup (mundo misto, DEC-SF2-07-bis)
+  // ---------------------------------------------------------------------------
+
+  /**
+   * Lazily build (once) the cross-system dedup index over every pack
+   * currently loaded. `buildDedupIndex` itself no-ops (returns an empty
+   * result) unless at least 2 distinct `manifest.systemId`s are present —
+   * so a pure pf2e or pure sf2e world pays only the systemId-set check, never
+   * the full documents.json scan. A composite world (pf2e-sf2e) pays one
+   * JSON.parse per pack, same cost class as `_getSourceRefIndex`.
+   */
+  private _ensureDedupIndex(): DedupResult {
+    if (this._dedupIndex) return this._dedupIndex;
+
+    const inputs: DedupPackInput[] = [];
+    for (const [packId, loaded] of this.packs) {
+      let docs: unknown[];
+      try {
+        docs = JSON.parse(readFileSync(loaded.docsPath, "utf8")) as unknown[];
+      } catch (err) {
+        this.logger?.warn(
+          { err, packId },
+          "Failed to read documents.json while building dedup index",
+        );
+        continue;
+      }
+      inputs.push({
+        packId,
+        systemId: loaded.manifest.systemId,
+        docs: docs.filter(
+          (d): d is Record<string, unknown> => typeof d === "object" && d !== null,
+        ) as unknown as DedupPackInput["docs"],
+      });
+    }
+
+    const result = buildDedupIndex(inputs);
+    this._dedupIndex = result;
+    if (result.hidden.size > 0) {
+      this.logger?.info(
+        { hidden: result.hidden.size, fused: result.mergedFromSystems.size },
+        "Cross-system compendium dedup index built (mundo misto)",
+      );
+    }
+    return result;
+  }
+
+  /**
+   * Resolves a `(packId, docId)` pair through the dedup alias, if any. A
+   * document hidden as the losing duplicate of a cross-system fuse (see
+   * `buildDedupIndex`) always resolves to its canonical winner — used by
+   * `getDocument` so every path that reaches a compendium uuid (grant items,
+   * `compendium:get`, imports) transparently lands on the surviving copy,
+   * never on a hidden one.
+   */
+  private _resolveDedupAlias(packId: string, docId: string): { packId: string; docId: string } {
+    const key = buildDocKey(packId, docId);
+    const dedup = this._ensureDedupIndex();
+    const canonicalKey = dedup.aliasTo.get(key);
+    if (!canonicalKey) return { packId, docId };
+    return parseDocKey(canonicalKey);
+  }
+
+  // ---------------------------------------------------------------------------
+  // Private helpers — cross-pack search index (REQ-CPD-030, RNF-CPD-01)
+  // ---------------------------------------------------------------------------
+
+  /**
+   * Lazily build (once) the flat cross-pack row list consumed by
+   * {@link searchAllPacks}: every entry of every LOADED pack, carrying its
+   * origin (`packId`/`packLabel`), its `documentType`, and both names already
+   * normalized for accent/case-insensitive matching (REQ-CMP-013b). Cached on
+   * `_searchAllRows` for the service's lifetime — packs are discovered once at
+   * startup and never change underneath a running service, the same assumption
+   * `_getSourceRefIndex` already makes.
+   *
+   * WHY IT IS AUDIENCE-AGNOSTIC: the rows cover every pack, and the audience is
+   * applied by the CALLER on the way out (`searchAllPacks` intersects with
+   * `_isPackVisible` before reading a single row). Keeping one shared index
+   * instead of one per role means the expensive part is paid once for the whole
+   * table — and the gate stays in the single place that already owns it
+   * (`_isPackVisible`), never duplicated into a second per-role cache that
+   * could drift.
+   *
+   * COST: reuses `_ensureIndex`, so it pays exactly the per-pack index build
+   * that `compendium:index` would have paid anyway, plus one normalization per
+   * name. Warming it is the slow call; every search after it is a pass over
+   * strings already in memory.
+   */
+  private _getSearchAllRows(): SearchAllRow[] {
+    if (this._searchAllRows) return this._searchAllRows;
+
+    const rows: SearchAllRow[] = [];
+    for (const [packId, loaded] of this.packs) {
+      const { label, documentType } = loaded.manifest;
+      for (const entry of this._ensureIndex(loaded)) {
+        rows.push({
+          packId,
+          packLabel: label,
+          documentType,
+          entry,
+          nameNorm: normalizeSearchText(entry.name),
+          namePtNorm: entry.namePt !== undefined ? normalizeSearchText(entry.namePt) : null,
+        });
+      }
+    }
+
+    this._searchAllRows = rows;
+    this.logger?.debug(
+      { packs: this.packs.size, entries: rows.length },
+      "Built cross-pack compendium search index",
+    );
+    return rows;
   }
 
   // ---------------------------------------------------------------------------
@@ -893,8 +1809,96 @@ export class CompendiumService {
 // Helpers
 // ---------------------------------------------------------------------------
 
+/**
+ * Snapshot a document's pt-BR overlay label (`doc.i18n.ptBR.{name,description}`
+ * — the projection `getDocument()` attaches for the picker UI, T1) into
+ * `flags.fusion.i18n["pt-BR"]`, mutating `doc` in place. No-op when there is
+ * no overlay, or the overlay has neither field as a string.
+ *
+ * Shared by `importToWorld` and `importToActor` — REQ-CMP-055 (A041, ajustes
+ * r1 Fase 4, 2026-08-17) requires every import surface to snapshot the SAME
+ * way, so a display surface never needs a second translation calculation
+ * regardless of whether the document landed in the world or on a sheet.
+ * `displayName()` (packages/client/src/lib/docs/displayName.ts) is the single
+ * reader of this flag.
+ *
+ * Callers are responsible for deleting `doc["i18n"]` afterwards (the EN-pure
+ * decision, issue #43, is untouched by this helper — it only copies, never
+ * keeps a live view of the overlay).
+ */
+export function snapshotPtBRLabel(doc: Record<string, unknown>): void {
+  const overlay = doc["i18n"];
+  if (typeof overlay !== "object" || overlay === null) return;
+  const ptBR = (overlay as Record<string, unknown>)["ptBR"];
+  if (typeof ptBR !== "object" || ptBR === null) return;
+
+  const label: Record<string, unknown> = {};
+  const ptName = (ptBR as Record<string, unknown>)["name"];
+  if (typeof ptName === "string") label["name"] = ptName;
+  const ptDescription = (ptBR as Record<string, unknown>)["description"];
+  if (typeof ptDescription === "string") label["description"] = ptDescription;
+  if (Object.keys(label).length === 0) return;
+
+  const existingFlags = doc["flags"];
+  const flags: Record<string, unknown> =
+    typeof existingFlags === "object" && existingFlags !== null
+      ? { ...(existingFlags as Record<string, unknown>) }
+      : {};
+  const existingFusion = flags["fusion"];
+  const fusion: Record<string, unknown> =
+    typeof existingFusion === "object" && existingFusion !== null
+      ? { ...(existingFusion as Record<string, unknown>) }
+      : {};
+  fusion["i18n"] = { "pt-BR": label };
+  flags["fusion"] = fusion;
+  doc["flags"] = flags;
+}
+
+/**
+ * #264 (REQ-CMP-059): `(packName, sourceId)` is not a cross-system identity (36 vendor
+ * documents share it between pf2e and sf2e with different content). Stamp the ORIGIN
+ * `systemId` on `flags.fusion` of an imported document so a reader can pass it back to
+ * `getI18nBySourceRef`/`getDocumentBySourceRef`. Only documents that already carry an
+ * origin reference (`flags.fusion.sourceId`) are stamped; mutates `doc` in place.
+ */
+export function stampOriginSystemId(doc: Record<string, unknown>, systemId: string): void {
+  const flags = doc["flags"];
+  if (typeof flags !== "object" || flags === null) return;
+  const fusion = (flags as Record<string, unknown>)["fusion"];
+  if (typeof fusion !== "object" || fusion === null) return;
+  if (typeof (fusion as Record<string, unknown>)["sourceId"] !== "string") return;
+  doc["flags"] = { ...(flags as Record<string, unknown>), fusion: { ...fusion, systemId } };
+}
+
 function packed<T>(v: T | null): v is T {
   return v !== null;
+}
+
+/**
+ * Does a cross-pack row match the (already normalized) query text? Matches
+ * against BOTH names — EN and pt-BR — so typing either language finds the same
+ * entry (REQ-CMP-013b, DEC-CPD-06). Mirrors `matchesTextSearch` from
+ * @fusion/shared, but over the row's precomputed normalizations instead of
+ * re-normalizing ~12k names on every keystroke (RNF-CPD-01).
+ */
+function rowMatchesText(row: SearchAllRow, textNorm: string): boolean {
+  if (!textNorm) return true;
+  if (row.nameNorm.includes(textNorm)) return true;
+  return row.namePtNorm !== null && row.namePtNorm.includes(textNorm);
+}
+
+/**
+ * How well a row matched, lowest = best: 0 = one of its names IS the query,
+ * 1 = one of them starts with it, 2 = it appears somewhere inside (or there was
+ * no query at all). Used only to order a group before truncation — see the
+ * ORDER note on `searchAllPacks`.
+ */
+function matchRank(row: SearchAllRow, textNorm: string): number {
+  if (!textNorm) return 2;
+  if (row.nameNorm === textNorm || row.namePtNorm === textNorm) return 0;
+  if (row.nameNorm.startsWith(textNorm)) return 1;
+  if (row.namePtNorm !== null && row.namePtNorm.startsWith(textNorm)) return 1;
+  return 2;
 }
 
 /**
@@ -1095,7 +2099,10 @@ export function findMonorepoRoot(startDir: string): string | null {
 }
 
 /**
- * Resolve the packs directory for a game system: `<root>/systems/<systemId>/packs`.
+ * Resolve the packs directory for a game system: `<root>/systems/<systemId>/packs`
+ * for a system that still lives in the core (`stub`), or
+ * `<root>/external/fusion-systems-2e/systems/<systemId>/packs` for a system
+ * extracted to the satellite submodule (`pf2e`, `sf2e` — F4, DEC-SEP-09).
  *
  * Resolution order (B3-FIXES MÉDIA B added step 2 — the other two were the
  * original M3 behaviour):
@@ -1110,8 +2117,10 @@ export function findMonorepoRoot(startDir: string): string | null {
  *      running the packaged exe there IS no monorepo checkout next to it —
  *      step 3 always returns null in that case, which is exactly the gap
  *      this step closes (compendium:list was returning [] in the exe).
- *   3. `<monorepoRoot>/systems/<systemId>/packs` discovered from this module's
- *      location via {@link findMonorepoRoot} — dev/test/non-SEA path.
+ *   3. `<monorepoRoot>/systems/<systemId>/packs`, then
+ *      `<monorepoRoot>/external/fusion-systems-2e/systems/<systemId>/packs`
+ *      (F4) — both discovered from this module's location via
+ *      {@link findMonorepoRoot} — dev/test/non-SEA path.
  *
  * Returns null when the directory cannot be located or does not exist; callers
  * should treat that as "no packs available" and continue (REQ-CMP-006).
@@ -1139,6 +2148,53 @@ export function resolveSystemPacksDir(systemId: string, packsDirOverride?: strin
   const root = findMonorepoRoot(here);
   if (root === null) return null;
 
-  const packsDir = join(root, "systems", systemId, "packs");
-  return existsSync(packsDir) ? packsDir : null;
+  const corePacksDir = join(root, "systems", systemId, "packs");
+  if (existsSync(corePacksDir)) return corePacksDir;
+
+  // F4 (DEC-SEP-09): pf2e/sf2e's packs moved to the fusion-systems-2e
+  // submodule, checked out for real at external/fusion-systems-2e/.
+  const satellitePacksDir = join(
+    root,
+    "external",
+    "fusion-systems-2e",
+    "systems",
+    systemId,
+    "packs",
+  );
+  return existsSync(satellitePacksDir) ? satellitePacksDir : null;
+}
+
+/**
+ * Resolve the **private** packs directory for a game system (DEC-CMP-11,
+ * REQ-CMP-057): a second, non-versioned root the GM can point the server at
+ * to load compendium content that must never reach git (e.g. Paizo playtest
+ * classes — same restriction as `docs/etmos-fontes/`).
+ *
+ * Layout mirrors {@link resolveSystemPacksDir}'s target: `<root>/<systemId>/`
+ * contains `<slug>/pack.json` + `documents.json` (+ optional `index.json` /
+ * `i18n.pt-BR.json`), same as `systems/<systemId>/packs/` — so it is
+ * discovered by the exact same {@link CompendiumService.discoverPacks}.
+ *
+ * Resolution order:
+ *   1. `FUSION_PRIVATE_PACKS_DIR` env var, if set — the root that contains
+ *      `<systemId>/` (analogous to `FUSION_PACKS_DIR`'s override role for
+ *      {@link resolveSystemPacksDir}).
+ *   2. `<dataDir>/private-packs/<systemId>/` — the default, next to the
+ *      world data the GM already keeps out of any repo.
+ *
+ * Returns `null` when the directory does not exist — this is the expected,
+ * silent case for the overwhelming majority of installs (REQ-CMP-057: no
+ * error, no warning log).
+ *
+ * @param dataDir  the server's resolved data directory (`config.dataDir`).
+ * @param systemId active world system id (e.g. "pf2e").
+ */
+export function resolvePrivatePacksDir(dataDir: string, systemId: string): string | null {
+  const overrideRoot = process.env["FUSION_PRIVATE_PACKS_DIR"];
+  const privateRoot =
+    overrideRoot !== undefined && overrideRoot.length > 0
+      ? overrideRoot
+      : join(dataDir, "private-packs");
+  const dir = join(privateRoot, systemId);
+  return existsSync(dir) ? dir : null;
 }

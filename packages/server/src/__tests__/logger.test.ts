@@ -10,7 +10,7 @@
  *    not be opened.
  */
 
-import { describe, it, expect, afterEach } from "vitest";
+import { describe, it, expect, beforeEach, afterEach } from "vitest";
 import { mkdirSync, mkdtempSync, rmSync, readFileSync, existsSync, chmodSync } from "node:fs";
 import { join } from "node:path";
 import { tmpdir } from "node:os";
@@ -47,9 +47,33 @@ afterEach(() => {
 // ---------------------------------------------------------------------------
 
 describe("dailyLogFilePath", () => {
-  it("builds <dataDir>/Logs/fusion-<YYYY-MM-DD>.log", () => {
+  // The date in the name is the LOCAL calendar day (T033), so this assertion
+  // only states a fact once TZ is pinned — otherwise it silently becomes a
+  // claim about whatever machine runs it, and flips at UTC+11 and beyond.
+  let originalTz: string | undefined;
+
+  beforeEach(() => {
+    originalTz = process.env.TZ;
+    process.env.TZ = "America/Sao_Paulo";
+  });
+
+  afterEach(() => {
+    if (originalTz === undefined) {
+      delete process.env.TZ;
+    } else {
+      process.env.TZ = originalTz;
+    }
+  });
+
+  it("builds <dataDir>/Logs/fusion-<YYYY-MM-DD>.log from the local calendar day", () => {
     const path = dailyLogFilePath("/data", new Date("2026-07-03T12:00:00Z"));
     expect(path).toBe(join("/data", "Logs", "fusion-2026-07-03.log"));
+  });
+
+  it("uses the local day, not the UTC day, when the two disagree", () => {
+    // 2026-07-03T02:00Z is still 2026-07-02 in America/Sao_Paulo (UTC-3).
+    const path = dailyLogFilePath("/data", new Date("2026-07-03T02:00:00Z"));
+    expect(path).toBe(join("/data", "Logs", "fusion-2026-07-02.log"));
   });
 });
 

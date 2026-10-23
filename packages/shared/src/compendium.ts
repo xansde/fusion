@@ -57,7 +57,7 @@ export type PackLicense = z.infer<typeof PackLicenseSchema>;
 // ---------------------------------------------------------------------------
 
 export const PackSourceSchema = z.object({
-  /** Source repository — null for editorial packs (Etmos). */
+  /** Source repository — null for editorial (non-imported) packs. */
   repo: z.string().nullable(),
   /** Release/version from the source repo — null for editorial. */
   version: z.string().nullable(),
@@ -68,14 +68,37 @@ export const PackSourceSchema = z.object({
 export type PackSource = z.infer<typeof PackSourceSchema>;
 
 // ---------------------------------------------------------------------------
+// PackAudience — who may see the pack at all
+// REQ-CMP-004a (spec 16), REQ-CPD-070 (spec 43)
+// ---------------------------------------------------------------------------
+
+/**
+ * Audience of a pack: WHO can see the shelf, not who can write to a document.
+ * It is declared once for the whole pack (DEC-CMP-03/DEC-CPD-04) and is NOT
+ * document ownership — deciding it per document would be a second permission
+ * system.
+ *
+ * `"all"` — every user of the world sees the pack.
+ * `"gm"`  — only users satisfying the privileged-role predicate see it; for
+ *           everybody else the pack must be indistinguishable from a pack that
+ *           does not exist (REQ-CMP-010a, REQ-CPD-071, REQ-SEC-020).
+ *
+ * Declaring the audience is not enforcing it: the enforcement point is the
+ * server-side read API (spec 16, REQ-CMP-010a).
+ */
+export const PackAudienceSchema = z.enum(["all", "gm"]);
+
+export type PackAudience = z.infer<typeof PackAudienceSchema>;
+
+// ---------------------------------------------------------------------------
 // PackManifest — the pack.json descriptor
-// REQ-CMP-003, REQ-CMP-004, REQ-CMP-040
+// REQ-CMP-003, REQ-CMP-004, REQ-CMP-004a, REQ-CMP-040
 // ---------------------------------------------------------------------------
 
 export const PackManifestSchema = z.object({
   /**
    * Stable pack identifier in the format "<systemId>.<packSlug>".
-   * Example: "pf2e.bestiary-core", "etmos.particles".
+   * Example: "pf2e.bestiary-core", "sf2e.starship-weapons".
    */
   id: z.string(),
   /** Human-readable label for the UI. */
@@ -93,7 +116,7 @@ export const PackManifestSchema = z.object({
     "Scene",
     "Playlist",
   ]),
-  /** System that owns this pack ("pf2e" | "sf2e" | "etmos"). */
+  /** System that owns this pack ("pf2e" | "sf2e" | "stub"). */
   systemId: z.string(),
   /**
    * Extra JSON paths to include in the index for filtering.
@@ -103,6 +126,14 @@ export const PackManifestSchema = z.object({
   indexFields: z.array(z.string()),
   /** License block for this pack. REQ-CMP-004. */
   license: PackLicenseSchema,
+  /**
+   * Audience of the pack, next to `license`. Optional on input: a pack.json
+   * written before this field existed stays valid and stays visible to
+   * everyone, because an absent `audience` parses as `"all"` (REQ-CMP-004a,
+   * REQ-CPD-070). Parsed manifests therefore always carry a resolved value —
+   * readers never have to re-apply the default.
+   */
+  audience: PackAudienceSchema.default("all"),
   /** Source tracking (where/how this pack was generated). REQ-CMP-040. */
   source: PackSourceSchema,
   /** Total number of documents in the pack. */
@@ -295,31 +326,138 @@ export const CompendiumIndexPayloadSchema = z.object({
 
 export type CompendiumIndexPayload = z.infer<typeof CompendiumIndexPayloadSchema>;
 
+/**
+ * Equality/range filters over index fields. Shared by the per-pack search
+ * (`compendium:search`) and the aggregated one (`compendium:searchAll`) so a
+ * facet cannot mean one thing in one scope and another thing in the other
+ * (REQ-CMP-014, REQ-CPD-034).
+ */
+export const CompendiumSearchFiltersSchema = z.record(
+  z.string(),
+  z.union([
+    z.string(),
+    z.number(),
+    z.boolean(),
+    z.array(z.string()),
+    z.object({
+      lte: z.number().optional(),
+      gte: z.number().optional(),
+      contains: z.string().optional(),
+    }),
+  ]),
+);
+
+export type CompendiumSearchFilters = z.infer<typeof CompendiumSearchFiltersSchema>;
+
 /** compendium:search — search/filter the index of a pack. */
 export const CompendiumSearchPayloadSchema = z.object({
   packId: z.string(),
   /** Substring search on name (case + accent insensitive). */
   text: z.string().optional(),
   /** Equality/range filters on indexFields. */
-  filters: z
-    .record(
-      z.string(),
-      z.union([
-        z.string(),
-        z.number(),
-        z.boolean(),
-        z.array(z.string()),
-        z.object({
-          lte: z.number().optional(),
-          gte: z.number().optional(),
-          contains: z.string().optional(),
-        }),
-      ]),
-    )
-    .optional(),
+  filters: CompendiumSearchFiltersSchema.optional(),
 });
 
 export type CompendiumSearchPayload = z.infer<typeof CompendiumSearchPayloadSchema>;
+
+// ---------------------------------------------------------------------------
+// compendium:searchAll — one search over EVERY pack the caller can see
+// REQ-CPD-030..032 (spec 43), REQ-CMP-013a/013b (spec 16), RNF-CPD-01
+// ---------------------------------------------------------------------------
+
+/**
+ * How many entries one group carries before the server truncates it
+ * (REQ-CPD-032).
+ *
+ * ANSWER TO Q-CPD-04 (the spec left the number open: "só sai de uso real").
+ * 20 is the pick, and this constant is the ONE place it lives — server default,
+ * documented ceiling and client expectation all read it from here, so changing
+ * the number is a one-line change and never a hunt through call sites.
+ *
+ * WHY 20: a 300px drawer shows ~8 rows at a time, so 20 is two and a half
+ * screens of scrolling inside a single group — enough that the answer is
+ * usually in the group, short enough that the truncation notice (and the way
+ * back into the pack's own scope) stays reachable without infinite scrolling.
+ * It also keeps the aggregated payload bounded: with ~5 document types the
+ * worst case is ~100 index entries per response, which is what makes
+ * RNF-CPD-01's budget a property of the SERVER's index and not of the wire.
+ */
+export const COMPENDIUM_SEARCH_ALL_LIMIT_PER_GROUP = 20;
+
+/**
+ * Hard ceiling for a caller-supplied `limitPerGroup`. A request above it is
+ * refused by the schema instead of being silently clamped — asking for the
+ * whole acervo in one response is exactly the "baixar tudo para buscar" that
+ * DEC-CPD-02 forbids, so it should fail loudly rather than half-succeed.
+ */
+export const COMPENDIUM_SEARCH_ALL_MAX_LIMIT_PER_GROUP = 100;
+
+/**
+ * compendium:searchAll — search over all packs VISIBLE TO THE CALLER
+ * (REQ-CPD-030, REQ-CMP-013a). There is deliberately no `packId` field: the
+ * scope is "everything this role can see", resolved on the server from the
+ * authenticated socket role, never from the payload.
+ */
+export const CompendiumSearchAllPayloadSchema = z.object({
+  /** Substring search on either name — EN or pt-BR (REQ-CMP-013b). */
+  text: z.string().optional(),
+  /** Equality/range filters on indexFields (REQ-CPD-034). */
+  filters: CompendiumSearchFiltersSchema.optional(),
+  /** Entries per group before truncation. Defaults to
+   * {@link COMPENDIUM_SEARCH_ALL_LIMIT_PER_GROUP}. */
+  limitPerGroup: z.number().int().min(1).max(COMPENDIUM_SEARCH_ALL_MAX_LIMIT_PER_GROUP).optional(),
+});
+
+export type CompendiumSearchAllPayload = z.infer<typeof CompendiumSearchAllPayloadSchema>;
+
+/**
+ * One row of an aggregated result: an ordinary index entry that also NAMES ITS
+ * SOURCE (REQ-CPD-031) — the aggregated scope is the one place where a row on
+ * screen has no surrounding pack header to inherit its origin from.
+ */
+export interface CompendiumSearchAllEntry extends PackIndexEntry {
+  /** Pack the entry came from (`PackManifest.id`). */
+  packId: string;
+  /** Human-readable pack label (`PackManifest.label`), so the row can name its
+   * source without a second round-trip to `compendium:list`. */
+  packLabel: string;
+}
+
+/** How many matches one pack contributed to a group (REQ-CPD-032: the truncated
+ * group must be able to offer opening THAT pack in its own scope). */
+export interface CompendiumSearchAllPackTally {
+  packId: string;
+  label: string;
+  matched: number;
+}
+
+/** One document-type group of an aggregated result (REQ-CPD-031). */
+export interface CompendiumSearchAllGroup {
+  /** `PackManifest.documentType` of every entry in the group. */
+  documentType: string;
+  /** Matches in the WHOLE group, before truncation (REQ-CPD-031: count per group). */
+  total: number;
+  /** At most `limitPerGroup` entries (REQ-CPD-032). */
+  entries: CompendiumSearchAllEntry[];
+  /** True when `total > entries.length`. */
+  truncated: boolean;
+  /** How many matches were left out — `total - entries.length` (REQ-CPD-032). */
+  omitted: number;
+  /** Per-pack breakdown of `total`, biggest contributor first. */
+  packs: CompendiumSearchAllPackTally[];
+}
+
+/** The `compendium:searchAll` ack result. */
+export interface CompendiumSearchAllResult {
+  /** Groups by document type, biggest first. */
+  groups: CompendiumSearchAllGroup[];
+  /** Matches across every group, before truncation. */
+  totalMatched: number;
+  /** The limit actually applied (echoed so the UI never guesses the default). */
+  limitPerGroup: number;
+  /** How many packs the search covered — i.e. how many the CALLER can see. */
+  packsSearched: number;
+}
 
 /** compendium:get — load the full document for a UUID. */
 export const CompendiumGetPayloadSchema = z.object({
@@ -348,6 +486,10 @@ export const CompendiumI18nBySourceRefPayloadSchema = z.object({
   packName: z.string(),
   /** `flags.fusion.sourceId` — the vendor's raw `_id`, unique within `packName`. */
   sourceId: z.string(),
+  /** Origin game system of the document (`flags.fusion.systemId`, stamped on import). Optional and
+   * additive (#264): `(packName, sourceId)` collides across pf2e x sf2e (Ratfolk x Ysoki), and
+   * this disambiguates. Absent = the old rule (pf2e wins). */
+  systemId: z.string().optional(),
 });
 
 export type CompendiumI18nBySourceRefPayload = z.infer<
@@ -369,6 +511,49 @@ export interface CompendiumImportResult {
   created: string[];
   /** Source uuids that failed (with reason). */
   failed: Array<{ uuid: string; reason: string }>;
+}
+
+/**
+ * compendium:importToActor — bring pack document(s) into ONE actor's sheet.
+ *
+ * Spec 43 §5.7, DEC-CPD-05 (REQ-CPD-061, REQ-CPD-073): bringing something to
+ * the WORLD is a privileged act; bringing it to a SHEET is not. What protects
+ * the sheet is `OWNER` of the DESTINATION actor (REQ-DOC-027/028), which is why
+ * this payload names an `actorId` and carries no role of its own — the server
+ * reads the role from the socket and the ownership from the destination.
+ */
+export const CompendiumImportToActorPayloadSchema = z.object({
+  /** List of Compendium UUIDs to bring into the sheet. */
+  uuids: z.array(z.string()).min(1),
+  /** World `_id` of the destination Actor. */
+  actorId: z.string().min(1),
+});
+
+export type CompendiumImportToActorPayload = z.infer<typeof CompendiumImportToActorPayloadSchema>;
+
+export interface CompendiumImportToActorResult {
+  /** The destination actor's world `_id`, echoed back. */
+  actorId: string;
+  /** `_id`s of the embedded items created inside the actor. */
+  created: string[];
+  /** Source uuids that failed (with reason). */
+  failed: Array<{ uuid: string; reason: string }>;
+}
+
+/**
+ * Document types a character sheet can receive (REQ-CPD-061: "entrada de tipo
+ * compatível"). A sheet holds embedded Items — spells, feats, gear; an Actor,
+ * a Scene or a JournalEntry has no place inside one, and asking for it is a
+ * validation failure, not a permission one.
+ *
+ * Exported so the client can gray the action out for the same reason the
+ * server refuses it, instead of guessing with a second list.
+ */
+export const SHEET_IMPORTABLE_DOCUMENT_TYPES: readonly string[] = ["Item"];
+
+/** Whether a pack of this document type can be brought into a sheet. */
+export function isSheetImportableDocumentType(documentType: string): boolean {
+  return SHEET_IMPORTABLE_DOCUMENT_TYPES.includes(documentType);
 }
 
 // ---------------------------------------------------------------------------

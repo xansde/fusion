@@ -102,7 +102,7 @@ e os sistemas de jogo (`ver 17-`, `18-`, `19-`).
   (`_id`, `name`, `img`, `type` + campos extras declarados) usada para listar/buscar
   sem carregar o documento completo.
 - **UUID de compendium**: identificador resolvível no formato
-  `Compendium.<packId>.<DocType>.<docId>` (`ver 02-modelo-de-dados.md`, D3).
+  `Compendium.<packId>.<DocType>.<docId>` (`ver 02-modelo-de-dados.md`, DEC-DOC-03).
 - **`packId`**: identificador estável de um pack, no formato `<systemId>.<packSlug>`
   (ex.: `pf2e.bestiary-1`, `etmos.particles`).
 - **Compendium browser**: aplicação de UI que lista e filtra o conteúdo dos packs e
@@ -132,7 +132,7 @@ e os sistemas de jogo (`ver 17-`, `18-`, `19-`).
 
 Cada decisão lista alternativas rejeitadas e o racional.
 
-### D1 — Um `pack.db` SQLite por pack, com schema idêntico ao `world.db`
+### DEC-CMP-01 — Um `pack.db` SQLite por pack, com schema idêntico ao `world.db`
 
 Cada pack é um arquivo SQLite `compendiums/<packId>/pack.db` com o **mesmo schema**
 de tabelas e índices do `world.db` (`ver 03-persistencia-e-mundos.md`, REQ-PER-006/007).
@@ -153,7 +153,7 @@ Um pack contém só **um tipo** de Document primário (ex.: pack de Actors, pack
   cliente SQLite. Packs de mundo (criados pelo GM) ficam em
   `worlds/<slug>/compendiums/<packSlug>/` com o mesmo formato.
 
-### D2 — Índice leve materializado para _lazy browse_
+### DEC-CMP-02 — Índice leve materializado para _lazy browse_
 
 O browse e a busca operam sobre um **índice** projetado de cada documento
 (`_id`, `name`, `img`, `type` + campos declarados no `pack.json`), nunca carregando
@@ -172,7 +172,7 @@ uma tabela `pack_index` no `pack.db`).
   específicos do sistema (ex.: `system.level.value` no PF2e) são declarados em
   `pack.json.indexFields` para entrarem no índice.
 
-### D3 — Metadados de licença **por pack** (e por documento quando necessário)
+### DEC-CMP-03 — Metadados de licença **por pack** (e por documento quando necessário)
 
 Cada `pack.json` carrega um bloco `license` obrigatório (origem, licença, versão de
 origem, atribuição). Quando documentos de um mesmo pack têm licenças distintas (ex.:
@@ -189,7 +189,13 @@ default do pack.
 - **Racional:** granularidade adequada ao risco legal; o compendium browser exibe a
   licença e o importer propaga o notice para o mundo (`ver 26-licencas-e-legal.md`).
 
-### D4 — Importador é uma ferramenta **offline** (`tools/importer-pf2e`), não runtime
+> **Emendada por `43-aba-compendio.md`** (DEC-CPD-04, 2026-08-16): pelo mesmo motivo de
+> granularidade, o `pack.json` passa a carregar também a **plateia** do pack (`audience`,
+> REQ-CMP-004a), ao lado de `license`. Plateia é visibilidade de acervo — quem enxerga o
+> pack — e não ownership de documento (`ver 02-modelo-de-dados.md`); decidi-la documento a
+> documento seria um segundo sistema de permissão.
+
+### DEC-CMP-04 — Importador é uma ferramenta **offline** (`tools/importer-pf2e`), não runtime
 
 A conversão pf2e→Fusion roda **fora do servidor de jogo**, como CLI em
 `tools/importer-pf2e`, produzindo `pack.db` + `pack.json` versionados e
@@ -204,7 +210,7 @@ prontos.
 - **Racional:** separação limpa "build-time vs run-time"; a conversão é revisável
   via diff report antes de publicar; os packs gerados são determinísticos e auditáveis.
 
-### D5 — `foundryvtt-cli` para extração; sem reimplementar leitura de LevelDB
+### DEC-CMP-05 — `foundryvtt-cli` para extração; sem reimplementar leitura de LevelDB
 
 O importer usa o `foundryvtt-cli` (MIT, open-source) com o comando `unpack` para
 extrair os packs LevelDB do `foundryvtt/pf2e` em arquivos JSON por documento, com a
@@ -221,7 +227,7 @@ opção `omitVolatile` ligada.
 - **Racional:** menor superfície de código; a fonte primária são os JSON
   versionados no repo pf2e (sob Apache-2.0/ORC), legíveis e estáveis.
 
-### D6 — Mapeamento de Rule Elements com **tabela de cobertura** e fallback explícito
+### DEC-CMP-06 — Mapeamento de Rule Elements com **tabela de cobertura** e fallback explícito
 
 O importer traduz cada RE de `system.rules` para um **modifier descriptor** do
 Fusion segundo uma **tabela de cobertura** declarativa. REs sem conversor não são
@@ -246,7 +252,7 @@ marcado `flags.fusion.conversion = "partial"`. A spec define o **formato-alvo** 
   preservação total dos dados de origem; segurança para o GM saber o que está e o
   que não está automatizado.
 
-### D7 — `_id` de origem **preservado** nos packs do sistema (re-import idempotente)
+### DEC-CMP-07 — `_id` de origem **preservado** nos packs do sistema (re-import idempotente)
 
 Os `_id` de 16 chars dos documentos do pf2e (`docs/research/10-...md` §4.2) são
 **preservados** no pack Fusion (compatíveis com REQ-DOC-001 de `ver 02-`). O importer
@@ -261,7 +267,7 @@ independente).
   preservar `_id` no pack mantém links resilientes e diffs limpos; clonar com novo
   `_id` ao importar para o mundo evita colisão com o pack.
 
-### D8 — Política de assets: nunca importar arte da Paizo; placeholders livres
+### DEC-CMP-08 — Política de assets: nunca importar arte da Paizo; placeholders livres
 
 O importer **não copia** nenhum arquivo de imagem do repo pf2e (arte cedida só ao
 ecossistema Foundry — `docs/research/14-...md` §5.4). Para cada referência de arte
@@ -275,7 +281,7 @@ livres (Game-icons.net CC BY 3.0, Kenney CC0) e registra a substituição.
   do pf2e/Foundry = risco ALTO"); placeholders temáticos por tipo/trait dão UX
   aceitável; o GM pode trocar por arte própria depois.
 
-### D9 — Versionamento de pack atado à release de origem + `schemaVersion` do importer
+### DEC-CMP-09 — Versionamento de pack atado à release de origem + `schemaVersion` do importer
 
 Cada `pack.json` registra `source.version` (release do `foundryvtt/pf2e`, ex.:
 `v8.2.0`), `importer.version` (versão do `tools/importer-pf2e`) e
@@ -287,7 +293,7 @@ report acompanha o que mudou entre gerações.
 - **Racional:** rastreabilidade dupla (dado vs. conversor); permite re-rodar o
   importer só porque a tabela de cobertura cresceu, mesmo sem nova release do pf2e.
 
-### D10 — Etmos: packs editoriais à mão, mesmo formato, sem importador automático
+### DEC-CMP-10 — Etmos: packs editoriais à mão, mesmo formato, sem importador automático
 
 Os packs do Etmos (`docs/research/10-...md` §11; SRD da Editora Balde Galáctico) são
 criados **manualmente** a partir do material-fonte (ex.: 81 Partículas como Items),
@@ -299,6 +305,26 @@ de Foundry.
   onde importar (`docs/research/10-...md` §11); a fonte é texto/SRD.
 - **Racional:** reusar o _packer_ (JSON-fonte → `pack.db` + índice + licença) evita
   duplicar pipeline; o trabalho editorial humano produz os JSON-fonte.
+
+### DEC-CMP-11 — Packs privados: mesmo formato, raiz fora do repo, nunca sobrescrevem pack oficial
+
+O Mestre pode curar conteúdo que não pode ir para o GitHub (ex.: classes de playtest da
+Paizo — mesma restrição de `docs/etmos-fontes/`, `ver CLAUDE.md` do core). Em vez de um
+formato paralelo, o servidor DEVE descobrir uma **segunda raiz** de packs, no mesmo
+formato dos packs do sistema (REQ-CMP-002/003), fora da árvore git: `<dataDir>/private-packs/
+<systemId>/<slug>/` (override por `FUSION_PRIVATE_PACKS_DIR`, apontando para a raiz que
+contém `<systemId>/`).
+
+- **Rejeitado: um segundo mecanismo de carregamento.** Reusar `discoverPacks`
+  (REQ-CMP-006) sobre a segunda raiz evita duplicar parsing/validação de `pack.json` e
+  mantém plateia (REQ-CMP-004a/010a) e todo o resto da leitura idênticos.
+- **Racional do `slug` prefixado (`private-*`) e da ordem de descoberta:** a raiz oficial é
+  sempre descoberta primeiro; a privada depois, e um `packId` que já exista **não é
+  sobrescrito** — fica logado e ignorado. Isso impede que um pack privado malformado ou
+  mal-nomeado apague silenciosamente um pack oficial versionado.
+- **Racional de "diretório ausente não é erro":** a maioria das instalações do Fusion
+  nunca terá `private-packs/` — é um recurso do Mestre que cura conteúdo próprio, não uma
+  etapa obrigatória do boot (mesmo espírito de REQ-CMP-006 para pack ausente/corrompido).
 
 ## Requisitos funcionais
 
@@ -322,6 +348,12 @@ de Foundry.
   `license` (`"ORC" | "OGL-1.0a" | "CC-BY-3.0" | "CC0" | "proprietary" | "custom"`),
   `attribution` (texto), `reservedNotice` (texto), e `sourceRepo`/`sourceVersion`
   quando importado (`ver 26-licencas-e-legal.md`).
+- **REQ-CMP-004a** [MVP] O `pack.json` DEVE poder declarar `audience` com valor `"all"` ou
+  `"gm"`, ao lado do bloco `license`, e a **ausência do campo DEVE ser tratada como
+  `"all"`** — pack antigo continua válido e continua visível a todos. `audience` declara a
+  **plateia** do pack (quem pode vê-lo), não permissão de escrita, e vale para o pack
+  inteiro (DEC-CMP-03). Emenda obrigada por `43-aba-compendio.md` (DEC-CPD-04,
+  REQ-CPD-070).
 - **REQ-CMP-005** [MVP] Quando um documento individual tiver licença distinta da do
   pack (campo `system.publication` preservado da origem), essa licença do documento
   DEVE prevalecer sobre o default do pack na exibição e na propagação de notices.
@@ -332,6 +364,12 @@ de Foundry.
   `_id`, `name`, `img`, `type`, o `uuid` de compendium computado, e os campos
   declarados em `pack.json.indexFields`; o índice DEVE ser construível via
   `json_extract` sobre a coluna `data`.
+- **REQ-CMP-007a** [MVP] Quando houver overlay de tradução para o pack
+  (`ver 31-base-canonica-de-conteudo.md`), o índice DEVE carregar, por documento, **os dois
+  nomes**: o nome traduzido para o locale ativo e o nome original do pack. Sem overlay, o
+  índice DEVE degradar para um nome só — o original — sem campo vazio e sem duplicar a
+  mesma cadeia. O overlay é dado de exibição e de busca (REQ-CMP-012a, REQ-CMP-013b), nunca
+  reescreve o documento do pack. Emenda obrigada por `43-aba-compendio.md` (DEC-CPD-06).
 - **REQ-CMP-008** [V2] O índice PODE ser materializado e persistido como tabela
   `pack_index` dentro do `pack.db` (com `PRAGMA user_version` controlando
   invalidação), para acelerar a primeira abertura de packs muito grandes.
@@ -345,18 +383,64 @@ de Foundry.
 - **REQ-CMP-010** [MVP] O servidor DEVE expor uma API de leitura de packs (índice e
   documento completo por id/UUID) consumível pelo compendium browser; a leitura de
   pack NÃO requer transação de escrita.
+- **REQ-CMP-010a** [MVP] A API de leitura de packs (REQ-CMP-010) DEVE impor **no servidor**
+  a plateia declarada em `audience` (REQ-CMP-004a): pack de plateia `"gm"` NÃO DEVE ser
+  listado, NÃO DEVE entrar em busca alguma e NÃO DEVE ter documento entregue a usuário que
+  não satisfaça o predicado de papel privilegiado (`ver 05-usuarios-e-permissoes.md`), e a
+  recusa DEVE ser indistinguível de "não existe" (`ver 21-seguranca.md`, REQ-SEC-020).
+  Filtrar apenas na UI NÃO satisfaz este requisito (REQ-CPD-071, REQ-CPD-074).
 - **REQ-CMP-011** [MVP] Links inline `@UUID[Compendium.<packId>.<Type>.<id>]{Label}`
   presentes em textos importados (`docs/research/10-...md` §9.3) DEVEM ser
   preservados e resolvíveis; quando o alvo não existir, a UI DEVE degradar para o
-  label textual (soft reference, `ver 02-`, D11).
+  label textual (soft reference, `ver 02-`, DEC-DOC-11).
+
+### Packs privados (fora de controle de versão)
+
+- **REQ-CMP-057** [MVP] Além da raiz oficial (REQ-CMP-002), o servidor DEVE, na
+  abertura, tentar descobrir uma **segunda raiz** de packs em
+  `<dataDir>/private-packs/<systemId>/` (override por env `FUSION_PRIVATE_PACKS_DIR`
+  apontando para a raiz que contém `<systemId>/`), no mesmo formato de diretório
+  (`pack.json` + `documents.json`, `index.json`/`i18n.pt-BR.json` opcionais). Diretório
+  ausente NÃO DEVE gerar erro nem log de aviso — é o caso comum (DEC-CMP-11). Em mundo
+  composto (ex.: `pf2e-sf2e`) a descoberta percorre uma raiz privada POR sistema-fonte
+  (`private-packs/pf2e/`, `private-packs/sf2e/`), nunca `private-packs/<id-composto>/`.
+- **REQ-CMP-058** [MVP] Ao descobrir um pack cujo `id` já esteja registrado (de
+  qualquer raiz descoberta antes), o servidor NÃO DEVE sobrescrever o pack já
+  registrado — DEVE logar a colisão e ignorar o duplicado. A raiz oficial é sempre
+  descoberta antes da privada, então um `packId` colidente nunca apaga um pack oficial
+  (DEC-CMP-11).
+- **REQ-CMP-059** [MVP] `(packName, sourceId)` não é identidade entre sistemas (36 documentos
+  do vendor repetem o par entre pf2e e sf2e com conteúdo diferente). A referência de origem
+  DEVE aceitar um `systemId` opcional (aditivo) em `compendium:i18nBySourceRef` e na
+  resolução por referência de origem, e a importação para o mundo e para a ficha DEVE
+  carimbar `flags.fusion.systemId` com o sistema do pack de origem (nos documentos que já
+  trazem `flags.fusion.sourceId`). Com `systemId`, vence a entrada daquele sistema; sem ele
+  (ou com um sistema desconhecido) vale a regra determinística anterior (pf2e vence).
 
 ### Compendium browser (UI)
 
 - **REQ-CMP-012** [MVP] O compendium browser DEVE listar os packs disponíveis
   (sistema + mundo) agrupados por `documentType`, exibindo `label`, contagem de
   documentos e a licença do pack.
+- **REQ-CMP-012a** [MVP] Onde o browser exibir uma entrada de pack, ele DEVE exibir o
+  **nome traduzido** em destaque e o **nome original** junto dele quando os dois existirem
+  (REQ-CMP-007a); o nome original NÃO DEVE ser suprimido, porque é ele que permite conferir
+  a entrada contra o material de origem. Emenda obrigada por `43-aba-compendio.md`
+  (DEC-CPD-06, REQ-CPD-040).
 - **REQ-CMP-013** [MVP] O browser DEVE oferecer **busca textual** por `name` (case e
   acento-insensível, pt-BR/en) sobre o índice, com resultados incrementais.
+- **REQ-CMP-013a** [MVP] Além da busca dentro de um pack (REQ-CMP-013), o servidor DEVE
+  oferecer **busca sobre todos os packs visíveis ao solicitante** — plateia aplicada
+  conforme REQ-CMP-010a —, respondendo com um resultado já agregado e limitado, em que cada
+  entrada nomeia o `packId` de origem. Essa busca NÃO DEVE ser implementada como N buscas
+  do cliente sobre índices baixados: o dono do índice é o servidor (DEC-CMP-02,
+  REQ-CMP-006/007), e baixar o acervo inteiro para buscar contraria o carregamento _lazy_.
+  O orçamento de tempo é o de REQ-CMP-049 estendido ao conjunto (RNF-CPD-01). Emenda
+  obrigada por `43-aba-compendio.md` (DEC-CPD-02, REQ-CPD-030).
+- **REQ-CMP-013b** [MVP] A busca textual — tanto a de um pack (REQ-CMP-013) quanto a
+  agregada (REQ-CMP-013a) — DEVE casar contra **os dois nomes** do índice (REQ-CMP-007a),
+  sem acento e sem caixa: digitar o nome original ou o traduzido DEVE encontrar a mesma
+  entrada. Emenda obrigada por `43-aba-compendio.md` (DEC-CPD-06).
 - **REQ-CMP-014** [MVP] O browser DEVE oferecer **filtros** sobre campos do índice;
   para packs PF2e, no mínimo: **tipo** (subtype do document, ex.: `weapon`/`spell`/
   `feat`), **traits** (`system.traits.value`) e **level/rank**
@@ -387,6 +471,43 @@ de Foundry.
   (`ver 02-`, REQ-DOC-002); (c) preservar `system` e `flags` (incluindo
   `flags.fusion.*` de conversão); (d) inserir via CRUD normal
   (`ver 03-persistencia-e-mundos.md`).
+- **REQ-CMP-055** [MVP] O `name` do documento importado para o mundo (REQ-CMP-021)
+  DEVE permanecer **em inglês** — idêntico ao `name` do pack — e NÃO DEVE ser
+  reescrito com a tradução pt-BR. Quando o pack tiver overlay de tradução
+  (REQ-CMP-007a) para aquele documento, a importação DEVE gravar um **snapshot** do
+  rótulo traduzido (pelo menos `name`; `description`, quando houver) em
+  `flags.fusion.i18n["pt-BR"]`, tomado no instante do import — nunca uma view viva
+  do overlay do pack. Toda superfície de exibição (aba NPCs, Contatos, ficha) DEVE
+  resolver o nome mostrado por um único mecanismo de leitura desse rótulo — nunca por
+  um segundo cálculo de tradução independente. **Racional (decisão A041, ajustes r1,
+  2026-08-17):** identidade e toda derivação de sistema casam documentos por
+  `name`/`sourceId` em inglês — gravar a tradução no `name` quebraria esse casamento e
+  reverteria a decisão deliberada "mundo EN-puro" (issue #43 do código, mundo é
+  snapshot do pack, não view viva). A alternativa descartada foi gravar `name` em
+  pt-BR direto na importação; o risco documentado — "o mundo deixa de ser espelho
+  puro do pack" — foi o que decidiu pela opção do snapshot em `flags`.
+- **REQ-CMP-056** [MVP] Item embutido num ator (REQ-CMP-021, "trazer para a ficha") é
+  cópia do pack, mas as **regras** dele DEVEM acompanhar o pack: ao subir o servidor,
+  depois de descobrir os packs, para cada item embutido cuja origem
+  (`flags.fusion.packName` + `flags.fusion.sourceId`) resolva para um documento de pack
+  do mesmo `type`, o servidor DEVE copiar para o item **somente** `system.rules` e as
+  chaves de estado de regra `flags.fusion.{unconvertedRules, disabledRules,
+curatedRules, conversion}`. NUNCA DEVE alterar o que é do personagem: nome,
+  quantidade, equipado, notas, runas e as escolhas do jogador
+  (`flags.system.rulesSelections`). Item sem origem, com origem inexistente nos packs
+  carregados (homebrew, removido do pack) ou de `type` diferente fica intocado. A
+  operação DEVE ser idempotente: `flags.fusion.rulesSync` guarda o hash do conteúdo de
+  regra do pack aplicado; item com marcador igual ao hash atual, ou com regras já
+  iguais às do pack, não é gravado, e uma segunda execução sobre os mesmos dados não
+  grava nada. Atores alterados são gravados uma vez (um `update` por ator) e
+  re-derivados. A falha de um ator é registrada e não derruba o boot. Não é migração
+  numerada do banco: o pack muda independente da versão do esquema e a migração não
+  tem acesso ao compêndio. **Limites conhecidos:** edição manual das regras de um
+  item é sobrescrita quando o pack muda (ou na primeira sincronização, se o item
+  nunca foi marcado); concessões novas (`GrantItem`) que o pack ganhar não
+  materializam itens concedidos em personagens antigos — só a regra do próprio item é
+  trazida. Fecha o caso da Q7 para itens embutidos em atores; documentos importados
+  para o mundo como entidades próprias seguem independentes do pack.
 - **REQ-CMP-022** [MVP] Na importação, referências `@UUID` internas ao **mesmo pack**
   para itens que também forem importados em lote DEVEM ser **remapeadas** para os
   novos `_id` de mundo; referências a documentos não importados DEVEM permanecer como
@@ -409,7 +530,7 @@ de Foundry.
 - **REQ-CMP-026** [MVP] O importer DEVE consumir como fonte primária os JSON do
   diretório `packs/` do repositório `foundryvtt/pf2e` (quando presentes) e, como
   fallback, extrair de um build LevelDB via `foundryvtt-cli unpack` com
-  `omitVolatile` ligado (`docs/research/02-...md` §11.6, D5).
+  `omitVolatile` ligado (`docs/research/02-...md` §11.6, DEC-CMP-05).
 - **REQ-CMP-027** [MVP] Para cada documento de origem, o importer DEVE aplicar um
   **transformador por `(documentType, subtype)`** que mapeia campo a campo o schema
   pf2e para o schema `system` do Fusion (`ver 17-sistema-pf2e.md`), preservando
@@ -444,7 +565,7 @@ de Foundry.
 - **REQ-CMP-032** [MVP] O importer NÃO DEVE copiar nenhum arquivo binário de imagem
   do repositório `foundryvtt/pf2e`; apenas paths para placeholders livres (já
   presentes no bundle do Fusion) DEVEM aparecer nos campos de arte
-  (`docs/research/14-...md` §5.4, D8).
+  (`docs/research/14-...md` §5.4, DEC-CMP-08).
 - **REQ-CMP-033** [MVP] O importer DEVE emitir no relatório o **manifesto de
   placeholders**: a contagem de substituições de arte por tipo e a lista de
   traits/subtypes sem placeholder específico (caíram no genérico). Este manifesto é
@@ -468,9 +589,9 @@ de Foundry.
 - **REQ-CMP-036** [MVP] Para REs marcados `unsupported` (ou `partial` no que não
   cobrirem), o importer DEVE preservar o RE original em
   `flags.fusion.unconvertedRules` (array) e marcar
-  `flags.fusion.conversion = "partial"` no documento, **sem descartar** dados (D6).
+  `flags.fusion.conversion = "partial"` no documento, **sem descartar** dados (DEC-CMP-06).
   (Data-model real: o campo vive em `flags.fusion.conversion`, não em
-  `system.fusion.*` — ver nota de alinhamento em §D6.)
+  `system.fusion.*` — ver nota de alinhamento em §DEC-CMP-06.)
 - **REQ-CMP-037** [MVP] O importer DEVE suportar as **expressões de valor** dos REs
   (`@actor.level`, `floor(...)`, `ternary(...)`, `match/when(...)` —
   `docs/research/10-...md` §5.5), traduzindo-as para a sintaxe de roll data do Fusion
@@ -487,7 +608,7 @@ de Foundry.
 ### Pipeline — versionamento, idempotência e relatório
 
 - **REQ-CMP-040** [MVP] O importer DEVE registrar em `pack.json`: `source.repo`,
-  `source.version` (release do pf2e), `importer.version` e `generatedAt` (D9).
+  `source.version` (release do pf2e), `importer.version` e `generatedAt` (DEC-CMP-09).
 - **REQ-CMP-041** [MVP] O importer DEVE ser **idempotente**: dada a mesma
   `source.version` e a mesma `importer.version`, reexecutar produz packs com os
   mesmos `_id` e o mesmo conteúdo não-volátil (mesma ordenação determinística de
@@ -511,7 +632,7 @@ de Foundry.
 
 - **REQ-CMP-046** [MVP] O Fusion DEVE suportar **packs Etmos** construídos a partir
   de **arquivos-fonte** JSON/YAML versionados (não importados de Foundry),
-  empacotados pelo mesmo _packer_ que gera `pack.db` + `pack.json` + índice (D10).
+  empacotados pelo mesmo _packer_ que gera `pack.db` + `pack.json` + índice (DEC-CMP-10).
 - **REQ-CMP-047** [MVP] O pack `etmos.particles` DEVE conter as **81 Partículas**
   como Documents `Item` do subtype apropriado do sistema Etmos
   (`ver 19-sistema-etmos.md`), cada uma com sua mecânica e `pack.json.license`
@@ -563,6 +684,9 @@ export interface PackLicense {
   sourceVersion?: string; // ex.: "v8.2.0"
 }
 
+/** Plateia do pack: quem enxerga o acervo (REQ-CMP-004a). Não é ownership. */
+export type PackAudience = "all" | "gm";
+
 export interface PackSource {
   repo: string | null; // null para packs editoriais (Etmos)
   version: string | null; // release de origem
@@ -577,6 +701,7 @@ export interface PackManifest {
   systemId: string; // "pf2e" | "sf2e" | "etmos"
   indexFields: string[]; // caminhos extras p/ o índice (ex.: "system.level.value")
   license: PackLicense;
+  audience?: PackAudience; // ausente = "all" (REQ-CMP-004a)
   source: PackSource;
   documentCount: number;
   generatedAt: string; // ISO 8601
@@ -590,7 +715,8 @@ export interface PackManifest {
 export interface PackIndexEntry {
   _id: DocumentId;
   uuid: Uuid; // "Compendium.<packId>.<DocType>.<docId>"
-  name: string;
+  name: string; // nome exibido: o traduzido quando houver overlay (REQ-CMP-007a)
+  nameOriginal: string | null; // nome do pack quando `name` veio de overlay; null se não houver
   img: string | null; // já mapeado para placeholder livre
   type: string | null; // subtype do document (ex.: "weapon")
   // campos declarados em PackManifest.indexFields, achatados:
@@ -611,7 +737,7 @@ export interface FusionConversionFlags {
   conversion: "full" | "partial"; // "partial" se houve RE não convertido
   importerVersion: string;
   sourceVersion: string;
-  unconvertedRules: Json[]; // REs originais preservados (D6)
+  unconvertedRules: Json[]; // REs originais preservados (DEC-CMP-06)
   assetSubstitutions: Array<{ field: string; original: string; placeholder: string }>;
 }
 ```
@@ -694,13 +820,21 @@ export interface ImportReport {
 ### Leitura de packs (servidor → browser)
 
 ```ts
-// Listagem e índice (lazy)
+// Listagem e índice (lazy). Toda leitura já vem filtrada pela plateia do pack
+// (REQ-CMP-004a/010a): pack "gm" não existe para quem não é papel privilegiado.
 listPacks(filter?: { systemId?: string; documentType?: string }): PackManifest[];
 getPackIndex(packId: string): PackIndex;                 // só o índice
 searchPack(packId: string, query: {
-  text?: string;
+  text?: string;                                         // casa contra os dois nomes (REQ-CMP-013b)
   filters?: Record<string /*indexField*/, Json>;         // ex.: { "system.level.value": { lte: 3 } }
 }): PackIndexEntry[];
+
+// Busca sobre todos os packs visíveis ao solicitante (REQ-CMP-013a)
+searchAllPacks(query: {
+  text?: string;
+  filters?: Record<string /*indexField*/, Json>;
+  limitPerType?: number;                                 // teto por tipo de documento
+}): Array<PackIndexEntry & { packId: string; truncated?: boolean }>;
 
 // Documento completo sob demanda
 getPackDocument(uuid: Uuid): Promise<Json | null>;       // resolve Compendium.<...>
@@ -767,6 +901,11 @@ packer build                 # empacota arquivos-fonte (Etmos) → pack.db (REQ-
   report, metas de performance de índice/busca.
 - `26-licencas-e-legal.md` — texto dos notices ORC/OGL/CUP, regra de arte
   proprietária, atribuição consolidada no mundo.
+- `31-base-canonica-de-conteudo.md` — overlay de tradução que alimenta os dois nomes do
+  índice (REQ-CMP-007a).
+- `43-aba-compendio.md` — painel que consome esta área na gaveta lateral; origem das
+  emendas de plateia (REQ-CMP-004a/010a), busca agregada (REQ-CMP-013a) e nome traduzido
+  (REQ-CMP-007a/012a/013b).
 
 ## Critérios de aceitação
 
@@ -786,11 +925,11 @@ packer build                 # empacota arquivos-fonte (Etmos) → pack.db (REQ-
   importado permanece como UUID de compendium e ainda resolve (REQ-CMP-022, 011).
 - **CA-CMP-06** Nenhum arquivo de imagem do repo `foundryvtt/pf2e` é copiado pelo
   importer; todo campo de arte aponta para um placeholder livre presente no bundle, e
-  as substituições são listadas no relatório (REQ-CMP-031, 032, 033, D8).
+  as substituições são listadas no relatório (REQ-CMP-031, 032, 033, DEC-CMP-08).
 - **CA-CMP-07** Um feat com `system.rules` contendo um `FlatModifier` produz um
   `ModifierDescriptor` `flat-modifier` com `selector`/`value`/`predicate`; um RE de
   `key` `Aura` (unsupported no MVP) é preservado em `flags.fusion.unconvertedRules` e
-  o documento é marcado `conversion: "partial"` (REQ-CMP-034..036, D6).
+  o documento é marcado `conversion: "partial"` (REQ-CMP-034..036, DEC-CMP-06).
 - **CA-CMP-08** Uma expressão de valor `floor(@actor.level / 2)` é traduzida para a
   sintaxe de roll data do Fusion; uma expressão não parseável faz o RE cair em
   `partial` sem gerar valor incorreto (REQ-CMP-037).
@@ -808,10 +947,19 @@ packer build                 # empacota arquivos-fonte (Etmos) → pack.db (REQ-
 - **CA-CMP-12** O pack `etmos.particles` é construído a partir de arquivos-fonte
   JSON/YAML (sem extração de Foundry), contém as 81 Partículas como Items válidos
   contra o schema Etmos, com `pack.json.license` referenciando o SRD da Editora Balde
-  Galáctico (REQ-CMP-046, 047, 048, D10).
+  Galáctico (REQ-CMP-046, 047, 048, DEC-CMP-10).
 - **CA-CMP-13** Cada `pack.json` carrega o bloco `license` por pack e
   `source.version`/`importer.version`; um documento com `system.publication` OGL num
   pack ORC tem sua licença individual exibida no browser (REQ-CMP-003, 004, 005, 040).
+- **CA-CMP-14** Um pack publicado com `audience: "gm"` não aparece em `listPacks`, não
+  devolve entrada em `searchAllPacks` e responde a `getPackDocument` de um uuid conhecido
+  como se o documento não existisse, para um usuário sem papel privilegiado; para o papel
+  privilegiado, as três chamadas funcionam. Um pack sem o campo `audience` continua visível
+  a todos (REQ-CMP-004a, 010a, 013a).
+- **CA-CMP-15** Com o overlay pt-BR carregado, buscar `fireball` e buscar `bola de fogo`
+  devolvem a mesma entrada, e a entrada devolvida traz os dois nomes; num pack sem overlay,
+  a mesma busca funciona com o nome original e `nameOriginal` vem nulo (REQ-CMP-007a, 012a,
+  013b).
 
 ## Questões em aberto
 
@@ -838,9 +986,10 @@ packer build                 # empacota arquivos-fonte (Etmos) → pack.db (REQ-
   escolhido em `ver 20-`/`ver 26-`.
 - **Q7 — Atualização de packs já importados no mundo.** Quando um pack do sistema é
   re-importado (nova `source.version`), como (ou se) propagar mudanças para documentos
-  **já copiados** para mundos existentes? No MVP a cópia de mundo é independente e não
-  é atualizada automaticamente; avaliar um fluxo de "atualizar do compendium" em
-  `ver 15-`.
+  **já copiados** para mundos existentes? As **regras** dos itens embutidos em atores já são
+  sincronizadas no boot (REQ-CMP-056); a cópia de mundo como entidade própria segue
+  independente e não é atualizada automaticamente; avaliar um fluxo de "atualizar do
+  compendium" em `ver 15-` para o resto.
 - **Q8 — Lore mecânica vs. setting.** A fronteira entre "texto de regra mecânica"
   (importável) e "lore de setting" (Reserved Material) nem sempre é nítida em
   descrições de feats/spells (`docs/research/14-...md` §5.3). Definir heurística de

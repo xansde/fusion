@@ -110,7 +110,7 @@ describe("SystemModule.registries.degreeOfSuccess (via registrar.degreeOfSuccess
     expect(module.registries.degreeOfSuccess.size).toBe(0);
   });
 
-  it("registers a binary success/failure comparator (Etmos-shaped, generic here)", () => {
+  it("registers a binary success/failure comparator (a non-2e-family shape, generic here)", () => {
     const module = defineSystem({ ...BASE_MANIFEST }, (r) => {
       r.defineModel({ documentType: "Actor", subtype: "hero", schema: z.object({}) });
       r.degreeOfSuccess({
@@ -168,11 +168,11 @@ describe("registerInitiativeFormula — bare fn vs { roll, compare } object form
 
     const module = defineSystem({ ...BASE_MANIFEST }, (r) => {
       r.defineModel({ documentType: "Actor", subtype: "hero", schema: z.object({}) });
-      r.registerInitiativeFormula("etmos-combat", { roll, compare });
+      r.registerInitiativeFormula("hero-combat", { roll, compare });
     });
 
-    expect(module.combat.initiativeFormulas.get("etmos-combat")).toBe(roll);
-    expect(module.combat.initiativeCompares.get("etmos-combat")).toBe(compare);
+    expect(module.combat.initiativeFormulas.get("hero-combat")).toBe(roll);
+    expect(module.combat.initiativeCompares.get("hero-combat")).toBe(compare);
   });
 
   it("object form without compare stores roll only, no compare entry (compare optional)", () => {
@@ -183,11 +183,11 @@ describe("registerInitiativeFormula — bare fn vs { roll, compare } object form
 
     const module = defineSystem({ ...BASE_MANIFEST }, (r) => {
       r.defineModel({ documentType: "Actor", subtype: "hero", schema: z.object({}) });
-      r.registerInitiativeFormula("etmos-combat", { roll });
+      r.registerInitiativeFormula("hero-combat", { roll });
     });
 
-    expect(module.combat.initiativeFormulas.get("etmos-combat")).toBe(roll);
-    expect(module.combat.initiativeCompares.has("etmos-combat")).toBe(false);
+    expect(module.combat.initiativeFormulas.get("hero-combat")).toBe(roll);
+    expect(module.combat.initiativeCompares.has("hero-combat")).toBe(false);
   });
 
   it("still throws when registering the same combatType twice, regardless of form", () => {
@@ -213,13 +213,13 @@ describe("registerInitiativeFormula — bare fn vs { roll, compare } object form
 
     const module = defineSystem({ ...BASE_MANIFEST }, (r) => {
       r.defineModel({ documentType: "Actor", subtype: "hero", schema: z.object({}) });
-      r.registerInitiativeFormula("etmos-combat", {
+      r.registerInitiativeFormula("hero-combat", {
         roll: () => ({ formula: "2d6", statistic: "Corpo" }),
         compare,
       });
     });
 
-    const storedCompare = module.combat.initiativeCompares.get("etmos-combat")!;
+    const storedCompare = module.combat.initiativeCompares.get("hero-combat")!;
     const npcHighRoll: InitiativeEntry = {
       combatant: { hasPlayerOwner: false } as never,
       total: 20,

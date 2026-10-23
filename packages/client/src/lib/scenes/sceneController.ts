@@ -18,6 +18,12 @@ import type { SceneDocument } from "@fusion/shared";
 import { createDocumentId } from "@fusion/shared";
 import { sendOp, OpError } from "../docs/sendOp.js";
 import type { DocumentMirror } from "../docs/DocumentMirror.js";
+import {
+  buildRecalibrationOps,
+  planGridRecalibration,
+  recalibrationSceneOf,
+  type FootprintResolver,
+} from "./gridRecalibration.js";
 
 // ---------------------------------------------------------------------------
 // Form data
@@ -25,12 +31,24 @@ import type { DocumentMirror } from "../docs/DocumentMirror.js";
 
 export interface SceneFormData {
   name: string;
+  /**
+   * The folder the scene is filed under, `null` for the unfiled group.
+   * REQ-CEN-061: filing is configuration, which is why the archive's drag only
+   * reorders inside a group and never moves a scene between folders.
+   */
+  folder: string | null;
   /** Scene width in pixels. */
   width: number;
   /** Scene height in pixels. */
   height: number;
   /** Grid cell size in pixels (min 50). */
   gridSize: number;
+  /**
+   * The colour painted under the scene — "preenchimento" of REQ-CEN-061. It is what
+   * a scene with no background image shows, and what stays under one that is still
+   * loading, so the head never flashes empty (REQ-CEN-012).
+   */
+  backgroundColor: string;
   /** Optional background URL or path. */
   background: string;
 }
@@ -40,8 +58,12 @@ export interface SceneFormErrors {
   width?: string;
   height?: string;
   gridSize?: string;
+  backgroundColor?: string;
   background?: string;
 }
+
+/** `#rgb` or `#rrggbb` — the shape every scene colour in the schema already has. */
+const HEX_COLOUR = /^#(?:[0-9a-fA-F]{3}|[0-9a-fA-F]{6})$/;
 
 // ---------------------------------------------------------------------------
 // Validation
@@ -78,6 +100,10 @@ export function validateSceneForm(data: SceneFormData): SceneFormErrors {
     errors.gridSize = "Grid size must not exceed 500 px.";
   }
 
+  if (!HEX_COLOUR.test(data.backgroundColor.trim())) {
+    errors.backgroundColor = "Fill colour must be a hex value such as #101018.";
+  }
+
   // background is optional; if present, just ensure it's a non-empty string
   if (data.background.trim() !== "" && data.background.trim().length > 1024) {
     errors.background = "Background path/URL must be 1 024 characters or fewer.";
@@ -97,9 +123,11 @@ export function isFormValid(errors: SceneFormErrors): boolean {
 export function defaultSceneFormData(): SceneFormData {
   return {
     name: "",
+    folder: null,
     width: 4000,
     height: 4000,
     gridSize: 100,
+    backgroundColor: "#000000",
     background: "",
   };
 }
@@ -112,15 +140,30 @@ export function defaultSceneFormData(): SceneFormData {
  * Create a new Scene document.
  * Resolves with the server-returned SceneDocument on success.
  * Rejects with OpError on failure.
+ *
+ * REQ-CEN-065: the new scene is born OFF air (`active: false`) and this function
+ * emits nothing else — creating a scene is not a way to put one on air, which has
+ * a single writer of its own (`activateScene`, DEC-CEN-02).
+ *
+ * `sort` is the position inside its folder; callers get it from
+ * `nextSortInFolder(scenes, folder)` so a new scene lands at the END of its group
+ * (REQ-CEN-031).
  */
-export async function createScene(socket: Socket, data: SceneFormData): Promise<SceneDocument> {
+export async function createScene(
+  socket: Socket,
+  data: SceneFormData,
+  sort = 0,
+): Promise<SceneDocument> {
   const id = createDocumentId();
 
   const sceneData: Record<string, unknown> = {
     _id: id,
     name: data.name.trim(),
+    folder: data.folder,
+    sort,
     width: data.width,
     height: data.height,
+    backgroundColor: data.backgroundColor.trim(),
     grid: {
       type: "square",
       size: data.gridSize,
@@ -155,8 +198,11 @@ export async function createScene(socket: Socket, data: SceneFormData): Promise<
 }
 
 /**
- * Update basic scene config (name, dimensions, grid, background).
- * Sends a minimal diff.
+ * Update basic scene config — REQ-CEN-061's six fields: name, folder, dimensions,
+ * fill colour, grid and background. Sends a minimal diff.
+ *
+ * `active` is deliberately absent: the generic document update refuses it anyway
+ * (REQ-CEN-042), and configuring a scene is not a way to put it on air.
  */
 export async function updateSceneConfig(
   socket: Socket,
@@ -172,15 +218,106 @@ export async function updateSceneConfig(
           _id: sceneId,
           diff: {
             name: data.name.trim(),
+            folder: data.folder,
             width: data.width,
             height: data.height,
-            "grid.size": data.gridSize,
+            grid: { size: data.gridSize },
+            backgroundColor: data.backgroundColor.trim(),
             background: data.background.trim() || null,
           },
         },
       ],
     },
   });
+}
+
+function wholeOffset(offset: number, size: number): number {
+  return ((Math.round(offset) % size) + size) % size;
+}
+
+/** What the calibration panel hands the scene: the grid and where it starts. */
+export interface GridCalibrationData {
+  size: number;
+  /** Offset from the map corner, in [0, size). */
+  offsetX: number;
+  offsetY: number;
+  /** In-game distance of one cell and its unit label. */
+  distance: number;
+  units: string;
+  /** Line colour (CSS hex) and opacity (0-1). */
+  color: string;
+  alpha: number;
+}
+
+/**
+ * Write a calibrated grid: size, origin and look, in ONE update.
+ *
+ * Size and offset travel together because either alone leaves the Master
+ * looking at a grid that is still off after a calibration that said it worked.
+ * The grid block is sent whole (and forced to `square`): a scene saved without
+ * one — three of the five in the real world — has nothing to merge a partial
+ * patch into, and calibration only makes sense on a square grid.
+ */
+export async function updateGridCalibration(
+  socket: Socket,
+  sceneId: string,
+  data: GridCalibrationData,
+  /**
+   * The scene as it is now and how big each token is. When given, what is already placed
+   * keeps its place on the map (tokens re-seated on the nearest square, walls/notes/lights
+   * following the image) instead of sliding over the art — see gridRecalibration.ts.
+   */
+  placed?: { scene: SceneDocument; footprintOf: FootprintResolver },
+): Promise<void> {
+  // Planned BEFORE the write: the plan reads the old size and padding.
+  const plan = placed
+    ? planGridRecalibration(
+        recalibrationSceneOf(placed.scene),
+        {
+          size: data.size,
+          offsetX: wholeOffset(data.offsetX, data.size),
+          offsetY: wholeOffset(data.offsetY, data.size),
+        },
+        placed.footprintOf,
+      )
+    : null;
+  const ops = plan ? buildRecalibrationOps(sceneId, plan) : [];
+  await sendOp(socket, {
+    type: "doc:update",
+    payload: {
+      documentType: "Scene",
+      updates: [
+        {
+          _id: sceneId,
+          diff: {
+            grid: {
+              type: "square",
+              size: data.size,
+              distance: data.distance,
+              units: data.units,
+              color: data.color,
+              alpha: data.alpha,
+            },
+            // Whole pixels: a drag at a fractional zoom leaves 30.707, and the lattice the
+            // tokens snap to should not carry that noise.
+            gridOffsetX: wholeOffset(data.offsetX, data.size),
+            gridOffsetY: wholeOffset(data.offsetY, data.size),
+          },
+        },
+      ],
+    },
+  });
+  // The grid is written; now put what was on the map back where it was on the map.
+  for (const op of ops) await sendOp(socket, op);
+  // Pinned areas live on the server, outside the scene document: it moves them by the
+  // same change of padding (ephemeral channel, like every other area message).
+  if (plan?.areaShift && socket.connected) {
+    socket.emit("ephemeral", {
+      type: "presence:template:shift",
+      ts: Date.now(),
+      payload: { sceneId, dx: plan.areaShift.dx, dy: plan.areaShift.dy },
+    });
+  }
 }
 
 /**
@@ -195,6 +332,18 @@ export async function updateSceneConfig(
 export async function activateScene(socket: Socket, sceneId: string): Promise<void> {
   await sendOp(socket, {
     type: "world:activeScene",
+    payload: { sceneId },
+  });
+}
+
+/**
+ * "Pre-carregar para todos": ask the server to tell every client to download a scene's art now,
+ * WITHOUT switching to it. The server answers each client with a `scene:preload` hint; the
+ * scene on air does not change.
+ */
+export async function preloadSceneForAll(socket: Socket, sceneId: string): Promise<void> {
+  await sendOp(socket, {
+    type: "scene:preload",
     payload: { sceneId },
   });
 }

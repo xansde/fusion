@@ -3,43 +3,17 @@
  *
  * Opens a better-sqlite3 database with all required PRAGMAs (REQ-PER-004, DEC-PER-04),
  * runs PRAGMA integrity_check on open (REQ-PER-005, REQ-PER-038),
- * and performs WAL checkpoint on close (DEC-PER-06 — question 10 answer).
+ * refreshes query-planner statistics and performs a WAL checkpoint on close
+ * (DEC-PER-06 — question 10 answer; stats refresh is T018, see maintenance.ts).
  *
  * API is intentionally synchronous — better-sqlite3 is sync by design and
  * the server uses a single-writer model (REQ-PER-017).
  */
 
-import type BetterSqlite3Ctor from "better-sqlite3";
 import type { Database as Db } from "better-sqlite3";
 import { existsSync, statSync } from "node:fs";
-import { createRequire } from "node:module";
-
-// ---------------------------------------------------------------------------
-// Native addon load (M6/B3 — SEA compatibility, see runtime/native-loader.ts)
-//
-// A plain top-level `import Database from "better-sqlite3"` (equivalently,
-// after esbuild's CJS bundling, a bare top-level `require("better-sqlite3")`
-// inside the bundle) is loaded through Node's SEA-specific main-script
-// loader when this file ends up bundled into the SEA entry point
-// (runtime/sea-entry.ts). That loader ONLY resolves Node builtins and
-// modules embedded at build time — verified empirically while implementing
-// this batch: it bypasses BOTH `Module._resolveFilename` and
-// `Module.prototype.require` entirely and throws
-// `ERR_UNKNOWN_BUILTIN_MODULE` for anything else, so
-// native-loader.ts's `installNativeAddonResolutionHook` (which patches
-// exactly those two things) never even gets a chance to run for a bare
-// top-level `require`/`import`.
-//
-// `createRequire(...)` produces a DIFFERENT require function — one that DOES
-// go through `Module._resolveFilename` even inside a SEA main script (also
-// verified empirically) — so routing the native-addon load through it here
-// makes `installNativeAddonResolutionHook`'s redirect actually take effect
-// under SEA, while remaining 100% identical to a normal `require()` in every
-// other context (plain `node dist/index.js`, tests, ordinary dev). This is
-// the ONLY reason this file uses `createRequire` instead of a plain
-// `import` — everywhere else in the codebase keeps using static imports.
-const nativeRequire = createRequire(import.meta.url);
-const Database = nativeRequire("better-sqlite3") as typeof BetterSqlite3Ctor;
+import { runOptimize } from "./maintenance.js";
+import { Database } from "./native-database.js";
 
 // ---------------------------------------------------------------------------
 // Error types
@@ -150,6 +124,7 @@ export interface FusionDatabase {
  *      Throws DatabaseCorruptionError if the check fails.
  *
  * On close:
+ *   - Refreshes query-planner statistics via PRAGMA optimize (T018, best-effort).
  *   - Runs wal_checkpoint(TRUNCATE) to merge WAL into the main file (Question 10).
  *   - Closes the underlying SQLite connection.
  */
@@ -190,7 +165,10 @@ export function openDatabase(options: OpenDatabaseOptions): FusionDatabase {
     }
   }
 
-  // Prepare a transaction helper
+  // Prepare a transaction helper. `.immediate()` makes this actually match
+  // what the FusionDatabase.transaction() docstring promises (T012) — the
+  // bare `transact(fn)` call used to run in better-sqlite3's default
+  // DEFERRED mode instead.
   const transact = db.transaction(<T>(fn: () => T) => fn());
 
   const fusionDb: FusionDatabase = {
@@ -198,12 +176,16 @@ export function openDatabase(options: OpenDatabaseOptions): FusionDatabase {
     path,
 
     transaction<T>(fn: () => T): T {
-      return transact(fn) as T;
+      return transact.immediate(fn) as T;
     },
 
     close(): void {
       if (!db.open) return;
       if (!readonly) {
+        // Refresh query-planner statistics (T018) BEFORE the checkpoint below,
+        // so any sqlite_stat1 write it makes rides along in that same
+        // checkpoint instead of forcing a second one.
+        runOptimize(db);
         // Checkpoint WAL into main db file before closing (REQ-PER-039 strategy,
         // Q10 answer: flush WAL on graceful shutdown for fast next-open).
         try {

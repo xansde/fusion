@@ -51,8 +51,9 @@ Nenhum código é alterado; o entregável é este documento (mais a entrada no
   variante do mesmo mecanismo subjacente.
 - **Mounts** citados em nível de requisito [V2], sem detalhamento mecânico
   completo (fora do foco desta rodada).
-- **Eidolon** (classe Summoner) citado como **fora de escopo** — é um Actor
-  fundido ao PC com regras próprias muito mais complexas; não é "um pet".
+- **Eidolon** (classe Summoner) **como modelo**: ator companheiro vinculado,
+  `companionKind: "eidolon"` (DEC-PET-02, emenda de 2026-09-21). As regras
+  próprias dele (PV compartilhado, Agir Junto, manifestar) seguem fora.
 - Como o `foundryvtt/pf2e` modela isso (Actor type `familiar`, ausência de
   Actor type dedicado para animal companion, rule elements `GrantItem`/
   `ActiveEffectLike`/`Sense`/`BaseSpeed`), citado como referência.
@@ -68,8 +69,9 @@ Nenhum código é alterado; o entregável é este documento (mais a entrada no
 
 - Implementação de código (nenhum arquivo `.ts`/`.svelte` é criado ou
   alterado nesta rodada).
-- Regras completas de **Eidolon** (Summoner) — citado apenas como referência
-  de fora-de-escopo; mereceria spec própria se algum dia entrar em roadmap.
+- Regras completas de **Eidolon** (Summoner) — PV compartilhado com o
+  Summoner, Agir Junto, manifestar/dispensar, derivação dos atributos. O
+  **modelo** (ator vinculado) entrou pela DEC-PET-02; a regra não.
 - Regras completas de **mounts em combate** (Mounted Combat, cavalgar em
   batalha naval, etc.) — apenas o suficiente para posicionar como [V2].
 - Kingdom-building / army companions (`army` actor type já citado em
@@ -98,8 +100,129 @@ Nenhum código é alterado; o entregável é este documento (mais a entrada no
 | **Familiar/Pet ability**  | Habilidade escolhida de uma lista compartilhada (voar, ver no escuro, falar, etc.); número de escolhas controlado por um contador (`familiarAbilities.value` no vendor).                                                    |
 | **Companion progression** | Feats de nível fixo (Druid: 1/4/8; Ranger: 1(dedication)/6/10) que aumentam a independência e o poder do animal companion, sem trocar de Actor.                                                                             |
 | **Mount**                 | Criatura montada para fins de deslocamento/combate montado; pode ser um animal companion "cavalgável" ou uma criatura separada; regras próprias de Mounted Combat.                                                          |
-| **Eidolon**               | Actor fundido ao Summoner (compartilha turno, HP e ações com o PC); mecanicamente muito diferente de um pet — **fora de escopo** desta spec.                                                                                |
+| **Eidolon**               | Companheiro do Summoner (compartilha turno, HP e ações com o PC). Modelado como ator vinculado, `companionKind: "eidolon"` (DEC-PET-02); as regras próprias dele seguem fora desta spec.                                    |
 | **`engine-2e`**           | Núcleo de regras 2e compartilhado PF2e/SF2e (`ver 17-sistema-pf2e.md` DEC-PF2-01); os derivados de companion (saves/mods "iguais ao mestre") são um caso de uso natural desse núcleo.                                       |
+
+---
+
+## Decisões
+
+> Seção acrescentada em 2026-09-21 (ficha-nivel3, T3.1). A v0.1 tinha a decisão de modelo
+> só como título de seção (§3.1); ela passa a ter id, e as duas decisões novas nascem aqui.
+
+### DEC-PET-01 — Companheiro é ator próprio vinculado ao dono, não faceta nem item
+
+Um companheiro (familiar, pet, companheiro animal, montaria, eidolon) é um **Document
+`Actor` próprio**, com `system.masterActorId` apontando para o dono — o sub-personagem da
+`45` (DEC-ATR-16). Formaliza o §3.1 e fecha a pergunta que a `45` v0.2 reabriu ("o ator
+acumula facetas: o companheiro não seria uma faceta do dono?").
+
+- **Rejeitado: faceta do ator do dono.** Faceta é papel na mesa, enum fechado de quatro
+  valores fixado pela engine, e nunca carrega mecânica (DEC-ATR-03, DEC-ATR-13, RNF-ATR-02).
+  O companheiro tem vida, CA, salvamentos, turno e presença **próprios**: como faceta, dois
+  conjuntos de estatística disputariam o mesmo `system` do dono. E ele já é, ele próprio,
+  uma criatura (DEC-ATR-18) — é outro ator, não outro papel do mesmo ator.
+- **Rejeitado: item embutido no dono** — pelos motivos do §3.1 (sem token, sem barra de
+  vida, sem turno, sem ownership próprios).
+- **Consequência para posse:** o companheiro nasce com o ownership do dono (DEC-ATR-19). É
+  isso — e não uma faceta — que o torna controlável pelo jogador (DEC-ATR-18).
+- **Consequência para redação:** nenhum predicado novo. O companheiro é um ator e passa pelo
+  funil único de redação de ator (`packages/server/src/net/redaction.ts`), com corte por
+  ownership; quem não é dono não o recebe.
+
+### DEC-PET-02 — O eidolon entra como `companionKind: "eidolon"`
+
+Decisão do Alexandre (plano `docs/design/ficha-nivel3/plano.md`, 2026-09-20, item 1): o
+Summoner entra na fatia, e o eidolon com ele. A v0.1 desta spec o deixava de fora e pedia spec
+própria (REQ-PET-091 na redação antiga). Esta decisão substitui aquela posição.
+
+- **Por que o mesmo mecanismo:** tudo o que o eidolon tem de diferente de um familiar é
+  **regra** — PV compartilhado com o Summoner, Agir Junto, manifestar e dispensar, atributos
+  próprios por tipo de eidolon. Regra é derivação e ação do sistema, que a `45` já deixa ao
+  sistema (REQ-ATR-082). Nenhuma delas pede outro tipo de vínculo, outra posse ou outra
+  redação: pede o mesmo ator vinculado da DEC-PET-01.
+- **Rejeitado: subtype `eidolon` próprio.** REQ-PET-001 fixa **um** subtype para todo
+  companheiro, com discriminador; e a engine reconhece companheiro pelo subtype (contatos,
+  NPCs, conhecimento, a porta de criação por jogador). Um segundo subtype abriria cada um
+  desses pontos. A ficha (DEC-ATR-07) é do subtype e pode bifurcar por `companionKind`, como
+  já precisa bifurcar para o companheiro animal.
+- **O que fica fora:** PV compartilhado, derivação dos atributos do eidolon, manifestar,
+  token e combate. No MVP o eidolon toma o ramo "não espelha o mestre" da derivação do
+  companheiro (valores autorados), o mesmo do companheiro animal.
+
+### DEC-PET-03 — Quem pode ter o companheiro é o servidor que diz, pelo que o dono carrega
+
+O jogador cria o próprio companheiro sem o Mestre (plano ficha-nivel3, item 2 — "quem cria é
+o jogador"), mas **só** o companheiro que o dono dele de fato concede. O servidor decide, lendo
+o documento vivo do dono:
+
+| `companionKind`                             | Concessão exigida no dono                                               |
+| ------------------------------------------- | ----------------------------------------------------------------------- |
+| `familiar`, `pet`                           | talento ou regra que concede familiar (r17-P1)                          |
+| `eidolon`                                   | o item de **classe** Summoner, identificado por `flags.fusion.sourceId` |
+| `animalCompanion`, `mount` e qualquer outro | nenhum detector ainda: só Mestre/Assistente cria (emendado abaixo)      |
+
+- **Um por grupo, não um por dono:** familiar e pet são a mesma máquina (§1.3) e ocupam uma
+  vaga só; o eidolon é outra vaga. Um Summoner que tomou o talento Familiar tem os dois.
+- **Identidade, nunca nome** (DEC-ATR-11): um item chamado "Summoner" com outra identidade
+  não concede eidolon.
+- **Racional:** a porta do jogador é a exceção à regra de que só o Mestre cria ator (anti-trapaça);
+  ela tem de ser exatamente tão larga quanto a regra do jogo, nem mais.
+
+> **Emenda obrigada pela spec 52** (`52-cacador-companheiro-e-montaria.md`, DEC-BHR-10,
+> 2026-10-05): a linha `animalCompanion` da tabela ganha detector. A concessão exigida passa a
+> ser o talento **Animal de Companhia** (de qualquer classe) ou a **Dedicação de Domador de
+> Bestas**, reconhecidos por identidade (REQ-PET-109). Para `animalCompanion` o grupo deixa de
+> ser "um por grupo": o teto é o **número de concessões** do dono (REQ-PET-093, REQ-PET-110).
+> `mount` e qualquer outro `companionKind` seguem sem detector — só Mestre/Assistente cria.
+
+### DEC-PET-04 — Eidolon (Summoner) e familiar (Witch) nascem sozinhos, na aplicação da classe
+
+_(2026-09-21, ficha-nivel3 T3.2/T3.3.)_ Diferente de todo outro familiar/pet — que fica atrás
+do CTA manual da aba Pets, porque é a **escolha** de um talento —, o eidolon do Summoner e o
+familiar da Witch são regra de classe: o remaster diz "you begin play with..." no nível 1, sem
+opção de recusar. A aplicação da classe (`applyClass`, `PlanColumn.svelte`) por isso **também**
+emite a criação do companheiro, sem esperar o jogador abrir a aba Pets.
+
+- **Detector:** `autoCompanionKindForClass` (`systems/pf2e/src/companion-grant.ts`), por
+  `flags.fusion.sourceId` do item de classe — Summoner (`SUMMONER_CLASS_SOURCE_ID`) →
+  `"eidolon"`; Witch (`WITCH_CLASS_SOURCE_ID`) → `"familiar"`; qualquer outra classe → nenhum
+  auto-create (o familiar de um Wizard continua manual, via o feat "Familiar").
+- **Onde vive o TIPO do eidolon (resposta à revisão da decisão original):** no **ChoiceSet do
+  Summoner** (T1.4, `CLASS_CHOICE_SLOT_OPTIONS.eidolon`, mecanismo já existente desde a Onda 1)
+  — o item concreto escolhido ("Dragon Eidolon", "Angel Eidolon", ...) embute no ATOR DO
+  SUMMONER, exatamente como Bloodline/Order/Mystery/etc. O documento do eidolon (o ator
+  vinculado) **não** duplica esse dado: não carrega tipo, tradição nem trait próprios. Por isso
+  a criação do ator-eidolon **não depende** da escolha de tipo ter sido feita — ela dispara
+  junto com a classe (a feature wrapper "Eidolon", `featuresByLevel[1]` do Summoner, existe e é
+  materializada de qualquer forma). Um leitor que precisar saber "eidolon de que tipo" lê o item
+  embutido no Summoner, nunca o ator do eidolon.
+- **Ordem obrigatória — classe antes do companheiro:** a autorização do `doc:create` do
+  companheiro (`companionGrantAllows`/`detectEidolonGrant`/`detectFamiliarGrant`,
+  DEC-PET-03) lê o item de classe **persistido no servidor**, não o payload em trânsito. O
+  `doc:create` do item de classe (`applyClass`) e o `doc:create` do ator-companheiro são DOIS
+  requests HTTP/socket separados, fire-and-forget (nenhum op do Plano espera ack hoje — mesmo
+  padrão de `materializeClassGrants`); em lote síncrono, o companheiro pode chegar ao servidor
+  antes do item de classe estar gravado e a autorização recusa (mensagem "Master has no grant
+  for a companion of kind..."). **Não** é um lote atômico dos dois documentos (nunca existiu um
+  payload que envie os dois juntos) — é uma corrida de DOIS requests independentes na mesma
+  janela. A implementação (`sendAutoCompanionOp`, `petsVM.ts`) fecha a corrida com repetição
+  limitada (até 5 tentativas, buscando a MESMA autorização a cada uma) em vez de um atraso fixo:
+  cada tentativa É a checagem, então a espera real é exatamente o round-trip do item de classe,
+  nunca mais que isso por design. Uma falha "companheiro já existe" (corrida com outra aba/o
+  heal abaixo) conta como sucesso, não erro.
+- **Auto-cura no reabrir:** `runHeal` (mesmo mecanismo do B2 r14, gaps #11/#12) também confere,
+  ao abrir a ficha, se o dono já tem a classe mas ainda não tem o companheiro do grupo
+  correspondente — cobre a ficha criada ANTES desta task e a rara corrida que esgotou as 5
+  tentativas. Idempotente: já ter o companheiro é um no-op.
+- **Nome padrão:** "Eidolon" / "Familiar" (mesmo fallback hardcoded do CTA manual,
+  `buildCreateFamiliarOp`), renomeável depois pela aba Pets — sem pedir nome na hora, porque
+  não há diálogo nenhum neste caminho (é automático).
+- **Campos que o eidolon NÃO recebe do familiar:** `abilitiesBudget`/`selectedAbilities`
+  (mecanismo de familiar, sem equivalente para eidolon) e o HP `5 × nível do mestre` (fórmula do
+  familiar; o eidolon usa PV compartilhado com o Summoner — REGISTRADO PENDENTE, não modelado
+  nesta fatia, mesma dívida do relatório da T3.1). O ator-eidolon nasce com HP `{value:0,max:0}`
+  em vez de um número plausível-mas-errado (lição #48: não fabricar dado).
 
 ---
 
@@ -185,15 +308,19 @@ modificadores específicos de combate montado (ex. flanqueamento, alcance
 elevado). Fora do foco desta rodada — apenas registrado como extensão natural
 do animal companion (REQ-PET-090+, V2).
 
-### 1.5 Eidolon (fora de escopo)
+> **Emenda obrigada pela spec 52** (DEC-BHR-03, 2026-10-05): montaria companheira passou a
+> [MVP] (REQ-PET-090, REQ-PET-123..125) e o Combate Montado é da spec 52. Segue fora do MVP só
+> a montaria que não é companheira (`companionKind: "mount"`).
+
+### 1.5 Eidolon (modelo dentro, regras fora)
 
 O Eidolon (classe Summoner) é um Actor que **substitui** o turno do PC
 quando manifestado, compartilhando iniciativa e narrativamente "fundindo-se"
-ao Summoner. Não usa o mecanismo de familiar/pet/companion acima — tem
-progressão própria, HP próprio somado a uma mecânica de "Summoner health
-pool" distinta. Mencionado aqui apenas para deixar explícito que esta spec
-**não** cobre eidolons; se o Summoner entrar no roadmap do Fusion, merece
-spec própria.
+ao Summoner. Tem progressão própria e um conjunto de PV compartilhado com o
+Summoner. _(Emenda de 2026-09-21.)_ O **modelo** entra: é um ator vinculado,
+`companionKind: "eidolon"` (DEC-PET-02), criado pelo jogador quando o dono
+tem a classe Summoner (DEC-PET-03). As **regras** acima continuam fora desta
+spec.
 
 ---
 
@@ -355,6 +482,12 @@ especificado como derivação **dentro de um único Actor**; aqui precisa
 "olhar" para outro Actor read-only. Marcado como questão em aberto
 (Q-PET-02) a resolver quando a implementação começar.
 
+> **Emenda obrigada pela spec 52** (DEC-BHR-02, 2026-10-05): a Q-PET-02 foi fechada pelo lado
+> do servidor — atualizar um ator que é `masterActorId` de companheiros re-deriva cada
+> companheiro ligado e os inclui no mesmo broadcast (REQ-PET-107..108); não há ordem topológica
+> entre atores no `DeriveStep`. Para `animalCompanion`, o estágio vive em `system.companion.stage`
+> (REQ-PET-105), não em `progression.stage`.
+
 ---
 
 ## 4. UI da ficha — "tela de Pets"
@@ -439,12 +572,17 @@ Companion/familiar se encaixam **exatamente** nesse padrão já existente:
 ### Modelo de dados e derivação
 
 - **REQ-PET-001** [MVP] O Fusion DEVE modelar companions (familiar, pet
-  genérico, animal companion) como **Actors próprios** (subtype `familiar`,
-  campo `companionKind` discriminando `familiar`/`pet`/`animalCompanion`),
-  nunca como item embutido no Actor do mestre.
+  genérico, animal companion, eidolon) como **Actors próprios** (subtype
+  `familiar`, campo `companionKind` discriminando
+  `familiar`/`pet`/`animalCompanion`/`eidolon`/`mount`[V2]), nunca como item
+  embutido no Actor do mestre. _(Enumeração corrigida em 2026-09-21, revisão da
+  Onda 3/T3.2: `eidolon` (DEC-PET-02) e `mount` [V2] (REQ-PET-090) já estavam
+  no `COMPANION_KINDS` do código desde a T3.1, mas não citados aqui.)_
 - **REQ-PET-002** [MVP] Todo companion DEVE ter um campo `masterActorId`
-  apontando para o Actor `character` que o possui; um companion sem mestre
-  válido é considerado órfão e a sheet DEVE sinalizar isso ao GM.
+  apontando para o Actor que o possui — **qualquer** ator, sem restrição de
+  subtype ou faceta (`ver 45-atores.md`, DEC-ATR-16); um companion sem mestre
+  válido é considerado órfão e a sheet DEVE sinalizar isso ao GM, e é um estado
+  legítimo, não um erro.
 - **REQ-PET-003** [MVP] O `prepareData` do companion DEVE derivar HP, AC e
   saves lendo o nível (e, quando aplicável, outros campos) do Actor mestre
   via `masterActorId`, nunca aceitando esses valores como entrada manual
@@ -454,10 +592,12 @@ Companion/familiar se encaixam **exatamente** nesse padrão já existente:
   circumstance/status) DEVEM ser implementadas como `DeriveStep` no
   `engine-2e` ou `systems/pf2e`, reaproveitando o mesmo pipeline de derivação
   já especificado em `17-sistema-pf2e.md`.
-- **REQ-PET-005** [V2] Para `companionKind: "animalCompanion"`, saves/
-  perícias/ataques DEVEM derivar de uma tabela de "tipo de companion" (Actor
-  de bestiário próprio ou compendium `companion-types`) escalada por
-  `progression.stage`, não de uma cópia direta do mestre.
+- **REQ-PET-005** [MVP] Para `companionKind: "animalCompanion"`, saves/
+  perícias/ataques DEVEM derivar de uma tabela de "tipo de companion"
+  (compendium de tipos, REQ-PET-040) escalada pelo estágio do companheiro
+  (`system.companion.stage`, REQ-PET-105), não de uma cópia direta do mestre.
+  _(Emenda obrigada pela spec 52, DEC-BHR-01, 2026-10-05: era [V2] e citava
+  `progression.stage`, campo que nada lia.)_
 - **REQ-PET-006** [MVP] O sistema DEVE suportar `abilitiesBudget.{value,max}`
   no companion, incrementável por effects declarados em feats do **mestre**
   (ex.: Enhanced Familiar) — exigindo que o motor de effects (`17-sistema-
@@ -484,10 +624,17 @@ pf2e.md` DEC-PF2-04) suporte um effect cujo alvo é um Actor vinculado, não
   Companion [Druid/Ranger], Mature/Incredible Companion [Druid/Ranger],
   Animal Order) preservando os rule elements equivalentes de grant
   (`GrantItem`-like) já suportados pelo motor de effects MVP.
-- **REQ-PET-040** [V2] O Fusion DEVE ter (importado ou curado à mão) um
-  compendium de **tipos de animal companion** (ex.: bear, wolf, bird, ox,
-  camel — nomes genéricos, sem arte da Paizo) com a tabela de progressão
-  young→mature→incredible usada por `DeriveStep` (REQ-PET-005).
+- **REQ-PET-040** [MVP] O Fusion DEVE ter um compendium **curado à mão** de
+  **tipos de animal companion** (pack homebrew `companion-types-homebrew`,
+  shape `CompanionType` da spec 52 §7.4; nomes genéricos, sem arte da Paizo)
+  com o avanço por estágio usado pela derivação (REQ-PET-005, REQ-PET-101).
+  _(Emenda obrigada pela spec 52, DEC-BHR-01, 2026-10-05: era [V2]; o vendor
+  não traz dados de tipo — `docs/design/bhrotto/dados/companheiros.md` —, o
+  que responde a Q-PET-03 pela curadoria. Os exemplos de tipo da redação
+  anterior saíram: o MVP traz urso e antílope, REQ-PET-099; o avanço é por
+  estágio — jovem, maduro, ágil/selvagem, especializado. A relação entre o
+  "incrível" da redação anterior e o estágio especializado segue não
+  confirmada no levantamento (`dados/companheiros.md` b).)_
 - **REQ-PET-041** [V2] O importer DEVE converter os feats de arquétipo
   relacionados a companion/familiar mais usados (Beastmaster dedication +
   Call Companion; Familiar Master dedication) quando o pipeline de
@@ -498,20 +645,29 @@ pf2e.md` DEC-PF2-04) suporte um effect cujo alvo é um Actor vinculado, não
 - **REQ-PET-050** [MVP] A character sheet DEVE exibir uma aba **Pets**
   quando o personagem tiver ao menos um companion com `masterActorId`
   apontando para ele; a aba DEVE ficar oculta quando não houver companion
-  nem slot de companion disponível no Plano.
+  nem slot de companion disponível no Plano. Companheiro
+  `animalCompanion` NÃO DEVE contar para abrir a aba: ele tem ficha própria
+  e aparece na ficha do dono só como vínculo (REQ-PET-114, REQ-PET-115).
+  _(Emenda obrigada pela spec 52, DEC-BHR-04, 2026-10-05.)_
 - **REQ-PET-051** [MVP] A aba Pets DEVE listar todos os companions
   vinculados como cards com nome, `companionKind`, HP atual/máx e AC.
+  _(Emenda da spec 52, DEC-BHR-04, 2026-10-05: companheiro `animalCompanion`
+  não entra na lista — ele aparece como vínculo na ficha do dono, REQ-PET-114.)_
 - **REQ-PET-052** [MVP] Cada card DEVE expandir para uma mini-ficha
   (strikes, saves, perícias, sentidos, `selectedAbilities`) reaproveitando o
   componente de statblock já usado na NPC sheet (REQ-PF2-111), sem
   duplicar UI.
-- **REQ-PET-053** [V2] A aba Pets DEVE oferecer uma ação rápida "Command"
-  que dispara a ação Command an Animal via o motor de ações declarativas,
-  desabilitada/anotada quando o companion já é independente
-  (`progression.stage` ≥ mature).
+- **REQ-PET-053** [MVP] A ficha do companheiro animal DEVE oferecer a ação
+  "Comandar" (Command an Animal) como linha executável, que posta o card
+  sem teste de Natureza (REQ-PET-117). _(Emenda obrigada pela spec 52,
+  DEC-BHR-04/DEC-BHR-11, 2026-10-05: era [V2] e punha a ação na aba Pets,
+  que o companheiro animal não usa; a anotação de independência a partir de
+  Maduro fica para quando o estágio Maduro tiver ficha.)_
 - **REQ-PET-054** [V2] Quando o dono tiver mais de um companion vinculado
   (ex. via Beastmaster + Call Companion), a UI DEVE indicar qual está ativo
-  e permitir alternar, sem apagar os companions inativos.
+  e permitir alternar, sem apagar os companions inativos. _(Para
+  `animalCompanion`, o recorte [MVP] é REQ-PET-120..121, emenda da spec 52;
+  este requisito segue [V2] para os demais tipos.)_
 - **REQ-PET-055** [MVP] A sheet do próprio companion (Actor `familiar`) DEVE
   exibir um cabeçalho "pertence a `<mestre>`" com link de volta para a ficha
   do mestre.
@@ -546,13 +702,128 @@ pf2e.md` DEC-PF2-04) suporte um effect cujo alvo é um Actor vinculado, não
 
 ### Mounts e fora de escopo
 
-- **REQ-PET-090** [V2] Mounts DEVEM ser suportados como um `companionKind`
-  adicional (`"mount"`) reaproveitando a mesma infraestrutura de Actor
-  vinculado + tabela de tipo, sem subsistema paralelo. Regras detalhadas de
-  Mounted Combat ficam fora desta rodada de pesquisa.
-- **REQ-PET-091** [V2] O Eidolon (classe Summoner) **NÃO** DEVE ser
-  modelado com o mecanismo `companionKind`; se entrar em roadmap, requer
-  spec própria (fora desta spec).
+- **REQ-PET-090** [MVP] Montaria DEVE ser suportada reaproveitando a mesma
+  infraestrutura de Actor vinculado + tabela de tipo, sem subsistema
+  paralelo: o companheiro animal ligado ao cavaleiro, com tamanho pelo menos
+  1 acima, pode ser montado, e o tipo com `special: ["mount"]` ganha as
+  isenções de montaria (REQ-PET-123..125). O Combate Montado é da spec 52
+  (DEC-BHR-03). _(Emenda obrigada pela spec 52, 2026-10-05: era [V2] e
+  previa um `companionKind: "mount"` próprio; esse kind — montaria que não é
+  companheira — segue fora do MVP e recusado ao jogador, REQ-PET-111.)_
+- **REQ-PET-091** [MVP] O Eidolon (classe Summoner) DEVE ser modelado como
+  companheiro: Actor próprio do subtype de companheiro, `companionKind:
+"eidolon"`, vinculado ao Summoner por `masterActorId` (DEC-PET-02).
+  _(Reescrito em 2026-09-21; a redação v0.1 proibia o mecanismo `companionKind`
+  para o eidolon e o adiava para uma spec própria.)_
+- **REQ-PET-092** [MVP] O servidor DEVE autorizar um jogador a criar um
+  companheiro só quando ele é owner do dono **e** o dono carrega a concessão
+  daquele `companionKind` (DEC-PET-03); um `companionKind` sem detector de
+  concessão DEVE ser recusado ao jogador. _(Emenda da spec 52, 2026-10-05:
+  `animalCompanion` passa a ter detector, REQ-PET-109.)_
+- **REQ-PET-093** [MVP] O servidor DEVE recusar a criação de um segundo
+  companheiro do mesmo grupo para o mesmo dono (familiar e pet são um grupo; o
+  eidolon é outro) e NÃO DEVE recusar companheiros de grupos diferentes. No
+  grupo `animalCompanion`, o teto DEVE ser o **número de concessões** do dono
+  (Animal de Companhia = 1, Dedicação de Domador de Bestas = +1), contado no
+  servidor (REQ-PET-110). _(Emenda obrigada pela spec 52, DEC-BHR-10/DC-07,
+  2026-10-05.)_
+- **REQ-PET-094** [MVP] A concessão de eidolon DEVE ser reconhecida pelo
+  `flags.fusion.sourceId` do item de classe Summoner embutido no dono, nunca pelo
+  nome do item.
+- **REQ-PET-095** [MVP] A aplicação da classe Summoner ou Witch no Plano DEVE
+  disparar a criação automática do companheiro correspondente (eidolon/familiar,
+  DEC-PET-04), sem exigir uma ação manual adicional do jogador na aba Pets;
+  toda outra classe/talento que concede familiar continua manual.
+- **REQ-PET-096** [MVP] A criação automática do companheiro (REQ-PET-095) NÃO
+  DEVE depender de o item de classe já estar refletido no documento local do
+  cliente — DEVE repetir a tentativa de criação, respeitando a MESMA
+  autorização do servidor (DEC-PET-03), até o item de classe estar persistido
+  ou um teto de tentativas ser atingido (DEC-PET-04).
+- **REQ-PET-097** [MVP] A criação automática do companheiro (REQ-PET-095) NÃO
+  DEVE criar um segundo companheiro do mesmo grupo (REQ-PET-093) quando
+  repetida — em uma nova tentativa, num reabrir da ficha (heal) ou numa
+  corrida com outra sessão do mesmo dono.
+
+### Companheiro animal derivado, criação pelo Plano e montaria _(emenda da spec 52, 2026-10-05)_
+
+Requisitos obrigados por `52-cacador-companheiro-e-montaria.md` (DEC-BHR-01, DEC-BHR-02,
+DEC-BHR-03, DEC-BHR-04, DEC-BHR-07, DEC-BHR-10, DEC-BHR-11, DEC-BHR-12). Números de regra em
+`docs/design/bhrotto/dados/companheiros.md` e `montaria.md`.
+
+- **REQ-PET-098** [MVP] O pack homebrew de tipos de companheiro DEVE seguir o shape
+  `CompanionType` (spec 52 §7.4) e ser extensível: tipo novo é documento novo, sem código; tipo sem
+  `ancestryHp` NÃO DEVE validar.
+- **REQ-PET-099** [MVP] O pack DEVE ter o **Urso** (pequeno, For +3 Des +2 Con +2 Int −4 Sab +1
+  Car +0, PV de ancestralidade 8, Intimidação, visão na penumbra e faro, 35 pés, mandíbulas 1d8
+  perfurante e garra 1d6 cortante ágil) e o **Antílope** (médio ou grande, For +2 Des +3 Con +2
+  Int −4 Sab +1 Car +0, PV de ancestralidade 6, Sobrevivência, visão na penumbra, 40 pés,
+  `special: ["mount"]`, chifres 1d6 perfurante acuidade e casco 1d4 contundente ágil acuidade), com
+  descrições em palavras próprias e sem arte.
+- **REQ-PET-100** [MVP] Cada tipo DEVE trazer `stagePreview` com o que ganha em Maduro, Ágil,
+  Selvagem e Especializado, redigido "a partir de Maduro" e sem citar nível de classe (DEC-BHR-12),
+  o `effectRef` do Apoio e a Manobra Avançada como texto.
+- **REQ-PET-101** [MVP] A derivação pura `deriveAnimalCompanion` DEVE calcular: nível = nível do
+  dono; PV = `ancestryHp + nível × (6 + Con)`; CA = `10 + nível + 2 + Des` (+ item até +3 só de
+  barding); salvamentos, Percepção e perícias = `nível + rank + atributo` (treinado 2, especialista
+  4, mestre 6, lendário 8); ataque desarmado = `nível + rank + For` (Des se `finesse`).
+- **REQ-PET-102** [MVP] O dano desarmado DEVE ser o dado do tipo + For (a acuidade não troca o
+  dano): 1 dado em Jovem, 2 dados a partir de Maduro, +2 em Ágil e +3 em Selvagem, 3 dados em
+  Especializado; os ajustes de atributo, rank e tamanho por estágio DEVEM seguir o avanço do
+  Player Core (`dados/companheiros.md` b).
+- **REQ-PET-103** [MVP] A derivação DEVE devolver `breakdown` por campo ("como foi calculado").
+- **REQ-PET-104** [MVP] No nível 3, a derivação DEVE dar ao Urso PV 32, CA 17, Fort/Ref/Von
+  +7/+7/+6, Percepção +6, mandíbulas +8 `1d8+3`, Acrobacia/Atletismo/Intimidação +7/+8/+5; e ao
+  Antílope PV 30, CA 18, +7/+8/+6, chifres +8 `1d6+2`.
+- **REQ-PET-105** [MVP] O ator `familiar` com `companionKind: "animalCompanion"` DEVE derivar golpes,
+  perícias, atributos, sentidos, velocidade e tamanho pela REQ-PET-101 a partir do nível do dono, com
+  o estágio lido de `system.companion.stage`.
+- **REQ-PET-106** [MVP] Os campos derivados do companheiro animal DEVEM ser somente leitura; familiar
+  e pet NÃO DEVEM mudar de derivação.
+- **REQ-PET-107** [MVP] Atualizar um ator que é `masterActorId` de companheiros DEVE fazer o servidor
+  re-derivar cada companheiro ligado e incluir os que mudaram no mesmo broadcast; o cliente NÃO DEVE
+  recalcular (DEC-BHR-02).
+- **REQ-PET-108** [MVP] Atualização do dono que não muda o derivado do companheiro NÃO DEVE
+  re-transmitir o companheiro.
+- **REQ-PET-109** [MVP] A concessão de `animalCompanion` DEVE ser reconhecida pelo talento Animal de
+  Companhia (de qualquer classe) e pela Dedicação de Domador de Bestas, por identidade, nunca por nome.
+- **REQ-PET-110** [MVP] O teto de companheiros animais de um dono DEVE ser o número de concessões que
+  ele carrega, contado no servidor; o Mestre NÃO DEVE passar por essa checagem.
+- **REQ-PET-111** [MVP] Cada companheiro animal DEVE guardar o `grantSlotId` do slot do Plano que o
+  criou; `companionKind: "mount"` DEVE continuar recusado ao jogador.
+- **REQ-PET-112** [MVP] Cada concessão DEVE abrir no Plano, recuado, um sub-slot "Escolher
+  companheiro".
+- **REQ-PET-113** [MVP] O seletor de tipo DEVE listar os tipos do pack com tamanho, golpes, Apoio e o
+  que ganha "a partir de Maduro" e depois, sem citar nível de classe; DEVE permitir o mesmo tipo mais
+  de uma vez e, para tipo com mais de um tamanho, a escolha do tamanho (DEC-BHR-12).
+- **REQ-PET-114** [MVP] Escolher o tipo DEVE criar o ator ligado e o slot preenchido DEVE virar o
+  vínculo que abre a ficha do companheiro; "Trocar tipo" DEVE manter o ator e mudar `typeSlug`.
+- **REQ-PET-115** [MVP] A ficha do companheiro animal DEVE ter cabeçalho "pertence a `<dono>`",
+  estágio, PV atuais editáveis e o resto derivado somente leitura, com a dica "como foi calculado".
+- **REQ-PET-116** [MVP] Os golpes da ficha do companheiro DEVEM rolar no servidor com o alvo mirado e o
+  MAP do companheiro (`AttackCheckContext`, spec 52), e as perícias DEVEM ser roláveis; o jogador que
+  possui o dono tem posse do companheiro.
+- **REQ-PET-117** [MVP] Comandar um companheiro animal DEVE postar o card "`<dono>` comanda
+  `<companheiro>`: 2 ações" sem teste de Natureza; o card é registro, não orçamento de ações. Comandar
+  custa 1 ação (◆) ao dono; as 2 ações são as que o companheiro ganha (spec 52, REQ-BHR-186).
+- **REQ-PET-118** [MVP] O Apoio DEVE aplicar no dono, via `effect:apply` (spec 52), o efeito de apoio
+  do tipo com `expiry { on: "turn-start", ownerActorId: dono }`.
+- **REQ-PET-119** [MVP] Com o Apoio do urso ativo, golpe do dono que **acerta** criatura ao alcance do
+  urso DEVE ganhar +1d8 cortante (2d8 em Ágil ou Selvagem); erro NÃO DEVE somar. O dano extra é dano do
+  urso: o acerto crítico NÃO o dobra. O Apoio dura até o início do próximo turno do dono (não do urso).
+- **REQ-PET-120** [MVP] Entre os companheiros animais de um dono, exatamente um DEVE estar ativo
+  (`system.companion.active`); Chamar Companheiro DEVE trocar qual é, e com um só companheiro a ação
+  DEVE ficar desabilitada.
+- **REQ-PET-121** [MVP] O companheiro inativo DEVE continuar ator com ficha legível, sem token em cena,
+  e com o Apoio desabilitado com o motivo; os vínculos na ficha do dono DEVEM mostrar qual está ativo.
+- **REQ-PET-122** [MVP] O companheiro **ativo** DEVE receber `target:mark:hunted-prey` e
+  `origin:mark:hunted-prey` quando a marca é do dono (DEC-BHR-07); companheiro inativo ou de outro
+  dono NÃO DEVE herdar.
+- **REQ-PET-123** [MVP] O companheiro animal ligado ao cavaleiro e pelo menos 1 tamanho maior que ele
+  DEVE poder ser montado pelo dono (Leshy pequeno + Antílope médio: sim; + Urso pequeno: recusado).
+- **REQ-PET-124** [MVP] Carregando cavaleiro, a montaria companheira DEVE usar só a Velocidade
+  terrestre e NÃO DEVE mover e Apoiar no mesmo turno, salvo se o tipo tem `mount`.
+- **REQ-PET-125** [MVP] Apoio de tipo com `support.requiresMounted` DEVE valer só enquanto o dono
+  estiver montado nele.
 
 ---
 
@@ -560,7 +831,8 @@ pf2e.md` DEC-PF2-04) suporte um effect cujo alvo é um Actor vinculado, não
 
 - **CA-PET-01** As regras remaster de familiar, animal companion e pet
   genérico estão resumidas de forma funcional (não copiada literalmente),
-  com eidolon e mounts corretamente marcados fora-de-escopo/[V2].
+  com mounts marcados [V2] e as regras do eidolon fora de escopo (o modelo
+  do eidolon entra pela DEC-PET-02).
 - **CA-PET-02** A modelagem observada no `foundryvtt/pf2e` (Actor type
   `familiar`, ausência de type dedicado para animal companion, rule elements
   `GrantItem`/`Sense`/`BaseSpeed`, pack `familiar-abilities`) está registrada
@@ -577,8 +849,9 @@ pf2e.md` DEC-PF2-04) suporte um effect cujo alvo é um Actor vinculado, não
   mecanismo novo.
 - **CA-PET-06** Todos os requisitos estão numerados `REQ-PET-NNN` com tag
   `[MVP]`/`[V2]`, e o MVP proposto é enxuto (familiar do Wizard/Witch +
-  animal companion de Druid/Ranger), com mounts/pet-archetype-avançado/
-  eidolon corretamente adiados.
+  animal companion de Druid/Ranger + modelo do eidolon, DEC-PET-02), com
+  mounts/pet-archetype-avançado/regras do eidolon corretamente adiados.
+  _(Emenda de 2026-10-05: a montaria companheira saiu do adiamento pela spec 52.)_
 - **CA-PET-07** `specs/README.md` lista esta spec no índice, no mesmo
   padrão das demais linhas da tabela.
 
@@ -593,7 +866,8 @@ pf2e.md` DEC-PF2-04) suporte um effect cujo alvo é um Actor vinculado, não
   pequena do motor existente (um seletor `target: "linkedCompanion"`) ou um
   mecanismo separado. Esta spec assume a extensão pequena, mas não a
   especifica em detalhe (fora do escopo de uma spec de pesquisa).
-- **Q-PET-02** A ordem de derivação cross-actor (companion lê o mestre já
+- **Q-PET-02** _(Fechada em 2026-10-05 pela spec 52, DEC-BHR-02: recálculo no
+  servidor ao atualizar o dono, REQ-PET-107.)_ A ordem de derivação cross-actor (companion lê o mestre já
   preparado) precisa se encaixar na derivação topológica `DeriveStep` de
   `15-api-de-sistemas.md`, que hoje é especificada dentro de um único Actor.
   Precisa avaliar se isso vira uma fase extra do boot/recalc (recalcular

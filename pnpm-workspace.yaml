@@ -1,7 +1,10 @@
 packages:
   - "packages/*"
-  - "systems/*"
+  - "systems/stub"
   - "tools/*"
+  - "external/fusion-systems-2e/systems/*"
+  - "external/fusion-systems-2e/sheets/*"
+  - "external/fusion-systems-2e/tools/*"
 allowBuilds:
   '@3d-dice/dice-box': true
   better-sqlite3: true

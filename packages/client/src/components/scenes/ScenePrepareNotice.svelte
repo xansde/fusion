@@ -1,0 +1,213 @@
+<script lang="ts">
+  /**
+   * ScenePrepareNotice.svelte — the persistent warning of a prepare (REQ-CEN-052).
+   *
+   * While the Master is preparing a scene, his canvas is showing something the table is
+   * not. That is a useful state and a dangerous one: the failure mode of spec 44 is
+   * exactly forgetting it. So the notice is PERSISTENT — no auto-dismiss, no timer — it
+   * names the scene the table is actually watching, and it carries the only two ways out:
+   * put the prepared scene on air (REQ-CEN-040/044) or leave the prepare (REQ-CEN-053).
+   *
+   * The rule lives in `lib/scenes/prepareState.svelte.ts`; this file is markup plus the
+   * error surface of a refused activation (REQ-CEN-045). Leaving the prepare goes through
+   * `exitScenePrepare`, which takes no socket — no write leaves the client (RNF-CEN-03).
+   */
+
+  import type { Socket } from "socket.io-client";
+  import { t } from "../../lib/i18n/i18n.js";
+  import Icon from "../common/Icon.svelte";
+  import { OpError } from "../../lib/scenes/sceneController.js";
+  import {
+    SCENE_PREPARE_KEYS,
+    exitScenePrepare,
+    putPreparedSceneOnAir,
+    type ScenePrepareNoticeVM,
+  } from "../../lib/scenes/prepareState.svelte.js";
+
+  const {
+    notice,
+    socket,
+    bottomOffset = 0,
+  }: {
+    notice: ScenePrepareNoticeVM;
+    socket: Socket | null;
+    /**
+     * Distance from the bottom edge, in px, when the action bar occupies the centre-bottom of the
+     * table (spec 53 REQ-BAR-022, DEC-BAR-09): the notice stacks ABOVE the bar, because it carries
+     * the only two ways out of a prepare and a bar over it would hide them. 0 — the default — keeps
+     * the notice where it has always been.
+     */
+    bottomOffset?: number;
+  } = $props();
+
+  /** In flight — disables both actions instead of pretending the swap already happened. */
+  let busy = $state(false);
+  let error = $state<string | null>(null);
+
+  async function handlePutOnAir(): Promise<void> {
+    if (busy || socket === null) return;
+    busy = true;
+    error = null;
+    try {
+      await putPreparedSceneOnAir(socket, notice.preparedSceneId);
+    } catch (err) {
+      // REQ-CEN-045: the failure is said out loud and the prepare stays where it was.
+      error = err instanceof OpError ? err.message : t(SCENE_PREPARE_KEYS.failed);
+    } finally {
+      busy = false;
+    }
+  }
+</script>
+
+<aside
+  class="scene-prepare"
+  role="status"
+  aria-live="polite"
+  aria-label={t(notice.labelKey)}
+  data-prepared-scene={notice.preparedSceneId}
+  style:bottom={bottomOffset > 0 ? `${String(bottomOffset)}px` : undefined}
+>
+  <!-- Same eye as the row action that opens this prepare: "I am looking at this". -->
+  <Icon name="eye" size={18} class="scene-prepare__icon" />
+
+  <div class="scene-prepare__text">
+    <span class="scene-prepare__title">{t(notice.title.key, notice.title.vars)}</span>
+    <!-- REQ-CEN-052: what the TABLE is watching, named — that is the whole reason the
+         notice exists. -->
+    <span class="scene-prepare__on-air">{t(notice.onAir.key, notice.onAir.vars)}</span>
+    {#if error}
+      <span class="scene-prepare__error" role="alert">{error}</span>
+    {/if}
+  </div>
+
+  <div class="scene-prepare__actions">
+    <button
+      class="btn btn--primary btn--sm"
+      disabled={busy || socket === null}
+      onclick={handlePutOnAir}
+    >
+      {t(notice.putOnAirKey)}
+    </button>
+    <button class="btn btn--ghost btn--sm" disabled={busy} onclick={exitScenePrepare}>
+      {t(notice.exitKey)}
+    </button>
+  </div>
+</aside>
+
+<style>
+  /* Anchored to the canvas, above the no-scene overlay's plane but below the windows:
+     it is a state of the canvas, not a dialog, and it never blocks the map. With the action bar on
+     screen the table shell passes `bottomOffset`, which replaces the default `bottom` below. */
+  .scene-prepare {
+    align-items: center;
+    background: var(--fusion-surface);
+    border: 1px solid var(--fusion-accent);
+    border-radius: var(--fusion-radius-lg);
+    bottom: 1.25rem;
+    box-shadow: var(--fusion-shadow-popover);
+    display: flex;
+    gap: 0.75rem;
+    left: 50%;
+    max-width: min(32rem, calc(100vw - 2rem));
+    padding: 0.6rem 0.9rem;
+    pointer-events: auto;
+    position: absolute;
+    transform: translateX(-50%);
+    z-index: 60;
+  }
+
+  .scene-prepare :global(.scene-prepare__icon) {
+    color: var(--fusion-accent);
+    flex-shrink: 0;
+  }
+
+  .scene-prepare__text {
+    display: flex;
+    flex-direction: column;
+    gap: 0.1rem;
+    min-width: 0;
+  }
+
+  .scene-prepare__title {
+    color: var(--fusion-text);
+    font-size: var(--fusion-text-sm);
+    font-weight: 600;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .scene-prepare__on-air {
+    color: var(--fusion-text-muted);
+    font-size: var(--fusion-text-xs);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .scene-prepare__error {
+    color: var(--fusion-danger);
+    font-size: var(--fusion-text-xs);
+  }
+
+  .scene-prepare__actions {
+    display: flex;
+    flex-shrink: 0;
+    gap: 0.35rem;
+  }
+
+  /* Buttons (inline — Svelte scopes CSS per component and there is no global `.btn`;
+     same block the scene dialogs carry, on the same tokens). Without it the only two
+     ways out of a prepare (REQ-CEN-052/053) render as bare browser buttons. */
+  .btn {
+    align-items: center;
+    border: 1px solid transparent;
+    border-radius: var(--fusion-radius-sm);
+    cursor: pointer;
+    display: inline-flex;
+    font-family: var(--fusion-font);
+    font-size: var(--fusion-text-sm);
+    font-weight: 500;
+    justify-content: center;
+    padding: 0.45rem 1rem;
+    transition:
+      background-color var(--fusion-transition),
+      opacity var(--fusion-transition);
+    white-space: nowrap;
+  }
+
+  .btn:disabled {
+    cursor: not-allowed;
+    opacity: 0.45;
+  }
+
+  .btn:focus-visible {
+    outline: 2px solid var(--fusion-focus);
+    outline-offset: 2px;
+  }
+
+  .btn--primary {
+    background: var(--fusion-accent);
+    color: var(--fusion-on-accent);
+  }
+
+  .btn--primary:hover:not(:disabled) {
+    background: var(--fusion-accent-hover);
+  }
+
+  .btn--ghost {
+    background: transparent;
+    border-color: var(--fusion-border);
+    color: var(--fusion-text-muted);
+  }
+
+  .btn--ghost:hover:not(:disabled) {
+    border-color: var(--fusion-text-muted);
+    color: var(--fusion-text);
+  }
+
+  .btn--sm {
+    min-height: var(--fusion-target);
+    padding: 0.3rem 0.75rem;
+  }
+</style>

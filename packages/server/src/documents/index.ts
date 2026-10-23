@@ -62,3 +62,21 @@ export type { FolderOwnership, Ownership } from "./ownership.js";
 
 export { deepMerge, computeDiff } from "./merge.js";
 export type { JsonValue } from "./merge.js";
+
+export {
+  WriteMetricsCollector,
+  embeddedCollectionKeys,
+  semanticDeltaBytes,
+  WRITE_METRICS_SCOPE,
+  DEFAULT_FLUSH_INTERVAL_MS,
+  DEFAULT_MAX_LATENCY_SAMPLES,
+  DEFAULT_MAX_PATCH_KEYS,
+  EMBEDDED_COLLECTION_KEYS,
+  OTHER_PATCH_KEY,
+} from "./write-metrics.js";
+export type {
+  WriteMetricsEvent,
+  WriteMetricsReport,
+  WriteMetricsTableReport,
+  WriteMetricsCollectorOptions,
+} from "./write-metrics.js";

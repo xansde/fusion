@@ -59,7 +59,7 @@ Definir a estratégia completa de testes e qualidade do Fusion VTT: pirâmide de
 
 ## Decisões
 
-### D1: Vitest como framework de testes unitários e de integração
+### DEC-TST-01: Vitest como framework de testes unitários e de integração
 
 **Escolhido:** Vitest
 
@@ -71,7 +71,7 @@ Definir a estratégia completa de testes e qualidade do Fusion VTT: pirâmide de
 
 ---
 
-### D2: Playwright como framework E2E
+### DEC-TST-02: Playwright como framework E2E
 
 **Escolhido:** Playwright
 
@@ -83,7 +83,7 @@ Definir a estratégia completa de testes e qualidade do Fusion VTT: pirâmide de
 
 ---
 
-### D3: Artillery para testes de carga multiplayer
+### DEC-TST-03: Artillery para testes de carga multiplayer
 
 **Escolhido:** Artillery com `artillery-engine-socketio-v3`
 
@@ -96,7 +96,7 @@ Definir a estratégia completa de testes e qualidade do Fusion VTT: pirâmide de
 
 ---
 
-### D4: Golden tests do motor de regras usam fixtures verificadas contra research doc 13
+### DEC-TST-04: Golden tests do motor de regras usam fixtures verificadas contra research doc 13
 
 **Escolhido:** Fixtures TypeScript imutáveis checadas no repositório
 
@@ -109,7 +109,7 @@ Definir a estratégia completa de testes e qualidade do Fusion VTT: pirâmide de
 
 ---
 
-### D5: Regressão visual do canvas é [V2]
+### DEC-TST-05: Regressão visual do canvas é [V2]
 
 **Escolhido:** Adiar para [V2]
 
@@ -117,7 +117,7 @@ Definir a estratégia completa de testes e qualidade do Fusion VTT: pirâmide de
 
 ---
 
-### D6: `window.__fusion_test_api__` protegido por tree-shaking em produção
+### DEC-TST-06: `window.__fusion_test_api__` protegido por tree-shaking em produção
 
 **Escolhido:** Eliminado por tree-shaking via `import.meta.env.MODE !== 'test'` com dead-code elimination do Vite
 
@@ -130,7 +130,7 @@ Definir a estratégia completa de testes e qualidade do Fusion VTT: pirâmide de
 
 ---
 
-### D7: Suíte de conformidade da system API é executada no CI junto com testes de integração
+### DEC-TST-07: Suíte de conformidade da system API é executada no CI junto com testes de integração
 
 **Escolhido:** Parte do workflow `ci.yml` (não em workflow separado)
 
@@ -138,7 +138,7 @@ Definir a estratégia completa de testes e qualidade do Fusion VTT: pirâmide de
 
 ---
 
-### D8: Cobertura mínima de 80% aplica-se a `packages/shared` e à camada de regras dos sistemas
+### DEC-TST-08: Cobertura mínima de 80% aplica-se a `packages/shared` e à camada de regras dos sistemas
 
 **Escolhido:** 80% de cobertura de statements para `packages/shared/**` e `systems/*/src/rules/**`
 

@@ -1,6 +1,6 @@
 # Fusion
 
-VTT (virtual tabletop) web próprio, inspirado no comportamento do Foundry VTT, construído em **clean-room**. Servidor local na máquina do GM; jogadores conectam pelo navegador. Sistemas-alvo: Pathfinder 2e (remaster), Starfinder 2e e Etmos RPG.
+VTT (virtual tabletop) web próprio, inspirado no comportamento do Foundry VTT, construído em **clean-room**. Servidor local na máquina do GM; jogadores conectam pelo navegador. Sistemas-alvo: Pathfinder 2e (remaster) e Starfinder 2e. (Etmos: legado, vive na linha `build/app` — ver `specs/19-sistema-etmos.md`.)
 
 ## Regras inegociáveis
 
@@ -12,21 +12,34 @@ VTT (virtual tabletop) web próprio, inspirado no comportamento do Foundry VTT, 
 
 - `specs/` — especificações completas (índice em `specs/README.md`). Implementação segue as specs.
 - `docs/research/` — pesquisa que fundamenta as specs (21 docs sobre Foundry, PF2e, SF2e, Etmos, licenças, bibliotecas).
+- `CONTRIBUTING.md` — guia de colaboração (setup, fluxo de branch/PR, gates). Este repo é **público**: nada de segredo, dado de mundo real ou material com copyright em commit.
 
-## Branches (modelo alfa → beta → stable, desde 2026-08-15)
+## Branches
 
-- **`alfa/app`** — desenvolvimento e experimentação: é onde rodam os testes e onde se espera que tudo quebre. Toda branch de trabalho parte dela (`git fetch origin` antes; nunca do checkout local) e volta para ela por PR.
-- **`beta/app`** — onde o Alexandre testa antes de promover: recebe merge de `alfa/app` quando um conjunto está íntegro (suíte verde + teste ao vivo).
-- **`stable/app`** — o app de verdade, pronto para jogo: só recebe merge de `beta/app` depois de validado na mesa. Nunca recebe trabalho direto.
-- **`build/app`** — linha do **Mario**: ele segue trabalhando nela com as atualizações que ELE quer. Não é integração nossa, não apagar, não mergear nela sem combinar; `alfa/app` nasceu dela em 13/08. **`main`** é o espelho publicável e só recebe merge com instrução literal do Alexandre.
-- Nascimento: `stable/app` = `beta/app` = estado pré-mapa de `build/app` (`ab4966f`, 02/08) + os fixes do r24 (#67, #70, #74, #75, #91, #92, antecedente-perícias) cherry-pickados; `alfa/app` = ponta de `build/app` em 13/08 (toda a onda de mapa/hub/quest board a partir de 07/08 vive só ali).
-- Promoção é sempre ato humano (merge `alfa→beta` e `beta→stable`); nada de push direto em `beta`/`stable`.
+**Duas linhas paralelas**, sem relação de ancestralidade entre elas: divergiram do estado pré-mapa (`ab4966f`, 02/08) e não convergem. Nenhum merge entre as duas acontece sem instrução explícita do Alexandre.
+
+### Linha geral do projeto — `build/app` e `main`
+
+**Não recebem trabalho de colaborador.**
+
+- **`build/app`** é a branch de integração de uso geral, e é onde vive a onda de mapa/hub/quest board (a partir de 07/08). Não apagar, não mergear nela, não trabalhar nela sem combinar.
+- **`main`** é o espelho publicável, alimentado por `build/app`. Push nela exige instrução literal do Alexandre.
+
+### Linha de colaboração — `alfa/app`, `beta/app`, `stable/app`
+
+Estado pré-mapa (sem a onda de mapa/hub) + os fixes do r24 (#67, #70, #74, #75, #91, #92, antecedente-perícias) cherry-pickados. **É aqui que colaboradores trabalham** (fluxo completo em `CONTRIBUTING.md`).
+
+- **`alfa/app`** — branch de integração dos colaboradores; onde o trabalho entra e onde se espera que quebre. Toda branch de trabalho parte dela (`git fetch origin` antes; nunca do checkout local) e volta por PR **para `alfa/app`**.
+- **`beta/app`** — onde o Alexandre testa antes de promover: recebe merge de `alfa/app` com a suíte verde. **Só o Alexandre opera.**
+- **`stable/app`** — o app pronto para jogo: só recebe merge de `beta/app` depois de validado na mesa. Nunca recebe trabalho direto. **Só o Alexandre opera.**
+- Promoção (`alfa→beta`, `beta→stable`) é exclusiva do Alexandre; ninguém faz push direto em `beta/app` nem em `stable/app`.
+- Mudança que cruza core e satélite (`fusion-systems-2e`): satélite primeiro (PR para a `main` dele), depois PR no core com o bump do pin do submódulo, para `alfa/app`.
 
 ## Stack
 
 TypeScript estrito · Node.js 22+ · monorepo pnpm · Fastify + socket.io v4 (servidor autoritativo) · better-sqlite3 · Svelte 5 (Runes) + Vite · PIXI.js v8 · @dice-roller/rpg-dice-roller (RNG no servidor) · @3d-dice/dice-box · clipper2-ts + honeycomb-grid · TipTap · Howler.js · Tauri v2 (fase 2).
 
-Monorepo planejado: `packages/{server,client,shared,system-api}` + `systems/{engine-2e,pf2e,sf2e,etmos}` + `tools/importer-pf2e`. `systems/engine-2e` é o núcleo de regras 2e compartilhado entre PF2e e SF2e. Porta default: 33000.
+Monorepo: `packages/{server,client,shared,system-api}` + `systems/stub` (fica no core) + `tools/{release,boundary-test,spec-lint}`. Desde a F4 (2026-08-24, DEC-SEP-09), `systems/{engine-2e,pf2e,sf2e}`, a ficha PF2e (`@fusion/sheets-pf2e`) e `tools/{importer-pf2e,translate-packs}` vivem no repo satélite `xansde/fusion-systems-2e`, consumido aqui como **git submodule pinado por tag** em `external/fusion-systems-2e/` — entra no workspace pnpm do core (`pnpm-workspace.yaml` lista `external/fusion-systems-2e/{systems,sheets,tools}/*`), então `workspace:*` resolve normalmente nos dois sentidos e o `pnpm build` topológico compila tudo junto (o executável continua um artefato só, DEC-ARQ-01/06 intactas). `systems/engine-2e` é o núcleo de regras 2e compartilhado entre PF2e e SF2e. Depois de clonar (ou sempre que `external/fusion-systems-2e` aparecer vazio): `git submodule update --init`. Bump de versão: `cd external/fusion-systems-2e && git fetch --tags && git checkout v0.x.y`, depois commit do pin no core. Porta default: 33000.
 
 ## Convenções
 
@@ -37,17 +50,20 @@ Monorepo planejado: `packages/{server,client,shared,system-api}` + `systems/{eng
 - Rolagens sempre executam no servidor (anti-cheat); toda validação de permissão é no servidor.
 - Redação de visibilidade (hidden tokens, roll modes) usa SEMPRE `packages/server/src/net/redaction.ts` + `isRolePrivileged` de `documents/ownership.ts` — nunca duplicar predicados/strip.
 - Testes do server: pool forks/maxForks 4 (better-sqlite3 crasha em worker_threads). Saída não-zero com "Timeout calling onTaskUpdate" sem teste falhando = flakiness de infra do vitest sob carga; re-rodar o arquivo isolado antes de tratar como regressão.
+- **Suíte rápida (out/2026).** O `vitest.config.ts` da raiz reaproveita o processo dos workers forks entre arquivos, e o projeto `server` roda com `isolate: false` (cache de módulos mantido): arquivo de teste do server que troca registro de módulo (`registerMigrations`, `registerRollResolver`, `registerPackDir`...), usa `vi.mock`/`vi.doMock` ou `spawnSync`/`execFileSync` vai na lista de `packages/server/vitest.isolation.ts` (projeto `server-isolated`); o teste `isolation-list` falha se faltar. Os demais projetos rodam no pool `threads`. Processo filho em teste: `__tests__/helpers/run-cli.ts` (assíncrono), nunca `spawnSync`. Argon2 de teste: custo mínimo via `FUSION_TEST_FAST_ARGON2` (só sob vitest; o custo de produção é fixado por `auth/__tests__/argon2-cost.test.ts`). Para rodar só o server: `pnpm test --project server --project server-isolated`.
 - **Nunca hardcode porta em teste.** Os arquivos rodam em paralelo, então literal colide (EADDRINUSE) e derruba o CI sem defeito nenhum no código. Use `packages/server/src/__tests__/helpers/ports.ts`: `reserveFreePort()` para bootar, `listeningPort()` para nomear a porta em asserção/payload, `holdPort()` quando o teste exigir duas portas distintas. Bootar em `port: 0` **não** funciona: `boot()` injeta `currentPort: config.port` nas rotas admin antes do `listen()`, e o servidor passa a dar 409 contra a própria porta.
+- Toda fase/PR de UI segue `docs/design/PROCESSO-UI.md`: lente protótipo na revisão, roteiro `tutorial-e2e` com prints olhados, print protótipo × tela no PR, smoke como GM e como player.
 
 ## Resolução de @fusion/shared entre pacotes (decisão arquitetural)
 
 Cada pacote resolve `@fusion/shared` de forma diferente por design:
 
-| Pacote          | Estratégia                      | Motivo                                                    |
-| --------------- | ------------------------------- | --------------------------------------------------------- |
-| `system-api`    | `paths` → `shared/src/index.ts` | compila junto com shared; sem dependência de build prévia |
-| `server`        | `node_modules` → `shared/dist/` | precisa de ESM real com `.js` extensions (NodeNext)       |
-| `client`        | Vite alias                      | Vite resolve TypeScript diretamente; `noEmit: true`       |
-| `boundary-test` | `paths` → `shared/src/index.ts` | ferramenta de análise, não emite                          |
+| Pacote                         | Estratégia                                               | Motivo                                                                                     |
+| ------------------------------ | -------------------------------------------------------- | ------------------------------------------------------------------------------------------ |
+| `system-api`                   | `paths` → `shared/src/index.ts`                          | compila junto com shared; sem dependência de build prévia                                  |
+| `server`                       | `node_modules` → `shared/dist/`                          | precisa de ESM real com `.js` extensions (NodeNext)                                        |
+| `client`                       | Vite alias                                               | Vite resolve TypeScript diretamente; `noEmit: true`                                        |
+| `boundary-test`                | `paths` → `shared/src/index.ts`                          | ferramenta de análise, não emite                                                           |
+| `external/fusion-systems-2e/*` | `node_modules` → `shared/dist/` (workspace do submodule) | mesmo mecanismo do `server` — o submodule entra no workspace pnpm do core (F4, DEC-SEP-09) |
 
 Ordem de build obrigatória: `@fusion/shared` antes de `@fusion/server`. O script `pnpm build` no root garante isso via `-r` (topological order do pnpm workspaces).

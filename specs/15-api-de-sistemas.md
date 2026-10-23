@@ -9,6 +9,8 @@
   - `docs/research/10-pf2e-sistema-internals.md`
   - `docs/research/12b-etmos-fontes-locais.md`
 
+> **Emenda (F4, DEC-SEP-09, 2026-08-24) — onde vive.** Os sistemas de jogo (`systems/{engine-2e,pf2e,sf2e}`) e as fichas que eles entregam junto vivem no repo satélite `xansde/fusion-systems-2e`, consumido pelo core como git submodule pinado por tag. O contrato desta spec (system API) não muda; muda só onde os pacotes que o implementam moram no disco. Sem handlers de servidor por sistema (o Etmos legado era o único caso e saiu da linha alfa, DEC-SEP-04). Ver `docs/design/separacao-repos/design.md`.
+
 > **Aviso clean-room.** Esta spec descreve uma API própria do Fusion. Onde
 > menciona o Foundry VTT ou o sistema `foundryvtt/pf2e`, refere-se apenas a
 > comportamento e conceitos observáveis publicamente (Foundry) ou a conhecimento
@@ -109,7 +111,7 @@ MVP — `ver 01-arquitetura-geral.md`).
 
 Cada decisão lista alternativas rejeitadas e o racional.
 
-### D1 — Sistema definido em TypeScript via `defineSystem()`, não um `system.json` cego
+### DEC-SYS-01 — Sistema definido em TypeScript via `defineSystem()`, não um `system.json` cego
 
 Um sistema é declarado por uma função `defineSystem(manifest, registrar)` que
 retorna um `SystemModule`. O manifest é um **objeto TypeScript validado por Zod**,
@@ -129,10 +131,10 @@ não um arquivo JSON lido às cegas. Como os sistemas são compilados junto
   _forma_ declarativa do manifest do Foundry (campos de research 07 §1.2), mas
   como interface TS.
 
-### D2 — Schemas `system` em Zod, registrados por `(documentType, subtype)`
+### DEC-SYS-02 — Schemas `system` em Zod, registrados por `(documentType, subtype)`
 
 Cada subtype de Document declara seu `system` com um schema **Zod**, alinhado a
-`02-modelo-de-dados.md` (D1 daquela spec). O `SystemDataModel` agrupa o schema,
+`02-modelo-de-dados.md` (DEC-DOC-01 daquela spec). O `SystemDataModel` agrupa o schema,
 suas migrações e suas funções de derivação.
 
 - **Rejeitado: portar `DataModel`/`DataField` do Foundry** (research 07 §2.2). É
@@ -144,7 +146,7 @@ suas migrações e suas funções de derivação.
   artefato. O servidor é autoritativo e valida `system` em runtime
   (`ver 21-seguranca.md`). Um único mecanismo de schema para engine e sistema.
 
-### D3 — Derivação com ordem de dependência explícita (fim do "prepareData hell")
+### DEC-SYS-03 — Derivação com ordem de dependência explícita (fim do "prepareData hell")
 
 A principal dor do Foundry: `prepareBaseData`/`prepareDerivedData` rodam em ordem
 fixa e implícita; quando um cálculo depende de outro, o autor recorre a truques
@@ -175,7 +177,7 @@ registrar.derive({
   (`base` antes de effects, `derived` após) por serem semanticamente necessárias
   (research 02 §15.1).
 
-### D4 — Motor de effects data-driven unificado, discriminado por `type`
+### DEC-SYS-04 — Motor de effects data-driven unificado, discriminado por `type`
 
 Um único motor de effects, com regras discriminadas por `type`, generaliza os
 Rule Elements do PF2e (research 10 §5). O conjunto de tipos no MVP é **fechado e
@@ -200,7 +202,7 @@ implementado pela engine** (não há `type` definido por sistema no MVP); sistem
   Modificadores são **factory functions deferidas** avaliadas no momento
   do roll (research 10 §5.1) — automação condicional sem reavaliar tudo.
 
-### D5 — Predicados sobre roll options (Set de strings), avaliados tarde
+### DEC-SYS-05 — Predicados sobre roll options (Set de strings), avaliados tarde
 
 A ativação condicional de effects e a aplicação de modificadores em rolls usam
 **predicados** avaliados contra um `Set<string>` de **roll options** (research 10
@@ -213,7 +215,7 @@ preparação.
   PF2e — research 10 §5.2), testáveis e seguros. Avaliar tarde permite considerar
   o alvo e o contexto do roll (`target:*`, domínios do check).
 
-### D6 — Sheets são componentes Svelte registrados, com contexto tipado
+### DEC-SYS-06 — Sheets são componentes Svelte registrados, com contexto tipado
 
 Uma sheet é um **componente Svelte 5 (Runes)** registrado para um
 `(documentType, subtype)` com um `SystemSheetContext` tipado. Reatividade vem do
@@ -229,7 +231,71 @@ Svelte; não há `render()` manual.
   uma única arquitetura de UI. O sistema registra `{ component, types,
 makeDefault, label }` (forma de research 07 §4.1, modernizada).
 
-### D7 — Hooks tipados, síncronos para cancelar, com payload nomeado
+### DEC-SYS-06a — Sistema composto: um `SystemModule` que une packs de outros sistemas, sem copiar dado
+
+**Data:** 2026-09-24. Decisão do Alexandre para o mundo misto PF2e + Starfinder
+2e (`.fusion-build/sf2e-nivel3/mundo-misto/desenho.md`, Opção B).
+
+**Decisão:** Um mundo continua tendo **exatamente um** sistema ativo
+(REQ-SYS-006 permanece intacto na letra) — mas esse sistema ativo pode ser um
+**sistema composto**: um `SystemModule` normal, registrado via
+`SystemRegistry.register()` como qualquer outro, cujo manifest declara
+`sourceSystemIds: string[]` (REQ-SYS-016; o schema Zod hoje exige `.min(1)`,
+não `.min(2)` — um composto de um id só é aceito, ainda que sem sentido
+prático) em vez de `packs[]` próprio. Na descoberta de compêndios (`ver 16-`),
+a engine resolve o diretório de packs de CADA id em `sourceSystemIds` (mesma
+`resolveSystemPacksDir` de sempre, uma vez por id) e os agrega no mesmo
+`CompendiumService` — os arquivos permanecem exatamente onde estavam, nos
+sistemas de origem; nada é copiado, gerado ou reescrito. Um pack novo
+adicionado a qualquer sistema de origem aparece no composto automaticamente,
+sem nenhuma ação adicional.
+
+**Modelos (`system`) e passos de derivação compartilhados:** para cada
+`(documentType, subtype)` que dois sistemas de origem registram, o composto usa
+`z.union([schemaA, schemaB])` — o documento valida contra o schema de QUALQUER
+origem que aceitar, na ordem em que os sistemas de origem foram declarados
+(revisão adversarial 4, B-1: união "primeiro que passa" pode podar campos
+exclusivos da origem que perde a corrida — não é regra final, é o estado
+observado). Para `documentType:subtype === "Actor:character"`, o composto usa
+um schema dedicado (`CompositeCharacterSystemSchema`), não a união. Para os
+passos de derivação (`DeriveStep`) que dois sistemas registram sob o mesmo
+sufixo (`abilityMods`, `hp`, `ac`, `skills`, `strikes`…), o composto hoje
+mantém **só a cópia de uma origem** por sufixo — não as combina nem escolhe a
+mais completa (revisão adversarial 4, B-1: essa regra já se mostrou incorreta
+quando a origem mantida escreve menos campos que a outra).
+
+- **Rejeitado: terceiro sistema estático com packs próprios (cópia/geração).**
+  Viola o requisito de "sem copiar dado" — uma classe nova no sistema de
+  origem não apareceria no composto até alguém rodar um gerador de novo.
+- **Rejeitado: flag `world.combinedSystems: string[]` sem `SystemModule`
+  dedicado.** Force todo consumidor de `game.system` (contract tests
+  REQ-SYS-110/111, `prepareData`, validação server-side) a saber lidar com
+  "mais de um sistema" — a spec inteira foi escrita assumindo um
+  `SystemModule` só. Um sistema composto de verdade mantém a invariante
+  "um mundo, um sistema" literal, e o composto declara seu **próprio**
+  `engineCompat` (interseção dos sistemas de origem — no `pf2e-sf2e` de hoje
+  isso é um `">=0.1.0"` escrito à mão porque as duas origens ainda declaram o
+  mesmo range; nenhum código calcula a interseção de fato, então um sistema de
+  origem que estreitar seu `engineCompat` exige o mesmo ajuste manual no
+  composto até essa lacuna ser fechada).
+- **Racional:** o objetivo é que o composto reúna os schemas dos sistemas de
+  origem sem reescrevê-los — o trabalho fica limitado a resolver as diferenças
+  reais (ex.: um campo de moeda com shape diferente) e a União de
+  `documentTypes`. **Não é verdade**, porém, que o schema de um sistema
+  composto "reaproveite quase 100%" o de um único sistema de origem tratado
+  como superset: `ActorSystemSF2e` não é superset estrutural de
+  `ActorSystemPF2e` (`SF2e` escreve menos campos em vários passos
+  compartilhados — ver acima), e a união de `Item` schemas poda campos
+  exclusivos da origem que perde a corrida do `z.union` (B-1, revisão
+  adversarial 4). A premissa "já correto, superset" está desatualizada; o
+  composto de hoje é o estado descrito acima, não este racional original.
+
+> **Emenda ao REQ-SYS-005:** o manifest de um sistema composto (que declara
+> `sourceSystemIds`) NÃO precisa declarar `packs[]` — seus packs são os dos
+> sistemas de origem, descobertos em tempo de boot, não anunciados
+> estaticamente no próprio manifest.
+
+### DEC-SYS-07 — Hooks tipados, síncronos para cancelar, com payload nomeado
 
 A engine expõe um **barramento de hooks tipado**: cada hook tem um nome e um tipo
 de payload. Hooks `pre*` (cancelar/mutar) rodam **no servidor**, são **síncronos**
@@ -246,17 +312,17 @@ clientes. Alinhado a `02-modelo-de-dados.md` (tabela de hooks de ciclo de vida).
   de payload. Cancelamento síncrono no servidor preserva a autoridade
   (`ver 04-`, `ver 21-`).
 
-### D8 — Settings declaradas com schema Zod e escopo, sem menu mágico
+### DEC-SYS-08 — Settings declaradas com schema Zod e escopo, sem menu mágico
 
 Settings são declaradas com `{ key, scope, schema (Zod), default, ... }`. Escopos
 `world` | `user` | `client` (research 07 §6.2). O valor é validado pelo schema.
 
 - **Rejeitado: `type: Boolean | Number | String | DataField`** (Foundry,
   research 07 §6.1). Zod cobre todos os casos com validação real e tipo inferido.
-- **Racional:** consistência com D2; o tipo TS de cada setting é inferido do
+- **Racional:** consistência com DEC-SYS-02; o tipo TS de cada setting é inferido do
   schema. Persistência em `ver 03-`; sincronização world-scope em `ver 04-`.
 
-### D9 — Versão da engine como contrato semver; migrações de system monotônicas
+### DEC-SYS-09 — Versão da engine como contrato semver; migrações de system monotônicas
 
 O manifest declara `engineCompat` (range semver da engine) e o sistema tem sua
 própria `version`. Migrações de dados de `system` são **funções monotônicas
@@ -270,7 +336,7 @@ da engine (`ver 02-`/`ver 03-`).
   Migrações por (documentType, subtype, fromVersion→toVersion) são testáveis e
   encadeáveis (research 02 §7.3: `migrateData` encadeado por herança).
 
-### D10 — Condições/status como dados de sistema registrados, com automação opcional
+### DEC-SYS-10 — Condições/status como dados de sistema registrados, com automação opcional
 
 Condições (PF2e: research 10 §8.1; Etmos: Fadiga, Inconsciente — research 12b
 §12) são registradas como `ConditionDefinition` (slug, label, ícone, valued?,
@@ -279,8 +345,79 @@ sistema fornece os dados e, opcionalmente, effects.
 
 - **Rejeitado: condições hardcoded na engine.** Cada sistema tem seu conjunto
   (PF2e ~40; Etmos punhado).
-- **Racional:** registro declarativo reusa o motor de effects (D4); condições
+- **Racional:** registro declarativo reusa o motor de effects (DEC-SYS-04); condições
   numeradas (frightened N, Fadiga) viram `value` + effect parametrizado.
+- **A exibição também é dado declarado, não julgamento da UI.** Além da mecânica, a
+  `ConditionDefinition` carrega tom, ajuda e criticidade (REQ-SYS-043) — o mesmo
+  princípio da DEC-CTT-11 (`39-contatos.md`): a aba não conhece condição nenhuma,
+  pinta o que o sistema declarou. Os três campos são opcionais e degradam abertos,
+  porque a engine não pode invalidar sistema já registrado nem esconder uma condição
+  ativa por falta de metadado.
+
+---
+
+### DEC-SYS-11 — Hooks de turno são um registro com id e prioridade, aguardados no servidor
+
+> **Emenda de 2026-09-15** (plano do Alquimista, ALQ-F1-01). Complementa DEC-SYS-07 para
+> os hooks de combate; não substitui os hooks tipados de Document nem de rolagem.
+
+**Decisão:** O sistema registra automações de combate por evento com
+`registrar.onTurnStart/onTurnEnd/onRoundStart/onRoundEnd/onCombatEnd(id, fn, { priority })`.
+Cada evento aceita **vários** callbacks; o `id` é estável e nomeia a automação
+(`pf2e.recoveryCheck`), e a `priority` ordena (maior primeiro, depois ordem de registro).
+O servidor **aguarda** os callbacks em série, depois de persistir a transição de combate
+e antes do broadcast, e isola o erro de cada um. O callback recebe um `TurnHookContext`
+com serviços (aplicar dano/condição, rolar, postar no chat, escrever no ator) em nome do
+sistema. O `registerCombatHooks(hooks)` de slot único vira um **adaptador**: suas funções
+entram no registro com id `legacy` e prioridade `0`.
+
+**Alternativas rejeitadas:**
+
+- _Slot único por sistema (`registerCombatHooks` como está)_: cada automação nova (dano
+  persistente, expiração de efeito, recovery check, aflição, oferta de reação) disputaria
+  o mesmo objeto e a ordem entre elas viraria ordem de `if` dentro de uma função.
+- _Ouvintes do `CombatEventBus` disparados sem aguardar_: o broadcast sai antes do dano
+  persistente ser aplicado, o cliente vê o turno mudar com a vida velha, e duas automações
+  que escrevem no mesmo ator correm em paralelo.
+- _Rodar os hooks no cliente_: rejeitado por DEC-CBT-05 — automação de turno acontece com
+  ou sem o dono conectado.
+
+**Racional:** O plano do Alquimista tem pelo menos seis automações de turno de fases
+diferentes (ver `17-sistema-pf2e.md`, REQ-PF2-216). Ordem explícita por prioridade torna o
+resultado determinístico (dano persistente antes da expiração do efeito que o causou) e
+o id permite testar e registrar cada automação no próprio arquivo.
+
+### DEC-SYS-12 — Aplicar dano e condição é op do core; a conta é superfície registrada pelo sistema
+
+> **Emenda de 2026-09-15** (plano do Alquimista, ALQ-F1-01).
+
+**Decisão:** `actor:applyDamage` e `actor:applyCondition` são ops de servidor do **core**
+(`ActorMechanicsService`): validam payload e permissão, releem montante e alvos da
+mensagem gravada, persistem e publicam. A **regra** (IWR, dureza, PV temporário, dying,
+imunidade a condição, maior valor) é uma função pura registrada pelo sistema via
+`registrar.registerActorMechanics({ applyDamage, applyCondition })`, que devolve um
+`ActorMechanicsPatch` e nunca escreve nada. O mesmo serviço é injetado no
+`TurnHookContext` e em qualquer handler posterior, com `actingAs: "system"`.
+
+**Alternativas rejeitadas:**
+
+- _Cada sistema expõe seu próprio socket de dano_: permissão e anti-cheat seriam
+  reescritos por sistema, e a redação do resumo teria segundo predicado.
+- _O core conhece IWR/dying_: contraria REQ-SYS-136 (a engine não hardcoda regra de jogo).
+- _Montante enviado pelo cliente_: um jogador aplicaria qualquer valor; o montante vem da
+  rolagem gravada (DEC-CHT-12).
+
+**Racional:** Separa o que é segurança e persistência (igual para todo sistema) do que é
+regra (específica do jogo), e deixa a regra testável sem servidor.
+
+> **Emenda de 2026-09-16** (plano do Alquimista, ALQ-F2-01). A mesma divisão vale para o
+> **consumo de item**: `item:consume` é op do core, com permissão, atomicidade e
+> `expectedVersion`; o **plano de consumo** — o que gastar, que efeito aplicar, que dano ou
+> cura rolar, que card postar — é uma função pura registrada pelo sistema
+> (`registerConsumeItem`, REQ-SYS-143), e o ponto de extensão pós-consumo é
+> `registerConsumeHook` (REQ-SYS-144). Não é decisão nova: é o alcance desta, agora que há um
+> segundo op com a mesma forma. A regra do PF2e correspondente está em
+> `17-sistema-pf2e.md`, REQ-PF2-224..228.
 
 ---
 
@@ -318,14 +455,57 @@ label, documentType, system, path }` (o sistema apenas **anuncia** seus packs;
   bloquear a abertura com mensagem clara e oferta de migração quando aplicável.
 - **REQ-SYS-008** [V2] A engine DEVE suportar carregamento dinâmico de sistemas/
   módulos de terceiros (fora do monorepo), com sandbox e verificação de
-  integridade. (Fora do MVP por D1 e `ver 01-`/`ver 21-`.)
+  integridade. (Fora do MVP por DEC-SYS-01 e `ver 01-`/`ver 21-`.)
+- **REQ-SYS-009** [MVP] O manifest DEVE poder declarar `sizeToFootprint` (mapa de categoria de
+  tamanho do ator → `{ width: number; height: number }`, células ocupadas na grade); a engine
+  consome o mapeamento para derivar o footprint do token a partir do tamanho do ator efetivo,
+  sem arbitrar a conversão — a mesma disciplina que REQ-SYS-004 já aplica a barras e iniciativa.
+  Campo opcional; sistema sem declaração não produz footprint multi-célula. (`ver 41-`.)
+
+  > **Emenda obrigada pela spec 41** (`41-token.md`, DEC-TOK-03 e §12, 2026-08-17): ponto de
+  > extensão novo. O `TokenDocument` não carrega mais campo de footprint (REQ-TOK-012) — a peça é
+  > um endereço, e as células ocupadas são derivadas do tamanho do ator efetivo pela conversão que
+  > o sistema declara (PF2e: Médio 1×1, Grande 2×2). A engine não arbitra a regra: só encaminha o
+  > mapeamento para quem desenha o token. `sizeToFootprint` é o que sustenta REQ-TOK-012 e
+  > REQ-TOK-017 (footprint muda sozinho quando a criatura muda de tamanho, sem escrita na peça).
+
+  > **Emenda obrigada pela spec 17** (`17-sistema-pf2e.md`, DEC-PF2-13 e REQ-PF2-154,
+  > 2026-09-29): a **categoria** de tamanho é um token curto — letras, dígitos, `_` e `-`, até 24
+  > caracteres. É a chave do mapa e também o que o servidor repassa, dentro do payload de um contato
+  > `entrevisto`, a quem não pode ler o nome (spec 39, REQ-CTT-081); uma categoria fora dessa forma
+  > não chega ao cliente e a peça cai em 1×1.
+
+- **REQ-SYS-016** [MVP] O manifest PODE declarar `sourceSystemIds: string[]` (≥ 1
+  id de sistema já registrado) para marcar o sistema como **composto**
+  (DEC-SYS-06a): a engine resolve o diretório de packs de cada id listado (a
+  mesma `resolveSystemPacksDir` de sempre, uma vez por id) em vez do diretório do
+  próprio `manifest.id`, e agrega o resultado no mesmo `CompendiumService` — sem
+  copiar, gerar ou reescrever nada. Um manifest composto fica dispensado de
+  declarar `packs[]` próprio (emenda ao REQ-SYS-005). Campo opcional; ausência =
+  sistema não-composto, comportamento de sempre. (`ver 16-`.)
+- **REQ-SYS-017** [MVP] O manifest PODE declarar `vocabulary` — `{ skills:
+{ slug, ability }[], currency: string[], spellTraditions: string[] }` — a
+  vocabulária do sistema (perícias com a habilidade que as rege, moedas e
+  tradições de magia) como fonte única para o pacote de ficha ler pela rede
+  (`system:vocabulary`, mesmo molde de `system:conditions`/`system:footprint`,
+  REQ-ARQ-005: a ficha não importa `systems/*`). Um sistema **composto**
+  (REQ-SYS-016) DEVE calcular sua própria `vocabulary` como a UNIÃO das
+  vocabulárias dos `sourceSystemIds` (perícias por slug, tradições por valor),
+  com `currency` da sua própria declaração — nunca uma cópia literal de uma
+  única origem. Campo opcional; sistema sem declaração não expõe vocabulária, e
+  a ficha cai no fallback PF2e-only embutido (`systemSheetConfig.ts`), a mesma
+  postura "degrade aberto" de `sizeToFootprint` (REQ-SYS-009).
 
 ### Registro de document subtypes e schemas `system`
 
 - **REQ-SYS-010** [MVP] O `SystemRegistrar` DEVE expor `defineModel(spec:
 SystemDataModelSpec)` que registra um `SystemDataModel` para um
   `(documentType, subtype)`, contendo: `schema` (Zod), `migrations?`,
-  `defaults?`.
+  `defaults?` e — **obrigatoriamente quando `documentType === "Actor"`, e proibido
+  nos demais** — `facets`, uma lista **não-vazia** com valores em
+  `{ player, creature, hazard, container }` (`ver 45-atores.md`, REQ-ATR-010; um ator
+  exerce mais de um papel ao mesmo tempo, e a semântica de cada faceta é de lá, não
+  desta spec).
 - **REQ-SYS-011** [MVP] Todo subtype declarado em `manifest.documentTypes` DEVE
   ter um `SystemDataModel` correspondente registrado; subtype sem model OU model
   sem subtype declarado DEVE falhar no contract test (REQ-SYS-030).
@@ -351,7 +531,7 @@ SystemDataModelSpec)` que registra um `SystemDataModel` para um
   `run(doc, ctx)`.
 - **REQ-SYS-021** [MVP] A engine DEVE executar `prepareData` de um Document na
   ordem: (1) reset para cópia de `_source`; (2) steps `phase: "base"`;
-  (3) preparação de embedded; (4) **aplicação dos effects** (D4) populando
+  (3) preparação de embedded; (4) **aplicação dos effects** (DEC-SYS-04) populando
   synthetics; (5) steps `phase: "derived"`. Nunca mutando `_source`
   (`ver 02-` §prepareData).
 - **REQ-SYS-022** [MVP] Dentro de cada fase, a engine DEVE ordenar os `DeriveStep`
@@ -389,8 +569,35 @@ SystemDataModelSpec)` que registra um `SystemDataModel` para um
   ordena a fila usando esse desempate (`ver 10-` REQ-CBT-013).
 - **REQ-SYS-043** [MVP] `registrar.condition(def: ConditionDefinition)` DEVE
   registrar uma condição `{ slug, label, img, valued?: boolean, effects?:
-EffectRule[], overrides?: string[] }`. A engine DEVE fornecer aplicação/remoção
-  e exibição de badge no token (`ver 06-`, `ver 10-`).
+EffectRule[], overrides?: string[], tone?: "benefit" | "harm" | "special", help?:
+string, critical?: boolean }`. A engine DEVE fornecer aplicação/remoção e exibição
+  de badge no token (`ver 06-`, `ver 10-`). Os três últimos campos formam o
+  **contrato de exibição** da condição, são todos opcionais e NÃO DEVEM ser
+  condição de aceitação do registro — sistema já registrado continua válido sem
+  declarar nenhum deles:
+  - `tone` DEVE declarar o efeito da condição **sobre quem a carrega**, e não sua
+    gravidade: `"benefit"` ajuda, `"harm"` atrapalha, `"special"` é situação
+    (detecção, atitude, controle). A UI que consome o registro DEVE derivar a cor da
+    etiqueta desse campo, e NÃO DEVE inferir tom a partir de `effects`.
+  - `help` DEVE ser um texto curto de ajuda, já traduzido pelo sistema
+    (REQ-SYS-048/049), destinado à ajuda sob demanda da UI.
+  - `critical` DEVE marcar a condição que tira o personagem da cena. É **ênfase**
+    sobre o `tone` declarado, nunca um quarto tom, e NÃO DEVE alterar a cor da
+    etiqueta.
+
+  A degradação DEVE falhar aberta, nos termos de `39-contatos.md` (REQ-CTT-035):
+  condição sem `tone` DEVE ser tratada como `"special"`; condição sem `help` DEVE
+  ser exibida sem ajuda; declaração incompleta NUNCA DEVE ocultar a condição nem
+  abortar o carregamento do sistema.
+
+  > **Emenda obrigada pela spec 39** (`39-contatos.md`, DEC-CTT-11 e §12,
+  > 2026-08-16): `tone`, `help` e `critical` existem para dar contrato declarado às
+  > etiquetas de condição consumidas por REQ-CTT-030..038 (`39-contatos.md`),
+  > REQ-CBA-050 (`40-aba-combate.md`) e REQ-NPC-033 (`42-aba-npcs.md`), que não
+  > conhecem condição nenhuma e só pintam o que o sistema declarou. _(Esta redação
+  > acrescenta os três campos opcionais; nenhum campo anterior de
+  > `ConditionDefinition` mudou de forma ou de obrigatoriedade.)_
+
 - **REQ-SYS-044** [MVP] A engine DEVE expor à API do sistema operações de
   condição em um Actor: `increaseCondition(slug)`, `decreaseCondition(slug)`,
   `toggleCondition(slug)`, `setCondition(slug, value)` (semântica de research 10
@@ -404,12 +611,17 @@ rollOptions?: string[] }` invocável a partir de sheets, macros e chat (ex.:
   registrar um template/renderer de chat card por `cardType`, recebendo um
   payload tipado e produzindo o conteúdo da `ChatMessage` (componente Svelte ou
   função → HTML sanitizado), com **ações declarativas** embutidas (`data-action`)
-  resolvidas via REQ-SYS-045 (`ver 09-`).
+  resolvidas via REQ-SYS-045 (ver a spec 09).
 - **REQ-SYS-047** [MVP] `registrar.setting(def: SettingDefinition)` DEVE registrar
   uma setting `{ key, scope: "world"|"user"|"client", schema: ZodType, default,
-label, hint?, requiresReload?, onChange? }`. A engine DEVE validar o valor pelo
-  `schema` em get/set e expor `game.settings.get/set(systemId, key)` tipado
-  (`ver 03-`).
+label, hint?, requiresReload?, requiresConfirmOnDisable?, countAffectedActors?,
+  onChange? }`. A engine DEVE validar o valor pelo `schema` em get/set e expor
+  `game.settings.get/set(systemId, key)` tipado (`ver 03-`).
+  `requiresConfirmOnDisable` e `countAffectedActors(actors)` servem REQ-CFG-082/
+  DEC-CFG-09 (spec 37): quando `requiresConfirmOnDisable` é `true` e a setting é
+  desligada, a UI pede confirmação mostrando a contagem que `countAffectedActors`
+  devolve. `countAffectedActors` é **server-only** — como `onChange`, nunca cruza
+  o wire (`ver` `settings-handlers.ts`).
 - **REQ-SYS-048** [MVP] `manifest.languages[]` DEVE listar `{ lang, name, path }`
   e a engine DEVE carregar e mesclar as strings; a ordem de precedência DEVE ser
   Engine → System (sistema sobrescreve engine apenas em chaves namespaced do
@@ -450,6 +662,508 @@ label, hint?, requiresReload?, onChange? }`. A engine DEVE validar o valor pelo
 - **REQ-SYS-067** [MVP] A lista canônica de hooks (nome, payload, fase,
   cancelável, onde dispara) DEVE estar documentada e versionada com a engine; a
   remoção/renomeação de um hook é breaking change semver-major.
+
+### Hooks de turno aguardados e mecânica de ator
+
+> **Emenda de 2026-09-15** (plano do Alquimista, ALQ-F1-01; DEC-SYS-11, DEC-SYS-12). Os
+> contratos abaixo são canônicos: fases posteriores consomem estes nomes e shapes. A
+> ordem das transições é de `10-combate-e-iniciativa.md` (REQ-CBT-057, REQ-CBT-058).
+
+```ts
+// packages/system-api — registrar
+registrar.onTurnStart(id: string, fn: TurnHookFn, opts?: { priority?: number }): void;
+registrar.onTurnEnd(id: string, fn: TurnHookFn, opts?: { priority?: number }): void;
+registrar.onRoundStart(id: string, fn: RoundHookFn, opts?: { priority?: number }): void;
+registrar.onRoundEnd(id: string, fn: RoundHookFn, opts?: { priority?: number }): void;
+registrar.onCombatEnd(id: string, fn: CombatEndHookFn, opts?: { priority?: number }): void;
+registrar.onDamageApplied(id: string, fn: DamageAppliedHookFn, opts?: { priority?: number }): void;
+registrar.registerActorMechanics(m: ActorMechanics): void;
+
+type TurnHookFn = (
+  e: { combat: CombatDocument; combatant: CombatantDocument & { actorId: string | null }; actor: Record<string, unknown> | null },
+  ctx: TurnHookContext,
+) => void | Promise<void>;
+type RoundHookFn = (e: { combat: CombatDocument; round: number }, ctx: TurnHookContext) => void | Promise<void>;
+type CombatEndHookFn = (e: { combat: CombatDocument; actorIds: string[] }, ctx: TurnHookContext) => void | Promise<void>;
+
+interface TurnHookContext {
+  applyDamage(p: ActorApplyDamagePayload): Promise<ApplyDamageAck>; // actingAs "system"
+  applyCondition(p: ActorApplyConditionPayload): Promise<ApplyConditionAck>;
+  roll(formula: string, opts: { flavor: string; speakerActorId?: string; rollMode?: RollMode }): Promise<RollResultData>;
+  chat(card: { content: string; flags?: Record<string, unknown>; speakerActorId?: string }): Promise<void>;
+  updateActor(actorId: string, diff: Record<string, unknown>): Promise<void>;
+  createEmbedded(actorId: string, items: Record<string, unknown>[]): Promise<void>;
+  deleteEmbedded(actorId: string, itemIds: string[]): Promise<void>;
+  listActors(): Record<string, unknown>[]; // leitura do mundo (BHR-F0-03, REQ-BHR-005..007)
+  worldTime: { round: number; turn: number };
+}
+
+// socket "actor:applyDamage" — ActorApplyDamagePayloadSchema (@fusion/shared)
+interface DamageInstanceInput {
+  type: string; // "fire" | "piercing" | "healing" | "temp-hp" | … — com `source`, só o servidor decide (REQ-SYS-142 passo 2b)
+  category?: "persistent" | "splash" | "precision"; // idem — relido de `source`, nunca do cliente
+  amount?: number; // só papel privilegiado ou actingAs "system"
+  source?: { messageId: string; rollIndex: number }; // o servidor relê o total gravado
+  traits?: string[]; // exceções de IWR (magical, silver…) — com `source`, relido, não recebido (idem)
+  materials?: string[]; // cold-iron, silver… — com `source`, relido, não recebido (idem)
+  critical?: boolean; // com `source`, relido do degreeOfSuccess gravado, não recebido (idem)
+  nonlethal?: boolean; // com `source`, relido, não recebido (idem)
+}
+interface ActorApplyDamagePayload {
+  instances: DamageInstanceInput[]; // mesmo tipo no mesmo payload soma antes do IWR
+  targetTokenIds?: string[]; // só papel privilegiado (override)
+  selfActorId?: string;
+  multiplier?: 0 | 0.5 | 1 | 2; // não privilegiado: validado contra o degreeOfSuccess gravado (REQ-SYS-142 passo 2c)
+  basicSave?: { degree: DegreeOfSuccess }; // não privilegiado: DEVE bater com o degreeOfSuccess gravado (idem)
+  hardness?: number; // só papel privilegiado ou actingAs "system" (idem)
+  ignoreResistance?: { type: string; value: number }[]; // só papel privilegiado ou actingAs "system" (idem)
+}
+
+// socket "actor:applyCondition"
+interface ActorApplyConditionPayload {
+  targetTokenIds: string[];
+  selfActorId?: string;
+  slug: string; // condições registradas pelo sistema (+ "dead" no PF2e)
+  mode: "add" | "remove" | "set" | "increase" | "decrease";
+  value?: number | null;
+  data?: Record<string, unknown>; // ex.: instância de dano persistente
+  expiry?: FusionExpiry; // shape em 17-sistema-pf2e.md (REQ-PF2-219)
+  source?: { messageId?: string; itemUuid?: string; effectItemId?: string };
+}
+
+interface ActorMechanics {
+  applyDamage(actor: ActorSnapshot, instances: ResolvedDamageInstance[], opts: ApplyDamageOptions): ActorMechanicsPatch;
+  applyCondition(actor: ActorSnapshot, req: ActorApplyConditionPayload): ActorMechanicsPatch;
+}
+interface ActorMechanicsPatch {
+  diff: Record<string, unknown>;
+  embeddedCreate: Item[];
+  embeddedDelete: string[];
+  breakdown: DamageBreakdownStep[];
+  flags: { droppedToZero: boolean; dead: boolean; dyingChanged: boolean };
+}
+// server: ActorMechanicsService.applyDamage(payload, { actingAs: { userId, role } | "system" })
+//         ActorMechanicsService.applyCondition(payload, { actingAs })
+```
+
+- **REQ-SYS-138** [MVP] O `registrar` DEVE expor `onTurnStart`, `onTurnEnd`,
+  `onRoundStart`, `onRoundEnd` e `onCombatEnd` com a assinatura
+  `(id, fn, opts?: { priority?: number })`, aceitando **vários** callbacks por evento.
+  `priority` DEVE ter default `0`. Registrar duas vezes o mesmo `id` no mesmo evento, no
+  mesmo sistema, DEVE lançar erro em `defineSystem` nomeando o id. Os registros DEVEM ficar
+  inspecionáveis no `SystemModule` (REQ-SYS-137), já ordenados como REQ-SYS-139 manda.
+- **REQ-SYS-139** [MVP] Dentro de um evento, o servidor DEVE executar os callbacks em
+  **prioridade decrescente** e, no empate, na **ordem de registro**; em **série**, aguardando
+  cada `Promise` antes do seguinte. Um callback que lança ou rejeita DEVE ter o erro logado
+  com o id do sistema e o id do hook e NÃO DEVE impedir os callbacks seguintes nem desfazer
+  a transição de combate (REQ-SYS-066 vale aqui). O momento da execução em relação a
+  persistência, ack e broadcast é o de REQ-CBT-058.
+- **REQ-SYS-140** [MVP] O servidor DEVE entregar a cada callback o payload do evento e um
+  `TurnHookContext` com os serviços do bloco acima. `onTurnStart`/`onTurnEnd` DEVEM receber o
+  combatente cujo turno começa ou termina, seu `actorId` (ou `null`) e o ator; `onCombatEnd`
+  DEVE receber os `actorIds` de todos os combatentes com ator, sem repetição. Toda escrita
+  feita pelo contexto DEVE passar pelo mesmo caminho de validação, persistência e broadcast
+  dos ops de cliente, com `actingAs: "system"`; o contexto NÃO DEVE oferecer acesso direto
+  ao banco. `ctx.roll` DEVE usar o RNG do servidor (`08-motor-de-rolagens.md`).
+- **REQ-SYS-141** [MVP] `registerCombatHooks(hooks)` DEVE continuar aceito como
+  **adaptador**: cada função presente (`turnStart`, `turnEnd`, `roundStart`) DEVE entrar no
+  registro de REQ-SYS-138 com id `legacy` e prioridade `0`, convivendo com registros por
+  `onX`. Chamá-lo mais de uma vez continua sendo erro. Nenhum sistema já existente DEVE
+  precisar mudar para continuar funcionando.
+
+  > **Emenda de 2026-09-15** (revisão adversarial da onda 1 do Alquimista, achado
+  > bloqueante). A redação original só protegia `amount` e `targetTokenIds` contra o
+  > cliente — o resto do shape que muda o montante final continuava vindo do jogador
+  > sem checagem nenhuma: `type` (trocar o tipo de dano por um sem resistência),
+  > `critical`/`nonlethal` (declarar um crítico que a rolagem gravada não teve),
+  > `traits`/`materials` (fingir `cold-iron` para disparar uma fraqueza), `multiplier`
+  > (×2 numa rolagem normal), `basicSave.degree` (declarar falha crítica do alvo),
+  > `ignoreResistance` e `hardness` (bypassar RD/dureza). Isso contradiz DF-03
+  > ("montante vem da mensagem gravada, nunca do cliente") e o racional da DEC-SYS-12
+  > ("um jogador aplicaria qualquer valor"). Os passos 2b/2c abaixo fecham essa
+  > lacuna: para usuário sem papel privilegiado, **todo** campo que muda o montante
+  > final vem do servidor — relido da rolagem gravada ou validado contra ela — nunca
+  > aceito como o cliente mandou.
+
+- **REQ-SYS-142** [MVP] O `registrar` DEVE expor `registerActorMechanics({ applyDamage,
+applyCondition })`, no máximo uma vez por sistema, e o servidor DEVE expor os ops
+  `actor:applyDamage` e `actor:applyCondition` por meio de um único
+  `ActorMechanicsService`, também injetado no `TurnHookContext`. O serviço DEVE:
+  1. validar o payload pelo schema de `@fusion/shared`; instância sem `source` e sem
+     `amount` DEVE ser rejeitada (`VALIDATION_FAILED`); `basicSave` e `multiplier` juntos
+     DEVEM ser rejeitados;
+  2. com `source`, reler o total da rolagem gravada e **ignorar** qualquer `amount`
+     recebido; `amount` sem `source` só DEVE ser aceito de papel privilegiado ou
+     `actingAs: "system"` — de outro usuário DEVE responder `FORBIDDEN`;
+     2b. para usuário sem papel privilegiado e `actingAs` diferente de `"system"`, o
+     servidor DEVE também reler `type`, `category`, `critical`, `nonlethal`, `traits`
+     e `materials` da rolagem gravada em `source` (`08-motor-de-rolagens.md`,
+     `RollResult`), **ignorando** os mesmos campos recebidos no payload — a mesma
+     regra de `amount` do passo 2, agora para o resto do shape de
+     `DamageInstanceInput`. Instância sem `source` nesse caso DEVE responder
+     `FORBIDDEN` (não há de onde reler);
+     2c. `ignoreResistance` e `hardness` só DEVEM ser aceitos de papel privilegiado ou
+     `actingAs: "system"`; de outro usuário, DEVEM ser ignorados mesmo se presentes
+     no payload. `multiplier` e `basicSave.degree`, de usuário sem papel
+     privilegiado, DEVEM ser validados contra o `degreeOfSuccess` já gravado na
+     rolagem de `source` (o mesmo campo que o passo 2b relê) — um valor que não bate
+     com o grau gravado DEVE responder `FORBIDDEN`, nunca ser silenciosamente
+     corrigido (silenciosamente aceitar um valor errado esconderia do jogador que o
+     cliente e o servidor divergiram);
+  3. resolver os alvos: papel privilegiado PODE informar `targetTokenIds`; de outro
+     usuário, `targetTokenIds` DEVE ser ignorado e os alvos DEVEM ser **todos** os de
+     `flags.fusion.targetSnapshot` da mensagem de origem (REQ-CBT-056), desde que ele seja
+     dono do ator que rolou; mensagem sem snapshot, ou usuário que não é dono desse ator,
+     DEVE responder `FORBIDDEN`. **Toda instância do payload DEVE compartilhar um único
+     `source.messageId`** — de usuário sem papel privilegiado, um payload cujas instâncias
+     apontem para `messageId`s diferentes DEVE responder `VALIDATION_FAILED` antes mesmo
+     de resolver alvos (impede combinar o total de uma rolagem de outro personagem com o
+     snapshot da própria mensagem); e esse `messageId` único DEVE ser de uma mensagem cujo
+     ator de origem o usuário possui como **OWNER** (mesma checagem de ownership do dono
+     do ator que rolou, acima — não apenas "dono de _algum_ ator"). `selfActorId` dispensa
+     snapshot e exige ownership OWNER do próprio ator. Para `actor:applyCondition`, sem
+     mensagem de origem, os alvos de usuário não privilegiado DEVEM estar na sua seleção
+     viva (REQ-CBT-056);
+  4. chamar a mecânica registrada **por alvo**, persistir `diff` e embutidos do ator de
+     forma atômica, publicar o resumo (`09-chat-e-mensagens.md`, REQ-CHT-053) e, para
+     `flags.dead`, marcar o combatente como derrotado (REQ-CBT-059);
+  5. executar os callbacks de `onDamageApplied` uma vez por alvo, na ordem de REQ-SYS-139;
+  6. sem mecânica registrada, responder `NOT_SUPPORTED` sem escrever nada.
+
+  O ack devolvido a usuário sem papel privilegiado DEVE seguir a mesma redação do resumo:
+  sem `hp` do alvo.
+
+  **Idempotência de reaplicação** (emenda de 2026-09-15, revisão adversarial, achado
+  importante — fecha REQ-CHT-052 junto): o serviço DEVE marcar cada
+  `(messageId, rollIndex, multiplier)` já aplicado por instância/alvo, e uma segunda
+  aplicação da MESMA chave por usuário sem papel privilegiado DEVE responder
+  `FORBIDDEN` sem reaplicar o dano — só papel privilegiado ou `actingAs: "system"`
+  PODE reaplicar a mesma chave (mesa corrigindo um erro). Sem essa marca, o dono do
+  ator reenviaria o mesmo op e aplicaria o mesmo dano gravado repetidas vezes em
+  todos os alvos do snapshot.
+
+  **Emenda de 2026-10-22** (auditoria da `beta/app`, decisão provisória da lane auditoria-fix):
+  para usuário sem papel privilegiado a chave é `(messageId, rollIndex)` por alvo, **sem o
+  multiplicador nem o grau de `basicSave`** — uma rolagem = uma aplicação por alvo. "Aplicar" e
+  depois "½" ou "×2" (ou "Curar" e depois "Curar ½") da mesma rolagem no mesmo alvo é reaplicação
+  e DEVE responder `FORBIDDEN` sem escrever nada; antes, a chave com o multiplicador deixava o
+  jogador somar ×1 + ×½ = 1,5× do dano. Papel privilegiado continua livre para reaplicar a mesma
+  rolagem em qualquer escala.
+
+  **Emenda de 2026-10-22** (xansde/fusion#225, decisão provisória da lane dano-225). O passo 2b
+  agora tem de onde reler: a rolagem de dano grava, no servidor, os componentes do dano
+  (`flags.fusion.damage`, REQ-SYS-166). Para usuário sem papel privilegiado com `source`, `type`,
+  `category`, `traits` e `materials` DEVEM vir desses componentes, nunca do payload; o `type` do
+  payload só escolhe: `healing`/`temp-hp` (os botões Curar e PV temporário — modo, sem IWR), o
+  tipo de um componente gravado, ou `untyped` (card sem tipo) para o componente principal (o
+  primeiro). Qualquer outro tipo DEVE responder `FORBIDDEN`. Rolagem sem componentes gravados
+  (fórmula livre, rolagem anterior a esta emenda — a anotação `[fire]` no texto é do próprio
+  cliente e não prova nada) DEVE responder `FORBIDDEN` com mensagem clara para esse usuário:
+  só o papel privilegiado a aplica, com o payload como antes. Papel privilegiado continua
+  mandando campo a campo; o que ele não mandar DEVE ser preenchido pelo componente gravado do
+  mesmo tipo. `critical` passa a valer também quando o servidor gravou, na rolagem de dano, que
+  o Golpe sob o mesmo card foi graduado como sucesso crítico. Usuário sem papel privilegiado
+  só DEVE aplicar rolagem que **ele mesmo enviou** (`speaker.userId`): ser dono do ator que
+  falou não basta — a rolagem que o GM fez falando como o personagem congelou os alvos do GM.
+
+- **REQ-SYS-166** [MVP] `registerRollResolver(def)` DEVE aceitar o método opcional
+  `damageComponents({ actor, statistic?, card? })`, puro e síncrono, que devolve
+  `{ source: { kind, label, itemId? }, components: [{ type, category?, traits?, materials? }] }`
+  ou `null`. Ao persistir uma rolagem de `chat:send` com ator falante, o servidor DEVE chamá-lo
+  com o ator **re-derivado** do falante (que o remetente pode representar), o `statistic` que a
+  rolagem nomeia (`flags.fusion.statistic`, só se for do mesmo ator) ou o do card pai, e o card
+  de habilidade em que a rolagem se aninha (`flags.pf2e.abilityCard` como o servidor o gravou,
+  só se `casterActorId` for o falante), e DEVE gravar a resposta em `flags.fusion.damage` da
+  mensagem, com `critical: true` quando ele mesmo graduou como sucesso crítico o Golpe sob esse
+  card. O cliente NÃO DEVE conseguir gravar esse campo (o schema de `chat:send` o descarta).
+  Erro do sistema DEVE ser logado e a rolagem sai sem componentes. Em rolagem cega, o campo
+  DEVE ser retirado do corpo que vai a usuário sem papel privilegiado (`net/redaction.ts`,
+  junto com `breakdown`/`extraDamage`). No PF2e (e no composto PF2e+SF2e): `strikeDamage:<id>`
+  dá o tipo e as traits do Golpe derivado e o material da arma (personagem) ou as partes
+  roladas com o acerto do item `melee` (NPC); card `spell`, a magia do próprio ator pelo nome
+  guardado; card `impulse`, o tipo que uma rajada do ator permite. _(Emenda de 2026-10-22,
+  xansde/fusion#225.)_
+
+- **REQ-SYS-167** [MVP] O **valor** do dano que um usuário sem papel privilegiado aplica DEVE
+  vir de uma fórmula que o próprio sistema derivou, no servidor, para a fonte da rolagem. A
+  resposta de `damageComponents` (REQ-SYS-166) DEVE poder nomear
+  `formulas: { normal: string[], critical?: string[] }` — as fórmulas que a ficha envia para
+  aquela fonte, derivadas do ator re-derivado (nunca gravadas na mensagem). O servidor DEVE
+  comparar com elas a fórmula que o cliente pediu (sem o rótulo `# …`, sem espaços, sem
+  diferenciar maiúsculas) **antes** de somar o que ele mesmo acrescenta (modificadores
+  condicionais e dados extras de REQ-BHR-051..053/BHR-F4-09 — o único "modificador
+  situacional" da mesa é esse, e o cliente nunca o escreve). Fórmula `critical` só vale quando
+  o servidor graduou como sucesso crítico o Golpe sob o mesmo card. Para usuário sem papel
+  privilegiado, fórmula fora da lista (ex.: `/r 50d6` aninhado sob o card) — ou resposta sem
+  `formulas` — DEVE rolar normalmente como rolagem livre, mas **sem** `flags.fusion.damage`: o
+  passo 2b de REQ-SYS-142 então a recusa (`FORBIDDEN`). Papel privilegiado continua livre (a
+  rolagem dele grava os componentes qualquer que seja a fórmula). Rolagem livre (`/r` sem card
+  nem `statistic`) continua permitida e continua não aplicável por jogador. No PF2e (e no
+  composto): Golpe de personagem, `damageRoll`/`critDamageRoll` do Golpe derivado; Golpe de
+  NPC, as partes roladas com o acerto juntadas como a ficha do NPC faz e `(…)*2`; card
+  `spell`, a magia elevada ao grau do card por `computeHeightenedSpell` (`@fusion/engine-2e`,
+  a mesma função da ficha), recusando grau acima do maior entre o da magia e o que o
+  conjurador lança; card `impulse`, o `damageRoll` da rajada que permite o tipo, com e sem o
+  bônus de duas ações. _(Emenda de 2026-10-22, lane dano-formula, decisão provisória: conferir
+  em vez de substituir — a fórmula divergente vira rolagem livre, não erro, para não travar a
+  mesa quando a derivação do servidor não alcança a da ficha, como a magia embutida que perdeu
+  o `heightening` e a ficha cura com o compêndio; nesses casos só o GM aplica.)_
+
+### Consumo de item e hooks de consumo
+
+> **Emenda de 2026-09-16** (plano do Alquimista, ALQ-F2-01; DEC-SYS-12 e sua emenda). Os
+> contratos abaixo são canônicos: as fases seguintes do plano (fabricação, venenos,
+> mutágenos, aditivos, reações) consomem estes nomes e shapes. A regra de jogo
+> correspondente é de `17-sistema-pf2e.md` (REQ-PF2-224..228).
+
+```ts
+// socket "item:consume" — ItemConsumePayloadSchema (@fusion/shared)
+interface ItemConsumePayload {
+  actorId: string;
+  itemId?: string; // obrigatório em "use" e "strike"
+  resourceSlug?: string; // obrigatório em "resource"
+  mode: "use" | "strike" | "resource";
+  mapIndex?: 0 | 1 | 2; // só em "strike"
+  expectedVersion: number;
+}
+interface ItemConsumeResult {
+  consumed:
+    | { itemId?: string; quantityLeft: number; destroyed: boolean }
+    | { resourceSlug: string; valueLeft: number };
+  appliedEffectIds: string[];
+  chatMessageIds: string[];
+}
+
+// packages/system-api — registrar
+registrar.registerConsumeItem(def: ConsumeItemDefinition): void;
+registrar.registerConsumeHook(id: string, fn: ConsumeHookFn, opts?: { priority?: number }): void;
+
+interface ConsumeItemDefinition {
+  appliesTo(item: ItemSnapshot | null, payload: ItemConsumePayload): boolean;
+  plan(
+    actor: ActorSnapshot,
+    item: ItemSnapshot | null,
+    payload: ItemConsumePayload,
+    ctx: ConsumePlanContext,
+  ): ConsumePlan; // puro: descreve, não escreve
+}
+
+/** Escrita declarada pelo plano e aplicada pelo core; o mesmo tipo serve à preparação
+ * diária e à fabricação das fases seguintes. */
+type DocOp =
+  | { kind: "updateActor"; diff: Record<string, unknown> }
+  | { kind: "createItem"; data: Record<string, unknown> }
+  | { kind: "updateItem"; itemId: string; diff: Record<string, unknown> }
+  | { kind: "deleteItem"; itemId: string };
+
+interface ConsumePlan {
+  writes: DocOp[]; // carga, quantidade, recurso, destruição
+  consumed: ItemConsumeResult["consumed"];
+  effects: PlannedEffect[]; // cópias embutidas a criar (17, REQ-PF2-217)
+  damage: ActorApplyDamagePayload[]; // cura e dano do item, via ActorMechanicsService
+  strike?: PlannedStrike; // só no mode "strike"
+  cards: { content: string; flags?: Record<string, unknown> }[];
+  notes: string[]; // o que o item faz e o sistema não automatiza
+}
+interface PlannedEffect {
+  targetActorId: string;
+  sourceId: string; // documento do pack a copiar
+  packId?: string;
+  origin: { actorId: string; itemSourceId?: string; itemLevel?: number; infused?: boolean };
+  expiry: FusionExpiry; // shape em 17-sistema-pf2e.md (REQ-PF2-219)
+}
+interface PlannedStrike {
+  strikeId: string;
+  mapIndex: 0 | 1 | 2;
+  formula: string;
+  flavor: string;
+  rollContext: Record<string, unknown>; // flags.fusion.rollContext da mensagem
+}
+interface ConsumePlanContext {
+  inCombat: boolean;
+  combatId: string | null;
+  round: number | null;
+  targets: readonly { tokenId: string; actorId: string | null }[];
+}
+type ConsumeHookFn = (
+  e: {
+    actorId: string;
+    item: ItemSnapshot | null;
+    payload: ItemConsumePayload;
+    result: ItemConsumeResult;
+  },
+  ctx: TurnHookContext,
+) => void | Promise<void>;
+```
+
+- **REQ-SYS-143** [MVP] O `registrar` DEVE expor `registerConsumeItem(def)`, no máximo uma
+  vez por sistema, e o servidor DEVE expor o op `item:consume` num serviço do **core** que:
+  1. valida o payload pelo schema de `@fusion/shared`: modo `use`/`strike` sem `itemId`, ou
+     modo `resource` sem `resourceSlug`, DEVE responder `VALIDATION_FAILED`;
+  2. exige ownership **OWNER** do ator, ou papel privilegiado (`isRolePrivileged`,
+     `ver 21-seguranca.md`): outro usuário DEVE receber `PERMISSION_DENIED`, e ator ou item
+     inexistente, `NOT_FOUND`;
+  3. recusa com `CONFLICT`, sem escrever nada, quando `expectedVersion` não bate com a versão
+     atual do ator — é o que impede dois clientes gastarem o mesmo último frasco;
+  4. chama `def.plan(...)`, que é puro e não escreve, e aplica `writes`, `effects`, `damage`
+     e `cards` **atomicamente**: nenhuma parte DEVE ficar aplicada se outra falhar. O
+     `damage` do plano DEVE passar pelo `ActorMechanicsService` com `actingAs: "system"`
+     (REQ-SYS-142), nunca por escrita direta no ator;
+  5. devolve `ItemConsumeResult` e publica os cards pelo caminho normal de chat
+     (`ver 09-chat-e-mensagens.md`);
+  6. sem plano registrado, ou com nenhum `appliesTo` verdadeiro, responde `NOT_SUPPORTED` sem
+     escrever nada (mesma postura de REQ-SYS-142 passo 6).
+- **REQ-SYS-165** [MVP] O servidor DEVE expor `item:transfer { fromActorId, toActorId, itemId,
+quantity, expectedVersion }`: dar um item físico (ou parte de uma pilha) a **outro ator**, numa
+  única transação sobre os dois atores (nunca dois `doc:update`). Quem dá DEVE ser OWNER do ator
+  de origem (ou GM/assistente); quem recebe não precisa ser do remetente, mas para um jogador
+  DEVE ser um personagem que algum jogador possui ou um ator que ele ao menos enxerga (LIMITED).
+  `expectedVersion` é a `_stats.version` da origem (mesmo guarda de `item:consume`, resposta
+  `CONFLICT`). O item chega **fora de uso** (guardado no inventário, não investido, fora de
+  contêiner); pilha idêntica já existente soma quantidade; contêiner só viaja inteiro e com o
+  conteúdo. O servidor posta uma linha de sistema no chat. Resultado: `{ moved, itemName,
+toActorId, merged }`.
+- **REQ-SYS-144** [MVP] O `registrar` DEVE expor
+  `registerConsumeHook(id, fn, opts?: { priority?: number })`, aceitando **vários** callbacks,
+  executados depois de persistir o consumo e antes do broadcast, com a mesma ordenação,
+  serialização em série e isolamento de erro de REQ-SYS-139, e o mesmo `TurnHookContext` de
+  REQ-SYS-140. O callback recebe o ator, o item consumido (`null` no modo `resource`), o
+  payload e o `ItemConsumeResult`. Registrar duas vezes o mesmo `id` DEVE lançar erro em
+  `defineSystem`, nomeando o id. Este DEVE ser o **ponto único** de extensão pós-consumo: a
+  API NÃO DEVE ganhar `onConsume`/`onConsumed` paralelos, nem o consumo DEVE ser observado
+  por `hooks.on`, que é notificação pós-broadcast.
+
+### Preparação diária e fabricação
+
+> **Emenda de 2026-09-17** (plano do Alquimista, ALQ-F3-01; decisões D-06, D-07 e D-08 do
+> Alexandre). Abre os quatro pontos de extensão que a spec `47-fabricacao-e-alquimia.md` exige:
+> etapa de preparação diária, ability de fabricação, hook de rascunho de item e porta de custo.
+> Aqui fica a **superfície** e a disciplina do core (ordem, permissão, atomicidade); a regra do
+> jogo — o que cada etapa faz, quanto custa, que prazo o item recebe — é da `47` (REQ-FAB-010..015,
+> REQ-FAB-025..029, REQ-FAB-039) e da `17`. Nada é revogado: a atomicidade exigida abaixo é
+> exceção **deliberada** ao isolamento de erro de REQ-SYS-139, e o motivo está em DEC-FAB-02.
+> Os shapes são os do plano (§2.7), com `ActorSnapshot`/`ItemSnapshot` no lugar de `actor`/
+> `ItemDoc` para casar com o vocabulário que esta spec já usa em REQ-SYS-143.
+
+```ts
+// packages/system-api — registrar
+registrar.registerDailyPrepStep(def: DailyPrepStepDefinition): void;
+registrar.registerCraftingAbility(def: CraftingAbilityDefinition): void;
+registrar.registerCraftingDraftHook(id: string, fn: CraftingDraftHookFn, opts?: { priority?: number }): void;
+registrar.registerCurrencyPort(port: CurrencyPort): void;
+
+// socket "actor:dailyPrep" — ActorDailyPrepPayloadSchema (@fusion/shared)
+interface ActorDailyPrepPayload {
+  actorId: string;
+  choices?: Record<string, unknown>; // por id de etapa
+  expectedVersion: number;
+}
+interface DailyPrepChoiceSpec {
+  stepId: string;
+  kind: string; // o cliente escolhe o diálogo pelo kind
+  data: Record<string, unknown>;
+}
+interface DailyPrepStepDefinition {
+  id: string;
+  order: number; // pf2e: hp=100, spellSlots=200, focus=300, resources=400, expiry=500, advancedAlchemy=600
+  appliesTo(actor: ActorSnapshot): boolean;
+  needsChoice?(actor: ActorSnapshot): DailyPrepChoiceSpec | null;
+  run(
+    actor: ActorSnapshot,
+    ctx: { choice?: unknown; prepId: string },
+  ): { writes: DocOp[]; summary: string[] }; // puro: descreve, não escreve
+}
+
+// socket "crafting:create" — CraftingCreatePayloadSchema (@fusion/shared)
+interface CraftingCreatePayload {
+  actorId: string;
+  abilitySlug: string;
+  formulaSourceIds: string[];
+  additives?: Record<string, string>;
+  expectedVersion: number;
+}
+interface CraftingAbilityDefinition {
+  slug: string;
+  appliesTo(actor: ActorSnapshot): boolean;
+  maxItemLevel(actor: ActorSnapshot): number;
+  cost(actor: ActorSnapshot, count: number): { resourceSlug: string; amount: number } | null;
+  capacity?(actor: ActorSnapshot): number;
+  maxPerUse?(actor: ActorSnapshot): number;
+  expiry(
+    actor: ActorSnapshot,
+    ctx: { inCombat: boolean; formula: ItemSnapshot },
+  ): FusionExpiry; // shape em 17-sistema-pf2e.md (REQ-PF2-219)
+}
+/** Rascunho do item antes de existir: os dados que serão gravados, ainda alteráveis. */
+type ItemDraft = Record<string, unknown>;
+interface CreationCtx {
+  actorId: string;
+  abilitySlug: string;
+  formulaSourceId: string;
+  additives?: Record<string, string>;
+  inCombat: boolean;
+}
+type CraftingDraftHookFn = (draft: ItemDraft, ctx: CreationCtx) => ItemDraft;
+
+interface CurrencyPort {
+  requestCost(req: {
+    actorId: string;
+    amount: { gp: number; sp: number; cp: number };
+    reason: "craft";
+    messageId: string;
+  }): Promise<{ status: "noted" | "debited" | "insufficient" }>;
+}
+```
+
+- **REQ-SYS-145** [MVP] O `registrar` DEVE expor `registerDailyPrepStep(def)`, aceitando
+  **várias** etapas, e o servidor DEVE expor o op `actor:dailyPrep` num serviço do **core** que:
+  1. valida o payload pelo schema de `@fusion/shared`;
+  2. exige ownership **OWNER** do ator ou papel privilegiado (`isRolePrivileged`,
+     `ver 21-seguranca.md`) — outro usuário recebe `PERMISSION_DENIED`, ator inexistente
+     `NOT_FOUND` — e recusa com `CONFLICT`, sem escrever, quando `expectedVersion` não bate;
+  3. executa as etapas cujo `appliesTo` for verdadeiro, em ordem crescente de `order`,
+     desempatada por `id`, gerando um `prepId` novo para a operação;
+  4. recusa com `VALIDATION_FAILED`, sem escrever, quando alguma etapa declara `needsChoice` e
+     `choices[stepId]` não veio;
+  5. aplica os `writes` de **todas** as etapas **atomicamente**: etapa que lançar DEVE abortar a
+     operação inteira, sem escrita parcial e sem card — diferente de REQ-SYS-139 de propósito
+     (DEC-FAB-02); o erro DEVE nomear a etapa;
+  6. publica **um** card de resumo a partir dos `summary` (`ver 09-chat-e-mensagens.md`).
+
+  Registrar duas etapas com o mesmo `id` DEVE lançar erro em `defineSystem`, nomeando o id.
+
+- **REQ-SYS-146** [MVP] O `registrar` DEVE expor `registerCraftingAbility(def)`, aceitando
+  **várias** abilities identificadas por `slug`, e o servidor DEVE expor o op `crafting:create`
+  num serviço do **core** que resolve a ability pelo `abilitySlug` do payload e, com a mesma
+  permissão, `expectedVersion` e atomicidade de REQ-SYS-145: valida o teto de `maxItemLevel`, a
+  quantidade contra `capacity`/`maxPerUse`, debita o `cost` em recurso, grava os itens com o
+  `FusionExpiry` devolvido por `expiry(...)` e publica um card. `abilitySlug` desconhecido, ou
+  cujo `appliesTo` seja falso, DEVE responder `NOT_SUPPORTED` sem escrever nada. O core NÃO DEVE
+  conhecer regra de fabricação: tudo o que varia entre abilities vem da definição — inclusive as
+  recusas que só o sistema sabe julgar (livro de fórmulas, pré-requisito de classe), que a
+  definição sinaliza **lançando erro de validação** em qualquer um dos seus métodos; o core DEVE
+  convertê-lo em `VALIDATION_FAILED`, com a mensagem da definição, sem escrever nada. Registrar
+  duas abilities com o mesmo `slug` DEVE lançar erro em `defineSystem`.
+
+- **REQ-SYS-147** [MVP] O `registrar` DEVE expor
+  `registerCraftingDraftHook(id, fn, opts?: { priority?: number })`, aceitando **vários**
+  callbacks, executados **antes** de o item ser gravado, em ordem determinística de prioridade e
+  `id`, cada um recebendo o rascunho e devolvendo o rascunho (possivelmente alterado). Hook que
+  lançar DEVE abortar a op de REQ-SYS-146 inteira — nenhum item gravado. Registrar duas vezes o
+  mesmo `id` DEVE lançar erro em `defineSystem`, nomeando o id. Este DEVE ser o **ponto único**
+  de alteração do item fabricado antes da gravação: a API NÃO DEVE ganhar
+  `beforeItemCreated`/`onItemCreated` paralelos, nem o rascunho DEVE ser observável por
+  `hooks.on`, que é notificação pós-broadcast.
+
+- **REQ-SYS-148** [MVP] O `registrar` DEVE expor `registerCurrencyPort(port)`, **no máximo uma
+  vez** por mundo — um segundo registro DEVE lançar erro em `defineSystem`. A ação de fabricação
+  que declara custo em moeda (a atividade Craft da `47`, REQ-FAB-039) DEVE chamar
+  `port.requestCost(...)` **exatamente uma vez** por execução, emitindo junto o evento
+  `crafting:costRequested`. Sem porta registrada, o core DEVE usar uma implementação **no-op**
+  que devolve `{ status: "noted" }` e deixa o valor anotado no card. Nenhum caminho desta API
+  DEVE ler ou escrever moeda do ator (decisão D-07 do plano; DEC-FAB-05 da `47`): a porta
+  **anuncia** o custo, e quem o cobra é quem a implementar. Falha ou rejeição da porta NÃO DEVE
+  desfazer o que já foi aplicado — DEVE virar linha no card.
 
 ### Motor de modifiers/effects data-driven
 
@@ -515,10 +1229,26 @@ label, hint?, requiresReload?, onChange? }`. A engine DEVE validar o valor pelo
   degreeOfSuccessAdjustments, rollOptions, iwr) consumível pelos `DeriveStep`s da
   fase `derived` e pelo motor de rolagens (research 10 §6).
 - **REQ-SYS-089** [V2] O motor DEVE permitir `EffectRule.type` adicionais
-  registrados pelo sistema (effects plugáveis), com sandbox. Fora do MVP (D4).
+  registrados pelo sistema (effects plugáveis), com sandbox. Fora do MVP (DEC-SYS-04).
 - **REQ-SYS-090** [MVP] Effects com `predicate` que não satisfaça os roll options
   no momento da aplicação DEVEM ser ignorados sem erro (no-op), e a desativação
   via `ignored` DEVE removê-los do processamento.
+
+> **Emenda de 2026-09-15** (ALQ-F4-02, onda 1 do Alquimista). `collectEffects`
+> passa a despachar por um `RuleElementRegistry` (`register/get/handlersFor/kinds`)
+> em vez do `switch` fixo da REQ-SYS-082 — mesmo conjunto de `type`s canônicos do
+> MVP, comportamento observável idêntico (regressão coberta por
+> `ruleElementRegistry.test.ts` e pelo snapshot de derivação de classes da
+> ALQ-F4-03). O registro é o mecanismo que a REQ-SYS-089 ([V2], effects
+> plugáveis) vai consumir; a garantia de isolamento por `kind` abaixo é o que
+> torna aquele [V2] seguro de habilitar depois.
+
+- **REQ-SYS-149** [MVP] Registrar um handler novo no `RuleElementRegistry` NÃO
+  DEVE alterar a derivação de nenhum ator cujo `EffectRule.type`/`kind` não seja o
+  do handler registrado — um handler é escopado ao seu próprio `kind` e não pode
+  vazar estado (cache, acumulador) entre chamadas de `collectEffects` de atores
+  diferentes. Regressão de classe já publicada por causa de um handler novo é o
+  defeito que este requisito proíbe.
 
 ### Versionamento e migrações
 
@@ -548,6 +1278,23 @@ source }`, aplicadas em cadeia da versão de origem dos dados até a `version`
   no harness como gate de build; falha de contrato DEVE quebrar o CI
   (`ver 25-testes-e-qualidade.md`).
 
+### Handlers e ops da frente do caçador _(emenda da spec 52, 2026-10-05)_
+
+Requisitos obrigados por `52-cacador-companheiro-e-montaria.md`. Os handlers novos registram em
+kebab-case no registro de rule elements trazido pela base do Alquimista (DEC-BHR-23).
+
+- **REQ-SYS-161** [MVP] O motor DEVE ter o handler `item-alteration` na fase `item`, aplicando
+  `traits` e `damage-dice-faces` ao item-alvo quando o predicado casa com as opções do item e do ator
+  (spec 52, REQ-BHR-048); interruptor sustentado por alteração de item deixa de ser "só texto".
+- **REQ-SYS-162** [MVP] O resolvedor único de expiração DEVE ser chamado também por um ouvinte de
+  `onRollResolved`, removendo depois da rolagem o efeito com `expiry.on = "after-roll"` cujo
+  `rollPredicate` casa com ela (spec 52, DEC-BHR-08); NÃO DEVE existir segundo resolvedor.
+- **REQ-SYS-163** [MVP] O núcleo DEVE expor a op `effect:apply` (spec 52 §7.3), com a permissão de
+  DEC-BHR-09 checada no servidor.
+- **REQ-SYS-164** [MVP] O motor DEVE ter o handler `fusion-maneuver-size-limit { maneuvers,
+maxSizeDelta }`, com teste de escopo; sem a regra, o limite das manobras é 1 tamanho acima do
+  executante (spec 52, REQ-BHR-206..207).
+
 ## Requisitos não-funcionais
 
 - **REQ-SYS-130** [MVP] **Tipagem forte ponta a ponta:** nenhum ponto da API
@@ -572,7 +1319,7 @@ source }`, aplicadas em cadeia da versão de origem dos dados até a `version`
   porém com tipos.
 - **REQ-SYS-136** [MVP] **Independência de jogo:** a engine NÃO hardcoda regras de
   PF2e/SF2e/Etmos; toda regra específica vem por dados/registro do sistema (o
-  motor de effects e o agregador de stacking são genéricos — D4/REQ-SYS-085).
+  motor de effects e o agregador de stacking são genéricos — DEC-SYS-04/REQ-SYS-085).
 - **REQ-SYS-137** [MVP] **Testabilidade:** um `SystemModule` é um valor puro
   construível e inspecionável em teste de unidade sem subir servidor nem canvas.
 
@@ -599,6 +1346,7 @@ interface SystemManifest {
     path: string;
   }>;
   grid?: { distance: number; units: string };
+  sizeToFootprint?: Record<string, { width: number; height: number }>; // DEC-TOK-03 (41-token.md)
   initiative?: string; // id de InitiativeFormula registrada
   primaryBarAttribute?: string; // caminho (ex.: "attributes.hp")
   secondaryBarAttribute?: string;
@@ -624,6 +1372,8 @@ interface SystemDataModelSpec<S extends ZodType = ZodType> {
   schema: S; // valida APENAS o campo `system`
   defaults?: Partial<z.infer<S>>;
   migrations?: MigrationDefinition[];
+  // obrigatório e não-vazio se documentType === "Actor", proibido nos demais (REQ-ATR-010)
+  facets?: readonly ("player" | "creature" | "hazard" | "container")[];
 }
 
 interface MigrationDefinition {
@@ -743,6 +1493,10 @@ interface ConditionDefinition {
   valued?: boolean;
   effects?: EffectRule[];
   overrides?: string[];
+  // Contrato de exibição (REQ-SYS-043) — opcionais; ausência degrada, não invalida
+  tone?: "benefit" | "harm" | "special"; // efeito sobre quem carrega; ausente ⇒ "special"
+  help?: string; // ajuda curta, já traduzida pelo sistema; ausente ⇒ sem ajuda
+  critical?: boolean; // tira o personagem da cena; ênfase, não um quarto tom
 }
 interface ActionDefinition {
   slug: string;
@@ -791,15 +1545,24 @@ interface InitiativeEntry {
 
 ### Superfície pública (resumo)
 
-| Símbolo                                                 | Tipo   | Descrição                            |
-| ------------------------------------------------------- | ------ | ------------------------------------ |
-| `defineSystem(manifest, build)`                         | função | Constrói e retorna o `SystemModule`. |
-| `game.system`                                           | objeto | `SystemModule` ativo do mundo.       |
-| `game.settings.get/set(sysId, key)`                     | função | Get/set tipado de setting.           |
-| `hooks.on/once/off(name, listener)`                     | função | Barramento de hooks tipado.          |
-| `i18n.localize/format(key, data?)`                      | função | Localização namespaced.              |
-| `actor.increase/decrease/toggle/setCondition(slug, v?)` | método | Condições.                           |
-| `validateSystemModule(module)`                          | função | Harness de contract test.            |
+| Símbolo                                                                              | Tipo   | Descrição                                          |
+| ------------------------------------------------------------------------------------ | ------ | -------------------------------------------------- |
+| `defineSystem(manifest, build)`                                                      | função | Constrói e retorna o `SystemModule`.               |
+| `game.system`                                                                        | objeto | `SystemModule` ativo do mundo.                     |
+| `game.settings.get/set(sysId, key)`                                                  | função | Get/set tipado de setting.                         |
+| `hooks.on/once/off(name, listener)`                                                  | função | Barramento de hooks tipado.                        |
+| `i18n.localize/format(key, data?)`                                                   | função | Localização namespaced.                            |
+| `actor.increase/decrease/toggle/setCondition(slug, v?)`                              | método | Condições.                                         |
+| `validateSystemModule(module)`                                                       | função | Harness de contract test.                          |
+| `registrar.onTurnStart/onTurnEnd/onRoundStart/onRoundEnd/onCombatEnd(id, fn, opts?)` | função | Hooks de turno aguardados (REQ-SYS-138..140).      |
+| `registrar.onDamageApplied(id, fn, opts?)`                                           | função | Pós-aplicação de dano, por alvo (REQ-SYS-142).     |
+| `registrar.registerActorMechanics(m)`                                                | função | Regra de dano/condição do sistema (REQ-SYS-142).   |
+| `registrar.registerConsumeItem(def)`                                                 | função | Plano de consumo de item do sistema (REQ-SYS-143). |
+| `registrar.registerConsumeHook(id, fn, opts?)`                                       | função | Pós-consumo de item (REQ-SYS-144).                 |
+| `registrar.registerDailyPrepStep(def)`                                               | função | Etapa da preparação diária (REQ-SYS-145).          |
+| `registrar.registerCraftingAbility(def)`                                             | função | Ability de fabricação (REQ-SYS-146).               |
+| `registrar.registerCraftingDraftHook(id, fn, opts?)`                                 | função | Altera o rascunho do item fabricado (REQ-SYS-147). |
+| `registrar.registerCurrencyPort(port)`                                               | função | Porta de custo, sem tocar moeda (REQ-SYS-148).     |
 
 ### Lista canônica de hooks (MVP)
 
@@ -828,6 +1591,13 @@ Nomes alinhados a `02-modelo-de-dados.md`. `<Type>` ∈ tipos de Document.
 Hooks `pre*` de ciclo de vida são síncronos no servidor (autoridade/anti-cheat —
 `ver 04-`, `ver 21-`); `preRoll`/`postRoll` definidos por `08-motor-de-rolagens.md`.
 
+Os hooks de combate desta tabela são **notificações** pós-transição. As automações de
+turno de um sistema NÃO usam `hooks.on`: usam o registro aguardado de REQ-SYS-138..141
+(DEC-SYS-11), que roda antes do broadcast. O mesmo vale para o consumo de item: a extensão
+é `registerConsumeHook` (REQ-SYS-144), não `hooks.on`; e para a preparação diária e a
+fabricação: `registerDailyPrepStep`, `registerCraftingAbility` e `registerCraftingDraftHook`
+(REQ-SYS-145..147), que rodam dentro da transação, não depois dela.
+
 ## Dependências (specs irmãs)
 
 - `01-arquitetura-geral.md` — `packages/system-api`, sistemas compilados junto,
@@ -854,6 +1624,13 @@ Hooks `pre*` de ciclo de vida são síncronos no servidor (autoridade/anti-cheat
   concreto que consome esta API (schemas, effects, sheets, condições).
 - `21-seguranca.md` — sanitização, ausência de `eval`, descarte de campos do
   cliente, validação autoritativa.
+- `39-contatos.md`, `40-aba-combate.md`, `42-aba-npcs.md` — consumidores do
+  contrato de exibição de condição (REQ-SYS-043): `tone`, `help` e `critical`
+  nasceram da DEC-CTT-11 e são lidos por REQ-CTT-030..038, REQ-CBA-050 e
+  REQ-NPC-033.
+- `41-token.md` — footprint do token: `sizeToFootprint` (REQ-SYS-009) é a conversão
+  tamanho→células que REQ-TOK-012/017 exigem para derivar as células ocupadas do ator
+  efetivo, sem campo de footprint na peça (DEC-TOK-03).
 - `24-operacao-backups-telemetria.md` — backup pré-migração, relatório de
   migração, telemetria.
 - `25-testes-e-qualidade.md` — gate de contract test no CI.

@@ -12,7 +12,8 @@
  *     H → toggle hidden; Del → delete selected token).
  *   - Dispatch optimistic moves via TokenLayer + sendOp (doc:update).
  *   - Rollback token position on ack failure/timeout.
- *   - Maintain a "selected token" set and update ring visuals.
+ *   - Maintain a "selected token" set, update ring visuals, and publish it
+ *     (`onSelectionChange`, BAR-F1-01) for the active-actor store.
  *   - Expose GM tools: addToken, deleteToken, toggleHidden.
  *   - Show a pending indicator (desaturation) while awaiting ack.
  *
@@ -22,7 +23,7 @@
  * Usage (wiring in TableScreen or sceneLoader):
  *   const mgr = new TokenInteractionManager({
  *     tokenLayer, mirror, sceneId, canvas, socket, userId, userRole,
- *     ownedActorIds, gridConfig,
+ *     getOwnedActorIds, gridConfig,
  *   });
  *   // In FusionCanvas ticker:
  *   // (nothing — interaction is event-driven)
@@ -39,12 +40,17 @@ import type {
   DocCreatePayload,
   DocDeletePayload,
 } from "@fusion/shared";
-import { createDocumentId } from "@fusion/shared";
+import { createDocumentId, resolveEffectiveActor } from "@fusion/shared";
 import type { DocumentMirror } from "../../docs/DocumentMirror.js";
 import type { FusionCanvas } from "../FusionCanvas.js";
 import { screenToWorld } from "../camera-math.js";
 import { sendOp, OpError } from "../../docs/sendOp.js";
+import { onWorldResynced, requestWorldResync } from "../../docs/worldSync.js";
+import { emitTokenPreview } from "../../presence/attachPresenceSync.js";
+import { combatActions, getMyTargets, setMyTargets } from "../../combat/combatStore.svelte.js";
 import type { TokenLayer } from "./TokenLayer.js";
+import { footprintOf, type FootprintActorInput } from "./footprint.js";
+import type { ActorDocument } from "../../actors/actorDirectory.js";
 import {
   canMoveToken,
   snapTokenToGrid,
@@ -58,6 +64,11 @@ import {
   rollbackMove,
   resetToIdle,
   canStartDrag,
+  isEditableTarget,
+  isEscapeForSomethingElse,
+  canOpenTokenSheet,
+  registerTokenClick,
+  type TokenClickTracker,
   type GridSnapConfig,
   type ArrowDirection,
   type DragMachine,
@@ -84,14 +95,76 @@ export interface TokenInteractionOptions {
   userId: string;
   /** Logged-in user's role (1=PLAYER, 2=TRUSTED, 3=ASSISTANT, 4=GAMEMASTER). */
   userRole: number;
-  /** Set of actor IDs the user owns (for move permission check). */
-  ownedActorIds: ReadonlySet<string>;
+  /**
+   * The actor IDs the user owns RIGHT NOW, for the move-permission check —
+   * a getter, deliberately not a `ReadonlySet` captured once (R2).
+   *
+   * `TableScreen.svelte` builds this manager once per scene load, and #194's
+   * `_loadedSceneId` guard stopped rebuilding the canvas on every Scene
+   * mutation, so the manager routinely outlives the arrival of the Actor
+   * documents this set is derived from. Since TK093 (fase 5) removed
+   * `canMoveToken`'s `flags.fusion.owner` fallback, `has(token.actorId)` is
+   * the ONE client-side predicate for "may I move this?" (REQ-TOK-032,
+   * REQ-TOK-034, DEC-TOK-06) — frozen at construction it answers "no"
+   * forever for a player whose Actor snapshot lands after the canvas mounted,
+   * or who is granted OWNER mid-session, while the server (which resolves
+   * ownership live) would accept the very same move. REQ-TOK-033 lets the
+   * interface ANTICIPATE the server's answer, not contradict it.
+   */
+  getOwnedActorIds: () => ReadonlySet<string>;
   /** Current grid config for snapping. */
   gridConfig: GridSnapConfig;
   /** Whether to attach global keyboard listeners (default: true). */
   attachKeyboard?: boolean;
   /** Optional callback to show a toast/notification on error. */
   onError?: (msg: string) => void;
+  /**
+   * Called when the user asks for a token's sheet with two clicks on it
+   * (TK110, REQ-TOK-110). Receives the TOKEN id — never a document snapshot:
+   * the caller reads the token and its actor from the live mirror at the
+   * moment it opens the window, so a sheet never opens on state that was
+   * already stale when this manager was built (the same reasoning as
+   * `getOwnedActorIds` above).
+   *
+   * The manager decides WHETHER the gesture happened and whether this user may
+   * see the sheet (REQ-TOK-111); it deliberately does not know what a sheet is
+   * — the window manager, the sheet registry and Svelte all live on the other
+   * side of this callback.
+   */
+  onOpenSheet?: (tokenId: string) => void;
+  /**
+   * Told the token ids selected on THIS manager's scene every time the selection changes
+   * (BAR-F1-01, REQ-BAR-007; `docs/design/barra-de-acoes/tasks.md` §2.4): on a select, on a
+   * click on empty canvas, on Esc, after Del, and once more — empty — in `destroy()`. Never
+   * after `destroy()`. Same pattern as `onOpenSheet`: the manager does not know what listens.
+   *
+   * The selection is published as it is, whoever owns the token: ownership is NOT checked
+   * here. The active-actor store (`lib/actionbar/activeActorStore.svelte.ts`) is the single
+   * gate (D-BA01) and reads ownership itself — a second check here would be a second predicate
+   * (REQ-TOK-034, REQ-BAR-004). What it receives is a copy, never the manager's own Set.
+   */
+  onSelectionChange?: (tokenIds: ReadonlySet<string>) => void;
+
+  /**
+   * A pointer drag of a token, for the movement ruler. Called on every drag move with the
+   * token's top-left before the drag (`from`) and now (`to`), in scene pixels, and with
+   * `null` when the drag ends (drop, Esc or teardown). Display only: it changes nothing
+   * about the drag itself.
+   */
+  onDrag?: (
+    info: { tokenId: string; from: { x: number; y: number }; to: { x: number; y: number } } | null,
+  ) => void;
+}
+
+/**
+ * The shape of a `doc:create` ack's `result` for an embedded document (e.g.
+ * Token) — `documents[0]._id` is the server-assigned id (F192-1: never the
+ * client's own, see duplicateSelectedToken's docstring). Mirrors
+ * npcsFooter.ts's identical local interface for the same reason: the wire
+ * ack has no shared named type of its own.
+ */
+interface DocCreateResult {
+  readonly documents: readonly { readonly _id: string }[];
 }
 
 // ---------------------------------------------------------------------------
@@ -103,6 +176,9 @@ const DRAG_THRESHOLD_PX = 5;
 
 /** Timeout for sendOp acks on token moves (ms). */
 const TOKEN_MOVE_TIMEOUT_MS = 8_000;
+
+/** After a move's ack timed out: how long to wait for the re-read world before deciding from the mirror (ms). */
+const RESYNC_WAIT_MS = 15_000;
 
 // ---------------------------------------------------------------------------
 // TokenInteractionManager
@@ -117,6 +193,9 @@ export class TokenInteractionManager {
   /** Drag state machine. */
   private _drag: DragMachine = createDragMachine();
 
+  /** The click waiting for a partner, for the two-click gesture (TK110). */
+  private _clickTracker: TokenClickTracker | null = null;
+
   /** Pointer capture state for drag detection. */
   private _pointerDown: {
     tokenId: string;
@@ -127,6 +206,9 @@ export class TokenInteractionManager {
 
   /** Pending ack cleanup fn (to cancel rollback if destroyed during pending). */
   private _pendingCleanup: (() => void) | null = null;
+
+  /** Wakes up a move waiting for the world to be re-read (see `_settleUnackedMove`); `destroy()` calls it. */
+  private _cancelMoveWait: (() => void) | null = null;
 
   /** True if destroyed. */
   private _destroyed = false;
@@ -157,19 +239,19 @@ export class TokenInteractionManager {
   // ---------------------------------------------------------------------------
 
   /**
-   * GM: Add a new token to the active scene.
+   * GM: Add a new token linked to `actorId` to the active scene, centered in
+   * the current viewport.
    *
-   * @param name      Token display name.
-   * @param texture   URL/path to texture (or null for placeholder).
-   * @param widthCells  Footprint width in cells.
-   * @param heightCells Footprint height in cells.
+   * TK023 (REQ-TOK-002, REQ-TOK-010, REQ-TOK-012): `actorId` is required — a
+   * token with no actor is no longer a representable state (DEC-TOK-04) — and
+   * the payload carries no `name`/`texture`/`width`/`height` of its own: name
+   * and art come from the actor (REQ-TOK-060, REQ-CNV-091), and the footprint
+   * (`footprintOf`, TK041, REQ-TOK-012/017) is derived from the actor's size
+   * category, used here only to center the drop.
+   *
+   * @param actorId  The Actor this token is linked to.
    */
-  async addToken(
-    name: string,
-    texture: string | null,
-    widthCells: number = 1,
-    heightCells: number = 1,
-  ): Promise<void> {
+  async addToken(actorId: string): Promise<void> {
     const scene = this._opts.mirror.getDoc<SceneDocument>("Scene", this._opts.sceneId);
     if (!scene) return;
 
@@ -181,23 +263,21 @@ export class TokenInteractionManager {
     const centerSy = viewRect.height / 2;
     const world = screenToWorld(centerSx, centerSy, camera);
 
+    const footprint = footprintOf(undefined, this._getActor(actorId));
     const snapped = snapTokenToGrid(
-      world.x - (widthCells * this._opts.gridConfig.size) / 2,
-      world.y - (heightCells * this._opts.gridConfig.size) / 2,
-      widthCells,
-      heightCells,
+      world.x - (footprint.width * this._opts.gridConfig.size) / 2,
+      world.y - (footprint.height * this._opts.gridConfig.size) / 2,
+      footprint.width,
+      footprint.height,
       this._opts.gridConfig,
     );
 
     const tokenId = createDocumentId();
     const newToken: Partial<TokenDocument> = {
       _id: tokenId,
-      name,
-      texture: texture ?? null,
+      actorId,
       x: snapped.x,
       y: snapped.y,
-      width: widthCells,
-      height: heightCells,
     };
 
     const createPayload: DocCreatePayload = {
@@ -237,6 +317,7 @@ export class TokenInteractionManager {
         payload: deletePayload,
       });
       this._selectedIds.delete(selectedId);
+      this._publishSelection();
     } catch (err) {
       this._opts.onError?.(
         err instanceof OpError
@@ -284,16 +365,173 @@ export class TokenInteractionManager {
   }
 
   /**
+   * GM: Duplicate the currently selected token (TK090, spec 41-token.md
+   * REQ-TOK-090/091, DEC-TOK-14).
+   *
+   * Two modes exist ONLY for an unlinked token, which carries its own live
+   * state (`actorDelta`):
+   *   - `"raw"` — the copy is born as if it had just been placed: no
+   *     `actorDelta` is written at create time (refused unconditionally by
+   *     the server regardless of role — TK025, `validateTokenCreateContract`)
+   *     and none is added afterwards, so the copy reads full life straight
+   *     off the base actor, same as any newly unlinked token.
+   *   - `"identical"` — a second `doc:update` (embedded, on the newly minted
+   *     token) copies the original's `actorDelta` verbatim. Allowed because
+   *     the caller here is always privileged (duplicating is a GM/Assistant
+   *     gesture, TK050) and the new token is unlinked — the two conditions
+   *     `validateTokenUpdateActorDelta` requires (REQ-DOC-034).
+   *
+   * For a LINKED token both modes collapse into the exact same single
+   * `doc:create` (DEC-TOK-14: "os dois gestos colapsam num só") — there is
+   * no live state of the token's own to preserve or reset, so `mode` is
+   * read but never causes a second write. REQ-TOK-091's "a interface NÃO
+   * DEVE oferecer uma escolha sem efeito" is kept by the CALLER (the
+   * keyboard handler below binds two different keys to two different
+   * effects only where a linked token would notice the difference — for a
+   * linked token both keys reach this same single-write path).
+   *
+   * F192-1: the embedded `_id` an embedded-doc `doc:create` is sent with is
+   * NEVER what ends up persisted — the server always mints its own for an
+   * embedded document and ignores the client's (doc-handlers.ts's
+   * `handleEmbeddedCreate`: "_id is always generated server-side for
+   * embedded documents"). So no `_id` is sent here at all, and the
+   * follow-up `doc:update` (identical mode) targets whatever id the
+   * doc:create ACK actually returned (`ack.result.documents[0]._id`) — using
+   * a client-guessed id there would always miss with NOT_FOUND. The two
+   * `sendOp` calls are also in separate try/catch blocks: a failure in the
+   * first means nothing was created (the original generic message fits); a
+   * failure in the second means the token DOES exist on the scene already,
+   * just without its life total copied — a different, more specific message
+   * so the user doesn't go looking for a token that isn't there.
+   */
+  async duplicateSelectedToken(mode: "raw" | "identical"): Promise<void> {
+    const [selectedId] = this._selectedIds;
+    if (!selectedId) return;
+
+    const scene = this._opts.mirror.getDoc<SceneDocument>("Scene", this._opts.sceneId);
+    if (!scene) return;
+    const original = scene.tokens.find((t) => t._id === selectedId);
+    if (!original) return;
+
+    // P1 (post-#194 audit): `original` is an EXISTING TokenDocument, which
+    // may carry an `actorDelta` — `_getActor` reads only the base Actor and
+    // ignores it, so an unlinked token whose delta grows its size computed
+    // this offset from the wrong (smaller) box. `_getEffectiveActor` applies
+    // the delta (RNF-TOK-01), matching the footprint the sprite itself draws.
+    const footprint = footprintOf(original, this._getEffectiveActor(original));
+    const offset = this._opts.gridConfig.size;
+    const snapped = snapTokenToGrid(
+      original.x + offset,
+      original.y + offset,
+      footprint.width,
+      footprint.height,
+      this._opts.gridConfig,
+    );
+
+    const newToken: Partial<TokenDocument> = {
+      actorId: original.actorId,
+      actorLink: original.actorLink,
+      x: snapped.x,
+      y: snapped.y,
+      name: original.name,
+      rotation: original.rotation,
+      elevation: original.elevation,
+      hidden: original.hidden,
+      seenBy: original.seenBy,
+      disposition: original.disposition,
+      bar1: original.bar1,
+      bar2: original.bar2,
+    };
+
+    const createPayload: DocCreatePayload = {
+      documentType: "Token",
+      data: [newToken],
+      parent: { type: "Scene", id: this._opts.sceneId },
+    };
+
+    let createdTokenId: string;
+    try {
+      const created = await sendOp<DocCreateResult>(this._opts.socket, {
+        type: "doc:create",
+        payload: createPayload,
+      });
+      const createdDoc = created.documents[0];
+      if (!createdDoc) {
+        this._opts.onError?.("Failed to duplicate token: server returned no document");
+        return;
+      }
+      createdTokenId = createdDoc._id;
+    } catch (err) {
+      this._opts.onError?.(
+        err instanceof OpError
+          ? `Failed to duplicate token: ${err.message}`
+          : "Failed to duplicate token",
+      );
+      return;
+    }
+
+    // "identical" only matters for an unlinked token with a non-null delta —
+    // a linked token has no actorDelta to copy (collapses to the same op as
+    // "raw", per DEC-TOK-14).
+    if (mode === "identical" && !original.actorLink && original.actorDelta !== null) {
+      const deltaPayload: DocUpdatePayload = {
+        documentType: "Token",
+        updates: [
+          {
+            _id: createdTokenId,
+            diff: { actorDelta: original.actorDelta },
+            embedded: { type: "Token", id: this._opts.sceneId },
+          },
+        ],
+      };
+      try {
+        await sendOp(this._opts.socket, { type: "doc:update", payload: deltaPayload });
+      } catch (err) {
+        // The token itself was created successfully above — only its life
+        // total failed to copy. Say so, instead of the generic duplicate
+        // failure message, so the user doesn't hunt for a token that IS
+        // there (and can fix the HP by hand instead of retrying the whole
+        // duplicate).
+        this._opts.onError?.(
+          err instanceof OpError
+            ? `Token duplicated, but its life total was not copied: ${err.message}`
+            : "Token duplicated, but its life total was not copied. Adjust its HP manually.",
+        );
+      }
+    }
+  }
+
+  /**
    * Deselect all tokens.
    */
   deselectAll(): void {
     this._selectedIds.clear();
     this._updateSelectionVisuals();
+    this._publishSelection();
   }
 
   /** The currently selected token IDs (read-only view). */
   get selectedIds(): ReadonlySet<string> {
     return this._selectedIds;
+  }
+
+  // ---------------------------------------------------------------------------
+  // Public — scene grid updates
+  // ---------------------------------------------------------------------------
+
+  /**
+   * Adopt a new grid cell size (R4).
+   *
+   * `gridConfig` is a COPY of the scene's grid, handed in once at
+   * construction. Since #194's `_loadedSceneId` guard the manager is not
+   * rebuilt when the Scene document changes, so without this setter a grid
+   * edited with the scene's pencil left the drop target on the old cell size
+   * while the sprites (re-laid by `SceneOrchestrator` →
+   * `TokenLayer.setGridSize`) moved to the new one — the ghost and the drop
+   * would disagree. Called by the orchestrator's `onGridSizeChange`.
+   */
+  setGridSize(gridSize: number): void {
+    this._opts.gridConfig = { ...this._opts.gridConfig, size: gridSize };
   }
 
   // ---------------------------------------------------------------------------
@@ -306,6 +544,7 @@ export class TokenInteractionManager {
   destroy(): void {
     if (this._destroyed) return;
     this._destroyed = true;
+    this._opts.onDrag?.(null);
 
     if (this._keyboardAttached) {
       window.removeEventListener("keydown", this._onKeyDown);
@@ -313,10 +552,27 @@ export class TokenInteractionManager {
     }
     this._pendingCleanup?.();
     this._pendingCleanup = null;
+    this._cancelMoveWait?.();
 
-    // Detach PIXI events
+    // Detach PIXI events and give the layer back as FusionCanvas built it
+    // (R9). `_attachContainerEvents` opts the shared tokens container into
+    // interaction (`eventMode = "static"`) and installs an always-true
+    // `hitArea` so a click on empty canvas still reaches this manager;
+    // leaving both behind means the layer keeps swallowing every pointer hit
+    // test over the whole map after teardown, with nobody listening.
+    // `FusionCanvas._buildHierarchy` creates every layer inert — restore that.
     const { tokenContainer } = this._opts;
     tokenContainer.removeAllListeners();
+    tokenContainer.eventMode = "none";
+    tokenContainer.hitArea = null;
+
+    // BAR-F1-01: the last word is the empty selection — this manager no longer speaks for any
+    // token. Sent directly: `_publishSelection` is silent from here on, which is what keeps a
+    // late ack (a delete still in flight) from publishing for a dead manager. Whether this
+    // clears the active actor is the store's call: when the canvas already moved to another
+    // scene, the selection survives (REQ-BAR-007).
+    this._selectedIds.clear();
+    this._opts.onSelectionChange?.(new Set());
   }
 
   // ---------------------------------------------------------------------------
@@ -333,11 +589,23 @@ export class TokenInteractionManager {
     // Pointer down on the container — check if we hit a token sprite
     tokenContainer.on("pointerdown", (e: FederatedPointerEvent) => {
       if (this._destroyed) return;
+      // Right button (BHR-F3-01 / GUE-F1-01, D-G01, REQ-BHR-081): toggle
+      // the user's aim on the token under the cursor. It never selects and
+      // never starts a drag; the browser menu is already suppressed by
+      // FusionCanvas (`contextmenu` preventDefault) and no token context menu
+      // exists, so nothing competes for the gesture.
+      if (e.button === 2) {
+        this._toggleTarget(e);
+        return;
+      }
       if (e.button !== 0) return; // left button only
 
       const tokenId = this._getTokenIdFromTarget(e.target);
       if (!tokenId) {
-        // Click on empty canvas — deselect
+        // Click on empty canvas — deselect, and break any pending click pair:
+        // a click that landed on the map is a click that did not land on the
+        // token, so it cannot be half of that token's double click (TK110).
+        this._clickTracker = null;
         this.deselectAll();
         return;
       }
@@ -345,11 +613,28 @@ export class TokenInteractionManager {
       const token = this._getToken(tokenId);
       if (!token) return;
 
-      const { userId, userRole, ownedActorIds } = this._opts;
-      const canMove = canMoveToken(token, userId, userRole, ownedActorIds);
+      const { userId, userRole } = this._opts;
+      const owned = this._opts.getOwnedActorIds();
+      const canMove = canMoveToken(token, userId, userRole, owned);
 
       // Always select on click (regardless of move permission)
       this._selectToken(tokenId);
+
+      // TK110 (REQ-TOK-110): two clicks on the same token open its sheet. The
+      // check runs BEFORE the drag bookkeeping below and returns, so the
+      // second click of the pair opens the window instead of also picking the
+      // token up — otherwise a hand that drifts a few pixels while opening a
+      // sheet would send a move op nobody asked for.
+      const click = registerTokenClick(this._clickTracker, tokenId, Date.now());
+      this._clickTracker = click.tracker;
+      if (click.isDoubleClick) {
+        this._pointerDown = null;
+        if (canOpenTokenSheet(token, userId, userRole, owned)) {
+          this._opts.onOpenSheet?.(tokenId);
+        }
+        e.stopPropagation();
+        return;
+      }
 
       if (!canMove) return;
       if (!canStartDrag(this._drag, tokenId)) return;
@@ -381,7 +666,14 @@ export class TokenInteractionManager {
       const dist = Math.sqrt(dx * dx + dy * dy);
 
       if (!this._pointerDown.dragging && dist > DRAG_THRESHOLD_PX) {
-        // Threshold exceeded — start a real drag
+        // Threshold exceeded — start a real drag.
+        //
+        // TK110: a press that turned into a DRAG is not half of a double
+        // click (REQ-TOK-110). Without forgetting it here, "drag the token,
+        // then click it" would open the sheet, and — worse — dragging twice
+        // in quick succession would too, because both presses landed on the
+        // same token inside the pairing window.
+        this._clickTracker = null;
         const tokenId = this._pointerDown.tokenId;
         const token = this._getToken(tokenId);
         if (!token) return;
@@ -397,11 +689,12 @@ export class TokenInteractionManager {
         const token = this._getToken(this._pointerDown.tokenId);
         if (!token) return;
 
+        const footprint = footprintOf(token, this._getEffectiveActor(token));
         const snapped = snapTokenToGrid(
-          world.x - (token.width * this._opts.gridConfig.size) / 2,
-          world.y - (token.height * this._opts.gridConfig.size) / 2,
-          token.width,
-          token.height,
+          world.x - (footprint.width * this._opts.gridConfig.size) / 2,
+          world.y - (footprint.height * this._opts.gridConfig.size) / 2,
+          footprint.width,
+          footprint.height,
           this._opts.gridConfig,
         );
 
@@ -409,6 +702,26 @@ export class TokenInteractionManager {
 
         // Move ghost (optimistic preview during drag — before drop)
         this._opts.tokenLayer.applyLocalMove(this._pointerDown.tokenId, snapped.x, snapped.y);
+
+        // REQ-NET-044: broadcast the drag target to other clients (throttled,
+        // ephemeral — never persisted). This is purely informational for
+        // OTHER users; the dragger's own screen already updated above.
+        emitTokenPreview(
+          this._opts.socket,
+          this._opts.sceneId,
+          this._pointerDown.tokenId,
+          snapped.x,
+          snapped.y,
+        );
+
+        const ctx = this._drag.context;
+        if (ctx) {
+          this._opts.onDrag?.({
+            tokenId: ctx.tokenId,
+            from: { x: ctx.originalX, y: ctx.originalY },
+            to: { x: snapped.x, y: snapped.y },
+          });
+        }
       }
     });
 
@@ -441,6 +754,7 @@ export class TokenInteractionManager {
 
   private _handleDrop(): void {
     if (this._drag.state !== "dragging" || !this._drag.context) return;
+    this._opts.onDrag?.(null);
 
     const { tokenId, ghostX, ghostY, originalX, originalY, requestId } = this._drag.context;
 
@@ -514,36 +828,156 @@ export class TokenInteractionManager {
     } catch (err) {
       if (this._destroyed) return;
 
-      // Server rejected or timeout — rollback
-      this._drag = rollbackMove(this._drag, originalX, originalY);
-      this._drag = resetToIdle(this._drag);
-      this._opts.tokenLayer.rollbackMove(tokenId, originalX, originalY);
-      this._updatePendingVisual(tokenId, false);
+      // An explicit refusal is the server's verdict: revert at once. A TIMEOUT is not a verdict — the ack
+      // can be lost on a reconnect (socket.io never redelivers it) while the server accepted and broadcast
+      // the move; reverting blindly is the "token goes and comes back". Read the world first.
+      const timedOut = err instanceof OpError && err.code === "TIMEOUT";
+      const outcome = timedOut
+        ? await this._settleUnackedMove(tokenId, newX, newY, originalX, originalY)
+        : "lost";
+      // `destroy()` may have run while we waited (a call, not a property read, so no stale narrowing).
+      if (this._isDestroyed()) return;
 
-      const msg =
-        err instanceof OpError ? `Move rejected: ${err.message}` : "Move failed: network timeout";
-      this._opts.onError?.(msg);
+      if (outcome === "lost") {
+        this._drag = rollbackMove(this._drag, originalX, originalY);
+        this._drag = resetToIdle(this._drag);
+        const auth = this._getToken(tokenId);
+        this._opts.tokenLayer.rollbackMove(tokenId, auth?.x ?? originalX, auth?.y ?? originalY);
+        this._updatePendingVisual(tokenId, false);
+
+        const msg =
+          err instanceof OpError && !timedOut
+            ? `Move rejected: ${err.message}`
+            : "Move failed: network timeout";
+        this._opts.onError?.(msg);
+      } else {
+        // The server has the move (or a later one): the sprite already follows the mirror.
+        this._drag = confirmMove(this._drag);
+        this._drag = resetToIdle(this._drag);
+        this._updatePendingVisual(tokenId, false);
+      }
     } finally {
       cleanup();
     }
+  }
+
+  /**
+   * A move whose ack never arrived: decide from the server's truth, not from the silence.
+   *
+   * - The mirror already holds the new position, or any position other than the one we left → the server
+   *   applied it (or something later) and the broadcast reached us: "accepted".
+   * - Still the old position → the broadcast may be late or the transport may be down. Re-read the world
+   *   (waiting for the reconnect first, when the socket is down) and look again; only a move still absent
+   *   after that is "lost". The move is absolute (x, y), so there is nothing to resend: a resend would
+   *   override whatever happened while we were away.
+   *
+   * The wait is bounded once the socket is up (`RESYNC_WAIT_MS`) and is cancelled by `destroy()`.
+   */
+  private async _settleUnackedMove(
+    tokenId: string,
+    newX: number,
+    newY: number,
+    originalX: number,
+    originalY: number,
+  ): Promise<"accepted" | "lost"> {
+    const verdict = (): "accepted" | "lost" => {
+      const now = this._getToken(tokenId);
+      if (!now) return "accepted"; // token deleted meanwhile: nothing to put back
+      if (now.x === newX && now.y === newY) return "accepted";
+      if (now.x !== originalX || now.y !== originalY) return "accepted";
+      return "lost";
+    };
+
+    if (verdict() === "accepted") return "accepted";
+
+    const { socket } = this._opts;
+    await new Promise<void>((resolve) => {
+      let done = false;
+      let timer: ReturnType<typeof setTimeout> | null = null;
+      let offResync: (() => void) | null = null;
+      const finish = () => {
+        if (done) return;
+        done = true;
+        if (timer !== null) clearTimeout(timer);
+        offResync?.();
+        socket.off("connect", onConnect);
+        if (this._cancelMoveWait === finish) this._cancelMoveWait = null;
+        resolve();
+      };
+      const armFallback = () => {
+        if (timer !== null) clearTimeout(timer);
+        timer = setTimeout(finish, RESYNC_WAIT_MS);
+      };
+      const onConnect = () => {
+        socket.off("connect", onConnect);
+        // worldSync asks for the world on every connect; its answer (or the join push) wakes us.
+        armFallback();
+      };
+      this._cancelMoveWait = finish;
+      offResync = onWorldResynced(finish);
+      if (!socket.connected) {
+        socket.on("connect", onConnect);
+      } else {
+        requestWorldResync(socket);
+        armFallback();
+      }
+    });
+
+    return this._isDestroyed() ? "accepted" : verdict();
+  }
+
+  private _isDestroyed(): boolean {
+    return this._destroyed;
   }
 
   // ---------------------------------------------------------------------------
   // Private — keyboard handler
   // ---------------------------------------------------------------------------
 
+  /** Right-click aim toggle (D-G01): arm/disarm the token under the cursor. */
+  private _toggleTarget(e: FederatedPointerEvent): void {
+    const tokenId = this._getTokenIdFromTarget(e.target);
+    if (!tokenId || !this._getToken(tokenId)) return;
+    const alreadyTargeted = getMyTargets().some((t) => t.tokenId === tokenId);
+    // Fire-and-forget: the server is the authority and echoes `token:targeted`.
+    void combatActions.target(this._opts.socket, tokenId, !alreadyTargeted);
+    e.stopPropagation();
+  }
+
   private _handleKeyDown(e: KeyboardEvent): void {
     if (this._destroyed) return;
+
+    // R3 (spec 23 REQ-A11-036, spec 41-token.md REQ-TOK-090/091): this
+    // listener is attached on `window` (constructor, above), so it sees
+    // EVERY keydown in the app, not just ones aimed at the canvas — typing
+    // "dado" in the chat composer with a token selected would otherwise
+    // fire KeyD (duplicate) on every "d", Backspace would delete the token
+    // instead of a character, and the arrow keys would move the token
+    // instead of the text cursor. Bail out before touching drag state,
+    // sending any op, or calling preventDefault when the keystroke is
+    // actually going into a text field/contenteditable — see
+    // isEditableTarget's docstring in token-interaction.ts.
+    if (isEditableTarget(e.target)) return;
 
     // ESC — cancel drag or deselect
     if (e.code === "Escape") {
       if (this._drag.state === "dragging" && this._drag.context) {
         const { tokenId, originalX, originalY } = this._drag.context;
         this._drag = cancelDrag(this._drag);
+        this._opts.onDrag?.(null);
         // Snap token back to original position
         this._opts.tokenLayer.applyLocalMove(tokenId, originalX, originalY);
       } else {
+        // I6: an Esc that closes a dialog/menu, or that another handler
+        // consumed, must not also drop the selection and the aim.
+        if (isEscapeForSomethingElse(e, (globalThis as { document?: Document }).document)) {
+          return;
+        }
         this.deselectAll();
+        // D-G01: Esc also clears THIS user's aim (diffed against the live
+        // selection scoped to the local user, so other users' aims stay).
+        // No-op op-wise when nothing is aimed.
+        void setMyTargets(this._opts.socket, []);
       }
       return;
     }
@@ -563,8 +997,8 @@ export class TokenInteractionManager {
       const token = this._getToken(selectedId);
       if (!token) return;
 
-      const { userId, userRole, ownedActorIds } = this._opts;
-      if (!canMoveToken(token, userId, userRole, ownedActorIds)) return;
+      const { userId, userRole } = this._opts;
+      if (!canMoveToken(token, userId, userRole, this._opts.getOwnedActorIds())) return;
       if (!canStartDrag(this._drag, selectedId)) return;
 
       e.preventDefault(); // prevent scroll
@@ -601,6 +1035,19 @@ export class TokenInteractionManager {
       }
       return;
     }
+
+    // D — duplicate selected token (GM only). TK090/REQ-TOK-090/091, DEC-TOK-14:
+    // two DIFFERENT keys for the two modes, non-drag (REQ-A11-036, spec 23).
+    // Shift+D ("identical") vs. plain D ("raw") — for a LINKED token both
+    // reach the exact same single write inside duplicateSelectedToken, so no
+    // meaningless choice is ever actually offered, even though both keys
+    // exist.
+    if (e.code === "KeyD" && this._opts.userRole >= 3) {
+      if (this._selectedIds.size > 0) {
+        void this.duplicateSelectedToken(e.shiftKey ? "identical" : "raw");
+      }
+      return;
+    }
   }
 
   // ---------------------------------------------------------------------------
@@ -611,6 +1058,13 @@ export class TokenInteractionManager {
     this._selectedIds.clear();
     this._selectedIds.add(tokenId);
     this._updateSelectionVisuals();
+    this._publishSelection();
+  }
+
+  /** BAR-F1-01: hand a COPY of the selection to `onSelectionChange` — never once destroyed. */
+  private _publishSelection(): void {
+    if (this._destroyed) return;
+    this._opts.onSelectionChange?.(new Set(this._selectedIds));
   }
 
   private _updateSelectionVisuals(): void {
@@ -634,6 +1088,38 @@ export class TokenInteractionManager {
   private _getToken(tokenId: string): TokenDocument | undefined {
     const scene = this._opts.mirror.getDoc<SceneDocument>("Scene", this._opts.sceneId);
     return scene?.tokens.find((t) => t._id === tokenId);
+  }
+
+  /**
+   * TK041 (REQ-TOK-012, REQ-TOK-043): the base Actor `footprintOf` derives a
+   * footprint from, for snapping when adding a brand-new token (no
+   * `TokenDocument` exists yet, so there is no delta to apply). `undefined`
+   * when the actor is not (yet) in the mirror — `footprintOf` already treats
+   * that the same as "no size declared" and falls back to 1×1.
+   */
+  private _getActor(actorId: string): FootprintActorInput | undefined {
+    return this._opts.mirror.getDoc<ActorDocument>("Actor", actorId);
+  }
+
+  /**
+   * F187-4 (TK041, REQ-TOK-012/017/043, RNF-TOK-01): the EFFECTIVE actor for
+   * an EXISTING token, used to derive the drag-snap footprint. Unlike
+   * `_getActor`, this applies the token's `actorDelta` through the one
+   * shared function (`resolveEffectiveActor`, `@fusion/shared`) — the same
+   * function `TokenSprite._resolveActor` uses for the sprite's own footprint
+   * and hitArea. Reading the raw base actor here (the bug this fixes) made
+   * an unlinked token's drag-snap footprint disagree with what the sprite
+   * itself drew, whenever the delta changed `system.traits.size`.
+   * `undefined` when the base actor is not (yet) in the mirror.
+   */
+  private _getEffectiveActor(token: TokenDocument): FootprintActorInput | undefined {
+    const baseActor = this._opts.mirror.getDoc<ActorDocument>("Actor", token.actorId);
+    if (!baseActor) return undefined;
+    return resolveEffectiveActor(token, {
+      name: baseActor.name,
+      img: baseActor.img ?? null,
+      system: baseActor.system ?? {},
+    });
   }
 
   private _getTokenIdFromTarget(target: Container | null): string | null {

@@ -35,6 +35,9 @@ import {
 import type { DocumentTable, DocumentStats } from "@fusion/shared";
 import { getDocumentSchema } from "./types.js";
 import { deepMerge, computeDiff } from "./merge.js";
+import { embeddedCollectionKeys, semanticDeltaBytes } from "./write-metrics.js";
+import type { WriteMetricsCollector } from "./write-metrics.js";
+import type { Logger } from "../logger.js";
 
 // ---------------------------------------------------------------------------
 // Error types
@@ -94,6 +97,25 @@ export interface AuthorContext {
   coreVersion?: string;
   systemId?: string | null;
   systemVersion?: string | null;
+}
+
+// ---------------------------------------------------------------------------
+// Composed transactions
+// ---------------------------------------------------------------------------
+
+/**
+ * Scoped write handle passed to `DocumentStore.transaction()`. `update`/
+ * `delete` here write on the ALREADY-OPEN transaction, unlike the store's
+ * public `update`/`delete`, which each open their own.
+ */
+export interface DocumentStoreTransaction {
+  update(
+    table: DocumentTable,
+    id: string,
+    patch: Record<string, unknown>,
+    author?: AuthorContext,
+  ): Record<string, unknown> | null;
+  delete(table: DocumentTable, id: string): string;
 }
 
 // ---------------------------------------------------------------------------
@@ -159,6 +181,64 @@ function validateDocument(
 }
 
 /**
+ * Result of filtering a Scene's `tokens[]` for legacy rows missing a
+ * resolvable `actorId` (REQ-TOK-002).
+ */
+interface LegacyTokenFilterResult {
+  /** The Scene doc, unchanged if nothing was dropped (same reference). */
+  doc: Record<string, unknown>;
+  /** How many tokens were dropped. */
+  droppedCount: number;
+}
+
+/**
+ * Drop tokens with a missing/null/non-string `actorId` from a Scene's
+ * `tokens[]` on READ.
+ *
+ * TokenDocumentSchema has required `actorId` a resolvable string since
+ * TK020/REQ-TOK-002 (no `.nullable()`/`.default()` — parsing a payload that
+ * omits it, or sends `null`, is refused at write time). That refusal only
+ * covers WRITES going through the schema, though — a world whose Scene rows
+ * predate the requirement (or were written by a path that never validated
+ * per-token, like the server's own loosely-typed SceneSchema.tokens:
+ * z.array(z.record(...))) can still hold a token with no `actorId` at all.
+ * Rather than let that raw row reach a caller (and crash whatever tries to
+ * resolve its effective actor downstream, per RNF-TOK-01), the read path
+ * drops it here — a data-cleaning read policy, not a migration: nothing is
+ * rewritten in the database, only what this READ returns is filtered.
+ *
+ * Pure and table-agnostic on purpose: non-Scene tables and Scenes without a
+ * `tokens` array pass through untouched, at no extra cost (same `doc`
+ * reference is returned). Logging (once per scene) is the caller's job —
+ * this function has no state to dedupe against.
+ */
+function filterLegacyTokensWithoutActor(
+  table: DocumentTable,
+  doc: Record<string, unknown>,
+): LegacyTokenFilterResult {
+  if (table !== "scenes") return { doc, droppedCount: 0 };
+  const tokens = doc["tokens"];
+  if (!Array.isArray(tokens)) return { doc, droppedCount: 0 };
+
+  const kept: unknown[] = [];
+  let droppedCount = 0;
+  for (const token of tokens) {
+    const actorId =
+      token !== null && typeof token === "object"
+        ? (token as Record<string, unknown>)["actorId"]
+        : undefined;
+    if (typeof actorId === "string" && actorId.length > 0) {
+      kept.push(token);
+    } else {
+      droppedCount += 1;
+    }
+  }
+
+  if (droppedCount === 0) return { doc, droppedCount: 0 };
+  return { doc: { ...doc, tokens: kept }, droppedCount };
+}
+
+/**
  * Extract the "indexed" columns from a document for the given table.
  * These are written to dedicated columns alongside the JSON data blob.
  */
@@ -179,7 +259,9 @@ function extractColumns(
 
     case "scenes":
       cols["name"] = doc["name"] ?? "";
-      cols["active"] = doc["active"] ? 1 : 0;
+      // No `active` column since migration 008: the active scene lives in
+      // settings['_meta:activeScene'], and the field inside the document is a
+      // mirror the world:activeScene handler maintains (T010).
       cols["navigation"] = doc["navigation"] !== false ? 1 : 0;
       cols["folder_id"] = doc["folder"] ?? null;
       cols["sort"] = doc["sort"] ?? 0;
@@ -281,6 +363,53 @@ export interface DocumentStoreOptions {
   defaultAuthor?: AuthorContext;
   /** Engine version to embed in _stats. */
   coreVersion?: string;
+  /**
+   * Optional write-metrics collector (T016). Left out, every write is
+   * unobserved and costs nothing — which is what the ~15 test call sites that
+   * build a bare `new DocumentStore({ db })` rely on. The live server wires
+   * one per world in SocketManager.registerWorldNamespace.
+   */
+  metrics?: WriteMetricsCollector;
+  /**
+   * Optional structured logger, used only to warn (once per scene) when a
+   * READ finds a legacy token missing `actorId` (REQ-TOK-002 — see
+   * `readAndFilterLegacyTokens`). Left out, the sanitization still runs (a legacy
+   * token never reaches a caller either way); only the warning is skipped —
+   * which is what the many test call sites that build a bare
+   * `new DocumentStore({ db })` rely on.
+   */
+  logger?: Logger;
+}
+
+/**
+ * One write that HAS run its SQL but whose transaction has not committed yet
+ * (T016).
+ *
+ * Metrics are buffered in this shape instead of being reported on the spot
+ * for two reasons, both about the transaction boundary:
+ *
+ *  - a batch rolls the whole transaction back on any failure (REQ-PER-020),
+ *    so a write reported from inside it would be a phantom in the report —
+ *    counted, with row bytes and latency, having never existed in the
+ *    database;
+ *  - reporting is arithmetic over strings and objects, and doing it inside an
+ *    IMMEDIATE transaction puts it under the database-wide write lock, where
+ *    a throw would also roll back a legitimate game write.
+ *
+ * So only the raw material is captured here (no serialisation, no byte
+ * counting); everything else happens in `drainMetrics`, after the commit.
+ */
+interface PendingWrite {
+  op: "create" | "update";
+  table: DocumentTable;
+  patchKeys: readonly string[];
+  /** The row body exactly as written — already serialised for the SQL. */
+  dataJson: string;
+  /** Update only: the row as it was, for the array-element comparison. */
+  existing: Record<string, unknown> | null;
+  /** Update only: the store's minimal diff. */
+  diff: Record<string, unknown> | null;
+  latencyNs: bigint;
 }
 
 /**
@@ -293,11 +422,100 @@ export class DocumentStore {
   private readonly db: Db;
   private readonly coreVersion: string;
   private readonly defaultAuthor: AuthorContext;
+  /**
+   * T016 write instrumentation. It lives on the store — not around the
+   * handlers — because `updateBatch`/`createBatch` call `_updateInTxn`/
+   * `_createInTxn` directly, so anything wrapped around the PUBLIC
+   * `update()`/`create()` is blind to every batched write.
+   */
+  private readonly metrics: WriteMetricsCollector | undefined;
+  /** Writes of the transaction currently open — see PendingWrite. */
+  private readonly pendingMetrics: PendingWrite[] = [];
+  /** REQ-TOK-002 legacy-token read policy — see `readAndFilterLegacyTokens`. */
+  private readonly logger: Logger | undefined;
+  /**
+   * Scene ids already warned about for holding a legacy token without
+   * `actorId`, so the log gets exactly one line per scene per process — not
+   * one per read (a scene can be re-read on every join/snapshot/query).
+   */
+  private readonly warnedLegacyTokenScenes = new Set<string>();
 
   constructor(options: DocumentStoreOptions) {
     this.db = options.db;
     this.coreVersion = options.coreVersion ?? FUSION_VERSION;
     this.defaultAuthor = options.defaultAuthor ?? { userId: null };
+    this.metrics = options.metrics;
+    this.logger = options.logger;
+  }
+
+  /**
+   * Filter legacy tokens without a resolvable `actorId` out of a just-read
+   * document (REQ-TOK-002), warning once per scene when any are dropped.
+   * Called from every read path (`get`, `_query`) so no caller — join
+   * snapshot, world listing, single fetch — can see a token the write path
+   * would now refuse.
+   */
+  private readAndFilterLegacyTokens(
+    table: DocumentTable,
+    doc: Record<string, unknown>,
+  ): Record<string, unknown> {
+    const { doc: filtered, droppedCount } = filterLegacyTokensWithoutActor(table, doc);
+    if (droppedCount === 0) return filtered;
+
+    const sceneId = typeof doc["_id"] === "string" ? doc["_id"] : "(unknown)";
+    if (!this.warnedLegacyTokenScenes.has(sceneId)) {
+      this.warnedLegacyTokenScenes.add(sceneId);
+      this.logger?.warn(
+        { sceneId, droppedCount },
+        "Scene has legacy token(s) without a resolvable actorId (REQ-TOK-002) — dropped on read",
+      );
+    }
+    return filtered;
+  }
+
+  /**
+   * Run `fn` in an IMMEDIATE transaction and report its writes ONLY if that
+   * transaction committed. A rollback leaves the buffer to be discarded.
+   */
+  private inTxn<T>(fn: () => T): T {
+    try {
+      const result = this.db.transaction(fn).immediate();
+      this.drainMetrics();
+      return result;
+    } finally {
+      // Covers the rollback path (and a half-drained buffer): nothing may
+      // survive into the next transaction.
+      this.pendingMetrics.length = 0;
+    }
+  }
+
+  /** Report the committed writes of the transaction that just ended. */
+  private drainMetrics(): void {
+    const metrics = this.metrics;
+    if (metrics === undefined || this.pendingMetrics.length === 0) return;
+
+    try {
+      for (const pending of this.pendingMetrics) {
+        const rowBytes = Buffer.byteLength(pending.dataJson, "utf8");
+        metrics.record({
+          op: pending.op,
+          table: pending.table,
+          patchKeys: pending.patchKeys,
+          rowBytes,
+          // A create's payload IS the whole row, so its amplification is 1 by
+          // construction; only an update has a delta worth narrowing.
+          deltaBytes:
+            pending.existing === null || pending.diff === null
+              ? rowBytes
+              : semanticDeltaBytes(pending.existing, pending.diff),
+          latencyNs: pending.latencyNs,
+        });
+      }
+    } catch {
+      // The write is already committed and its result is already on its way
+      // back to the caller. A diagnostic that fails must not turn a
+      // successful game action into an error the player sees.
+    }
   }
 
   // --------------------------------------------------------------------------
@@ -325,48 +543,19 @@ export class DocumentStore {
 
     const auth = author ?? this.defaultAuthor;
 
-    // Strip client-supplied _stats
-    const cleaned = stripStats(input);
-
-    // Resolve _id
-    let id: string;
-    if (typeof cleaned["_id"] === "string" && cleaned["_id"].length > 0) {
-      if (!isValidDocumentId(cleaned["_id"])) {
-        throw new DocumentValidationError(table, [
-          { path: ["_id"], message: "must be exactly 16 chars from [A-Za-z0-9]" },
-        ]);
-      }
-      id = cleaned["_id"];
-    } else {
-      id = createDocumentId();
-      cleaned["_id"] = id;
-    }
-
-    // Set server-managed _stats
-    cleaned["_stats"] = buildCreateStats(auth);
-
-    // Validate against schema
-    const validated = validateDocument(table, cleaned);
-
-    // Check for id collision
-    const existing = this.db.prepare(`SELECT id FROM ${table} WHERE id = ?`).get(id);
-    if (existing) {
-      throw new DocumentIdCollisionError(table, id);
-    }
-
-    // Extract indexed columns
-    const cols = extractColumns(table, validated);
-    const now = Date.now();
-    const dataJson = JSON.stringify(validated);
-
-    const { sql, params } = buildInsertSql(table, id, dataJson, cols, now);
-
-    // Run inside a transaction
-    this.db.transaction(() => {
-      this.db.prepare(sql).run(...params);
-    })();
-
-    return validated;
+    // The id-collision check, validation and insert all run inside a single
+    // IMMEDIATE transaction (T012): checking-then-writing outside a
+    // transaction is a TOCTOU race under concurrent writers (reproduced with
+    // two better-sqlite3 connections against the same world.db in WAL mode).
+    // IMMEDIATE takes the write lock up front instead of on first write
+    // (better-sqlite3's default is DEFERRED), so a second writer blocks and
+    // retries (busy_timeout) instead of racing past the check.
+    //
+    // NOTE: .immediate() only takes effect when no transaction is already
+    // open on this connection — better-sqlite3 falls back to a SAVEPOINT and
+    // silently ignores the requested mode otherwise. No store method is
+    // currently called from inside another transaction; keep it that way.
+    return this.inTxn(() => this._createInTxn(table, input, auth));
   }
 
   // --------------------------------------------------------------------------
@@ -378,6 +567,42 @@ export class DocumentStore {
    * Throws DocumentNotFoundError when not found.
    */
   get(table: DocumentTable, id: string): Record<string, unknown> {
+    if (!DOCUMENT_TABLES.has(table)) {
+      throw new Error(`Unknown document table: "${table}"`);
+    }
+
+    const row = this.db.prepare(`SELECT data FROM ${table} WHERE id = ?`).get(id) as
+      | { data: string }
+      | undefined;
+
+    if (!row) throw new DocumentNotFoundError(table, id);
+    const doc = JSON.parse(row.data) as Record<string, unknown>;
+    return this.readAndFilterLegacyTokens(table, doc);
+  }
+
+  /**
+   * Retrieve a single document by id WITHOUT the legacy-token read filter
+   * (REQ-TOK-002) — otherwise identical to `get()`.
+   *
+   * For internal, read-modify-write reconstruction ONLY. The one legitimate
+   * reason to bypass the filter is rebuilding an embedded collection (e.g.
+   * Scene.tokens) before a write that replaces that array in full
+   * (REQ-DOC-037): a caller that instead reconstructs from the FILTERED
+   * `get()` — as handleEmbeddedCreate/Update/Delete and the token:move
+   * handler do — permanently drops, from the ROW ITSELF, every legacy token
+   * it never even saw to intentionally remove (a bug: `filterLegacyTokens
+   * WithoutActor` is documented as a read-only policy, "nothing is rewritten
+   * in the database", but a full-array-replace `update()` built on its
+   * output rewrites exactly that).
+   *
+   * The document this returns must NEVER reach a socket as-is — a legacy
+   * token missing `actorId` is exactly what crashes a client trying to
+   * resolve its effective actor (RNF-TOK-01). Every caller of `getRaw` is
+   * responsible for re-reading the affected document through `get()` (which
+   * re-applies the filter, warns, and is exercised by the existing REQ-TOK-002
+   * test suite) before using it in a broadcast payload or an ack result.
+   */
+  getRaw(table: DocumentTable, id: string): Record<string, unknown> {
     if (!DOCUMENT_TABLES.has(table)) {
       throw new Error(`Unknown document table: "${table}"`);
     }
@@ -441,34 +666,48 @@ export class DocumentStore {
     const orderCol = options?.orderBy ?? "sort";
     // Validate orderBy to prevent injection
     const safeOrder = ["sort", "name", "updated_at"].includes(orderCol) ? orderCol : "sort";
-    const limitClause = options?.limit != null ? `LIMIT ${String(options.limit)}` : "";
 
     // Not all tables have all columns — use conditional ORDER BY
     const hasOrderCol = this._tableHasColumn(table, safeOrder);
     const orderClause = hasOrderCol ? `ORDER BY ${safeOrder}` : "";
-    const sql = `SELECT data FROM ${table} ${where} ${orderClause} ${limitClause}`.trim();
 
-    const rows = this.db.prepare(sql).all(...params) as Array<{ data: string }>;
-    return rows.map((r) => JSON.parse(r.data) as Record<string, unknown>);
+    // LIMIT is bound as a parameter (T014) rather than interpolated into the
+    // SQL string — SQLite accepts a bound parameter in LIMIT the same as
+    // anywhere else, so there is no reason to format it by hand.
+    const limitClause = options?.limit != null ? "LIMIT ?" : "";
+    const sql = `SELECT data FROM ${table} ${where} ${orderClause} ${limitClause}`.trim();
+    const allParams = options?.limit != null ? [...params, options.limit] : params;
+
+    const rows = this.db.prepare(sql).all(...allParams) as Array<{ data: string }>;
+    return rows.map((r) =>
+      this.readAndFilterLegacyTokens(table, JSON.parse(r.data) as Record<string, unknown>),
+    );
   }
 
-  /** Check whether a table has a given extracted column (approximation). */
+  /** PRAGMA table_info(<table>) results, cached per table on first use (T015). */
+  private readonly columnCache = new Map<string, Set<string>>();
+
+  /**
+   * Check whether a table has a given column.
+   *
+   * Derived from PRAGMA table_info instead of a hand-maintained list (T015):
+   * a migration that adds or drops a column used to also need a matching
+   * edit here, and the two silently drifted apart (confirmed against a
+   * migrated database — the `users` table gained password_hash/color/avatar/
+   * active/preferences across migrations 002/006, none of which were ever
+   * added to the old list). Cached per table since the connection lives for
+   * the whole process and the schema does not change underneath it after
+   * boot. A table PRAGMA finds nothing for (e.g. a typo) simply yields an
+   * empty set rather than throwing.
+   */
   private _tableHasColumn(table: DocumentTable, col: string): boolean {
-    const tableColumns: Record<DocumentTable, string[]> = {
-      actors: ["name", "type", "folder_id", "sort", "created_at", "updated_at"],
-      items: ["name", "type", "folder_id", "sort", "created_at", "updated_at"],
-      scenes: ["name", "active", "navigation", "folder_id", "sort", "created_at", "updated_at"],
-      journal_entries: ["name", "folder_id", "sort", "created_at", "updated_at"],
-      macros: ["name", "type", "folder_id", "sort", "created_at", "updated_at"],
-      roll_tables: ["name", "folder_id", "sort", "created_at", "updated_at"],
-      playlists: ["name", "folder_id", "sort", "created_at", "updated_at"],
-      chat_messages: ["timestamp", "author_id", "created_at", "updated_at"],
-      combats: ["scene_id", "active", "created_at", "updated_at"],
-      users: ["name", "role", "created_at", "updated_at"],
-      folders: ["name", "type", "parent_id", "sort", "created_at", "updated_at"],
-      settings: ["created_at", "updated_at"],
-    };
-    return tableColumns[table].includes(col);
+    let cols = this.columnCache.get(table);
+    if (!cols) {
+      const rows = this.db.pragma(`table_info(${table})`) as Array<{ name: string }>;
+      cols = new Set(rows.map((r) => r.name));
+      this.columnCache.set(table, cols);
+    }
+    return cols.has(col);
   }
 
   // --------------------------------------------------------------------------
@@ -500,51 +739,13 @@ export class DocumentStore {
 
     const auth = author ?? this.defaultAuthor;
 
-    // Load existing document
-    const existing = this.get(table, id);
-
-    // Strip _stats and _id from patch (server-managed / immutable)
-    const { _stats: _ignoredStats, _id: _ignoredId, ...cleanPatch } = patch;
-    void _ignoredStats;
-    void _ignoredId;
-
-    // Apply deep merge
-    const merged = deepMerge(existing, cleanPatch);
-
-    // Restore the server-managed fields
-    const existingStats = existing["_stats"] as DocumentStats;
-    const newStats = buildUpdateStats(existingStats, auth);
-    merged["_id"] = id;
-    merged["_stats"] = newStats;
-
-    // Compute diff (compare merged data without _stats and _id, which always change)
-    const { _stats: _s1, _id: _i1, ...existingData } = existing;
-    const { _stats: _s2, _id: _i2, ...mergedData } = merged;
-    void _s1;
-    void _i1;
-    void _s2;
-    void _i2;
-
-    const diff = computeDiff(existingData, mergedData);
-
-    // No-op: no actual data changes
-    if (diff === null) return null;
-
-    // Validate the merged result
-    const validated = validateDocument(table, merged);
-
-    // Persist
-    const cols = extractColumns(table, validated);
-    const now = Date.now();
-    const dataJson = JSON.stringify(validated);
-
-    const { sql, params } = buildUpdateSql(table, id, dataJson, cols, now);
-
-    this.db.transaction(() => {
-      this.db.prepare(sql).run(...params);
-    })();
-
-    return validated;
+    // Load, merge, diff and write all run inside a single IMMEDIATE
+    // transaction (T012) — see create()'s comment for why. Reading `existing`
+    // outside the transaction (the previous shape) let a concurrent writer's
+    // change land between the read and the write and get silently overwritten
+    // (lost update) — reproduced with two connections against the same
+    // world.db.
+    return this.inTxn(() => this._updateInTxn(table, id, patch, auth));
   }
 
   // --------------------------------------------------------------------------
@@ -562,16 +763,58 @@ export class DocumentStore {
       throw new Error(`Unknown document table: "${table}"`);
     }
 
-    // Verify existence
-    const exists = this.db.prepare(`SELECT id FROM ${table} WHERE id = ?`).get(id);
+    // Existence check and delete run inside a single IMMEDIATE transaction
+    // (T012) — see create()'s comment for why.
+    return this.db
+      .transaction(() => {
+        const exists = this.db.prepare(`SELECT id FROM ${table} WHERE id = ?`).get(id);
+        if (!exists) throw new DocumentNotFoundError(table, id);
+        this.db.prepare(`DELETE FROM ${table} WHERE id = ?`).run(id);
+        return id;
+      })
+      .immediate();
+  }
 
-    if (!exists) throw new DocumentNotFoundError(table, id);
+  // --------------------------------------------------------------------------
+  // COMPOSED transactions
+  // --------------------------------------------------------------------------
 
-    this.db.transaction(() => {
-      this.db.prepare(`DELETE FROM ${table} WHERE id = ?`).run(id);
-    })();
-
-    return id;
+  /**
+   * Run a sequence of writes — across one or several tables — inside a
+   * single IMMEDIATE transaction, for composed operations whose steps must
+   * commit or roll back together. `folder:delete` is the motivating case
+   * (REQ-NPC-022): subfolders lift, documents release, and only then does the
+   * folder row go — three writes that used to run as three separate
+   * transactions, so a `DocumentValidationError` on the second step (e.g. a
+   * legacy row a prior pack/migration wrote that no longer matches the
+   * current schema) left the first step's writes committed with no broadcast
+   * to tell any client — server and clients diverging in silence until the
+   * next resync.
+   *
+   * `fn`'s handle writes on THIS already-open transaction (unlike the public
+   * `update`/`delete`, which each open their own — see the NOTE on
+   * `create()` about why no store method used to be called from inside
+   * another transaction; reads such as `get`/`getAll`/`query` remain safe to
+   * call from inside `fn` since they never open a transaction of their own).
+   * Any throw inside `fn` — including `DocumentValidationError` and
+   * `DocumentNotFoundError` — rolls back every write made so far in this
+   * call, and propagates to the caller.
+   */
+  transaction<T>(fn: (txn: DocumentStoreTransaction) => T): T {
+    const txn: DocumentStoreTransaction = {
+      update: (table, id, patch, author) =>
+        this._updateInTxn(table, id, patch, author ?? this.defaultAuthor),
+      delete: (table, id) => {
+        if (!DOCUMENT_TABLES.has(table)) {
+          throw new Error(`Unknown document table: "${table}"`);
+        }
+        const exists = this.db.prepare(`SELECT id FROM ${table} WHERE id = ?`).get(id);
+        if (!exists) throw new DocumentNotFoundError(table, id);
+        this.db.prepare(`DELETE FROM ${table} WHERE id = ?`).run(id);
+        return id;
+      },
+    };
+    return this.db.transaction(() => fn(txn)).immediate();
   }
 
   // --------------------------------------------------------------------------
@@ -594,12 +837,16 @@ export class DocumentStore {
     const auth = author ?? this.defaultAuthor;
     const results: Record<string, unknown>[] = [];
 
-    this.db.transaction(() => {
+    // IMMEDIATE (T012): a DEFERRED transaction that reads-then-writes each
+    // item under concurrency can hit SQLITE_BUSY_SNAPSHOT, which busy_timeout
+    // does NOT retry — the whole batch fails instantly instead of waiting for
+    // the lock (reproduced with two connections against the same world.db).
+    this.inTxn(() => {
       for (const input of inputs) {
         const result = this._createInTxn(table, input, auth);
         results.push(result);
       }
-    })();
+    });
 
     return results;
   }
@@ -620,13 +867,14 @@ export class DocumentStore {
     const auth = author ?? this.defaultAuthor;
     const results: Array<Record<string, unknown> | null> = [];
 
-    this.db.transaction(() => {
+    // IMMEDIATE (T012) — see createBatch's comment for why.
+    this.inTxn(() => {
       for (const patch of patches) {
         const { _id, ...rest } = patch;
         const result = this._updateInTxn(table, _id, rest, auth);
         results.push(result);
       }
-    })();
+    });
 
     return results;
   }
@@ -640,13 +888,16 @@ export class DocumentStore {
       throw new Error(`Unknown document table: "${table}"`);
     }
 
-    this.db.transaction(() => {
-      for (const id of ids) {
-        const exists = this.db.prepare(`SELECT id FROM ${table} WHERE id = ?`).get(id);
-        if (!exists) throw new DocumentNotFoundError(table, id);
-        this.db.prepare(`DELETE FROM ${table} WHERE id = ?`).run(id);
-      }
-    })();
+    // IMMEDIATE (T012) — see createBatch's comment for why.
+    this.db
+      .transaction(() => {
+        for (const id of ids) {
+          const exists = this.db.prepare(`SELECT id FROM ${table} WHERE id = ?`).get(id);
+          if (!exists) throw new DocumentNotFoundError(table, id);
+          this.db.prepare(`DELETE FROM ${table} WHERE id = ?`).run(id);
+        }
+      })
+      .immediate();
 
     return ids;
   }
@@ -686,7 +937,25 @@ export class DocumentStore {
     const now = Date.now();
     const dataJson = JSON.stringify(validated);
     const { sql, params } = buildInsertSql(table, id, dataJson, cols, now);
+
+    // T016: time the SQL statement itself; everything else about the write is
+    // buffered and measured after the commit (see PendingWrite). `dataJson`
+    // is reused rather than re-serialised, so nothing is stringified twice.
+    // With no collector wired the whole block costs one boolean check.
+    const startNs = this.metrics === undefined ? 0n : process.hrtime.bigint();
     this.db.prepare(sql).run(...params);
+    if (this.metrics !== undefined) {
+      const endNs = process.hrtime.bigint();
+      this.pendingMetrics.push({
+        op: "create",
+        table,
+        patchKeys: embeddedCollectionKeys(validated),
+        dataJson,
+        existing: null,
+        diff: null,
+        latencyNs: endNs - startNs,
+      });
+    }
 
     return validated;
   }
@@ -729,7 +998,33 @@ export class DocumentStore {
     const now = Date.now();
     const dataJson = JSON.stringify(validated);
     const { sql, params } = buildUpdateSql(table, id, dataJson, cols, now);
+
+    // T016: instrumented HERE, after the no-op early return above (a patch
+    // that changes nothing writes nothing and must count as nothing) and
+    // after `dataJson` exists, so the bytes actually written are measured
+    // rather than re-serialised. `rowBytes` is the whole row SQLite rewrites;
+    // the delta it is compared against is computed from `existingData`+`diff`
+    // after the commit — NOT from `cleanPatch`, which for every embedded
+    // collection is the entire array resent (see write-metrics.ts).
+    //
+    // The attribution keys come from the diff, not from the patch: a handler
+    // that resends `{ tokens, walls }` with only the walls changed is wall
+    // pressure, and crediting `tokens` would blur the very split the report
+    // exists to show.
+    const startNs = this.metrics === undefined ? 0n : process.hrtime.bigint();
     this.db.prepare(sql).run(...params);
+    if (this.metrics !== undefined) {
+      const endNs = process.hrtime.bigint();
+      this.pendingMetrics.push({
+        op: "update",
+        table,
+        patchKeys: Object.keys(diff),
+        dataJson,
+        existing: existingData,
+        diff,
+        latencyNs: endNs - startNs,
+      });
+    }
 
     return validated;
   }

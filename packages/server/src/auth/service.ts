@@ -25,7 +25,8 @@ import {
   hashRefreshToken,
   generateRandomPassword,
 } from "./crypto.js";
-import { createDocumentId } from "@fusion/shared";
+import { createDocumentId, OwnershipLevel } from "@fusion/shared";
+import { DocumentStore } from "../documents/store.js";
 
 // ---------------------------------------------------------------------------
 // Error types
@@ -74,6 +75,7 @@ export class AuthService {
   private readonly users: UserStore;
   private readonly sessions: SessionStore;
   private readonly lockouts: LockoutStore;
+  private readonly documents: DocumentStore;
 
   constructor(
     private readonly db: Db,
@@ -83,6 +85,7 @@ export class AuthService {
     this.users = new UserStore(db);
     this.sessions = new SessionStore(db);
     this.lockouts = new LockoutStore(db);
+    this.documents = new DocumentStore({ db });
   }
 
   // --------------------------------------------------------------------------
@@ -259,14 +262,31 @@ export class AuthService {
 
   /**
    * Create a new user. REQ-USR-025
-   * Returns the created user and, if a password was generated, that password.
+   *
+   * REQ-USR-025/025a: creating a user of a non-privileged role (PLAYER or
+   * TRUSTED, DEC-USR-01) also creates a blank `character` Actor in the same
+   * gesture, with `ownership.default = none` and the new user as `OWNER`.
+   * Privileged roles (ASSISTANT, GAMEMASTER) get no Actor.
+   *
+   * REQ-USR-025c: the user row and the Actor are a single atomic gesture —
+   * both writes run inside one SQLite transaction, so an Actor-creation
+   * failure (e.g. validation) rolls back the user insert too and no user of
+   * a non-privileged role is ever left without its Actor.
+   *
+   * Returns the created user, the blank character that was born with it (`undefined` for the
+   * roles that get none) so the caller can announce it to the connected clients (#254), and, if a
+   * password was generated, that password.
    */
   async createUser(params: {
     name: string;
     role: Role;
     color?: string;
     password?: string;
-  }): Promise<{ user: UserPublic; generatedPassword?: string }> {
+  }): Promise<{
+    user: UserPublic;
+    character?: Record<string, unknown>;
+    generatedPassword?: string;
+  }> {
     // Unique name check
     const existing = this.users.findByName(params.name);
     if (existing) {
@@ -284,9 +304,43 @@ export class AuthService {
       passwordHash,
     };
     if (params.color !== undefined) createOpts.color = params.color;
-    const record = this.users.create(createOpts);
 
-    return { user: toPublic(record) };
+    let character: Record<string, unknown> | undefined;
+    const record = this.db.transaction(() => {
+      const created = this.users.create(createOpts);
+
+      // DEC-USR-01: only PLAYER and TRUSTED are non-privileged; ASSISTANT and
+      // GAMEMASTER get no character (REQ-USR-025, last paragraph).
+      if (created.role === Role.PLAYER || created.role === Role.TRUSTED) {
+        character = this.documents.create(
+          "actors",
+          {
+            // REQ-USR-025b: name derived from the user's own name; subtype
+            // "character"; no game-system fields filled in ("em branco").
+            name: created.name,
+            type: "character",
+            // REQ-USR-025a: default=none, the new user is the sole OWNER —
+            // an explicit exception to the GM-creator-becomes-OWNER default
+            // (REQ-DOC-029), because the intended owner is the new user, not
+            // the GM performing the creation.
+            ownership: {
+              default: OwnershipLevel.NONE,
+              [created.id]: OwnershipLevel.OWNER,
+            },
+            // Server-side link from the character back to the user it was
+            // created for, so later administration (e.g. REQ-NPC-055) can
+            // resolve "whose character is this" without guessing from
+            // ownership alone.
+            flags: { fusion: { playerId: created.id } },
+          },
+          { userId: null },
+        );
+      }
+
+      return created;
+    })();
+
+    return character ? { user: toPublic(record), character } : { user: toPublic(record) };
   }
 
   /**
@@ -362,6 +416,62 @@ export class AuthService {
     this.sessions.revokeAllForUser(id);
 
     return { password: returnPassword };
+  }
+
+  /**
+   * Change the caller's OWN password. REQ-USR-040..042, REQ-CFG-090.
+   *
+   * - A user that has a password must prove the current one (Argon2id). A missing or wrong one fails with the
+   *   same uniform INVALID_CREDENTIALS as a login, and counts against the same (user, ip) lockout, so a stolen
+   *   access token cannot be used to guess the password (REQ-SEC-011/012).
+   * - A user with no password (`password_hash` null) defines one without a current password.
+   * - Every OTHER session of the user is revoked; the one holding `currentRefreshToken` survives. When that
+   *   token is absent or is not an active session of this very user, the current session cannot be told apart
+   *   from the others, so all of them end (the safe side).
+   */
+  async changeOwnPassword(params: {
+    userId: string;
+    currentPassword?: string;
+    newPassword: string;
+    ip: string;
+    currentRefreshToken?: string;
+  }): Promise<void> {
+    const { userId, currentPassword, newPassword, ip, currentRefreshToken } = params;
+
+    const lockoutUntil = this.lockouts.checkLockout({ userId, ip });
+    if (lockoutUntil !== null) {
+      throw new AuthError(
+        "LOCKED_OUT",
+        "Too many failed attempts. Please try again later.",
+        lockoutUntil,
+      );
+    }
+
+    const user = this.users.findById(userId);
+    if (!user?.active) throw new AuthError("USER_NOT_FOUND", "User not found.");
+
+    if (user.password_hash !== null) {
+      const valid =
+        currentPassword !== undefined &&
+        currentPassword.length > 0 &&
+        (await verifyPassword(currentPassword, user.password_hash));
+      if (!valid) {
+        this.lockouts.record({ userId, ip, success: false });
+        throw new AuthError("INVALID_CREDENTIALS", "Invalid credentials.");
+      }
+    }
+
+    this.users.updatePasswordHash(userId, await hashPassword(newPassword));
+    this.lockouts.clearFailures({ userId, ip });
+
+    const current = currentRefreshToken
+      ? this.sessions.findByTokenHash(hashRefreshToken(currentRefreshToken))
+      : null;
+    if (current && current.user_id === userId && this.sessions.isValid(current)) {
+      this.sessions.revokeAllForUserExceptFamily(userId, current.family_id);
+    } else {
+      this.sessions.revokeAllForUser(userId);
+    }
   }
 
   /**

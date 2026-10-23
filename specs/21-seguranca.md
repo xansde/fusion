@@ -89,7 +89,7 @@ incorporadas.
 | **Ator de ameaça**         | Entidade que pode tentar comprometer o sistema: jogador malicioso/curioso, atacante de rede, conteúdo importado malicioso, site de terceiros (cross-site).                     |
 | **Superfície de ataque**   | Ponto de entrada exposto: endpoint HTTP/REST, conexão WebSocket, upload de arquivo, pack importado, macro de script, enricher de texto.                                        |
 | **Defesa em profundidade** | Aplicar controles redundantes em camadas (ex.: sanitizar no servidor _e_ no cliente) para que a falha de um não comprometa o sistema.                                          |
-| **Servidor autoritativo**  | O processo Node.js do GM é o único árbitro de mutações canônicas; clientes nunca são confiados. Princípio herdado de `04-rede-e-sincronizacao.md` (D3).                        |
+| **Servidor autoritativo**  | O processo Node.js do GM é o único árbitro de mutações canônicas; clientes nunca são confiados. Princípio herdado de `04-rede-e-sincronizacao.md` (DEC-NET-03).                |
 | **AuthZ por operação**     | Toda operação privilegiada revalida permissão no servidor, no momento da execução — nunca se confia em verificação prévia do cliente nem em "o cliente não mostra o botão".    |
 | **Argon2id**               | Função de hashing de senha memory-hard, recomendação OWASP/NIST 2026. Parâmetros mínimos: `memory=65536 KiB`, `iterations=3`, `parallelism=4`.                                 |
 | **CSWSH**                  | _Cross-Site WebSocket Hijacking_ — um site malicioso abre WS para o Fusion usando cookies da vítima; mitigado por validação de `Origin` + token explícito + `SameSite=Strict`. |
@@ -127,7 +127,7 @@ schema Zod e revalidação).
   cliente modificado emite a op diretamente. Rejeitado.
 
 **Racional:** Concentra toda a lógica de segurança em um único lugar testável (o servidor) e alinha
-com a autoridade total decidida em `04-rede-e-sincronizacao.md` (D3) e o modelo do Foundry (research §3).
+com a autoridade total decidida em `04-rede-e-sincronizacao.md` (DEC-NET-03) e o modelo do Foundry (research §3).
 
 ---
 
@@ -408,9 +408,44 @@ Function()` (`ver 08-motor-de-rolagens.md`; DEC-SEC-03).
   | `worlds/<id>/world.db` e `data/` | Apenas o servidor (nunca upload direto)     | Dados estruturados        |
   | `config/`                        | Apenas CLI/processo local                   | Nunca exposto via HTTP    |
 
+  > **Emenda (2026-10-11, BAR-F3-05, obrigada por `specs/53-barra-de-acoes.md` §12, DEC-BAR-03):**
+  > a tabela ganha uma **área reservada de ícones**, `worlds/<id>/assets/actionbar-icons/`, a única
+  > exceção à segregação acima. Nela **só o servidor escreve**, e só pelo envio de ícone da barra de
+  > ações (`POST /api/assets/upload?purpose=icon`): o pedido declara a finalidade "ícone"
+  > (REQ-BAR-103), o servidor decide o destino e o nome do arquivo, e o cliente **não escolhe pasta
+  > nem caminho** (REQ-BAR-076, REQ-AST-031). O jogador **não ganha diretório de escrita**: ganha um
+  > envio de imagem cujo destino é fixo. Valem para ele, como para todos, a validação por magic bytes
+  > (REQ-SEC-041), a renomeação (REQ-SEC-040), a sanitização de SVG (REQ-SEC-035) e o confinamento do
+  > path (REQ-SEC-042); o envio de ícone aceita **só imagem**. O arquivo nessa área é, por estar
+  > nela, um envio **marcado como ícone** (REQ-BAR-078): nenhuma rota de cliente move, copia ou
+  > remarca para lá um asset que já existe. A área é a **galeria compartilhada**
+  > (`GET /api/assets/icons`, REQ-BAR-079/080): todo jogador lista os arquivos dela e recebe o grant
+  > de leitura de cada um; mapas, retratos e handouts, fora dela, seguem fora da lista do jogador.
+  > Apagar segue só do GM (REQ-AST-029, REQ-BAR-081; `DELETE /api/assets/icons/:name`). O envio
+  > deduplicado de ícone compara só com a própria área, e só reaproveita um arquivo com os mesmos
+  > bytes (SHA-256 inteiro), de modo que a resposta nunca revela um arquivo que a galeria esconde
+  > (Q-BAR-05) e nenhum envio grava por cima de outro arquivo. **Tudo o que está nessa área é
+  > visível a todo jogador**: o envio de ícone do próprio Mestre entra na galeria com o nome do
+  > arquivo que ele mandou, e um arquivo que o Mestre largue ali à mão também — a área não é lugar
+  > de segredo. Risco residual aceito: a listagem da galeria não é paginada, e o custo dela cresce
+  > com o número de ícones, que não tem cota.
+
+  | Diretório                             | Quem pode escrever                                      | Notas                                  |
+  | ------------------------------------- | ------------------------------------------------------- | -------------------------------------- |
+  | `worlds/<id>/assets/actionbar-icons/` | Apenas o servidor, pelo envio de ícone (qualquer papel) | Galeria de ícones; só imagem; GM apaga |
+
 - **REQ-SEC-044** [MVP] O upload DEVE respeitar **limites de tamanho por categoria** (imagem 10 MB,
   áudio 50 MB, vídeo 200 MB) e **quota por usuário** configurável; exceder retorna erro sem gravar
   (research §5.2 Regra 5; `ver 20-assets-e-midia.md`).
+
+  > **Emenda (2026-10-11, BAR-F3-05, obrigada por `specs/53-barra-de-acoes.md` §12, DEC-BAR-03):**
+  > a **quota por usuário não se aplica ao envio de ícone** da barra de ações (REQ-BAR-077), por
+  > decisão do Alexandre ("Não vamos limitar o upload dos jogadores"). O **limite de tamanho por
+  > arquivo continua valendo igual** para esse envio (REQ-AST-008, REQ-BAR-075). Hoje o servidor não
+  > implementa quota por usuário para nenhum envio; quando implementar, o envio de ícone fica de fora
+  > dela. Risco residual aceito: sem quota, um jogador pode encher o disco do GM com envios de ícone
+  > (cada um limitado ao tamanho por arquivo); o GM apaga da galeria.
+
 - **REQ-SEC-045** [MVP] O servidor NÃO DEVE expor via HTTP nenhum caminho fora dos diretórios de
   assets/cliente explicitamente servidos; o diretório `config/` e os `*.db` dos mundos NÃO DEVEM ser
   alcançáveis por requisição estática.

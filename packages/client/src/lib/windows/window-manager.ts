@@ -43,6 +43,21 @@ export interface WindowGeometry {
   height: number;
 }
 
+/**
+ * A text button the window chrome draws in the title bar, next to minimize and
+ * close. The extension point for "open something related to this window's
+ * subject" (e.g. a character sheet's Avatar creator) without the sheet — a
+ * system-owned component — having to know about the feature.
+ */
+export interface WindowHeaderAction {
+  id: string;
+  label: string;
+  /** A glyph of the shared icon set (`@fusion/shared` `IconName`) drawn before the label. */
+  icon?: string;
+  title?: string;
+  onclick: () => void;
+}
+
 export interface WindowEntry {
   readonly id: WindowId;
   /** Singleton key — if set, only one window per key is allowed (REQ-UIF-014). */
@@ -68,6 +83,18 @@ export interface WindowEntry {
   component?: any;
   /** Props forwarded to the dynamic component. */
   componentProps?: Record<string, unknown>;
+  /** Extra title-bar buttons (see {@link WindowHeaderAction}). */
+  headerActions?: readonly WindowHeaderAction[];
+  /** The window may be detached into its own browser window (title-bar pop-out button). */
+  poppable: boolean;
+  /**
+   * The window currently lives in its own browser window: WindowHost draws no floating
+   * shell for it and mounts its content in the detached document instead. Never persisted —
+   * a reopened window always starts inside the table.
+   */
+  poppedOut: boolean;
+  /** A short message the chrome shows under the title bar (e.g. "pop-up blocked"). */
+  notice?: string;
 }
 
 export interface WindowOpenOptions {
@@ -89,6 +116,10 @@ export interface WindowOpenOptions {
   component?: any;
   /** Props forwarded to the dynamic component. */
   componentProps?: Record<string, unknown>;
+  /** Extra title-bar buttons (see {@link WindowHeaderAction}). */
+  headerActions?: readonly WindowHeaderAction[];
+  /** Offer the pop-out button (detach into a separate browser window). Default false. */
+  poppable?: boolean;
 }
 
 export interface WindowHandle {
@@ -117,6 +148,8 @@ const DEFAULT_MIN_HEIGHT = 100;
 const CASCADE_OFFSET = 30; // px shift per cascade step
 const CASCADE_MAX_STEPS = 12;
 const KEEP_IN_VIEWPORT_MARGIN = 40; // px of header that must remain visible
+/** Below this width (a phone, a small tablet in portrait) a window must sit fully on screen. */
+export const NARROW_VIEWPORT_PX = 768;
 
 // ---------------------------------------------------------------------------
 // Persistence helpers (localStorage — UI geometry only, DEC-UIF-10)
@@ -159,10 +192,55 @@ function persistGeometry(key: string, geo: PersistedGeometry): void {
 // Clamp helpers
 // ---------------------------------------------------------------------------
 
+/** True when the screen is too small to let a window hang over its edge. */
+export function isNarrowViewport(viewport: ViewportSize): boolean {
+  return viewport.width < NARROW_VIEWPORT_PX;
+}
+
 /**
- * Clamp a window's position so that at least `margin` px of its header
- * (top edge) remains within the viewport. Width/height are clamped to fit
- * within the viewport too, respecting minimum sizes.
+ * Size a window may have in a viewport. The SCREEN comes before the window's own
+ * minimum: a sheet whose minimum is wider than a phone is shrunk to the phone, not
+ * allowed to spill past the edge.
+ */
+function fitSize(
+  geo: WindowGeometry,
+  viewport: ViewportSize,
+  minWidth: number,
+  minHeight: number,
+): { width: number; height: number } {
+  return {
+    width: Math.min(viewport.width, Math.max(minWidth, geo.width)),
+    height: Math.min(viewport.height, Math.max(minHeight, geo.height)),
+  };
+}
+
+/**
+ * Put a window FULLY inside the viewport: size capped to the screen, position held
+ * so that no edge leaves it. Used wherever a window appears (open, saved geometry
+ * from a bigger screen) and, on a narrow screen, for every move and resize.
+ */
+export function fitInViewport(
+  geo: WindowGeometry,
+  viewport: ViewportSize,
+  minWidth = DEFAULT_MIN_WIDTH,
+  minHeight = DEFAULT_MIN_HEIGHT,
+): WindowGeometry {
+  const { width, height } = fitSize(geo, viewport, minWidth, minHeight);
+  return {
+    width,
+    height,
+    left: Math.max(0, Math.min(geo.left, viewport.width - width)),
+    top: Math.max(0, Math.min(geo.top, viewport.height - height)),
+  };
+}
+
+/**
+ * Clamp a window's geometry to the viewport.
+ *
+ * Wide screen: at least `margin` px of the window stay visible, so it may hang over
+ * the left/right/bottom edge while dragged. Narrow screen (phone): the window is
+ * held fully inside, there is no room to hang. In both, the size never exceeds the
+ * screen, even when the window's own minimum is larger.
  */
 export function clampToViewport(
   geo: WindowGeometry,
@@ -171,8 +249,9 @@ export function clampToViewport(
   minWidth = DEFAULT_MIN_WIDTH,
   minHeight = DEFAULT_MIN_HEIGHT,
 ): WindowGeometry {
-  const w = Math.max(minWidth, Math.min(geo.width, viewport.width));
-  const h = Math.max(minHeight, Math.min(geo.height, viewport.height));
+  if (isNarrowViewport(viewport)) return fitInViewport(geo, viewport, minWidth, minHeight);
+
+  const { width: w, height: h } = fitSize(geo, viewport, minWidth, minHeight);
 
   // left: must not push the entire window past the right edge
   const left = Math.max(-(w - margin), Math.min(geo.left, viewport.width - margin));
@@ -290,11 +369,10 @@ export class WindowManager {
       geo = cascadePosition(this.windows, this.viewport);
     }
 
-    // Clamp in case saved position is off-screen on a different viewport
-    geo = clampToViewport(
+    // A window is BORN fully on screen (saved geometry may come from a bigger screen).
+    geo = fitInViewport(
       geo,
       this.viewport,
-      KEEP_IN_VIEWPORT_MARGIN,
       opts.minWidth ?? DEFAULT_MIN_WIDTH,
       opts.minHeight ?? DEFAULT_MIN_HEIGHT,
     );
@@ -316,9 +394,12 @@ export class WindowManager {
       height: geo.height,
       minimized: saved?.minimized ?? false,
       zIndex: this._highestZ,
+      poppable: opts.poppable ?? false,
+      poppedOut: false,
       // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
       ...(opts.component !== undefined ? { component: opts.component } : {}),
       ...(opts.componentProps !== undefined ? { componentProps: opts.componentProps } : {}),
+      ...(opts.headerActions !== undefined ? { headerActions: opts.headerActions } : {}),
     };
 
     this.windows.set(id, entry);
@@ -361,6 +442,34 @@ export class WindowManager {
     this.windows.set(id, updated);
     this._persist(updated);
     this.focus(id);
+  }
+
+  // -------------------------------------------------------------------------
+  // pop-out (detached browser window) — the DOM side lives in popout.ts
+  // -------------------------------------------------------------------------
+
+  /** Mark a poppable window as living in its own browser window. */
+  popOut(id: WindowId): void {
+    const entry = this.windows.get(id);
+    if (!entry || !entry.poppable) return;
+    const { notice: _notice, ...rest } = entry;
+    this.windows.set(id, { ...rest, poppedOut: true, minimized: false });
+  }
+
+  /** Bring a detached window back inside the table. */
+  popIn(id: WindowId): void {
+    const entry = this.windows.get(id);
+    if (!entry || !entry.poppedOut) return;
+    this.windows.set(id, { ...entry, poppedOut: false });
+    this.focus(id);
+  }
+
+  /** Show (or, with `undefined`, clear) a short message in the window chrome. */
+  setNotice(id: WindowId, notice: string | undefined): void {
+    const entry = this.windows.get(id);
+    if (!entry) return;
+    const { notice: _old, ...rest } = entry;
+    this.windows.set(id, notice === undefined ? rest : { ...rest, notice });
   }
 
   // -------------------------------------------------------------------------

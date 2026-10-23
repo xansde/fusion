@@ -13,7 +13,7 @@
  *   1. Resolve the DeriveSteps registered for (documentType="Actor", subtype)
  *      from `SystemModule.deriveSteps`. If none are registered, this is a
  *      no-op (e.g. subtype has no derivation, or the active system doesn't
- *      derive at all — stub system, Etmos before M5, etc).
+ *      derive at all — the stub system, for instance).
  *   2. Run "base" phase steps (pure functions over the doc).
  *   3. Materialize EffectSources generically from the actor's embedded
  *      Condition items (`doc.items[]` where `type === "condition"`), using
@@ -55,8 +55,8 @@
  * hardcodes 2e semantics — it imports collectEffects from @fusion/engine-2e
  * directly and materializes the "template value -1 = placeholder" condition
  * convention inline (resolveConditionModifierValue). That is correct for
- * pf2e/sf2e (both 2e-family systems sharing engine-2e), but Etmos (M5) is not
- * a 2e-family system and needs a different (or no) effects-materialization
+ * pf2e/sf2e (both 2e-family systems sharing engine-2e), but a future
+ * non-2e-family system would need a different (or no) effects-materialization
  * pipeline.
  *
  * Since M5-A, a system can register its OWN materializer via
@@ -67,11 +67,11 @@
  * over the 2e-family fallback below. When no materializer matches, the
  * fallback (collectEffects + actorConditionsToEffectSources) runs exactly as
  * before M5-A — pf2e/sf2e do not register one, so their behaviour is
- * byte-for-byte unchanged. Etmos (M5-B) registers its own materializer,
+ * byte-for-byte unchanged. A future system may register its own materializer,
  * overriding the fallback entirely for its Actor subtypes.
  */
 
-import { collectEffects, type EffectSource } from "@fusion/engine-2e";
+import { collectEffects, resolveImpliedConditions, type EffectSource } from "@fusion/engine-2e";
 import { emptySynthetics } from "@fusion/system-api";
 import type {
   ConditionDefinition,
@@ -81,6 +81,10 @@ import type {
   RegisteredEffectsMaterializer,
   SystemModule,
 } from "@fusion/system-api";
+import {
+  HOUSE_RULE_VARIANT_KEYS,
+  type ResolvedWorldVariantRules,
+} from "../documents/world-variant-rules.js";
 
 // ---------------------------------------------------------------------------
 // Generic condition → EffectSource materialization
@@ -167,6 +171,7 @@ function actorConditionsToEffectSources(
   if (!Array.isArray(rawItems)) return [];
 
   const sources: EffectSource[] = [];
+  const held: Array<{ slug: string; value: number | null }> = [];
   for (const raw of rawItems as EmbeddedConditionItem[]) {
     if (raw.type !== "condition") continue;
     const slug = raw.system?.slug;
@@ -174,6 +179,26 @@ function actorConditionsToEffectSources(
     const rawValue = raw.system?.value;
     const value = typeof rawValue === "number" ? rawValue : null;
     const src = conditionToEffectSource(slug, value, conditionDefs);
+    if (src) sources.push(src);
+    held.push({ slug, value });
+  }
+
+  // Conditions the held ones bring with them (Grabbed -> Off-Guard + Immobilized, ...): derived
+  // here each time, so nothing is left behind when the source condition goes away.
+  const implied = resolveImpliedConditions(held, (slug) =>
+    (conditionDefs.get(slug)?.effects ?? []).flatMap((rule) => {
+      const r = rule as { type?: unknown; conditionSlug?: unknown; value?: unknown };
+      if (r.type !== "toggleCondition" || typeof r.conditionSlug !== "string") return [];
+      return [
+        {
+          conditionSlug: r.conditionSlug,
+          ...(typeof r.value === "number" ? { value: r.value } : {}),
+        },
+      ];
+    }),
+  );
+  for (const c of implied) {
+    const src = conditionToEffectSource(c.slug, c.value, conditionDefs);
     if (src) sources.push(src);
   }
   return sources;
@@ -255,10 +280,27 @@ function actorSubtype(doc: Record<string, unknown>): string {
  *
  * Safe to call unconditionally on every Actor create/update: the no-op path
  * is a single Map lookup plus an empty-array topoSort (cheap).
+ *
+ * `worldVariantRules` (DEC-MCL-09 bug fix): overlays the world's CURRENT
+ * `variantRules.classLevels`/`variantRules.freeArchetype` settings onto
+ * `doc.system.build` before any step runs. Both variants moved from a
+ * per-actor field to a world-scope `Setting` in DEC-MCL-09 (2026-08-15), but
+ * `resolveClassLevels` (`@fusion/engine-2e`) and pf2e's `freeArchetype`
+ * getter still only ever read the actor's own `system.build.*` — never the
+ * world Setting — by design (DeriveStep.run() is doc-only and pure per
+ * REQ-SYS-024, so the world value has to reach them as part of the doc, not
+ * as a second argument threaded through every step). Every caller resolves
+ * the current value once (`resolveWorldVariantRules`, `documents/
+ * world-variant-rules.ts`) and passes it here; omitting the parameter keeps
+ * the doc's own (legacy, usually absent) field as the only source, which is
+ * only correct for a caller that has no store/systemModule to resolve from
+ * (none of the production call sites are in that position — see that
+ * module's callers).
  */
 export function runActorDerivation(
   doc: Record<string, unknown>,
   systemModule: SystemModule,
+  worldVariantRules?: ResolvedWorldVariantRules,
 ): boolean {
   const subtype = actorSubtype(doc);
   if (subtype.length === 0) return false;
@@ -273,6 +315,59 @@ export function runActorDerivation(
   const sys = doc["system"];
   if (!sys || typeof sys !== "object") {
     doc["system"] = {};
+  }
+
+  if (worldVariantRules) {
+    const system = doc["system"] as Record<string, unknown>;
+    const existingBuild = system["build"];
+    const build: Record<string, unknown> =
+      existingBuild && typeof existingBuild === "object" ? { ...existingBuild } : {};
+    const existingVariantRules = build["variantRules"];
+
+    // `classLevels`/`freeArchetype` are `undefined` when the world has no
+    // stored Setting for the key yet (REQ-CFG-034 migration not run, or a
+    // world nobody ever opened Configurações → Mundo on) — fall back to
+    // the actor's own legacy field in that case, mirroring the client's
+    // `worldVariants?.classLevels ?? getClassLevelsVariant(sys)` precedence
+    // (achado 5, revisão core#273/satélite#278, 26/09/2026). Only an
+    // EXPLICIT world value (true or false) ever overrides the actor's own
+    // field.
+    const existingClassLevels =
+      existingVariantRules && typeof existingVariantRules === "object"
+        ? (existingVariantRules as Record<string, unknown>)["classLevels"] === true
+        : false;
+    const resolvedClassLevels = worldVariantRules.classLevels ?? existingClassLevels;
+
+    const variantRulesOut: Record<string, unknown> =
+      existingVariantRules && typeof existingVariantRules === "object"
+        ? { ...existingVariantRules, classLevels: resolvedClassLevels }
+        : { classLevels: resolvedClassLevels };
+
+    // House rules (A Queda, 2026-10-05): WORLD-authoritative. There is no
+    // per-actor legacy field — a value the actor's own document brings in
+    // would let its owner forge the rule, so an unset world value DELETES it.
+    for (const key of HOUSE_RULE_VARIANT_KEYS) {
+      const worldValue = worldVariantRules[key];
+      if (worldValue === undefined) Reflect.deleteProperty(variantRulesOut, key);
+      else variantRulesOut[key] = worldValue;
+    }
+    build["variantRules"] = variantRulesOut;
+
+    const existingFreeArchetype = build["freeArchetype"] === true;
+    build["freeArchetype"] = worldVariantRules.freeArchetype ?? existingFreeArchetype;
+
+    // HJ-09 (#434, D4): the campaign's trained skills are WORLD-only. Whatever
+    // the actor's own document carries under this key is discarded before any
+    // step runs — otherwise an owner could write the list into their own
+    // `system.build` and grant themselves any skill. No Setting stored = the
+    // key is absent (the steps read "no campaign skills").
+    if (worldVariantRules.campaignSkills !== undefined) {
+      build["campaignSkills"] = [...worldVariantRules.campaignSkills];
+    } else {
+      delete build["campaignSkills"];
+    }
+
+    system["build"] = build;
   }
 
   const baseCtx: DeriveContext = {

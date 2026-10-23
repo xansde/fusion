@@ -399,3 +399,127 @@ describe("Content-Type on bodyless requests (issue #2)", () => {
     expect(sentContentType(2)).toBeNull();
   });
 });
+
+// ---------------------------------------------------------------------------
+// getFreshToken — the access token lives 15 min and nothing refreshes it in the
+// background, so a player who only listens to the socket holds a dead JWT when the
+// GM changes scene. Every raw fetch for assets (scene background, token art) must
+// ask for a token that is still alive instead of reading the stale one.
+// ---------------------------------------------------------------------------
+
+/** Build an unsigned JWT-shaped string whose `exp` is `secondsFromNow` away. */
+function fakeJwt(secondsFromNow: number): string {
+  const b64 = (o: unknown) =>
+    Buffer.from(JSON.stringify(o))
+      .toString("base64")
+      .replace(/=+$/, "")
+      .replace(/\+/g, "-")
+      .replace(/\//g, "_");
+  const exp = Math.floor(Date.now() / 1000) + secondsFromNow;
+  return `${b64({ alg: "HS256" })}.${b64({ sub: "u1", exp })}.sig`;
+}
+
+const REFRESH_USER = { id: "u1", name: "Aldric", color: "#ff0000", hasPassword: false, role: 1 };
+
+describe("fusionApi.getFreshToken", () => {
+  beforeEach(() => {
+    vi.stubGlobal("fetch", vi.fn());
+  });
+
+  afterEach(() => {
+    vi.unstubAllGlobals();
+    vi.resetModules();
+  });
+
+  it("returns null when there is no session", async () => {
+    const { fusionApi } = await import("../api.js");
+    expect(await fusionApi.getFreshToken()).toBeNull();
+    expect(fetch).not.toHaveBeenCalled();
+  });
+
+  it("returns the current token untouched while it is far from expiry", async () => {
+    const { fusionApi } = await import("../api.js");
+    const live = fakeJwt(10 * 60);
+    fusionApi.setAccessToken(live);
+
+    expect(await fusionApi.getFreshToken()).toBe(live);
+    expect(fetch).not.toHaveBeenCalled();
+  });
+
+  it("refreshes an expired token before handing it out", async () => {
+    const { fusionApi } = await import("../api.js");
+    const fresh = fakeJwt(15 * 60);
+    vi.mocked(fetch).mockResolvedValueOnce(
+      mockResponse({ ok: true, accessToken: fresh, user: REFRESH_USER }),
+    );
+    fusionApi.setAccessToken(fakeJwt(-5 * 60));
+
+    expect(await fusionApi.getFreshToken()).toBe(fresh);
+    expect(fusionApi.getToken()).toBe(fresh);
+    expect(fetch).toHaveBeenCalledTimes(1);
+    expect(vi.mocked(fetch).mock.calls[0]?.[0]).toBe("/api/auth/refresh");
+  });
+
+  it("refreshes a token that is about to expire (inside the safety margin)", async () => {
+    const { fusionApi } = await import("../api.js");
+    const fresh = fakeJwt(15 * 60);
+    vi.mocked(fetch).mockResolvedValueOnce(
+      mockResponse({ ok: true, accessToken: fresh, user: REFRESH_USER }),
+    );
+    fusionApi.setAccessToken(fakeJwt(5));
+
+    expect(await fusionApi.getFreshToken()).toBe(fresh);
+  });
+
+  it("shares ONE refresh between concurrent callers (the refresh cookie rotates)", async () => {
+    const { fusionApi } = await import("../api.js");
+    const fresh = fakeJwt(15 * 60);
+    vi.mocked(fetch).mockResolvedValue(
+      mockResponse({ ok: true, accessToken: fresh, user: REFRESH_USER }),
+    );
+    fusionApi.setAccessToken(fakeJwt(-60));
+
+    const results = await Promise.all([
+      fusionApi.getFreshToken(),
+      fusionApi.getFreshToken(),
+      fusionApi.getFreshToken(),
+    ]);
+
+    expect(results).toEqual([fresh, fresh, fresh]);
+    expect(fetch).toHaveBeenCalledTimes(1);
+  });
+
+  it("ends the session when the refresh cookie is refused", async () => {
+    const { fusionApi } = await import("../api.js");
+    const onExpired = vi.fn();
+    fusionApi.onSessionExpired(onExpired);
+    vi.mocked(fetch).mockResolvedValueOnce(
+      mockResponse({ ok: false, code: "UNAUTHORIZED", message: "no" }, 401),
+    );
+    fusionApi.setAccessToken(fakeJwt(-60));
+
+    expect(await fusionApi.getFreshToken()).toBeNull();
+    expect(fusionApi.hasToken()).toBe(false);
+    expect(onExpired).toHaveBeenCalledTimes(1);
+  });
+
+  it("keeps the stale token on a network failure (a blip is not a logout)", async () => {
+    const { fusionApi } = await import("../api.js");
+    const onExpired = vi.fn();
+    fusionApi.onSessionExpired(onExpired);
+    vi.mocked(fetch).mockRejectedValueOnce(new TypeError("Failed to fetch"));
+    const stale = fakeJwt(-60);
+    fusionApi.setAccessToken(stale);
+
+    expect(await fusionApi.getFreshToken()).toBe(stale);
+    expect(onExpired).not.toHaveBeenCalled();
+  });
+
+  it("treats an opaque (non-JWT) token as live — never loops refreshing", async () => {
+    const { fusionApi } = await import("../api.js");
+    fusionApi.setAccessToken("opaque-token");
+
+    expect(await fusionApi.getFreshToken()).toBe("opaque-token");
+    expect(fetch).not.toHaveBeenCalled();
+  });
+});

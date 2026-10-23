@@ -1,0 +1,2374 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="utf-8" />
+    <title>PROTOTYPE — Aba Contatos (grill de 2026-08-16, 3ª rodada)</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <!-- Atualizado para a linguagem visual de 22/10/2026 (lane ui-gaveta). Fonte dos tokens: packages/client/src/styles/base.css. -->
+        <!--
+  PROTOTYPE — descartável. 3ª rodada do grill. Não é código de produção.
+
+  O FURO QUE ESTA RODADA CONSERTA
+  O estado (oculto/entrevisto/conhecido) estava no CONTATO, mas conhecer é por
+  PERSONAGEM: o Tobias pode conhecer o Mestre Aldric enquanto a Fofurinha só o
+  entreviu. Um estado por contato não sabe dizer isso.
+  = O estado passou a ser do PAR (contato e personagem). A célula da matriz
+    deixou de ser caixinha de marcar e virou TRI-ESTADO que CICLA no clique:
+        oculto, depois entrevisto, depois conhecido, e volta ao oculto
+    A coluna "Estado" sumiu da tabela: ela não tinha como existir.
+
+  COMO A REGRA GERAL SOBREVIVE (personagem que ainda nem existe)
+   - Cada contato tem uma REGRA GERAL (o clique no nome do contato, na linha,
+     cicla ela e alinha a linha inteira).
+   - Uma célula clicada vira EXCEÇÃO daquele personagem, e aparece com o
+     símbolo sublinhado.
+   - Personagem criado depois nasce com a REGRA GERAL de cada contato — é o
+     que faz o "entrou jogador novo" ser um clique, não trinta.
+   - O clique no nome do personagem (topo da coluna) cicla a coluna inteira,
+     gravando exceções — é o ajuste fino de quem chegou agora.
+
+  OUTRAS DECISÕES DESTA RODADA
+   - O Mestre NÃO configura mais nada no cartão da aba: sumiu a barra de
+     estado/quem dos cartões. Configuração de conhecimento vive num lugar só,
+     a janela "Quem conhece quem".
+   - Essa janela é aberta por um RODAPÉ FIXO do painel, que existe só para o
+     Mestre — não rola com a lista, não aparece para jogador.
+   - CATEGORIAS: o jogador agrupa seus conhecidos como quiser (cidade, nível de
+     confiança, o que for). Criar, renomear, excluir e mover são dele; o Mestre
+     tem as dele, e não enxerga nem administra as dos jogadores. Contato sem
+     categoria cai em "Sem categoria", que só aparece quando tem alguém.
+     Um contato está em UMA categoria (mover, não marcar): em 300px, contato
+     repetido em duas listas é confusão garantida.
+   - Com dois personagens, o jogador vê a UNIÃO — e o estado que vale é o
+     MAIOR dos dois (conhecido > entrevisto > oculto).
+
+  MANTIDO DA RODADA ANTERIOR
+   - vida não aparece para ninguém - anotação só na ficha (privada) -
+     título editável aqui (ícone de lápis) - sub-personagem encapsulado no dono -
+     contrato de condição (cor por tom, valor colado, ajuda no hover, ordem
+     fixa, teto 2 + "+N", sem ícone) — ver bloco abaixo.
+
+  --------------------------------------------------------
+  CONTRATO DE EXIBIÇÃO DE CONDIÇÃO  (inalterado, vai para a spec)
+  --------------------------------------------------------
+  A aba não conhece condição nenhuma: pinta o que o SISTEMA declarou.
+  `ConditionDefinition` já existe (packages/system-api/src/registries.ts:90 —
+  slug, label, img, valued?, effects?, overrides?) e systems/pf2e/src/
+  conditions.ts declara ~35 condições reais. FALTAM, e esta spec acrescenta
+  como emenda à 15:  tone: "benefit"|"harm"|"special" - help: string -
+  critical?: boolean.
+   1. COR — verde ajuda quem carrega, vermelho atrapalha, roxo é situação
+      (detecção/atitude/controle). `critical` PREENCHE o chip (não é 4ª cor) e
+      é só para o que tira da cena: Morrendo, Inconsciente, Paralisado.
+   2. NÚMERO — quando `valued`, o valor é parte do rótulo ("Amedrontado 2"),
+      tabular, colado. Nunca parênteses, badge à parte ou chip duplicado.
+   3. AJUDA — tooltip DESENHADO no hover, texto vindo do sistema.
+   4. FALHA ABERTA — sem `help`, chip sem tooltip; sem `tone`, cai em special.
+      Declaração incompleta nunca esconde condição de quem a tem.
+   5. ORDEM — crítica = penalidade = situação = benefício, alfabética dentro.
+   6. TETO — 2 + "+N", expande no lugar, reticências com nome no tooltip.
+   7. SEM ÍCONE na aba (arte da Paizo é proibida no projeto).
+-->
+    <style>
+/* ===== BLOCO DE TOKENS (copiar integral para o <style> de cada protótipo) ===== */
+@font-face{font-family:"Atkinson Hyperlegible Next";font-style:normal;font-display:swap;font-weight:200 800;src:url("../src/styles/fonts/atkinson-hyperlegible-next-latin-wght-normal.woff2") format("woff2")}
+@font-face{font-family:"Atkinson Hyperlegible Mono";font-style:normal;font-display:swap;font-weight:200 800;src:url("../src/styles/fonts/atkinson-hyperlegible-mono-latin-wght-normal.woff2") format("woff2")}
+:root {
+  color-scheme: dark;
+
+  /* Surfaces: warm charcoal, three flat steps. */
+  --fusion-bg: #141311;
+  --fusion-surface: #1c1b18;
+  --fusion-surface-alt: #25231f;
+  --fusion-input-bg: #11100e;
+  --fusion-border: #3b3830;
+  --fusion-border-strong: #575245;
+
+  /* Text: off-white, never #fff. Muted and subtle stay AA on every surface. */
+  --fusion-text: #ebe5d6;
+  --fusion-text-muted: #b8b09e;
+  --fusion-text-subtle: #9a927f;
+
+  /* The one accent — brass. Interactive and "selected" only, never decoration. */
+  --fusion-accent: #d6a24a;
+  --fusion-accent-hover: #e4b765;
+  --fusion-accent-dim: rgba(214, 162, 74, 0.16);
+  --fusion-on-accent: #1a1408;
+
+  /* Semantic */
+  --fusion-success: #7cc395;
+  --fusion-warning: #e8925a;
+  --fusion-danger: #ec7468;
+  --fusion-info: #7fb2dc;
+  --fusion-magic: #b9a0ea;
+
+  /* Semantic washes — subtle tinted fills for badges / states */
+  --fusion-success-dim: rgba(124, 195, 149, 0.15);
+  --fusion-warning-dim: rgba(232, 146, 90, 0.15);
+  --fusion-danger-dim: rgba(236, 116, 104, 0.15);
+  --fusion-info-dim: rgba(127, 178, 220, 0.15);
+  --fusion-magic-dim: rgba(185, 160, 234, 0.15);
+
+  /* Chat system card (A022, spec 38, DEC-ACH-02/03 + REQ-ACH-025): a card's left border is
+     this fixed blue regardless of sender, so "this is a system card" reads apart from
+     "this is <someone>'s message". Not derived from the accent/semantic tones on purpose —
+     those already carry meaning in chat (crit, fumble, blind). */
+  --fusion-chat-sys: #6fa6cc;
+
+  /* Focus ring: its own colour, never the accent, so focus never reads as "selected". */
+  --fusion-focus: #9ccaff;
+
+  /* Elevation: one soft shadow, for floating windows, popovers and menus only. */
+  --fusion-shadow-modal: 0 12px 32px rgba(0, 0, 0, 0.45);
+  --fusion-shadow-popover: 0 6px 18px rgba(0, 0, 0, 0.35);
+
+  /* Proficiency (TEML — Destreinado, Treinado, Expert, Mestre, Lendário). */
+  --fusion-prof-u: var(--fusion-text-subtle);
+  --fusion-prof-t: var(--fusion-info);
+  --fusion-prof-e: var(--fusion-success);
+  --fusion-prof-m: var(--fusion-accent);
+  --fusion-prof-l: var(--fusion-magic);
+
+  --fusion-prof-u-bg: rgba(154, 146, 127, 0.14);
+  --fusion-prof-t-bg: var(--fusion-info-dim);
+  --fusion-prof-e-bg: var(--fusion-success-dim);
+  --fusion-prof-m-bg: var(--fusion-accent-dim);
+  --fusion-prof-l-bg: var(--fusion-magic-dim);
+
+  --fusion-prof-u-border: var(--fusion-border);
+  --fusion-prof-t-border: rgba(127, 178, 220, 0.45);
+  --fusion-prof-e-border: rgba(124, 195, 149, 0.45);
+  --fusion-prof-m-border: rgba(214, 162, 74, 0.45);
+  --fusion-prof-l-border: rgba(185, 160, 234, 0.45);
+
+  /* Typography. rem sizes (the reader's browser zoom wins); nothing below xs. */
+  --fusion-font:
+    "Atkinson Hyperlegible Next", system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial,
+    sans-serif;
+  --fusion-font-mono:
+    "Atkinson Hyperlegible Mono", ui-monospace, "Cascadia Code", "Source Code Pro", Menlo, Consolas,
+    monospace;
+  --fusion-text-xs: 0.8125rem; /* 13px — captions, badges: the floor */
+  --fusion-text-sm: 0.875rem; /* 14px — dense lists, secondary text */
+  --fusion-text-base: 0.9375rem; /* 15px — body */
+  --fusion-text-md: 1rem; /* 16px — reading text (journal, descriptions) */
+  --fusion-text-lg: 1.125rem; /* 18px — section titles */
+  --fusion-text-xl: 1.375rem; /* 22px — window / sheet titles */
+  --fusion-text-2xl: 1.75rem; /* 28px — the big number of a stat or a roll */
+  --fusion-leading: 1.5;
+  --fusion-leading-tight: 1.25;
+  --fusion-tracking: 0.012em;
+  --fusion-word-spacing: 0.06em;
+  --fusion-weight-regular: 400;
+  --fusion-weight-medium: 500;
+  --fusion-weight-bold: 700;
+  /* Readable line length for prose. */
+  --fusion-measure: 68ch;
+
+  /* Spacing (4px grid) */
+  --fusion-space-1: 4px;
+  --fusion-space-2: 8px;
+  --fusion-space-3: 12px;
+  --fusion-space-4: 16px;
+  --fusion-space-5: 20px;
+  --fusion-space-6: 24px;
+  --fusion-space-8: 32px;
+
+  /* Radii: small and few. Pills only for counters. */
+  --fusion-radius-sm: 3px;
+  --fusion-radius: 6px;
+  --fusion-radius-lg: 8px;
+  --fusion-radius-pill: 999px;
+
+  /* Touch target floor (mouse and finger). */
+  --fusion-target: 40px;
+
+  /* Motion */
+  --fusion-transition: 150ms ease;
+
+  /* Layout.
+     The side drawer is one fixed width for every tab (REQ-GAV-012, DEC-GAV-04):
+     300px of panel plus a 44px rail, and no user resize — a tab that needs more
+     room opens a floating window instead of stretching the drawer. */
+  --fusion-sidebar-width: 300px;
+  --fusion-sidebar-rail-width: 44px;
+  --fusion-header-height: 48px;
+
+  /* Layer scale (spec 11 REQ-UIF-008; spec 53 §2.7 — BAR-F1-03).
+     The z-index of the shell's layers, declared in one place so nobody hard-codes a number:
+
+       canvas
+       < scene notice               60  literal in ScenePrepareNotice.svelte
+       < action bar                 70  --fusion-z-actionbar
+       < side drawer                90  literal in Sidebar.svelte
+       < header                    100  literal in TableScreen.svelte
+       < floating windows         101+  counted up by the window manager, inside the host
+       < window host               200  --fusion-z-windows
+       < tooltip, popover          400  --fusion-z-tooltip
+       < context menu              410  --fusion-z-menu
+
+     Tooltip, popover and menu are portaled to <body> (lib/ui/floatingLayer.ts), so these
+     numbers are compared with the window host's own: the host is a stacking context at
+     200, and a layer rendered *inside* a window could never rise above it.
+     They also clear the in-page modals that still use literals (token dialogs 200/201, file
+     picker 300/301), so a tooltip or menu opened from inside one stays visible. REQ-UIF-008
+     wants modals above menus and tooltips; that is for the day modals get tokens of their own
+     (above 410) — a native <dialog> is already above everything, in the top layer. */
+  --fusion-z-actionbar: 70;
+  --fusion-z-windows: 200;
+  --fusion-z-tooltip: 400;
+  --fusion-z-menu: 410;
+
+  /* Combat turn head (spec 40, DEC-CBA-02 / REQ-CBA-021).
+     The head of the turn is one fixed height for every participant — a new condition, a
+     long name or a health bar must never move the advance control, which is anchored to
+     the footer strip below (RNF-CBA-03). Mirrored in TS by TURN_HEAD_HEIGHT_REM /
+     TURN_HEAD_FOOTER_HEIGHT_REM in lib/combat/turnHead.svelte.ts. */
+  --fusion-combat-turn-head-height: 6.5rem;
+  --fusion-combat-turn-head-footer-height: 2.25rem;
+
+  /* Condition tone (DEC-CTT-11, REQ-SYS-043 / REQ-CTT-031).
+     The colour of a condition chip says what the condition does to whoever carries it,
+     never how grave it is: green helps, red hinders, purple is a situation (detection,
+     attitude, control). Aliases rather than raw colours so the combat tab (REQ-CBA-050)
+     and the contacts tab paint the same three tones. The `-dim` fills are the emphasis of
+     a critical condition (REQ-CTT-032) — emphasis on the tone it already has, never a
+     fourth colour. */
+  --fusion-condition-benefit: var(--fusion-success);
+  --fusion-condition-harm: var(--fusion-danger);
+  --fusion-condition-special: var(--fusion-magic);
+  --fusion-condition-benefit-dim: var(--fusion-success-dim);
+  --fusion-condition-harm-dim: var(--fusion-danger-dim);
+  --fusion-condition-special-dim: var(--fusion-magic-dim);
+
+  /* The "no ar" head of the Cenas tab is one fixed height for every state
+     (REQ-CEN-010/013): a long scene name, a missing background image or the
+     environment row must never move the controls the GM presses all session. */
+  --fusion-scene-head-height: 132px;
+}
+
+:root[data-theme="light"] {
+  color-scheme: light;
+
+  --fusion-bg: #efe9dc;
+  --fusion-surface: #f9f6ef;
+  --fusion-surface-alt: #f1ebdf;
+  --fusion-input-bg: #fffdf8;
+  --fusion-border: #d3c9b5;
+  --fusion-border-strong: #b0a48c;
+
+  --fusion-text: #29251f;
+  --fusion-text-muted: #554e42;
+  --fusion-text-subtle: #6e665a;
+
+  --fusion-accent: #8a5a12;
+  --fusion-accent-hover: #6f480c;
+  --fusion-accent-dim: rgba(138, 90, 18, 0.12);
+  --fusion-on-accent: #fffaf0;
+
+  --fusion-success: #2e7448;
+  --fusion-warning: #a14f12;
+  --fusion-danger: #b0352b;
+  --fusion-info: #23628f;
+  --fusion-magic: #6a46b0;
+  --fusion-success-dim: rgba(46, 116, 72, 0.12);
+  --fusion-warning-dim: rgba(161, 79, 18, 0.12);
+  --fusion-danger-dim: rgba(176, 53, 43, 0.12);
+  --fusion-info-dim: rgba(35, 98, 143, 0.12);
+  --fusion-magic-dim: rgba(106, 70, 176, 0.12);
+
+  --fusion-chat-sys: #2d6f99;
+  --fusion-focus: #1d5fa8;
+
+  --fusion-shadow-modal: 0 12px 32px rgba(60, 45, 20, 0.22);
+  --fusion-shadow-popover: 0 6px 18px rgba(60, 45, 20, 0.18);
+
+  --fusion-prof-u-bg: rgba(110, 102, 90, 0.1);
+  --fusion-prof-t-border: rgba(35, 98, 143, 0.4);
+  --fusion-prof-e-border: rgba(46, 116, 72, 0.4);
+  --fusion-prof-m-border: rgba(138, 90, 18, 0.4);
+  --fusion-prof-l-border: rgba(106, 70, 176, 0.4);
+}
+
+/* reset + base do protótipo (sem overflow:hidden; o protótipo rola) */
+*,*::before,*::after{box-sizing:border-box}
+html,body{margin:0;min-height:100%}
+body{background:var(--fusion-bg);color:var(--fusion-text);font-family:var(--fusion-font);font-size:var(--fusion-text-base);line-height:var(--fusion-leading);letter-spacing:var(--fusion-tracking);word-spacing:var(--fusion-word-spacing);font-variant-numeric:tabular-nums;text-align:left;-webkit-font-smoothing:antialiased}
+button,input,select,textarea{font-family:inherit;font-size:inherit;letter-spacing:inherit;word-spacing:inherit;color:inherit}
+h1,h2,h3,h4,h5,h6{font-weight:var(--fusion-weight-bold);line-height:var(--fusion-leading-tight);color:var(--fusion-text);margin:0}
+:focus-visible{outline:2px solid var(--fusion-focus);outline-offset:2px}
+@media (prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:.01ms!important;transition-duration:.01ms!important}}
+.svg-i{width:1em;height:1em;flex:none;fill:none;stroke:currentColor;stroke-width:1.75;stroke-linecap:round;stroke-linejoin:round}
+.theme-toggle{position:fixed;top:8px;right:8px;z-index:9999;min-height:var(--fusion-target);padding:0 var(--fusion-space-3);background:var(--fusion-surface-alt);color:var(--fusion-text);border:1px solid var(--fusion-border-strong);border-radius:var(--fusion-radius);font-size:var(--fusion-text-sm);cursor:pointer}
+/* ===== fim do bloco de tokens ===== */
+
+
+      /* Locais do protótipo (sem cor, sem fonte própria) */
+      :root {
+        --header: 48px;
+      }
+      html,
+      body {
+        height: 100%;
+        overflow: hidden;
+      }
+      button {
+        cursor: pointer;
+      }
+      .theme-toggle {
+        top: 4px;
+        right: 8px;
+      }
+
+/* ---------- App shell (mock) ---------- */
+      .header {
+        height: var(--header);
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        padding: 0 0.75rem;
+        background: var(--fusion-surface);
+        border-bottom: 1px solid var(--fusion-border);
+        position: relative;
+        z-index: 200;
+      }
+      .header .bolt {
+        color: var(--fusion-warning);
+      }
+      .header .world {
+        font-weight: 600;
+      }
+      .header .pill {
+        background: var(--fusion-accent-dim);
+        border: 1px solid var(--fusion-accent);
+        color: var(--fusion-accent-hover);
+        border-radius: var(--fusion-radius-sm);
+        padding: 0.15rem 0.5rem;
+        font-size: var(--fusion-text-xs);
+        font-weight: 600;
+      }
+      .header .spacer {
+        flex: 1;
+      }
+      .header .status {
+        color: var(--fusion-text-muted);
+        font-size: var(--fusion-text-xs);
+        display: flex;
+        align-items: center;
+        gap: 0.35rem;
+      }
+      .header .dot {
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        background: var(--fusion-success);
+      }
+      .header .who {
+        background: var(--fusion-surface-alt);
+        border: 1px solid var(--fusion-border);
+        border-radius: var(--fusion-radius-sm);
+        padding: 0.15rem 0.5rem;
+        font-size: var(--fusion-text-xs);
+      }
+      .header .who b {
+        color: var(--fusion-danger);
+      }
+      .header .who.player b {
+        color: var(--fusion-success);
+      }
+      .header .btn {
+        background: var(--fusion-surface-alt);
+        border: 1px solid var(--fusion-border);
+        color: var(--fusion-text);
+        border-radius: var(--fusion-radius-sm);
+        padding: 0.2rem 0.6rem;
+        font: inherit;
+        font-size: var(--fusion-text-xs);
+      }
+      .stage {
+        position: absolute;
+        top: var(--header);
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: var(--fusion-input-bg);
+        display: grid;
+        place-items: center;
+        overflow: hidden;
+      }
+      .stage .art {
+        width: 44vh;
+        height: 44vh;
+        border-radius: var(--fusion-radius);
+        background: var(--fusion-info-dim);
+        border: 1px solid var(--fusion-border);
+        display: grid;
+        place-items: center;
+      }
+      .stage .art .house {
+        width: 60%;
+        height: 60%;
+        background: var(--fusion-text-muted);
+        clip-path: polygon(50% 0, 100% 40%, 88% 40%, 88% 100%, 12% 100%, 12% 40%, 0 40%);
+        display: grid;
+        place-items: center;
+      }
+      .stage .art .star {
+        font-size: 9vh;
+        color: var(--fusion-warning);
+        margin-top: 22%;
+      }
+      .stage .drop {
+        position: absolute;
+        left: calc(50% - 12vh);
+        top: calc(50% + 7vh);
+        border: 2px dashed var(--fusion-accent);
+        border-radius: var(--fusion-radius);
+        padding: 0.2rem 0.5rem;
+        color: var(--fusion-accent-hover);
+        font-size: var(--fusion-text-xs);
+        background: var(--fusion-surface);
+      }
+
+      /* ---------- Chassi C (spec 36) ---------- */
+      .tabbtn {
+        position: relative;
+        display: grid;
+        place-items: center;
+        background: none;
+        border: 0;
+        color: var(--fusion-text-muted);
+        cursor: pointer;
+        padding: 0;
+        transition:
+          color 0.12s,
+          background 0.12s;
+      }
+      .tabbtn:hover {
+        color: var(--fusion-text);
+      }
+      .tabbtn .badge {
+        position: absolute;
+        top: 3px;
+        right: 3px;
+        min-width: 16px;
+        height: 16px;
+        padding: 0 4px;
+        border-radius: var(--fusion-radius-pill);
+        background: var(--fusion-danger);
+        color: var(--fusion-bg);
+        font-size: var(--fusion-text-xs);
+        font-weight: 700;
+        display: grid;
+        place-items: center;
+        line-height: 1;
+      }
+      .tabbtn .tip {
+        position: absolute;
+        right: calc(100% + 10px);
+        top: 50%;
+        transform: translateY(-50%);
+        background: var(--fusion-input-bg);
+        border: 1px solid var(--fusion-border);
+        color: var(--fusion-text);
+        padding: 0.25rem 0.5rem;
+        border-radius: var(--fusion-radius-sm);
+        font-size: var(--fusion-text-xs);
+        white-space: nowrap;
+        opacity: 0;
+        pointer-events: none;
+        transition: opacity 0.1s;
+        box-shadow: var(--fusion-shadow-popover);
+        z-index: 5;
+      }
+      .tabbtn:hover .tip {
+        opacity: 1;
+      }
+      .sidebar {
+        position: absolute;
+        top: var(--header);
+        right: 0;
+        bottom: 0;
+        display: flex;
+        z-index: 90;
+      }
+      .tabs {
+        width: var(--fusion-sidebar-rail-width);
+        display: flex;
+        flex-direction: column;
+        padding: 10px 0;
+        gap: 3px;
+        align-items: flex-end;
+      }
+      .tabs .tabbtn {
+        width: 40px;
+        height: 44px;
+        border: 1px solid var(--fusion-border);
+        border-right: 0;
+        border-radius: var(--fusion-radius) 0 0 var(--fusion-radius);
+        background: var(--fusion-surface-alt);
+        color: var(--fusion-text-muted);
+      }
+      .tabs .tabbtn.is-active {
+        background: var(--fusion-surface);
+        color: var(--fusion-accent-hover);
+        width: 44px;
+        border-color: var(--fusion-accent);
+        z-index: 2;
+      }
+      .tabs .grp {
+        display: flex;
+        flex-direction: column;
+        gap: 3px;
+        align-items: flex-end;
+      }
+      .tabs .grp.gm {
+        margin-top: 14px;
+        position: relative;
+      }
+      .tabs .grp.gm::before {
+        content: "";
+        position: absolute;
+        top: -8px;
+        right: 6px;
+        width: 28px;
+        height: 1px;
+        background: var(--fusion-border);
+      }
+      .tabs .grp.gm .tabbtn {
+        border-color: var(--fusion-border-strong);
+      }
+      .tabs .foot {
+        margin-top: auto;
+        position: relative;
+        display: flex;
+        flex-direction: column;
+        gap: 3px;
+        align-items: flex-end;
+      }
+      .tabs .foot::before {
+        content: "";
+        position: absolute;
+        top: -8px;
+        right: 6px;
+        width: 28px;
+        height: 1px;
+        background: var(--fusion-border);
+      }
+      .panel {
+        width: var(--fusion-sidebar-width);
+        background: var(--fusion-surface);
+        border-left: 1px solid var(--fusion-accent);
+        display: none;
+        flex-direction: column;
+        position: relative;
+        overflow: hidden;
+      }
+      .is-open .panel {
+        display: flex;
+      }
+      .panel-head {
+        display: flex;
+        align-items: center;
+        gap: 0.35rem;
+        padding: 0.45rem 0.5rem;
+        border-bottom: 1px solid var(--fusion-accent-dim);
+        flex: 0 0 auto;
+      }
+      .panel-title {
+        font-size: var(--fusion-text-xs);
+        font-weight: 700;
+        color: var(--fusion-text-muted);
+        padding: 0.15rem 0.3rem;
+        flex: 1;
+      }
+      .panel-body {
+        flex: 1;
+        overflow: auto;
+        padding: 0.5rem 0.55rem 0.8rem;
+        font-size: var(--fusion-text-sm);
+        min-height: 0;
+      }
+      .panel-body::-webkit-scrollbar {
+        width: 8px;
+      }
+      .panel-body::-webkit-scrollbar-thumb {
+        background: var(--fusion-surface-alt);
+        border-radius: var(--fusion-radius-pill);
+      }
+      /* rodapé FIXO do painel — só existe para o Mestre */
+      .panel-foot {
+        flex: 0 0 auto;
+        border-top: 1px solid var(--fusion-border);
+        background: var(--fusion-surface-alt);
+        padding: 0.4rem 0.5rem;
+        display: flex;
+        gap: 0.35rem;
+        align-items: center;
+      }
+
+      /* ---------- Peças ---------- */
+      .search {
+        flex: 1;
+        min-width: 0;
+        display: flex;
+        align-items: center;
+        gap: 0.3rem;
+        background: var(--fusion-surface-alt);
+        border: 1px solid var(--fusion-border);
+        border-radius: var(--fusion-radius-sm);
+        padding: 0.15rem 0.4rem;
+      }
+      .search:focus-within {
+        border-color: var(--fusion-accent);
+      }
+      .search input {
+        flex: 1;
+        min-width: 0;
+        background: none;
+        border: 0;
+        color: var(--fusion-text);
+        font: inherit;
+        font-size: var(--fusion-text-xs);
+        padding: 0.15rem 0;
+      }
+      .search .mag {
+        color: var(--fusion-text-subtle);
+        display: grid;
+        place-items: center;
+      }
+      .search .mag .svg-i {
+        width: 13px;
+        height: 13px;
+      }
+      .hbtn {
+        background: var(--fusion-surface);
+        border: 1px solid var(--fusion-border);
+        color: var(--fusion-text-muted);
+        border-radius: var(--fusion-radius-sm);
+        height: 26px;
+        min-width: 26px;
+        padding: 0 0.45rem;
+        font: inherit;
+        font-size: var(--fusion-text-xs);
+        cursor: pointer;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.3rem;
+        justify-content: center;
+      }
+      .hbtn:hover {
+        color: var(--fusion-text);
+        border-color: var(--fusion-accent);
+      }
+      .hbtn.wide {
+        flex: 1;
+      }
+      .hbtn .svg-i {
+        width: 14px;
+        height: 14px;
+      }
+
+      .sec {
+        margin: 0.6rem 0 0.25rem;
+        display: flex;
+        align-items: center;
+        gap: 0.35rem;
+        padding: 0 0.2rem;
+      }
+      .sec:first-child {
+        margin-top: 0.1rem;
+      }
+      .sec .lbl {
+        font-size: var(--fusion-text-xs);
+        font-weight: 700;
+        color: var(--fusion-text-subtle);
+      }
+      .sec .cnt {
+        font-size: var(--fusion-text-xs);
+        color: var(--fusion-text-subtle);
+        background: var(--fusion-surface-alt);
+        border-radius: var(--fusion-radius-pill);
+        padding: 0 0.35rem;
+      }
+      .sec .line {
+        flex: 1;
+        height: 1px;
+        background: var(--fusion-border);
+      }
+      .sec.click {
+        cursor: pointer;
+      }
+      .sec.click:hover .lbl {
+        color: var(--fusion-text-muted);
+      }
+      .sec .add {
+        background: none;
+        border: 0;
+        color: var(--fusion-text-subtle);
+        cursor: pointer;
+        font: inherit;
+        font-size: var(--fusion-text-xs);
+        padding: 0 0.15rem;
+      }
+      .sec .add:hover {
+        color: var(--fusion-accent-hover);
+      }
+      /* categoria: um degrau abaixo da seção */
+      .cat {
+        margin: 0.45rem 0 0.2rem;
+        display: flex;
+        align-items: center;
+        gap: 0.3rem;
+        padding: 0 0.2rem 0 0.35rem;
+        border-left: 2px solid var(--fusion-border);
+      }
+      .cat .nm {
+        font-size: var(--fusion-text-xs);
+        font-weight: 600;
+        color: var(--fusion-text-muted);
+        cursor: pointer;
+      }
+      .cat .nm:hover {
+        color: var(--fusion-text);
+      }
+      .cat .cnt {
+        font-size: var(--fusion-text-xs);
+        color: var(--fusion-text-subtle);
+      }
+      .cat .tools {
+        margin-left: auto;
+        display: flex;
+        gap: 0.1rem;
+        opacity: 0;
+        transition: opacity 0.12s;
+      }
+      .cat:hover .tools {
+        opacity: 1;
+      }
+      .cat .tools button {
+        background: none;
+        border: 0;
+        color: var(--fusion-text-subtle);
+        cursor: pointer;
+        font-size: var(--fusion-text-xs);
+        padding: 0 0.15rem;
+      }
+      .cat .tools button:hover {
+        color: var(--fusion-accent-hover);
+      }
+      .cat input {
+        background: var(--fusion-input-bg);
+        border: 1px solid var(--fusion-accent);
+        border-radius: var(--fusion-radius-sm);
+        color: var(--fusion-text);
+        font: inherit;
+        font-size: var(--fusion-text-xs);
+        padding: 0.05rem 0.3rem;
+        flex: 1;
+        min-width: 0;
+      }
+      .cat.vazia .nm {
+        color: var(--fusion-text-subtle);
+      }
+
+      .av {
+        width: 38px;
+        height: 38px;
+        border-radius: 50%;
+        flex: 0 0 auto;
+        display: grid;
+        place-items: center;
+        font-size: var(--fusion-text-sm);
+        font-weight: 700;
+        color: var(--fusion-input-bg);
+        position: relative;
+      }
+      .av.sm {
+        width: 22px;
+        height: 22px;
+        font-size: var(--fusion-text-xs);
+      }
+      .av.q {
+        background: var(--fusion-surface-alt) !important;
+        color: var(--fusion-text-subtle);
+        font-size: var(--fusion-text-md);
+      }
+      .av .pres {
+        position: absolute;
+        right: -1px;
+        bottom: -1px;
+        width: 10px;
+        height: 10px;
+        border-radius: 50%;
+        border: 2px solid var(--fusion-surface-alt);
+        background: var(--fusion-text-subtle);
+      }
+      .av .pres.on {
+        background: var(--fusion-success);
+      }
+
+      .card {
+        background: var(--fusion-surface-alt);
+        border: 1px solid var(--fusion-border);
+        border-radius: var(--fusion-radius);
+        padding: 0.45rem 0.5rem;
+        margin-bottom: 0.35rem;
+      }
+      .card.mine {
+        border-color: var(--fusion-accent);
+        background: var(--fusion-accent-dim);
+      }
+      .card.gone {
+        opacity: 0.6;
+      }
+      .card.npc {
+        margin-left: 0.35rem;
+      }
+      .card .top {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        cursor: pointer;
+      }
+      .card .idt {
+        flex: 1;
+        min-width: 0;
+      }
+      .card .nm {
+        font-size: var(--fusion-text-sm);
+        font-weight: 600;
+        display: flex;
+        align-items: center;
+        gap: 0.3rem;
+        flex-wrap: wrap;
+      }
+      .card .move {
+        background: none;
+        border: 0;
+        color: var(--fusion-text-subtle);
+        cursor: pointer;
+        font-size: var(--fusion-text-xs);
+        opacity: 0;
+        transition: opacity 0.12s;
+        flex: 0 0 auto;
+      }
+      .card:hover .move {
+        opacity: 1;
+      }
+      .card .move:hover {
+        color: var(--fusion-accent-hover);
+      }
+      .ttl {
+        font-size: var(--fusion-text-xs);
+        color: var(--fusion-text-muted);
+        display: flex;
+        align-items: center;
+        gap: 0.25rem;
+        min-width: 0;
+      }
+      .ttl > span {
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+      .ttl .pen {
+        color: var(--fusion-text-subtle);
+        font-size: var(--fusion-text-xs);
+        flex: 0 0 auto;
+        cursor: text;
+        opacity: 0;
+        transition: opacity 0.12s;
+      }
+      .card:hover .ttl .pen {
+        opacity: 1;
+      }
+      .ttl.fallback > span {
+        color: var(--fusion-text-subtle);
+      }
+      .ttl input {
+        flex: 1;
+        min-width: 0;
+        background: var(--fusion-input-bg);
+        border: 1px solid var(--fusion-accent);
+        border-radius: var(--fusion-radius-sm);
+        color: var(--fusion-text);
+        font: inherit;
+        font-size: var(--fusion-text-xs);
+        padding: 0.1rem 0.3rem;
+      }
+
+      /* menu de mover para categoria */
+      .movemenu {
+        margin-top: 0.4rem;
+        padding-top: 0.4rem;
+        border-top: 1px solid var(--fusion-border);
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.25rem;
+      }
+      .movemenu button {
+        background: var(--fusion-surface);
+        border: 1px solid var(--fusion-border);
+        border-radius: var(--fusion-radius-pill);
+        color: var(--fusion-text-muted);
+        font: inherit;
+        font-size: var(--fusion-text-xs);
+        padding: 0.05rem 0.45rem;
+        cursor: pointer;
+      }
+      .movemenu button:hover {
+        border-color: var(--fusion-accent);
+        color: var(--fusion-text);
+      }
+      .movemenu button.on {
+        border-color: var(--fusion-accent);
+        color: var(--fusion-accent-hover);
+        background: var(--fusion-accent-dim);
+      }
+      .movemenu input {
+        background: var(--fusion-input-bg);
+        border: 1px solid var(--fusion-accent);
+        border-radius: var(--fusion-radius-pill);
+        color: var(--fusion-text);
+        font: inherit;
+        font-size: var(--fusion-text-xs);
+        padding: 0.05rem 0.45rem;
+        width: 120px;
+      }
+
+      /* --- condições --- */
+      .conds {
+        display: flex;
+        gap: 0.25rem;
+        flex-wrap: wrap;
+        margin-top: 0.4rem;
+      }
+      .chip {
+        font-size: var(--fusion-text-xs);
+        border-radius: var(--fusion-radius-pill);
+        padding: 0.05rem 0.4rem;
+        border: 1px solid var(--fusion-border);
+        color: var(--fusion-text-muted);
+        white-space: nowrap;
+        max-width: 118px;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        cursor: default;
+      }
+      .chip .v {
+        font-variant-numeric: tabular-nums;
+        font-weight: 700;
+      }
+      .chip.harm {
+        border-color: var(--fusion-condition-harm);
+        color: var(--fusion-condition-harm);
+        background: var(--fusion-condition-harm-dim);
+      }
+      .chip.benefit {
+        border-color: var(--fusion-condition-benefit);
+        color: var(--fusion-success);
+        background: var(--fusion-condition-benefit-dim);
+      }
+      .chip.special {
+        border-color: var(--fusion-condition-special);
+        color: var(--fusion-magic);
+        background: var(--fusion-condition-special-dim);
+      }
+      .chip.crit {
+        background: var(--fusion-danger);
+        border-color: var(--fusion-danger);
+        color: var(--fusion-bg);
+        font-weight: 700;
+      }
+      .chip.you {
+        border-color: var(--fusion-accent);
+        color: var(--fusion-accent-hover);
+        background: var(--fusion-accent-dim);
+        max-width: none;
+      }
+      .chip.off {
+        color: var(--fusion-text-subtle);
+      }
+      .chip.more {
+        cursor: pointer;
+        border-style: dashed;
+        color: var(--fusion-text-subtle);
+      }
+      .chip.more:hover {
+        color: var(--fusion-text);
+        border-color: var(--fusion-accent);
+      }
+      .chip.st {
+        border-color: var(--fusion-warning);
+        color: var(--fusion-warning);
+      }
+      .chip.count {
+        border-style: dashed;
+        color: var(--fusion-text-subtle);
+      }
+
+      #tip {
+        position: fixed;
+        z-index: 9998;
+        max-width: 230px;
+        background: var(--fusion-input-bg);
+        border: 1px solid var(--fusion-border);
+        border-radius: var(--fusion-radius-sm);
+        padding: 0.35rem 0.5rem;
+        font-size: var(--fusion-text-xs);
+        line-height: 1.4;
+        color: var(--fusion-text);
+        box-shadow: var(--fusion-shadow-popover);
+        pointer-events: none;
+        display: none;
+      }
+      #tip b {
+        display: block;
+        margin-bottom: 0.15rem;
+      }
+      #tip .tone {
+        color: var(--fusion-text-subtle);
+        font-size: var(--fusion-text-xs);
+        margin-top: 0.25rem;
+        display: block;
+      }
+
+      /* sub-personagem encapsulado */
+      .sub {
+        display: flex;
+        align-items: center;
+        gap: 0.4rem;
+        margin: 0.35rem 0 0 0.3rem;
+        padding: 0.15rem 0.3rem 0.15rem 0.4rem;
+        border-left: 2px solid var(--fusion-border);
+        border-radius: 0 var(--fusion-radius-sm) var(--fusion-radius-sm) 0;
+        cursor: pointer;
+      }
+      .sub:hover {
+        background: var(--fusion-surface-alt);
+        border-left-color: var(--fusion-accent);
+      }
+      .sub .nm {
+        font-size: var(--fusion-text-xs);
+        color: var(--fusion-text);
+      }
+      .sub .sb {
+        font-size: var(--fusion-text-xs);
+        color: var(--fusion-text-subtle);
+        margin-left: auto;
+      }
+      .sub .conds {
+        margin-top: 0;
+      }
+
+      .vazio {
+        border: 1px dashed var(--fusion-border);
+        border-radius: var(--fusion-radius);
+        padding: 1rem 0.9rem;
+        text-align: center;
+        color: var(--fusion-text-subtle);
+        font-size: var(--fusion-text-xs);
+        line-height: 1.55;
+        margin: 0.6rem 0.1rem;
+      }
+      .vazio b {
+        color: var(--fusion-text-muted);
+      }
+      .hint {
+        color: var(--fusion-text-subtle);
+        font-size: var(--fusion-text-xs);
+        text-align: center;
+        padding: 0.6rem 0.3rem 0;
+        line-height: 1.45;
+      }
+
+      .row {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 0.4rem 0.5rem;
+        border-radius: var(--fusion-radius-sm);
+        color: var(--fusion-text-muted);
+      }
+      .row:hover {
+        background: var(--fusion-surface-alt);
+      }
+      .row .name {
+        color: var(--fusion-text);
+        font-size: var(--fusion-text-sm);
+      }
+      .row .sub2 {
+        color: var(--fusion-text-subtle);
+        font-size: var(--fusion-text-xs);
+        margin-left: auto;
+      }
+      .empty {
+        text-align: center;
+        padding: 1.5rem 0 0.75rem;
+        color: var(--fusion-text-muted);
+      }
+
+      /* janela (spec 11) */
+      .win {
+        position: fixed;
+        top: 90px;
+        left: calc(50% - 300px);
+        width: 600px;
+        background: var(--fusion-surface);
+        border: 1px solid var(--fusion-accent);
+        border-radius: var(--fusion-radius);
+        box-shadow: var(--fusion-shadow-modal);
+        z-index: 500;
+        overflow: hidden;
+      }
+      .win .wh {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 0.45rem 0.6rem;
+        background: var(--fusion-surface-alt);
+        border-bottom: 1px solid var(--fusion-border);
+        font-size: var(--fusion-text-xs);
+        font-weight: 600;
+      }
+      .win .wh .x {
+        margin-left: auto;
+        background: none;
+        border: 0;
+        color: var(--fusion-text-muted);
+        font-size: var(--fusion-text-md);
+        cursor: pointer;
+      }
+      .win .wb {
+        padding: 0.7rem 0.8rem 0.9rem;
+        color: var(--fusion-text-muted);
+        font-size: var(--fusion-text-xs);
+        line-height: 1.5;
+        max-height: 64vh;
+        overflow: auto;
+      }
+      .win .wb b {
+        color: var(--fusion-text);
+      }
+      .keys {
+        display: flex;
+        gap: 0.8rem;
+        flex-wrap: wrap;
+        margin: 0.5rem 0 0.2rem;
+        font-size: var(--fusion-text-xs);
+      }
+      .keys span {
+        display: flex;
+        align-items: center;
+        gap: 0.3rem;
+        color: var(--fusion-text-subtle);
+      }
+      .keys i {
+        font-style: normal;
+        font-size: var(--fusion-text-base);
+        width: 1.1rem;
+        text-align: center;
+      }
+      .k0 {
+        color: var(--fusion-text-subtle);
+      }
+      .k1 {
+        color: var(--fusion-warning);
+      }
+      .k2 {
+        color: var(--fusion-success);
+      }
+      .matrix {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: var(--fusion-text-xs);
+        margin-top: 0.5rem;
+      }
+      .matrix th,
+      .matrix td {
+        border: 1px solid var(--fusion-border);
+        padding: 0.2rem 0.35rem;
+        text-align: center;
+        vertical-align: middle;
+      }
+      .matrix thead th {
+        color: var(--fusion-text-muted);
+        font-weight: 600;
+        font-size: var(--fusion-text-xs);
+        background: var(--fusion-surface-alt);
+        cursor: pointer;
+        user-select: none;
+      }
+      .matrix thead th:hover {
+        color: var(--fusion-accent-hover);
+      }
+      .matrix thead th:first-child {
+        cursor: default;
+        text-align: left;
+      }
+      .matrix thead th:first-child:hover {
+        color: var(--fusion-text-muted);
+      }
+      .matrix thead th small {
+        display: block;
+        color: var(--fusion-text-subtle);
+        font-size: var(--fusion-text-xs);
+        font-weight: 400;
+      }
+      .matrix td.nm {
+        text-align: left;
+        color: var(--fusion-text);
+        cursor: pointer;
+        white-space: nowrap;
+      }
+      .matrix td.nm:hover {
+        color: var(--fusion-accent-hover);
+      }
+      .matrix td.nm small {
+        display: block;
+        color: var(--fusion-text-subtle);
+        font-size: var(--fusion-text-xs);
+      }
+      .matrix td button.cell {
+        background: none;
+        border: 0;
+        cursor: pointer;
+        font-size: var(--fusion-text-md);
+        width: 100%;
+        line-height: 1.3;
+        border-radius: var(--fusion-radius-sm);
+      }
+      .matrix td button.cell:hover {
+        background: var(--fusion-surface-alt);
+      }
+      .matrix td button.cell.ex {
+        text-decoration: underline;
+        text-underline-offset: 2px;
+      }
+      .win .note {
+        margin-top: 0.65rem;
+        color: var(--fusion-text-subtle);
+        font-size: var(--fusion-text-xs);
+        line-height: 1.5;
+      }
+
+      
+      /* ---------- Linguagem visual de 22/10/2026: ajustes estruturais ---------- */
+      .header { padding-right: 160px; }
+      .header .bolt, .header .pill { display: inline-flex; align-items: center; gap: var(--fusion-space-1); }
+      .header .bolt { font-size: var(--fusion-text-lg); }
+      .header .who { display: inline-flex; align-items: center; gap: var(--fusion-space-1); }
+      .header .who .dot { background: var(--fusion-danger); }
+      .header .who.player .dot { background: var(--fusion-success); }
+      .header .btn { min-height: var(--fusion-target); padding: 0 var(--fusion-space-3); }
+      .stage .art .star { display: grid; place-items: center; }
+      .stage .drop { border-radius: var(--fusion-radius); }
+
+      /* trilho da gaveta: alvo 44x44, ícone SVG, ponto sem brilho */
+      .tabbtn { font-size: var(--fusion-text-lg); }
+      .tabs .tabbtn { width: var(--fusion-sidebar-rail-width); height: 44px; }
+      .tabs .tabbtn.is-active { width: var(--fusion-sidebar-rail-width); }
+      .tabbtn .badge { min-width: 18px; height: 18px; color: var(--fusion-bg); }
+      .tabbtn:hover .tip, .tabbtn:focus-visible .tip { opacity: 1; }
+      .panel-title { font-size: var(--fusion-text-md); }
+      .panel-head { min-height: var(--fusion-target); border-bottom-color: var(--fusion-border); }
+
+      /* alvos >= 40px */
+      .search { min-height: var(--fusion-target); }
+      .search input { font-size: var(--fusion-text-sm); }
+      .hbtn { height: auto; min-height: var(--fusion-target); min-width: var(--fusion-target); }
+      .sec { min-height: var(--fusion-target); }
+      .sec.click { cursor: pointer; }
+      .sec .lbl { font-size: var(--fusion-text-sm); font-weight: var(--fusion-weight-bold); color: var(--fusion-text-muted); }
+      .sec .lbl.chev { display: grid; color: var(--fusion-text-subtle); font-size: var(--fusion-text-md); }
+      .sec .cnt { font-size: var(--fusion-text-xs); }
+      .sec .add { min-height: var(--fusion-target); min-width: var(--fusion-target); display: inline-flex; align-items: center; gap: var(--fusion-space-1); font-size: var(--fusion-text-xs); color: var(--fusion-text-muted); }
+
+      /* categoria: sem caixa; ferramentas visíveis em hover, foco e toque */
+      .cat { position: relative; min-height: var(--fusion-target); }
+      .cat .nm { display: inline-flex; align-items: center; gap: var(--fusion-space-1); min-height: var(--fusion-target); font-size: var(--fusion-text-sm); }
+      .cat .nm .svg-i { color: var(--fusion-text-subtle); }
+      .cat .cnt { font-size: var(--fusion-text-xs); }
+      .cat .tools { position: absolute; right: 0; top: 0; bottom: 0; align-items: center; gap: 0; background: var(--fusion-surface); }
+      .cat:hover .tools, .cat:focus-within .tools { opacity: 1; }
+      .cat .tools button { min-width: var(--fusion-target); min-height: var(--fusion-target); display: grid; place-items: center; font-size: var(--fusion-text-md); padding: 0; }
+      .cat input { min-height: var(--fusion-target); font-size: var(--fusion-text-sm); }
+
+      /* contato: linha plana com divisor, sem cartão */
+      .card { background: none; border: 0; border-bottom: 1px solid var(--fusion-border); border-radius: 0; padding: var(--fusion-space-2) var(--fusion-space-1); margin-bottom: 0; }
+      .card.mine { background: var(--fusion-accent-dim); border: 0; border-bottom: 1px solid var(--fusion-border); }
+      .card .nm { font-size: var(--fusion-text-base); }
+      .card .move { min-width: var(--fusion-target); min-height: var(--fusion-target); display: grid; place-items: center; font-size: var(--fusion-text-lg); }
+      .card:hover .move, .card:focus-within .move { opacity: 1; }
+      .ttl { font-size: var(--fusion-text-xs); }
+      .ttl .pen { position: relative; display: inline-grid; place-items: center; background: none; border: 0; padding: 0; color: var(--fusion-text-subtle); font-size: var(--fusion-text-sm); }
+      .ttl .pen::after { content: ""; position: absolute; inset: -14px -10px; }
+      .card:hover .ttl .pen, .card:focus-within .ttl .pen { opacity: 1; }
+      .ttl input { min-height: var(--fusion-target); font-size: var(--fusion-text-sm); }
+      @media (hover: none) {
+        .card .move, .ttl .pen, .cat .tools { opacity: 1; }
+        .cat .tools { position: static; margin-left: auto; background: none; }
+      }
+
+      /* companheiros recuados sob o PJ: recuo + linha-guia fina, sem borda de cartão */
+      .sub { margin: var(--fusion-space-1) 0 0 19px; padding: 0 var(--fusion-space-2) 0 var(--fusion-space-3); min-height: var(--fusion-target); border-left: 1px solid var(--fusion-border); border-radius: 0; }
+      .sub:hover { background: var(--fusion-surface-alt); border-left-color: var(--fusion-accent); }
+      .sub .nm { font-size: var(--fusion-text-sm); }
+      .sub .sb { font-size: var(--fusion-text-xs); }
+
+      /* chips */
+      .chip { border-radius: var(--fusion-radius-sm); font-size: var(--fusion-text-xs); font-family: inherit; line-height: var(--fusion-leading); background: none; }
+      .chip.harm { background: var(--fusion-condition-harm-dim); }
+      .chip.benefit { background: var(--fusion-condition-benefit-dim); }
+      .chip.special { background: var(--fusion-condition-special-dim); }
+      .chip.crit { background: var(--fusion-danger); }
+      .chip.you { background: var(--fusion-accent-dim); }
+      .chip.more { position: relative; background: none; }
+      .chip.more::after { content: ""; position: absolute; inset: -9px -6px; }
+      .movemenu button { border-radius: var(--fusion-radius-sm); min-height: var(--fusion-target); font-size: var(--fusion-text-xs); padding: 0 var(--fusion-space-3); display: inline-flex; align-items: center; gap: var(--fusion-space-1); }
+      .movemenu button.on { background: var(--fusion-accent-dim); }
+      .movemenu input { border-radius: var(--fusion-radius-sm); min-height: var(--fusion-target); font-size: var(--fusion-text-sm); }
+
+      /* janela */
+      .win .wh { min-height: var(--fusion-target); font-size: var(--fusion-text-base); }
+      .win .wh .x { min-width: var(--fusion-target); min-height: var(--fusion-target); display: grid; place-items: center; font-size: var(--fusion-text-lg); }
+      .win .wb { font-size: var(--fusion-text-sm); }
+      .win .note { font-size: var(--fusion-text-xs); }
+      .keys i { display: inline-grid; place-items: center; width: 1.4rem; }
+      .keys i.ex, .matrix td button.cell.ex { border-bottom: 2px solid currentColor; }
+      .matrix { font-size: var(--fusion-text-sm); }
+      .matrix thead th { font-size: var(--fusion-text-xs); padding: var(--fusion-space-2); }
+      .matrix td.nm { padding: var(--fusion-space-2); }
+      .matrix td button.cell { min-height: var(--fusion-target); min-width: var(--fusion-target); display: inline-grid; place-items: center; font-size: var(--fusion-text-lg); text-decoration: none; }
+      .dotc { display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: var(--fusion-success); }
+
+      /* ---------- Switcher + legenda (fora do design) ---------- */
+      .switcher {
+        position: fixed; left: 50%; bottom: 16px; transform: translateX(-50%); z-index: 9000;
+        display: flex; align-items: center; gap: var(--fusion-space-2);
+        background: var(--fusion-surface); color: var(--fusion-text); border: 1px solid var(--fusion-border);
+        border-radius: var(--fusion-radius-lg); padding: var(--fusion-space-2);
+        box-shadow: var(--fusion-shadow-popover); font-size: var(--fusion-text-sm);
+      }
+      .switcher button {
+        border: 1px solid var(--fusion-border); background: var(--fusion-surface-alt); color: var(--fusion-text);
+        min-height: var(--fusion-target); padding: 0 var(--fusion-space-3); border-radius: var(--fusion-radius);
+        font-size: var(--fusion-text-sm);
+      }
+      .switcher button.alt { border-color: var(--fusion-accent); }
+      .legend {
+        position: fixed; left: 16px; bottom: 16px; z-index: 9000;
+        background: var(--fusion-surface); color: var(--fusion-text); border: 1px solid var(--fusion-border);
+        border-radius: var(--fusion-radius-lg); padding: var(--fusion-space-3);
+        box-shadow: var(--fusion-shadow-popover); font-size: var(--fusion-text-xs);
+        max-width: 385px; max-height: calc(100vh - 150px); overflow: auto; line-height: var(--fusion-leading);
+      }
+      .legend h4 { margin: 0 0 var(--fusion-space-2); font-size: var(--fusion-text-sm); }
+      .legend td { padding: 2px var(--fusion-space-1); vertical-align: top; }
+      .legend td:first-child { color: var(--fusion-text-subtle); white-space: nowrap; }
+      .legend b { color: var(--fusion-text); }
+      .legend .sw { display: inline-block; width: 9px; height: 9px; border-radius: 50%; margin-right: 0.2rem; }
+      .legend .q { margin-top: var(--fusion-space-2); padding-top: var(--fusion-space-2); border-top: 1px solid var(--fusion-border); color: var(--fusion-text-muted); }
+    </style>
+  </head>
+  <body>
+    <button type="button" class="theme-toggle" id="theme-toggle" aria-label="Alternar tema">Tema: escuro</button>
+    <script>
+      (function () {
+        var b = document.getElementById("theme-toggle");
+        function paint() {
+          b.textContent = "Tema: " + (document.documentElement.dataset.theme === "light" ? "claro" : "escuro");
+        }
+        b.addEventListener("click", function () {
+          document.documentElement.dataset.theme = document.documentElement.dataset.theme === "light" ? "dark" : "light";
+          paint();
+        });
+        paint();
+      })();
+    </script>
+    <svg width="0" height="0" style="position:absolute" aria-hidden="true">
+<symbol id="i-users" viewBox="0 0 24 24"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><path d="M16 3.128a4 4 0 0 1 0 7.744"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><circle cx="9" cy="7" r="4"/></symbol>
+<symbol id="i-message-square" viewBox="0 0 24 24"><path d="M22 17a2 2 0 0 1-2 2H6.828a2 2 0 0 0-1.414.586l-2.202 2.202A.71.71 0 0 1 2 21.286V5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2z"/></symbol>
+<symbol id="i-swords" viewBox="0 0 24 24"><path d="m13 19 6-6"/><path d="M14.5 17.5 3.586 6.586A2 2 0 013 5.172V3h2.172a2 2 0 011.414.586L17.5 14.5"/><path d="m14.828 6.172 2.586-2.586A2 2 0 0118.828 3H21v2.172a2 2 0 01-.586 1.414l-2.586 2.586"/><path d="m16 16 4 4"/><path d="m19 21 2-2"/><path d="m5 14 4 4"/><path d="m5 21-2-2"/><path d="M7.5 16.5 4 20"/></symbol>
+<symbol id="i-book-open" viewBox="0 0 24 24"><path d="M12 5v16"/><path d="M20.001 19A2 2 0 0022 17V5a2 2 0 00-1.999-2L16 3.002A5 5 0 0012 5a5 5 0 00-4-2H4a2 2 0 00-2 2v12a2 2 0 001.999 2H8a5 5 0 014 2 5 5 0 014-2z"/></symbol>
+<symbol id="i-drama" viewBox="0 0 24 24"><path d="M10 11h.01"/><path d="M14 6h.01"/><path d="M18 6h.01"/><path d="M6.5 13.1h.01"/><path d="M22 5c0 9-4 12-6 12s-6-3-6-12c0-2 2-3 6-3s6 1 6 3"/><path d="M17.4 9.9c-.8.8-2 .8-2.8 0"/><path d="M10.1 7.1C9 7.2 7.7 7.7 6 8.6c-3.5 2-4.7 3.9-3.7 5.6 4.5 7.8 9.5 8.4 11.2 7.4.9-.5 1.9-2.1 1.9-4.7"/><path d="M9.1 16.5c.3-1.1 1.4-1.7 2.4-1.4"/></symbol>
+<symbol id="i-map" viewBox="0 0 24 24"><path d="M14.106 5.553a2 2 0 0 0 1.788 0l3.659-1.83A1 1 0 0 1 21 4.619v12.764a1 1 0 0 1-.553.894l-4.553 2.277a2 2 0 0 1-1.788 0l-4.212-2.106a2 2 0 0 0-1.788 0l-3.659 1.83A1 1 0 0 1 3 19.381V6.618a1 1 0 0 1 .553-.894l4.553-2.277a2 2 0 0 1 1.788 0z"/><path d="M15 5.764v15"/><path d="M9 3.236v15"/></symbol>
+<symbol id="i-settings" viewBox="0 0 24 24"><path d="M9.671 4.136a2.34 2.34 0 0 1 4.659 0 2.34 2.34 0 0 0 3.319 1.915 2.34 2.34 0 0 1 2.33 4.033 2.34 2.34 0 0 0 0 3.831 2.34 2.34 0 0 1-2.33 4.033 2.34 2.34 0 0 0-3.319 1.915 2.34 2.34 0 0 1-4.659 0 2.34 2.34 0 0 0-3.32-1.915 2.34 2.34 0 0 1-2.33-4.033 2.34 2.34 0 0 0 0-3.831A2.34 2.34 0 0 1 6.35 6.051a2.34 2.34 0 0 0 3.319-1.915"/><circle cx="12" cy="12" r="3"/></symbol>
+<symbol id="i-zap" viewBox="0 0 24 24"><path d="M15.914 4a1.5 1.5 0 00-2.474-1.561l-9 9A1.5 1.5 0 005.5 14h4.002a.5.5 0 01.471.666L8.086 20a1.5 1.5 0 002.475 1.56l9-9A1.5 1.5 0 0018.5 10h-3.997a.5.5 0 01-.472-.667z"/></symbol>
+<symbol id="i-star" viewBox="0 0 24 24"><path d="M11.525 2.295a.53.53 0 0 1 .95 0l2.31 4.679a2.123 2.123 0 0 0 1.595 1.16l5.166.756a.53.53 0 0 1 .294.904l-3.736 3.638a2.123 2.123 0 0 0-.611 1.878l.882 5.14a.53.53 0 0 1-.771.56l-4.618-2.428a2.122 2.122 0 0 0-1.973 0L6.396 21.01a.53.53 0 0 1-.77-.56l.881-5.139a2.122 2.122 0 0 0-.611-1.879L2.16 9.795a.53.53 0 0 1 .294-.906l5.165-.755a2.122 2.122 0 0 0 1.597-1.16z"/></symbol>
+<symbol id="i-chevron-right" viewBox="0 0 24 24"><path d="m9 18 6-6-6-6"/></symbol>
+<symbol id="i-chevron-down" viewBox="0 0 24 24"><path d="m6 9 6 6 6-6"/></symbol>
+<symbol id="i-chevron-up" viewBox="0 0 24 24"><path d="m18 15-6-6-6 6"/></symbol>
+<symbol id="i-x" viewBox="0 0 24 24"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></symbol>
+<symbol id="i-pencil" viewBox="0 0 24 24"><path d="M21.174 6.812a1 1 0 0 0-3.986-3.987L3.842 16.174a2 2 0 0 0-.5.83l-1.321 4.352a.5.5 0 0 0 .623.622l4.353-1.32a2 2 0 0 0 .83-.497z"/><path d="m15 5 4 4"/></symbol>
+<symbol id="i-folder" viewBox="0 0 24 24"><path d="M20 20a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-7.9a2 2 0 0 1-1.69-.9L9.6 3.9A2 2 0 0 0 7.93 3H4a2 2 0 0 0-2 2v13a2 2 0 0 0 2 2Z"/></symbol>
+<symbol id="i-file-text" viewBox="0 0 24 24"><path d="M6 22a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h8a2.4 2.4 0 0 1 1.704.706l3.588 3.588A2.4 2.4 0 0 1 20 8v12a2 2 0 0 1-2 2z"/><path d="M14 2v5a1 1 0 0 0 1 1h5"/><path d="M10 9H8"/><path d="M16 13H8"/><path d="M16 17H8"/></symbol>
+<symbol id="i-grid-3x3" viewBox="0 0 24 24"><rect width="18" height="18" x="3" y="3" rx="2"/><path d="M3 9h18"/><path d="M3 15h18"/><path d="M9 3v18"/><path d="M15 3v18"/></symbol>
+<symbol id="i-search" viewBox="0 0 24 24"><path d="m21 21-4.34-4.34"/><circle cx="11" cy="11" r="8"/></symbol>
+<symbol id="i-eye" viewBox="0 0 24 24"><path d="M2.062 12.348a1 1 0 0 1 0-.696 10.75 10.75 0 0 1 19.876 0 1 1 0 0 1 0 .696 10.75 10.75 0 0 1-19.876 0"/><circle cx="12" cy="12" r="3"/></symbol>
+<symbol id="i-eye-off" viewBox="0 0 24 24"><path d="M10.733 5.076a10.744 10.744 0 0 1 11.205 6.575 1 1 0 0 1 0 .696 10.747 10.747 0 0 1-1.444 2.49"/><path d="M14.084 14.158a3 3 0 0 1-4.242-4.242"/><path d="M17.479 17.499a10.75 10.75 0 0 1-15.417-5.151 1 1 0 0 1 0-.696 10.75 10.75 0 0 1 4.446-5.143"/><path d="m2 2 20 20"/></symbol>
+<symbol id="i-check" viewBox="0 0 24 24"><path d="M20 6 9 17l-5-5"/></symbol>
+<symbol id="i-plus" viewBox="0 0 24 24"><path d="M5 12h14"/><path d="M12 5v14"/></symbol>
+    </svg>
+    <div class="header">
+      <span class="bolt"><svg class="svg-i" aria-hidden="true"><use href="#i-zap"/></svg></span><span class="world">teste_xande</span
+      ><span class="pill"><svg class="svg-i" aria-hidden="true"><use href="#i-map"/></svg>aha</span>
+      <span class="spacer"></span>
+      <span class="status"><span class="dot"></span>Conectado <sup>2ms</sup></span>
+      <span class="who" id="who"></span>
+      <button class="btn">Sair</button>
+    </div>
+    <div class="stage">
+      <div class="art">
+        <div class="house"><div class="star"><svg class="svg-i" aria-hidden="true"><use href="#i-star"/></svg></div></div>
+      </div>
+      <div class="drop">arraste um contato para cá e ele vira token</div>
+    </div>
+
+    <div id="root"></div>
+    <div id="float"></div>
+    <div id="tip"></div>
+
+    <div class="switcher">
+      <button id="role">papel</button>
+      <button id="flood" class="alt">condições</button>
+      <button id="newbie" class="alt">jogador novo</button>
+      <button id="state">estado</button>
+    </div>
+    <div class="legend" id="legend"></div>
+
+    <script>
+      /* ================= chassi (spec 36) ================= */
+      const ic = (n) => `<svg class="svg-i" aria-hidden="true"><use href="#i-${n}"/></svg>`;
+      const ICONS = {
+        chat: ic("message-square"),
+        contacts: ic("users"),
+        combat: ic("swords"),
+        compendium: ic("book-open"),
+        npcs: ic("drama"),
+        scenes: ic("map"),
+        settings: ic("settings"),
+      };
+      const UI_ICON = {
+        search: ic("search"),
+        sheet: ic("file-text"),
+        grid: ic("grid-3x3"),
+      };
+      const TABS = [
+        { id: "chat", label: "Chat", group: "all", badge: "3" },
+        { id: "contacts", label: "Contatos", group: "all" },
+        { id: "combat", label: "Combate", group: "all" },
+        { id: "compendium", label: "Compêndio", group: "all" },
+        { id: "npcs", label: "NPCs", group: "gm" },
+        { id: "scenes", label: "Cenas", group: "gm" },
+        { id: "settings", label: "Configurações", group: "all", foot: true },
+      ];
+      const TITLE = {
+        chat: "Chat",
+        contacts: "Contatos",
+        combat: "Combate",
+        compendium: "Compêndio",
+        npcs: "NPCs",
+        scenes: "Cenas",
+        settings: "Configurações",
+      };
+      const OTHER = {
+        chat: `<div class="row"><span class="name">Fofurinha</span><span class="sub2">21:14</span></div>`,
+        combat: `<p class="empty">Nenhum combate ativo.</p>`,
+        compendium: `<div class="row"><span class="name">Talentos</span><span class="sub2">1.812</span></div>`,
+        npcs: `<div class="row"><span class="name">Mestre Aldric</span><span class="sub2">npc</span></div>
+    <div class="row"><span class="name">Vess, a Corvo</span><span class="sub2">npc</span></div>`,
+        scenes: `<div class="row"><span class="dotc"></span><span class="name">Fortaleza</span><span class="sub2">ativa</span></div>`,
+        settings: `<div class="row"><span class="name">Minhas preferências</span><span class="sub2">${ic("chevron-right")}</span></div>`,
+      };
+
+      /* ================= condições (contrato no topo) ================= */
+      const COND = {
+        dying: {
+          lb: "Morrendo",
+          valued: true,
+          tone: "harm",
+          critical: true,
+          help: "Inconsciente e perto da morte. O valor sobe a cada golpe que chega.",
+        },
+        unconscious: {
+          lb: "Inconsciente",
+          tone: "harm",
+          critical: true,
+          help: "Caído e sem agir; não percebe o que acontece em volta.",
+        },
+        paralyzed: {
+          lb: "Paralisado",
+          tone: "harm",
+          critical: true,
+          help: "Não age e fica desprevenido; a mente continua acordada.",
+        },
+        frightened: {
+          lb: "Amedrontado",
+          valued: true,
+          tone: "harm",
+          help: "Penalidade igual ao valor em testes e CDs. Cai 1 ao fim do seu turno.",
+        },
+        wounded: {
+          lb: "Ferido",
+          valued: true,
+          tone: "harm",
+          help: "Se cair de novo, você começa a Morrer num grau pior.",
+        },
+        enfeebled: {
+          lb: "Enfraquecido",
+          valued: true,
+          tone: "harm",
+          help: "Penalidade igual ao valor no que depende de Força.",
+        },
+        slowed: {
+          lb: "Lento",
+          valued: true,
+          tone: "harm",
+          help: "Começa o turno com menos ações, igual ao valor.",
+        },
+        sickened: {
+          lb: "Enjoado",
+          valued: true,
+          tone: "harm",
+          help: "Penalidade em tudo; não consegue ingerir nada enquanto durar.",
+        },
+        dazzled: {
+          lb: "Ofuscado",
+          tone: "harm",
+          help: "Tudo além de bem perto conta como encoberto para você.",
+        },
+        grabbed: {
+          lb: "Agarrado",
+          tone: "harm",
+          help: "Preso no lugar e desprevenido até conseguir se soltar.",
+        },
+        "persistent-damage": {
+          lb: "Dano persistente",
+          valued: true,
+          tone: "harm",
+          help: "Sofre o dano no fim do turno até apagar a fonte.",
+        },
+        quickened: {
+          lb: "Acelerado",
+          tone: "benefit",
+          help: "Uma ação extra por turno, limitada ao que a fonte permite.",
+        },
+        invisible: {
+          lb: "Invisível",
+          tone: "special",
+          help: "Indetectado por quem depende da visão, até ser localizado.",
+        },
+        hidden: {
+          lb: "Escondido",
+          tone: "special",
+          help: "Sabem mais ou menos onde você está, mas não conseguem te ver.",
+        },
+      };
+      const TONE_LB = { harm: "penalidade", benefit: "benefício", special: "situação" };
+      const ORDER = { crit: 0, harm: 1, special: 2, benefit: 3 };
+      const condRank = (c) => {
+        const d = COND[c.slug] || {};
+        return d.critical ? ORDER.crit : ORDER[d.tone || "special"];
+      };
+      const sortConds = (list) =>
+        [...list].sort(
+          (a, b) =>
+            condRank(a) - condRank(b) ||
+            (COND[a.slug]?.lb || a.slug).localeCompare(COND[b.slug]?.lb || b.slug, "pt-BR"),
+        );
+
+      /* ================= dados mock ================= */
+      const PCS = [
+        {
+          id: "c1",
+          name: "Fofurinha",
+          title: "A Voz do Bosque",
+          cls: "Druida 5",
+          owner: "Alexandre",
+          online: true,
+          conds: [{ slug: "frightened", v: 2 }, { slug: "wounded", v: 1 }, { slug: "hidden" }],
+        },
+        {
+          id: "c2",
+          name: "Tobias",
+          title: "Escudo da Ponte",
+          cls: "Guerreiro 5",
+          owner: "Tobias",
+          online: true,
+          conds: [{ slug: "quickened" }],
+        },
+        {
+          id: "c3",
+          name: "Nima",
+          title: "",
+          cls: "Ladina 5",
+          owner: "Nima",
+          online: false,
+          conds: [{ slug: "enfeebled", v: 1 }],
+        },
+      ];
+      const NEWBIE = {
+        id: "c4",
+        name: "Rurik",
+        title: "",
+        cls: "Clérigo 4",
+        owner: "Rurik",
+        online: true,
+        conds: [],
+      };
+      const COLOR = {
+        c1: "var(--fusion-accent)",
+        c2: "var(--fusion-success)",
+        c3: "var(--fusion-warning)",
+        c4: "var(--fusion-danger)",
+        p1: "var(--fusion-accent-hover)",
+        p2: "var(--fusion-success)",
+        n1: "var(--fusion-warning)",
+        n2: "var(--fusion-info)",
+        n3: "var(--fusion-text-subtle)",
+        n4: "var(--fusion-magic)",
+      };
+      const SUBS = [
+        { id: "p1", of: "c1", name: "Grão", kind: "Familiar", conds: [{ slug: "dying", v: 1 }] },
+        { id: "p2", of: "c2", name: "Bruta", kind: "Companheiro animal", conds: [] },
+      ];
+      const NPCS = [
+        { id: "n1", name: "Mestre Aldric", title: "Ferreiro da Vila do Cruzamento" },
+        { id: "n2", name: "Capitã Roswyn", title: "Guarda da Fortaleza" },
+        { id: "n3", name: "Vess, a Corvo", title: "Informante do porto" },
+        { id: "n4", name: "Irmão Calvo", title: "Cultista do Verme" },
+      ];
+      const FLOOD = [
+        { slug: "dying", v: 2 },
+        { slug: "frightened", v: 3 },
+        { slug: "enfeebled", v: 2 },
+        { slug: "slowed", v: 1 },
+        { slug: "sickened", v: 1 },
+        { slug: "dazzled" },
+        { slug: "grabbed" },
+        { slug: "quickened" },
+        { slug: "invisible" },
+        { slug: "persistent-damage", v: 5 },
+      ];
+
+      /* ================= conhecimento: estado POR PAR =================
+   0 oculto · 1 entrevisto · 2 conhecido
+   `rule[npc]`   = regra geral do contato (vale para personagem sem exceção,
+                   inclusive os que ainda não existem)
+   `ex[npc][pc]` = exceção daquele personagem                                */
+      const ST = ["oculto", "entrevisto", "conhecido"];
+      const SYM = ["eye-off", "eye", "check"]; /* oculto, entrevisto, conhecido */
+      let rule = { n1: 1, n2: 0, n3: 1, n4: 0 };
+      let ex = { n1: { c2: 2 }, n2: { c1: 2 }, n3: {}, n4: {} };
+      const know = (npc, pc) => (ex[npc] && ex[npc][pc] != null ? ex[npc][pc] : rule[npc]);
+      const isEx = (npc, pc) => !!(ex[npc] && ex[npc][pc] != null);
+      function setKnow(npc, pc, v) {
+        ex[npc] = ex[npc] || {};
+        if (v === rule[npc]) delete ex[npc][pc];
+        else ex[npc][pc] = v;
+      }
+
+      /* ================= estado da UI ================= */
+      const params = new URLSearchParams(location.search);
+      let role = params.get("role") === "gm" ? "gm" : "player";
+      let flood = params.get("flood") === "1";
+      let newbie = params.get("newbie") === "1";
+      let empty = params.get("state") === "empty";
+
+      let active = "contacts",
+        open = true,
+        query = "",
+        win = null;
+      let collapsed = {},
+        expandConds = {},
+        editTitle = null,
+        moveFor = null,
+        newCatFor = null,
+        renameCat = null;
+
+      let titles = Object.fromEntries([...PCS, NEWBIE].map((p) => [p.id, p.title]));
+      /* categorias são DO USUÁRIO que organiza (jogador ou Mestre), nunca do mundo */
+      let cats = { player: ["Vila do Cruzamento", "Gente de confiança"], gm: [] };
+      let catOf = { player: { n1: "Vila do Cruzamento" }, gm: {} };
+      const myCats = () => cats[role === "gm" ? "gm" : "player"];
+      const myCatOf = () => catOf[role === "gm" ? "gm" : "player"];
+
+      const USER = () => (role === "gm" ? "Gamemaster" : "Alexandre");
+      const ROSTER = () => (newbie ? [...PCS, NEWBIE] : PCS);
+      const MYPCS = () => (role === "gm" ? [] : ROSTER().filter((p) => p.owner === USER()));
+      const OTHERS = () => (role === "gm" ? ROSTER() : ROSTER().filter((p) => p.owner !== USER()));
+      const subsOf = (id) => SUBS.filter((s) => s.of === id);
+      const initials = (n) => n.trim().slice(0, 2);
+      const match = (o) =>
+        !query || (o.name + " " + (o.title || "")).toLowerCase().includes(query.toLowerCase());
+      const condsOf = (p) => (flood && p.id === "c1" ? FLOOD : p.conds || []);
+      const canEditTitle = (p) => role === "gm" || p.owner === USER();
+
+      /* união: o estado que vale para o jogador é o MAIOR entre seus personagens */
+      function myState(npcId) {
+        if (role === "gm") return 2;
+        return MYPCS().reduce((max, p) => Math.max(max, know(npcId, p.id)), 0);
+      }
+      /* para o Mestre: quantos personagens conhecem/entreviram */
+      function reach(npcId) {
+        const r = ROSTER().map((p) => know(npcId, p.id));
+        return {
+          k: r.filter((v) => v === 2).length,
+          g: r.filter((v) => v === 1).length,
+          t: r.length,
+        };
+      }
+
+      /* ================= peças ================= */
+      function avatar(o, id, cls = "") {
+        const pres =
+          o.online === undefined ? "" : `<span class="pres ${o.online ? "on" : ""}"></span>`;
+        return `<span class="av ${cls}" style="background:${COLOR[id] || "var(--fusion-surface-alt)"}">${initials(o.name)}${pres}</span>`;
+      }
+      const avatarQ = (cls = "") => `<span class="av q ${cls}">?</span>`;
+      function sec(label, count, key, extra = "") {
+        return `<div class="sec ${key ? "click" : ""}" ${key ? `data-sec="${key}" tabindex="0" role="button" aria-expanded="${!collapsed[key]}"` : ""}>
+    ${key ? `<span class="lbl chev">${ic(collapsed[key] ? "chevron-right" : "chevron-down")}</span>` : ""}
+    <span class="lbl">${label}</span>${count != null ? `<span class="cnt">${count}</span>` : ""}
+    <span class="line"></span>${extra}</div>`;
+      }
+      function titleLine(p) {
+        const t = titles[p.id];
+        if (editTitle === p.id)
+          return `<div class="ttl"><input id="titleinput" value="${t || ""}" placeholder="um título para ${p.name}"/></div>`;
+        return `<div class="ttl ${t ? "" : "fallback"}"><span>${t || p.cls || "—"}</span>
+    ${canEditTitle(p) ? `<button type="button" class="pen" data-title="${p.id}" title="Editar título" aria-label="Editar título">${ic("pencil")}</button>` : ""}</div>`;
+      }
+      function chipOf(c) {
+        const d = COND[c.slug] || {};
+        const lb = d.lb || c.slug,
+          tone = d.tone || "special";
+        const val = d.valued && c.v != null ? ` <span class="v">${c.v}</span>` : "";
+        const payload = encodeURIComponent(
+          JSON.stringify({
+            t: lb + (d.valued && c.v != null ? " " + c.v : ""),
+            h: d.help || "",
+            tone: TONE_LB[tone],
+          }),
+        );
+        return `<span class="chip ${tone} ${d.critical ? "crit" : ""}" tabindex="0" data-help="${payload}">${lb}${val}</span>`;
+      }
+      function condsHtml(p) {
+        const list = sortConds(condsOf(p));
+        if (!list.length) return "";
+        const openAll = expandConds[p.id];
+        const show = openAll ? list : list.slice(0, 2);
+        const rest = list.length - show.length;
+        return `<div class="conds">${show.map(chipOf).join("")}
+    ${rest > 0 ? `<button type="button" class="chip more" data-conds="${p.id}" title="Mostrar mais condições" aria-label="Mostrar mais ${rest} condições">+${rest}</button>` : ""}
+    ${openAll && list.length > 2 ? `<button type="button" class="chip more" data-conds="${p.id}" title="Mostrar menos condições" aria-label="Mostrar menos condições">menos</button>` : ""}</div>`;
+      }
+
+      /* ================= corpo da aba ================= */
+      function contactsBody() {
+        if (empty)
+          return role === "gm"
+            ? `<div class="vazio">Nenhum personagem de jogador ainda.<br>Crie um ator, dê posse a um jogador, e ele aparece aqui para a mesa.</div>`
+            : `<div class="vazio">Você ainda não tem personagem nesta mesa.<br>Quando o Mestre te der um, ele aparece aqui — junto de quem você for conhecendo.</div>`;
+
+        const my = MYPCS().filter(match),
+          tb = OTHERS().filter(match);
+        let h = "";
+        h += sec(role === "gm" ? "A mesa" : "Na mesa", my.length + tb.length, "mesa");
+        if (!collapsed["mesa"]) {
+          my.forEach((p) => (h += pcCard(p, true)));
+          tb.forEach((p) => (h += pcCard(p, false)));
+        }
+
+        /* conhecidos: quem o jogador vê (estado > 0), agrupados nas categorias DELE */
+        const visible = NPCS.filter((n) => myState(n.id) > 0).filter((n) =>
+          match({ name: n.name, title: n.title }),
+        );
+        h += sec(
+          "Conhecidos",
+          visible.length,
+          "kn",
+          `<button class="add" data-newcat="1" title="Nova categoria" aria-label="Nova categoria">${ic("plus")}categoria</button>`,
+        );
+        if (!collapsed["kn"]) {
+          if (newCatFor === "new")
+            h += `<div class="cat"><input id="newcatinput" placeholder="nome da categoria"/></div>`;
+          const groups = [
+            ...myCats().map((c) => [c, visible.filter((n) => myCatOf()[n.id] === c)]),
+            [
+              "Sem categoria",
+              visible.filter((n) => !myCatOf()[n.id] || !myCats().includes(myCatOf()[n.id])),
+            ],
+          ];
+          groups.forEach(([name, items]) => {
+            if (name === "Sem categoria" && !items.length) return; /* balde só aparece com gente */
+            h += catHeader(name, items.length);
+            if (!collapsed["cat:" + name]) items.forEach((n) => (h += npcCard(n)));
+          });
+          if (!visible.length)
+            h += `<div class="vazio">Você ainda não conhece ninguém por aqui.<br>Nomes aparecem conforme a história apresenta.</div>`;
+        }
+        return h;
+      }
+      function catHeader(name, count) {
+        const custom = myCats().includes(name);
+        if (renameCat === name)
+          return `<div class="cat"><input id="renameinput" value="${name}"/></div>`;
+        return `<div class="cat ${count ? "" : "vazia"}">
+    <span class="nm" data-sec="cat:${name}" tabindex="0" role="button" aria-expanded="${!collapsed["cat:" + name]}">${ic(collapsed["cat:" + name] ? "chevron-right" : "chevron-down")}${name}</span>
+    <span class="cnt">${count}</span>
+    ${
+      custom
+        ? `<span class="tools">
+      <button data-catup="${name}" title="Subir" aria-label="Subir categoria">${ic("chevron-up")}</button>
+      <button data-catdown="${name}" title="Descer" aria-label="Descer categoria">${ic("chevron-down")}</button>
+      <button data-rename="${name}" title="Renomear" aria-label="Renomear categoria">${ic("pencil")}</button>
+      <button data-delcat="${name}" title="Excluir categoria (os contatos voltam para Sem categoria)" aria-label="Excluir categoria">${ic("x")}</button></span>`
+        : ""
+    }
+  </div>`;
+      }
+      function pcCard(p, isMine) {
+        return `<div class="card ${isMine ? "mine" : ""} ${p.online ? "" : "gone"}" draggable="true">
+    <div class="top" data-open="${p.name}" tabindex="0" role="button">${avatar(p, p.id)}
+      <span class="idt"><span class="nm">${p.name}
+        ${isMine ? '<span class="chip you">você</span>' : ""}
+        ${p.online ? "" : '<span class="chip off">fora</span>'}</span>${titleLine(p)}</span>
+    </div>
+    ${condsHtml(p)}
+    ${subsOf(p.id)
+      .map(
+        (s) => `<div class="sub" data-open="${s.name}" tabindex="0" role="button">${avatar(s, s.id, "sm")}
+      <span class="nm">${s.name}</span><span class="sb">${s.kind}</span>
+      ${(s.conds || []).length ? `<span class="conds" style="margin-left:.3rem">${sortConds(s.conds).slice(0, 1).map(chipOf).join("")}</span>` : ""}
+      </div>`,
+      )
+      .join("")}
+  </div>`;
+      }
+      function npcCard(n) {
+        const st = myState(n.id),
+          veiled = st === 1;
+        const r = reach(n.id);
+        return `<div class="card npc" draggable="${role === "gm"}">
+    <div class="top" data-open="${veiled ? "—" : n.name}" tabindex="0" role="button">
+      ${veiled ? avatarQ() : avatar(n, n.id)}
+      <span class="idt"><span class="nm">${veiled ? "Não identificado" : n.name}
+        ${veiled ? '<span class="chip st">entrevisto</span>' : ""}
+        ${role === "gm" ? `<span class="chip count" title="quantos personagens conhecem">${r.k}/${r.t} conhecem${r.g ? ` · ${r.g} entreviu` : ""}</span>` : ""}</span>
+        <div class="ttl ${veiled ? "fallback" : ""}"><span>${veiled ? "você o viu, mas não sabe quem é" : n.title}</span></div></span>
+      ${veiled ? "" : `<button class="move" data-move="${n.id}" title="Mover para categoria" aria-label="Mover para categoria">${ic("folder")}</button>`}
+    </div>
+    ${moveFor === n.id ? moveMenu(n) : ""}
+  </div>`;
+      }
+      function moveMenu(n) {
+        const cur = myCatOf()[n.id] || "";
+        return `<div class="movemenu">
+    ${myCats()
+      .map(
+        (c) => `<button class="${cur === c ? "on" : ""}" data-moveto="${n.id}::${c}">${c}</button>`,
+      )
+      .join("")}
+    <button class="${cur ? "" : "on"}" data-moveto="${n.id}::">Sem categoria</button>
+    ${
+      newCatFor === n.id
+        ? `<input id="newcatinput" placeholder="nova categoria"/>`
+        : `<button data-newcat="${n.id}">${ic("plus")}nova categoria</button>`
+    }
+  </div>`;
+      }
+
+      /* ================= janela: quem conhece quem ================= */
+      function matrixHtml() {
+        const pcs = ROSTER();
+        return `<div class="win"><div class="wh">${UI_ICON.grid} Quem conhece quem<button class="x" data-winclose title="Fechar" aria-label="Fechar">${ic("x")}</button></div>
+    <div class="wb">
+      Cada célula é o par <b>contato e personagem</b> e cicla no clique — por isso o Tobias pode
+      conhecer o Aldric enquanto a Fofurinha só o entreviu.
+      <div class="keys">
+        <span><i class="k0">${ic("eye-off")}</i> oculto — não existe para ele</span>
+        <span><i class="k1">${ic("eye")}</i> entrevisto — viu, não sabe quem é</span>
+        <span><i class="k2">${ic("check")}</i> conhecido — nome e título</span>
+        <span><i class="k2 ex">${ic("check")}</i> exceção da regra geral</span>
+      </div>
+      <table class="matrix">
+        <thead><tr><th>Contato <small>clique cicla a linha e vira a regra geral</small></th>
+          ${pcs.map((p) => `<th data-col="${p.id}">${p.name}<small>cicla a coluna</small></th>`).join("")}
+        </tr></thead>
+        <tbody>
+        ${NPCS.map(
+          (n) => `<tr>
+          <td class="nm" data-rowcycle="${n.id}">${n.name}<small>regra geral: ${ST[rule[n.id]]}</small></td>
+          ${pcs
+            .map((p) => {
+              const v = know(n.id, p.id);
+              return `<td><button class="cell k${v} ${isEx(n.id, p.id) ? "ex" : ""}" data-mx="${n.id}::${p.id}" aria-label="${ST[v]}" title="${ST[v]}">${ic(SYM[v])}</button></td>`;
+            })
+            .join("")}
+        </tr>`,
+        ).join("")}
+        </tbody></table>
+      <div class="note">A <b>regra geral</b> é o que vale para quem não tem exceção — inclusive o
+        personagem que ainda vai ser criado. Por isso "entrou jogador novo" é um clique na coluna
+        dele, e não trinta cliques célula a célula.</div>
+    </div></div>`;
+      }
+      function winHtml() {
+        if (!win) return "";
+        if (win === "matrix") return matrixHtml();
+        return `<div class="win" style="width:460px;left:calc(50% - 230px)">
+    <div class="wh">${UI_ICON.sheet} Ficha — ${win}<button class="x" data-winclose title="Fechar" aria-label="Fechar">${ic("x")}</button></div>
+    <div class="wb">A ficha abre <b>fora da gaveta</b>, como janela do window manager (spec 11) — §7.5 do
+      contrato da spec-mãe.<br><br>É aqui que vive a <b>anotação</b>, privada de quem escreveu.</div></div>`;
+      }
+
+      /* ================= render ================= */
+      function contactsHead() {
+        return `<div class="panel-head">
+    <div class="search"><span class="mag">${UI_ICON.search}</span>
+      <input id="q" placeholder="Procurar contato" value="${query}"/></div>
+  </div>`;
+      }
+      function tabButton(t) {
+        const badge = t.badge ? `<span class="badge">${t.badge}</span>` : "";
+        return `<button class="tabbtn ${active === t.id && open ? "is-active" : ""}" data-tab="${t.id}" aria-label="${t.label}">
+    ${ICONS[t.id]}${badge}<span class="tip">${t.label}</span></button>`;
+      }
+      function render() {
+        const isGm = role === "gm";
+        if (!isGm && ["npcs", "scenes"].includes(active)) active = "contacts";
+        const all = TABS.filter((t) => t.group === "all" && !t.foot),
+          gms = TABS.filter((t) => t.group === "gm" && isGm),
+          foot = TABS.filter((t) => t.foot);
+
+        const head =
+          active === "contacts"
+            ? contactsHead()
+            : `<div class="panel-head"><span class="panel-title">${TITLE[active]}</span></div>`;
+        const body =
+          active === "contacts"
+            ? `<div class="panel-body">${contactsBody()}</div>`
+            : `<div class="panel-body">${OTHER[active] || ""}</div>`;
+        /* rodapé fixo: só Mestre, só na aba Contatos */
+        const footer =
+          active === "contacts" && isGm
+            ? `<div class="panel-foot"><button class="hbtn wide" id="matrix">${UI_ICON.grid} Quem conhece quem</button></div>`
+            : "";
+
+        document.getElementById("root").innerHTML = `
+    <div class="${open ? "is-open" : ""}"><aside class="sidebar">
+      <nav class="tabs">
+        <div class="grp">${all.map(tabButton).join("")}</div>
+        ${gms.length ? `<div class="grp gm">${gms.map(tabButton).join("")}</div>` : ""}
+        <div class="foot">${foot.map(tabButton).join("")}</div>
+      </nav>
+      <div class="panel">${head}${body}${footer}</div>
+    </aside></div>`;
+        document.getElementById("float").innerHTML = winHtml();
+
+        const who = document.getElementById("who");
+        who.className = isGm ? "who" : "who player";
+        who.innerHTML = isGm
+          ? '<span class="dot"></span>Gamemaster · <span style="color:var(--fusion-text-muted)">Mestre</span>'
+          : '<span class="dot"></span>Alexandre · <span style="color:var(--fusion-text-muted)">Jogador (Fofurinha)</span>';
+
+        hideTip();
+        wire();
+        paintSwitcher();
+        const u = new URL(location);
+        u.searchParams.set("role", role);
+        u.searchParams.set("flood", flood ? "1" : "0");
+        u.searchParams.set("newbie", newbie ? "1" : "0");
+        u.searchParams.set("state", empty ? "empty" : "full");
+        history.replaceState(null, "", u);
+      }
+
+      /* ================= tooltip ================= */
+      const tipEl = () => document.getElementById("tip");
+      function showTip(el) {
+        let d;
+        try {
+          d = JSON.parse(decodeURIComponent(el.dataset.help));
+        } catch {
+          return;
+        }
+        const t = tipEl();
+        t.innerHTML = `<b>${d.t}</b>${d.h || '<span style="color:var(--fusion-text-subtle)">sem texto de ajuda declarado</span>'}<span class="tone">${d.tone}</span>`;
+        t.style.display = "block";
+        const r = el.getBoundingClientRect(),
+          tr = t.getBoundingClientRect();
+        t.style.left = Math.max(8, r.left - tr.width - 10) + "px";
+        t.style.top = Math.max(8, r.top - 4) + "px";
+      }
+      function hideTip() {
+        const t = tipEl();
+        if (t) t.style.display = "none";
+      }
+
+      /* ================= eventos ================= */
+      function wire() {
+        const root = document.getElementById("root"),
+          float = document.getElementById("float");
+
+        root.querySelectorAll("[data-tab]").forEach(
+          (b) =>
+            (b.onclick = () => {
+              const id = b.dataset.tab;
+              if (open && active === id) {
+                open = false;
+              } else {
+                active = id;
+                open = true;
+              }
+              editTitle = null;
+              moveFor = null;
+              newCatFor = null;
+              renameCat = null;
+              render();
+            }),
+        );
+        root.querySelectorAll("[data-sec]").forEach(
+          (b) =>
+            (b.onclick = (e) => {
+              e.stopPropagation();
+              collapsed[b.dataset.sec] = !collapsed[b.dataset.sec];
+              render();
+            }),
+        );
+        root.querySelectorAll("[data-conds]").forEach(
+          (b) =>
+            (b.onclick = (e) => {
+              e.stopPropagation();
+              expandConds[b.dataset.conds] = !expandConds[b.dataset.conds];
+              render();
+            }),
+        );
+        root.querySelectorAll("[data-help]").forEach((el) => {
+          el.onmouseenter = () => showTip(el);
+          el.onmouseleave = hideTip;
+          el.onfocus = () => showTip(el);
+          el.onblur = hideTip;
+        });
+        root.querySelectorAll('[data-open][role="button"],[data-sec][role="button"]').forEach((el) => {
+          el.addEventListener("keydown", (e) => {
+            if ((e.key === "Enter" || e.key === " ") && e.target === el) {
+              e.preventDefault();
+              el.click();
+            }
+          });
+        });
+
+        /* título */
+        root.querySelectorAll("[data-title]").forEach(
+          (b) =>
+            (b.onclick = (e) => {
+              e.stopPropagation();
+              editTitle = b.dataset.title;
+              render();
+              const i = document.getElementById("titleinput");
+              if (i) {
+                i.focus();
+                i.select();
+              }
+            }),
+        );
+        const ti = document.getElementById("titleinput");
+        if (ti) {
+          ti.onblur = () => {
+            titles[editTitle] = ti.value.trim();
+            editTitle = null;
+            render();
+          };
+          ti.onkeydown = (e) => {
+            if (e.key === "Enter") {
+              e.preventDefault();
+              ti.blur();
+            }
+            if (e.key === "Escape") {
+              editTitle = null;
+              render();
+            }
+          };
+        }
+
+        /* categorias */
+        root.querySelectorAll("[data-move]").forEach(
+          (b) =>
+            (b.onclick = (e) => {
+              e.stopPropagation();
+              moveFor = moveFor === b.dataset.move ? null : b.dataset.move;
+              newCatFor = null;
+              render();
+            }),
+        );
+        root.querySelectorAll("[data-moveto]").forEach(
+          (b) =>
+            (b.onclick = (e) => {
+              e.stopPropagation();
+              const [id, cat] = b.dataset.moveto.split("::");
+              if (cat) myCatOf()[id] = cat;
+              else delete myCatOf()[id];
+              moveFor = null;
+              render();
+            }),
+        );
+        root.querySelectorAll("[data-newcat]").forEach(
+          (b) =>
+            (b.onclick = (e) => {
+              e.stopPropagation();
+              newCatFor = b.dataset.newcat === "1" ? "new" : b.dataset.newcat;
+              render();
+              const i = document.getElementById("newcatinput");
+              if (i) i.focus();
+            }),
+        );
+        const nc = document.getElementById("newcatinput");
+        if (nc) {
+          nc.onkeydown = (e) => {
+            if (e.key === "Enter") {
+              const v = nc.value.trim();
+              if (v) {
+                if (!myCats().includes(v)) myCats().push(v);
+                if (newCatFor !== "new") myCatOf()[newCatFor] = v;
+              }
+              newCatFor = null;
+              moveFor = null;
+              render();
+            }
+            if (e.key === "Escape") {
+              newCatFor = null;
+              render();
+            }
+          };
+          nc.onblur = () => {
+            newCatFor = null;
+            render();
+          };
+        }
+        root.querySelectorAll("[data-rename]").forEach(
+          (b) =>
+            (b.onclick = (e) => {
+              e.stopPropagation();
+              renameCat = b.dataset.rename;
+              render();
+              const i = document.getElementById("renameinput");
+              if (i) {
+                i.focus();
+                i.select();
+              }
+            }),
+        );
+        const rn = document.getElementById("renameinput");
+        if (rn) {
+          rn.onkeydown = (e) => {
+            if (e.key === "Enter") {
+              const old = renameCat,
+                v = rn.value.trim();
+              if (v && v !== old) {
+                const arr = myCats();
+                arr[arr.indexOf(old)] = v;
+                Object.keys(myCatOf()).forEach((k) => {
+                  if (myCatOf()[k] === old) myCatOf()[k] = v;
+                });
+              }
+              renameCat = null;
+              render();
+            }
+            if (e.key === "Escape") {
+              renameCat = null;
+              render();
+            }
+          };
+          rn.onblur = () => {
+            renameCat = null;
+            render();
+          };
+        }
+        /* reordenar categorias: a ordem é do jogador, e vive no aparelho junto com elas */
+        const moveCat = (name, dir) => {
+          const arr = myCats(),
+            i = arr.indexOf(name),
+            j = i + dir;
+          if (i < 0 || j < 0 || j >= arr.length) return;
+          [arr[i], arr[j]] = [arr[j], arr[i]];
+          render();
+        };
+        root.querySelectorAll("[data-catup]").forEach(
+          (b) =>
+            (b.onclick = (e) => {
+              e.stopPropagation();
+              moveCat(b.dataset.catup, -1);
+            }),
+        );
+        root.querySelectorAll("[data-catdown]").forEach(
+          (b) =>
+            (b.onclick = (e) => {
+              e.stopPropagation();
+              moveCat(b.dataset.catdown, +1);
+            }),
+        );
+        root.querySelectorAll("[data-delcat]").forEach(
+          (b) =>
+            (b.onclick = (e) => {
+              e.stopPropagation();
+              const c = b.dataset.delcat,
+                arr = myCats();
+              arr.splice(arr.indexOf(c), 1);
+              Object.keys(myCatOf()).forEach((k) => {
+                if (myCatOf()[k] === c) delete myCatOf()[k];
+              });
+              render();
+            }),
+        );
+
+        root.querySelectorAll("[data-open]").forEach(
+          (b) =>
+            (b.onclick = (e) => {
+              if (
+                e.target.closest(
+                  "[data-title],[data-conds],[data-move],[data-moveto],[data-newcat],input",
+                )
+              )
+                return;
+              win = b.dataset.open;
+              render();
+            }),
+        );
+        const mx = document.getElementById("matrix");
+        if (mx)
+          mx.onclick = () => {
+            win = "matrix";
+            render();
+          };
+        float.querySelectorAll("[data-winclose]").forEach(
+          (b) =>
+            (b.onclick = () => {
+              win = null;
+              render();
+            }),
+        );
+
+        /* --- matriz tri-estado --- */
+        float.querySelectorAll("[data-mx]").forEach(
+          (b) =>
+            (b.onclick = () => {
+              const [npc, pc] = b.dataset.mx.split("::");
+              setKnow(npc, pc, (know(npc, pc) + 1) % 3);
+              render();
+            }),
+        );
+        float.querySelectorAll("[data-rowcycle]").forEach(
+          (td) =>
+            (td.onclick = () => {
+              const npc = td.dataset.rowcycle;
+              rule[npc] = (rule[npc] + 1) % 3;
+              ex[npc] = {}; /* a linha volta a ser uniforme */
+              render();
+            }),
+        );
+        float.querySelectorAll("[data-col]").forEach(
+          (th) =>
+            (th.onclick = () => {
+              const pc = th.dataset.col;
+              const vals = NPCS.map((n) => know(n.id, pc));
+              const uniform = vals.every((v) => v === vals[0]) ? vals[0] : -1;
+              const next = uniform === -1 ? 2 : (uniform + 1) % 3; /* misturado: tudo conhecido */
+              NPCS.forEach((n) => setKnow(n.id, pc, next));
+              render();
+            }),
+        );
+
+        const q = document.getElementById("q");
+        if (q)
+          q.oninput = () => {
+            query = q.value;
+            render();
+            const el = document.getElementById("q");
+            if (el) {
+              el.focus();
+              el.setSelectionRange(query.length, query.length);
+            }
+          };
+      }
+
+      /* ================= switcher / legenda ================= */
+      function paintSwitcher() {
+        document.getElementById("role").textContent =
+          role === "gm" ? "ver como jogador" : "ver como Mestre";
+        document.getElementById("flood").textContent = flood
+          ? "condições: enxurrada"
+          : "condições: normais";
+        document.getElementById("newbie").textContent = newbie
+          ? "mesa: com Rurik (novo)"
+          : "mesa: 3 personagens";
+        document.getElementById("state").textContent = empty
+          ? "estado: vazio"
+          : "estado: com conteúdo";
+
+        document.getElementById("legend").innerHTML = `
+    <h4>Aba Contatos — conhecimento por par, categorias do jogador</h4>
+    <table>
+      <tr><td>conhecer</td><td>estado do <b>par contato e personagem</b>: oculto, depois entrevisto, depois conhecido</td></tr>
+      <tr><td>regra geral</td><td>por contato; a célula é <b>exceção</b> (símbolo sublinhado). Personagem novo nasce na regra geral</td></tr>
+      <tr><td>onde se edita</td><td>só em <b>Quem conhece quem</b>, aberto pelo <b>rodapé fixo</b> — que só o Mestre tem</td></tr>
+      <tr><td>categorias</td><td>de quem organiza (jogador ou Mestre), <b>uma por contato</b>; "Sem categoria" só aparece com gente</td></tr>
+      <tr><td>dois personagens</td><td>o jogador vê a <b>união</b>, no estado mais alto dos dois</td></tr>
+      <tr><td>condição</td><td><span class="sw" style="background:var(--fusion-condition-harm)"></span>penalidade
+        <span class="sw" style="background:var(--fusion-condition-benefit)"></span>benefício
+        <span class="sw" style="background:var(--fusion-condition-special)"></span>situação · preenchido = tira da cena</td></tr>
+    </table>
+    <div class="q"><b>experimente:</b> como Mestre, abra o rodapé: o Aldric já está <b>conhecido para o Tobias</b> e
+      <b>entrevisto para a Fofurinha</b> · clique no nome dele (linha) e veja a regra geral mudar ·
+      ligue <b>jogador novo</b> e clique em <b>Rurik</b> no topo · como jogador, use o ícone de pasta de um conhecido
+      para movê-lo de categoria, ou crie uma nova.</div>
+    <div class="q" style="border:0;padding-top:.3rem;color:var(--fusion-text-subtle)">teclas: <b>p</b> papel · <b>f</b> condições ·
+      <b>n</b> jogador novo · <b>v</b> vazio</div>`;
+      }
+      document.getElementById("role").onclick = () => {
+        role = role === "gm" ? "player" : "gm";
+        win = null;
+        editTitle = null;
+        moveFor = null;
+        render();
+      };
+      document.getElementById("flood").onclick = () => {
+        flood = !flood;
+        render();
+      };
+      document.getElementById("newbie").onclick = () => {
+        newbie = !newbie;
+        render();
+      };
+      document.getElementById("state").onclick = () => {
+        empty = !empty;
+        render();
+      };
+
+      document.addEventListener("keydown", (e) => {
+        if (["INPUT", "TEXTAREA", "SELECT"].includes(document.activeElement.tagName)) return;
+        if (e.key === "p") {
+          role = role === "gm" ? "player" : "gm";
+          win = null;
+          render();
+        }
+        if (e.key === "f") {
+          flood = !flood;
+          render();
+        }
+        if (e.key === "n") {
+          newbie = !newbie;
+          render();
+        }
+        if (e.key === "v") {
+          empty = !empty;
+          render();
+        }
+      });
+
+      render();
+    </script>
+  </body>
+</html>

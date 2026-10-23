@@ -3,19 +3,29 @@
  *
  * Wraps the server routes from packages/server/src/assets/routes.ts:
  *   GET    /api/assets           — list assets
- *   POST   /api/assets/upload    — multipart upload (with XHR for progress)
+ *   POST   /api/assets/upload    — multipart upload (with XHR for progress);
+ *                                  `?purpose=icon` = the action bar's icon upload (BAR-F3-05)
+ *   POST   /api/assets/token     — short-lived BROWSE-scope query token
+ *   POST   /api/assets/grant     — DOC-scope grants for one document (T025)
+ *   GET    /api/assets/icons     — the shared icon gallery, with a grant per icon (BAR-F3-05)
  *   DELETE /api/assets/:name     — delete asset (GM only)
+ *   DELETE /api/assets/icons/:name — delete an icon from the gallery (GM only, BAR-F3-05)
  *   GET    /assets/*             — static serving (used directly by <img> / PIXI)
  *
  * Spec refs: 20-assets-e-midia.md REQ-AST-006..011, REQ-AST-019
  * Security:  21-seguranca.md — Bearer token in Authorization header
  */
 
+import type { AssetCategory } from "@fusion/shared";
+import { assetGrantsCovering, type AssetDocRef } from "./assetGrants.svelte.js";
+
 // ---------------------------------------------------------------------------
 // Types
 // ---------------------------------------------------------------------------
 
 export interface AssetEntry {
+  /** Effective category (the picker's tab); absent on entries of the icon gallery. */
+  category?: AssetCategory;
   /** Filename only (e.g. "goblin-warrior-a3f8bc12.webp"). */
   name: string;
   /** File size in bytes. */
@@ -27,11 +37,38 @@ export interface AssetEntry {
 export interface UploadResult {
   ok: boolean;
   deduplicated: boolean;
-  /** Filename (safe slug + 8-char hash + ext). Used to build /assets/<name> URL. */
+  /**
+   * Storage name (safe slug + 8-char hash + ext). Used to build /assets/<name> URL.
+   * For an icon it carries the reserved area: "actionbar-icons/<file>".
+   */
   path: string;
   digest: string;
   mime_type: string;
   file_size: number;
+  /** Echoed back for an icon upload (BAR-F3-05). */
+  purpose?: UploadPurpose;
+}
+
+/**
+ * The declared purpose of an upload (REQ-BAR-103). The only one is "icon": the action bar's
+ * "Trocar ícone…", open to every player, which the SERVER stores in the reserved icon area.
+ */
+export type UploadPurpose = "icon" | "avatar";
+
+export interface UploadOptions {
+  purpose?: UploadPurpose;
+  /** The picker tab the file is sent from (never "icons": that is `purpose: "icon"`). */
+  category?: AssetCategory;
+}
+
+/** The shared icon gallery, as `GET /api/assets/icons` answers it (BAR-F3-05). */
+export interface IconGallery {
+  /** The icons, newest first; `name` is the storage name ("actionbar-icons/<file>"). */
+  assets: AssetEntry[];
+  /** Expiry shared by every grant in `grants`, epoch ms (0 = nothing usable). */
+  exp: number;
+  /** canonical name → the caller's DOC-scope grant for that icon. */
+  grants: Record<string, string>;
 }
 
 export interface UploadProgress {
@@ -86,16 +123,26 @@ export async function listAssets(token: string): Promise<AssetEntry[]> {
  * @param token      Bearer token for Authorization header.
  * @param file       File object from a drag-drop or input[type=file].
  * @param onProgress Optional callback for progress reporting.
+ * @param options    `purpose: "icon"` declares the action bar's icon upload (BAR-F3-05): open to
+ *                   every player, image only, stored by the server in the icon area. The request
+ *                   never names a folder — the server decides (REQ-BAR-076).
  * @returns          UploadResult with the safe filename / digest.
  */
 export function uploadAsset(
   token: string,
   file: File,
   onProgress?: UploadProgressCallback,
+  options: UploadOptions = {},
 ): Promise<UploadResult> {
   return new Promise<UploadResult>((resolve, reject) => {
     const xhr = new XMLHttpRequest();
-    xhr.open("POST", "/api/assets/upload");
+    const query =
+      options.purpose !== undefined
+        ? `?purpose=${options.purpose}`
+        : options.category !== undefined
+          ? `?category=${encodeURIComponent(options.category)}`
+          : "";
+    xhr.open("POST", `/api/assets/upload${query}`);
     xhr.setRequestHeader("Authorization", `Bearer ${token}`);
 
     // Report progress
@@ -153,6 +200,24 @@ export function uploadAsset(
   });
 }
 
+/** The GM moves an asset to another picker tab; `null` clears the choice (back to derived). */
+export async function setAssetCategory(
+  token: string,
+  name: string,
+  category: AssetCategory | null,
+): Promise<void> {
+  const response = await fetch("/api/assets/category", {
+    method: "PATCH",
+    headers: { ...authHeader(token), "Content-Type": "application/json" },
+    credentials: "include",
+    body: JSON.stringify({ name, category }),
+  });
+  if (!response.ok) {
+    const body = (await response.json().catch(() => ({}))) as { message?: string };
+    throw new Error(body.message ?? `Failed to move asset (HTTP ${String(response.status)})`);
+  }
+}
+
 /**
  * Delete an asset by filename. Requires GM role.
  */
@@ -166,6 +231,64 @@ export async function deleteAsset(token: string, name: string): Promise<void> {
   if (!response.ok) {
     const body = (await response.json().catch(() => ({}))) as { message?: string };
     throw new Error(body.message ?? `Failed to delete asset (HTTP ${String(response.status)})`);
+  }
+}
+
+/**
+ * The shared icon gallery (BAR-F3-05, REQ-BAR-079/080): every icon anyone sent through
+ * "Trocar ícone…", for any role, each with the caller's read grant. Maps, portraits and
+ * handouts never appear here — the server lists only the icon area.
+ */
+export async function listIconGallery(token: string): Promise<IconGallery> {
+  const response = await fetch("/api/assets/icons", {
+    method: "GET",
+    headers: authHeader(token),
+    credentials: "include",
+  });
+
+  if (!response.ok) {
+    const body = (await response.json().catch(() => ({}))) as { message?: string };
+    throw new Error(body.message ?? `Failed to list icons (HTTP ${String(response.status)})`);
+  }
+
+  // `| null` on purpose: `typeof null === "object"`, and a malformed body must paint nothing
+  // rather than crash the picker.
+  const data = (await response.json()) as {
+    assets?: AssetEntry[] | null;
+    exp?: number;
+    grants?: Record<string, string> | null;
+  };
+  return {
+    assets: Array.isArray(data.assets) ? data.assets : [],
+    exp: typeof data.exp === "number" ? data.exp : 0,
+    grants: typeof data.grants === "object" && data.grants !== null ? data.grants : {},
+  };
+}
+
+/**
+ * The URL that paints one icon of a gallery listing, with the caller's own grant for it. An icon the
+ * listing did not sign gets the bare path (which the server answers with the uniform 404 for a
+ * player) — never a signature that belongs to another name.
+ */
+export function iconGalleryUrl(gallery: IconGallery, name: string, userId: string): string {
+  const grant = gallery.grants[assetNameFromPath(assetUrl(name))];
+  return grant === undefined
+    ? assetUrl(name)
+    : assetUrl(name, { token: grant, exp: gallery.exp, userId });
+}
+
+/** The GM removes an icon from the gallery (REQ-BAR-081). `name` may carry the area prefix. */
+export async function deleteIconAsset(token: string, name: string): Promise<void> {
+  const fileName = name.slice(name.lastIndexOf("/") + 1);
+  const response = await fetch(`/api/assets/icons/${encodeURIComponent(fileName)}`, {
+    method: "DELETE",
+    headers: authHeader(token),
+    credentials: "include",
+  });
+
+  if (!response.ok) {
+    const body = (await response.json().catch(() => ({}))) as { message?: string };
+    throw new Error(body.message ?? `Failed to delete icon (HTTP ${String(response.status)})`);
   }
 }
 
@@ -183,11 +306,19 @@ export interface AssetQueryToken {
 }
 
 /**
- * Fetch a short-lived query-token from the server for asset serving.
+ * Fetch a short-lived BROWSE-scope query-token from the server.
  *
  * PIXI Assets.load() and <img> tags cannot set Authorization headers, so
  * this token is appended to asset URLs as query parameters instead.
  * Tokens expire after 5 minutes (server-side ASSET_TOKEN_TTL_MS).
+ *
+ * SCOPE (T025): a browse token carries NO asset name, and the server honours it
+ * only for a role that may already list every filename in the world (TRUSTED and
+ * up). A PLAYER can still mint one and it opens nothing. It is the right
+ * credential for exactly one situation — an asset that is not (yet) referenced
+ * by any document, i.e. the FilePicker grid and the previews of a value the user
+ * just picked in it. Everything reading a path OUT of a document must use
+ * `resolveAssetUrl()` instead.
  *
  * @param accessToken  Bearer access token for the current session.
  * @param userId       The current user's ID (embedded in the query-token).
@@ -246,42 +377,146 @@ export function assetUrl(name: string, queryToken?: AssetQueryToken): string {
 }
 
 /**
+ * The canonical name of a stored asset path — the exact string the server signs
+ * a grant for, and the exact string it derives again when serving the file.
+ *
+ * It must derive the SAME key as the server's pair of
+ * `assetRefToStorageName()` (assets/reconcile.ts) + `canonicalizeAssetName()`
+ * (assets/asset-name.ts). The asymmetry in the middle is deliberate — the client
+ * decodes each segment here because a stored path went through `assetUrl()`'s
+ * per-segment encoding, while the server's router already hands the wildcard
+ * over decoded. Decoding twice on the server is what would open `%252e`.
+ *
+ * When the two expressions disagree there is a pair of spellings that authorises
+ * one file and opens another, which is the failure that killed three earlier
+ * designs. Two divergences were found here by the adversarial review, and both
+ * are fixed below:
+ *
+ *   1. MALFORMED ESCAPE. `decodeURIComponent("100% real.png")` THROWS. The
+ *      server catches and keeps the segment as-is (reconcile.ts:320-326), so it
+ *      happily signed a name the client could not even spell — the URIError
+ *      propagated out of `resolveAssetUrl` and the caller painted a placeholder
+ *      while the server logged an authorised request. `100% real.png` is a name
+ *      a GM produces by dropping a file into the assets folder by hand, which
+ *      `reconcile.ts` treats as a first-class case.
+ *   2. ORDER. Dropping empty segments BEFORE the join meant a `%2F` inside a
+ *      segment produced `a///b.png` here and `a/b.png` there. The canonical
+ *      collapse has to happen on the JOINED string, exactly as
+ *      `canonicalizeAssetName` does it.
+ *
+ * `ASSET_NAME_CANONICALIZATION_CASES` (@fusion/shared) is the table both sides
+ * are now tested against — one list, imported by a suite in each package, so
+ * they can only both pass by agreeing with each other.
+ */
+export function assetNameFromPath(rawPath: string): string {
+  const decoded = rawPath
+    .replace(LOCAL_ASSET_PATH_RE, "")
+    .split("/")
+    .map((seg) => {
+      try {
+        return decodeURIComponent(seg);
+      } catch {
+        // Already broken or hand-edited: keep the bytes. Throwing here would
+        // turn one odd filename into an unhandled rejection at paint time.
+        return seg;
+      }
+    })
+    .join("/");
+
+  // `canonicalizeAssetName`, spelled out: split, drop empty segments, join.
+  return decoded
+    .split("/")
+    .filter((seg) => seg.length > 0)
+    .join("/");
+}
+
+/**
  * Resolve a stored asset path (or external URL) into a URL that PIXI
  * Assets.load()/<img> can actually fetch.
  *
  * BUG A FIX: SceneDocument.background / TokenDocument.texture are persisted
  * as clean paths (no query token — a token would expire long before the
  * document is read back, since ASSET_TOKEN_TTL_MS is only 5 minutes). Every
- * render-time consumer must therefore mint a FRESH short-lived query-token
+ * render-time consumer must therefore obtain a FRESH short-lived credential
  * right before loading the asset, rather than reusing whatever was in the
- * document. This helper is the single place that does that minting so no
- * caller re-implements (or forgets) the fetchAssetToken() + assetUrl() dance.
+ * document. This helper is the single place that does that so no caller
+ * re-implements (or forgets) the mint + assetUrl() dance.
  *
- * Only paths served by our own /assets/<name> route need a token — external
- * URLs (http/https, or already-absolute) and data URIs are returned as-is.
+ * T025 — WHY `docRef` IS REQUIRED AND HAS NO DEFAULT.
+ * The server signs a grant for one name only after reading the DOCUMENT that
+ * carries it and confirming this user can see it. A caller that cannot name the
+ * document does not know what it is painting; making the parameter optional
+ * would turn that ignorance into a silent fall-through to a weaker credential.
+ * The type break IS the gate: every render-time consumer had to be found and
+ * told where its string came from, and a new one cannot compile without doing
+ * the same.
+ *
+ * Only paths served by our own /assets/<name> route need a credential —
+ * external URLs (http/https, or already-absolute) and data URIs are returned
+ * as-is, without a round-trip.
+ *
+ * FALLBACK, and why it is not a hole. When the document's grants carry no
+ * signature for this name, this falls back to a browse-scope token — today's
+ * behaviour. That keeps the shadow-mode rollout honest: with
+ * `ASSET_GRANT_ENFORCE` off the server logs the refusal and still serves, but
+ * only if the request carries SOME verifiable identity, and a request with no
+ * credential at all is rejected at the identity step, before the shadow branch
+ * is ever reached. It costs nothing in security: the server honours a browse
+ * token only for roles that may already list every filename (TRUSTED+), so for a
+ * PLAYER the fallback opens exactly nothing.
  *
  * @param rawPath      The raw path/URL from the document (e.g. scene.background).
  * @param accessToken  Bearer access token for the current session.
  * @param userId       The current user's ID.
+ * @param docRef       The document this path was read out of.
  * @returns            A URL safe to pass to PIXI Assets.load() or <img src>.
  */
 export async function resolveAssetUrl(
   rawPath: string,
   accessToken: string,
   userId: string,
+  docRef: AssetDocRef,
 ): Promise<string> {
   if (!_isLocalAssetPath(rawPath)) return rawPath;
 
-  // rawPath is "/assets/<name...>" (possibly already percent-encoded) — strip
-  // the prefix and decode each segment so assetUrl() can safely re-encode it.
-  const name = rawPath
-    .replace(/^\/assets\//, "")
-    .split("/")
-    .map((seg) => decodeURIComponent(seg))
-    .join("/");
+  const name = assetNameFromPath(rawPath);
 
-  const queryToken = await fetchAssetToken(accessToken, userId);
-  return assetUrl(name, queryToken);
+  // `assetGrantsCovering`, not `assetGrantsFor`: a cached bundle that has no
+  // signature for THIS name is stale evidence, not an answer. Without that, the
+  // monster the GM drags onto the scene mid-combat paints as a placeholder for
+  // up to five minutes — the bundle for the scene was minted when the player
+  // entered it and nothing ever adds a name to a bundle.
+  const bundle = await assetGrantsCovering(docRef, name, accessToken);
+  const grant = bundle.grants[name];
+  if (grant !== undefined) {
+    return assetUrl(name, { token: grant, exp: bundle.exp, userId });
+  }
+
+  return assetUrl(name, await fetchAssetToken(accessToken, userId));
+}
+
+/**
+ * Resolve an asset path that belongs to NO document yet, using a browse-scope
+ * token — the FilePicker's credential.
+ *
+ * The one legitimate case: the user just chose a file in the FilePicker and the
+ * form is showing it back before anything is saved. There is no document to name
+ * yet, so `resolveAssetUrl()` would ask for a grant over a value the server has
+ * never seen and correctly answer with none.
+ *
+ * NOT a way around the gate. Browse scope is honoured only for a role that may
+ * already list every filename in the world; a surface a PLAYER reaches will
+ * simply not load through it. If you are reading a path OUT of a document, this
+ * is the wrong function.
+ */
+export async function resolveBrowseAssetUrl(
+  rawPath: string,
+  accessToken: string,
+  userId: string,
+): Promise<string> {
+  if (!_isLocalAssetPath(rawPath)) return rawPath;
+  const name = assetNameFromPath(rawPath);
+  return assetUrl(name, await fetchAssetToken(accessToken, userId));
 }
 
 /**
@@ -301,4 +536,18 @@ const LOCAL_ASSET_PATH_RE = /^\/assets\//;
 
 function _isLocalAssetPath(path: string): boolean {
   return LOCAL_ASSET_PATH_RE.test(path);
+}
+
+/**
+ * Public form of the predicate above, for callers that must decide SYNCHRONOUSLY
+ * whether a stored path can be painted right away.
+ *
+ * `resolveAssetUrl()` is async because minting a query-token is a round-trip, but an
+ * external URL or a data URI needs no token at all — a caller that knows this can use
+ * the raw value immediately instead of flashing a placeholder for one tick. It delegates
+ * rather than re-testing the prefix so there is still exactly one definition of "this is
+ * our own /assets route".
+ */
+export function needsAssetQueryToken(path: string): boolean {
+  return _isLocalAssetPath(path);
 }

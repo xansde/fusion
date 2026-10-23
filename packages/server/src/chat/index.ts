@@ -10,6 +10,9 @@ export type { RollRequest, RollServiceOptions } from "./roll-service.js";
 export {
   buildChatSendHandler,
   buildChatHistoryHandler,
+  buildChatSearchHandler,
+  buildChatContextHandler,
+  buildChatInvalidateHandler,
   getRecentChatForUser,
 } from "./chat-handler.js";
 export type { ChatHandlerDeps } from "./chat-handler.js";

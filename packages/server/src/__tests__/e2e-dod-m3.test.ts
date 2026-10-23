@@ -20,7 +20,7 @@
  * REQ-CMP-009..024, REQ-CBT-001..035, REQ-ROL-001.., REQ-NET-062
  */
 
-import { describe, it, expect, beforeAll, afterAll } from "vitest";
+import { describe, it, expect, beforeAll, afterAll, afterEach } from "vitest";
 import { mkdirSync, rmSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { tmpdir } from "node:os";
@@ -397,12 +397,6 @@ function makeNpcData(name: string, level = 1) {
 // Shared mutable state between describe blocks
 // ---------------------------------------------------------------------------
 
-const shared: {
-  sceneId?: string;
-  actorId?: string;
-  tokenId?: string;
-} = {};
-
 // ---------------------------------------------------------------------------
 // Suite
 // ---------------------------------------------------------------------------
@@ -517,7 +511,8 @@ describe("DoD M3 — Primeira Sessão Jogável (server-level E2E)", () => {
   // -------------------------------------------------------------------------
 
   describe("(c) Scene creation, activation and token placement", () => {
-    it("GM creates a Scene with grid configuration", async () => {
+    // Each test builds what it needs: none consumes what another created.
+    async function createScene(): Promise<string> {
       const ack = await sendOp(gm, "doc:create", {
         documentType: "Scene",
         data: [
@@ -534,56 +529,66 @@ describe("DoD M3 — Primeira Sessão Jogável (server-level E2E)", () => {
       });
       expect(ack["ok"]).toBe(true);
       const docs = (ack["result"] as { documents: Array<{ _id: string }> }).documents;
-      shared.sceneId = docs[0]!._id;
-      expect(shared.sceneId).toBeTruthy();
-    });
+      const sceneId = docs[0]!._id;
+      expect(sceneId).toBeTruthy();
+      return sceneId;
+    }
 
-    it("GM activates the scene", async () => {
-      expect(shared.sceneId).toBeTruthy();
-      const ack = await sendOp(gm, "doc:update", {
-        documentType: "Scene",
-        updates: [{ _id: shared.sceneId, diff: { active: true } }],
-      });
-      expect(ack["ok"]).toBe(true);
-    });
-
-    it("GM creates an Actor for token placement", async () => {
+    async function createActor(): Promise<string> {
       const ack = await sendOp(gm, "doc:create", {
         documentType: "Actor",
         data: [makeCharacterData("Test Fighter")],
       });
       expect(ack["ok"]).toBe(true);
       const docs = (ack["result"] as { documents: Array<{ _id: string }> }).documents;
-      shared.actorId = docs[0]!._id;
-      expect(shared.actorId).toBeTruthy();
+      const actorId = docs[0]!._id;
+      expect(actorId).toBeTruthy();
+      return actorId;
+    }
+
+    it("GM creates a Scene with grid configuration", async () => {
+      await createScene();
+    });
+
+    it("GM activates the scene", async () => {
+      const sceneId = await createScene();
+
+      // Activating through doc:update used to work, and was the second writer
+      // that let scenes.active and settings['_meta:activeScene'] disagree (T010).
+      const refused = await sendOp(gm, "doc:update", {
+        documentType: "Scene",
+        updates: [{ _id: sceneId, diff: { active: true } }],
+      });
+      expect(refused["ok"]).toBe(false);
+
+      const ack = await sendOp(gm, "world:activeScene", { sceneId });
+      expect(ack["ok"]).toBe(true);
+    });
+
+    it("GM creates an Actor for token placement", async () => {
+      await createActor();
     });
 
     it("GM places a Token in the scene", async () => {
-      expect(shared.sceneId).toBeTruthy();
-      expect(shared.actorId).toBeTruthy();
+      const sceneId = await createScene();
+      const actorId = await createActor();
       const ack = await sendOp(gm, "doc:create", {
         documentType: "Token",
-        parent: { type: "Scene", id: shared.sceneId },
+        parent: { type: "Scene", id: sceneId },
         data: [
           {
-            actorId: shared.actorId,
+            actorId,
             name: "Fighter",
             x: 100,
             y: 100,
-            width: 1,
-            height: 1,
-            visible: true,
             hidden: false,
             disposition: 1,
-            img: "icons/placeholder/token.svg",
-            ownership: { default: 0 },
           },
         ],
       });
       expect(ack["ok"]).toBe(true);
       const docs = (ack["result"] as { documents: Array<{ _id: string }> }).documents;
-      shared.tokenId = docs[0]!._id;
-      expect(shared.tokenId).toBeTruthy();
+      expect(docs[0]!._id).toBeTruthy();
     });
   });
 
@@ -608,9 +613,9 @@ describe("DoD M3 — Primeira Sessão Jogável (server-level E2E)", () => {
       expect((ack["result"] as Record<string, unknown>)["nonce"]).toBe("player-ping");
     });
 
-    // NOTE: visual canvas rendering (TokenLayer, fog, illumination) requires
-    // a browser context. Manual verification: open http://localhost:33000 in a
-    // browser after running the server. Confirm scene renders with fog+tokens.
+    // NOTE: visual canvas rendering (TokenLayer) requires a browser context.
+    // Manual verification: open http://localhost:33000 in a browser after
+    // running the server. Confirm scene renders with tokens.
   });
 
   // -------------------------------------------------------------------------
@@ -654,13 +659,8 @@ describe("DoD M3 — Primeira Sessão Jogável (server-level E2E)", () => {
             name: "RTT Token",
             x: 0,
             y: 0,
-            width: 1,
-            height: 1,
-            visible: true,
             hidden: false,
             disposition: 1,
-            img: "icons/placeholder/token.svg",
-            ownership: { default: 3 },
           },
         ],
       });
@@ -674,7 +674,6 @@ describe("DoD M3 — Primeira Sessão Jogável (server-level E2E)", () => {
         sceneId: moveSceneId,
         x: 100,
         y: 100,
-        force: true,
       });
       const rtt = Date.now() - t0;
       expect(ack["ok"]).toBe(true);
@@ -699,13 +698,8 @@ describe("DoD M3 — Primeira Sessão Jogável (server-level E2E)", () => {
             name: "GM Token",
             x: 200,
             y: 200,
-            width: 1,
-            height: 1,
-            visible: true,
             hidden: false,
             disposition: 1,
-            img: "icons/placeholder/token.svg",
-            ownership: { default: 0 },
           },
         ],
       });
@@ -718,9 +712,10 @@ describe("DoD M3 — Primeira Sessão Jogável (server-level E2E)", () => {
         x: 300,
         y: 300,
       });
-      // Server must reject — any of these error codes are acceptable
+      // Server must reject — TK062 removed wall collision from token:move, so
+      // MOVE_BLOCKED can no longer be a valid outcome here (REQ-TOK-042).
       expect(moveAck["ok"]).toBe(false);
-      expect(["PERMISSION_DENIED", "MOVE_BLOCKED", "NOT_FOUND"]).toContain(moveAck["code"]);
+      expect(["PERMISSION_DENIED", "NOT_FOUND"]).toContain(moveAck["code"]);
     });
   });
 
@@ -782,10 +777,6 @@ describe("DoD M3 — Primeira Sessão Jogável (server-level E2E)", () => {
     let playerTokenId: string;
     let npcTokenId: string;
     let hiddenTokenId: string;
-    let combatId: string;
-    let playerCombatantId: string;
-    let npcCombatantId: string;
-    let hiddenCombatantId: string;
 
     beforeAll(async () => {
       const sceneAck = await sendOp(gm, "doc:create", {
@@ -821,13 +812,8 @@ describe("DoD M3 — Primeira Sessão Jogável (server-level E2E)", () => {
             name: "Hero",
             x: 100,
             y: 100,
-            width: 1,
-            height: 1,
-            visible: true,
             hidden: false,
             disposition: 1,
-            img: "icons/placeholder/token.svg",
-            ownership: { [ctx.playerUserId]: 3, default: 0 },
           },
         ],
       });
@@ -849,13 +835,8 @@ describe("DoD M3 — Primeira Sessão Jogável (server-level E2E)", () => {
             name: "Goblin",
             x: 300,
             y: 300,
-            width: 1,
-            height: 1,
-            visible: true,
             hidden: false,
             disposition: -1,
-            img: "icons/placeholder/token.svg",
-            ownership: { default: 0 },
           },
         ],
       });
@@ -877,84 +858,96 @@ describe("DoD M3 — Primeira Sessão Jogável (server-level E2E)", () => {
             name: "Assassin",
             x: 500,
             y: 500,
-            width: 1,
-            height: 1,
-            visible: false,
             hidden: true,
             disposition: -1,
-            img: "icons/placeholder/token.svg",
-            ownership: { default: 0 },
           },
         ],
       });
       hiddenTokenId = (htAck["result"] as { documents: Array<{ _id: string }> }).documents[0]!._id;
     }, 30000);
 
-    it("GM creates combat encounter for scene", async () => {
-      // Handler: combat:create → returns { combat: CombatDocument }
+    // Each test builds the encounter it needs, and the ones it started are
+    // ended afterwards (a scene holds one running encounter at a time).
+    const startedCombats: string[] = [];
+
+    afterEach(async () => {
+      for (const id of startedCombats.splice(0)) {
+        // A test may have ended its own encounter: only the end state matters.
+        await sendOp(gm, "combat:endCombat", { combatId: id });
+      }
+    });
+
+    async function createCombat(): Promise<string> {
+      // Handler: combat:create returns { combat: CombatDocument }
       const ack = await sendOp(gm, "combat:create", { sceneId: combatSceneId });
-      expect(ack["ok"]).toBe(true);
+      expect(ack["ok"], JSON.stringify(ack)).toBe(true);
       const result = ack["result"] as { combat: Record<string, unknown> };
-      combatId = result.combat["_id"] as string;
+      const combatId = result.combat["_id"] as string;
       expect(combatId).toBeTruthy();
+      startedCombats.push(combatId);
+      return combatId;
+    }
+
+    async function addCombatant(
+      combatId: string,
+      tokenId: string,
+      hidden: boolean,
+    ): Promise<{ id: string; combatant: Record<string, unknown> }> {
+      // Handler: combat:addCombatant returns { combat, combatant }
+      const ack = await sendOp(gm, "combat:addCombatant", { combatId, tokenId, hidden });
+      expect(ack["ok"], JSON.stringify(ack)).toBe(true);
+      const result = ack["result"] as {
+        combat: Record<string, unknown>;
+        combatant: Record<string, unknown>;
+      };
+      const id = result.combatant["_id"] as string;
+      expect(id).toBeTruthy();
+      return { id, combatant: result.combatant };
+    }
+
+    /** An encounter with the player, the visible NPC and the hidden NPC in it. */
+    async function createFullCombat(): Promise<{ combatId: string; combatantIds: string[] }> {
+      const combatId = await createCombat();
+      const combatantIds = [
+        (await addCombatant(combatId, playerTokenId, false)).id,
+        (await addCombatant(combatId, npcTokenId, false)).id,
+        (await addCombatant(combatId, hiddenTokenId, true)).id,
+      ];
+      return { combatId, combatantIds };
+    }
+
+    async function rollInitiative(combatId: string, combatantIds: string[]): Promise<void> {
+      const ack = await sendOp(gm, "combat:rollInitiative", { combatId, combatantIds });
+      expect(ack["ok"], JSON.stringify(ack)).toBe(true);
+    }
+
+    it("GM creates combat encounter for scene", async () => {
+      await createCombat();
     });
 
     it("GM adds player token as combatant", async () => {
-      // Handler: combat:addCombatant → returns { combat, combatant }
-      const ack = await sendOp(gm, "combat:addCombatant", {
-        combatId,
-        tokenId: playerTokenId,
-        hidden: false,
-      });
-      expect(ack["ok"]).toBe(true);
-      const result = ack["result"] as {
-        combat: Record<string, unknown>;
-        combatant: Record<string, unknown>;
-      };
-      playerCombatantId = result.combatant["_id"] as string;
-      expect(playerCombatantId).toBeTruthy();
+      const combatId = await createCombat();
+      await addCombatant(combatId, playerTokenId, false);
     });
 
     it("GM adds visible NPC as combatant", async () => {
-      const ack = await sendOp(gm, "combat:addCombatant", {
-        combatId,
-        tokenId: npcTokenId,
-        hidden: false,
-      });
-      expect(ack["ok"]).toBe(true);
-      const result = ack["result"] as {
-        combat: Record<string, unknown>;
-        combatant: Record<string, unknown>;
-      };
-      npcCombatantId = result.combatant["_id"] as string;
-      expect(npcCombatantId).toBeTruthy();
+      const combatId = await createCombat();
+      await addCombatant(combatId, npcTokenId, false);
     });
 
     it("GM adds hidden NPC as hidden combatant", async () => {
-      const ack = await sendOp(gm, "combat:addCombatant", {
-        combatId,
-        tokenId: hiddenTokenId,
-        hidden: true,
-      });
-      expect(ack["ok"]).toBe(true);
-      const result = ack["result"] as {
-        combat: Record<string, unknown>;
-        combatant: Record<string, unknown>;
-      };
-      hiddenCombatantId = result.combatant["_id"] as string;
-      expect(hiddenCombatantId).toBeTruthy();
+      const combatId = await createCombat();
+      const { combatant } = await addCombatant(combatId, hiddenTokenId, true);
       // Verify hidden flag was stored correctly
-      expect(result.combatant["hidden"]).toBe(true);
+      expect(combatant["hidden"]).toBe(true);
     });
 
     it("GM rolls initiative for all combatants (server-side roll)", async () => {
+      const { combatId, combatantIds } = await createFullCombat();
       // Handler: combat:rollInitiative
-      // Schema: { combatId, combatantIds?, options? } — NO formula field
+      // Schema: { combatId, combatantIds?, options? } - NO formula field
       // Formula is resolved from combat.combatType + formulaRegistry (server-side)
-      const ack = await sendOp(gm, "combat:rollInitiative", {
-        combatId,
-        combatantIds: [playerCombatantId, npcCombatantId, hiddenCombatantId],
-      });
+      const ack = await sendOp(gm, "combat:rollInitiative", { combatId, combatantIds });
       expect(ack["ok"]).toBe(true);
       // Result shape: { combat: CombatDocument, rolledCount: number }
       const result = ack["result"] as { combat: Record<string, unknown>; rolledCount: number };
@@ -963,14 +956,16 @@ describe("DoD M3 — Primeira Sessão Jogável (server-level E2E)", () => {
         _id: string;
         initiative: number | null;
       }>;
-      for (const id of [playerCombatantId, npcCombatantId, hiddenCombatantId]) {
+      for (const id of combatantIds) {
         const c = combatants.find((x) => x._id === id);
         expect(c).toBeDefined();
         expect(typeof c!.initiative).toBe("number");
       }
     });
 
-    it("GM starts combat (combat:beginCombat) — round=1, started=true", async () => {
+    it("GM starts combat (combat:beginCombat) - round=1, started=true", async () => {
+      const { combatId, combatantIds } = await createFullCombat();
+      await rollInitiative(combatId, combatantIds);
       // Registered as: registry.register("combat:beginCombat", buildCombatStartHandler)
       const ack = await sendOp(gm, "combat:beginCombat", { combatId });
       expect(ack["ok"]).toBe(true);
@@ -980,7 +975,11 @@ describe("DoD M3 — Primeira Sessão Jogável (server-level E2E)", () => {
       expect(result.combat["started"]).toBe(true);
     });
 
-    it("GM advances to next turn (combat:nextTurn) — tracker updates", async () => {
+    it("GM advances to next turn (combat:nextTurn) - tracker updates", async () => {
+      const { combatId, combatantIds } = await createFullCombat();
+      await rollInitiative(combatId, combatantIds);
+      const begin = await sendOp(gm, "combat:beginCombat", { combatId });
+      expect(begin["ok"]).toBe(true);
       // Registered as: registry.register("combat:nextTurn", buildCombatNextHandler)
       const ack = await sendOp(gm, "combat:nextTurn", { combatId });
       expect(ack["ok"]).toBe(true);
@@ -990,14 +989,20 @@ describe("DoD M3 — Primeira Sessão Jogável (server-level E2E)", () => {
       expect(typeof result.combat["turnIndex"]).toBe("number");
     });
 
-    it("INVARIANT: hidden NPC combatant was stored with hidden=true (GM-only knowledge)", () => {
-      // Verified above when adding the combatant — hidden flag confirmed true.
+    it("INVARIANT: hidden NPC combatant was stored with hidden=true (GM-only knowledge)", async () => {
       // The redaction invariant (hidden combatants absent from player snapshots)
       // is tested in combat-redaction-m2c.test.ts (full suite, already green).
-      expect(hiddenCombatantId).toBeTruthy();
+      const combatId = await createCombat();
+      const { id, combatant } = await addCombatant(combatId, hiddenTokenId, true);
+      expect(id).toBeTruthy();
+      expect(combatant["hidden"]).toBe(true);
     });
 
     it("GM ends combat (combat:endCombat)", async () => {
+      const { combatId, combatantIds } = await createFullCombat();
+      await rollInitiative(combatId, combatantIds);
+      const begin = await sendOp(gm, "combat:beginCombat", { combatId });
+      expect(begin["ok"]).toBe(true);
       // Registered as: registry.register("combat:endCombat", buildCombatEndHandler)
       const ack = await sendOp(gm, "combat:endCombat", { combatId });
       expect(ack["ok"]).toBe(true);
@@ -1058,12 +1063,6 @@ describe("DoD M3 — Primeira Sessão Jogável (server-level E2E)", () => {
         ids: [docId],
       });
       expect(deleteAck["ok"]).toBe(true);
-    });
-
-    it("M2: fog:get returns ok for a scene", async () => {
-      expect(shared.sceneId).toBeTruthy();
-      const fogAck = await sendQuery(gm, "fog:get", { sceneId: shared.sceneId });
-      expect(fogAck["ok"]).toBe(true);
     });
 
     it("M2: compendium search with level filter works (REQ-CMP-014)", async () => {

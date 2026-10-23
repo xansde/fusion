@@ -89,10 +89,67 @@ describe("AbilityCardSchema — accepts", () => {
     }
   });
 
+  it("keeps the statistic its damage roll names, for the card's decomposition (ui-chat)", () => {
+    const r = AbilityCardSchema.safeParse({ ...STRIKE, damageStatistic: "strikeDamage:w1" });
+    expect(r.success).toBe(true);
+    if (r.success) expect(r.data.damageStatistic).toBe("strikeDamage:w1");
+    expect(AbilityCardSchema.safeParse({ ...STRIKE, damageStatistic: "" }).success).toBe(false);
+    expect(
+      AbilityCardSchema.safeParse({ ...STRIKE, damageStatistic: "k".repeat(161) }).success,
+    ).toBe(false);
+  });
+
   it("accepts a minimal card (only kind + caster + name)", () => {
     expect(
       AbilityCardSchema.safeParse({ kind: "impulse", casterActorId: "a", name: "X" }).success,
     ).toBe(true);
+  });
+});
+
+describe("AbilityCardSchema — the creature an action card names (closing review, I-1)", () => {
+  const ACTION = { kind: "action", casterActorId: "finn", name: "Derrubar" };
+
+  it("keeps the target BY REFERENCE (token and actor ids): each viewer resolves the name from his own mirror", () => {
+    const r = AbilityCardSchema.safeParse({
+      ...ACTION,
+      targetTokenId: "tok-wolf",
+      targetActorId: "act-wolf",
+    });
+    expect(r.success).toBe(true);
+    if (r.success) {
+      expect(r.data.targetTokenId).toBe("tok-wolf");
+      expect(r.data.targetActorId).toBe("act-wolf");
+    }
+  });
+
+  it("does not need the actor id (a token the sender's context did not know goes by its token alone)", () => {
+    const r = AbilityCardSchema.safeParse({ ...ACTION, targetTokenId: "tok-x" });
+    expect(r.success).toBe(true);
+    if (r.success) {
+      expect(r.data.targetTokenId).toBe("tok-x");
+      expect(r.data.targetActorId).toBeUndefined();
+    }
+  });
+
+  it("rejects an empty or over-long reference", () => {
+    expect(AbilityCardSchema.safeParse({ ...ACTION, targetTokenId: "" }).success).toBe(false);
+    expect(AbilityCardSchema.safeParse({ ...ACTION, targetActorId: "" }).success).toBe(false);
+    expect(AbilityCardSchema.safeParse({ ...ACTION, targetTokenId: "t".repeat(200) }).success).toBe(
+      false,
+    );
+  });
+
+  it("survives the chat:send flags schema (it is not stripped on the way in)", () => {
+    const r = ChatSendFlagsSchema.safeParse({
+      pf2e: { abilityCard: { ...ACTION, targetTokenId: "tok-wolf", targetActorId: "act-wolf" } },
+    });
+    expect(r.success).toBe(true);
+    if (r.success) {
+      expect(r.data.pf2e?.abilityCard).toMatchObject({
+        targetTokenId: "tok-wolf",
+        targetActorId: "act-wolf",
+      });
+    }
   });
 });
 

@@ -57,7 +57,7 @@ Esta spec cobre **o canal de comunicação de jogo**, não o protocolo de transp
 | **ChatMessage**    | Document persistido no `world.db`, representando uma mensagem no log de chat.                                                                                       |
 | **MessageType**    | Discriminador semântico do ChatMessage: `text`, `roll`, `emote`, `whisper`, `system`.                                                                               |
 | **Roll mode**      | Política de visibilidade de uma rolagem: `public`, `gmroll`, `blindroll`, `selfroll`. Mapeado em `whisper[]` e `blind` no documento.                                |
-| **Speaker**        | Objeto embeddido que identifica o remetente efetivo: pode ser o User, um Actor ou um Token alias.                                                                   |
+| **Speaker**        | Objeto embeddido que identifica o remetente efetivo: o Actor padrão do usuário (personagem) ou, na ausência de um, o User — nunca um Token (DEC-CHT-11).            |
 | **Chat card**      | Mensagem do tipo `system` ou `roll` que carrega um payload `CardData` — schema JSON declarativo renderizado pelo cliente como cartão interativo com botões de ação. |
 | **CardAction**     | Ação tipada associada a um botão de card. É serializada como string de tipo + payload JSON, executada pelo sistema registrado ao clicar.                            |
 | **Inline roll**    | Expressão `[[fórmula]]` avaliada imediatamente ao enviar a mensagem; resultado substituído inline no conteúdo.                                                      |
@@ -67,13 +67,13 @@ Esta spec cobre **o canal de comunicação de jogo**, não o protocolo de transp
 | **Blind roll**     | Rolagem cujo resultado é visível apenas para GMs; o jogador que rolou vê apenas a mensagem de confirmação.                                                          |
 | **Virtual scroll** | Técnica de renderização que mantém somente as mensagens visíveis no DOM, não todo o histórico.                                                                      |
 | **FTS5**           | Extensão de full-text search do SQLite, usada para busca no log de chat.                                                                                            |
-| **Chat bubble**    | Balão visual temporário exibido acima de um token no canvas para mensagens IC e emotes.                                                                             |
+| **Chat bubble**    | Balão visual temporário exibido acima da(s) peça(s) do personagem do falante, na cena ativa, para mensagens IC e emotes (DEC-CHT-11).                               |
 
 ---
 
 ## Decisões
 
-### D-CHT-01: ChatMessage é um Document persistido, não estado efêmero
+### DEC-CHT-01: ChatMessage é um Document persistido, não estado efêmero
 
 **Decisão:** `ChatMessage` segue o padrão Document do Fusion (ver `02-modelo-de-dados.md`): persiste em SQLite, recebe `_id` único, é sincronizado via WebSocket para todos os clientes elegíveis com o mesmo envelope CRUD de outros Documents.
 
@@ -86,7 +86,7 @@ Esta spec cobre **o canal de comunicação de jogo**, não o protocolo de transp
 
 ---
 
-### D-CHT-02: Roll modes mapeados em campos `whisper` e `blind`
+### DEC-CHT-02: Roll modes mapeados em campos `whisper` e `blind`
 
 **Decisão:** Os quatro roll modes mapeiam diretamente em dois campos booleanos/array do documento:
 
@@ -107,7 +107,7 @@ O servidor popula `whisper` com os IDs reais antes de persistir. O campo `blind`
 
 ---
 
-### D-CHT-03: Chat cards são schemas JSON declarativos — sem HTML arbitrário
+### DEC-CHT-03: Chat cards são schemas JSON declarativos — sem HTML arbitrário
 
 **Decisão:** Sistemas registram chat cards via um schema tipado `CardData` em JSON. O cliente Svelte renderiza o card a partir deste schema usando um componente `<ChatCard>` controlado. Sistemas **não** podem injetar HTML arbitrário em `content` — apenas markdown leve sanitizado.
 
@@ -120,7 +120,7 @@ O servidor popula `whisper` com os IDs reais antes de persistir. O campo `blind`
 
 ---
 
-### D-CHT-04: Comandos de chat são registrados em um registry extensível
+### DEC-CHT-04: Comandos de chat são registrados em um registry extensível
 
 **Decisão:** Existe um `CommandRegistry` no servidor que mapeia prefixo de string para handler. Comandos built-in (`/roll`, `/w`, etc.) são registrados na inicialização. Sistemas podem registrar comandos adicionais via `SystemAPI.registerChatCommand()` (ver `15-api-de-sistemas.md`).
 
@@ -132,7 +132,7 @@ O servidor popula `whisper` com os IDs reais antes de persistir. O campo `blind`
 
 ---
 
-### D-CHT-05: Sanitização por allowlist no servidor antes de persistir
+### DEC-CHT-05: Sanitização por allowlist no servidor antes de persistir
 
 **Decisão:** Todo conteúdo textual de mensagens passa por uma etapa de sanitização no servidor antes de ser persistido e distribuído. A sanitização usa uma allowlist de elementos/atributos Markdown/HTML leve (parágrafo, bold, italic, código, link http/https, lista não-ordenada). Tags não permitidas são stripped. O card declarativo nunca passa por este pipeline — é renderizado via componente Svelte controlado.
 
@@ -140,7 +140,7 @@ O servidor popula `whisper` com os IDs reais antes de persistir. O campo `blind`
 
 ---
 
-### D-CHT-06: Paginação por cursor, não por offset
+### DEC-CHT-06: Paginação por cursor, não por offset
 
 **Decisão:** O carregamento do log usa paginação por cursor (campo `_id` como cursor, `ORDER BY timestamp DESC`), não por `LIMIT/OFFSET`. O cliente carrega as N mensagens mais recentes na abertura; ao rolar para cima, solicita o próximo bloco antes do cursor mais antigo visível.
 
@@ -153,7 +153,7 @@ O servidor popula `whisper` com os IDs reais antes de persistir. O campo `blind`
 
 ---
 
-### D-CHT-07: Busca full-text via SQLite FTS5
+### DEC-CHT-07: Busca full-text via SQLite FTS5
 
 **Decisão:** Uma tabela FTS5 (`chat_fts`) é mantida em sincronia com a tabela principal via triggers. Busca de texto livre é roteada para `chat_fts MATCH ?`. Resultados são paginados (máx 50 por página).
 
@@ -164,7 +164,7 @@ O servidor popula `whisper` com os IDs reais antes de persistir. O campo `blind`
 
 ---
 
-### D-CHT-08: Inline rolls avaliados no servidor, resultado embutido no documento
+### DEC-CHT-08: Inline rolls avaliados no servidor, resultado embutido no documento
 
 **Decisão:** Ao processar uma mensagem com `[[fórmula]]`, o servidor extrai, avalia via motor de rolagens (ver `08-motor-de-rolagens.md`) e substitui a expressão pelo span de resultado antes de persistir. O documento final armazena o resultado; não há reavaliação no cliente.
 
@@ -172,7 +172,7 @@ O servidor popula `whisper` com os IDs reais antes de persistir. O campo `blind`
 
 ---
 
-### D-CHT-09: Chat bubbles com duração fixa no MVP
+### DEC-CHT-09: Chat bubbles com duração fixa no MVP
 
 **Decisão:** Chat bubbles são renderizadas no canvas como overlays SVG acima do token, com duração padrão de 5 segundos (não configurável no MVP). Texto truncado após 120 caracteres com `…`. Visibilidade segue a visibilidade do token.
 
@@ -180,6 +180,55 @@ O servidor popula `whisper` com os IDs reais antes de persistir. O campo `blind`
 
 - _Duração configurável por mundo:_ deixada para V2 para simplificar o MVP.
 - _Balões com estilo CSS completo:_ SVG controlado é mais simples de integrar com PIXI.js (ver `06-canvas-e-renderizacao.md`).
+
+---
+
+### DEC-CHT-10: Revelação é mutação persistida da mensagem, não reemissão efêmera
+
+**Decisão:** Revelar uma mensagem privada já enviada (rolagem em `gmroll`/`blindroll`/`selfroll`, ou sussurro) **reescreve o documento persistido**: `whisper` volta a `[]`, `blind` volta a `false`, e a mensagem carimba `revealedBy` (quem revelou) e `revealedAt` (quando). Só depois da escrita o servidor reemite a mensagem, socket a socket.
+
+A consequência é a razão da decisão: a visibilidade do chat é lida por **três** caminhos independentes — o broadcast ao vivo, o `chat:history` e o snapshot de entrada no mundo — e todos derivam a mesma resposta dos mesmos dois campos (`whisper`, `blind`). Mudando os campos, os três passam a concordar **sem nenhum predicado novo**: revelação não é um quarto conceito de visibilidade, é o estado `public` que a DEC-CHT-02 já define.
+
+**Alternativas rejeitadas:**
+
+- _Reemitir a mensagem de forma efêmera só no broadcast:_ quem estava conectado veria a rolagem, mas o documento continuaria privado — a mensagem sumiria de novo no primeiro reload, e nunca apareceria para quem entrasse depois. Visibilidade que não sobrevive ao F5 não é revelação, é ilusão.
+- _Usar o `doc:update` genérico de documentos:_ o `ChatMessage` do servidor é uma segunda cópia divergente do schema compartilhado; o broadcast de `doc:update` não filtra `whisper`/`blind`, então o próprio update vazaria a rolagem cega para a mesa no instante em que fosse emitido — e o cliente sequer escuta `doc:update` de `ChatMessage`. O chat mantém seu próprio caminho de emissão até que as duas cópias do schema sejam unificadas.
+- _Persistir um campo `revealed: boolean` mantendo `whisper`/`blind` intactos:_ criaria um terceiro predicado de visibilidade a ser replicado nos três caminhos de leitura — exatamente o defeito que esta decisão evita.
+
+**Racional:** a revelação tem que valer para o mundo inteiro e para sempre, não para quem estava com a aba aberta. Reaproveitar `whisper`/`blind` mantém um único predicado de visibilidade; os campos de auditoria existem para a UI dizer que aquilo foi revelado pelo narrador, nunca para decidir quem vê.
+
+---
+
+### DEC-CHT-11: Speaker é sempre o jogador; o bubble ancora no personagem, não na peça controlada
+
+**Decisão:** O `speaker` de uma mensagem nunca referencia um Token. Ele é resolvido do lado do usuário: o Actor padrão (`User.characterId`) ou, na ausência de um, o nome do User. `ChatSpeaker` perde o campo `tokenId` — não sobra mais uma peça "controlada" para se referenciar (DEC-TOK-06, `specs/41-token.md`).
+
+Chat bubbles (REQ-CHT-041) deixam de estar amarrados a um Token de origem e passam a ser derivados de `speaker.actorId`: ao processar uma mensagem `emote`/IC, o servidor identifica, na cena ativa, toda peça cujo `actorId` seja o mesmo do falante, e o cliente desenha um bubble acima de **cada uma**. Sem `speaker.actorId` resolvido (fallback de nome de usuário), ou sem nenhuma peça daquele Actor na cena ativa, nenhum bubble aparece — silenciosamente, não é erro.
+
+**Alternativas rejeitadas:**
+
+- _Manter `tokenId` no `speaker`, resolvido por alguma outra regra (ex.: única peça do ator na cena):_ reintroduziria um predicado de "peça controlada" que a `41` eliminou deliberadamente (DEC-TOK-06); e não teria resposta estável com duas peças do mesmo ator na mesma cena, caso que a `41` já registra como legítimo (Q-TOK-06).
+- _Falar sem personagem em cena nunca gera bubble, mesmo com Actor padrão presente:_ é exatamente o comportamento adotado — não é alternativa rejeitada, é a decisão (registrado aqui só para deixar explícito que não há bubble "genérico" do usuário sem personagem).
+- _Escolher arbitrariamente uma peça entre várias do mesmo Actor:_ decisão sem critério estável — duas peças do mesmo personagem na cena são igualmente "o personagem falando"; mostrar em todas evita inventar um desempate sem fundamento na regra do jogo.
+
+**Racional:** DEC-TOK-06 (`specs/41-token.md`) elimina a posse de uma peça (Token) como base de **permissão/ownership** — ownership passou a ser sempre sobre o Actor, nunca sobre uma peça. A `09` era a última spec a usar "token controlado pelo usuário" como base de **identidade do falante** (quem fala no chat); `06` (REQ-CNV-008, navegação de câmera), `11` (REQ-UIF-008a, Token HUD) e `13` (REQ-AUD-028/REQ-AUD-035, áudio espacial) continuam usando a expressão em outros sentidos e não são tocadas por esta emenda — não há aqui alegação de que o termo tenha sido varrido do projeto inteiro. Ancorar o bubble no Actor, não na peça, mantém o comportamento coerente em cena sem nenhuma peça do personagem (não aparece) e em cena com mais de uma (aparece em todas), sem reintroduzir uma segunda noção de posse.
+
+_(Emenda obrigada por `specs/41-token.md` §12, 2026-08-17.)_
+
+---
+
+### DEC-CHT-12: Aplicar a partir do card lê a mensagem gravada; o resumo é redigido por papel
+
+**Decisão:** Os botões de aplicar de um card de dano (Aplicar, ½, ×2, Curar, PV temporário) NÃO carregam montante nem alvo escolhidos no cliente. Cada botão emite o op `actor:applyDamage` (`15-api-de-sistemas.md`, REQ-SYS-142) apontando para a rolagem por `source: { messageId, rollIndex }`, e o servidor relê da mensagem persistida o total rolado **e** a foto dos alvos gravada no momento da rolagem (`flags.fusion.targetSnapshot`, `10-combate-e-iniciativa.md`, DEC-CBT-10). O resultado da aplicação vira uma `ChatMessage` de resumo (`actor:damageApplied`) persistida como qualquer outra, cuja visibilidade de conteúdo depende do papel: papel privilegiado vê os PV antes e depois; os demais veem só o dano causado, com a linha de resistência/fraqueza/imunidade, e nunca os PV restantes do alvo.
+
+**Alternativas rejeitadas:**
+
+- _Botão envia `amount` e `targetTokenIds` montados no cliente:_ um jogador editaria o payload e aplicaria 999 em qualquer token; contraria "rolagem e permissão no servidor" (DEC-CHT-08, `21-seguranca.md`).
+- _Alvos lidos da seleção viva no momento do clique:_ a seleção muda entre a rolagem e o clique (e é limpa no fim do turno, REQ-CBT-055); o dano cairia em quem está marcado agora, não em quem foi atacado.
+- _Resumo igual para todos, com PV:_ vida de criatura não é informação de jogador (`40-aba-combate.md`, DEC-CBA-03); o resumo seria uma via lateral para lê-la.
+- _Resumo efêmero (só broadcast):_ some do histórico e do snapshot de entrada, o mesmo defeito que DEC-CHT-10 rejeitou para a revelação.
+
+**Racional:** A mensagem gravada já é a fonte autoritativa da rolagem (DEC-CHT-08); estender essa autoridade aos alvos fecha a última entrada do cliente no cálculo. A decisão de produto de 2026-09-15 (plano do Alquimista, decisões D-02 e D-04) é que o jogador aperta "Aplicar" e o dano vai para todos os alvos daquela ação, e que ele vê só quanto causou. A redação do resumo reaproveita o único caminho de redação do servidor (`packages/server/src/net/redaction.ts` + `isRolePrivileged`), sem predicado paralelo.
 
 ---
 
@@ -195,7 +244,7 @@ O servidor popula `whisper` com os IDs reais antes de persistir. O campo `blind`
 
 **REQ-CHT-004** [MVP] O servidor DEVE aplicar as regras de visibilidade (campo `whisper`, `blind`) ao fazer broadcast: mensagens com `whisper` são enviadas apenas aos sockets dos User IDs listados; se `blind=true`, o payload de rolagem é omitido do broadcast para clientes não-GM.
 
-**REQ-CHT-005** [MVP] O GM DEVE poder deletar mensagens individuais do log; a deleção é propagada a todos os clientes via `document:delete`.
+**REQ-CHT-005** [MVP] Mensagens individuais NÃO DEVEM ser deletadas do log: elas são **invalidadas** — marcadas como sem efeito e mantidas na mesma posição, com registro de quem invalidou e quando. Podem invalidar o GM e o **autor** da mensagem; revalidar é do GM sempre, e do autor apenas quando a invalidação foi dele. A invalidação é anotação no log, não desfazimento de efeito, e é propagada como atualização do documento. Regra completa e apresentação em `38-aba-chat.md` (DEC-ACH-08, REQ-ACH-080..086). O flush do log inteiro (REQ-CHT-006) não é afetado. _(Esta redação substitui a anterior, em que o GM deletava mensagens individuais via `document:delete`.)_
 
 **REQ-CHT-006** [MVP] O GM DEVE poder fazer flush (limpeza total) do log de chat do mundo; a operação trunca a tabela principal e a FTS5, e emite evento `chat:flush` para todos os clientes limparem o painel.
 
@@ -230,11 +279,13 @@ O servidor popula `whisper` com os IDs reais antes de persistir. O campo `blind`
 
 **REQ-CHT-014** [MVP] Para o comando `/w`, alvos DEVEM ser especificáveis como nome de usuário entre colchetes, com múltiplos alvos separados por vírgula: `/w [João, Maria] mensagem`. As palavras-chave `gm` e `players` DEVEM ser resolvidas para os IDs dos usuários GM e não-GM respectivamente.
 
+_Emenda de 2026-10-22 (auditoria da `beta/app`, decisão provisória da lane auditoria-fix):_ um comando de sussurro (`/w`, `/whisper`) malformado — sem destinatário, com colchete ou aspas sem fechar (`/w "Huo Jinwu psiu`, `/w [Huo psiu`) — NUNCA DEVE virar texto público: o parser devolve erro de parse, o servidor recusa sem publicar nada e o cliente mantém o texto na caixa com o motivo em pt-BR.
+
 **REQ-CHT-015** [MVP] Comandos não reconhecidos pelo cliente DEVEM ser enviados ao servidor para verificação no `CommandRegistry`; o servidor retorna erro se o comando for desconhecido.
 
 **REQ-CHT-016** [MVP] A `SystemAPI` DEVE expor `registerChatCommand(prefix: string, handler: ServerChatCommandHandler)` para sistemas registrarem comandos adicionais (ver `15-api-de-sistemas.md`).
 
-**REQ-CHT-017** [MVP] O roll mode padrão para rolagens automatizadas (via sistema, macro) DEVE ser configurável por usuário (dropdown no painel de chat); rolagens digitadas manualmente com `/roll` SEMPRE produzem roll público, independentemente do dropdown.
+**REQ-CHT-017** [MVP] O roll mode DEVE ser escolhido em um seletor do painel de chat, persistido por usuário e mundo no cliente, e DEVE ser aplicado a **todas** as rolagens — automatizadas (sistema, macro, card, ficha) e digitadas, **inclusive `/roll`**. Apenas um comando que **nomeia** o modo (`/gmroll`, `/blindroll`, `/selfroll`) prevalece sobre o seletor, e só na mensagem em que foi digitado; um dado favorito com modo travado também prevalece (`38-aba-chat.md`, DEC-ACH-04). _(Esta redação substitui a anterior, em que `/roll` produzia sempre roll público independentemente do seletor.)_
 
 ### Rolagens e inline rolls
 
@@ -248,7 +299,7 @@ O servidor popula `whisper` com os IDs reais antes de persistir. O campo `blind`
 
 ### Speaker
 
-**REQ-CHT-022** [MVP] O objeto `speaker` de toda mensagem DEVE ser resolvido pelo servidor na seguinte ordem de prioridade: (1) token controlado pelo usuário na cena ativa; (2) actor padrão do usuário; (3) nome do usuário como fallback.
+**REQ-CHT-022** [MVP] O objeto `speaker` de toda mensagem DEVE ser resolvido pelo servidor a partir do **usuário autor**, nunca de uma peça posicionada em cena: (1) o Actor padrão do usuário (`User.characterId`, ver `02-modelo-de-dados.md`), se definido; (2) o nome do usuário como fallback. _(Esta redação substitui a anterior, que resolvia o falante por "token controlado pelo usuário na cena ativa" — DEC-TOK-06 (`41-token.md`) eliminou o conceito de posse de peça/"controle de token" do projeto inteiro: quem fala é sempre o jogador. Emenda obrigada por `specs/41-token.md` §12, 2026-08-17.)_
 
 **REQ-CHT-023** [MVP] O campo `speaker.alias` DEVE ser exibido no painel de chat como nome do remetente. Para mensagens OOC, o nome do User (não do personagem) DEVE ser exibido.
 
@@ -282,7 +333,7 @@ O servidor popula `whisper` com os IDs reais antes de persistir. O campo `blind`
 
 **REQ-CHT-035** [MVP] O cliente DEVE usar virtual scroll (DOM apenas das mensagens visíveis) para suportar histórico extenso sem degradação de performance.
 
-**REQ-CHT-036** [MVP] O GM DEVE poder buscar mensagens por texto livre via campo de busca no painel de chat. A busca DEVE ser executada no servidor (SQLite FTS5), retornando no máximo 50 resultados paginados.
+**REQ-CHT-036** [MVP] O usuário DEVE poder buscar mensagens por texto livre via campo de busca no painel de chat. A busca DEVE ser executada no servidor (SQLite FTS5), retornando no máximo 50 resultados paginados.
 
 **REQ-CHT-037** [MVP] O GM DEVE poder exportar o log de chat do mundo em formato JSON (estrutura completa dos documentos) e texto plano (somente `timestamp | speaker.alias | content`).
 
@@ -296,15 +347,62 @@ O servidor popula `whisper` com os IDs reais antes de persistir. O campo `blind`
 
 ### Chat bubbles
 
-**REQ-CHT-041** [MVP] Mensagens do tipo `emote` e mensagens IC (`/ic`) originadas de um token posicionado na cena ativa DEVEM gerar um chat bubble acima do token no canvas.
+**REQ-CHT-041** [MVP] Mensagens do tipo `emote` e mensagens IC (`/ic`) DEVEM gerar um chat bubble acima de **cada peça**, presente na cena ativa, cujo `actorId` seja o `speaker.actorId` do falante (DEC-CHT-11). Sem `speaker.actorId` resolvido, ou sem nenhuma peça daquele Actor na cena ativa, nenhum bubble é exibido. _(Esta redação substitui a anterior, que ancorava no token que originou a mensagem — noção de "token de origem" eliminada por DEC-TOK-06 (`41-token.md`); emenda obrigada por `specs/41-token.md` §12, 2026-08-17.)_
 
 **REQ-CHT-042** [MVP] Chat bubbles DEVEM ser exibidas por 5 segundos e então desaparecer com fade-out. Texto DEVE ser truncado após 120 caracteres com `…`.
 
-**REQ-CHT-043** [MVP] Chat bubbles DEVEM respeitar a visibilidade do token: se o token está fora do campo de visão do jogador (fog of war), o bubble NÃO é exibido para esse jogador.
+**REQ-CHT-043** [MVP] Cada chat bubble DEVE respeitar a visibilidade da peça em que está ancorado: se aquela peça está fora do campo de visão do jogador (fog of war), o bubble correspondente NÃO é exibido para esse jogador — mesmo que outra peça do mesmo personagem, na mesma cena, esteja visível e mostre o seu. _(Redação ajustada à pluralidade de âncoras de DEC-CHT-11/REQ-CHT-041; emenda obrigada por `specs/41-token.md` §12, 2026-08-17.)_
 
 ### Pop-out
 
 **REQ-CHT-044** [V2] O usuário DEVE poder abrir o painel de chat em uma janela separada do browser via botão de pop-out.
+
+### Revelação de mensagens privadas
+
+**REQ-CHT-045** [MVP] Um usuário com papel privilegiado (GM ou Assistente de GM) PODE revelar uma `ChatMessage` privada — aquela cujo `whisper` não está vazio ou cujo `blind` é `true` — tornando-a visível a todos os usuários do mundo. A operação é solicitada pelo evento `chat:reveal`, que identifica a mensagem já existente pelo `_id`.
+
+**REQ-CHT-046** [MVP] A revelação DEVE ser persistida no documento (`whisper` passa a `[]` e `blind` a `false`) **antes** de qualquer emissão, de modo que os três caminhos de leitura entreguem a mensagem revelada: o broadcast ao vivo, o `chat:history` e o snapshot de entrada no mundo. Uma revelação que só altere o broadcast NÃO satisfaz este requisito.
+
+**REQ-CHT-047** [MVP] A mensagem revelada DEVE registrar quem revelou (`revealedBy`, User ID) e quando (`revealedAt`, Unix ms), e o cliente DEVE sinalizar visualmente que aquela mensagem foi revelada pelo narrador. Os campos de auditoria são de exibição: eles NÃO DEVEM participar da decisão de quem recebe a mensagem, que continua sendo derivada apenas de `whisper` e `blind` (DEC-CHT-10).
+
+**REQ-CHT-048** [MVP] Um usuário sem papel privilegiado NÃO DEVE conseguir revelar mensagem alguma: o servidor DEVE responder com erro de permissão e a mensagem DEVE permanecer privada, inclusive no histórico. Revelar uma mensagem que já é pública NÃO DEVE alterar o documento nem gerar broadcast.
+
+**REQ-CHT-049** [MVP] Revelar NÃO DEVE reexecutar a rolagem nem expor a semente do RNG: o payload emitido é exatamente o resultado persistido no momento da rolagem, e o `seed` permanece restrito ao log de auditoria (ver `08-motor-de-rolagens.md`, REQ-ROL-049). Em particular, o autor de uma `blindroll` revelada DEVE passar a receber o resultado real no lugar do texto substituto de confirmação previsto em REQ-ROL-032.
+
+### Cards de ação do caçador e do companheiro _(emenda da spec 52, 2026-10-05)_
+
+**REQ-CHT-061** [MVP] Uma ação que rola, marca e aplica efeito (ex.: Caçar Presa, `52-cacador-companheiro-e-montaria.md`) DEVE produzir **uma** mensagem: o card carrega o alvo (`targetSnapshot`), a marca e o efeito aplicado; o efeito NÃO DEVE sair como segunda mensagem.
+
+**REQ-CHT-062** [MVP] Uma rolagem secundária disparada pela mesma ação (ex.: o Rememorar Conhecimento do Caçador de Monstros) DEVE entrar no **mesmo** card, rolada no servidor, e o efeito condicionado ao grau dela DEVE ser aplicado pelo servidor e mostrado no card.
+
+**REQ-CHT-063** [MVP] O card de Comandar um companheiro animal DEVE ser registro sem rolagem: "`<dono>` comanda `<companheiro>`: 2 ações".
+
+**REQ-CHT-064** [MVP] Com efeito de Apoio ativo no atacante, o card de dano do golpe que cumpre a condição do Apoio contra criatura ao alcance do companheiro (medido no servidor) DEVE incluir o dano extra do Apoio, anotado no card; alvo fora do alcance, golpe que errou, ou golpe que não cumpre a condição, NÃO DEVE incluir. O acerto crítico NÃO dobra o dano extra do urso.
+
+### Busca para todos e leitura de contexto
+
+**REQ-CHT-050** [MVP] A busca de REQ-CHT-036 DEVE estar disponível a **qualquer papel**, e o servidor DEVE aplicar aos resultados o mesmo predicado de visibilidade do broadcast e do histórico (REQ-CHT-004, DEC-CHT-02): ninguém encontra sussurro alheio nem rolagem cega de terceiro. NÃO DEVE existir um segundo predicado de visibilidade para busca.
+
+**REQ-CHT-051** [MVP] O servidor DEVE oferecer uma consulta de **contexto** ao redor de uma mensagem: dados o `_id` de uma mensagem visível ao solicitante e um limite `N`, retorna as `N` mensagens **visíveis** imediatamente anteriores e as `N` posteriores. A contagem DEVE considerar apenas mensagens visíveis ao solicitante — mensagem invisível não ocupa lugar na contagem nem é sinalizada de nenhuma forma (apresentação em `38-aba-chat.md`, REQ-ACH-013).
+
+### Aplicar dano e resumo no card
+
+> **Emenda de 2026-09-15** (plano do Alquimista, tarefa ALQ-F1-01; DEC-CHT-12). Os
+> contratos `ApplyDamage` e `TargetSelection` são definidos em `15-api-de-sistemas.md`
+> (REQ-SYS-142) e `10-combate-e-iniciativa.md` (REQ-CBT-056); a conta do dano é do
+> sistema (`17-sistema-pf2e.md`, REQ-PF2-209..213). Aqui fica só o que é do chat.
+>
+> **Emenda de 2026-09-15** (revisão adversarial da onda 1, achado importante —
+> replay sem limite). A frase "desabilitar o botão depois do uso é escolha do
+> sistema, não obrigação" deixava a reaplicação do mesmo dano gravado sem limite
+> nenhum: o dono do ator podia reenviar o op e aplicar o mesmo dano em todos os
+> alvos do snapshot quantas vezes quisesse. Desabilitar o botão na UI continua
+> opcional (é só affordance) — a garantia real agora é no servidor, e é
+> obrigatória: REQ-SYS-142 (idempotência por `(messageId, rollIndex, multiplier)`).
+
+**REQ-CHT-052** [MVP] Todo card de rolagem de dano ou de cura DEVE exibir, abaixo de cada dano rolado, os botões **Aplicar**, **½**, **×2**, **Curar** e **PV temporário**, e a linha "Alvos: …" com os nomes lidos de `flags.fusion.targetSnapshot` da própria mensagem (REQ-CBT-056). Cada botão DEVE emitir `actor:applyDamage` com `instances[].source = { messageId, rollIndex }` e o `multiplier` correspondente (`1`, `0.5`, `2`; Curar e PV temporário mudam o `type` da instância para `healing`/`temp-hp`), e NÃO DEVE enviar `amount` nem `targetTokenIds` quando o usuário não tiver papel privilegiado. Com o snapshot vazio, os botões de aplicar em alvo DEVEM aparecer desabilitados com o texto "a rolagem não tinha alvo"; aplicar em si mesmo (`selfActorId`) continua disponível. Os botões DEVEM aparecer habilitados apenas para papel privilegiado e para o dono do ator que rolou; para os demais usuários NÃO DEVEM aparecer. Nomes de alvos cujo token esteja oculto para o usuário DEVEM ser redigidos pelo mesmo caminho de redação do broadcast (`net/redaction.ts`). REQ-CHT-028 continua valendo para a UI: desabilitar o botão depois do uso é escolha do sistema, não obrigação — mas a autoridade real é do servidor, e **é** obrigação: uma segunda aplicação da mesma `(messageId, rollIndex, multiplier)` por usuário sem papel privilegiado DEVE ser rejeitada (`FORBIDDEN`), nunca reaplicada (REQ-SYS-142).
+
+**REQ-CHT-053** [MVP] Toda aplicação aceita de `actor:applyDamage` DEVE produzir uma `ChatMessage` de resumo `actor:damageApplied`, persistida antes do broadcast (REQ-CHT-001), com uma linha por alvo. Para papel privilegiado a linha DEVE conter o dano final por tipo, o breakdown de IWR/dureza/PV temporário e os PV antes → depois (ex.: "Goblin: 12 fogo − resistência 5 = 7 · PV 18 → 11"). Para usuário sem papel privilegiado a mesma linha DEVE conter só o dano causado e a linha de IWR (ex.: "Goblin sofreu 7 de fogo (resistência 5)"), e NÃO DEVE conter `hp`, `hp.max`, PV temporário restante, nem condição de morte do alvo que o usuário não possa ver na ficha — nem no payload, nem no histórico, nem no snapshot de entrada. A redação DEVE usar `packages/server/src/net/redaction.ts` + `isRolePrivileged` (`documents/ownership.ts`); NÃO DEVE existir segundo predicado. O dono do ator atingido vê a própria vida na ficha, como sempre; o resumo não é o lugar dela.
 
 ---
 
@@ -333,15 +431,17 @@ export type MessageType = "text" | "roll" | "emote" | "whisper" | "system";
 /** Roll mode: determina visibilidade da rolagem */
 export type RollMode = "public" | "gmroll" | "blindroll" | "selfroll";
 
-/** Identidade do remetente efetivo */
+/**
+ * Identidade do remetente efetivo. Nunca referencia um Token — quem fala é o jogador,
+ * nunca a peça (DEC-CHT-11, DEC-TOK-06 de `41-token.md`). Sem `tokenId`: uma mensagem
+ * pode "iluminar" zero, uma ou várias peças do mesmo Actor na cena ativa (REQ-CHT-041).
+ */
 export interface ChatSpeaker {
   /** ID do User Fusion (sempre presente) */
   userId: string;
-  /** ID do Actor, se resolvido */
+  /** ID do Actor padrão do usuário (`User.characterId`), se definido */
   actorId?: string;
-  /** ID do Token, se resolvido */
-  tokenId?: string;
-  /** Alias exibido no log (nome do token, actor ou user) */
+  /** Alias exibido no log (nome do actor ou do user) */
   alias: string;
 }
 
@@ -418,6 +518,16 @@ export interface ChatMessage {
   whisper: string[];
   /** Se true, clientes não-GM não recebem os dados de rolagem */
   blind: boolean;
+  /** Unix ms em que um GM revelou esta mensagem; ausente = nunca foi revelada (REQ-CHT-047) */
+  revealedAt?: number;
+  /** User ID de quem revelou; ausente = nunca foi revelada (REQ-CHT-047) */
+  revealedBy?: string;
+  /** Marcada como sem efeito, mantida no log (REQ-CHT-005) */
+  invalid?: boolean;
+  /** User ID de quem invalidou por último — decide quem pode revalidar (REQ-ACH-083) */
+  invalidatedBy?: string;
+  /** Unix ms da última invalidação */
+  invalidatedAt?: number;
   /** Rolls avaliados (para type === 'roll') */
   rolls?: RollData[];
   /** Chat card declarativo (para type === 'system' com card) */
@@ -459,46 +569,52 @@ export type ServerChatCommandHandler = (
 
 ### Eventos socket.io (cliente → servidor)
 
-| Evento                   | Payload                | Descrição                                                                    |
-| ------------------------ | ---------------------- | ---------------------------------------------------------------------------- |
-| `document:create` (chat) | `Partial<ChatMessage>` | Enviar nova mensagem. O servidor valida, sanitiza, persiste e faz broadcast. |
-| `document:delete` (chat) | `{ _id: string }`      | GM deleta mensagem.                                                          |
-| `chat:card-action`       | `CardActionRequest`    | Clique em botão de card.                                                     |
-| `chat:flush` (request)   | `{}`                   | GM solicita limpeza do log.                                                  |
+| Evento                   | Payload                             | Descrição                                                                    |
+| ------------------------ | ----------------------------------- | ---------------------------------------------------------------------------- |
+| `document:create` (chat) | `Partial<ChatMessage>`              | Enviar nova mensagem. O servidor valida, sanitiza, persiste e faz broadcast. |
+| `chat:invalidate`        | `{ _id: string, invalid: boolean }` | GM ou autor invalida/revalida a mensagem (REQ-CHT-005).                      |
+| `chat:card-action`       | `CardActionRequest`                 | Clique em botão de card.                                                     |
+| `chat:flush` (request)   | `{}`                                | GM solicita limpeza do log.                                                  |
+| `chat:reveal`            | `ChatRevealPayload`                 | GM revela mensagem privada já enviada (REQ-CHT-045).                         |
+| `actor:applyDamage`      | `ActorApplyDamagePayload`           | Botões de aplicar do card de dano (REQ-CHT-052; shape em REQ-SYS-142).       |
+| `actor:applyCondition`   | `ActorApplyConditionPayload`        | Aplicar/remover condição em si ou nos alvos (REQ-PF2-215).                   |
 
 ### Eventos socket.io (servidor → clientes)
 
-| Evento                   | Destinatários      | Payload                        | Descrição                                       |
-| ------------------------ | ------------------ | ------------------------------ | ----------------------------------------------- |
-| `document:create` (chat) | Clientes elegíveis | `ChatMessage`                  | Nova mensagem; roll payload omitido para blind. |
-| `document:update` (chat) | Clientes elegíveis | `Partial<ChatMessage>` + `_id` | Atualização (ex.: `card.buttons[n].disabled`).  |
-| `document:delete` (chat) | Todos              | `{ _id: string }`              | Mensagem deletada.                              |
-| `chat:flush`             | Todos              | `{}`                           | Log limpo; cliente limpa painel.                |
+| Evento                   | Destinatários      | Payload                                          | Descrição                                              |
+| ------------------------ | ------------------ | ------------------------------------------------ | ------------------------------------------------------ |
+| `document:create` (chat) | Clientes elegíveis | `ChatMessage`                                    | Nova mensagem; roll payload omitido para blind.        |
+| `document:update` (chat) | Clientes elegíveis | `Partial<ChatMessage>` + `_id`                   | Atualização (ex.: `card.buttons[n].disabled`).         |
+| `document:update` (chat) | Clientes elegíveis | `{ _id, invalid, invalidatedBy, invalidatedAt }` | Mensagem invalidada ou revalidada (REQ-CHT-005).       |
+| `document:create` (chat) | Clientes elegíveis | `ChatMessage` com card `actor:damageApplied`     | Resumo da aplicação, redigido por papel (REQ-CHT-053). |
+| `chat:flush`             | Todos              | `{}`                                             | Log limpo; cliente limpa painel.                       |
 
 ### REST (HTTP Fastify)
 
-| Método | Rota                           | Auth | Descrição                                                                                      |
-| ------ | ------------------------------ | ---- | ---------------------------------------------------------------------------------------------- |
-| `GET`  | `/api/worlds/:wid/chat`        | User | Busca paginada por cursor. Query params: `before` (cursor \_id), `limit` (padrão 50, máx 100). |
-| `GET`  | `/api/worlds/:wid/chat/search` | User | Busca FTS5. Query params: `q` (texto), `limit`, `page`.                                        |
-| `GET`  | `/api/worlds/:wid/chat/export` | GM   | Export em `?format=json` ou `?format=txt`.                                                     |
+| Método | Rota                            | Auth | Descrição                                                                                                            |
+| ------ | ------------------------------- | ---- | -------------------------------------------------------------------------------------------------------------------- |
+| `GET`  | `/api/worlds/:wid/chat`         | User | Busca paginada por cursor. Query params: `before` (cursor \_id), `limit` (padrão 50, máx 100).                       |
+| `GET`  | `/api/worlds/:wid/chat/search`  | User | Busca FTS5, filtrada pela visibilidade do solicitante (REQ-CHT-050). Query params: `q` (texto), `limit`, `page`.     |
+| `GET`  | `/api/worlds/:wid/chat/context` | User | Contexto ao redor de uma mensagem (REQ-CHT-051). Query params: `id` (`_id` da mensagem), `limit` (padrão 5, máx 50). |
+| `GET`  | `/api/worlds/:wid/chat/export`  | GM   | Export em `?format=json` ou `?format=txt`.                                                                           |
 
 ---
 
 ## Dependências (specs irmãs)
 
-| Spec                          | Dependência                                                                           |
-| ----------------------------- | ------------------------------------------------------------------------------------- |
-| `02-modelo-de-dados.md`       | `ChatMessage` segue o modelo Document (campos base `_id`, `flags`, ownership).        |
-| `03-persistencia-e-mundos.md` | Tabela `chat_messages` e tabela FTS5 `chat_fts` no `world.db`; esquema de índices.    |
-| `04-rede-e-sincronizacao.md`  | Envelope de mensagem, namespaces, rooms, rate limiting de socket, sequência `seq`.    |
-| `05-usuarios-e-permissoes.md` | Permissão `CHAT_WHISPER`, visibilidade de blind rolls para GMs, deleção de mensagens. |
-| `08-motor-de-rolagens.md`     | `RollData`, avaliação de inline rolls, roll modes.                                    |
-| `11-ui-framework-e-fichas.md` | Componente `<ChatCard>`, virtual scroll, renderização de markdown.                    |
-| `13-audio-e-playlists.md`     | Som de notificação no canal de interface.                                             |
-| `14-macros-e-automacao.md`    | Comandos `/macro` e execução de macros via chat são escopo da spec de macros.         |
-| `15-api-de-sistemas.md`       | `registerChatCommand()`, `registerCardAction()`.                                      |
-| `21-seguranca.md`             | Allowlist de sanitização HTML/markdown, rate limiting detalhado, política de CSP.     |
+| Spec                          | Dependência                                                                                                   |
+| ----------------------------- | ------------------------------------------------------------------------------------------------------------- |
+| `02-modelo-de-dados.md`       | `ChatMessage` segue o modelo Document (campos base `_id`, `flags`, ownership).                                |
+| `03-persistencia-e-mundos.md` | Tabela `chat_messages` e tabela FTS5 `chat_fts` no `world.db`; esquema de índices.                            |
+| `04-rede-e-sincronizacao.md`  | Envelope de mensagem, namespaces, rooms, rate limiting de socket, sequência `seq`.                            |
+| `05-usuarios-e-permissoes.md` | Permissão `CHAT_WHISPER`, visibilidade de blind rolls para GMs, deleção de mensagens.                         |
+| `08-motor-de-rolagens.md`     | `RollData`, avaliação de inline rolls, roll modes.                                                            |
+| `11-ui-framework-e-fichas.md` | Componente `<ChatCard>`, virtual scroll, renderização de markdown.                                            |
+| `13-audio-e-playlists.md`     | Som de notificação no canal de interface.                                                                     |
+| `14-macros-e-automacao.md`    | Comandos `/macro` e execução de macros via chat são escopo da spec de macros.                                 |
+| `15-api-de-sistemas.md`       | `registerChatCommand()`, `registerCardAction()`.                                                              |
+| `21-seguranca.md`             | Allowlist de sanitização HTML/markdown, rate limiting detalhado, política de CSP.                             |
+| `41-token.md`                 | `TokenDocument.actorId`, ownership do Actor (DEC-TOK-06) — âncora dos chat bubbles (DEC-CHT-11, REQ-CHT-041). |
 
 ---
 
@@ -525,6 +641,10 @@ export type ServerChatCommandHandler = (
 **CA-CHT-010** Um token visível na cena envia `/emote examina a sala` → um chat bubble aparece acima do token no canvas por 5 segundos; jogadores que não veem o token não veem o bubble.
 
 **CA-CHT-011** Mensagem com conteúdo `**texto em negrito** e [[1d6]]` → negrito renderizado; `[[1d6]]` substituído pelo resultado avaliado pelo servidor (ex.: `**texto em negrito** e 4`).
+
+**CA-CHT-012** Um jogador digita `/gmroll 1d20`; o GM revela a mensagem → o jogador que não era destinatário passa a ver o resultado no broadcast, encontra a mesma mensagem ao consultar o histórico, e um cliente que conecta depois a recebe no snapshot de entrada.
+
+**CA-CHT-013** Um jogador digita `/blindroll 1d20`; o GM revela a mensagem → o autor deixa de ver o texto de confirmação e passa a ver o total realmente rolado, idêntico ao que o GM já via; nenhum payload entregue contém `seed`. Se, em vez do GM, um jogador comum solicitar a revelação, o servidor recusa por permissão e a mensagem continua invisível para os demais, inclusive no histórico.
 
 ---
 

@@ -1,0 +1,687 @@
+[
+  {
+    "slug": "gue-hab-reactive-strike",
+    "kind": "habilidade",
+    "name": "Reactive Strike",
+    "name_pt": "Golpe Reativo",
+    "nivel": 1,
+    "acoes": "reação",
+    "action_type": "reaction",
+    "traits": ["fighter"],
+    "resumo": "Reação que ataca um inimigo ao alcance quando ele usa uma ação de manipulação/movimento ou faz um ataque à distância; o Strike não conta para nem sofre o MAP.",
+    "mecanismos": [
+      {
+        "id": "GRANT-DYN",
+        "porque": "A feature concede o item de reação via rule element grant-item (fixo) — a única parte já convertida."
+      },
+      {
+        "id": "REACTION-TRIGGER",
+        "porque": "O efeito só existe se o servidor detectar o gatilho (inimigo ao alcance usa manipulate/move/ranged attack) e oferecer a reação na hora certa; não há pipeline de reação em packages/server/src/combat."
+      },
+      {
+        "id": "WEAPON-STRIKE",
+        "porque": "O efeito é um Strike corpo a corpo completo contra o alvo: rolar 1d20+bônus e comparar com a CA dele."
+      },
+      {
+        "id": "MAP-TRACK",
+        "porque": "Este Strike explicitamente não conta para o MAP nem sofre o MAP atual — exige rastrear/isentar dentro do turno."
+      }
+    ],
+    "rule_elements": "grant-item (fixo, convertido): concede Compendium.pf2e.actionspf2e.Item.Reactive Strike. A mecânica de gatilho/efeito do item da ação em si não está nesta extração (só a feature que concede).",
+    "referencias": ["actionspf2e.Item.Reactive Strike"],
+    "dependencias": [],
+    "manual": "sim",
+    "manual_nota": "A concessão do item é automática, mas nada do que a torna jogável funciona: sem detecção de gatilho de reação, sem rolagem de ataque ponta a ponta (rollStrike existe e posta a rolagem certa no chat — characterSheetVM.ts:2222 — mas comparar com a CA do alvo e aplicar dano são manuais hoje), sem rastreio de MAP no turno.",
+    "observacao": "É a habilidade mais icônica da classe e a que mais evidencia o gap: mesmo com o botão de rolagem (rollStrike), o resultado (acertou? crítico? quanto de dano?) e sua aplicação continuam sendo de mesa."
+  },
+  {
+    "slug": "gue-hab-shield-block",
+    "kind": "habilidade",
+    "name": "Shield Block",
+    "name_pt": "Bloqueio com Escudo",
+    "nivel": 1,
+    "acoes": "reação",
+    "action_type": "reaction",
+    "traits": ["champion", "commander", "druid", "exemplar", "fighter", "guardian", "inventor"],
+    "resumo": "Concede o talento geral Shield Block: reação que reduz o dano de um ataque físico usando a dureza do escudo, enquanto ele estiver erguido.",
+    "mecanismos": [
+      {
+        "id": "GRANT-DYN",
+        "porque": "Concede o talento geral Shield Block via grant-item."
+      },
+      {
+        "id": "SHIELD-BLOCK",
+        "porque": "O núcleo da reação (dureza do escudo, PV do escudo, limiar de quebra) não tem estado dedicado hoje; a única matemática de dureza existente vive dentro do applyDamagePipeline genérico (damage.ts:158-165), que não tem chamador de produção."
+      },
+      {
+        "id": "REACTION-TRIGGER",
+        "porque": "Precisa detectar 'você tomaria dano físico com o escudo erguido' e oferecer a reação na hora certa."
+      },
+      {
+        "id": "RAISE-SHIELD",
+        "porque": "O gatilho exige escudo erguido — não existe estado 'escudo erguido' em lugar nenhum do código (zero hits de raiseShield/shieldRaised em systems/pf2e e sheets/pf2e)."
+      }
+    ],
+    "rule_elements": "grant-item (fixo, convertido): concede Compendium.pf2e.feats-srd.Item.Shield Block.",
+    "referencias": ["feats-srd.Item.Shield Block"],
+    "dependencias": [],
+    "manual": "sim",
+    "manual_nota": "Nenhuma parte do bloqueio com escudo é automatizada: sem estado de escudo erguido, sem PV/dureza de escudo rastreados, sem oferta de reação.",
+    "observacao": null
+  },
+  {
+    "slug": "gue-hab-bravery",
+    "kind": "habilidade",
+    "name": "Bravery",
+    "name_pt": "Bravura",
+    "nivel": 3,
+    "acoes": "passivo",
+    "action_type": "passive",
+    "traits": ["fighter"],
+    "resumo": "Salvaguarda de Vontade sobe a especialista; sucesso contra efeito de medo vira sucesso crítico; ao ganhar Amedrontado, reduz o valor em 1.",
+    "mecanismos": [
+      {
+        "id": "PROF-TRACK",
+        "porque": "Sobe o rank de Vontade para especialista (2)."
+      },
+      {
+        "id": "DOS-ADJUST",
+        "porque": "'sucesso vira sucesso crítico' é o rule element AdjustDegreeOfSuccess não convertido (predicate item:trait:fear, selector will) — catálogo confirma que esse tipo é reservado a V2 e o effectsEngine não trata."
+      },
+      {
+        "id": "CONDITION",
+        "porque": "Reduzir o valor de Amedrontado em 1 exige manipular o NÚMERO da condição, não só ligar/desligar — o toggle real hoje liga/desliga a condição, não decrementa valor automaticamente ao ser concedida."
+      },
+      {
+        "id": "EFFECT-SOURCE-ITEMS",
+        "porque": "a regra está escrita no próprio talento, e documento de talento/habilidade ainda não vira fonte de efeito para o motor"
+      }
+    ],
+    "rule_elements": "sem rule elements convertidos (rules=[]); 1 unconverted: AdjustDegreeOfSuccess (will, vs. traço fear, um grau melhor).",
+    "referencias": ["conditionitems.Item.Frightened"],
+    "dependencias": [],
+    "manual": "parcial",
+    "manual_nota": "A subida de rank de Vontade é derivação simples (PROF-TRACK); o ajuste de grau de sucesso e a redução automática do valor de Frightened não existem.",
+    "observacao": null
+  },
+  {
+    "slug": "gue-hab-fighter-weapon-mastery",
+    "kind": "habilidade",
+    "name": "Fighter Weapon Mastery",
+    "name_pt": "Maestria em Armas de Guerreiro",
+    "nivel": 5,
+    "acoes": "passivo",
+    "action_type": "passive",
+    "traits": ["fighter"],
+    "resumo": "Escolhe um grupo de arma; proficiência sobe a mestre com simples/marciais/desarmadas desse grupo e a especialista com as avançadas; ganha acesso à especialização crítica de toda arma em que tem proficiência mestre.",
+    "mecanismos": [
+      {
+        "id": "WEAPON-GROUP",
+        "porque": "Toda a regra é escopada pelo grupo de arma escolhido (predicate item:group:{escolha}) — o campo weaponGroup existe no schema do item mas está marcado '[V2]' reservado (item-weapon.ts:54), e não há suporte a predicado item:group/item:category em lugar nenhum do motor."
+      },
+      {
+        "id": "CHOICE",
+        "porque": "A escolha do grupo (ChoiceSet 'weaponGroups', flag fighterWeaponMastery) está registrada como 'pendente' em choiceSetInventory.ts:135 — não aparece na ficha hoje."
+      },
+      {
+        "id": "PROF-TRACK",
+        "porque": "MartialProficiency sobe o rank para mestre (simples/marcial/desarmado) e especialista (avançada) dentro do grupo escolhido."
+      },
+      {
+        "id": "CRIT-SPEC",
+        "porque": "'ganha acesso à especialização crítica' é a rule CriticalSpecialization (unconverted); zero hits de 'criticalSpecialization' em todo o motor/ficha."
+      }
+    ],
+    "rule_elements": "2 proficiency convertidos (MartialProficiency simples/marcial e avançada), ambos dependentes de um predicate item:group não suportado; 2 unconverted: ChoiceSet(weaponGroups) e CriticalSpecialization.",
+    "referencias": [],
+    "dependencias": [],
+    "manual": "sim",
+    "manual_nota": "Nada disso é jogável hoje: a escolha do grupo não tem picker (pendente), o predicado por grupo não é avaliado pelo motor, e a especialização crítica não existe.",
+    "observacao": "Base de quase toda a identidade de 'maestria' do Guerreiro (reaparece em Weapon Legend, nível 13) — o mesmo gap se repete lá."
+  },
+  {
+    "slug": "gue-hab-armor-expertise",
+    "kind": "habilidade",
+    "name": "Armor Expertise",
+    "name_pt": "Perícia com Armaduras",
+    "nivel": 11,
+    "acoes": "passivo",
+    "action_type": "passive",
+    "traits": ["champion", "commander", "fighter"],
+    "resumo": "Proficiência com armadura leve/média/pesada e defesa sem armadura sobe a especialista; ganha os efeitos de especialização de armadura média e pesada (resistências condicionadas a categoria+grupo da armadura).",
+    "mecanismos": [
+      {
+        "id": "PROF-TRACK",
+        "porque": "Sobe rank de armadura leve/média/pesada/sem-armadura a especialista."
+      },
+      {
+        "id": "IWR",
+        "porque": "Os 10 flat-modifiers são resistências condicionadas (predicate armor:category + armor:group) — o mesmo motor de resistência (applyIwrMultiple, iwr.ts) usado pelo resto do jogo, mas aqui a condição depende de qual armadura está equipada."
+      }
+    ],
+    "rule_elements": "10 flat-modifier (subkind resistance), todos com predicate armor:category/armor:group; 0 unconverted.",
+    "referencias": [],
+    "dependencias": [],
+    "manual": "parcial",
+    "manual_nota": "PROF-TRACK e IWR têm motor real; não encontrei evidência de que o predicate armor:category/armor:group seja avaliado pelo motor de derivação — trato como não verificado, não como funcionando.",
+    "observacao": "MISMATCH DE DADO: fighter-features.json marca esta feature como nível 7, mas featuresByLevel + proficiencyUpgrades (ambos em fighter-class.json) concordam entre si — e com o Fighter real do remaster — em nível 11. Usei 11 aqui e em progressao; o campo 'level':7 do JSON de origem parece ter um bug de extração."
+  },
+  {
+    "slug": "gue-hab-battlefield-surveyor",
+    "kind": "habilidade",
+    "name": "Battlefield Surveyor",
+    "name_pt": "Observador de Campo de Batalha",
+    "nivel": 7,
+    "acoes": "passivo",
+    "action_type": "passive",
+    "traits": ["fighter"],
+    "resumo": "Percepção sobe a mestre; +2 de circunstância em Percepção para iniciativa.",
+    "mecanismos": [
+      {
+        "id": "PROF-TRACK",
+        "porque": "Sobe rank de Percepção a mestre."
+      }
+    ],
+    "rule_elements": "1 flat-modifier (circumstance +2, selector initiative, predicate [perception]); 0 unconverted.",
+    "referencias": [],
+    "dependencias": [],
+    "manual": "parcial",
+    "manual_nota": "Rank de Percepção deve seguir o mesmo caminho de PROF-TRACK das classes já publicadas; não verifiquei diretamente se o bônus condicional de iniciativa (predicate perception) é aplicado — sem evidência, não trato como funcionando.",
+    "observacao": null
+  },
+  {
+    "slug": "gue-hab-weapon-specialization",
+    "kind": "habilidade",
+    "name": "Weapon Specialization",
+    "name_pt": "Especialização em Armas",
+    "nivel": 7,
+    "acoes": "passivo",
+    "action_type": "passive",
+    "traits": [
+      "alchemist",
+      "animist",
+      "bard",
+      "champion",
+      "cleric",
+      "commander",
+      "druid",
+      "fighter",
+      "gunslinger",
+      "inventor",
+      "investigator",
+      "kineticist",
+      "ranger",
+      "rogue",
+      "sorcerer",
+      "summoner",
+      "swashbuckler",
+      "witch",
+      "wizard"
+    ],
+    "resumo": "Dano adicional com armas/desarmado em que é especialista (+2), mestre (+3) ou lendário (+4).",
+    "mecanismos": [
+      {
+        "id": "PROF-TRACK",
+        "porque": "O bônus é condicionado ao rank de proficiência com a arma/desarmado."
+      },
+      {
+        "id": "MOD-ADJUST",
+        "porque": "Os degraus de +3 (mestre) e +4 (lendário) são AdjustModifier (mode upgrade), não convertidos — catálogo confirma que o tipo AdjustModifier nem está declarado em EFFECT_RULE_KEYS."
+      },
+      {
+        "id": "EFFECT-SOURCE-ITEMS",
+        "porque": "a regra está escrita no próprio talento, e documento de talento/habilidade ainda não vira fonte de efeito para o motor"
+      }
+    ],
+    "rule_elements": "1 flat-modifier convertido (+2 base, predicate rank>=2); 2 unconverted (AdjustModifier upgrade para +3/+4 conforme rank 3/4).",
+    "referencias": [],
+    "dependencias": [],
+    "manual": "parcial",
+    "manual_nota": "O +2 base é um flat-modifier comum (mesma ressalva de não verificado do Battlefield Surveyor); os degraus de +3/+4 dependem de MOD-ADJUST, que é ausente — não há nem o tipo declarado no motor.",
+    "observacao": null
+  },
+  {
+    "slug": "gue-hab-battle-hardened",
+    "kind": "habilidade",
+    "name": "Battle Hardened",
+    "name_pt": "Endurecido em Batalha",
+    "nivel": 9,
+    "acoes": "passivo",
+    "action_type": "passive",
+    "traits": ["fighter", "guardian"],
+    "resumo": "Fortitude sobe a mestre; sucesso em Fortitude vira sucesso crítico.",
+    "mecanismos": [
+      {
+        "id": "PROF-TRACK",
+        "porque": "Sobe rank de Fortitude a mestre."
+      },
+      {
+        "id": "DOS-ADJUST",
+        "porque": "'sucesso vira crítico' é AdjustDegreeOfSuccess (unconverted, selector fortitude) — mesmo gap de Bravura e de Tempered Reflexes."
+      },
+      {
+        "id": "EFFECT-SOURCE-ITEMS",
+        "porque": "a regra está escrita no próprio talento, e documento de talento/habilidade ainda não vira fonte de efeito para o motor"
+      }
+    ],
+    "rule_elements": "rules=[]; 1 unconverted: AdjustDegreeOfSuccess (fortitude, to-critical-success).",
+    "referencias": [],
+    "dependencias": [],
+    "manual": "parcial",
+    "manual_nota": "PROF-TRACK cobre a subida de rank; o ajuste de grau de sucesso não existe no motor (tipo reservado a V2).",
+    "observacao": null
+  },
+  {
+    "slug": "gue-hab-combat-flexibility",
+    "kind": "habilidade",
+    "name": "Combat Flexibility",
+    "name_pt": "Flexibilidade em Combate",
+    "nivel": 9,
+    "acoes": "passivo",
+    "action_type": "passive",
+    "traits": ["fighter"],
+    "resumo": "Na preparação diária, ganha um talento de Guerreiro de nível 8 ou menor (que cumpra os pré-requisitos) e pode usá-lo até a próxima preparação.",
+    "mecanismos": [
+      {
+        "id": "DAILY-CHOICE",
+        "porque": "Escolha re-selecionável a cada preparação diária — gap catalogado como ausente: restAll() (characterSheetVM.ts:2733-2805) recupera PV/slots/foco mas não oferece nenhuma escolha nova."
+      },
+      {
+        "id": "GRANT-DYN",
+        "porque": "Concede um talento temporariamente (não permanente na ficha)."
+      },
+      {
+        "id": "PREREQ",
+        "porque": "Precisa avaliar os pré-requisitos do talento escolhido antes de conceder."
+      }
+    ],
+    "rule_elements": "sem rule elements (rules=[], unconverted=[]) — comportamento descrito só em texto.",
+    "referencias": [],
+    "dependencias": [],
+    "manual": "sim",
+    "manual_nota": "restAll() já existe e é o único fluxo de preparação diária real, mas não oferece escolha nenhuma (DAILY-CHOICE ausente); não há picker de talento temporário nem verificação de pré-requisito para esse fluxo.",
+    "observacao": null
+  },
+  {
+    "slug": "gue-hab-fighter-expertise",
+    "kind": "habilidade",
+    "name": "Fighter Expertise",
+    "name_pt": "Perícia de Guerreiro",
+    "nivel": 11,
+    "acoes": "passivo",
+    "action_type": "passive",
+    "traits": ["fighter"],
+    "resumo": "Class DC do Guerreiro sobe a especialista.",
+    "mecanismos": [
+      {
+        "id": "PROF-TRACK",
+        "porque": "Sobe rank de Class DC a especialista."
+      }
+    ],
+    "rule_elements": "sem rule elements — texto puro (rules=[], unconverted=[]).",
+    "referencias": [],
+    "dependencias": [],
+    "manual": "parcial",
+    "manual_nota": "Não há rule element aqui — o importador não gerou nada porque o texto não citou um valor parseável. proficiencyUpgrades de fighter-class.json confirma classDC rank 2 no nível 11 (fonte separada, consistente); não verifiquei se a ficha lê esse array para Class DC especificamente.",
+    "observacao": null
+  },
+  {
+    "slug": "gue-hab-armor-mastery",
+    "kind": "habilidade",
+    "name": "Armor Mastery",
+    "name_pt": "Maestria com Armaduras",
+    "nivel": 17,
+    "acoes": "passivo",
+    "action_type": "passive",
+    "traits": ["barbarian", "champion", "commander", "fighter"],
+    "resumo": "Proficiência com armadura leve/média/pesada e sem armadura sobe a mestre (texto compartilhado com variações por classe).",
+    "mecanismos": [
+      {
+        "id": "PROF-TRACK",
+        "porque": "Sobe rank de armadura a mestre."
+      }
+    ],
+    "rule_elements": "1 set-property (ActiveEffectLike upgrade, path system.proficiencies.defenses.heavy.rank=3, predicate not:class:barbarian); 0 unconverted. Só 'heavy' virou rule element estruturado — o texto também promete light/medium/unarmored, que não aparecem como rule elements separados nesta extração.",
+    "referencias": [],
+    "dependencias": ["gue-hab-armor-expertise"],
+    "manual": "parcial",
+    "manual_nota": "PROF-TRACK cobre a mecânica de rank; note que só 1 dos 4 upgrades de armadura prometidos no texto (heavy) virou rule element — light/medium/unarmored dependem só do texto corrido.",
+    "observacao": "MISMATCH DE DADO: fighter-features.json marca nível 13, mas featuresByLevel + proficiencyUpgrades (fighter-class.json) concordam em nível 17, batendo com o Fighter real do remaster. Usei 17."
+  },
+  {
+    "slug": "gue-hab-weapon-legend",
+    "kind": "habilidade",
+    "name": "Weapon Legend",
+    "name_pt": "Lenda das Armas",
+    "nivel": 13,
+    "acoes": "passivo",
+    "action_type": "passive",
+    "traits": ["fighter"],
+    "resumo": "Proficiência com armas simples/marciais/desarmadas sobe a mestre e avançadas a especialista; escolhe um grupo de arma e sobe a lendário nesse grupo (simples/marcial/desarmado) e a mestre nas avançadas dele.",
+    "mecanismos": [
+      {
+        "id": "WEAPON-GROUP",
+        "porque": "Mesmo gap de Fighter Weapon Mastery, aplicado a um novo pico de proficiência."
+      },
+      {
+        "id": "CHOICE",
+        "porque": "A escolha do grupo (ChoiceSet weaponGroups, flag weaponLegend) também está 'pendente' em choiceSetInventory.ts:204."
+      },
+      {
+        "id": "PROF-TRACK",
+        "porque": "Sobe rank geral (mestre/especialista) independente da escolha de grupo."
+      }
+    ],
+    "rule_elements": "2 proficiency convertidos (MartialProficiency simples/marcial e avançada, ambos com predicate item:group); 1 unconverted: ChoiceSet(weaponGroups).",
+    "referencias": [],
+    "dependencias": ["gue-hab-fighter-weapon-mastery"],
+    "manual": "sim",
+    "manual_nota": "Mesma cadeia de gaps de Fighter Weapon Mastery: escolha pendente + predicate por grupo não suportado.",
+    "observacao": null
+  },
+  {
+    "slug": "gue-hab-greater-weapon-specialization",
+    "kind": "habilidade",
+    "name": "Greater Weapon Specialization",
+    "name_pt": "Especialização Maior com Armas",
+    "nivel": 15,
+    "acoes": "passivo",
+    "action_type": "passive",
+    "traits": [
+      "champion",
+      "commander",
+      "fighter",
+      "gunslinger",
+      "inventor",
+      "investigator",
+      "magus",
+      "monk",
+      "ranger",
+      "rogue",
+      "swashbuckler",
+      "thaumaturge"
+    ],
+    "resumo": "O bônus de Especialização em Armas dobra (passa a 4/6/8 conforme especialista/mestre/lendário).",
+    "mecanismos": [
+      {
+        "id": "MOD-ADJUST",
+        "porque": "É um AdjustModifier mode multiply (unconverted) sobre o mesmo slug weapon-specialization — depende de Weapon Specialization já funcionar E de multiplicar o resultado, dobrando o gap."
+      },
+      {
+        "id": "EFFECT-SOURCE-ITEMS",
+        "porque": "a regra está escrita no próprio talento, e documento de talento/habilidade ainda não vira fonte de efeito para o motor"
+      }
+    ],
+    "rule_elements": "1 flat-modifier registrado como 'partial conversion' (subkind adjust-modifier, mode multiply, value 2); 1 unconverted (AdjustModifier mode multiply).",
+    "referencias": [],
+    "dependencias": ["gue-hab-weapon-specialization"],
+    "manual": "sim",
+    "manual_nota": "Depende inteiramente de MOD-ADJUST, que o catálogo confirma ausente (tipo nem declarado no motor).",
+    "observacao": null
+  },
+  {
+    "slug": "gue-hab-improved-flexibility",
+    "kind": "habilidade",
+    "name": "Improved Flexibility",
+    "name_pt": "Flexibilidade Aprimorada",
+    "nivel": 15,
+    "acoes": "passivo",
+    "action_type": "passive",
+    "traits": ["fighter"],
+    "resumo": "Combat Flexibility passa a conceder DOIS talentos (o segundo pode ser até nível 14, e o primeiro pode cumprir pré-requisito do segundo).",
+    "mecanismos": [
+      {
+        "id": "DAILY-CHOICE",
+        "porque": "Estende o mesmo gap de Combat Flexibility (2 escolhas em vez de 1)."
+      },
+      {
+        "id": "PREREQ",
+        "porque": "Encadeamento de pré-requisito entre os dois talentos escolhidos."
+      }
+    ],
+    "rule_elements": "sem rule elements (rules=[], unconverted=[]) — texto puro, modifica outra feature.",
+    "referencias": [],
+    "dependencias": ["gue-hab-combat-flexibility"],
+    "manual": "sim",
+    "manual_nota": "Herda 100% do gap de Combat Flexibility (DAILY-CHOICE ausente); não há nada a mais para automatizar além disso.",
+    "observacao": null
+  },
+  {
+    "slug": "gue-hab-tempered-reflexes",
+    "kind": "habilidade",
+    "name": "Tempered Reflexes",
+    "name_pt": "Reflexos Temperados",
+    "nivel": 15,
+    "acoes": "passivo",
+    "action_type": "passive",
+    "traits": ["fighter"],
+    "resumo": "Reflexos sobe a mestre; sucesso em Reflexos vira sucesso crítico.",
+    "mecanismos": [
+      {
+        "id": "PROF-TRACK",
+        "porque": "Sobe rank de Reflexos a mestre."
+      },
+      {
+        "id": "DOS-ADJUST",
+        "porque": "Mesmo gap de Bravura/Battle Hardened (AdjustDegreeOfSuccess, selector reflex, one-degree-better)."
+      },
+      {
+        "id": "EFFECT-SOURCE-ITEMS",
+        "porque": "a regra está escrita no próprio talento, e documento de talento/habilidade ainda não vira fonte de efeito para o motor"
+      }
+    ],
+    "rule_elements": "rules=[]; 1 unconverted: AdjustDegreeOfSuccess (reflex, one-degree-better).",
+    "referencias": [],
+    "dependencias": [],
+    "manual": "parcial",
+    "manual_nota": "PROF-TRACK cobre a subida de rank; o ajuste de grau de sucesso não existe.",
+    "observacao": null
+  },
+  {
+    "slug": "gue-hab-versatile-legend",
+    "kind": "habilidade",
+    "name": "Versatile Legend",
+    "name_pt": "Lenda Versátil",
+    "nivel": 19,
+    "acoes": "passivo",
+    "action_type": "passive",
+    "traits": ["fighter"],
+    "resumo": "Proficiência com armas simples/marciais/desarmadas sobe a lendário e avançadas a mestre; Class DC sobe a mestre.",
+    "mecanismos": [
+      {
+        "id": "PROF-TRACK",
+        "porque": "Sobe rank de armas e Class DC ao teto da classe."
+      }
+    ],
+    "rule_elements": "sem rule elements (rules=[], unconverted=[]) — texto puro.",
+    "referencias": [],
+    "dependencias": ["gue-hab-weapon-legend", "gue-hab-fighter-expertise"],
+    "manual": "parcial",
+    "manual_nota": "Sem rule element estruturado; proficiencyUpgrades de fighter-class.json confirma os valores no nível 19 (classDC→3, weapons→4/3), mas não verifiquei se a UI lê esse array de fato nesse nível.",
+    "observacao": null
+  },
+  {
+    "slug": "gue-hab-classe-fighter",
+    "kind": "habilidade",
+    "name": "Fighter",
+    "name_pt": "Guerreiro",
+    "nivel": 1,
+    "acoes": "passivo",
+    "action_type": "passive",
+    "traits": [],
+    "resumo": "Item de classe do Guerreiro: define proficiências iniciais, PV, atributo-chave e a progressão de 16 features + talentos ao longo de 20 níveis.",
+    "mecanismos": [
+      {
+        "id": "PROF-TRACK",
+        "porque": "Proficiências iniciais (armas, armaduras, salvaguardas, percepção, Class DC) — Fighter está entre as 12 classes publicadas para as quais a progressão TEML funciona."
+      },
+      {
+        "id": "CHOICE",
+        "porque": "Atributo-chave (Destreza OU Força) e perícia inicial extra (Acrobacia ou Atletismo, ChoiceSet fighterSkill) — esta última está 'pendente' em choiceSetInventory.ts:205, não aparece na ficha hoje."
+      },
+      {
+        "id": "GUE-CLASS-PUBLISHED",
+        "porque": "a classe, as 16 habilidades e os 112 talentos estão publicados no pin v0.1.1, com pt-BR completo"
+      }
+    ],
+    "rule_elements": "1 set-property convertido (upgrade da perícia escolhida via fighterSkill para treinado, mode upgrade); 1 unconverted: ChoiceSet(fighterSkill, choices Acrobatics/Athletics).",
+    "referencias": [],
+    "dependencias": [],
+    "manual": "parcial",
+    "manual_nota": "As proficiências iniciais (PROF-TRACK) devem funcionar via a mesma progressão das 12 classes já publicadas; a escolha de perícia inicial (Acrobacia ou Atletismo) está formalmente pendente (choiceSetInventory.ts:205) — todo Guerreiro nasce sem essa perícia escolhida hoje.",
+    "observacao": "Campos extras (atributo_chave, pv_por_nivel, proficiencias_iniciais, progressao) abaixo, lidos direto de fighter-class.json (attacks/defenses/savingThrows/perception/trainedSkills/classDC/hp/keyAbility/featuresByLevel/featLevels/skillIncreaseLevels/proficiencyUpgrades).",
+    "atributo_chave": "Destreza ou Força — escolha do jogador (keyAbility: [\"dex\",\"str\"])",
+    "pv_por_nivel": 10,
+    "proficiencias_iniciais": {
+      "armas": {
+        "simple": "expert",
+        "martial": "expert",
+        "unarmed": "expert",
+        "advanced": "trained"
+      },
+      "armaduras": {
+        "light": "trained",
+        "medium": "trained",
+        "heavy": "trained",
+        "unarmored": "trained"
+      },
+      "salvaguardas": {
+        "fortitude": "expert",
+        "reflex": "expert",
+        "will": "trained"
+      },
+      "percepcao": "expert",
+      "class_dc": "trained",
+      "pericias_treinadas": {
+        "adicionais": 3,
+        "escolha_especial": "Acrobatics ou Athletics — ChoiceSet 'fighterSkill' (rule element set-property convertido, mas sem picker na ficha: 'pendente' em choiceSetInventory.ts:205)"
+      }
+    },
+    "progressao": [
+      {
+        "nivel": 1,
+        "features": ["gue-hab-reactive-strike", "gue-hab-shield-block"],
+        "talento_classe": true,
+        "outros": "talento de ancestralidade (featLevels.ancestry inclui 1)"
+      },
+      {
+        "nivel": 2,
+        "features": [],
+        "talento_classe": true,
+        "outros": "talento de perícia (featLevels.skill)"
+      },
+      {
+        "nivel": 3,
+        "features": ["gue-hab-bravery"],
+        "talento_classe": false,
+        "outros": "talento geral (featLevels.general); aumento de perícia (skillIncreaseLevels)"
+      },
+      {
+        "nivel": 4,
+        "features": [],
+        "talento_classe": true,
+        "outros": "talento de perícia"
+      },
+      {
+        "nivel": 5,
+        "features": ["gue-hab-fighter-weapon-mastery"],
+        "talento_classe": false,
+        "outros": "talento de ancestralidade; aumento de perícia"
+      },
+      {
+        "nivel": 6,
+        "features": [],
+        "talento_classe": true,
+        "outros": "talento de perícia"
+      },
+      {
+        "nivel": 7,
+        "features": ["gue-hab-battlefield-surveyor", "gue-hab-weapon-specialization"],
+        "talento_classe": true,
+        "outros": "talento geral; aumento de perícia; proficiencyUpgrades: perception → 3 (mestre)"
+      },
+      {
+        "nivel": 8,
+        "features": [],
+        "talento_classe": true,
+        "outros": "talento de perícia"
+      },
+      {
+        "nivel": 9,
+        "features": ["gue-hab-battle-hardened", "gue-hab-combat-flexibility"],
+        "talento_classe": false,
+        "outros": "talento de ancestralidade; aumento de perícia; proficiencyUpgrades: fortitude → 3 (mestre)"
+      },
+      {
+        "nivel": 10,
+        "features": [],
+        "talento_classe": true,
+        "outros": "talento de perícia"
+      },
+      {
+        "nivel": 11,
+        "features": ["gue-hab-fighter-expertise", "gue-hab-armor-expertise"],
+        "talento_classe": true,
+        "outros": "talento geral; aumento de perícia; proficiencyUpgrades: armor.heavy/light/medium/unarmored → 2 (especialista), classDC → 2 (especialista)"
+      },
+      {
+        "nivel": 12,
+        "features": [],
+        "talento_classe": true,
+        "outros": "talento de perícia"
+      },
+      {
+        "nivel": 13,
+        "features": ["gue-hab-weapon-legend"],
+        "talento_classe": false,
+        "outros": "talento de ancestralidade; aumento de perícia; proficiencyUpgrades: weapons.advanced → 2 (especialista), weapons.martial/simple/unarmed → 3 (mestre)"
+      },
+      {
+        "nivel": 14,
+        "features": [],
+        "talento_classe": true,
+        "outros": "talento de perícia"
+      },
+      {
+        "nivel": 15,
+        "features": [
+          "gue-hab-tempered-reflexes",
+          "gue-hab-improved-flexibility",
+          "gue-hab-greater-weapon-specialization"
+        ],
+        "talento_classe": true,
+        "outros": "talento geral; aumento de perícia; proficiencyUpgrades: reflex → 3 (mestre)"
+      },
+      {
+        "nivel": 16,
+        "features": [],
+        "talento_classe": true,
+        "outros": "talento de perícia"
+      },
+      {
+        "nivel": 17,
+        "features": ["gue-hab-armor-mastery"],
+        "talento_classe": false,
+        "outros": "talento de ancestralidade; aumento de perícia; proficiencyUpgrades: armor.heavy/light/medium/unarmored → 3 (mestre)"
+      },
+      {
+        "nivel": 18,
+        "features": [],
+        "talento_classe": true,
+        "outros": "talento de perícia"
+      },
+      {
+        "nivel": 19,
+        "features": ["gue-hab-versatile-legend"],
+        "talento_classe": false,
+        "outros": "talento geral; aumento de perícia; proficiencyUpgrades: classDC → 3 (mestre), weapons.advanced → 3 (mestre), weapons.martial/simple/unarmed → 4 (lendário)"
+      },
+      {
+        "nivel": 20,
+        "features": [],
+        "talento_classe": true,
+        "outros": "talento de perícia"
+      }
+    ]
+  }
+]

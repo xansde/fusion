@@ -46,6 +46,15 @@ import {
 // ownership (packages/server/src/net/socket-manager.ts).
 import { buildCompendiumI18nBySourceRefHandler } from "../compendium/handlers.js";
 import type { HandlerContext } from "../net/handler-registry.js";
+import { UserRole } from "../documents/ownership.js";
+
+/**
+ * Viewer role used by the service-level calls below. These synthetic packs
+ * declare no `audience`, so `PackManifestSchema` resolves them to `"all"` and
+ * every role sees them (REQ-CMP-004a); the pack-audience gate itself is proved
+ * in compendium-audience.test.ts.
+ */
+const GM_VIEWER = UserRole.GAMEMASTER;
 
 // ---------------------------------------------------------------------------
 // Fixtures — two packs sharing the same vendor packName (curation remap)
@@ -236,12 +245,18 @@ describe("CompendiumService.getI18nBySourceRef", () => {
     const svc = new CompendiumService();
     svc.discoverPacks(packsRoot, "pf2e");
 
-    const a1 = svc.getI18nBySourceRef({ packName: VENDOR_PACK_NAME, sourceId: "src-a1" });
+    const a1 = svc.getI18nBySourceRef(GM_VIEWER, {
+      packName: VENDOR_PACK_NAME,
+      sourceId: "src-a1",
+    });
     expect(a1).not.toBeNull();
     expect(a1?.name).toBe("Item A1 PT");
     expect(a1?.description).toBe("<p>A1 desc PT</p>");
 
-    const b1 = svc.getI18nBySourceRef({ packName: VENDOR_PACK_NAME, sourceId: "src-b1" });
+    const b1 = svc.getI18nBySourceRef(GM_VIEWER, {
+      packName: VENDOR_PACK_NAME,
+      sourceId: "src-b1",
+    });
     expect(b1).not.toBeNull();
     expect(b1?.name).toBe("Item B1 PT");
     expect(b1?.description).toBe("<p>B1 desc PT</p>");
@@ -254,7 +269,7 @@ describe("CompendiumService.getI18nBySourceRef", () => {
     const svc = new CompendiumService();
     svc.discoverPacks(packsRoot, "pf2e");
 
-    const result = svc.getI18nBySourceRef({
+    const result = svc.getI18nBySourceRef(GM_VIEWER, {
       packName: VENDOR_PACK_NAME,
       sourceId: "does-not-exist",
     });
@@ -269,7 +284,7 @@ describe("CompendiumService.getI18nBySourceRef", () => {
     svc.discoverPacks(packsRoot, "pf2e");
 
     // "src-a1" exists, but under a DIFFERENT packName — must not match.
-    const result = svc.getI18nBySourceRef({
+    const result = svc.getI18nBySourceRef(GM_VIEWER, {
       packName: "some-other-vendor-pack",
       sourceId: "src-a1",
     });
@@ -285,7 +300,10 @@ describe("CompendiumService.getI18nBySourceRef", () => {
 
     // The doc EXISTS and the origin ref resolves — but its overlay entry's
     // sourceHash no longer matches the live EN doc, so it must be dropped.
-    const result = svc.getI18nBySourceRef({ packName: VENDOR_PACK_NAME, sourceId: "src-a-stale" });
+    const result = svc.getI18nBySourceRef(GM_VIEWER, {
+      packName: VENDOR_PACK_NAME,
+      sourceId: "src-a-stale",
+    });
     expect(result).toBeNull();
 
     rmSync(packsRoot, { recursive: true, force: true });
@@ -296,7 +314,7 @@ describe("CompendiumService.getI18nBySourceRef", () => {
     const svc = new CompendiumService();
     svc.discoverPacks(packsRoot, "pf2e");
 
-    const result = svc.getI18nBySourceRef({
+    const result = svc.getI18nBySourceRef(GM_VIEWER, {
       packName: VENDOR_PACK_NAME,
       sourceId: "src-a-no-overlay",
     });
@@ -316,7 +334,10 @@ describe("CompendiumService.getI18nBySourceRef", () => {
     const svc = new CompendiumService();
     svc.discoverPacks(packsRoot, "pf2e");
 
-    const result = svc.getI18nBySourceRef({ packName: VENDOR_PACK_NAME, sourceId: "src-a1" });
+    const result = svc.getI18nBySourceRef(GM_VIEWER, {
+      packName: VENDOR_PACK_NAME,
+      sourceId: "src-a1",
+    });
     expect(result).toBeNull();
 
     rmSync(packsRoot, { recursive: true, force: true });
@@ -340,7 +361,10 @@ describe("CompendiumService.getI18nBySourceRef — real committed pf2e packs", (
     // systems/pf2e/packs/weapons-core/documents.json: doc "Whip" carries
     // flags.fusion = { packName: "equipment", sourceId: "f1gwoTkf3Nn0v3PN" };
     // its i18n.pt-BR.json entry translates the name to "Chicote".
-    const whip = svc.getI18nBySourceRef({ packName: "equipment", sourceId: "f1gwoTkf3Nn0v3PN" });
+    const whip = svc.getI18nBySourceRef(GM_VIEWER, {
+      packName: "equipment",
+      sourceId: "f1gwoTkf3Nn0v3PN",
+    });
     expect(whip).not.toBeNull();
     expect(whip?.name).toBe("Chicote");
   });
@@ -356,7 +380,7 @@ describe("CompendiumService.getI18nBySourceRef — real committed pf2e packs", (
     // ALSO carries flags.fusion.packName === "equipment" (same vendor pack as
     // Whip above) but a disjoint sourceId — this is the exact ambiguity the
     // reverse index must resolve without guessing.
-    const antivenom = svc.getI18nBySourceRef({
+    const antivenom = svc.getI18nBySourceRef(GM_VIEWER, {
       packName: "equipment",
       sourceId: "N3jcmW5XzEJZQVtJ",
     });
@@ -371,7 +395,10 @@ describe("CompendiumService.getI18nBySourceRef — real committed pf2e packs", (
     const svc = new CompendiumService();
     svc.discoverPacks(packsRoot!, "pf2e");
 
-    const result = svc.getI18nBySourceRef({ packName: "equipment", sourceId: "totally-made-up" });
+    const result = svc.getI18nBySourceRef(GM_VIEWER, {
+      packName: "equipment",
+      sourceId: "totally-made-up",
+    });
     expect(result).toBeNull();
   });
 });

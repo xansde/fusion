@@ -58,7 +58,7 @@ Especificar o motor de rolagens do Fusion: a sintaxe de fórmulas suportada, a a
 
 ## Decisões
 
-### D1 — Parsing em `packages/shared`; execução exclusiva no servidor
+### DEC-ROL-01 — Parsing em `packages/shared`; execução exclusiva no servidor
 
 **Decisão:** o parser de fórmulas reside em `packages/shared` e produz uma AST serializable em JSON. A **avaliação** (geração de números aleatórios) ocorre apenas em `packages/server`.
 
@@ -69,7 +69,7 @@ Especificar o motor de rolagens do Fusion: a sintaxe de fórmulas suportada, a a
 - **Execução no cliente:** rejeitada por ser inauditável e trivialmente exploitável.
 - **Execução no servidor com fórmula string bruta:** possível, mas exigiria parsear duas vezes (uma no cliente para validação, uma no servidor para execução). A AST serializada é mais eficiente e previne injeção de fórmulas malformadas que passariam pela validação de string mas falhariam no parse.
 
-### D2 — Usar `@dice-roller/rpg-dice-roller` como núcleo de parsing, com camada própria sobre ele
+### DEC-ROL-02 — Usar `@dice-roller/rpg-dice-roller` como núcleo de parsing, com camada própria sobre ele
 
 **Decisão:** usar `@dice-roller/rpg-dice-roller` v5.5.1 (MIT) como biblioteca de parsing e avaliação de notações-base (`NdX`, modificadores, pools, funções). Construir sobre ela uma camada própria (`FusionRoller`) que: (a) adiciona suporte a `@attr` via substituição pré-parse, (b) adiciona inline rolls `[[...]]` e deferred rolls `[[/r ...]]`, (c) expõe a AST como `FusionRollAST` tipada e (d) integra o sistema de `RollHook`.
 
@@ -81,7 +81,7 @@ Especificar o motor de rolagens do Fusion: a sintaxe de fórmulas suportada, a a
 - **Nearley.js:** alternativa a Peggy, mesma lógica de rejeição.
 - **Substituir completamente pela biblioteca sem camada própria:** a API da biblioteca não suporta `@attr` nem hooks de sistema; acoplamento direto dificultaria extensões.
 
-### D3 — Servidor como árbitro do RNG; seed rastreável por rolagem
+### DEC-ROL-03 — Servidor como árbitro do RNG; seed rastreável por rolagem
 
 **Decisão:** o servidor usa `crypto.getRandomValues` (Node.js 22+, via `globalThis.crypto`) como fonte de entropia para todas as rolagens. Cada rolagem recebe um `seed` de 32 bits derivado de `crypto.randomBytes(4)`, registrado no `RollAuditLog`. O seed **não** é enviado ao cliente em tempo real; o GM pode consultá-lo via API de auditoria após a sessão.
 
@@ -92,13 +92,13 @@ Especificar o motor de rolagens do Fusion: a sintaxe de fórmulas suportada, a a
 - **`Math.random()`:** não-criptográfico e seedable externamente; rejeitado.
 - **Serviço externo de entropia (random.org, dddice):** introduz dependência de rede e latência; reservado para [V2] como opção opt-in.
 
-### D4 — Resultado estruturado `RollResult` com AST completa serializada
+### DEC-ROL-04 — Resultado estruturado `RollResult` com AST completa serializada
 
 **Decisão:** o resultado de uma rolagem não é apenas o número final (`total`). O servidor persiste e transmite um `RollResult` completo, incluindo: fórmula original, fórmula expandida (com `@attr` resolvidos), array de `RollTermResult` (um por termo da AST, com sub-resultados por dado), total e metadados (`rollMode`, `speaker`, `flavor`, `timestamp`). Este objeto é armazenado em `ChatMessage.rolls[]` e é suficiente para que o cliente renderize qualquer nível de detalhe sem precisar reavalar a rolagem.
 
 **Racional:** um resultado rico permite: (a) tooltip com breakdown individual de cada dado, (b) destaques visuais de crítico/fumble, (c) rerolls rastreáveis (cada reroll é um novo `RollResult` vinculado ao anterior via `rerollOf`), (d) sistemas calcularem `DegreeOfSuccess` a partir do total sem reexecutar a fórmula.
 
-### D5 — Roll modes mapeados em campos de visibilidade do `ChatMessage`
+### DEC-ROL-05 — Roll modes mapeados em campos de visibilidade do `ChatMessage`
 
 **Decisão:** os quatro modos de rolagem são implementados como restrições no campo `whisper[]` e flag `blind` do `ChatMessage` (ver `09-chat-e-mensagens.md`), seguindo a mesma lógica do Foundry. O `RollResult` em si não tem informação de visibilidade — ela está no envelope da mensagem.
 
@@ -109,7 +109,7 @@ Especificar o motor de rolagens do Fusion: a sintaxe de fórmulas suportada, a a
 | `blindroll` | `[gm_ids...]` | `true`  |
 | `selfroll`  | `[author_id]` | `false` |
 
-### D6 — Dados 3D via `@3d-dice/dice-box`, client-side, sincronizados
+### DEC-ROL-06 — Dados 3D via `@3d-dice/dice-box`, client-side, sincronizados
 
 **Decisão:** a integração de dados 3D usa `@3d-dice/dice-box` (MIT, BabylonJS + AmmoJS, Web Workers + OffscreenCanvas). O fluxo é: servidor executa o roll → envia `RollResult` ao cliente → cliente exibe animação 3D sincronizada com os valores do resultado (não rola novamente). Toggle por usuário nas preferências. Desativado por padrão no MVP; ativável via configuração.
 
@@ -120,7 +120,7 @@ Especificar o motor de rolagens do Fusion: a sintaxe de fórmulas suportada, a a
 - **Three.js + cannon-es (estilo Dice So Nice):** mais código a manter; `@3d-dice/dice-box` já encapsula esse stack.
 - **Babylon.js direto:** `@3d-dice/dice-box` já usa Babylon internamente; duplicar a dependência seria ineficiente.
 
-### D7 — `DegreeOfSuccess` como contrato genérico da `packages/system-api`, não do core
+### DEC-ROL-07 — `DegreeOfSuccess` como contrato genérico da `packages/system-api`, não do core
 
 **Decisão:** o cálculo de graus de sucesso não faz parte do motor de rolagens core. O tipo `DegreeOfSuccess` na `packages/system-api` é **genérico**: um identificador de grau (string) cujo **conjunto de valores é definido por cada sistema de jogo**, não um enum fixo. É responsabilidade do sistema registrar uma função `computeDegreeOfSuccess(total: number, dc: number, context: RollContext): DegreeOfSuccess` e incluí-la na configuração do sistema. O `RollResult` pode carregar um campo opcional `degreeOfSuccess` preenchido pelo sistema após a avaliação, via `RollHook` de pós-processamento. A `systems/engine-2e` fornece um **helper** que produz o conjunto de 4 graus (`criticalSuccess`/`success`/`failure`/`criticalFailure`) com a regra ±10 e ajuste nat 1/20, reutilizado por PF2e e SF2e.
 
@@ -201,7 +201,7 @@ Especificar o motor de rolagens do Fusion: a sintaxe de fórmulas suportada, a a
 
 **REQ-ROL-026** [MVP] O servidor DEVE registrar cada rolagem no `RollAuditLog` com: `rollId`, `worldId`, `userId`, `actorId?`, `formula`, `expandedFormula`, `result` (total), `seed`, `timestamp`. O `seed` NÃO é incluído no `RollResult` enviado ao cliente.
 
-**REQ-ROL-027** [MVP] Após avaliação, o servidor DEVE criar um documento `ChatMessage` com `rolls: [RollResult.toJSON()]` e fazer broadcast de acordo com o `mode` da rolagem (ver Decisão D5 e `09-chat-e-mensagens.md`).
+**REQ-ROL-027** [MVP] Após avaliação, o servidor DEVE criar um documento `ChatMessage` com `rolls: [RollResult.toJSON()]` e fazer broadcast de acordo com o `mode` da rolagem (ver Decisão DEC-ROL-05 e `09-chat-e-mensagens.md`).
 
 ### Estrutura do RollResult
 
@@ -213,11 +213,13 @@ Especificar o motor de rolagens do Fusion: a sintaxe de fórmulas suportada, a a
 
 ### Roll Modes — visibilidade
 
-**REQ-ROL-031** [MVP] O servidor DEVE aplicar o roll mode ao `ChatMessage` gerado conforme a tabela na Decisão D5. Um cliente que não está na lista `whisper` (e não é GM no modo `blindroll`) DEVE receber a mensagem com `rolls: []` e `content` omitido ou substituído por placeholder de rolagem privada.
+**REQ-ROL-031** [MVP] O servidor DEVE aplicar o roll mode ao `ChatMessage` gerado conforme a tabela na Decisão DEC-ROL-05. Um cliente que não está na lista `whisper` (e não é GM no modo `blindroll`) DEVE receber a mensagem com `rolls: []` e `content` omitido ou substituído por placeholder de rolagem privada.
 
 **REQ-ROL-032** [MVP] No modo `blindroll`, o jogador originador DEVE ver no chat uma indicação de que realizou uma rolagem cega (ex.: "Você realizou uma rolagem cega"), sem ver o resultado. Apenas GMs recebem o `RollResult` completo.
 
 **REQ-ROL-033** [MVP] No modo `gmroll`, tanto o jogador originador quanto todos os GMs DEVEM receber o `RollResult` completo. Outros jogadores veem apenas que o usuário realizou uma rolagem privada.
+
+> **Revelação posterior.** Um roll mode privado não é irreversível: o GM pode tornar pública, depois do fato, uma rolagem feita em `gmroll`, `blindroll` ou `selfroll`. A mecânica pertence à spec `09-chat-e-mensagens.md` (REQ-CHT-045 a REQ-CHT-049, DEC-CHT-10), porque revelar é mutação de visibilidade do `ChatMessage`, não uma nova rolagem. Nada aqui muda: a rolagem NÃO é reexecutada, o `RollResult` reemitido é o mesmo já persistido, e o `seed` continua fora do socket por REQ-ROL-049. A única consequência para este motor é que o placeholder de REQ-ROL-032 vale enquanto a mensagem for cega — revelada, o autor passa a ver o resultado real.
 
 ### Rerolls
 
