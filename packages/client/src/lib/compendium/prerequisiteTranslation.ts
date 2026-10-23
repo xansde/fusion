@@ -138,14 +138,14 @@ const RANK_SUBJECT_VOCAB_PT: Readonly<Record<string, string>> = Object.freeze({
   "a skill used to recall knowledge": "uma perícia usada para Recordar Conhecimento",
   "a recall knowledge skill": "uma perícia de Recordar Conhecimento",
   "a decipher writing skill": "uma perícia de Decifrar Escrita",
-  "a lore skill": "uma perícia de Saber",
+  "a lore skill": "uma perícia de Conhecimento",
   "at least one skill": "pelo menos uma perícia",
   "your deity's favoured weapon": "a arma favorita da sua divindade",
   "your deity's favored weapon": "a arma favorita da sua divindade",
   "clan daggers": "adagas de clã",
   "the weapon you chose for unconventional weaponry":
     "a arma escolhida em Armamento Não Convencional",
-  "lore about a specific terrain": "Saber sobre um terreno específico",
+  "lore about a specific terrain": "Conhecimento sobre um terreno específico",
 });
 
 /**
@@ -354,7 +354,7 @@ function resolveRankSubjectItem(raw: string): string | null {
   const trimmed = raw.trim();
   if (isSkillWord(trimmed)) return SKILL_NAMES_PT[trimmed.toLowerCase()] ?? null;
   const lore = loreMatch(trimmed);
-  if (lore !== null) return lore ? `Saber (${lore})` : "Saber";
+  if (lore !== null) return lore ? `Conhecimento (${lore})` : "Conhecimento";
   if (isPerception(trimmed)) return "Percepção";
   const save = savesMatch(trimmed);
   if (save) return `salvaguardas de ${save}`;

@@ -69,7 +69,7 @@ describe("translatePrerequisite — rank + subject", () => {
   });
 
   it("translates rank + bare Lore (trained in Lore)", () => {
-    expect(translatePrerequisite("trained in Lore", FIXTURE_NAMES)).toBe("treinado em Saber");
+    expect(translatePrerequisite("trained in Lore", FIXTURE_NAMES)).toBe("treinado em Conhecimento");
   });
 
   it("translates rank + a specific Lore (master in a Recall Knowledge skill falls to curated compound vocab)", () => {
