@@ -107,7 +107,6 @@ describe("the core tabs register through the public call (G016)", () => {
         "sound",
         "npcs",
         "scenes",
-        "party",
         "settings",
       ]);
       expect(CORE_SIDEBAR_TAB_IDS).toEqual([
@@ -118,7 +117,6 @@ describe("the core tabs register through the public call (G016)", () => {
         "sound",
         "npcs",
         "scenes",
-        "party",
         "settings",
       ]);
     });
@@ -156,7 +154,7 @@ describe("the core tabs register through the public call (G016)", () => {
       // to sit at the end of the group (REQ-GAV-031 position).
       expect(idsOf(visible.all)).toEqual(["chat", "contacts", "combat", "compendium", "sound"]);
       // REQ-NPC-001: NPCs is the FIRST of the gm group, ahead of Cenas.
-      expect(idsOf(visible.gm)).toEqual(["npcs", "scenes", "party"]);
+      expect(idsOf(visible.gm)).toEqual(["npcs", "scenes"]);
       expect(idsOf(visible.footer)).toEqual([SETTINGS_TAB_ID]);
     });
 
@@ -322,8 +320,6 @@ describe("the core tabs register through the public call (G016)", () => {
       // REQ-CEN-001: Cenas is the panel extracted from the pre-drawer sidebar.
       ["scenes", () => import("../../../components/scenes/ScenesTab.svelte")],
       // REQ-CFG-001: Configurações is spec 37's own panel (G100 and on).
-      // The Mestre's table of player characters, last of the gm group.
-      ["party", () => import("../../../components/party/PartyPanel.svelte")],
       ["settings", () => import("../../../components/settings/SettingsTab.svelte")],
     ];
 
@@ -400,7 +396,7 @@ describe("the core tabs register through the public call (G016)", () => {
       // and spec 44 the third (REQ-CEN-003) — all three asserted right below.
       // REQ-NPC-002: NPCs brings no badge at all — nothing happens in that tab that
       // was not the Mestre himself, so there is no novelty to announce.
-      for (const id of ["settings", "npcs", "party"]) {
+      for (const id of ["settings", "npcs"]) {
         expect(getSidebarTab(id)?.badge).toBeUndefined();
       }
     });

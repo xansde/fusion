@@ -48,6 +48,7 @@
   import { attachChatSync, attachChatMessageSync } from "../lib/chat/chatStore.svelte.js";
   import Sidebar from "./sidebar/Sidebar.svelte";
   import ActionBar from "./actionbar/ActionBar.svelte";
+  import PartyStrip from "./party/PartyStrip.svelte";
   import AvatarCorner from "./avatar/AvatarCorner.svelte";
   import { registerCoreSidebarTabs } from "../lib/sidebar/registerCoreTabs.js";
   import { registerCoreChatCardExtensions } from "../lib/chat/registerCoreChatCardExtensions.js";
@@ -1290,6 +1291,13 @@ import { presenceState } from "../lib/presence/presenceStore.svelte.js";
          whose type has no provider; the ownership gate lives in the active-actor store. -->
     {#if session.user}
       <ActionBar
+        socket={sock}
+        worldId={session.worldInfo?.id ?? ""}
+        userId={session.user.id}
+        isGm={session.user.role >= ROLE_ASSISTANT}
+      />
+      <!-- The Mestre's party strip: same place as the bar, only while the bar draws nothing. -->
+      <PartyStrip
         socket={sock}
         worldId={session.worldInfo?.id ?? ""}
         userId={session.user.id}

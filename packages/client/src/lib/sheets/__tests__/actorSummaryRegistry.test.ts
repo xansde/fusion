@@ -5,8 +5,10 @@
 import { beforeEach, describe, expect, it } from "vitest";
 
 import {
+  registerActorChip,
   registerActorSummary,
   resetActorSummaries,
+  resolveActorChip,
   resolveActorSummary,
 } from "../actorSummaryRegistry.svelte.js";
 
@@ -38,5 +40,21 @@ describe("actorSummaryRegistry", () => {
     registerActorSummary("character", SummaryA);
     resetActorSummaries();
     expect(resolveActorSummary("character")).toBeNull();
+  });
+});
+
+describe("actor chip registry", () => {
+  it("resolves the small chip by subtype, independent of the full summary", () => {
+    const Chip = {};
+    registerActorChip("character", Chip);
+    expect(resolveActorChip("character")).toBe(Chip);
+    expect(resolveActorChip("npc")).toBeNull();
+    expect(resolveActorSummary("character")).toBeNull();
+  });
+
+  it("reset forgets the chips too", () => {
+    registerActorChip("character", {});
+    resetActorSummaries();
+    expect(resolveActorChip("character")).toBeNull();
   });
 });

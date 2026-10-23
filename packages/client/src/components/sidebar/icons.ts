@@ -42,9 +42,6 @@ export const npcsIcon: string = icon("drama");
 /** Scenes — a folded map. */
 export const scenesIcon: string = icon("map");
 
-/** Party: a heartbeat, the table of the player characters for the Mestre. */
-export const partyIcon: string = icon("heart-pulse");
-
 /** Settings — a gear: where the footer tab is looked for. */
 export const settingsIcon: string = icon("settings");
 
@@ -61,6 +58,5 @@ export const sidebarIcons: Record<string, string> = {
   sound: soundIcon,
   npcs: npcsIcon,
   scenes: scenesIcon,
-  party: partyIcon,
   settings: settingsIcon,
 };

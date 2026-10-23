@@ -4,7 +4,12 @@
 
 import { describe, expect, it } from "vitest";
 
-import { genericHp, selectPartyActors } from "../partyVM.js";
+import {
+  genericHp,
+  placePartyPopover,
+  selectPartyActors,
+  shouldShowPartyStrip,
+} from "../partyVM.js";
 
 const GM = "user-gm";
 const ALEX = "user-alex";
@@ -53,5 +58,36 @@ describe("genericHp", () => {
     });
     expect(genericHp({ system: {} })).toBeNull();
     expect(genericHp({})).toBeNull();
+  });
+});
+
+describe("shouldShowPartyStrip", () => {
+  it("shows for the Mestre only while no action bar is drawn", () => {
+    expect(shouldShowPartyStrip(true, 0)).toBe(true);
+    expect(shouldShowPartyStrip(true, 96)).toBe(false);
+    expect(shouldShowPartyStrip(false, 0)).toBe(false);
+  });
+});
+
+describe("placePartyPopover", () => {
+  const view = { width: 1200, height: 800 };
+
+  it("opens above the strip, centred on the chip", () => {
+    const place = placePartyPopover({ left: 500, width: 100 }, { top: 730 }, 340, view);
+    expect(place.left).toBe(550 - 170);
+    expect(place.bottom).toBe(800 - 730 + 6);
+  });
+
+  it("stays inside the window at both edges", () => {
+    expect(placePartyPopover({ left: 0, width: 100 }, { top: 730 }, 340, view).left).toBe(8);
+    expect(placePartyPopover({ left: 1150, width: 100 }, { top: 730 }, 340, view).left).toBe(
+      1200 - 340 - 8,
+    );
+  });
+
+  it("never asks for more height than there is above the strip", () => {
+    expect(placePartyPopover({ left: 500, width: 100 }, { top: 730 }, 340, view).maxHeight).toBe(
+      730 - 8,
+    );
   });
 });

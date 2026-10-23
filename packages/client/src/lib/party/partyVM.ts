@@ -49,3 +49,37 @@ export function genericHp(doc: {
   if (!system) return null;
   return readHp(system["derived"]) ?? readHp(system["attributes"]);
 }
+
+/**
+ * Whether the Mestre's party strip is drawn: only for the Mestre, and only while the action bar is
+ * not (the bar publishes its height, 0 when it draws nothing) — they share the centre-bottom.
+ */
+export function shouldShowPartyStrip(isGm: boolean, actionBarHeight: number): boolean {
+  return isGm && !(actionBarHeight > 0);
+}
+
+/** Air kept between the summary popover and the strip, and from the window edges. */
+const POPOVER_GAP = 6;
+const POPOVER_EDGE = 8;
+
+/**
+ * Where the summary popover of a chip goes: centred on the chip, above the strip, inside the window.
+ * `bottom` is measured from the bottom edge of the window (the popover is `position: fixed`).
+ */
+export function placePartyPopover(
+  chip: { left: number; width: number },
+  strip: { top: number },
+  popoverWidth: number,
+  view: { width: number; height: number },
+): { left: number; bottom: number; maxHeight: number } {
+  const centred = chip.left + chip.width / 2 - popoverWidth / 2;
+  const left = Math.max(
+    POPOVER_EDGE,
+    Math.min(centred, view.width - popoverWidth - POPOVER_EDGE),
+  );
+  return {
+    left,
+    bottom: view.height - strip.top + POPOVER_GAP,
+    maxHeight: Math.max(0, strip.top - POPOVER_EDGE),
+  };
+}
