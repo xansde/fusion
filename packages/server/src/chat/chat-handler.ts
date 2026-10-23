@@ -1025,6 +1025,7 @@ export function buildChatSendHandler(deps: ChatHandlerDeps): HandlerFn {
       // impulses; strikes carry no DC). Merged into the pf2e namespace WITHOUT
       // clobbering a coexisting spellCast (defensive — a client sends one card).
       const abilityCard = payload.flags?.pf2e?.abilityCard;
+      let savingCard = false;
       if (abilityCard) {
         const sanitized = sanitizeAbilityCard(deps.db, abilityCard, payload.speakerActorId);
         if (sanitized) {
@@ -1035,6 +1036,7 @@ export function buildChatSendHandler(deps: ChatHandlerDeps): HandlerFn {
               [ABILITY_CARD_FLAG_KEY]: sanitized,
             },
           };
+          savingCard = sanitized.saveType !== undefined && sanitized.dcValue !== undefined;
         }
       }
 
@@ -1043,6 +1045,8 @@ export function buildChatSendHandler(deps: ChatHandlerDeps): HandlerFn {
       // no-op for it; it only matters for a hypothetical nested text child.
       attachParentFlag(msg, resolveParentMessageId(deps.db, payload.flags?.parentMessageId));
       attachTargetSnapshot(msg, deps, ctx.userId);
+      // A save card has no dice, but it names who must roll: the caster's targets at cast time, one save button each.
+      if (savingCard) attachTargetSnapshot(msg, deps, ctx.userId, undefined, true);
 
       // Return the CANONICAL message on the ack (r18-N1): castSpell chains the
       // attack roll under this announcement using result.message._id. The id is
@@ -2319,7 +2323,8 @@ function attachParentFlag(msg: ChatMessage, parentId: string | undefined): void 
  * turnEnd cleanup, not by the token being removed from its scene.
  *
  * A message with no roll is left untouched (targeting a non-roll message has
- * no meaning). Missing `store`/`targetingStore` deps (chat-only test
+ * no meaning) — unless `withoutRolls`: a save card names its targets with no
+ * dice of its own (each target rolls its save from the card). Missing `store`/`targetingStore` deps (chat-only test
  * harnesses that don't wire targeting) fall back to an empty snapshot rather
  * than throwing — `[]` is already the documented "no target" shape.
  */
@@ -2328,8 +2333,9 @@ function attachTargetSnapshot(
   deps: ChatHandlerDeps,
   authorId: string,
   taken?: ResolvedTarget[],
+  withoutRolls = false,
 ): void {
-  if (!msg.rolls || msg.rolls.length === 0) return;
+  if (!withoutRolls && (!msg.rolls || msg.rolls.length === 0)) return;
   const targetSnapshot = taken ?? readTargetSnapshot(deps, authorId);
   msg.flags = {
     ...msg.flags,
