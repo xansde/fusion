@@ -67,12 +67,22 @@ export interface AvatarOverlayPreferences {
   readonly livre: PosicaoLivre | null;
 }
 
+/**
+ * Character-sheet display toggles. Same client-only contract as the rest: it changes what THIS
+ * screen draws, nothing a payload contains. `showBreakdownIcon` is the small "i" next to a derived
+ * number; hiding it never removes the explanation — the number itself stays the button.
+ */
+export interface SheetDisplayPreferences {
+  readonly showBreakdownIcon: boolean;
+}
+
 /** The whole shape of "Minhas preferências". */
 export interface ClientPreferences {
   readonly volume: Readonly<Record<VolumeChannel, number>>;
   readonly notifications: NotificationPreferences;
   readonly tokenDisplay: TokenDisplayPreferences;
   readonly avatarOverlay: AvatarOverlayPreferences;
+  readonly sheetDisplay: SheetDisplayPreferences;
 }
 
 /** Volume is a `[0, 1]` multiplier (REQ-AUD-017); sliders in the UI show 0–100%. */
@@ -89,6 +99,11 @@ export const DEFAULT_TOKEN_DISPLAY: TokenDisplayPreferences = {
   showBars: true,
 };
 
+/** On by default — the icon is how a reader discovers the explanation exists. */
+export const DEFAULT_SHEET_DISPLAY: SheetDisplayPreferences = {
+  showBreakdownIcon: true,
+};
+
 export const DEFAULT_AVATAR_OVERLAY: AvatarOverlayPreferences = {
   visivel: true,
   tamanho: TAMANHO_PADRAO,
@@ -101,6 +116,7 @@ export const DEFAULT_CLIENT_PREFERENCES: ClientPreferences = {
   notifications: DEFAULT_NOTIFICATIONS,
   tokenDisplay: DEFAULT_TOKEN_DISPLAY,
   avatarOverlay: DEFAULT_AVATAR_OVERLAY,
+  sheetDisplay: DEFAULT_SHEET_DISPLAY,
 };
 
 /** Key prefix, following the `fusion:<thing>` convention used across the client. */
@@ -164,6 +180,17 @@ function parseTokenDisplay(record: Record<string, unknown>): TokenDisplayPrefere
   };
 }
 
+function parseSheetDisplay(record: Record<string, unknown>): SheetDisplayPreferences {
+  const raw = record["sheetDisplay"];
+  const source = typeof raw === "object" && raw !== null ? (raw as Record<string, unknown>) : {};
+  return {
+    showBreakdownIcon:
+      typeof source["showBreakdownIcon"] === "boolean"
+        ? source["showBreakdownIcon"]
+        : DEFAULT_SHEET_DISPLAY.showBreakdownIcon,
+  };
+}
+
 function clampFraction(v: number): number {
   return Math.min(1, Math.max(0, v));
 }
@@ -220,6 +247,7 @@ export function loadClientPreferences(worldId: string, userId: string): ClientPr
       notifications: parseNotifications(record),
       tokenDisplay: parseTokenDisplay(record),
       avatarOverlay: parseAvatarOverlay(record),
+      sheetDisplay: parseSheetDisplay(record),
     };
   } catch {
     /* localStorage unavailable or unparseable — fall back to defaults. */
@@ -295,6 +323,25 @@ export function setTokenDisplayPreference(
   const next: ClientPreferences = {
     ...current,
     tokenDisplay: { ...current.tokenDisplay, [key]: value },
+  };
+  persist(worldId, userId, next);
+  return next;
+}
+
+/**
+ * Set one character-sheet display toggle and persist the whole preference object.
+ * Client-only, like every setter here: no socket, no op, no Document.
+ */
+export function setSheetDisplayPreference(
+  worldId: string,
+  userId: string,
+  key: keyof SheetDisplayPreferences,
+  value: boolean,
+): ClientPreferences {
+  const current = loadClientPreferences(worldId, userId);
+  const next: ClientPreferences = {
+    ...current,
+    sheetDisplay: { ...current.sheetDisplay, [key]: value },
   };
   persist(worldId, userId, next);
   return next;
