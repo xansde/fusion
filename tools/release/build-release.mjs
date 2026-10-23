@@ -76,6 +76,7 @@ import {
   emitAvatarSidecar,
 } from "./avatar-sidecar.mjs";
 import { writeManifest } from "./manifest.mjs";
+import { applyIcon } from "./exe-icon.mjs";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const repoRoot = join(__dirname, "..", "..");
@@ -504,6 +505,14 @@ function phaseAssembleSea(bundlePath, assets, version) {
   copyFileSync(process.execPath, artifactPath);
   if (!isWindows) {
     chmodSync(artifactPath, 0o755);
+  }
+
+  // Windows: stamp the Fusion icon on the copied node.exe BEFORE postject —
+  // resedit rewrites the PE resource section, so it must run while the SEA blob
+  // is not yet injected (the blob is added afterwards as its own resource).
+  if (isWindows) {
+    applyIcon(artifactPath, join(__dirname, "assets", "fusion.ico"));
+    log("Applied Fusion icon to the executable (before postject)");
   }
 
   // Windows code-signing note (DA-02): postject warns "signature seems
