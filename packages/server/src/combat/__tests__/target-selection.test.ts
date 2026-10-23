@@ -223,7 +223,11 @@ describe("TargetSelection (ALQ-F1-05, REQ-CBT-056)", () => {
           content: "lança Bola de Fogo",
           worldId: WORLD_ID,
           speakerActorId: caster,
-          flags: { pf2e: { abilityCard: { kind: "spell", casterActorId: caster, name: "Bola de Fogo", ...card } } },
+          flags: {
+            pf2e: {
+              abilityCard: { kind: "spell", casterActorId: caster, name: "Bola de Fogo", ...card },
+            },
+          },
         },
         playerCtx("player-p"),
       ) as Ack<{ message: ChatMessage }>;
@@ -233,7 +237,9 @@ describe("TargetSelection (ALQ-F1-05, REQ-CBT-056)", () => {
 
     const withSave = cast({ saveType: "reflex", dcValue: 19, basicSave: true });
     expect(readTargetSnapshot(withSave)).toEqual([{ tokenId: "tok-t1", actorId: enemy, sceneId }]);
-    expect(readTargetSnapshot(readPersistedMessage(h, withSave._id))).toEqual([{ tokenId: "tok-t1", actorId: enemy, sceneId }]);
+    expect(readTargetSnapshot(readPersistedMessage(h, withSave._id))).toEqual([
+      { tokenId: "tok-t1", actorId: enemy, sceneId },
+    ]);
     expect(readTargetSnapshot(cast({}))).toBeUndefined();
   });
 

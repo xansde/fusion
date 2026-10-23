@@ -23,7 +23,12 @@ const bia = {
   ownership: { default: 0, [BIA]: 3, [ALEX]: 1 },
 };
 const npc = { _id: "n1", name: "Goblin", type: "npc", ownership: { default: 0, [ALEX]: 3 } };
-const gmOwned = { _id: "g1", name: "PJ do Mestre", type: "character", ownership: { default: 0, [GM]: 3 } };
+const gmOwned = {
+  _id: "g1",
+  name: "PJ do Mestre",
+  type: "character",
+  ownership: { default: 0, [GM]: 3 },
+};
 const unowned = { _id: "u1", name: "Sem dono", type: "character", ownership: { default: 0 } };
 const observable = { _id: "o1", name: "Observavel", type: "character", ownership: { default: 2 } };
 
