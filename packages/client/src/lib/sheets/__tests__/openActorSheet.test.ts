@@ -201,13 +201,20 @@ describe("openActorSheet — a re-mounted sheet starts from the current doc", ()
       documents: { Actor: [edited] },
     } as unknown as Parameters<typeof worldMirror.applySnapshot>[0]);
 
-    const entry = [...windowManager.windows.values()].find((w) => w.singletonKey === "sheet:Actor:actor-hp");
+    const entry = [...windowManager.windows.values()].find(
+      (w) => w.singletonKey === "sheet:Actor:actor-hp",
+    );
     const doc = entry?.componentProps?.["doc"] as { system: { hp: number } } | undefined;
     expect(doc?.system.hp).toBe(7);
   });
 
   it("a sheet opened with its own window key (unlinked token) keeps the doc it was given", async () => {
-    const synthetic = { _id: "actor-base", name: "Base", type: "npc", system: { subtype: "npc", hp: 3 } };
+    const synthetic = {
+      _id: "actor-base",
+      name: "Base",
+      type: "npc",
+      system: { subtype: "npc", hp: 3 },
+    };
     worldMirror.applySnapshot({
       seq: 3,
       documents: { Actor: [{ ...synthetic, system: { subtype: "npc", hp: 99 } }] },
@@ -221,19 +228,27 @@ describe("openActorSheet — a re-mounted sheet starts from the current doc", ()
     });
     await flushMicrotasks();
 
-    const entry = [...windowManager.windows.values()].find((w) => w.singletonKey === "sheet:Token:t1");
+    const entry = [...windowManager.windows.values()].find(
+      (w) => w.singletonKey === "sheet:Token:t1",
+    );
     const doc = entry?.componentProps?.["doc"] as { system: { hp: number } } | undefined;
     expect(doc?.system.hp).toBe(3);
   });
 
   it("windows opened by openActorSheet are poppable", async () => {
-    openActorSheet("actor-pop", { _id: "actor-pop", name: "P", type: "npc", system: { subtype: "npc" } }, {
-      userId: "gm-1",
-      ownership: 3,
-      isGm: true,
-    });
+    openActorSheet(
+      "actor-pop",
+      { _id: "actor-pop", name: "P", type: "npc", system: { subtype: "npc" } },
+      {
+        userId: "gm-1",
+        ownership: 3,
+        isGm: true,
+      },
+    );
     await flushMicrotasks();
-    const entry = [...windowManager.windows.values()].find((w) => w.singletonKey === "sheet:Actor:actor-pop");
+    const entry = [...windowManager.windows.values()].find(
+      (w) => w.singletonKey === "sheet:Actor:actor-pop",
+    );
     expect(entry?.poppable).toBe(true);
   });
 });

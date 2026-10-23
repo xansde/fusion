@@ -6,11 +6,7 @@
  * no game system registered a summary.
  */
 
-import {
-  isPlayerCharacter,
-  ownerUserIdsOf,
-  type ContactActorDoc,
-} from "../contacts/contactsVM.js";
+import { isPlayerCharacter, ownerUserIdsOf, type ContactActorDoc } from "../contacts/contactsVM.js";
 
 /**
  * The player characters, sorted by name: an Actor of a player-character subtype that at least one
@@ -73,10 +69,7 @@ export function placePartyPopover(
   view: { width: number; height: number },
 ): { left: number; bottom: number; maxHeight: number } {
   const centred = chip.left + chip.width / 2 - popoverWidth / 2;
-  const left = Math.max(
-    POPOVER_EDGE,
-    Math.min(centred, view.width - popoverWidth - POPOVER_EDGE),
-  );
+  const left = Math.max(POPOVER_EDGE, Math.min(centred, view.width - popoverWidth - POPOVER_EDGE));
   return {
     left,
     bottom: view.height - strip.top + POPOVER_GAP,

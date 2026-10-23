@@ -169,7 +169,7 @@ export function prepareChildDocument(
 
   // A reused window (same name) may still hold a previous body: start clean.
   dst.open();
-  dst.write("<!doctype html><html><head><meta charset=\"utf-8\"></head><body></body></html>");
+  dst.write('<!doctype html><html><head><meta charset="utf-8"></head><body></body></html>');
   dst.close();
 
   const base = dst.createElement("base");

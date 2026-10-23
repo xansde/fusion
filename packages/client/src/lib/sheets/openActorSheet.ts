@@ -62,54 +62,58 @@ export function openActorSheet(
 ): void {
   // Lazy import to avoid circular imports when this module is loaded server-side.
   // In browser context these are synchronous after the first load.
-  void Promise.all([
-    import("$lib/windows/window-manager.js"),
-    import("../docs/worldSync.js"),
-  ]).then(([{ windowManager }, { worldMirror }]) => {
-    const systemDoc = actorDoc["system"] as Record<string, unknown> | undefined;
-    const rawSubtype = systemDoc?.["subtype"] ?? actorDoc["type"] ?? "character";
-    const subtype = typeof rawSubtype === "string" ? rawSubtype : "character";
-    // REQ-CMP-055: the window title is a display surface for the actor's
-    // name, so it MUST resolve through the same single mechanism
-    // (displayName) as the NPCs tab / Contatos / sheet header — never a
-    // second, ad-hoc read of the raw (EN-pure) doc.name.
-    const resolvedName = displayName(actorDoc);
-    const name = resolvedName.length > 0 ? resolvedName : "Actor";
-    const { singletonKey: requestedKey, ...sheetProps } = _opts;
-    const singletonKey = requestedKey ?? `sheet:Actor:${actorId}`;
+  void Promise.all([import("$lib/windows/window-manager.js"), import("../docs/worldSync.js")]).then(
+    ([{ windowManager }, { worldMirror }]) => {
+      const systemDoc = actorDoc["system"] as Record<string, unknown> | undefined;
+      const rawSubtype = systemDoc?.["subtype"] ?? actorDoc["type"] ?? "character";
+      const subtype = typeof rawSubtype === "string" ? rawSubtype : "character";
+      // REQ-CMP-055: the window title is a display surface for the actor's
+      // name, so it MUST resolve through the same single mechanism
+      // (displayName) as the NPCs tab / Contatos / sheet header — never a
+      // second, ad-hoc read of the raw (EN-pure) doc.name.
+      const resolvedName = displayName(actorDoc);
+      const name = resolvedName.length > 0 ? resolvedName : "Actor";
+      const { singletonKey: requestedKey, ...sheetProps } = _opts;
+      const singletonKey = requestedKey ?? `sheet:Actor:${actorId}`;
 
-    const reg = sheetRegistry.resolve("Actor", subtype);
-    if (!reg) {
-      console.warn(`[openActorSheet] No sheet registered for Actor:${subtype}`);
-      return;
-    }
+      const reg = sheetRegistry.resolve("Actor", subtype);
+      if (!reg) {
+        console.warn(`[openActorSheet] No sheet registered for Actor:${subtype}`);
+        return;
+      }
 
-    // Open a window carrying the resolved Svelte sheet component.
-    // WindowHost mounts it dynamically via Svelte 5 <svelte:component> when
-    // WindowEntry.component is set (REQ-UIF-019).
-    windowManager.open({
-      singletonKey,
-      title: `${name} (${subtypeLabel(subtype)})`,
-      icon: "scroll",
-      resizable: true,
-      minimizable: true,
-      // A sheet can be detached to its own browser window (second monitor).
-      poppable: true,
-      position: {
-        width: reg.defaultSize?.width ?? 640,
-        height: reg.defaultSize?.height ?? 480,
-      },
-      // Core-owned "Avatar" button in the title bar — no sheet needs to know.
-      headerActions: avatarHeaderActions(actorId, actorDoc, {
-        ownership: sheetProps.ownership,
-        isGm: sheetProps.isGm,
-      }),
-      component: reg.component,
-      componentProps: sheetComponentProps(actorId, actorDoc, sheetProps, singletonKey === `sheet:Actor:${actorId}`
-        ? () => worldMirror.getDoc<Record<string, unknown>>("Actor", actorId)
-        : undefined),
-    });
-  });
+      // Open a window carrying the resolved Svelte sheet component.
+      // WindowHost mounts it dynamically via Svelte 5 <svelte:component> when
+      // WindowEntry.component is set (REQ-UIF-019).
+      windowManager.open({
+        singletonKey,
+        title: `${name} (${subtypeLabel(subtype)})`,
+        icon: "scroll",
+        resizable: true,
+        minimizable: true,
+        // A sheet can be detached to its own browser window (second monitor).
+        poppable: true,
+        position: {
+          width: reg.defaultSize?.width ?? 640,
+          height: reg.defaultSize?.height ?? 480,
+        },
+        // Core-owned "Avatar" button in the title bar — no sheet needs to know.
+        headerActions: avatarHeaderActions(actorId, actorDoc, {
+          ownership: sheetProps.ownership,
+          isGm: sheetProps.isGm,
+        }),
+        component: reg.component,
+        componentProps: sheetComponentProps(
+          actorId,
+          actorDoc,
+          sheetProps,
+          singletonKey === `sheet:Actor:${actorId}`
+            ? () => worldMirror.getDoc<Record<string, unknown>>("Actor", actorId)
+            : undefined,
+        ),
+      });
+    },
+  );
 }
 
 /**
