@@ -560,6 +560,16 @@ export function buildChatSendHandler(deps: ChatHandlerDeps): HandlerFn {
       knownNames: getAllUsers(deps.db).map((u) => u.name),
     });
 
+    // A malformed whisper (`/w "Huo Jinwu psiu`) is refused, never posted as
+    // public text (REQ-CHT-014). The client shows the pt-BR text for `error`.
+    if (command.kind === "invalid") {
+      return {
+        ok: false,
+        code: "VALIDATION_FAILED" as const,
+        message: `${CHAT_ERROR_CODES.INVALID_COMMAND}: ${command.error}`,
+      };
+    }
+
     // --- Speaker resolution (REQ-CHT-022) ---
     // Simplified: userId is always present; actorId/tokenId from payload if provided
     const speaker: ChatSpeaker = {

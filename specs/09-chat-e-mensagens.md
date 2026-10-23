@@ -279,6 +279,8 @@ _(Emenda obrigada por `specs/41-token.md` §12, 2026-08-17.)_
 
 **REQ-CHT-014** [MVP] Para o comando `/w`, alvos DEVEM ser especificáveis como nome de usuário entre colchetes, com múltiplos alvos separados por vírgula: `/w [João, Maria] mensagem`. As palavras-chave `gm` e `players` DEVEM ser resolvidas para os IDs dos usuários GM e não-GM respectivamente.
 
+_Emenda de 2026-10-22 (auditoria da `beta/app`, decisão provisória da lane auditoria-fix):_ um comando de sussurro (`/w`, `/whisper`) malformado — sem destinatário, com colchete ou aspas sem fechar (`/w "Huo Jinwu psiu`, `/w [Huo psiu`) — NUNCA DEVE virar texto público: o parser devolve erro de parse, o servidor recusa sem publicar nada e o cliente mantém o texto na caixa com o motivo em pt-BR.
+
 **REQ-CHT-015** [MVP] Comandos não reconhecidos pelo cliente DEVEM ser enviados ao servidor para verificação no `CommandRegistry`; o servidor retorna erro se o comando for desconhecido.
 
 **REQ-CHT-016** [MVP] A `SystemAPI` DEVE expor `registerChatCommand(prefix: string, handler: ServerChatCommandHandler)` para sistemas registrarem comandos adicionais (ver `15-api-de-sistemas.md`).

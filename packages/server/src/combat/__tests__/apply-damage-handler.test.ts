@@ -912,7 +912,7 @@ describe("actor:applyDamage — ActorMechanicsService (ALQ-F1-08, REQ-SYS-142)",
     }
   });
 
-  it("B2: reaplicar a mesma (messageId, rollIndex, multiplier) por um jogador é FORBIDDEN e não reaplica o dano", async () => {
+  it("B2: reaplicar a mesma (messageId, rollIndex) por um jogador é FORBIDDEN e não reaplica o dano", async () => {
     const playerSocket = await connectSocket(ctx.port, ctx.worldId, ctx.playerToken);
     try {
       await sendOp(playerSocket, "combat:target", { tokenId: T1_TOKEN_ID, targeted: true });
@@ -939,6 +939,101 @@ describe("actor:applyDamage — ActorMechanicsService (ALQ-F1-08, REQ-SYS-142)",
       expect(readActorHp(ctx.fusionDb, T1_ACTOR_ID)).toBe(hpAfterFirst);
     } finally {
       playerSocket.disconnect();
+    }
+  });
+
+  it("B2: jogador não reaplica a mesma rolagem no mesmo alvo trocando o multiplicador (×1 e depois ½ ou ×2)", async () => {
+    const playerSocket = await connectSocket(ctx.port, ctx.worldId, ctx.playerToken);
+    try {
+      await sendOp(playerSocket, "combat:target", { tokenId: T1_TOKEN_ID, targeted: true });
+      const rollAck = await sendOp(playerSocket, "chat:send", {
+        content: "/roll 2d6+4",
+        worldId: ctx.worldId,
+        speakerActorId: CASTER_ACTOR_ID,
+        flags: damageFlags("fire"),
+      });
+      const rollMsg = (rollAck["result"] as { message: ChatMessageLike }).message;
+      const source = { messageId: rollMsg._id, rollIndex: 0 };
+
+      const first = await sendOp(playerSocket, "actor:applyDamage", {
+        instances: [{ type: "fire", source }],
+      });
+      expect(first["ok"], JSON.stringify(first)).toBe(true);
+      const hpAfterFirst = readActorHp(ctx.fusionDb, T1_ACTOR_ID);
+
+      const half = await sendOp(playerSocket, "actor:applyDamage", {
+        instances: [{ type: "fire", source }],
+        multiplier: 0.5,
+      });
+      expect(half["ok"]).toBe(false);
+      expect(half["code"]).toBe("FORBIDDEN");
+      const basicSave = await sendOp(playerSocket, "actor:applyDamage", {
+        instances: [{ type: "fire", source }],
+        basicSave: { degree: "Failure" },
+      });
+      expect(basicSave["ok"]).toBe(false);
+      expect(readActorHp(ctx.fusionDb, T1_ACTOR_ID)).toBe(hpAfterFirst);
+    } finally {
+      playerSocket.disconnect();
+    }
+  });
+
+  it("B2: jogador não cura duas vezes com a mesma rolagem (Curar ×1 e depois ×½)", async () => {
+    const playerSocket = await connectSocket(ctx.port, ctx.worldId, ctx.playerToken);
+    try {
+      await sendOp(playerSocket, "combat:target", { tokenId: T1_TOKEN_ID, targeted: true });
+      const rollAck = await sendOp(playerSocket, "chat:send", {
+        content: "/roll 1d8+4",
+        worldId: ctx.worldId,
+        speakerActorId: CASTER_ACTOR_ID,
+        flags: {
+          fusion: { statistic: { actorId: CASTER_ACTOR_ID, key: "strikeDamage:sword" } },
+        },
+      });
+      const rollMsg = (rollAck["result"] as { message: ChatMessageLike }).message;
+      const source = { messageId: rollMsg._id, rollIndex: 0 };
+
+      const heal = await sendOp(playerSocket, "actor:applyDamage", {
+        instances: [{ type: "healing", source }],
+      });
+      expect(heal["ok"], JSON.stringify(heal)).toBe(true);
+      const callsAfterHeal = ctx.instancesLog.length;
+      const halfHeal = await sendOp(playerSocket, "actor:applyDamage", {
+        instances: [{ type: "healing", source }],
+        multiplier: 0.5,
+      });
+      expect(halfHeal["ok"]).toBe(false);
+      expect(halfHeal["code"]).toBe("FORBIDDEN");
+      expect(ctx.instancesLog.length).toBe(callsAfterHeal);
+    } finally {
+      playerSocket.disconnect();
+    }
+  });
+
+  it("B2: GM aplica a mesma rolagem com outro multiplicador (correção de mesa)", async () => {
+    const gmSocket = await connectSocket(ctx.port, ctx.worldId, ctx.gmToken);
+    try {
+      const rollAck = await sendOp(gmSocket, "chat:send", {
+        content: "/roll 1d6+1",
+        worldId: ctx.worldId,
+        speakerActorId: CASTER_ACTOR_ID,
+        flags: damageFlags("fire"),
+      });
+      const rollMsg = (rollAck["result"] as { message: ChatMessageLike }).message;
+      const source = { messageId: rollMsg._id, rollIndex: 0 };
+      const first = await sendOp(gmSocket, "actor:applyDamage", {
+        instances: [{ type: "fire", source }],
+        targetTokenIds: [T1_TOKEN_ID],
+      });
+      expect(first["ok"], JSON.stringify(first)).toBe(true);
+      const half = await sendOp(gmSocket, "actor:applyDamage", {
+        instances: [{ type: "fire", source }],
+        targetTokenIds: [T1_TOKEN_ID],
+        multiplier: 0.5,
+      });
+      expect(half["ok"], JSON.stringify(half)).toBe(true);
+    } finally {
+      gmSocket.disconnect();
     }
   });
 

@@ -842,6 +842,14 @@ applyCondition })`, no máximo uma vez por sistema, e o servidor DEVE expor os o
   ator reenviaria o mesmo op e aplicaria o mesmo dano gravado repetidas vezes em
   todos os alvos do snapshot.
 
+  **Emenda de 2026-10-22** (auditoria da `beta/app`, decisão provisória da lane auditoria-fix):
+  para usuário sem papel privilegiado a chave é `(messageId, rollIndex)` por alvo, **sem o
+  multiplicador nem o grau de `basicSave`** — uma rolagem = uma aplicação por alvo. "Aplicar" e
+  depois "½" ou "×2" (ou "Curar" e depois "Curar ½") da mesma rolagem no mesmo alvo é reaplicação
+  e DEVE responder `FORBIDDEN` sem escrever nada; antes, a chave com o multiplicador deixava o
+  jogador somar ×1 + ×½ = 1,5× do dano. Papel privilegiado continua livre para reaplicar a mesma
+  rolagem em qualquer escala.
+
   **Emenda de 2026-10-22** (xansde/fusion#225, decisão provisória da lane dano-225). O passo 2b
   agora tem de onde reler: a rolagem de dano grava, no servidor, os componentes do dano
   (`flags.fusion.damage`, REQ-SYS-166). Para usuário sem papel privilegiado com `source`, `type`,

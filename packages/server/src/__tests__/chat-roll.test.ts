@@ -34,7 +34,7 @@ import { Role } from "../auth/user-store.js";
 import { loadOrCreateSecret } from "../auth/crypto.js";
 import { registerAuthRoutes } from "../auth/routes.js";
 import { SocketManager } from "../net/socket-manager.js";
-import { PROTOCOL_VERSION } from "@fusion/shared";
+import { CHAT_ERROR_CODES, PROTOCOL_VERSION } from "@fusion/shared";
 
 // ---------------------------------------------------------------------------
 // Test helpers
@@ -523,6 +523,26 @@ describe("chat:send + roll visibility", () => {
     });
     expect(refused["ok"]).toBe(false);
     expect(String(refused["message"])).toContain("Ninguém");
+  }, 10_000);
+
+  // -------------------------------------------------------------------------
+  it("a malformed /w is refused and never published to the table", async () => {
+    await ctx.authService.createUser({
+      name: "Huo Jinwu",
+      role: Role.PLAYER,
+      password: "huo-pass",
+      color: "#3aa335",
+    });
+    const player2Ops = collectOps(player2Socket, 1, 600);
+
+    for (const content of ['/w "Huo Jinwu psiu', "/w [Huo psiu", "/w"]) {
+      const ack = await sendOp(playerSocket, "chat:send", { content, worldId: ctx.worldId });
+      expect(ack["ok"], content).toBe(false);
+      expect(String(ack["message"]), content).toContain(CHAT_ERROR_CODES.INVALID_COMMAND);
+    }
+
+    const leaked = (await player2Ops).filter((op) => op.type === "doc:create");
+    expect(leaked).toEqual([]);
   }, 10_000);
 
   // -------------------------------------------------------------------------
