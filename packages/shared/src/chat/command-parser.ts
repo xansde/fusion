@@ -81,12 +81,33 @@ export interface ParsedPlainText {
   inlineRolls: InlineRollSpan[];
 }
 
+/**
+ * Why a recognised command could not be parsed. Each value has a pt-BR string
+ * in the client bundle (`FUSION.Chat.Compose.Error.<value>`).
+ */
+export type ChatCommandParseError =
+  | "whisper-missing-target"
+  | "whisper-unclosed-bracket"
+  | "whisper-unclosed-quote";
+
+/**
+ * A recognised command that could not be parsed. A whisper must NEVER degrade
+ * into public text (REQ-CHT-014): `/w "Huo Jinwu psiu` is refused, not posted
+ * to the whole table.
+ */
+export interface ParsedInvalidCommand {
+  kind: "invalid";
+  command: "whisper";
+  error: ChatCommandParseError;
+}
+
 export type ParsedChatCommand =
   | ParsedRollCommand
   | ParsedWhisperCommand
   | ParsedEmoteCommand
   | ParsedInCharacterCommand
   | ParsedOutOfCharacterCommand
+  | ParsedInvalidCommand
   | ParsedPlainText;
 
 // ---------------------------------------------------------------------------
@@ -201,35 +222,35 @@ export function extractInlineRolls(text: string): InlineRollSpan[] {
  *      known name is what lets a compound user name ("Huo Jinwu") be whispered
  *      to without quotes.
  *
- * Returns null only when there is no target at all or a bracket/quote is left
- * open. A whisper must never degrade into public text because of how the name
- * was typed: an unknown target is still returned, and the server refuses it
- * by name (WHISPER_TARGET_NOT_FOUND).
+ * Returns a parse error when there is no target at all or a bracket/quote is
+ * left open. A whisper must never degrade into public text because of how the
+ * name was typed: an unknown target is still returned, and the server refuses
+ * it by name (WHISPER_TARGET_NOT_FOUND).
  */
 function parseWhisperPart(
   rest: string,
   knownNames: readonly string[],
-): { targets: string[]; message: string } | null {
+): { targets: string[]; message: string } | ChatCommandParseError {
   const trimmed = rest.trim();
-  if (trimmed === "") return null;
+  if (trimmed === "") return "whisper-missing-target";
 
   if (trimmed.startsWith("[")) {
     const closeIdx = trimmed.indexOf("]");
-    if (closeIdx === -1) return null;
+    if (closeIdx === -1) return "whisper-unclosed-bracket";
     const targets = trimmed
       .slice(1, closeIdx)
       .split(",")
       .map((t) => t.trim())
       .filter((t) => t.length > 0);
-    if (targets.length === 0) return null;
+    if (targets.length === 0) return "whisper-missing-target";
     return { targets, message: trimmed.slice(closeIdx + 1).trim() };
   }
 
   if (trimmed.startsWith('"')) {
     const closeIdx = trimmed.indexOf('"', 1);
-    if (closeIdx === -1) return null;
+    if (closeIdx === -1) return "whisper-unclosed-quote";
     const target = trimmed.slice(1, closeIdx).trim();
-    if (target === "") return null;
+    if (target === "") return "whisper-missing-target";
     return { targets: [target], message: trimmed.slice(closeIdx + 1).trim() };
   }
 
@@ -276,6 +297,7 @@ export interface ParseChatCommandOptions {
  *   appropriate command type.
  * - Unrecognized `/cmd` is returned as ParsedPlainText so the server can
  *   check the CommandRegistry.
+ * - A malformed whisper is returned as ParsedInvalidCommand — never as text.
  * - Otherwise, extract inline rolls and return ParsedPlainText.
  *
  * This function is pure and side-effect free — no RNG, no I/O.
@@ -315,14 +337,11 @@ export function parseChatCommand(
   // --- Whisper ---
   if (WHISPER_PREFIXES.has(prefix)) {
     const parsed = parseWhisperPart(rest, options.knownNames ?? []);
-    if (parsed) {
-      return {
-        kind: "whisper",
-        targets: parsed.targets,
-        message: parsed.message,
-      };
+    if (typeof parsed === "string") {
+      // Malformed whisper — an error, never public text (REQ-CHT-014).
+      return { kind: "invalid", command: "whisper", error: parsed };
     }
-    // Malformed whisper — fall through to text
+    return { kind: "whisper", targets: parsed.targets, message: parsed.message };
   }
 
   // --- Emote ---

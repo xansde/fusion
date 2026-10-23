@@ -7,6 +7,7 @@
 import { describe, it, expect } from "vitest";
 import {
   parseChatCommand,
+  type ChatCommandParseError,
   extractInlineRolls,
   type ParsedRollCommand,
   type ParsedWhisperCommand,
@@ -147,11 +148,21 @@ describe("parseChatCommand — whisper commands", () => {
     expect(result.targets).toEqual(["Ninguém"]);
   });
 
-  it("/w with nothing after it, or an unclosed bracket/quote, falls through to text", () => {
-    expect(parseChatCommand("/w").kind).toBe("text");
-    expect(parseChatCommand("/w   ").kind).toBe("text");
-    expect(parseChatCommand("/w [Alice hello").kind).toBe("text");
-    expect(parseChatCommand('/w "Alice hello').kind).toBe("text");
+  it("a malformed whisper is a parse error, never public text", () => {
+    const cases: ReadonlyArray<readonly [string, ChatCommandParseError]> = [
+      ["/w", "whisper-missing-target"],
+      ["/w   ", "whisper-missing-target"],
+      ["/whisper", "whisper-missing-target"],
+      ["/w [] psiu", "whisper-missing-target"],
+      ['/w "" psiu', "whisper-missing-target"],
+      ["/w [Huo psiu", "whisper-unclosed-bracket"],
+      ['/w "Huo Jinwu psiu', "whisper-unclosed-quote"],
+      ['/WHISPER "Huo Jinwu psiu', "whisper-unclosed-quote"],
+    ];
+    for (const [input, error] of cases) {
+      const result = parseChatCommand(input, { knownNames: ["Huo Jinwu"] });
+      expect(result, input).toEqual({ kind: "invalid", command: "whisper", error });
+    }
   });
 
   it("trims whitespace around target names", () => {

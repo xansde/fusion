@@ -11,9 +11,10 @@
  *    no local RNG, and afterwards the box is empty and the log is at its end).
  */
 
-import type { ChatSendPayload, RollMode } from "@fusion/shared";
+import { parseChatCommand, type ChatSendPayload, type RollMode } from "@fusion/shared";
 import { buildChatSendPayload } from "./resolveRollMode.js";
-import { chatSession } from "./chatStore.svelte.js";
+import { chatSession, chatStore } from "./chatStore.svelte.js";
+import { t } from "../i18n/i18n.js";
 import { scrollLogToEnd } from "./logScroller.js";
 import type { InputHistory } from "./inputHistory.js";
 
@@ -90,11 +91,21 @@ export interface SubmitChatLineInput {
  * (REQ-ROL-020/024), and a client that pre-computed a total would be a client that could
  * choose one. Who sees the result is decided in one place too — `resolveRollMode`.
  *
+ * A malformed whisper (`/w "Huo Jinwu psiu`) is not sent: the box keeps the text and
+ * `chatStore.error` says why, in the user's language. The server refuses it too — this
+ * only spares the round-trip and gives the localized reason.
+ *
  * Returns false when there was nothing to send.
  */
 export async function submitChatLine(input: SubmitChatLineInput): Promise<boolean> {
   const text = input.text.trim();
   if (text.length === 0) return false;
+
+  const parsed = parseChatCommand(text);
+  if (parsed.kind === "invalid") {
+    chatStore.error = t(`FUSION.Chat.Compose.Error.${parsed.error}`);
+    return false;
+  }
 
   const payload = buildChatSendPayload({
     content: text,

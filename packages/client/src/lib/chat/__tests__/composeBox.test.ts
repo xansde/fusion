@@ -17,8 +17,9 @@ import {
   submitChatLine,
 } from "../composeBox.js";
 import { InputHistory } from "../inputHistory.js";
-import { chatSession } from "../chatStore.svelte.js";
+import { chatSession, chatStore } from "../chatStore.svelte.js";
 import { registerLogScroller } from "../logScroller.js";
+import "$lib/i18n/index.js";
 
 import type { ChatSendPayload } from "@fusion/shared";
 
@@ -183,5 +184,27 @@ describe("enviar limpa a caixa e leva o log ao fim (REQ-ACH-034)", () => {
         history: new InputHistory(),
       }),
     ).resolves.toBe(true);
+  });
+
+  it("a malformed /w is not sent: the box keeps the text and the error says why, in pt-BR", async () => {
+    const cases: ReadonlyArray<readonly [string, RegExp]> = [
+      ['/w "Huo Jinwu psiu', /aspas/i],
+      ["/w [Huo psiu", /colchete/i],
+      ["/w", /destinat/i],
+    ];
+    for (const [text, why] of cases) {
+      chatStore.error = null;
+      chatSession.draft = text;
+      const send = vi.fn();
+      const history = new InputHistory();
+      await expect(
+        submitChatLine({ text, worldId: "w1", selectorMode: "public", send, history }),
+      ).resolves.toBe(false);
+      expect(send, text).not.toHaveBeenCalled();
+      expect(chatSession.draft).toBe(text);
+      expect(history.length).toBe(0);
+      expect(chatStore.error, text).toMatch(why);
+    }
+    chatStore.error = null;
   });
 });
