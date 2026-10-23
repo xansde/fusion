@@ -8,7 +8,6 @@
   "FUSION.Sidebar.Tabs.Journal": "Journal",
   "FUSION.Sidebar.Tabs.Compendium": "Compendium",
   "FUSION.Sidebar.Tabs.Settings": "Settings",
-  "FUSION.Sidebar.Tabs.Party": "Party",
   "FUSION.Sheet.Summary.Title": "Summary of {{name}}",
   "FUSION.Sheet.Summary.ToCompact": "Summary",
   "FUSION.Sheet.Summary.ToCompactHint": "Show only the one-screen summary",
@@ -26,8 +25,8 @@
   "FUSION.Sheet.Summary.NoConditions": "No conditions",
   "FUSION.Sheet.Summary.Skills": "Skills",
   "FUSION.Sheet.Summary.NoSkills": "No trained skill",
-  "FUSION.Party.Empty": "No player character in the world yet.",
   "FUSION.Party.OpenSheet": "Open the sheet of {{name}}",
+  "FUSION.Party.Strip": "Party characters",
   "FUSION.Party.Hp": "HP",
   "FUSION.Sidebar.Tabs.Npcs": "NPCs",
 

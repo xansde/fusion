@@ -2,4 +2,4 @@
   let { name = "" }: { name?: string } = $props();
 </script>
 
-<div data-testid="summary-stub">{name}</div>
+<div data-testid="chip-stub">{name}</div>

@@ -39,7 +39,6 @@ import {
   compendiumIcon,
   contactsIcon,
   npcsIcon,
-  partyIcon,
   scenesIcon,
   settingsIcon,
   soundIcon,
@@ -185,15 +184,6 @@ const CORE_TABS: readonly SidebarTabDefinition[] = [
     group: "gm",
     component: () => import("../../components/scenes/ScenesTab.svelte"),
     badge: scenePrepareBadge,
-  },
-  {
-    // The Mestre table of player characters: one card each, kept live by the mirror.
-    // No badge: nothing in this tab calls for attention by itself.
-    id: "party",
-    icon: partyIcon,
-    label: "FUSION.Sidebar.Tabs.Party",
-    group: "gm",
-    component: () => import("../../components/party/PartyPanel.svelte"),
   },
   {
     // REQ-CFG-001: id "settings", group "all"; the registry anchors this one id to
