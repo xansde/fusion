@@ -24,6 +24,7 @@
   import { windowManager } from "$lib/windows/window-manager.js";
   import { pendingDialogs, removePendingDialog } from "$lib/windows/dialogs.svelte.js";
   import Window from "./Window.svelte";
+  import PopoutWindow from "./PopoutWindow.svelte";
   import ConfirmDialog from "./ConfirmDialog.svelte";
   import PromptDialog from "./PromptDialog.svelte";
 
@@ -90,6 +91,10 @@
 <div class="fusion-window-host" aria-label="Janelas" role="region">
   <!-- Floating windows -->
   {#each windowEntries as entry (entry.id)}
+    {#if entry.poppedOut}
+      <!-- Detached into its own browser window: its content is mounted there. -->
+      <PopoutWindow {entry} />
+    {:else}
     <Window
       {entry}
       onClose={() => handleClose(entry.id)}
@@ -102,6 +107,7 @@
         <SheetComponent {...(entry.componentProps ?? {})} />
       {/if}
     </Window>
+    {/if}
   {/each}
 
   <!-- Modal dialogs -->
