@@ -37,11 +37,18 @@
   } from "../lib/canvas/sceneLoadingState.svelte.js";
   import SceneLoadingNotice from "./scenes/SceneLoadingNotice.svelte";
   import { activeSceneState } from "../lib/docs/activeScene.svelte.js";
-  import { attachCombatSync, setTargetingViewer } from "../lib/combat/combatStore.svelte.js";
+  import {
+    attachCombatSync,
+    getMyTargets,
+    setMyTargets,
+    setTargetingViewer,
+  } from "../lib/combat/combatStore.svelte.js";
+  import { areaSelectable, areaSelection } from "../lib/combat/targetMode.js";
   import { setCombatBadgeViewer } from "../lib/combat/combatBadge.svelte.js";
   import { attachChatSync, attachChatMessageSync } from "../lib/chat/chatStore.svelte.js";
   import Sidebar from "./sidebar/Sidebar.svelte";
   import ActionBar from "./actionbar/ActionBar.svelte";
+  import PartyStrip from "./party/PartyStrip.svelte";
   import AvatarCorner from "./avatar/AvatarCorner.svelte";
   import { registerCoreSidebarTabs } from "../lib/sidebar/registerCoreTabs.js";
   import { registerCoreChatCardExtensions } from "../lib/chat/registerCoreChatCardExtensions.js";
@@ -65,12 +72,14 @@
   import { TokenLayer } from "../lib/canvas/tokens/TokenLayer.js";
   import { ensureFootprintRegistry } from "../lib/canvas/tokens/footprintRegistry.svelte.js";
   import { initTokenDisplayPrefs } from "../lib/canvas/tokens/tokenDisplayPrefsStore.svelte.js";
+  import { initSheetDisplayPrefs } from "../lib/settings/sheetDisplayPrefsStore.svelte.js";
   import { iniciarPreferenciasDoAvatar } from "../lib/avatar/preferenciasDoAvatar.svelte.js";
   import { attachRuler, type RulerHandle } from "../lib/presence/attachRuler.js";
   import { attachPing } from "../lib/presence/attachPing.js";
   import { actorSpeedFt } from "../lib/presence/dragRuler.js";
 import { presenceState } from "../lib/presence/presenceStore.svelte.js";
   import RulerToolButton from "./RulerToolButton.svelte";
+  import TargetToolButton from "./TargetToolButton.svelte";
   import TemplateMenu from "./TemplateMenu.svelte";
   import ShowPlayersButton from "./ShowPlayersButton.svelte";
   import ShowPlayersWindow from "./ShowPlayersWindow.svelte";
@@ -118,7 +127,7 @@ import { presenceState } from "../lib/presence/presenceStore.svelte.js";
     sceneGridSignature,
   } from "../lib/canvas/sceneCoords.js";
   import { captureView, restoreView, type KeptView } from "../lib/canvas/sceneViewKeep.js";
-  import type { SceneDocument } from "@fusion/shared";
+  import { SquareGrid, type SceneDocument } from "@fusion/shared";
   import { t } from "../lib/i18n/i18n.js";
 
   // The seven core tabs enter the drawer through the public registration call, not
@@ -401,6 +410,8 @@ import { presenceState } from "../lib/presence/presenceStore.svelte.js";
       initTokenDisplayPrefs(session.worldInfo?.id ?? "", session.user?.id ?? "");
       // The avatar overlay's size/position/visibility — same client-local contract.
       iniciarPreferenciasDoAvatar(session.worldInfo?.id ?? "", session.user?.id ?? "");
+      // The sheets' "i" toggle — same client-local contract.
+      initSheetDisplayPrefs(session.worldInfo?.id ?? "", session.user?.id ?? "");
     }
 
     // Register PF2e sheets once, after the Svelte runtime is ready (REQ-UIF-018..019). The same
@@ -894,6 +905,18 @@ import { presenceState } from "../lib/presence/presenceStore.svelte.js";
     });
   }
 
+  /** Tokens the targets button's area selector may take: every one this seat can see, with its live squares. */
+  function sceneSelectables(sceneId: string, isGmSeat: boolean) {
+    const scene = worldMirror.getDoc<SceneDocument>("Scene", sceneId);
+    const out: Array<{ id: string; i: number; j: number; width: number; height: number }> = [];
+    for (const t of scene?.tokens ?? []) {
+      if (!areaSelectable(t, isGmSeat)) continue;
+      const fp = liveTokenCells(sceneId, t._id);
+      if (fp) out.push({ id: t._id, ...fp });
+    }
+    return out;
+  }
+
   function _createOrchestrator(canvas: FusionCanvas, scene: SceneDocument): SceneOrchestrator {
     const sock = getSocket();
     const currentIsGm = isGm();
@@ -1034,6 +1057,17 @@ import { presenceState } from "../lib/presence/presenceStore.svelte.js";
         getTokenFootprint: (id) => liveTokenCells(scene._id, id),
         isModerator: currentIsGm,
         getTargets: () => sceneTargets(scene._id, rulerGrid),
+        onTargetArea: (template, shift) => {
+          if (!(rulerGrid instanceof SquareGrid)) return;
+          const wanted = areaSelection(
+            template,
+            rulerGrid,
+            sceneSelectables(scene._id, currentIsGm),
+            getMyTargets().map((t) => t.tokenId),
+            shift,
+          );
+          if (sock) void setMyTargets(sock, wanted);
+        },
       });
       // --- Map ping (hold the left button on empty map; GM Shift+hold pulls the camera) ---
       _disposePing = attachPing({
@@ -1137,6 +1171,7 @@ import { presenceState } from "../lib/presence/presenceStore.svelte.js";
   {/if}
 
   <RulerToolButton />
+  <TargetToolButton slot={isGm() ? 5 : 1} />
   <TemplateMenu />
   {#if isGm()}
     <ShowPlayersButton />
@@ -1256,6 +1291,13 @@ import { presenceState } from "../lib/presence/presenceStore.svelte.js";
          whose type has no provider; the ownership gate lives in the active-actor store. -->
     {#if session.user}
       <ActionBar
+        socket={sock}
+        worldId={session.worldInfo?.id ?? ""}
+        userId={session.user.id}
+        isGm={session.user.role >= ROLE_ASSISTANT}
+      />
+      <!-- The Mestre's party strip: same place as the bar, only while the bar draws nothing. -->
+      <PartyStrip
         socket={sock}
         worldId={session.worldInfo?.id ?? ""}
         userId={session.user.id}

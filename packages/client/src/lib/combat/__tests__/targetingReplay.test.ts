@@ -20,11 +20,16 @@ import {
 import { isTargetedByAnyone } from "../targeting.js";
 
 /** A socket the way socket.io delivers: frames emitted before a listener exists are gone. */
-const makeSocket = (): { socket: Socket; replay: (payload: unknown) => void } => {
+const makeSocket = (): {
+  socket: Socket;
+  replay: (payload: unknown) => void;
+  connect: () => void;
+} => {
   const bus = new EventEmitter();
   return {
     socket: bus as unknown as Socket,
     replay: (payload) => bus.emit("op", { type: "token:targeted", ts: 1, payload }),
+    connect: () => bus.emit("connect"),
   };
 };
 
@@ -54,6 +59,35 @@ describe("token:targeted replayed by the server to a reconnecting seat", () => {
     attachTargetingSync(socket)();
     replay({ tokenId: "tok-gone", targeted: true, userId: "u-late" });
     expect(isTargetedByAnyone(getTargetingState(), "tok-gone")).toBe(false);
+  });
+});
+
+describe("targets after the connection is re-established", () => {
+  it("drops the stale selection on (re)connect, then rebuilds it from the replay", () => {
+    const { socket, replay, connect } = makeSocket();
+    const detach = attachTargetingSync(socket);
+    replay({ tokenId: "tok-stale", targeted: true, userId: "u-restart" });
+    expect(isTargetedByAnyone(getTargetingState(), "tok-stale")).toBe(true);
+    const before = targetingStore.version;
+
+    // The server restarted: its in-memory store is empty, so it replays nothing for this seat.
+    connect();
+    expect(isTargetedByAnyone(getTargetingState(), "tok-stale")).toBe(false);
+    expect(targetingStore.version).toBeGreaterThan(before);
+
+    // A server that DID keep the selection replays it after the connect.
+    replay({ tokenId: "tok-kept", targeted: true, userId: "u-restart" });
+    expect(isTargetedByAnyone(getTargetingState(), "tok-kept")).toBe(true);
+    detach();
+  });
+
+  it("a detached listener does not clear on connect", () => {
+    const { socket, replay, connect } = makeSocket();
+    const detach = attachTargetingSync(socket);
+    replay({ tokenId: "tok-survivor", targeted: true, userId: "u-detached" });
+    detach();
+    connect();
+    expect(isTargetedByAnyone(getTargetingState(), "tok-survivor")).toBe(true);
   });
 });
 

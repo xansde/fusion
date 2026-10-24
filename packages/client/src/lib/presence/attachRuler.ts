@@ -115,6 +115,11 @@ export interface AttachRulerOptions {
   isModerator?: boolean;
   /** Every token on the scene, to name who a template touches. */
   getTargets?: () => AreaTarget[];
+  /**
+   * The targets button's area selector was released over `template`: mark whoever is inside as the user's aim
+   * (`shift` adds to the current aim instead of replacing it). The area is not pinned nor shared.
+   */
+  onTargetArea?: (template: AreaTemplate, shift: boolean) => void;
 }
 
 export interface RulerHandle {
@@ -240,8 +245,13 @@ export function attachRuler(opts: AttachRulerOptions): RulerHandle {
     );
   }
 
-  function endTemplate(pin: boolean): void {
-    if (pin && tpl) emitTemplatePin(socket, newId(), sceneId, tpl);
+  /** `commit` is true only for a real release (not Esc / blur): the target selector acts on it. */
+  function endTemplate(shift: boolean, commit = false): void {
+    if (tpl && rulerTool.purpose === "target") {
+      if (commit) opts.onTargetArea?.(tpl, shift);
+    } else if (shift && tpl) {
+      emitTemplatePin(socket, newId(), sceneId, tpl);
+    }
     tpl = null;
     tplPress = null;
     emitTemplateClear(socket);
@@ -454,7 +464,7 @@ export function attachRuler(opts: AttachRulerOptions): RulerHandle {
   };
 
   const onPointerUp = (e: PointerEvent): void => {
-    if (tplPress) endTemplate(e.shiftKey);
+    if (tplPress) endTemplate(e.shiftKey, true);
     run(reduceRulerToolInput(rulerTool.mode === "ruler", toolDragging, { kind: "up" }));
   };
 
@@ -562,7 +572,12 @@ export function attachRuler(opts: AttachRulerOptions): RulerHandle {
       emitRulerUpdate(socket, ruler.broadcastWaypoints());
       lastBroadcast = now;
     }
-    if (tpl && socket && now - tplBroadcast >= BROADCAST_INTERVAL_MS) {
+    if (
+      tpl &&
+      socket &&
+      rulerTool.purpose !== "target" &&
+      now - tplBroadcast >= BROADCAST_INTERVAL_MS
+    ) {
       emitTemplateUpdate(socket, tpl);
       tplBroadcast = now;
     }

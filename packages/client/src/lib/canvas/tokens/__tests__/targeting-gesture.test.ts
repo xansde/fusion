@@ -17,6 +17,7 @@ import { resetFootprintRegistry, seedFootprintRegistry } from "../footprintRegis
 import type * as CombatStoreModule from "../../../combat/combatStore.svelte.js";
 import { getTargetingState, setTargetingViewer } from "../../../combat/combatStore.svelte.js";
 import { applyTargeted } from "../../../combat/targeting.js";
+import { setTargetMode } from "../../../combat/targetModeStore.svelte.js";
 
 const mockGetMyTargets =
   vi.fn<() => ReadonlyArray<{ tokenId: string; actorId: string | null; name: string }>>();
@@ -157,10 +158,11 @@ function pointer(
   container: ReturnType<typeof makeFakeContainer>,
   target: unknown,
   button: number,
+  shiftKey = false,
 ): void {
   const down = container._handlers.get("pointerdown");
   const up = container._handlers.get("pointerup");
-  down?.({ button, target, clientX: 10, clientY: 10, stopPropagation: () => {} });
+  down?.({ button, target, shiftKey, clientX: 10, clientY: 10, stopPropagation: () => {} });
   up?.({ button });
 }
 
@@ -233,6 +235,8 @@ describe("TokenInteractionManager — right-click aim gesture (BHR-F3-01, D-G01)
 
   it("the second right-click on the same token undoes the aim", async () => {
     mockGetMyTargets.mockReturnValue([{ tokenId: TOKEN_ID, actorId: ACTOR_ID, name: "Eagle" }]);
+    // The batch diffs against the live selection, so it has to hold the aim too.
+    applyTargeted(getTargetingState(), TOKEN_ID, true, "user-player");
     const { mgr, container, ops } = await build();
     pointer(container, makeFakeTarget(TOKEN_ID), 2);
     await Promise.resolve();
@@ -358,6 +362,72 @@ describe("TokenInteractionManager — right-click aim gesture (BHR-F3-01, D-G01)
     pressEsc(mgr);
     await new Promise((r) => setTimeout(r, 0));
     expect(targetOps(ops)).toHaveLength(0);
+    mgr.destroy();
+  });
+});
+
+describe("TokenInteractionManager — replace vs accumulate (modo de alvos)", () => {
+  const tokens = [
+    makeToken({ _id: "tokA" }),
+    makeToken({ _id: "tokB" }),
+    makeToken({ _id: "tokC" }),
+  ];
+  const aim = (...ids: string[]) => {
+    for (const id of ids) applyTargeted(getTargetingState(), id, true, "user-player");
+    mockGetMyTargets.mockReturnValue(
+      ids.map((id) => ({ tokenId: id, actorId: ACTOR_ID, name: id })),
+    );
+  };
+  const flush = () => new Promise((r) => setTimeout(r, 0));
+
+  beforeEach(() => {
+    resetFootprintRegistry();
+    seedFootprintRegistry({ med: { width: 1, height: 1 } });
+    mockGetMyTargets.mockReset().mockReturnValue([]);
+    setTargetingViewer("user-player");
+    getTargetingState().byUser.clear();
+    setTargetMode("single");
+  });
+
+  it("single: right-click on another token drops the previous aim and aims only it", async () => {
+    aim("tokA", "tokB");
+    const { mgr, container, ops } = await build(ROLE_PLAYER, () => new Set(), tokens);
+    pointer(container, makeFakeTarget("tokC"), 2);
+    await flush();
+    expect(targetOps(ops).map((o) => o.payload)).toEqual([
+      { tokenId: "tokC", targeted: true },
+      { tokenId: "tokA", targeted: false },
+      { tokenId: "tokB", targeted: false },
+    ]);
+    mgr.destroy();
+  });
+
+  it("single: Shift + right-click accumulates without touching the others", async () => {
+    aim("tokA");
+    const { mgr, container, ops } = await build(ROLE_PLAYER, () => new Set(), tokens);
+    pointer(container, makeFakeTarget("tokB"), 2, true);
+    await flush();
+    expect(targetOps(ops).map((o) => o.payload)).toEqual([{ tokenId: "tokB", targeted: true }]);
+    mgr.destroy();
+  });
+
+  it("multi: right-click accumulates; Shift + right-click replaces", async () => {
+    setTargetMode("multi");
+    aim("tokA");
+    const { mgr, container, ops } = await build(ROLE_PLAYER, () => new Set(), tokens);
+    pointer(container, makeFakeTarget("tokB"), 2);
+    await flush();
+    expect(targetOps(ops).map((o) => o.payload)).toEqual([{ tokenId: "tokB", targeted: true }]);
+    ops.length = 0;
+    mockGetMyTargets.mockReturnValue(
+      ["tokA", "tokB"].map((id) => ({ tokenId: id, actorId: ACTOR_ID, name: id })),
+    );
+    pointer(container, makeFakeTarget("tokC"), 2, true);
+    await flush();
+    expect(targetOps(ops).map((o) => o.payload)).toEqual([
+      { tokenId: "tokC", targeted: true },
+      { tokenId: "tokA", targeted: false },
+    ]);
     mgr.destroy();
   });
 });

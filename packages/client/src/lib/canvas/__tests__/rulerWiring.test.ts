@@ -37,7 +37,11 @@ describe("the ruler button", () => {
   it("drives the shared tool store and carries the tooltip", () => {
     expect(button).toMatch(/rulerTool\.mode/);
     expect(button).toMatch(/Régua \(segure R\)/);
-    expect(button).toMatch(/aria-pressed=\{rulerTool\.mode !== null\}/);
+    // Lit only while measuring: an area drawn by the Alvos button borrows the tool without lighting it.
+    expect(button).toMatch(
+      /measuring = \$derived\(rulerTool\.mode !== null && rulerTool\.purpose === "measure"\)/,
+    );
+    expect(button).toMatch(/aria-pressed=\{measuring\}/);
   });
 
   it("offers every area next to the ruler", () => {

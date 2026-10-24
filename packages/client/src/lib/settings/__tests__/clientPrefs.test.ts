@@ -14,6 +14,7 @@ import {
   DEFAULT_CLIENT_PREFERENCES,
   loadClientPreferences,
   setNotificationPreference,
+  setSheetDisplayPreference,
   setTokenDisplayPreference,
   setVolumeChannel,
 } from "../clientPrefs.js";
@@ -142,11 +143,12 @@ describe("REQ-CFG-022 / REQ-CFG-072 / RNF-CFG-01: no network operation, ever", (
 });
 
 describe("REQ-CFG-023: no locale control lives in this module (the theme is per browser, lib/ui/theme.ts — DEC-CFG-11)", () => {
-  it("the preference shape has exactly volume + notifications + tokenDisplay + avatarOverlay — nothing else", () => {
+  it("the preference shape has exactly volume + notifications + tokenDisplay + avatarOverlay + sheetDisplay — nothing else", () => {
     const prefs = loadClientPreferences("world-a", "user-1");
     expect(Object.keys(prefs).sort()).toEqual([
       "avatarOverlay",
       "notifications",
+      "sheetDisplay",
       "tokenDisplay",
       "volume",
     ]);
@@ -186,5 +188,35 @@ describe("REQ-TOK-074: token display preferences — names, bars", () => {
     const socket = { emit: vi.fn(), on: vi.fn(), off: vi.fn() };
     setTokenDisplayPreference("world-a", "user-1", "showBars", false);
     expect(socket.emit).not.toHaveBeenCalled();
+  });
+});
+
+// ---------------------------------------------------------------------------
+// The "i" that explains a sheet number: a personal, client-local toggle.
+// ---------------------------------------------------------------------------
+
+describe("sheet display preferences — the breakdown icon", () => {
+  it("shows the icon when nothing was ever saved", () => {
+    expect(loadClientPreferences("world-a", "user-1").sheetDisplay).toEqual({
+      showBreakdownIcon: true,
+    });
+  });
+
+  it("persists the choice per world and user, without disturbing the other groups", () => {
+    setTokenDisplayPreference("world-a", "user-1", "showBars", false);
+    setSheetDisplayPreference("world-a", "user-1", "showBreakdownIcon", false);
+    const prefs = loadClientPreferences("world-a", "user-1");
+    expect(prefs.sheetDisplay.showBreakdownIcon).toBe(false);
+    expect(prefs.tokenDisplay.showBars).toBe(false);
+    expect(loadClientPreferences("world-a", "user-2").sheetDisplay.showBreakdownIcon).toBe(true);
+    expect(loadClientPreferences("world-b", "user-1").sheetDisplay.showBreakdownIcon).toBe(true);
+  });
+
+  it("falls back to showing the icon when the saved value is junk", () => {
+    store.set(
+      clientPrefsKey("world-a", "user-1"),
+      JSON.stringify({ sheetDisplay: { showBreakdownIcon: "no" } }),
+    );
+    expect(loadClientPreferences("world-a", "user-1").sheetDisplay.showBreakdownIcon).toBe(true);
   });
 });

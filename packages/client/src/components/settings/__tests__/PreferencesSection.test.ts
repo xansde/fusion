@@ -15,6 +15,7 @@ import { render } from "svelte/server";
 
 import PreferencesSection from "../PreferencesSection.svelte";
 import { setNotificationPreference, setVolumeChannel } from "../../../lib/settings/clientPrefs.js";
+import { setSheetDisplayPref } from "../../../lib/settings/sheetDisplayPrefsStore.svelte.js";
 import { setTokenDisplayPref } from "../../../lib/canvas/tokens/tokenDisplayPrefsStore.svelte.js";
 import "../../../lib/i18n/index.js";
 import { t } from "../../../lib/i18n/i18n.js";
@@ -81,7 +82,7 @@ describe("PreferencesSection — REQ-CFG-021: client notification preferences", 
     // (see the describe block below) — the notifications section itself is
     // asserted by its two labels above, plus the avatar overlay's "show" toggle (spec 35 REQ-AVT-038) — 5 in all.
     const checkboxCount = (html.match(/type="checkbox"/g) ?? []).length;
-    expect(checkboxCount).toBe(5);
+    expect(checkboxCount).toBe(6);
   });
 
   it("reflects a saved 'off' state instead of always showing the default", () => {
@@ -90,7 +91,7 @@ describe("PreferencesSection — REQ-CFG-021: client notification preferences", 
 
     // Order on the page: chatSound, turnAlert, then TK080's showNames/showBars.
     const checkboxes = [...html.matchAll(/<input type="checkbox"([^>]*)>/g)];
-    expect(checkboxes).toHaveLength(5);
+    expect(checkboxes).toHaveLength(6);
     expect(checkboxes[0]?.[1]).not.toMatch(/checked/);
     expect(checkboxes[1]?.[1]).toMatch(/checked/);
   });
@@ -109,7 +110,7 @@ describe("PreferencesSection — REQ-TOK-074: token display preferences", () => 
     expect(html).toContain(t("FUSION.Settings.Preferences.TokenDisplay.ShowBars"));
 
     const checkboxes = [...html.matchAll(/<input type="checkbox"([^>]*)>/g)];
-    expect(checkboxes).toHaveLength(5);
+    expect(checkboxes).toHaveLength(6);
     // The last two checkboxes are showNames/showBars — both on by default.
     expect(checkboxes[2]?.[1]).toMatch(/checked/);
     expect(checkboxes[3]?.[1]).toMatch(/checked/);
@@ -131,6 +132,23 @@ describe("PreferencesSection — REQ-TOK-074: token display preferences", () => 
     const checkboxes = [...html.matchAll(/<input type="checkbox"([^>]*)>/g)];
     expect(checkboxes[2]?.[1]).not.toMatch(/checked/);
     expect(checkboxes[3]?.[1]).toMatch(/checked/);
+  });
+});
+
+describe("PreferencesSection — the breakdown icon of the sheets", () => {
+  it("offers a checkbox for the icon, on by default and last of the list", () => {
+    const html = renderSection("world-1", "user-1");
+    expect(html).toContain(t("FUSION.Settings.Preferences.SheetDisplayTitle"));
+    expect(html).toContain(t("FUSION.Settings.Preferences.SheetDisplay.ShowBreakdownIcon"));
+    const checkboxes = [...html.matchAll(/<input type="checkbox"([^>]*)>/g)];
+    expect(checkboxes[5]?.[1]).toMatch(/checked/);
+  });
+
+  it("reflects a saved 'off'", () => {
+    setSheetDisplayPref("world-1", "user-1", "showBreakdownIcon", false);
+    const html = renderSection("world-1", "user-1");
+    const checkboxes = [...html.matchAll(/<input type="checkbox"([^>]*)>/g)];
+    expect(checkboxes[5]?.[1]).not.toMatch(/checked/);
   });
 });
 

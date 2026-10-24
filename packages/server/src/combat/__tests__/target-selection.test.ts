@@ -208,6 +208,41 @@ describe("TargetSelection (ALQ-F1-05, REQ-CBT-056)", () => {
     ]);
   });
 
+  // A save card has no dice of its own: the creatures that must roll the save are the caster's targets at cast time,
+  // photographed on the card so each one gets its own save button.
+  it("records targetSnapshot on a save card's announcement (no dice), and not on a card without a save", async () => {
+    const caster = createActor(h, "Caster", "player-p");
+    const enemy = createActor(h, "Enemy");
+    const sceneId = createSceneWithTokens(h, [{ _id: "tok-t1", name: "T1", actorId: enemy }]);
+    const target = buildCombatTargetHandler(h.targetDeps);
+    await target({ tokenId: "tok-t1", targeted: true }, playerCtx("player-p"));
+
+    const cast = (card: Record<string, unknown>): ChatMessage => {
+      const ack = h.chatHandler(
+        {
+          content: "lança Bola de Fogo",
+          worldId: WORLD_ID,
+          speakerActorId: caster,
+          flags: {
+            pf2e: {
+              abilityCard: { kind: "spell", casterActorId: caster, name: "Bola de Fogo", ...card },
+            },
+          },
+        },
+        playerCtx("player-p"),
+      ) as Ack<{ message: ChatMessage }>;
+      if (!ack.ok) throw new Error(ack.message);
+      return ack.result.message;
+    };
+
+    const withSave = cast({ saveType: "reflex", dcValue: 19, basicSave: true });
+    expect(readTargetSnapshot(withSave)).toEqual([{ tokenId: "tok-t1", actorId: enemy, sceneId }]);
+    expect(readTargetSnapshot(readPersistedMessage(h, withSave._id))).toEqual([
+      { tokenId: "tok-t1", actorId: enemy, sceneId },
+    ]);
+    expect(readTargetSnapshot(cast({}))).toBeUndefined();
+  });
+
   it("records an empty targetSnapshot when the author has no live targets", () => {
     const ack = h.chatHandler(
       { content: "/r 1d20", worldId: WORLD_ID, rollMode: "public" },
