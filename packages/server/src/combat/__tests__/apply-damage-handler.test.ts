@@ -1794,7 +1794,11 @@ describe("actor:applyDamage — ActorMechanicsService (ALQ-F1-08, REQ-SYS-142)",
         targetTokenIds: [T1_TOKEN_ID],
       });
       expect(ack["ok"], JSON.stringify(ack)).toBe(true);
-      expect(STARTING_HP - readActorHp(ctx.fusionDb, T1_ACTOR_ID)).toBe(rollMsg.rolls?.[0]?.total);
+      // 3d8+10 reaches 34 and the HP floors at 0, so a high roll takes only the STARTING_HP it finds.
+      const total = rollMsg.rolls?.[0]?.total ?? 0;
+      expect(STARTING_HP - readActorHp(ctx.fusionDb, T1_ACTOR_ID)).toBe(
+        Math.min(total, STARTING_HP),
+      );
     } finally {
       gmSocket.disconnect();
     }
